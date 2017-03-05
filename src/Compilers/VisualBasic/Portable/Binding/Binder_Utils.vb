@@ -1017,7 +1017,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim flags As SourceParameterFlags = Nothing
 
                 flags = DecodeParameterModifiers(container, paramSyntax.Modifiers, checkModifier, diagBag)
-
+                ' Check validatity of 'Optional' parameter usage
                 If (flagsOfPreviousParameters And SourceParameterFlags.Optional) = SourceParameterFlags.Optional Then
                     If (flags And SourceParameterFlags.ParamArray) = SourceParameterFlags.ParamArray AndAlso
                         Not reportedError Then
@@ -1040,16 +1040,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '    (arg0 As T, Me arg1 As T)  Error
                 '    (Me arg0 As T, Me arg1 as T)  Error
                 If (flags And SourceParameterFlags.Me) <> 0 Then
-                    If i > 0 AndAlso Not reportedError Then
-                        ReportDiagnostic(diagBag, paramSyntax, ERRID.ERR_MeParamMustBeFirst)
-                        reportedError = True
-                    ElseIf container.ContainingType.IsInterface AndAlso Not reportedError Then
+                    If Not container.ContainingType.IsModuleType AndAlso Not reportedError Then
                         ReportDiagnostic(diagBag, paramSyntax, ERRID.ERR_MeIllegal1)
                         reportedError = True
-                    End If
-                ElseIf (flagsOfPreviousParameters And SourceParameterFlags.Me) <> 0 Then
-                    If (flags And SourceParameterFlags.Me) = SourceParameterFlags.Me AndAlso
-                        Not reportedError Then
+                    ElseIf i > 0 AndAlso Not reportedError Then
+                        ReportDiagnostic(diagBag, paramSyntax, ERRID.ERR_MeParamMustBeFirst)
+                        reportedError = True
+                    ElseIf (flagsOfPreviousParameters And SourceParameterFlags.Me) <> 0 AndAlso Not reportedError Then
                         ReportDiagnostic(diagBag, paramSyntax, ERRID.ERR_MeIllegal1)
                         reportedError = True
                     End If
