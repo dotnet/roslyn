@@ -78,11 +78,11 @@ set TMP=%TEMP%
   }
 }
 
-// Linux
+// Ubuntu 14.04
 commitPullList.each { isPr -> 
-  def jobName = Utilities.getFullJobName(projectName, "linux_debug", isPr)
+  def jobName = Utilities.getFullJobName(projectName, "ubuntu_14_debug", isPr)
   def myJob = job(jobName) {
-    description("Linux tests")
+    description("Ubuntu 14.04 tests")
                   steps {
                     shell("./cibuild.sh --nocache --debug")
                   }
@@ -91,6 +91,23 @@ commitPullList.each { isPr ->
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "linux"
   Utilities.setMachineAffinity(myJob, 'Ubuntu14.04', 'latest-or-auto')
+  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// Ubuntu 16.04
+commitPullList.each { isPr -> 
+  def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_debug", isPr)
+  def myJob = job(jobName) {
+    description("Ubuntu 16.04 tests")
+                  steps {
+                    shell("./cibuild.sh --nocache --debug")
+                  }
+                }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = "linux"
+  Utilities.setMachineAffinity(myJob, 'Ubuntu16.04', 'latest-or-auto')
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
