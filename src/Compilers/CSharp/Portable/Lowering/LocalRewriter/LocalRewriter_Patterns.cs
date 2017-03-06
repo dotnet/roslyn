@@ -179,9 +179,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     t = e as T?;
                 //     return t.HasValue;
                 // }
+
+                // At the moment this code path has no test coverage https://github.com/dotnet/roslyn/issues/17548.
                 return _factory.Call(
                     _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
-                    GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_get_HasValue));
+                    UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_get_HasValue));
             }
             else if (type.IsValueType)
             {
@@ -207,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), tmpType == loweredInput.Type ? loweredInput : _factory.As(loweredInput, tmpType));
                 var value = _factory.Call(
                     _factory.Local(tmp),
-                    GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                    UnsafeGetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
                 var asg2 = _factory.AssignmentExpression(loweredTarget, value);
                 var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
                 return _factory.MakeSequence(tmp, asg1, asg2, result);
