@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var context = await GetOrCreateContext(document, position, cancellationToken).ConfigureAwait(false);
             options = GetUpdatedRecommendationOptions(options, document.Project.Language);
 
-            if (!relatedDocumentIds.Any())
+            if (relatedDocumentIds.IsEmpty)
             {
                 var itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
                 return CreateItems(itemsForCurrentDocument, context, preselect);
