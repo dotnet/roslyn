@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 return  MemberInsertionCompletionItem.Create(
                     displayString,
-                    symbol.GetGlyph(),
                     modifiers,
                     _startLineNumber,
                     symbol,

@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context)
+        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols)
         {
             // SPECIAL: If the preselected symbol is System.Object, don't commit on '{'.
             // Otherwise, it is cumbersome to type an anonymous object when the target type is object.

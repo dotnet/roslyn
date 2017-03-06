@@ -105,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return MemberInsertionCompletionItem.Create(
                 displayText,
-                Glyph.MethodPrivate,
                 modifiers,
                 line,
                 method,

@@ -1,22 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -84,9 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var field = type.TupleElements[index];
                 var item = CommonCompletionItem.Create(
-                    field.Name + ":",
-                    Glyph.FieldPublic,
-                    rules: _cachedRules);
+                    field.Name + ":", _cachedRules, Glyph.FieldPublic);
                 context.AddItem(item);
             }
         }
