@@ -202,10 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (notRegularProperty)
                 {
-                    Binder.CheckFeatureAvailability(location,
-                                                    isReadOnly ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties :
-                                                                 MessageID.IDS_FeatureAutoImplementedProperties,
-                                                    diagnostics);
+                    Binder.CheckFeatureAvailability(
+                        syntax,
+                        isReadOnly ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties : MessageID.IDS_FeatureAutoImplementedProperties,
+                        diagnostics,
+                        location);
                 }
             }
 

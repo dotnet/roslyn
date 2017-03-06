@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -3757,6 +3758,66 @@ class Program
                 diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [WorkItem(388744, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
+        public async Task SimplifyTypeNameWithOutDiscard()
+        {
+            await TestAsync(
+@"class C
+{
+    static void F()
+    {
+        [|C.G|](out _);
+    }
+    static void G(out object o)
+    {
+        o = null;
+    }
+}",
+@"class C
+{
+    static void F()
+    {
+        G(out _);
+    }
+    static void G(out object o)
+    {
+        o = null;
+    }
+}",
+                parseOptions: CSharpParseOptions.Default);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [WorkItem(388744, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
+        public async Task SimplifyTypeNameWithOutDiscard_FeatureDisabled()
+        {
+            await TestAsync(
+@"class C
+{
+    static void F()
+    {
+        [|C.G|](out _);
+    }
+    static void G(out object o)
+    {
+        o = null;
+    }
+}",
+@"class C
+{
+    static void F()
+    {
+        G(out _);
+    }
+    static void G(out object o)
+    {
+        o = null;
+    }
+}",
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
