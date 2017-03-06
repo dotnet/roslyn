@@ -29,7 +29,6 @@ namespace Roslyn.Test.Utilities
             public const string ClassView = nameof(ClassView);
             public const string CodeActionsAddConstructorParametersFromMembers = "CodeActions.AddConstructorParametersFromMembers";
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
-            public const string CodeActionsAddAsync = "CodeActions.AddAsync";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
@@ -69,6 +68,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsInvertIf = "CodeActions.InvertIf";
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
+            public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
             public const string CodeActionsMakeMethodSynchronous = "CodeActions.MakeMethodSynchronous";
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";
             public const string CodeActionsMoveToTopOfFile = "CodeActions.MoveToTopOfFile";
