@@ -7100,20 +7100,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot define overloaded methods that differ only on parameter reference kind.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot define an overloaded {1} that differs only on parameter modifiers &apos;{2}&apos; and &apos;{3}&apos;.
         /// </summary>
         internal static string ERR_OverloadRefKind {
             get {
                 return ResourceManager.GetString("ERR_OverloadRefKind", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot define overloaded constructor &apos;{0}&apos; because it differs from another constructor only on parameter reference kind.
-        /// </summary>
-        internal static string ERR_OverloadRefKindCtor {
-            get {
-                return ResourceManager.GetString("ERR_OverloadRefKindCtor", resourceCulture);
             }
         }
         
@@ -10346,6 +10337,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_SK_ALIAS {
             get {
                 return ResourceManager.GetString("IDS_SK_ALIAS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to constructor.
+        /// </summary>
+        internal static string IDS_SK_CONSTRUCTOR {
+            get {
+                return ResourceManager.GetString("IDS_SK_CONSTRUCTOR", resourceCulture);
             }
         }
         

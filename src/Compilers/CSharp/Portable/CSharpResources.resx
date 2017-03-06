@@ -1818,7 +1818,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Cannot specify only Out attribute on a ref parameter. Use both In and Out attributes, or neither.</value>
   </data>
   <data name="ERR_OverloadRefKind" xml:space="preserve">
-    <value>'{0}' cannot define overloaded methods that differ only on parameter reference kind</value>
+    <value>'{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'</value>
   </data>
   <data name="ERR_LiteralDoubleCast" xml:space="preserve">
     <value>Literal of type double cannot be implicitly converted to type '{1}'; use an '{0}' suffix to create a literal of this type</value>
@@ -3731,9 +3731,6 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="WRN_IsDynamicIsConfusing_Title" xml:space="preserve">
     <value>Using 'is' to test compatibility with 'dynamic' is essentially identical to testing compatibility with 'Object'</value>
   </data>
-  <data name="ERR_OverloadRefKindCtor" xml:space="preserve">
-    <value>Cannot define overloaded constructor '{0}' because it differs from another constructor only on parameter reference kind</value>
-  </data>
   <data name="ERR_YieldNotAllowedInScript" xml:space="preserve">
     <value>Cannot use 'yield' in top-level script code</value>
   </data>
@@ -5004,5 +5001,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AttributesInLocalFuncDecl" xml:space="preserve">
     <value>Attributes are not allowed on local function parameters or type parameters</value>
+  </data>
+  <data name="IDS_SK_CONSTRUCTOR" xml:space="preserve">
+    <value>constructor</value>
   </data>
 </root>

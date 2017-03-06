@@ -4154,24 +4154,7 @@ class DerivedClass : BaseClass
             Assert.Empty(derivedIndexer.OverriddenOrHiddenMembers.HiddenMembers);
             Assert.Equal(baseIndexer, derivedIndexer.OverriddenOrHiddenMembers.OverriddenMembers.Single());
         }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void OverloadsWithDifferentReadOnlyRefnessShouldErrorOut()
-        {
-            var text = @"
-abstract class BaseClass
-{
-    public virtual void Method(ref int x) { }
-    public virtual void Method(ref readonly int x) { }
-}";
-
-            var comp = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (5,25): error CS0663: 'BaseClass' cannot define overloaded methods that differ only on parameter reference kind
-                //     public virtual void Method(ref readonly int x) { }
-                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("BaseClass").WithLocation(5, 25));
-        }
-
+        
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         public void OverloadsShouldPreserveReadOnlyRefness()

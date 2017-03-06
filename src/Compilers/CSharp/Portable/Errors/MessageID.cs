@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureReadonlyReferences = MessageBase + 12718,
 
+        IDS_SK_CONSTRUCTOR = MessageBase + 12719,
     }
 
     // Message IDs may refer to strings that need to be localized.
