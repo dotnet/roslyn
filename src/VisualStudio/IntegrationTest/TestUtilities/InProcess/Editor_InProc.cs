@@ -750,5 +750,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var properties = TypeDescriptor.GetProperties(button);
             return properties[propertyName].GetValue(button) as string;
         }
+
+        public void Undo()
+            => GetDTE().ExecuteCommand("Edit.Undo");
     }
 }
