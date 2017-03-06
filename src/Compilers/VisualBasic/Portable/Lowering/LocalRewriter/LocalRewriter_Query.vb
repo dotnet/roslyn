@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                         Nothing)
 
             If instrumentQueryLambdaBody AndAlso Instrument Then
-                returnstmt = _instrumenter.InstrumentQueryLambdaBody(node, returnstmt)
+                returnstmt = _instrumenterOpt.InstrumentQueryLambdaBody(node, returnstmt)
             End If
 
             _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery = save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions

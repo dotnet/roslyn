@@ -23,18 +23,17 @@ End Class
 Public Class [|Bar|]
     Inherits Foo
 End Class",
-"Imports System
-Public MustInherit Class Foo
+"Public MustInherit Class Foo
     Public MustOverride Sub Foo(i As Integer)
     Protected MustOverride Function Bar(s As String, ByRef d As Double) As Boolean
 End Class
 Public Class Bar
     Inherits Foo
     Public Overrides Sub Foo(i As Integer)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
     Protected Overrides Function Bar(s As String, ByRef d As Double) As Boolean
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Function
 End Class")
         End Function
@@ -48,14 +47,13 @@ End Class
 Public Class [|Derived|]
     Inherits Base
 End Class",
-"Imports System
-Public MustInherit Class Base
+"Public MustInherit Class Base
     Protected MustOverride Function Bar(x As (a As Integer, Integer)) As (c As Integer, Integer)
 End Class
 Public Class Derived
     Inherits Base
     Protected Overrides Function Bar(x As (a As Integer, Integer)) As (c As Integer, Integer)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Function
 End Class")
         End Function
@@ -69,14 +67,13 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Integer = 3)
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As Integer = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -90,14 +87,13 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Boolean = True)
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As Boolean = True)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -111,14 +107,13 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Boolean = False)
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As Boolean = False)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -132,14 +127,13 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As String = ""a"")
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As String = ""a"")
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -153,14 +147,13 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Char = ""c""c)
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As Char = ""c""c)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -174,14 +167,13 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Long = 3)
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As Long = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -195,14 +187,14 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
+"
 MustInherit Class b
     Public MustOverride Sub g(Optional x As Short = 3)
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As Short = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -216,14 +208,14 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
+"
 MustInherit Class b
     Public MustOverride Sub g(Optional x As UShort = 3)
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As UShort = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -237,14 +229,13 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Integer = -3)
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As Integer = -3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -258,14 +249,13 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As UInteger = 3)
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As UInteger = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -279,14 +269,13 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As ULong = 3)
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As ULong = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -300,14 +289,13 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Decimal = 3)
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As Decimal = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -321,14 +309,13 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Double = 3)
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As Double = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -344,8 +331,7 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-Structure S
+"Structure S
 End Structure
 MustInherit Class b
     Public MustOverride Sub g(Optional x As S = Nothing)
@@ -353,7 +339,7 @@ End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As S = Nothing)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -370,8 +356,7 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-Structure S
+"Structure S
 End Structure
 MustInherit Class b
     Public MustOverride Sub g(Optional x As S? = Nothing)
@@ -379,7 +364,7 @@ End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As S? = Nothing)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -394,14 +379,13 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Integer? = Nothing, Optional y As Integer? = 5)
 End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As Integer? = Nothing, Optional y As Integer? = 5)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -417,8 +401,7 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-Class S
+"Class S
 End Class
 MustInherit Class b
     Public MustOverride Sub g(Optional x As S = Nothing)
@@ -426,7 +409,7 @@ End Class
 Class c
     Inherits b
     Public Overrides Sub g(Optional x As S = Nothing)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -481,14 +464,13 @@ End Class
 Class [|C(Of S)|]
     Inherits A(Of S)
 End Class",
-"Imports System
-MustInherit Class A(Of T)
+"MustInherit Class A(Of T)
     MustOverride Sub Foo(Of S As T)()
 End Class
 Class C(Of S)
     Inherits A(Of S)
     Public Overrides Sub Foo(Of S1 As S)()
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function

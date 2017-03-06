@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private QueryClauseInfo GetQueryClauseInfo(BoundQueryClause bound)
         {
             if (bound == null) return default(QueryClauseInfo);
-            var castInfo = (bound.Cast == null) ? default(SymbolInfo) : GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bound.Cast, bound.Cast, boundNodeForSyntacticParent: null, binderOpt: null);
+            var castInfo = (bound.Cast == null) ? SymbolInfo.None : GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bound.Cast, bound.Cast, boundNodeForSyntacticParent: null, binderOpt: null);
             var operationInfo = GetSymbolInfoForQuery(bound);
             return new QueryClauseInfo(castInfo: castInfo, operationInfo: operationInfo);
         }
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var call = bound?.Operation as BoundCall;
             if (call == null)
             {
-                return default(SymbolInfo);
+                return SymbolInfo.None;
             }
 
             var operation = call.IsDelegateCall ? call.ReceiverOpt : call;

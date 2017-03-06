@@ -24,18 +24,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if this workspace supports manually opening and closing documents.
         /// </summary>
-        public virtual bool CanOpenDocuments
-        {
-            get { return false; }
-        }
+        public virtual bool CanOpenDocuments => false;
 
         /// <summary>
         /// True if this workspace supports manually changing the active context document of a text buffer.
         /// </summary>
-        internal virtual bool CanChangeActiveContextDocument
-        {
-            get { return false; }
-        }
+        internal virtual bool CanChangeActiveContextDocument => false;
 
         private static void RemoveIfEmpty<TKey, TValue>(IDictionary<TKey, ISet<TValue>> dictionary, TKey key)
         {

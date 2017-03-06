@@ -29,8 +29,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return Nothing
             End If
 
-            Dim semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            ' Don't show change-signature in the random whitespace/trivia for code.
 
+            If Not matchingNode.Span.IntersectsWith(position) Then
+                Return Nothing
+            End If
+
+            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+            Dim symbol = TryGetDeclaredSymbol(semanticModel, matchingNode, token, cancellationToken)
+            If symbol IsNot Nothing Then
+                Return If(restrictToDeclarations AndAlso Not IsInSymbolHeader(matchingNode, position), Nothing, symbol)
+            End If
+
+            If matchingNode.Kind() = SyntaxKind.ObjectCreationExpression Then
+                Dim objectCreation = DirectCast(matchingNode, ObjectCreationExpressionSyntax)
+                If token.Parent.AncestorsAndSelf().Any(Function(a) a Is objectCreation.Type) Then
+                    Dim typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type).Symbol
+                    If typeSymbol IsNot Nothing AndAlso typeSymbol.IsKind(SymbolKind.NamedType) AndAlso DirectCast(typeSymbol, ITypeSymbol).TypeKind = TypeKind.Delegate Then
+                        Return typeSymbol
+                    End If
+                End If
+            End If
+
+            Dim symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken)
+            Return If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault())
+        End Function
+
+        Private Function IsInSymbolHeader(matchingNode As SyntaxNode, position As Integer) As Boolean
+            ' Caret has to be after the attributes if the symbol has any.
+            Dim lastAttributes = matchingNode.ChildNodes().LastOrDefault(
+                Function(n) TypeOf n Is AttributeListSyntax)
+            Dim start = If(lastAttributes?.GetLastToken().GetNextToken().SpanStart,
+                           matchingNode.SpanStart)
+
+            If position < start Then
+                Return False
+            End If
+
+            ' If the symbol has a parameter list, then the caret shouldn't be past the end of it.
+            Dim parameterList = matchingNode.ChildNodes().LastOrDefault(
+                Function(n) TypeOf n Is ParameterListSyntax)
+            If parameterList IsNot Nothing Then
+                Return position <= parameterList.FullSpan.End
+            End If
+
+            ' Case we haven't handled yet.  Just assume we're in the header.
+            Return True
+        End Function
+
+        Private Function TryGetDeclaredSymbol(semanticModel As SemanticModel,
+                                              matchingNode As SyntaxNode,
+                                              token As SyntaxToken,
+                                              cancellationToken As CancellationToken) As ISymbol
             Select Case matchingNode.Kind()
                 Case SyntaxKind.PropertyBlock
                     Dim parameterList = DirectCast(matchingNode, PropertyBlockSyntax).PropertyStatement.ParameterList
@@ -48,33 +98,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     Return semanticModel.GetDeclaredSymbol(DirectCast(matchingNode, MethodBlockSyntax).BlockStatement, cancellationToken)
                 Case SyntaxKind.ConstructorBlock
                     Return semanticModel.GetDeclaredSymbol(DirectCast(matchingNode, ConstructorBlockSyntax).BlockStatement, cancellationToken)
-                Case SyntaxKind.ObjectCreationExpression
-                    Dim objectCreation = DirectCast(matchingNode, ObjectCreationExpressionSyntax)
-                    If token.Parent.AncestorsAndSelf().Any(Function(a) a Is objectCreation.Type) Then
-                        Dim typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type).Symbol
-                        If typeSymbol IsNot Nothing AndAlso typeSymbol.IsKind(SymbolKind.NamedType) AndAlso DirectCast(typeSymbol, ITypeSymbol).TypeKind = TypeKind.Delegate Then
-                            Return typeSymbol
-                        End If
-                    End If
             End Select
 
-            Dim symbol = semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken)
-            If symbol IsNot Nothing Then
-                Return symbol
-            End If
-
-            Dim symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken)
-            Return If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault())
+            Return semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken)
         End Function
 
-        Private _nonDeclarationKinds As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
-            {
-                SyntaxKind.SubBlock,
-                SyntaxKind.FunctionBlock,
-                SyntaxKind.PropertyBlock,
-                SyntaxKind.EventBlock,
-                SyntaxKind.ConstructorBlock
-            }.ToImmutableArray()
+        Private Shared ReadOnly _nonDeclarationKinds As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
+            SyntaxKind.SubBlock,
+            SyntaxKind.FunctionBlock,
+            SyntaxKind.PropertyBlock,
+            SyntaxKind.EventBlock,
+            SyntaxKind.ConstructorBlock)
 
         Private _invokableAncestorKinds As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
             {

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public CodeGenerationPropertySymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol type,
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IPropertySymbol explicitInterfaceSymbolOpt,
             string name,
             bool isIndexer,
-            IList<IParameterSymbol> parametersOpt,
+            ImmutableArray<IParameterSymbol> parametersOpt,
             IMethodSymbol getMethod,
             IMethodSymbol setMethod)
             : base(containingType, attributes, declaredAccessibility, modifiers, name)
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.Type = type;
             this.ReturnsByRef = returnsByRef;
             this.IsIndexer = isIndexer;
-            this.Parameters = parametersOpt.AsImmutableOrEmpty();
+            this.Parameters = parametersOpt.NullToEmpty();
             this.ExplicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
                 ? ImmutableArray.Create<IPropertySymbol>()
                 : ImmutableArray.Create(explicitInterfaceSymbolOpt);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var result = new CodeGenerationPropertySymbol(
                 this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
                 this.Modifiers, this.Type, this.ReturnsByRef, this.ExplicitInterfaceImplementations.FirstOrDefault(),
-                this.Name, this.IsIndexer, this.Parameters.IsDefault ? null : (IList<IParameterSymbol>)this.Parameters,
+                this.Name, this.IsIndexer, this.Parameters,
                 this.GetMethod, this.SetMethod);
             CodeGenerationPropertyInfo.Attach(result,
                 CodeGenerationPropertyInfo.GetIsNew(this),

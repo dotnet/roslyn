@@ -435,6 +435,22 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         }
 
         [Fact]
+        public void TestAddHandlerExpressions()
+        {
+            VerifySyntax<AssignmentExpressionSyntax>(
+                _g.AddEventHandler(_g.IdentifierName("@event"), _g.IdentifierName("handler")),
+                "@event += (handler)");
+        }
+
+        [Fact]
+        public void TestSubtractHandlerExpressions()
+        {
+            VerifySyntax<AssignmentExpressionSyntax>(
+                _g.RemoveEventHandler(_g.IdentifierName("@event"),
+                _g.IdentifierName("handler")), "@event -= (handler)");
+        }
+
+        [Fact]
         public void TestAwaitExpressions()
         {
             VerifySyntax<AwaitExpressionSyntax>(_g.AwaitExpression(_g.IdentifierName("x")), "await x");
@@ -548,6 +564,14 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<UsingStatementSyntax>(
                 _g.UsingStatement(_g.IdentifierName("x"), "y", _g.IdentifierName("z"), new[] { _g.IdentifierName("q") }),
                 "using (x y = z)\r\n{\r\n    q;\r\n}");
+        }
+
+        [Fact]
+        public void TestLockStatements()
+        {
+            VerifySyntax<LockStatementSyntax>(
+                _g.LockStatement(_g.IdentifierName("x"), new[] { _g.IdentifierName("y") }),
+                "lock (x)\r\n{\r\n    y;\r\n}");
         }
 
         [Fact]

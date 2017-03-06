@@ -25,21 +25,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                 </Workspace>";
 
         protected override string GetLanguage()
-        {
-            return LanguageNames.CSharp;
-        }
+            => LanguageNames.CSharp;
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new TestCodeRefactoringProvider();
-        }
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+            => new TestCodeRefactoringProvider();
 
         [WpfFact]
         public async Task TestCodeActionPreviewAndApply()
         {
             using (var workspace = await TestWorkspace.CreateAsync(WorkspaceXml))
             {
-                var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace);
+                var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, fixProviderData: null);
 
                 var expectedCode = "private class D { }";
 

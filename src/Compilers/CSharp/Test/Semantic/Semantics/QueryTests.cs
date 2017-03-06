@@ -2500,5 +2500,28 @@ namespace ParentNamespace
                 //                 var z = from c in NSAlias select 3;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "NSAlias").WithArguments("NSAlias", "namespace").WithLocation(15, 35));
         }
+
+        [Fact, WorkItem(12052, "https://github.com/dotnet/roslyn/issues/12052")]
+        public void LambdaParameterConflictsWithRangeVariable()
+        {
+            var code = @"
+using System;
+using System.Linq;
+
+class Program
+{
+    static void Main()
+    {
+        var res = from a in new[] { 1 }
+                  select (Func<int, int>)(a => 1);
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+                // (10,43): error CS0136: A local or parameter named 'a' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                   select (Func<int, int>)(a => 1);
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a").WithArguments("a").WithLocation(10, 43)
+                );
+        }
     }
 }

@@ -248,22 +248,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return $"Imports { String.Join(".", nameParts) }"
         End Function
 
-        Protected Overrides Function TryGetDescription(
+        Protected Overrides Function GetDescription(
                 document As Document,
                 symbol As INamespaceOrTypeSymbol,
                 semanticModel As SemanticModel,
                 root As SyntaxNode,
-                checkForExistingImport As Boolean,
-                cancellationToken As CancellationToken) As String
+                cancellationToken As CancellationToken) As (description As String, hasExistingImport As Boolean)
 
             Dim importsStatement = GetImportsStatement(symbol)
-
             Dim addImportService = document.GetLanguageService(Of IAddImportsService)
-            If addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement) Then
-                Return Nothing
-            End If
 
-            Return $"Imports {symbol.ToDisplayString()}"
+            Return ($"Imports {symbol.ToDisplayString()}",
+                    addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement))
         End Function
 
         Private Function GetImportsStatement(symbol As INamespaceOrTypeSymbol) As ImportsStatementSyntax

@@ -19,23 +19,23 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public CodeGenerationMethodSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol returnType,
             bool returnsByRef,
             IMethodSymbol explicitInterfaceSymbolOpt,
             string name,
-            IList<ITypeParameterSymbol> typeParameters,
-            IList<IParameterSymbol> parameters,
-            IList<AttributeData> returnTypeAttributes,
+            ImmutableArray<ITypeParameterSymbol> typeParameters,
+            ImmutableArray<IParameterSymbol> parameters,
+            ImmutableArray<AttributeData> returnTypeAttributes,
             MethodKind methodKind = MethodKind.Ordinary)
             : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
         {
             this.ReturnType = returnType;
             this.ReturnsByRef = returnsByRef;
-            this.TypeParameters = typeParameters.AsImmutableOrEmpty();
-            this.Parameters = parameters.AsImmutableOrEmpty();
+            this.TypeParameters = typeParameters.NullToEmpty();
+            this.Parameters = parameters.NullToEmpty();
             this.MethodKind = methodKind;
 
             this.ExplicitInterfaceImplementations = explicitInterfaceSymbolOpt == null

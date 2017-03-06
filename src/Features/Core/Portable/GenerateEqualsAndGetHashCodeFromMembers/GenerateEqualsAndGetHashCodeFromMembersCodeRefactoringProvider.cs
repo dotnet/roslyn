@@ -14,7 +14,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
-    // [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers)]
+    // [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, 
+    //      Name = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers)]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
                     Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
     internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
@@ -31,10 +32,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
 
             var actions = await this.GenerateEqualsAndGetHashCodeFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (!actions.IsDefault)
-            {
-                context.RegisterRefactorings(actions);
-            }
+            context.RegisterRefactorings(actions);
         }
 
         private const string EqualsName = "Equals";
@@ -80,23 +78,26 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             Document document,
             TextSpan textSpan,
             INamedTypeSymbol containingType,
-            IList<ISymbol> selectedMembers,
+            ImmutableArray<ISymbol> selectedMembers,
             bool hasEquals,
             bool hasGetHashCode)
         {
             if (!hasEquals)
             {
-                yield return new GenerateEqualsAndHashCodeAction(this, document, textSpan, containingType, selectedMembers, generateEquals: true);
+                yield return new GenerateEqualsAndHashCodeAction(
+                    this, document, textSpan, containingType, selectedMembers, generateEquals: true);
             }
 
             if (!hasGetHashCode)
             {
-                yield return new GenerateEqualsAndHashCodeAction(this, document, textSpan, containingType, selectedMembers, generateGetHashCode: true);
+                yield return new GenerateEqualsAndHashCodeAction(
+                    this, document, textSpan, containingType, selectedMembers, generateGetHashCode: true);
             }
 
             if (!hasEquals && !hasGetHashCode)
             {
-                yield return new GenerateEqualsAndHashCodeAction(this, document, textSpan, containingType, selectedMembers, generateEquals: true, generateGetHashCode: true);
+                yield return new GenerateEqualsAndHashCodeAction(
+                    this, document, textSpan, containingType, selectedMembers, generateEquals: true, generateGetHashCode: true);
             }
         }
     }

@@ -20,10 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
         private string RenameFileCodeActionTitle = FeaturesResources.Rename_file_to_0;
         private string RenameTypeCodeActionTitle = FeaturesResources.Rename_type_to_0;
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new MoveTypeCodeRefactoringProvider();
-        }
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, object fixProviderData)
+            => new MoveTypeCodeRefactoringProvider();
 
         protected async Task TestRenameTypeToMatchFileAsync(
            string originalCode,
@@ -140,12 +138,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             IList<string> destinationDocumentContainers = null,
             bool expectedCodeAction = true,
             int index = 0,
-            bool compareTokens = true)
+            bool compareTokens = true,
+            Action<Workspace> onAfterWorkspaceCreated = null)
         {
             if (expectedCodeAction)
             {
                 using (var workspace = await CreateWorkspaceFromFileAsync(originalCode, parseOptions: null, compilationOptions: null))
                 {
+                    onAfterWorkspaceCreated?.Invoke(workspace);
+
                     // replace with default values on null.
                     if (destinationDocumentContainers == null)
                     {

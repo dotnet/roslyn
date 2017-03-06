@@ -277,5 +277,73 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     void Foo() => throw Bar(); // Comment
 }", options: UseExpressionBody, compareTokens: false);
         }
+
+        [WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestDirectives1()
+        {
+            await TestAsync(
+@"
+#define DEBUG
+using System;
+
+class Program
+{
+    void Method()
+    {
+#if DEBUG
+        [|Console|].WriteLine();
+#endif
+    }
+}",
+@"
+#define DEBUG
+using System;
+
+class Program
+{
+    void Method() =>
+#if DEBUG
+        Console.WriteLine();
+#endif
+
+}", options: UseExpressionBody, compareTokens: false);
+        }
+
+        [WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestDirectives2()
+        {
+            await TestAsync(
+@"
+#define DEBUG
+using System;
+
+class Program
+{
+    void Method()
+    {
+#if DEBUG
+        [|Console|].WriteLine(a);
+#else
+        Console.WriteLine(b);
+#endif
+    }
+}",
+@"
+#define DEBUG
+using System;
+
+class Program
+{
+    void Method() =>
+#if DEBUG
+        Console.WriteLine(a);
+#else
+        Console.WriteLine(b);
+#endif
+
+}", options: UseExpressionBody, compareTokens: false);
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -21,32 +22,32 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
-            IList<ISymbol> symbols,
+            ImmutableArray<ISymbol> symbols,
             CancellationToken cancellationToken)
         {
             var statements = CreateEqualsMethodStatements(factory, compilation, containingType, symbols, cancellationToken);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(isOverride: true),
                 returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
                 returnsByRef: false,
                 explicitInterfaceSymbol: null,
                 name: EqualsName,
-                typeParameters: null,
-                parameters: new[] { CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object), ObjName) },
+                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object), ObjName)),
                 statements: statements);
         }
 
-        private static IList<SyntaxNode> CreateEqualsMethodStatements(
+        private static ImmutableArray<SyntaxNode> CreateEqualsMethodStatements(
             SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
             IEnumerable<ISymbol> members,
             CancellationToken cancellationToken)
         {
-            var statements = new List<SyntaxNode>();
+            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
             var parts = StringBreaker.BreakIntoWordParts(containingType.Name);
             string localName = "v";
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             statements.Add(factory.ReturnStatement(
                 expressions.Aggregate(factory.LogicalAndExpression)));
 
-            return statements;
+            return statements.ToImmutableAndFree();
         }
 
         private static SyntaxNode GetDefaultEqualityComparer(

@@ -25,30 +25,15 @@ namespace Microsoft.CodeAnalysis.Differencing
             _edits = edits.AsImmutable();
         }
 
-        public ImmutableArray<Edit<TNode>> Edits
-        {
-            get { return _edits; }
-        }
+        public ImmutableArray<Edit<TNode>> Edits => _edits;
 
-        public Match<TNode> Match
-        {
-            get { return _match; }
-        }
+        public Match<TNode> Match => _match;
 
-        private TreeComparer<TNode> Comparer
-        {
-            get { return _match.Comparer; }
-        }
+        private TreeComparer<TNode> Comparer => _match.Comparer;
 
-        private TNode Root1
-        {
-            get { return _match.OldRoot; }
-        }
+        private TNode Root1 => _match.OldRoot;
 
-        private TNode Root2
-        {
-            get { return _match.NewRoot; }
-        }
+        private TNode Root2 => _match.NewRoot;
 
         private void AddUpdatesInsertsMoves(List<Edit<TNode>> edits)
         {
