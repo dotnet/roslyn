@@ -4051,6 +4051,39 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void HidingPropertyWithRefReadOnlyReturnTypeWillProduceAWarning()
+        {
+            var code = @"
+class A
+{
+    protected int x = 0;
+    public ref readonly int Property { get { return ref x; } }
+}
+class B : A
+{
+    public ref readonly int Property { get { return ref x; } }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (9,29): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
+                //     public ref readonly int Property { get { return ref x; } }
+                Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(9, 29));
+
+            var aClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            var bClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+
+            var aProperty = aClass.GetMember<PropertySymbol>("Property");
+            var bProperty = bClass.GetMember<PropertySymbol>("Property");
+
+            Assert.Empty(aProperty.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Empty(aProperty.OverriddenOrHiddenMembers.HiddenMembers);
+
+            Assert.Empty(bProperty.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Equal(aProperty, bProperty.OverriddenOrHiddenMembers.HiddenMembers.Single());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         public void HidingMethodWithRefReadOnlyParameterAndNewKeywordWillNotProduceAWarning()
         {
             var code = @"
@@ -4106,6 +4139,36 @@ class B : A
 
             Assert.Empty(bMethod.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Equal(aMethod, bMethod.OverriddenOrHiddenMembers.HiddenMembers.Single());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void HidingPropertyWithRefReadOnlyReturnTypeAndNewKeywordWillProduceAWarning()
+        {
+            var code = @"
+class A
+{
+    protected int x = 0;
+    public ref readonly int Property { get { return ref x; } }
+}
+class B : A
+{
+    public new ref readonly int Property { get { return ref x; } }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics();
+
+            var aClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            var bClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+
+            var aProperty = aClass.GetMember<PropertySymbol>("Property");
+            var bProperty = bClass.GetMember<PropertySymbol>("Property");
+
+            Assert.Empty(aProperty.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Empty(aProperty.OverriddenOrHiddenMembers.HiddenMembers);
+
+            Assert.Empty(bProperty.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Equal(aProperty, bProperty.OverriddenOrHiddenMembers.HiddenMembers.Single());
         }
 
         [Fact]
@@ -4169,6 +4232,36 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void OverridingPropertyWithRefReadOnlyReturnTypeWillNotProduceAnError()
+        {
+            var code = @"
+class A
+{
+    protected int x = 0;
+    public virtual ref readonly int Property { get { return ref x; } }
+}
+class B : A
+{
+    public override ref readonly int Property { get { return ref x; } }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics();
+
+            var aClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            var bClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+
+            var aProperty = aClass.GetMember<PropertySymbol>("Property");
+            var bProperty = bClass.GetMember<PropertySymbol>("Property");
+
+            Assert.Empty(aProperty.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Empty(aProperty.OverriddenOrHiddenMembers.HiddenMembers);
+
+            Assert.Equal(aProperty, bProperty.OverriddenOrHiddenMembers.OverriddenMembers.Single());
+            Assert.Empty(bProperty.OverriddenOrHiddenMembers.HiddenMembers);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
         public void DeclaringMethodWithDifferentParameterRefnessWillNotProduceAnError()
         {
             var code = @"
@@ -4188,6 +4281,8 @@ class B : A
 
             var aMethod = aClass.GetMember<MethodSymbol>("M");
             var bMethod = bClass.GetMember<MethodSymbol>("M");
+
+            Assert.NotEqual(aMethod, bMethod);
 
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
@@ -4297,6 +4392,32 @@ class ChildClass : BaseClass
                 // (10,38): error CS8148: Reference signature of the return type of 'ChildClass.Method1()' does not match overridden member 'BaseClass.Method1()'
                 //     public override ref readonly int Method1() { return ref x; }
                 Diagnostic(ErrorCode.ERR_CantChangeRefnessOfReturnOnOverride, "Method1").WithArguments("ChildClass.Method1()", "BaseClass.Method1()").WithLocation(10, 38));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void PropertyOverloadsShouldPreserveReadOnlyRefnessInReturnTypes()
+        {
+            var code = @"
+class A
+{
+    protected int x = 0;
+    public virtual ref int Property1 { get { return ref x; } }
+    public virtual ref readonly int Property2 { get { return ref x; } }
+}
+class B : A
+{
+    public override ref readonly int Property1 { get { return ref x; } }
+    public override ref int Property2 { get { return ref x; } }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (11,29): error CS8148: Reference signature of the return type of 'B.Property2' does not match overridden member 'A.Property2'
+                //     public override ref int Property2 { get { return ref x; } }
+                Diagnostic(ErrorCode.ERR_CantChangeRefnessOfReturnOnOverride, "Property2").WithArguments("B.Property2", "A.Property2").WithLocation(11, 29),
+                // (10,38): error CS8148: Reference signature of the return type of 'B.Property1' does not match overridden member 'A.Property1'
+                //     public override ref readonly int Property1 { get { return ref x; } }
+                Diagnostic(ErrorCode.ERR_CantChangeRefnessOfReturnOnOverride, "Property1").WithArguments("B.Property1", "A.Property1").WithLocation(10, 38));
         }
     }
 }
