@@ -41,11 +41,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <summary>
         /// Given a list of symbols, creates the list of completion items for them.
         /// </summary>
-        protected IEnumerable<CompletionItem> CreateItems(
+        private IEnumerable<CompletionItem> CreateItems(
             IEnumerable<ISymbol> symbols,
             SyntaxContext context,
-            Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
-            List<ProjectId> totalProjects,
             bool preselect)
         {
             var tree = context.SyntaxTree;
@@ -55,13 +53,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     group symbol by texts into g
                     select this.CreateItem(
                         g.Key.displayText, g.Key.insertionText, g.ToList(), context,
-                        invalidProjectMap, totalProjects, preselect);
+                        invalidProjectMap: null, totalProjects: null, preselect: preselect);
 
             return q.ToList();
         }
 
         /// <summary>
-        /// Given a list of symbols, and a mapping from each symbol to its original SemanticModel, creates the list of completion items for them.
+        /// Given a list of symbols, and a mapping from each symbol to its original SemanticModel, 
+        /// creates the list of completion items for them.
         /// </summary>
         protected IEnumerable<CompletionItem> CreateItems(
             IEnumerable<ISymbol> symbols,
@@ -210,10 +209,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 IEnumerable<ISymbol> itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
 
                 itemsForCurrentDocument = itemsForCurrentDocument ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
-                return CreateItems(itemsForCurrentDocument, context,
-                    invalidProjectMap: null,
-                    totalProjects: null,
-                    preselect: preselect);
+                return CreateItems(itemsForCurrentDocument, context, preselect);
             }
 
             var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
