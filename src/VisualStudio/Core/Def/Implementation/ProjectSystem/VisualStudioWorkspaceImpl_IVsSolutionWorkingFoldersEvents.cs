@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class VisualStudioProjectTracker : IVsSolutionWorkingFoldersEvents
+    internal partial class VisualStudioWorkspaceImpl : IVsSolutionWorkingFoldersEvents
     {
         void IVsSolutionWorkingFoldersEvents.OnAfterLocationChange(uint location, bool contentMoved)
         {
@@ -14,7 +15,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // notify the working folder change
-            NotifyWorkspaceHosts(host => (host as IVisualStudioWorkingFolder)?.OnAfterWorkingFolderChange());
+            GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider).NotifyWorkspaceHosts(
+                host => (host as IVisualStudioWorkingFolder)?.OnAfterWorkingFolderChange());
         }
 
         void IVsSolutionWorkingFoldersEvents.OnQueryLocationChange(uint location, out bool pfCanMoveContent)
@@ -27,7 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // notify the working folder change
             pfCanMoveContent = true;
-            NotifyWorkspaceHosts(host => (host as IVisualStudioWorkingFolder)?.OnBeforeWorkingFolderChange());
+            GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider).NotifyWorkspaceHosts(
+                host => (host as IVisualStudioWorkingFolder)?.OnBeforeWorkingFolderChange());
         }
     }
 }
