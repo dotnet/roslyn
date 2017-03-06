@@ -38,15 +38,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             get { return (HostServices)_exportProvider; }
         }
 
-        internal IMefHostExportProvider HostExportProvider
-        {
-            get { return _exportProvider; }
-        }
+        internal IMefHostExportProvider HostExportProvider => _exportProvider;
 
-        public override Workspace Workspace
-        {
-            get { return _workspace; }
-        }
+        public override Workspace Workspace => _workspace;
 
         public override TWorkspaceService GetService<TWorkspaceService>()
         {

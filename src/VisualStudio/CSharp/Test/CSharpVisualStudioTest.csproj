@@ -75,10 +75,6 @@
       <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
       <Name>PdbUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
       <Name>TestUtilities</Name>
@@ -200,6 +196,7 @@
     <Compile Include="Debugging\DataTipInfoGetterTests.cs" />
     <Compile Include="Debugging\LocationInfoGetterTests.cs" />
     <Compile Include="Debugging\NameResolverTests.cs" />
+    <Compile Include="DesignerAttribute\DesignerAttributeServiceTests.cs" />
     <Compile Include="Interactive\Commands\InteractiveCommandHandlerTests.cs" />
     <Compile Include="Interactive\Commands\TestInteractiveCommandHandler.cs" />
     <Compile Include="Interactive\Commands\InteractiveWindowCommandHandlerTestState.cs" />
@@ -248,5 +245,6 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

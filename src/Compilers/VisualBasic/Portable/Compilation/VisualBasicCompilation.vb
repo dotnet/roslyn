@@ -669,7 +669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _embeddedTrees,
                 _declarationTable,
                 info?.PreviousScriptCompilation,
-                info?.ReturnType,
+                info?.ReturnTypeOpt,
                 info?.GlobalsType,
                 info IsNot Nothing,
                 _referenceManager,
@@ -1770,12 +1770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The Script class symbol or null if it is not defined.
         ''' </returns>
         Private Function BindScriptClass() As ImplicitNamedTypeSymbol
-            If Options.ScriptClassName Is Nothing OrElse Not Options.ScriptClassName.IsValidClrTypeName() Then
-                Return Nothing
-            End If
-
-            Dim namespaceOrType = Me.Assembly.GlobalNamespace.GetNamespaceOrTypeByQualifiedName(Options.ScriptClassName.Split("."c)).AsSingleton()
-            Return TryCast(namespaceOrType, ImplicitNamedTypeSymbol)
+            Return DirectCast(CommonBindScriptClass(), ImplicitNamedTypeSymbol)
         End Function
 
         ''' <summary>
@@ -2236,7 +2231,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
             Else
                 ' start generating PDB checksums if we need to emit PDBs
-                If emittingPdb AndAlso Not CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics) Then
+                If (emittingPdb OrElse moduleBeingBuilt.EmitOptions.EmitTestCoverageData) AndAlso
+                   Not CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics) Then
                     Return False
                 End If
 

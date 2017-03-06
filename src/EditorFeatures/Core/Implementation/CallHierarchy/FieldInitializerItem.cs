@@ -21,36 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             _details = details;
         }
 
-        public IEnumerable<ICallHierarchyItemDetails> Details
-        {
-            get
-            {
-                return _details;
-            }
-        }
+        public IEnumerable<ICallHierarchyItemDetails> Details => _details;
 
-        public ImageSource DisplayGlyph
-        {
-            get
-            {
-                return _displayGlyph;
-            }
-        }
+        public ImageSource DisplayGlyph => _displayGlyph;
 
-        public string Name
-        {
-            get
-            {
-                return _name;
-            }
-        }
+        public string Name => _name;
 
-        public string SortText
-        {
-            get
-            {
-                return _sortText;
-            }
-        }
+        public string SortText => _sortText;
     }
 }

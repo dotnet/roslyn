@@ -317,13 +317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsInRefContext(this ExpressionSyntax expression)
-        {
-            var argument = expression?.Parent as ArgumentSyntax;
-            return
-                argument != null &&
-                argument.Expression == expression &&
-                argument.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword;
-        }
+            => expression.IsParentKind(SyntaxKind.RefExpression) ||
+               (expression?.Parent as ArgumentSyntax)?.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword;
 
         public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
         {
@@ -564,6 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.InterpolatedStringExpression:
                 case SyntaxKind.ComplexElementInitializerExpression:
                 case SyntaxKind.Interpolation:
+                case SyntaxKind.RefExpression:
                     // Direct parent kind checks.
                     return true;
             }

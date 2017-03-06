@@ -3357,14 +3357,14 @@ class G<T>
     [AsyncMethodBuilder(typeof(G<>.BN))] class T_ONT<V> { }
     [AsyncMethodBuilder(typeof(G<>.BN))] class T_ONN { }
 
-    async T_IIT<int> g1() => await Task.FromResult(1); 
-    async T_IIN g2() => await Task.FromResult(1);      
-    async T_INT<int> g3() => await Task.FromResult(1); 
+    async T_IIT<int> g1() => await Task.FromResult(1);
+    async T_IIN g2() => await Task.FromResult(1);
+    async T_INT<int> g3() => await Task.FromResult(1);
     async T_INN g4() => await Task.FromResult(1);      // might have been ok builder genericity but we decided not
-    async T_OOT<int> g5() => await Task.FromResult(1); 
-    async T_OON g6() => await Task.FromResult(1);      
-    async T_ONT<int> g7() => await Task.FromResult(1); 
-    async T_ONN g8() => await Task.FromResult(1);      
+    async T_OOT<int> g5() => await Task.FromResult(1);
+    async T_OON g6() => await Task.FromResult(1);
+    async T_ONT<int> g7() => await Task.FromResult(1);
+    async T_ONN g8() => await Task.FromResult(1);
 }
 
 class Program { static void Main() { } }
@@ -3373,27 +3373,12 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (39,27): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_IIT<int> g1() => await Task.FromResult(1); 
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(39, 27),
                 // (17,27): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_NIT<int> f1() => await Task.FromResult(1); 
+                //     async T_NIT<int> f1() => await Task.FromResult(1);
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(17, 27),
                 // (18,22): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_NIN f2() => await Task.FromResult(1);      
+                //     async T_NIN f2() => await Task.FromResult(1);
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(18, 22),
-                // (40,22): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_IIN g2() => await Task.FromResult(1);      
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(40, 22),
-                // (41,27): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_INT<int> g3() => await Task.FromResult(1); 
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(41, 27),
-                // (42,22): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_INN g4() => await Task.FromResult(1);      // might have been ok builder genericity but we decided not
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(42, 22),
-                // (43,27): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_OOT<int> g5() => await Task.FromResult(1); 
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(43, 27),
                 // (19,27): error CS0656: Missing compiler required member 'N.BG<int>.Task'
                 //     async T_NOT<int> f3() => await Task.FromResult(1); // ok builderType genericity (but missing members)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BG<int>", "Task").WithLocation(19, 27),
@@ -3401,28 +3386,42 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 //     async T_NOT<int> f3() => await Task.FromResult(1); // ok builderType genericity (but missing members)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BG<int>", "Create").WithLocation(19, 27),
                 // (20,22): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_NON f4() => await Task.FromResult(1);      
+                //     async T_NON f4() => await Task.FromResult(1);
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(20, 22),
-                // (44,22): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_OON g6() => await Task.FromResult(1);      
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(44, 22),
-                // (45,27): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_ONT<int> g7() => await Task.FromResult(1); 
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(45, 27),
                 // (21,27): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_NNT<int> f5() => await Task.FromResult(1); 
+                //     async T_NNT<int> f5() => await Task.FromResult(1);
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(21, 27),
-                // (46,22): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async T_ONN g8() => await Task.FromResult(1);      
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(46, 22),
                 // (22,22): error CS0656: Missing compiler required member 'N.BN.Task'
                 //     async T_NNN f6() => await Task.FromResult(1);      // ok builderType genericity (but missing members)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BN", "Task").WithLocation(22, 22),
                 // (22,22): error CS0656: Missing compiler required member 'N.BN.Create'
                 //     async T_NNN f6() => await Task.FromResult(1);      // ok builderType genericity (but missing members)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BN", "Create").WithLocation(22, 22)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BN", "Create").WithLocation(22, 22),
+                // (39,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_IIT<int> g1() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(39, 27),
+                // (40,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_IIN g2() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(40, 22),
+                // (41,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_INT<int> g3() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(41, 27),
+                // (42,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_INN g4() => await Task.FromResult(1);      // might have been ok builder genericity but we decided not
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(42, 22),
+                // (43,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_OOT<int> g5() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(43, 27),
+                // (44,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_OON g6() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(44, 22),
+                // (45,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_ONT<int> g7() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(45, 27),
+                // (46,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_ONN g8() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(46, 22)
                 );
-
         }
 
         [Fact]
@@ -4830,6 +4829,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await task; }").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(62, 37));
         }
 
+
         [Fact, WorkItem(16531, "https://github.com/dotnet/roslyn/issues/16531")]
         public void ArityMismatch()
         {
@@ -4870,6 +4870,86 @@ namespace System.Runtime.CompilerServices
                 // (8,53): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     public async MyAwesomeType<string> CustomTask() { await Task.Delay(1000); return string.Empty; }
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ await Task.Delay(1000); return string.Empty; }").WithLocation(8, 53)
+                );
+        }
+        
+        [Fact, WorkItem(16493, "https://github.com/dotnet/roslyn/issues/16493")]
+        public void AsyncMethodBuilderReturnsDifferentTypeThanTasklikeType()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+
+public class G<T>
+{
+    public async ValueTask Method() { await Task.Delay(5); return; }
+
+    [AsyncMethodBuilder(typeof(AsyncValueTaskMethodBuilder))]
+    public struct ValueTask
+    {
+    }
+}
+
+public class AsyncValueTaskMethodBuilder
+{
+    public G<int>.ValueTask Task { get => default(G<int>.ValueTask); }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public static AsyncValueTaskMethodBuilder Create() { return default(AsyncValueTaskMethodBuilder); }
+    public void SetException(Exception exception) { }
+    public void SetResult() { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class AsyncMethodBuilderAttribute : System.Attribute
+    {
+        public AsyncMethodBuilderAttribute(Type type) { }
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyEmitDiagnostics(
+                // (8,37): error CS8204: For type 'AsyncValueTaskMethodBuilder' to be used as an AsyncMethodBuilder for type 'G<T>.ValueTask', its Task property should return type 'G<T>.ValueTask' instead of type 'G<int>.ValueTask'.
+                //     public async ValueTask Method() { await Task.Delay(5); return; }
+                Diagnostic(ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty, "{ await Task.Delay(5); return; }").WithArguments("AsyncValueTaskMethodBuilder", "G<T>.ValueTask", "G<int>.ValueTask").WithLocation(8, 37)
+                );
+        }
+
+        [Fact, WorkItem(16493, "https://github.com/dotnet/roslyn/issues/16493")]
+        public void AsyncMethodBuilderReturnsDifferentTypeThanTasklikeType2()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static async MyTask M() { await Task.Delay(5); throw null; }
+}
+[AsyncMethodBuilder(typeof(MyTaskBuilder))]
+class MyTask { }
+class MyTaskBuilder
+{
+    public static MyTaskBuilder Create() => null;
+    public int Task => 0;
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult() { }
+    public void SetException(Exception exception) { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyEmitDiagnostics(
+                // (7,29): error CS8204: For type 'MyTaskBuilder' to be used as an AsyncMethodBuilder for type 'MyTask', its Task property should return type 'MyTask' instead of type 'int'.
+                //     static async MyTask M() { await Task.Delay(5); throw null; }
+                Diagnostic(ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty, "{ await Task.Delay(5); throw null; }").WithArguments("MyTaskBuilder", "MyTask", "int").WithLocation(7, 29)
                 );
         }
     }

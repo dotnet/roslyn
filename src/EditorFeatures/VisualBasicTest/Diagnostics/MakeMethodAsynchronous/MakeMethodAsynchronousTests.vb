@@ -8,15 +8,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMe
     Public Class MakeMethodAsynchronousTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing,
-                New VisualBasicMakeMethodAsynchronousCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New VisualBasicMakeMethodAsynchronousCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInSubNoModifiers() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 Module Program
@@ -36,7 +34,7 @@ End Module",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInSubWithModifiers() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 Module Program
@@ -56,7 +54,7 @@ End Module",
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInFunctionNoModifiers() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 Module Program
@@ -76,7 +74,7 @@ Module Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInFunctionWithModifiers() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 Module Program
@@ -132,7 +130,7 @@ Module Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInMember() As Task
-            Await TestMissingAsync("Imports System
+            Await TestMissingInRegularAndScriptAsync("Imports System
 Imports System.Threading.Tasks
 Module Program
     Dim x =[| Await Task.Delay(3)|] 
@@ -389,7 +387,7 @@ Module Module1
     End Function
 End Module
 </File>
-            Await TestAsync(initial, expected, compareTokens:=False)
+            Await TestAsync(initial, expected, ignoreTrivia:=False)
         End Function
     End Class
 End Namespace

@@ -570,13 +570,40 @@ class C
             var tree2 = await document.GetSyntaxTreeAsync();
             var basemethod2 = tree2.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<CSharp.Syntax.BaseMethodDeclarationSyntax>();
 
-            var service = new CSharp.CSharpSemanticFactsService();
+            var service = CSharp.CSharpSemanticFactsService.Instance;
             var m = service.TryGetSpeculativeSemanticModel(firstModel, basemethod1, basemethod2, out var testModel);
 
             var xSymbol = testModel.LookupSymbols(position).First(s => s.Name == "x");
 
             // This should not throw an exception.
             Assert.NotNull(SymbolKey.Create(xSymbol));
+        }
+
+        [Fact]
+        public void TestGenericMethodTypeParameterMissing1()
+        {
+            var source1 = @"
+public class C
+{
+    void M<T>(T t) { }
+}
+";
+
+            var source2 = @"
+public class C
+{
+}
+";
+
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var methods = GetDeclaredSymbols(compilation1).OfType<IMethodSymbol>();
+            foreach (var method in methods)
+            {
+                var key = SymbolKey.Create(method);
+                key.Resolve(compilation2);
+            }
         }
 
         [Fact, WorkItem(377839, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=377839")]

@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Protected Overrides Function CreateWorkspaceAsync(fileContents As String) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(fileContents)
+        Protected Overrides Function CreateWorkspace(fileContents As String) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(fileContents)
         End Function
 
         Friend Overrides Function CreateCompletionService(workspace As Workspace, exclusiveProviders As ImmutableArray(Of CompletionProvider)) As CompletionServiceWithProviders
@@ -92,21 +92,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Protected Async Function VerifySendEnterThroughToEditorAsync(
                 initialMarkup As String, textTypedSoFar As String, expected As Boolean) As Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initialMarkup)
+            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim documentId = workspace.GetDocumentId(hostDocument)
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
                 Dim service = GetCompletionService(workspace)
-                Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
+                Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
                 Assert.Equal(expected, Controller.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar))
             End Using
         End Function
 
-        Protected Async Function TestCommonIsTextualTriggerCharacterAsync() As Task
+        Protected Sub TestCommonIsTextualTriggerCharacter()
             Dim alwaysTriggerList =
             {
                 "foo$$.",
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             }
 
             For Each markup In alwaysTriggerList
-                Await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
             Next
 
             Dim triggerOnlyWithLettersList =
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             }
 
             For Each markup In triggerOnlyWithLettersList
-                Await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=False)
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=False)
             Next
 
             Dim neverTriggerList =
@@ -137,8 +137,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             }
 
             For Each markup In neverTriggerList
-                Await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled:=False, shouldTriggerWithTriggerOnLettersDisabled:=False)
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled:=False, shouldTriggerWithTriggerOnLettersDisabled:=False)
             Next
-        End Function
+        End Sub
     End Class
 End Namespace

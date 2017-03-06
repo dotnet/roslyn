@@ -280,7 +280,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
                 //         (x, y) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(9, 18)
                 );
@@ -407,7 +407,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (11,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                // (11,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
                 //         (x, y) = new C() { Deconstruct = DeconstructMethod };
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C() { Deconstruct = DeconstructMethod }").WithArguments("C", "2").WithLocation(11, 18)
                 );
@@ -508,12 +508,12 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (8,9): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                // (8,10): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(x, y) = new C()").WithArguments("int", "byte").WithLocation(8, 9),
-                // (8,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "byte").WithLocation(8, 10),
+                // (8,13): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(x, y) = new C()").WithArguments("int", "string").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("int", "string").WithLocation(8, 13)
                 );
         }
 
@@ -811,17 +811,15 @@ class C
         int y;
 
         (x, y) = (1, 2);
+        System.Console.WriteLine($""{x} {y}"");
     }
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp");
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            comp.VerifyEmitDiagnostics(
-                // (22,9): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(x, y) = (1, 2)").WithArguments("Item2", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(22, 9)
-                );
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2");
         }
 
         [Fact]
@@ -1173,7 +1171,7 @@ class C
             comp.VerifyDiagnostics(
                 // (7,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var y = (x, x) = new C();
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(x, x) = new C()").WithArguments("System.ValueTuple`2").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(x, x)").WithArguments("System.ValueTuple`2").WithLocation(7, 17)
                 );
         }
 
@@ -1336,19 +1334,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x5, var (x6, x7))").WithArguments("tuples", "7").WithLocation(8, 18),
                 // (9,14): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         for ((int x8, var (x9, x10)) = Pair.Create(1, Pair.Create(2, 3)); ; ) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x8, var (x9, x10))").WithArguments("tuples", "7").WithLocation(9, 14),
-                // (8,32): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x6'.
-                //         foreach ((int x5, var (x6, x7)) in new[] { Pair.Create(1, Pair.Create(2, 3)) }) { }
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x6").WithArguments("x6").WithLocation(8, 32),
-                // (8,36): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x7'.
-                //         foreach ((int x5, var (x6, x7)) in new[] { Pair.Create(1, Pair.Create(2, 3)) }) { }
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x7").WithArguments("x7").WithLocation(8, 36),
-                // (9,28): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x9'.
-                //         for ((int x8, var (x9, x10)) = Pair.Create(1, Pair.Create(2, 3)); ; ) { }
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x9").WithArguments("x9").WithLocation(9, 28),
-                // (9,32): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x10'.
-                //         for ((int x8, var (x9, x10)) = Pair.Create(1, Pair.Create(2, 3)); ; ) { }
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x10").WithArguments("x10").WithLocation(9, 32)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x8, var (x9, x10))").WithArguments("tuples", "7").WithLocation(9, 14)
                 );
         }
 
@@ -2495,8 +2481,9 @@ class C
         public void DeconstructionLocalsDeclaredNotUsed()
         {
             // Check that there are no *use sites* within this code for local variables.
-            // They are declared herein, but nowhere used. So they should not be returned
-            // by SemanticModel.GetSymbolInfo.
+            // They are not declared. So they should not be returned
+            // by SemanticModel.GetSymbolInfo. Similarly, check that all designation syntax
+            // forms declare deconstruction locals.
             string source = @"
 class Program
 {
@@ -2525,15 +2512,31 @@ class Program
             {
                 var si = model.GetSymbolInfo(node);
                 var symbol = si.Symbol;
-                if (symbol == null) continue;
-
-                if (node is DeclarationExpressionSyntax)
+                if ((object)symbol != null)
                 {
-                    Assert.Equal(SymbolKind.Local, symbol.Kind);
+                    if (node is DeclarationExpressionSyntax)
+                    {
+                        Assert.Equal(SymbolKind.Local, symbol.Kind);
+                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, ((LocalSymbol)symbol).DeclarationKind);
+                    }
+                    else
+                    {
+                        Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+                    }
                 }
-                else
+
+                symbol = model.GetDeclaredSymbol(node);
+                if ((object)symbol != null)
                 {
-                    Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+                    if (node is SingleVariableDesignationSyntax)
+                    {
+                        Assert.Equal(SymbolKind.Local, symbol.Kind);
+                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, ((LocalSymbol)symbol).DeclarationKind);
+                    }
+                    else
+                    {
+                        Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+                    }
                 }
             }
         }
@@ -2700,6 +2703,9 @@ unsafe class C
                 // (6,15): error CS0103: The name 'x1' does not exist in the current context
                 //         (int* x1, int y1) = c;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 15),
+                // (6,19): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         (int* x1, int y1) = c;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y1").WithArguments("dynamic", "int").WithLocation(6, 19),
                 // (6,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (int* x1, int y1) = c;
                 Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int* x1, int y1)").WithLocation(6, 9),
@@ -2709,6 +2715,9 @@ unsafe class C
                 // (7,15): error CS0103: The name 'x2' does not exist in the current context
                 //         (var* x2, int y2) = c;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(7, 15),
+                // (7,19): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         (var* x2, int y2) = c;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y2").WithArguments("dynamic", "int").WithLocation(7, 19),
                 // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (var* x2, int y2) = c;
                 Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(var* x2, int y2)").WithLocation(7, 9),

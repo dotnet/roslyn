@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Instrument(node) Then
                 ' create a sequence point that contains the whole using statement as the first reachable sequence point
                 ' of the using statement. The resource variables are not yet in scope.
-                prologue = _instrumenter.CreateUsingStatementPrologue(node)
+                prologue = _instrumenterOpt.CreateUsingStatementPrologue(node)
             End If
 
             If prologue IsNot Nothing Then
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim instrument As Boolean = Me.Instrument(node)
 
             If instrument Then
-                boundResourceInitializationAssignment = _instrumenter.InstrumentUsingStatementResourceCapture(node, resourceIndex, boundResourceInitializationAssignment)
+                boundResourceInitializationAssignment = _instrumenterOpt.InstrumentUsingStatementResourceCapture(node, resourceIndex, boundResourceInitializationAssignment)
             End If
 
             ' create if statement with dispose call
@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' The block should start with a sequence point that points to the "End Using" statement. This is required in order to
                 ' highlight the end using when someone step next after the last statement of the original body and in case an exception
                 ' was thrown.
-                disposePrologue = _instrumenter.CreateUsingStatementDisposePrologue(node)
+                disposePrologue = _instrumenterOpt.CreateUsingStatementDisposePrologue(node)
             End If
 
             Dim finallyStatements As ImmutableArray(Of BoundStatement)

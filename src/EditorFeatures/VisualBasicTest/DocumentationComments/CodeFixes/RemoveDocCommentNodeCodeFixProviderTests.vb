@@ -9,15 +9,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
     Public Class RemoveDocCommentNodeCodeFixProviderTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing,
-                New VisualBasicRemoveDocCommentNodeCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New VisualBasicRemoveDocCommentNodeCodeFixProvider())
         End Function
 
         Private Overloads Async Function TestAsync(ByVal initial As String, ByVal expected As String) As Task
             Dim parseOptions = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
-            Await TestAsync(initial, expected, parseOptions:=parseOptions, compareTokens:=False)
+            Await TestAsync(initial, expected, parseOptions:=parseOptions, ignoreTrivia:=False)
         End Function
         
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>

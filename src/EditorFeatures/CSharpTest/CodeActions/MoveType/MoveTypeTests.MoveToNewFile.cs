@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             var code =
 @"[||]class test1 { }";
 
-            await TestMissingAsync(code);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
     [||]class test1 { }
 }";
 
-            await TestMissingAsync(code);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -43,6 +44,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         {
             var code =
 @"[|clas|]s Class1 { }
+ class Class2 { }";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestForSpans2()
+        {
+            var code =
+@"[||]class Class1 { }
  class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
@@ -61,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document Folders=""A\B""> 
-[|class|] Class1 { }
+[||]class Class1 { }
 class Class2 { }
         </Document>
     </Project>
@@ -77,21 +88,17 @@ class Class2 { }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task TestForSpans2()
+        public async Task TestForSpans3()
         {
             var code =
 @"[|class Class1|] { }
 class Class2 { }";
-            var codeAfterMove = @"class Class2 { }";
 
-            var expectedDocumentName = "Class1.cs";
-            var destinationDocumentText = @"class Class1 { }";
-
-            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-        public async Task TestForSpans3()
+        public async Task TestForSpans4()
         {
             var code =
 @"class Class1[||] { }
@@ -452,7 +459,7 @@ class Class2 { }";
 }";
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                compareTokens: false);
+                ignoreTrivia: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -797,7 +804,7 @@ class Outer
     {
     }
 
-    [|class|] Inner2
+    [||]class Inner2
     {
     }
 }";
@@ -820,7 +827,92 @@ partial class Outer
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                compareTokens: false);
+                ignoreTrivia: false);
+        }
+
+        [WorkItem(17171, "https://github.com/dotnet/roslyn/issues/17171")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestInsertFinalNewLine()
+        {
+            var code =
+@"
+class Outer
+{
+    class Inner1
+    {
+    }
+
+    [||]class Inner2
+    {
+    }
+}";
+            var codeAfterMove = @"
+partial class Outer
+{
+    class Inner1
+    {
+    }
+}";
+
+            var expectedDocumentName = "Inner2.cs";
+            var destinationDocumentText = @"
+partial class Outer
+{
+    class Inner2
+    {
+    }
+}
+";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText,
+                ignoreTrivia: false,
+                onAfterWorkspaceCreated: w =>
+                {
+                    w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, true);
+                });
+        }
+
+        [WorkItem(17171, "https://github.com/dotnet/roslyn/issues/17171")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestInsertFinalNewLine2()
+        {
+            var code =
+@"
+class Outer
+{
+    class Inner1
+    {
+    }
+
+    [||]class Inner2
+    {
+    }
+}";
+            var codeAfterMove = @"
+partial class Outer
+{
+    class Inner1
+    {
+    }
+}";
+
+            var expectedDocumentName = "Inner2.cs";
+            var destinationDocumentText = @"
+partial class Outer
+{
+    class Inner2
+    {
+    }
+}";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText,
+                ignoreTrivia: false,
+                onAfterWorkspaceCreated: w =>
+                {
+                    w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, false);
+                });
         }
     }
 }

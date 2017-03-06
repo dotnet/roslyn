@@ -110,16 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var oldTree = this.Parse(text);
             var newTree = oldTree.WithReplaceFirst("foo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
-            Assert.NotEqual(0, newTree.GetCompilationUnitRoot().Errors().Length);
+            Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.DestructorDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.ParameterList);
+                            SyntaxKind.IdentifierToken);
         }
 
         [Fact]
@@ -128,17 +125,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "class foo { ~bar() { } }";
             var oldTree = this.Parse(text);
             var newTree = oldTree.WithReplaceFirst("foo", "bar");
-            Assert.NotEqual(0, oldTree.GetCompilationUnitRoot().Errors().Length);
+            Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.DestructorDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.ParameterList);
+                            SyntaxKind.IdentifierToken);
         }
 
         [Fact]

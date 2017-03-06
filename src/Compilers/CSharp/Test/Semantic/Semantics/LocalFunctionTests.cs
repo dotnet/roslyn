@@ -377,7 +377,9 @@ class C
                              .GetMember<NamedTypeSymbol>("CLSCompliantAttribute"),
                 attrs[2].AttributeClass);
             Assert.True(attrs[3].AttributeClass.IsErrorType());
-            comp.DeclarationDiagnostics.Verify();
+
+            // The following line of code should be uncommented once https://github.com/dotnet/roslyn/issues/17293 is fixed.
+            //comp.DeclarationDiagnostics.Verify();
         }
 
         [Fact]
@@ -2783,12 +2785,13 @@ class C
         }
 
         [Fact]
+        [WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")]
         public void LocalFunctionParameterDefaultUsingConst()
         {
             var source = @"
 class C
 {
-    public static void Main(string[] args)
+    public static void Main()
     {
         const int N = 2;
         void Local1(int n = N) { System.Console.Write(n); }
@@ -2810,14 +2813,18 @@ class C
                 var model = compilation.GetSemanticModel(tree);
                 var descendents = tree.GetRoot().DescendantNodes();
 
+                var parameter = descendents.OfType<ParameterSyntax>().Single();
+                Assert.Equal("int n = N", parameter.ToString());
+                Assert.Equal("[System.Int32 n = 2]", model.GetDeclaredSymbol(parameter).ToTestDisplayString());
+
                 var name = "N";
                 var declarator = descendents.OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == name).Single();
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(declarator);
                 Assert.NotNull(symbol);
-                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+                Assert.Equal("System.Int32 N", symbol.ToTestDisplayString());
                 var refs = descendents.OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == name).ToArray();
                 Assert.Equal(1, refs.Length);
-                Assert.Equal(symbol, model.GetSymbolInfo(refs[0]).Symbol);
+                Assert.Same(symbol, model.GetSymbolInfo(refs[0]).Symbol);
             });
         }
 
@@ -2988,6 +2995,58 @@ class Program
             CompileAndVerify(comp, expectedOutput: 
 @"a
 5");
+        }
+
+        [Fact]
+        [WorkItem(16751, "https://github.com/dotnet/roslyn/issues/16751")]
+        public void SemanticModelInAttribute_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        const bool b1 = true;
+
+        void Local1(
+            [Test(p = b1)]
+            [Test(p = b2)]
+            int p1)
+        {
+        }
+
+        Local1(1);
+    }
+}
+
+class b1 {}
+
+class Test : System.Attribute
+{
+    public bool p {get; set;}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl).Verify(
+                // (10,23): error CS0103: The name 'b2' does not exist in the current context
+                //             [Test(p = b2)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23),
+                // (6,20): warning CS0219: The variable 'b1' is assigned but its value is never used
+                //         const bool b1 = true;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1").WithLocation(6, 20)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var b2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b2").Single();
+            Assert.Null(model.GetSymbolInfo(b2).Symbol);
+
+            var b1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b1").Single();
+            var b1Symbol = model.GetSymbolInfo(b1).Symbol;
+            Assert.Equal("System.Boolean b1", b1Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, b1Symbol.Kind);
         }
     }
 }

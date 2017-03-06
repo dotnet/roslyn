@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             var cancellationToken = waitContext.CancellationToken;
 
             var result = this.FindReferencedSymbolsAsync(document, position, waitContext).WaitAndGetResult(cancellationToken);
-            return TryDisplayReferences(result);
+            return TryDisplayReferences(result, cancellationToken);
         }
 
         private bool TryDisplayReferences(IEnumerable<INavigableItem> result)
@@ -77,14 +78,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             return false;
         }
 
-        private bool TryDisplayReferences(Tuple<IEnumerable<ReferencedSymbol>, Solution> result)
+        private bool TryDisplayReferences(
+            Tuple<IEnumerable<ReferencedSymbol>, Solution> result,
+            CancellationToken cancellationToken)
         {
             if (result != null && result.Item1 != null)
             {
                 var solution = result.Item2;
                 var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
                 var definitionsAndReferences = factory.CreateDefinitionsAndReferences(
-                    solution, result.Item1, includeHiddenLocations: false);
+                    solution, result.Item1, includeHiddenLocations: false, cancellationToken: cancellationToken);
 
                 foreach (var presenter in _referenceSymbolPresenters)
                 {

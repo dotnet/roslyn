@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Cci = Microsoft.Cci;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return UnderlyingParameter.GetCustomAttributesToEmit(compilationState);
         }
 
-        protected override Cci.IMetadataConstant GetDefaultValue(EmitContext context)
+        protected override MetadataConstant GetDefaultValue(EmitContext context)
         {
             return UnderlyingParameter.GetMetadataConstantValue(context);
         }

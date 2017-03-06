@@ -14,10 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
 {
     public class SpellCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpSpellCheckCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new CSharpSpellCheckCodeFixProvider());
 
         protected override IList<CodeAction> MassageActions(IList<CodeAction> actions)
             => FlattenActions(actions);
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
         var a = new [|Fo|]
     }
 }";
-            await TestMissingAsync(text);
+            await TestMissingInRegularAndScriptAsync(text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -139,7 +137,7 @@ public class Class1
     }
 }";
 
-            await TestAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -161,7 +159,7 @@ public class Class1
     }
 }";
 
-            await TestAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -180,7 +178,7 @@ class c
     protected int member { get; }
 }";
 
-            await TestMissingAsync(text);
+            await TestMissingInRegularAndScriptAsync(text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -196,7 +194,7 @@ class c
     private Foo<T> x;
 }";
 
-            await TestAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -212,7 +210,7 @@ class c
     private Foo x;
 }";
 
-            await TestAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -242,7 +240,7 @@ class Foo
     }
 }";
 
-            await TestAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -272,7 +270,7 @@ class Foo
     }
 }";
 
-            await TestAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -304,7 +302,7 @@ class c
     public int member { get; }
 }";
 
-            await TestAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -326,7 +324,7 @@ class c
     }
 }";
 
-            await TestMissingAsync(text);
+            await TestMissingInRegularAndScriptAsync(text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -358,7 +356,7 @@ class Program
     }
 }";
 
-            await TestAsync(text, expected, index: 0);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -390,7 +388,7 @@ class Program
     }
 }";
 
-            await TestAsync(text, expected, index: 1);
+            await TestInRegularAndScriptAsync(text, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -422,13 +420,13 @@ class C
     }
 }";
 
-            await TestAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         public async Task TestTestObjectConstruction()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class AwesomeClass
 {
     void M()
@@ -448,7 +446,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         public async Task TestTestMissingName()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[assembly: Microsoft.CodeAnalysis.[||]]");
         }
 
@@ -476,14 +474,14 @@ class C
   }
 }";
 
-            await TestAsync(text, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(text, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
         public async Task TestNotMissingOnKeywordWhichIsAlsoASnippet()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -506,13 +504,31 @@ class C
         [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
         public async Task TestMissingOnKeywordWhichIsOnlyASnippet()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
         // here 'for' is *only* a snippet, and we should not offer to spell check to it.
         var v = [|foo|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [WorkItem(15733, "https://github.com/dotnet/roslyn/issues/15733")]
+        public async Task TestMissingOnVar()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+namespace bar { }
+
+class C
+{
+    void M()
+    {
+        var y =
+        [|var|]
     }
 }");
         }

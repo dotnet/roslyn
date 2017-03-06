@@ -3979,10 +3979,9 @@ class C
             Assert.NotNull(ms.Body);
             Assert.Equal(1, ms.Body.Statements.Count);
             Assert.Equal(SyntaxKind.TryStatement, ms.Body.Statements[0].Kind());
-            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal(2, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[0].Code);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_TooManyCatches, file.Errors()[2].Code);
         }
 
         [Fact]

@@ -1233,6 +1233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.TupleLiteral:
+                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, refKind: refKind), this);
+                    break;
+
                 default:
                     // Other kinds of left-hand-sides either represent things not tracked (e.g. array elements)
                     // or errors that have been reported earlier (e.g. assignment to a unary increment)
@@ -1857,8 +1861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
             base.VisitDeconstructionAssignmentOperator(node);
-            node.Left.VisitAllElements((x, self) => self.Assign(x, value: null, refKind: RefKind.None), this);
-
+            Assign(node.Left, node.Right);
             return null;
         }
 

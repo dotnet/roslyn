@@ -171,13 +171,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeclarationExpressionSyntax declaration = null;
             ExpressionSyntax expression = null;
             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
-                                                                    variables,
-                                                                    variables,
-                                                                    right: null,
-                                                                    diagnostics: diagnostics,
-                                                                    rightPlaceholder: valuePlaceholder,
-                                                                    declaration: ref declaration,
-                                                                    expression: ref expression);
+                                                        variables,
+                                                        variables,
+                                                        right: _syntax.Expression,
+                                                        diagnostics: diagnostics,
+                                                        rightPlaceholder: valuePlaceholder,
+                                                        declaration: ref declaration,
+                                                        expression: ref expression);
 
             return new BoundExpressionStatement(_syntax, deconstruction);
         }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
                                                                                     variables,
                                                                                     variables,
-                                                                                    right: null,
+                                                                                    right: _syntax.Expression,
                                                                                     diagnostics: diagnostics,
                                                                                     rightPlaceholder: valuePlaceholder,
                                                                                     declaration: ref declaration,

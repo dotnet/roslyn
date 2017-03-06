@@ -859,7 +859,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                             break;
 
                         default:
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.UnexpectedValue(_lastEditSessionSummary);
                     }
 
                     log.Write("EnC state of '{0}' queried: {1}{2}",

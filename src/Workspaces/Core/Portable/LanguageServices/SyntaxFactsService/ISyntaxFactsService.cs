@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
@@ -30,17 +31,22 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLiteral(SyntaxToken token);
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
 
+        bool IsNumericLiteral(SyntaxToken token);
+        bool IsCharacterLiteral(SyntaxToken token);
         bool IsStringLiteral(SyntaxToken token);
         bool IsStringLiteralExpression(SyntaxNode node);
         bool IsVerbatimStringLiteral(SyntaxToken token);
 
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
-        bool IsDocumentationComment(SyntaxNode node);
         bool IsUsingOrExternOrImport(SyntaxNode node);
         bool IsGlobalAttribute(SyntaxNode node);
         bool IsDeclaration(SyntaxNode node);
 
+        bool IsRegularComment(SyntaxTrivia trivia);
+        bool IsDocumentationComment(SyntaxTrivia trivia);
+
+        bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
         bool IsNullLiteralExpression(SyntaxNode node);
 
@@ -71,6 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
 
+        bool IsLogicalAndExpression(SyntaxNode node);
         bool IsLogicalNotExpression(SyntaxNode node);
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
 
@@ -160,6 +167,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsForEachStatement(SyntaxNode node);
         bool IsLockStatement(SyntaxNode node);
         bool IsUsingStatement(SyntaxNode node);
+
+        bool IsReturnStatement(SyntaxNode node);
+        SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
 
         bool IsLocalDeclarationStatement(SyntaxNode node);
         bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declator, SyntaxNode localDeclarationStatement);
@@ -251,6 +261,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
 
+        ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan);
+        bool IsOnTypeHeader(SyntaxNode root, int position);
+        bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
+
         // Walks the tree, starting from contextNode, looking for the first construct
         // with a missing close brace.  If found, the close brace will be added and the
         // updates root will be returned.  The context node in that new tree will also
@@ -258,6 +272,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void AddFirstMissingCloseBrace(
             SyntaxNode root, SyntaxNode contextNode, 
             out SyntaxNode newRoot, out SyntaxNode newContextNode);
+
+        SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
     }
 
     [Flags]

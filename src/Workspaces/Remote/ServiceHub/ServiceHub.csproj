@@ -56,20 +56,26 @@
   <ItemGroup>
     <Compile Include="CodeLens\CodeLensArguments.cs" />
     <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
+    <Compile Include="Services\CodeAnalysisService_DesignerAttributes.cs" />
+    <Compile Include="Services\CodeAnalysisService_TodoComments.cs" />
     <Compile Include="Services\CodeAnalysisService_FindReferences.cs" />
     <Compile Include="Services\RemoteSymbolSearchUpdateEngine.cs" />
     <Compile Include="Services\CodeAnalysisService_NavigateTo.cs" />
     <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
-    <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
-    <Compile Include="Diagnostics\DiagnosticArguments.cs" />
     <Compile Include="Services\CodeAnalysisService.cs" />
     <Compile Include="Services\CodeAnalysisService_Diagnostics.cs" />
     <Compile Include="Services\RemoteHostService.cs" />
+    <Compile Include="Shared\RoslynJsonConverter.RoslynOnly.cs" />
     <Compile Include="Shared\ServiceHubServiceBase.cs" />
     <Compile Include="Services\SnapshotService.cs" />
     <Compile Include="Shared\Extensions.cs" />
+    <Compile Include="Shared\RoslynJsonConverter.cs" />
+    <Compile Include="Shared\RoslynJsonConverter.SolutionIdConverters.cs" />
     <Compile Include="Shared\ServerDirectStream.cs" />
     <Compile Include="Shared\ClientDirectStream.cs" />
+    <Compile Include="Telemetry\VSTelemetryCache.cs" />
+    <Compile Include="Telemetry\VSTelemetryLogger.cs" />
+    <Compile Include="Telemetry\WatsonReporter.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />

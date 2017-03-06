@@ -56,10 +56,6 @@
       <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\tests\Perf.Tests.csproj">
-      <Project>{da0d2a70-a2f9-4654-a99a-3227edf54ff1}</Project>
-      <Name>Perf.Tests</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Utilities\Perf.Utilities.csproj">
       <Project>{59ad474e-2a35-4e8a-a74d-e33479977fbf}</Project>
       <Name>Perf.Utilities</Name>

@@ -412,17 +412,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return 0;
             }
 
-            if (!UseSharedCompilation ||
+            try
+            {
+                if (!UseSharedCompilation ||
                 !string.IsNullOrEmpty(ToolPath) ||
                 !BuildServerConnection.IsCompilerServerSupported)
-            {
-                return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
-            }
-
-            using (_sharedCompileCts = new CancellationTokenSource())
-            {
-                try
                 {
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+                }
+
+                using (_sharedCompileCts = new CancellationTokenSource())
+                {
+                
                     CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
                     CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
@@ -463,16 +464,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    ExitCode = 0;
-                }
-                catch (Exception e)
-                {
-                    Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
-                    LogErrorOutput(e.ToString());
-                    ExitCode = -1;
-                }
+            }
+            catch (OperationCanceledException)
+            {
+                ExitCode = 0;
+            }
+            catch (Exception e)
+            {
+                Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
+                LogErrorOutput(e.ToString());
+                ExitCode = -1;
             }
 
             return ExitCode;

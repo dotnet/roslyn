@@ -71,18 +71,18 @@ set TMP=%TEMP%
 
       def triggerPhraseOnly = false
       def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
+      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
   }
 }
 
-// Linux
+// Ubuntu 14.04
 commitPullList.each { isPr -> 
-  def jobName = Utilities.getFullJobName(projectName, "linux_debug", isPr)
+  def jobName = Utilities.getFullJobName(projectName, "ubuntu_14_debug", isPr)
   def myJob = job(jobName) {
-    description("Linux tests")
+    description("Ubuntu 14.04 tests")
                   steps {
                     shell("./cibuild.sh --nocache --debug")
                   }
@@ -95,12 +95,28 @@ commitPullList.each { isPr ->
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
+// Ubuntu 16.04
+commitPullList.each { isPr -> 
+  def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_debug", isPr)
+  def myJob = job(jobName) {
+    description("Ubuntu 16.04 tests")
+                  steps {
+                    shell("./cibuild.sh --nocache --debug")
+                  }
+                }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = "linux"
+  Utilities.setMachineAffinity(myJob, 'Ubuntu16.04', 'latest-or-auto')
+  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
 // Mac
 commitPullList.each { isPr -> 
   def jobName = Utilities.getFullJobName(projectName, "mac_debug", isPr)
   def myJob = job(jobName) {
     description("Mac tests")
-    label('mac-roslyn')
     steps {
       shell("./cibuild.sh --nocache --debug")
     }
@@ -108,6 +124,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = true
   def triggerPhraseExtra = "mac"
+  Utilities.setMachineAffinity(myJob, 'OSX10.11', 'latest-or-auto')
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
@@ -127,7 +144,7 @@ set TMP=%TEMP%
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "determinism"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -146,7 +163,7 @@ set TMP=%TEMP%
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = ""
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -162,7 +179,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "perf-correctness"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 

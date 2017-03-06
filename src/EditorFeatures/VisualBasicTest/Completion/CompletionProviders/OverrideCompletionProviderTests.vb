@@ -844,7 +844,9 @@ End Class</a>
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitAbstractThrows() As Task
-            Dim markupBeforeCommit = <a>Public MustInherit Class c
+            Dim markupBeforeCommit = <a>Imports System
+
+Public MustInherit Class c
     Public MustOverride Sub foo()
 End Class
 
@@ -1407,9 +1409,7 @@ Class Derived
     Overrides $$
 End Class</a>
 
-            Dim expectedCode = <a>Imports System
-
-MustInherit Class CBase
+            Dim expectedCode = <a>MustInherit Class CBase
     MustOverride Sub Foo()
 End Class
 
@@ -1417,7 +1417,7 @@ Class Derived
     Inherits CBase
 
     Public Overrides Sub Foo()
-        Throw New NotImplementedException()$$
+        Throw New System.NotImplementedException()$$
     End Sub
 End Class</a>
 
@@ -1740,13 +1740,13 @@ public class C
                            </Project>
                        </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(text)
+            Using workspace = TestWorkspace.Create(text)
                 Dim hostDocument = workspace.Documents.First()
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
 
                 Dim service = GetCompletionService(workspace)
-                Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, CompletionTrigger.Default)
+                Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, CompletionTrigger.Invoke)
                 Assert.False(completionList.Items.Any(Function(c) c.DisplayText = "e"))
             End Using
         End Function

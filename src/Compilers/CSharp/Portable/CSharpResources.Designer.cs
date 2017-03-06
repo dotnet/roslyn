@@ -215,15 +215,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Properties cannot combine accessor lists with expression bodies..
-        /// </summary>
-        internal static string ERR_AccessorListAndExpressionBody {
-            get {
-                return ResourceManager.GetString("ERR_AccessorListAndExpressionBody", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; cannot be added to this assembly because it already is an assembly.
         /// </summary>
         internal static string ERR_AddModuleAssembly {
@@ -935,6 +926,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to For type &apos;{0}&apos; to be used as an AsyncMethodBuilder for type &apos;{1}&apos;, its Task property should return type &apos;{1}&apos; instead of type &apos;{2}&apos;..
+        /// </summary>
+        internal static string ERR_BadAsyncMethodBuilderTaskProperty {
+            get {
+                return ResourceManager.GetString("ERR_BadAsyncMethodBuilderTaskProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The return type of an async method must be void, Task or Task&lt;T&gt;.
         /// </summary>
         internal static string ERR_BadAsyncReturn {
@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 6..
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 7..
         /// </summary>
         internal static string ERR_BadCompatMode {
             get {
@@ -2240,7 +2240,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Methods and accessors cannot combine block bodies with expression bodies..
+        ///   Looks up a localized string similar to Block bodies and expression bodies cannot both be provided..
         /// </summary>
         internal static string ERR_BlockBodyAndExpressionBody {
             get {
@@ -4139,6 +4139,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a discard..
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsDiscard {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsDiscard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain a dynamic operation.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsDynamicOperation {
@@ -5984,6 +5993,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Merge conflict marker encountered.
+        /// </summary>
+        internal static string ERR_Merge_conflict_marker_encountered {
+            get {
+                return ResourceManager.GetString("ERR_Merge_conflict_marker_encountered", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name &apos;{0}&apos; exceeds the maximum length allowed in metadata..
         /// </summary>
         internal static string ERR_MetadataNameTooLong {
@@ -7474,6 +7492,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PartialWrongTypeParamsVariance {
             get {
                 return ResourceManager.GetString("ERR_PartialWrongTypeParamsVariance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to It is not legal to use the type &apos;dynamic&apos; in a pattern..
+        /// </summary>
+        internal static string ERR_PatternDynamicType {
+            get {
+                return ResourceManager.GetString("ERR_PatternDynamicType", resourceCulture);
             }
         }
         
@@ -8995,6 +9022,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TypeExpected {
             get {
                 return ResourceManager.GetString("ERR_TypeExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Module &apos;{0}&apos; in assembly &apos;{1}&apos; is forwarding the type &apos;{2}&apos; to multiple assemblies: &apos;{3}&apos; and &apos;{4}&apos;..
+        /// </summary>
+        internal static string ERR_TypeForwardedToMultipleAssemblies {
+            get {
+                return ResourceManager.GetString("ERR_TypeForwardedToMultipleAssemblies", resourceCulture);
             }
         }
         

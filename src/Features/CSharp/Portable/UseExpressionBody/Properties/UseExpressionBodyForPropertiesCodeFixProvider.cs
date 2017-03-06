@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             => declaration.ExpressionBody;
 
         protected override BlockSyntax GetBody(PropertyDeclarationSyntax declaration)
-            => declaration.AccessorList.Accessors[0].Body;
+            => declaration.AccessorList?.Accessors[0].Body;
 
         protected override PropertyDeclarationSyntax WithSemicolonToken(PropertyDeclarationSyntax declaration, SyntaxToken token)
             => declaration.WithSemicolonToken(token);

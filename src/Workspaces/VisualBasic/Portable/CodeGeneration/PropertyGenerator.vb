@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function GenerateAccessorStatements(accessor As IMethodSymbol) As SyntaxList(Of StatementSyntax)
             Dim statementsOpt = CodeGenerationMethodInfo.GetStatements(accessor)
-            If statementsOpt IsNot Nothing Then
+            If Not statementsOpt.IsDefault Then
                 Return SyntaxFactory.List(statementsOpt.OfType(Of StatementSyntax))
             Else
                 Return Nothing

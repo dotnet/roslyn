@@ -42,27 +42,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                     throw new Exception($"unexpected pointer size {IntPtr.Size}");
             }
 
-
-            string MakeCode()
-            {
-                var builder = new StringBuilder();
-                builder.AppendLine(
+            
+            var builder = new StringBuilder();
+            builder.AppendLine(
     @"class C {
     C M(string x) { return this; }
     void M2() {
         new C()
 ");
-                for (int i = 0; i < numberFluentCalls; i++)
-                {
-                    builder.AppendLine(@"            .M(""test"")");
-                }
-                builder.AppendLine(
+            for (int i = 0; i < numberFluentCalls; i++)
+            {
+                builder.AppendLine(@"            .M(""test"")");
+            }
+            builder.AppendLine(
                @"            .M(""test"");
     }
 }");
-                return builder.ToString();
-            }
-            var source = MakeCode();
+
+            var source = builder.ToString();
 
             var thread = new System.Threading.Thread(() =>
             {

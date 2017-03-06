@@ -26,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly HubClient _hubClient;
         private readonly JsonRpc _rpc;
         private readonly HostGroup _hostGroup;
+        private readonly TimeSpan _timeout;
 
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
@@ -36,12 +37,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var current = $"VS ({Process.GetCurrentProcess().Id})";
 
                 var hostGroup = new HostGroup(current);
-                var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
+                var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
+                var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
 
                 var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, remoteHostStream);
 
                 // make sure connection is done right
-                var host = await instance._rpc.InvokeAsync<string>(WellKnownRemoteHostServices.RemoteHostService_Connect, current).ConfigureAwait(false);
+                var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, TelemetryService.DefaultSession.SerializeSettings()).ConfigureAwait(false);
 
                 // TODO: change this to non fatal watson and make VS to use inproc implementation
                 Contract.ThrowIfFalse(host == current.ToString());
@@ -83,8 +85,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             _hubClient = hubClient;
             _hostGroup = hostGroup;
+            _timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
 
             _rpc = new JsonRpc(stream, stream, target: this);
+            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;
@@ -92,17 +96,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.StartListening();
         }
 
-        protected override async Task<Session> CreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
+        protected override async Task<Session> TryCreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate snapshot/asset related information
-            // this is the back channel the system uses to move data between VS and remote host
-            var snapshotStream = await RequestServiceAsync(_hubClient, WellKnownServiceHubServices.SnapshotService, _hostGroup, cancellationToken).ConfigureAwait(false);
+            // this is the back channel the system uses to move data between VS and remote host for solution related information
+            var snapshotStream = snapshot == null ? null : await RequestServiceAsync(_hubClient, WellKnownServiceHubServices.SnapshotService, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
             // get stream from service hub to communicate service specific information
             // this is what consumer actually use to communicate information
-            var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
+            var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
-            return await JsonRpcSession.CreateAsync(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken).ConfigureAwait(false);
+            return await JsonRpcSession.CreateAsync(snapshot, callbackTarget, serviceStream, snapshotStream, cancellationToken).ConfigureAwait(false);
         }
 
         protected override void OnConnected()
@@ -119,7 +123,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Disconnected();
         }
 
-        private static async Task<Stream> RequestServiceAsync(HubClient client, string serviceName, HostGroup hostGroup, CancellationToken cancellationToken = default(CancellationToken))
+        private static async Task<Stream> RequestServiceAsync(
+            HubClient client,
+            string serviceName,
+            HostGroup hostGroup,
+            TimeSpan timeout,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             const int max_retry = 10;
             const int retry_delayInMS = 50;
@@ -128,15 +137,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
 
-            // call to get service can fail due to this bug - devdiv#288961
+            // call to get service can fail due to this bug - devdiv#288961 or more.
             // until root cause is fixed, we decide to have retry rather than fail right away
             for (var i = 0; i < max_retry; i++)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 try
                 {
-                    return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
+                    return await RequestServiceAsync(client, descriptor, timeout, cancellationToken).ConfigureAwait(false);
                 }
                 catch (RemoteInvocationException ex)
                 {
@@ -162,6 +169,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // unreachable
             throw ExceptionUtilities.Unreachable;
+        }
+
+        private static async Task<Stream> RequestServiceAsync(HubClient client, ServiceDescriptor descriptor, TimeSpan timeout, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // we are wrapping HubClient.RequestServiceAsync since we can't control its internal timeout value ourselves.
+            // we have bug opened to track the issue.
+            // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/Editor/_workitems?id=378757&fullScreen=false&_a=edit
+            const int retry_delayInMS = 50;
+
+            var start = DateTime.UtcNow;
+            while (start - DateTime.UtcNow < timeout)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    // if it is our own cancellation token, then rethrow
+                    // otherwise, let us retry.
+                    //
+                    // we do this since HubClient itself can throw its own cancellation token
+                    // when it couldn't connect to service hub service for some reasons
+                    // (ex, OOP process GC blocked and not responding to request)
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+
+                // wait for retry_delayInMS before next try
+                await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
+            }
+
+            // request service to HubClient timed out, more than we are willing to wait
+            throw new TimeoutException("RequestServiceAsync timed out");
         }
 
         private static int ReportDetailInfo(IFaultUtility faultUtility)

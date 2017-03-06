@@ -420,7 +420,7 @@ class C
 class C
 {
 }";
-            using (var workspace = await TestWorkspace.CreateAsync(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }))
+            using (var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }))
             {
                 var called = false;
                 var provider = new CrefCompletionProvider(testSpeculativeNodeCallbackOpt: n =>
@@ -438,7 +438,7 @@ class C
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                 var service = CreateCompletionService(workspace,
                     ImmutableArray.Create<CompletionProvider>(provider));
-                var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default);
+                var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Invoke);
 
                 Assert.True(called);
             }

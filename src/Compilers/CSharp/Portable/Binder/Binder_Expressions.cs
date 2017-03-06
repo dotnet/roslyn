@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundExpression valueBeforeConversion)
         {
             Debug.Assert(this.InParameterDefaultValue);
-            Debug.Assert(this.ContainingMember().Kind == SymbolKind.Method || this.ContainingMember().Kind == SymbolKind.Property);
+            Debug.Assert(this.ContainingMemberOrLambda.Kind == SymbolKind.Method || this.ContainingMemberOrLambda.Kind == SymbolKind.Property);
 
             // UNDONE: The binding and conversion has to be executed in a checked context.
             Binder defaultValueBinder = this.GetBinder(defaultValueSyntax);
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindRefExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var firstToken = node.GetFirstToken();
-            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken);
+            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
             return new BoundBadExpression(
                 node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty,
                 CreateErrorType("ref"));
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindRefType(ExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var firstToken = node.GetFirstToken();
-            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken);
+            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
             return new BoundTypeExpression(node, null, CreateErrorType("ref"));
         }
 
@@ -1496,7 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SymbolKind.Alias:
                     {
-                        var alias = symbol as AliasSymbol;
+                        var alias = (AliasSymbol)symbol;
                         symbol = alias.Target;
                         switch (symbol.Kind)
                         {
@@ -1511,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SymbolKind.RangeVariable:
-                    return BindRangeVariable(node, symbol as RangeVariableSymbol, diagnostics);
+                    return BindRangeVariable(node, (RangeVariableSymbol)symbol, diagnostics);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
@@ -2159,13 +2159,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (argumentSyntax.Expression.Kind() == SyntaxKind.DeclarationExpression)
             {
-                return BindOutVariableArgument((DeclarationExpressionSyntax)argumentSyntax.Expression, diagnostics);
+                var declarationExpression = (DeclarationExpressionSyntax)argumentSyntax.Expression;
+                if (declarationExpression.IsOutDeclaration())
+                {
+                    return BindOutDeclarationArgument(declarationExpression, diagnostics);
+                }
             }
 
             return BindArgumentExpression(diagnostics, argumentSyntax.Expression, refKind, allowArglist);
         }
 
-        private BoundExpression BindOutVariableArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
+        private BoundExpression BindOutDeclarationArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
         {
             TypeSyntax typeSyntax = declarationExpression.Type;
             VariableDesignationSyntax designation = declarationExpression.Designation;
@@ -2192,6 +2196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
              DeclarationExpressionSyntax declarationExpression,
              DiagnosticBag diagnostics)
         {
+            Debug.Assert(declarationExpression.IsOutVarDeclaration());
             bool isVar;
             var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
             TypeSyntax typeSyntax = declarationExpression.Type;
@@ -2200,7 +2205,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
             if ((object)localSymbol != null)
             {
-                if (InConstructorInitializer || InFieldInitializer)
+                Debug.Assert(localSymbol.DeclarationKind == LocalDeclarationKind.OutVariable);
+                if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                 {
                     Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, declarationExpression);
                 }
@@ -2934,11 +2940,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (typeSyntax.Kind() != SyntaxKind.ArrayType)
             {
-                // If the syntax node comes from the parser, it should already have ERR_BadStackAllocExpr.
-                if (!typeSyntax.ContainsDiagnostics)
-                {
-                    Error(diagnostics, ErrorCode.ERR_BadStackAllocExpr, typeSyntax);
-                }
+                Error(diagnostics, ErrorCode.ERR_BadStackAllocExpr, typeSyntax);
+
                 return new BoundBadExpression(
                     node,
                     LookupResultKind.NotCreatable, //in this context, anyway

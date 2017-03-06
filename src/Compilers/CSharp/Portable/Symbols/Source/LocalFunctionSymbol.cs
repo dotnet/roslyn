@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 _typeParameters = ImmutableArray<LocalFunctionTypeParameterSymbol>.Empty;
+                ReportErrorIfHasConstraints(_syntax.ConstraintClauses, diagnostics);
             }
 
             if (IsExtensionMethod)
@@ -182,9 +183,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _binder,
                 this,
                 _syntax.ParameterList,
-                allowRefOrOut: true,
                 arglistToken: out arglistToken,
                 diagnostics: diagnostics,
+                allowRefOrOut: true,
+                allowThis: true,
                 beStrict: true);
 
             var isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
@@ -292,6 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SyntaxToken NameToken => _syntax.Identifier;
 
+        public Binder SignatureBinder => _binder;
+
         internal override bool HasSpecialName => false;
 
         public override bool HidesBaseMethodsByName => false;
@@ -374,6 +378,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
             {
                 var parameter = typeParameters[ordinal];
+                if (parameter.VarianceKeyword.Kind() != SyntaxKind.None)
+                {
+                    diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
+                }
+
                 var identifier = parameter.Identifier;
                 var location = identifier.GetLocation();
                 var name = identifier.ValueText;

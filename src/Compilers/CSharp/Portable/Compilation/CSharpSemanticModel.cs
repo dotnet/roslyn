@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.OmittedTypeArgument:
                 case SyntaxKind.RefExpression:
+                case SyntaxKind.RefType:
                     // These are just placeholders and are not separately meaningful.
                     return false;
 
@@ -520,12 +521,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (SyntaxFacts.IsDeclarationExpressionType(expression, out DeclarationExpressionSyntax parent))
             {
-                if (parent.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
+                switch (parent.Designation.Kind())
                 {
-                    return SymbolInfo.None;
-                }
+                    case SyntaxKind.SingleVariableDesignation:
+                        return GetSymbolInfoFromSymbolOrNone(TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken));
 
-                return TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken);
+                    case SyntaxKind.DiscardDesignation:
+                        return GetSymbolInfoFromSymbolOrNone(GetTypeInfoWorker(parent, cancellationToken).Type);
+
+                    case SyntaxKind.ParenthesizedVariableDesignation:
+                        if (((TypeSyntax)expression).IsVar)
+                        {
+                            return SymbolInfo.None;
+                        }
+                        break;
+                }
             }
             else if (expression is DeclarationExpressionSyntax declaration)
             {
@@ -545,38 +555,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);
         }
 
+        private static SymbolInfo GetSymbolInfoFromSymbolOrNone(ITypeSymbol type)
+        {
+            if (type?.Kind != SymbolKind.ErrorType)
+            {
+                return new SymbolInfo(type);
+            }
+
+            return SymbolInfo.None;
+        }
+
         /// <summary>
         /// Given a variable designation (typically in the left-hand-side of a deconstruction declaration statement),
         /// figure out its type by looking at the declared symbol of the corresponding variable.
         /// </summary>
-        private SymbolInfo TypeFromVariable(SingleVariableDesignationSyntax variableDesignation, CancellationToken cancellationToken)
+        private ITypeSymbol TypeFromVariable(SingleVariableDesignationSyntax variableDesignation, CancellationToken cancellationToken)
         {
             var variable = GetDeclaredSymbol(variableDesignation, cancellationToken);
 
             if (variable != null)
             {
-                ITypeSymbol variableType;
-
                 switch (variable.Kind)
                 {
                     case SymbolKind.Local:
-                        variableType = ((ILocalSymbol)variable).Type;
-                        break;
+                        return ((ILocalSymbol)variable).Type;
                     case SymbolKind.Field:
-                        variableType = ((IFieldSymbol)variable).Type;
-                        break;
-                    default:
-                        variableType = null;
-                        break;
-                }
-
-                if (variableType?.Kind != SymbolKind.ErrorType)
-                {
-                    return new SymbolInfo(variableType);
+                        return ((IFieldSymbol)variable).Type;
                 }
             }
 
-            return SymbolInfo.None;
+            return null;
         }
 
         /// <summary>
@@ -841,9 +849,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(expression);
 
-            return CanGetSemanticInfo(expression)
-                ? GetTypeInfoWorker(expression, cancellationToken)
-                : CSharpTypeInfo.None;
+            if (!CanGetSemanticInfo(expression))
+            {
+                return CSharpTypeInfo.None;
+            }
+            else if (SyntaxFacts.IsDeclarationExpressionType(expression, out DeclarationExpressionSyntax parent))
+            {
+                switch (parent.Designation.Kind())
+                {
+                    case SyntaxKind.SingleVariableDesignation:
+                        var declarationType = (TypeSymbol)TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken);
+                        return new CSharpTypeInfo(declarationType, declarationType, Conversion.Identity);
+
+                    case SyntaxKind.DiscardDesignation:
+                        declarationType = GetTypeInfoWorker(parent, cancellationToken).Type;
+                        return new CSharpTypeInfo(declarationType, declarationType, Conversion.Identity);
+
+                    case SyntaxKind.ParenthesizedVariableDesignation:
+                        if (((TypeSyntax)expression).IsVar)
+                        {
+                            return CSharpTypeInfo.None;
+                        }
+                        break;
+                }
+            }
+
+            return GetTypeInfoWorker(expression, cancellationToken);
         }
 
         /// <summary>
@@ -4615,7 +4646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return default(SymbolInfo);
+                return SymbolInfo.None;
             }
         }
 
@@ -4623,7 +4654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return expression is ExpressionSyntax
                 ? GetSpeculativeTypeInfo(position, (ExpressionSyntax)expression, bindingOption)
-                : default(TypeInfo);
+                : CSharpTypeInfo.None;
         }
 
         protected sealed override IAliasSymbol GetSpeculativeAliasInfoCore(int position, SyntaxNode nameSyntax, SpeculativeBindingOption bindingOption)

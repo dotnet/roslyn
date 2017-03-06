@@ -1,11 +1,10 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1599,6 +1598,143 @@ class Program
                 //         ref int rl = ref (new int[1])[0];
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(6, 22)
                 );
+        }
+
+        [Fact]
+        public void RefVarSemanticModel()
+        {
+            var text = @"
+class Program
+{
+    static void M()
+    {
+        int i = 0;
+        ref var x = ref i;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var xDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+            Assert.Equal("System.Int32 x", model.GetDeclaredSymbol(xDecl).ToTestDisplayString());
+
+            var refVar = tree.GetRoot().DescendantNodes().OfType<RefTypeSyntax>().Single();
+            var type = refVar.Type;
+            Assert.Equal("System.Int32", model.GetTypeInfo(type).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+            Assert.Null(model.GetAliasInfo(type));
+
+            Assert.Null(model.GetSymbolInfo(refVar).Symbol);
+            Assert.Null(model.GetTypeInfo(refVar).Type);
+        }
+
+        [Fact]
+        public void RefAliasVarSemanticModel()
+        {
+            var text = @"
+using var = C;
+class C
+{
+    static void M()
+    {
+        C i = null;
+        ref var x = ref i;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var xDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+            Assert.Equal("C x", model.GetDeclaredSymbol(xDecl).ToTestDisplayString());
+
+            var refVar = tree.GetRoot().DescendantNodes().OfType<RefTypeSyntax>().Single();
+            var type = refVar.Type;
+            Assert.Equal("C", model.GetTypeInfo(type).Type.ToTestDisplayString());
+            Assert.Equal("C", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+            var alias = model.GetAliasInfo(type);
+            Assert.Equal(SymbolKind.NamedType, alias.Target.Kind);
+            Assert.Equal("C", alias.Target.ToDisplayString());
+
+            Assert.Null(model.GetSymbolInfo(refVar).Symbol);
+            Assert.Null(model.GetTypeInfo(refVar).Type);
+        }
+
+        [Fact]
+        public void RefIntSemanticModel()
+        {
+            var text = @"
+class Program
+{
+    static void M()
+    {
+        int i = 0;
+        ref System.Int32 x = ref i;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var xDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+            Assert.Equal("System.Int32 x", model.GetDeclaredSymbol(xDecl).ToTestDisplayString());
+
+            var refInt = tree.GetRoot().DescendantNodes().OfType<RefTypeSyntax>().Single();
+            var type = refInt.Type;
+            Assert.Equal("System.Int32", model.GetTypeInfo(type).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+            Assert.Null(model.GetAliasInfo(type));
+
+            Assert.Null(model.GetSymbolInfo(refInt).Symbol);
+            Assert.Null(model.GetTypeInfo(refInt).Type);
+        }
+
+        [WorkItem(17395, "https://github.com/dotnet/roslyn/issues/17453")]
+        [Fact]
+        public void Regression17395()
+        {
+            var source = @"
+using System;
+
+public class C 
+{            
+    public void F()
+    {
+        ref int[] a = ref {1,2,3};
+        Console.WriteLine(a[0]);
+
+        ref var b = ref {4, 5, 6};
+        Console.WriteLine(b[0]);
+
+        ref object c = ref {7,8,9};
+        Console.WriteLine(c);
+    }        
+}
+";
+
+            var c = CreateCompilationWithMscorlib(source);
+
+            c.VerifyDiagnostics(
+                // (8,27): error CS1510: A ref or out value must be an assignable variable
+                //         ref int[] a = ref {1,2,3};
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "{1,2,3}"),
+                // (11,17): error CS0820: Cannot initialize an implicitly-typed variable with an array initializer
+                //         ref var b = ref {4, 5, 6};
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedArrayInitializer, "b = ref {4, 5, 6}").WithLocation(11, 17),
+                // (14,28): error CS0622: Can only use array initializer expressions to assign to array types. Try using a new expression instead.
+                //         ref object c = ref {7,8,9};
+                Diagnostic(ErrorCode.ERR_ArrayInitToNonArrayType, "{7,8,9}").WithLocation(14, 28)
+            );
         }
     }
 }

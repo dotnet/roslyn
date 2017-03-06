@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator;
@@ -12,10 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator
 {
     public class AddYieldTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpAddYieldCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new CSharpAddYieldCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public async Task TestAddYieldIEnumerableReturnNull()
@@ -31,7 +28,7 @@ class Program
         [|return null|];
     }
 }";
-            await TestMissingAsync(initial);
+            await TestMissingInRegularAndScriptAsync(initial);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -59,7 +56,7 @@ class Program
         yield return new object();
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -87,7 +84,7 @@ class Program
         yield return new object();
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -117,7 +114,7 @@ class Program
         yield return new List<T>();
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -147,7 +144,7 @@ class Program
         yield return new object();
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -177,7 +174,7 @@ class Program
         yield return new object();
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -195,7 +192,7 @@ class Program
         [|return new List<T>()|];
     }
 }";
-            await TestMissingAsync(initial);
+            await TestMissingInRegularAndScriptAsync(initial);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -225,7 +222,7 @@ class Program
         yield return default(T);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -255,7 +252,7 @@ class Program
         yield return 0;
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -285,7 +282,7 @@ class Program
         yield return 0;
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -303,7 +300,7 @@ class Program
         [|return new List<int>()|];
     }
 }";
-            await TestMissingAsync(initial);
+            await TestMissingInRegularAndScriptAsync(initial);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -333,7 +330,7 @@ class Program
         yield return new List<DateTime>();
     }
 }";
-            await TestAsync(initial, expected);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
@@ -386,7 +383,7 @@ public class A<Z> where Z : new()
     }
 }
 ";
-            await TestMissingAsync(initial);
+            await TestMissingInRegularAndScriptAsync(initial);
         }
     }
 }

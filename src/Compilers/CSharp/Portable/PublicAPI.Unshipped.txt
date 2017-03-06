@@ -158,6 +158,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax.WhenKeyword.get -> Microso
 Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax.WithCondition(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition) -> Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax.WithWhenKeyword(Microsoft.CodeAnalysis.SyntaxToken whenKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.CasePatternSwitchLabel = 9009 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConflictMarkerTrivia = 8564 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConstantPattern = 9002 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeclarationExpression = 9040 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeclarationPattern = 9000 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

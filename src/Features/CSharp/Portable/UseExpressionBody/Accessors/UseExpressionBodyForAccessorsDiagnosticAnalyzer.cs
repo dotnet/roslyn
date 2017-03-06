@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 var propertyDeclaration = (PropertyDeclarationSyntax)grandParent;
                 var diagnostic = propertyAnalyzer.AnalyzeSyntax(optionSet, propertyDeclaration);
-                if (diagnostic != null)
+                if (diagnostic != null && diagnostic.Severity != DiagnosticSeverity.Hidden)
                 {
                     return null;
                 }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 var indexerDeclaration = (IndexerDeclarationSyntax)grandParent;
                 var diagnostic = indexerAnalyzer.AnalyzeSyntax(optionSet, indexerDeclaration);
-                if (diagnostic != null)
+                if (diagnostic != null && diagnostic.Severity != DiagnosticSeverity.Hidden)
                 {
                     return null;
                 }
