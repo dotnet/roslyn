@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> symbolEncoder,
             string sortText = null,
             string insertionText = null,
-            Glyph? glyph = null,
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
@@ -36,12 +35,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             props = props.Add("ContextPosition", contextPosition.ToString());
 
+            var firstSymbol = symbols[0];
             var item = CommonCompletionItem.Create(
                 displayText: displayText,
                 rules: rules,
-                filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : symbols[0].Name),
-                sortText: sortText ?? symbols[0].Name,
-                glyph: glyph ?? symbols[0].GetGlyph(),
+                filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : firstSymbol.Name),
+                sortText: sortText ?? firstSymbol.Name,
+                glyph: firstSymbol.GetGlyph(),
                 showsWarningIcon: supportedPlatforms != null,
                 properties: props,
                 tags: tags);
@@ -244,7 +244,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int contextPosition,
             string sortText = null,
             string insertionText = null,
-            Glyph? glyph = null,
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
@@ -252,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return CreateWorker(
                 displayText, symbols, rules, contextPosition, 
-                AddSymbolEncoding, sortText, insertionText, glyph,
+                AddSymbolEncoding, sortText, insertionText,
                 filterText, supportedPlatforms, properties, tags);
         }
 
@@ -263,7 +262,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int contextPosition,
             string sortText = null,
             string insertionText = null,
-            Glyph? glyph = null,
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
@@ -271,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return CreateWorker(
                 displayText, symbols, rules, contextPosition, 
-                AddSymbolNameAndKind, sortText, insertionText, glyph,
+                AddSymbolNameAndKind, sortText, insertionText,
                 filterText, supportedPlatforms, properties, tags);
         }
 

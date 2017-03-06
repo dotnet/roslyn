@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         public static CompletionItem Create(
             string displayText,
-            Glyph? glyph,
             DeclarationModifiers modifiers,
             int line,
             ISymbol symbol,
@@ -27,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 symbols: ImmutableArray.Create(symbol),
-                glyph: glyph,
                 contextPosition: descriptionPosition,
                 properties: props,
                 rules: rules);

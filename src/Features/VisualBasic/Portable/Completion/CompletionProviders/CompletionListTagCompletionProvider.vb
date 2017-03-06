@@ -75,7 +75,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 rules:=CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect),
                 contextPosition:=context.Position,
                 sortText:=displayText,
-                glyph:=Glyph.EnumMember,
                 supportedPlatforms:=supportedPlatformData)
         End Function
     End Class
