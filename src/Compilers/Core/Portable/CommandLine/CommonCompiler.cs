@@ -149,11 +149,11 @@ namespace Microsoft.CodeAnalysis
                 if (found > 0)
                 {
                     int start = found + marker.Length;
-                    if (productVersion[start] == '<') // <developer build>
+                    if (start < productVersion.Length && productVersion[start] == '<') // <developer build>
                     {
                         return productVersion.Substring(start, productVersion.Length - start);
                     }
-                    else if (productVersion.Length > start + 8)
+                    else if (productVersion.Length >= start + 8)
                     {
                         return productVersion.Substring(start, 8);
                     }

@@ -68,11 +68,17 @@ class C
 
             Assert.Equal("<developer build>", CommonCompiler.ExtractShortSHA("2.1.0-dev-56735-00. Commit Hash: <developer build>"));
             Assert.Equal("12345678", CommonCompiler.ExtractShortSHA("2.1.0-dev-56735-00. Commit Hash: 12345678b6d4d10cf04e128efc6ed56f9e424f36"));
+            Assert.Equal("12345678", CommonCompiler.ExtractShortSHA("2.0.0.0 Commit Hash: 12345678b"));
+            Assert.Equal("12345678", CommonCompiler.ExtractShortSHA("2.0.0.0 Commit Hash: 12345678"));
             Assert.Equal("", CommonCompiler.ExtractShortSHA("2.1.0-dev-56735-00. commit hash: 12345678b6d4d10cf04e128efc6ed56f9e424f36")); // casing
             Assert.Equal("", CommonCompiler.ExtractShortSHA("2.1.0-dev-56735-00. Commit Hash: 1bc"));
             Assert.Equal("", CommonCompiler.ExtractShortSHA("xyz"));
             Assert.Equal("", CommonCompiler.ExtractShortSHA(""));
             Assert.Equal("", CommonCompiler.ExtractShortSHA(null));
+            Assert.Equal("", CommonCompiler.ExtractShortSHA("Commit Hash: 12345678b6d4d10cf04e128efc6ed56f9e424f36"));
+            Assert.Equal("", CommonCompiler.ExtractShortSHA("2.0.0.0 Commit Hash: "));
+            Assert.Equal("<", CommonCompiler.ExtractShortSHA("2.0.0.0 Commit Hash: <"));
+            Assert.Equal("", CommonCompiler.ExtractShortSHA("2.0.0.0 Commit Hash: 1234567"));
         }
 
         [Fact]
