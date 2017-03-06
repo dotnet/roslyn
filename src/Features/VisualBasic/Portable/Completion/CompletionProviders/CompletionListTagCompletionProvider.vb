@@ -13,32 +13,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class CompletionListTagCompletionProvider
         Inherits EnumCompletionProvider
 
-        Protected Overrides Function GetPreselectedSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+        Protected Overrides Function GetPreselectedItemsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, rules As CompletionItemRules)))
             If context.SyntaxTree.IsObjectCreationTypeContext(position, cancellationToken) OrElse
                 context.SyntaxTree.IsInNonUserCode(position, cancellationToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol, CompletionItemRules))()
             End If
 
             Dim typeInferenceService = context.GetLanguageService(Of ITypeInferenceService)()
             Dim inferredType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault:=True, cancellationToken:=cancellationToken)
             If inferredType Is Nothing Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol, CompletionItemRules))()
             End If
 
             Dim within = context.SemanticModel.GetEnclosingNamedType(position, cancellationToken)
             Dim completionListType = GetCompletionListType(inferredType, within, context.SemanticModel.Compilation)
 
             If completionListType Is Nothing Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol, CompletionItemRules))()
             End If
 
             Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
 
             Return Task.FromResult(completionListType.GetAccessibleMembersInThisAndBaseTypes(Of ISymbol)(within) _
-                                                .WhereAsArray(Function(m) m.MatchesKind(SymbolKind.Field, SymbolKind.Property) AndAlso
+                                                .Where(Function(m) m.MatchesKind(SymbolKind.Field, SymbolKind.Property) AndAlso
                                                                     m.IsStatic AndAlso
                                                                     m.IsAccessibleWithin(within) AndAlso
-                                                                    m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)))
+                                                                    m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)).Select(Function(s) (s, CompletionItemRules.Default)).ToImmutableArray())
         End Function
 
         Protected Overrides Function GetSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
