@@ -183,6 +183,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
             Document document, int position, OptionSet options, bool preselect, CancellationToken cancellationToken)
         {
+            var relatedDocumentIds = GetRelatedDocumentIds(document, position);
+
+            var context = await GetOrCreateContext(document, position, cancellationToken).ConfigureAwait(false);
+            options = GetUpdatedRecommendationOptions(options, document.Project.Language);
+
+            if (relatedDocumentIds.IsEmpty)
+            {
+                var itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
+                return CreateItems(itemsForCurrentDocument, context, preselect);
+            }
+
+            var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
+            var symbolToContextMap = UnionSymbols(contextAndSymbolLists);
+            var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
+            var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
+
+            return CreateItems(symbolToContextMap, missingSymbolsMap, totalProjects, preselect);
+        }
+
+        private static ImmutableArray<DocumentId> GetRelatedDocumentIds(Document document, int position)
+        {
             var relatedDocumentIds = document.GetLinkedDocumentIds();
             var relatedDocuments = relatedDocumentIds.Concat(document.Id).Select(document.Project.Solution.GetDocument);
             lock (s_cacheGate)
@@ -201,21 +222,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            var context = await GetOrCreateContext(document, position, cancellationToken).ConfigureAwait(false);
-            options = GetUpdatedRecommendationOptions(options, document.Project.Language);
-
-            if (relatedDocumentIds.IsEmpty)
-            {
-                var itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
-                return CreateItems(itemsForCurrentDocument, context, preselect);
-            }
-
-            var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
-            var symbolToContextMap = UnionSymbols(contextAndSymbolLists);
-            var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
-            var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
-
-            return CreateItems(symbolToContextMap, missingSymbolsMap, totalProjects, preselect);
+            return relatedDocumentIds;
         }
 
         protected virtual bool IsExclusive()
