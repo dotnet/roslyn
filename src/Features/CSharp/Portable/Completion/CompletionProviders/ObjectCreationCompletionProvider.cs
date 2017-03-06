@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -56,16 +55,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetPreselectedItemsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            var result = await base.GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
+            var result = await base.GetPreselectedItemsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
             if (result.Any())
             {
-                var type = (ITypeSymbol)result.Single();
+                var type = (ITypeSymbol)result.Single().symbol;
                 var alias = await type.FindApplicableAlias(position, context.SemanticModel, cancellationToken).ConfigureAwait(false);
                 if (alias != null)
                 {
-                    return ImmutableArray.Create(alias);
+                    return ImmutableArray.Create((alias, result.Single().rules));
                 }
             }
 
@@ -94,13 +93,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context)
+        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<(ISymbol symbol, CompletionItemRules rules)> items, SyntaxContext context)
         {
             // SPECIAL: If the preselected symbol is System.Object, don't commit on '{'.
             // Otherwise, it is cumbersome to type an anonymous object when the target type is object.
             // The user would get 'new object {' rather than 'new {'. Since object doesn't have any
             // properties, the user never really wants to commit 'new object {' anyway.
-            var namedTypeSymbol = symbols.Count > 0 ? symbols[0] as INamedTypeSymbol : null;
+            var namedTypeSymbol = items.Count > 0 ? items[0].symbol as INamedTypeSymbol : null;
+            if (namedTypeSymbol?.SpecialType == SpecialType.System_Object)
+            {
+                return s_objectRules;
+            }
+
+            return s_defaultRules;
+        }
+
+        protected override CompletionItemRules GetCompletionItemRules(ISymbol symbol, SyntaxContext context)
+        {
+            // SPECIAL: If the preselected symbol is System.Object, don't commit on '{'.
+            // Otherwise, it is cumbersome to type an anonymous object when the target type is object.
+            // The user would get 'new object {' rather than 'new {'. Since object doesn't have any
+            // properties, the user never really wants to commit 'new object {' anyway.
+            var namedTypeSymbol = symbol as INamedTypeSymbol;
+
             if (namedTypeSymbol?.SpecialType == SpecialType.System_Object)
             {
                 return s_objectRules;

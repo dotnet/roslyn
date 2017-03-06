@@ -1,30 +1,35 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractRecommendationServiceBasedCompletionProvider : AbstractSymbolCompletionProvider
     {
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetItemsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
-            return recommender.GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken);
+
+            var recommendedSymbols = await recommender
+                                        .GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken)
+                                        .ConfigureAwait(false);
+
+            // TODO: Remove .Select(s => (s, GetCompletionItemRules(s, context))).ToImmutableArray()
+            return recommendedSymbols.Select(s => (s, GetCompletionItemRules(s, context))).ToImmutableArray();
         }
 
-        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetPreselectedItemsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
             var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
@@ -34,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .ToSet();
             if (inferredTypes.Count == 0)
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
             var symbols = await recommender.GetRecommendedSymbolsAtPositionAsync(
@@ -45,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cancellationToken).ConfigureAwait(false);
 
             // Don't preselect intrinsic type symbols so we can preselect their keywords instead.
-            return symbols.WhereAsArray(s => inferredTypes.Contains(GetSymbolType(s)) && !IsInstrinsic(s));
+            // TODO: Remove .Select(s => (s, GetCompletionItemRules(s, context))).ToImmutableArray()
+            return symbols.Where(s => inferredTypes.Contains(GetSymbolType(s)) && !IsInstrinsic(s)).Select(s => (s, GetCompletionItemRules(s, context))).ToImmutableArray();
         }
 
         private ITypeSymbol GetSymbolType(ISymbol symbol)
@@ -58,27 +64,32 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbol.GetSymbolType();
         }
 
-        protected override CompletionItem CreateItem(string displayText, string insertionText, List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
+        protected override CompletionItem CreateItem(string displayText, string insertionText, List<(ISymbol symbol, CompletionItemRules)> items, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
         {
-            var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;
-            var rules = GetCompletionItemRules(symbols, context, preselect);
+            var matchPriority = preselect ? ComputeSymbolMatchPriority(items[0].symbol) : MatchPriority.Default;
+            var rules = GetCompletionItemRules(items, context, preselect);
             if (preselect)
             {
                 rules = rules.WithSelectionBehavior(PreselectedItemSelectionBehavior);
             }
 
+            // TODO: 1. Do we need to make CreateWithNameAndKind take the tuple? 
+            // TODO: 2. if we do (1) then we need to remove .Select(item => item.symbol).ToImmutableArray()
+            // TODO: 3. Rename symbols to items
+            // TODO: 4. Remove GetCompletionItemRules
+
             return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText: displayText,
                 insertionText: insertionText,
-                filterText: GetFilterText(symbols[0], displayText, context),
+                filterText: GetFilterText(items[0].symbol, displayText, context),
                 contextPosition: context.Position,
-                symbols: symbols,
+                symbols: items.Select(item => item.symbol).ToImmutableArray(),
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: matchPriority,
                 rules: rules);
         }
 
-        protected abstract CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect);
+        protected abstract CompletionItemRules GetCompletionItemRules(List<(ISymbol symbol, CompletionItemRules rules)> items, SyntaxContext context, bool preselect);
 
         protected abstract CompletionItemSelectionBehavior PreselectedItemSelectionBehavior { get; }
 
@@ -105,20 +116,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(
-            Document document, CompletionItem item, CancellationToken cancellationToken)
+            Document document, CompletionItem completionItem, CancellationToken cancellationToken)
         {
-            var position = SymbolCompletionItem.GetContextPosition(item);
-            var name = SymbolCompletionItem.GetSymbolName(item);
-            var kind = SymbolCompletionItem.GetKind(item);
+            var position = SymbolCompletionItem.GetContextPosition(completionItem);
+            var name = SymbolCompletionItem.GetSymbolName(completionItem);
+            var kind = SymbolCompletionItem.GetKind(completionItem);
             var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id).Concat(document.Id);
             var options = document.Project.Solution.Workspace.Options;
-            var totalSymbols = await base.GetPerContextSymbols(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            foreach (var info in totalSymbols)
+            var perContextCompletionItems = await base.GetPerContextItems(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            foreach (var perContextCompletionItem in perContextCompletionItems)
             {
-                var bestSymbols = info.Item3.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
-                if (bestSymbols.Any())
+                var bestCompletionItems = perContextCompletionItem.Item3.Where(item => kind != null && item.symbol.Kind == kind && item.symbol.Name == name);
+
+                if (bestCompletionItems.Any())
                 {
-                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, info.Item2.SemanticModel, cancellationToken).ConfigureAwait(false);
+                    var bestSymbols = bestCompletionItems.Select(item => item.symbol).ToImmutableArray();
+
+                    return await SymbolCompletionItem.GetDescriptionAsync(completionItem, bestSymbols, document, perContextCompletionItem.Item2.SemanticModel, cancellationToken).ConfigureAwait(false);
                 }
             }
 

@@ -14,16 +14,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class HandlesClauseCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
-        Protected Overrides Function GetSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+        Protected Overrides Function GetItemsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol , rules As CompletionItemRules)))
             Dim vbContext = DirectCast(context, VisualBasicSyntaxContext)
 
             If context.SyntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
                 context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol , CompletionItemRules))()
             End If
 
             If context.TargetToken.Kind = SyntaxKind.None Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol , CompletionItemRules))()
             End If
 
             ' Handles or a comma
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return Task.FromResult(LookUpEventsAsync(vbContext, context.TargetToken, cancellationToken))
             End If
 
-            Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+            Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol , CompletionItemRules))()
         End Function
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             context As VisualBasicSyntaxContext,
             token As SyntaxToken,
             cancellationToken As CancellationToken
-        ) As ImmutableArray(Of ISymbol)
+        ) As ImmutableArray(Of (symbol As ISymbol , rules As CompletionItemRules))
 
             Dim containingSymbol = context.SemanticModel.GetEnclosingSymbol(context.Position, cancellationToken)
             Dim containingType = TryCast(containingSymbol, ITypeSymbol)
@@ -59,19 +59,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             If containingType Is Nothing Then
                 ' We've somehow failed to find a containing type.
-                Return ImmutableArray(Of ISymbol).Empty
+                Return ImmutableArray(Of (ISymbol , CompletionItemRules)).Empty
             End If
 
             ' Instance or shared variables declared WithEvents
             Dim symbols = context.SemanticModel.LookupSymbols(context.Position, DirectCast(containingType, INamespaceOrTypeSymbol), includeReducedExtensionMethods:=True)
-            Return symbols.WhereAsArray(Function(s) IsWithEvents(s))
+
+            ' TODO: Remove .Select(Function(s) (s, GetCompletionItemRules(s, context))).ToImmutableArray()
+            Return symbols.WhereAsArray(Function(s) IsWithEvents(s)).Select(Function(s) (s, GetCompletionItemRules(s, context))).ToImmutableArray()
         End Function
 
         Private Function LookUpEventsAsync(
             context As VisualBasicSyntaxContext,
             token As SyntaxToken,
             cancellationToken As CancellationToken
-        ) As ImmutableArray(Of ISymbol)
+        ) As ImmutableArray(Of (symbol As ISymbol , rules As CompletionItemRules))
 
             ' We came up on a dot, so the previous token will tell us in which object we should find events.
             Dim containingSymbol = context.SemanticModel.GetEnclosingSymbol(context.Position, cancellationToken)
@@ -83,9 +85,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             If containingType Is Nothing Then
                 ' We've somehow failed to find a containing type.
-                Return ImmutableArray(Of ISymbol).Empty
+                Return ImmutableArray(Of (ISymbol , CompletionItemRules)).Empty
             End If
 
+            ' TODO: Replace with ImmutableArray(Of (ISymbol , CompletionItemRules)).Empty
             Dim result = ImmutableArray(Of IEventSymbol).Empty
 
             Dim previousToken = token.GetPreviousToken()
@@ -111,7 +114,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     End If
             End Select
 
-            Return ImmutableArray(Of ISymbol).CastUp(result)
+            ' TODO: Remove .Select(Function(s) (s, GetCompletionItemRules(s, context))).ToImmutableArray()
+            Return ImmutableArray(Of ISymbol).CastUp(result).Select(Function(s) (s, GetCompletionItemRules(s, context))).ToImmutableArray()
         End Function
 
         Private Function CreateCompletionItem(position As Integer,
@@ -148,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of (symbol As ISymbol , rules As CompletionItemRules)), context As SyntaxContext) As CompletionItemRules
             Return CompletionItemRules.Default
         End Function
 

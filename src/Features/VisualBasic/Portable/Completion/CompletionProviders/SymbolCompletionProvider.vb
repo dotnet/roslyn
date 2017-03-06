@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return rule
         End Function
 
-        Protected Overrides Function GetCompletionItemRules(symbols As List(Of ISymbol),
+        Protected Overrides Function GetCompletionItemRules(symbols As List(Of (symbol As ISymbol , rules As CompletionItemRules)),
                                                             context As SyntaxContext, preselect As Boolean) As CompletionItemRules
 
             Return If(cachedRules(
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     CompletionItemRules.Default)
         End Function
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of (symbol As ISymbol , rules As CompletionItemRules)), context As SyntaxContext) As CompletionItemRules
             ' Unused
             Throw New NotImplementedException
         End Function

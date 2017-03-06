@@ -21,10 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<(ISymbol symbol, CompletionItemRules rules)>> GetItemsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            return Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
-                context.SemanticModel, position, context.Workspace, options, cancellationToken);
+            var recommendedSymbols = await Recommender
+                                        .GetImmutableRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken)
+                                        .ConfigureAwait(false);
+
+            // TODO: Remove .Select(s => (s, GetCompletionItemRules(s, context))).ToImmutableArray()
+            return recommendedSymbols.Select(s => (s, GetCompletionItemRules(s, context))).ToImmutableArray();
         }
 
         protected override bool IsInstrinsic(ISymbol s)
@@ -99,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return (displayText, insertionText);
         }
 
-        protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
+        protected override CompletionItemRules GetCompletionItemRules(List<(ISymbol symbol, CompletionItemRules rules)> items, SyntaxContext context, bool preselect)
         {
             cachedRules.TryGetValue(ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext), out var rule);
 
@@ -164,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return rule;
         }
 
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context)
+        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<(ISymbol symbol, CompletionItemRules rules)> items, SyntaxContext context)
         {
             // Unused
             throw new NotImplementedException();

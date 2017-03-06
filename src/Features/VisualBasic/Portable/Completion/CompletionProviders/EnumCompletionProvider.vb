@@ -14,25 +14,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class EnumCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
-        Protected Overrides Function GetPreselectedSymbolsWorker(
-                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+        Protected Overrides Function GetPreselectedItemsWorker(
+                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, rules As CompletionItemRules)))
 
             If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol, CompletionItemRules))()
             End If
 
             ' This providers provides fully qualified names, eg "DayOfWeek.Monday"
             ' Don't run after dot because SymbolCompletionProvider will provide
             ' members in situations like Dim x = DayOfWeek.$$
             If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol, CompletionItemRules))()
             End If
 
             Dim typeInferenceService = context.GetLanguageService(Of ITypeInferenceService)()
             Dim enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault:=True, cancellationToken:=cancellationToken)
 
             If enumType.TypeKind <> TypeKind.Enum Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol, CompletionItemRules))()
             End If
 
             Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
@@ -43,21 +43,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return m.Kind = SymbolKind.Field AndAlso
                         DirectCast(m, IFieldSymbol).IsConst AndAlso
                         m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
-                End Function).ToImmutableArray()
+                End Function).Select(Function(s) (s, GetCompletionItemRules(s, context))).ToImmutableArray()
 
             Return Task.FromResult(result)
         End Function
 
-        Protected Overrides Function GetSymbolsWorker(
-                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+        Protected Overrides Function GetItemsWorker(
+                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, rules As CompletionItemRules)))
 
             If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) OrElse
                 context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol, CompletionItemRules))()
             End If
 
             If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol, CompletionItemRules))()
             End If
 
             Dim typeInferenceService = context.GetLanguageService(Of ITypeInferenceService)()
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault:=True, cancellationToken:=cancellationToken)
 
             If enumType.TypeKind <> TypeKind.Enum Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol, CompletionItemRules))()
             End If
 
             Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
@@ -74,9 +74,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Function(s) s.MatchesKind(SymbolKind.Field, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.Property) AndAlso
                     s.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation))
 
-            Dim otherInstances = otherSymbols.WhereAsArray(Function(s) enumType Is GetTypeFromSymbol(s))
+            ' TODO: Remove .Select(Function(s) (s, GetCompletionItemRules(s, context))).ToImmutableArray()
+            Dim otherInstances = otherSymbols.WhereAsArray(Function(s) enumType Is GetTypeFromSymbol(s)).Select(Function(s) (s, GetCompletionItemRules(s, context))).ToImmutableArray()
 
-            Return Task.FromResult(otherInstances.Concat(enumType))
+            Return Task.FromResult(otherInstances.Concat((enumType, GetCompletionItemRules(enumType, context))))
         End Function
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
@@ -122,23 +123,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+        Protected Overrides Function CreateItem(displayText As String, insertionText As String, items As List(Of (symbol As ISymbol, CompletionItemRules)), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+            ' TODO: 1. Do we need to make CreateWithSymbolId take the tuple? 
+            ' TODO: 2. if we do (1) then we need to remove .Select(Function(item) item.symbol).ToImmutableArray() 
+            ' TODO: 3. Rename symbols to items
+            ' TODO: 4. Remove GetCompletionItemRules
             Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
                 insertionText:=insertionText,
-                filterText:=GetFilterText(symbols(0), displayText, context),
-                symbols:=symbols,
+                filterText:=GetFilterText(items(0).symbol, displayText, context),
+                symbols:=items.Select(Function(item) item.symbol).ToImmutableArray(),
                 contextPosition:=context.Position,
                 sortText:=insertionText,
                 matchPriority:=If(preselect, MatchPriority.Preselect, MatchPriority.Default),
                 supportedPlatforms:=supportedPlatformData,
-                rules:=GetCompletionItemRules(symbols, context))
+                rules:=GetCompletionItemRules(items, context))
         End Function
 
         Private Shared ReadOnly s_rules As CompletionItemRules =
             CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of (symbol As ISymbol, rules as CompletionItemRules)), context As SyntaxContext) As CompletionItemRules
+            Return s_rules
+        End Function
+
+        Protected Overrides Function GetCompletionItemRules(symbol As ISymbol, context As SyntaxContext) As CompletionItemRules
             Return s_rules
         End Function
 
