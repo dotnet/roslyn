@@ -58,11 +58,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return item.AddProperty("Symbols", EncodeSymbols(symbols));
         }
 
-        public static CompletionItem AddSymbolEncoding(ISymbol symbol, CompletionItem item)
-        {
-            return item.AddProperty("Symbols", EncodeSymbol(symbol));
-        }
-
         public static CompletionItem AddSymbolNameAndKind(IReadOnlyList<ISymbol> symbols, CompletionItem item)
         {
             var symbol = symbols[0];
