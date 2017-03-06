@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
             var symbolToContextMap = UnionSymbols(contextAndSymbolLists);
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
-            var totalProjects = contextAndSymbolLists.Select(t => t.Item1.ProjectId).ToList();
+            var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
 
             return CreateItems(symbolToContextMap, missingSymbolsMap, totalProjects, preselect);
         }
