@@ -40,6 +40,8 @@ if ($ShouldArchive) {
     mv $CPCLocation/DataBackup* ToArchive
     echo "moving $CPCLocation/consumptionTempResults.xml to ToArchive"
     mv $CPCLocation/consumptionTempResults.xml ToArchive
+    mkdir ToArchive/PerfLogs
+    xcopy /S C:\PerfLogs ToArchive\PerfLogs
     ls ToArchive
 }
 

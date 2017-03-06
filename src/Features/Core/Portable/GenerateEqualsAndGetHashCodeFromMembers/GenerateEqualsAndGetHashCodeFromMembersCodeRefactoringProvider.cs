@@ -31,10 +31,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
 
             var actions = await this.GenerateEqualsAndGetHashCodeFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (!actions.IsDefault)
-            {
-                context.RegisterRefactorings(actions);
-            }
+            context.RegisterRefactorings(actions);
         }
 
         private const string EqualsName = "Equals";

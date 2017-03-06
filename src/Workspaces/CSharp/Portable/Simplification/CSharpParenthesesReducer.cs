@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            if (node.CanRemoveParentheses())
+            if (node.CanRemoveParentheses(semanticModel))
             {
                 // TODO(DustinCa): We should not be skipping elastic trivia below.
                 // However, the formatter seems to mess up trailing trivia in some
