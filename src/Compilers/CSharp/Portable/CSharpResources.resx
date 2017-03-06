@@ -288,6 +288,9 @@
   <data name="IDS_SK_EXTERNALIAS" xml:space="preserve">
     <value>extern alias</value>
   </data>
+  <data name="IDS_SK_CONSTRUCTOR" xml:space="preserve">
+    <value>constructor</value>
+  </data>
   <data name="IDS_FOREACHLOCAL" xml:space="preserve">
     <value>foreach iteration variable</value>
   </data>
@@ -5001,8 +5004,5 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AttributesInLocalFuncDecl" xml:space="preserve">
     <value>Attributes are not allowed on local function parameters or type parameters</value>
-  </data>
-  <data name="IDS_SK_CONSTRUCTOR" xml:space="preserve">
-    <value>constructor</value>
   </data>
 </root>

@@ -3986,7 +3986,7 @@ void ValidatorBase<T>.DoValidate(T objectToValidate)");
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void HidingMethodWithRefReadOnlySignatureWillErrorOut()
+        public void HidingMethodWithRefReadOnlySignatureWillProduceAnError()
         {
             var code = @"
 class A
@@ -4018,7 +4018,7 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void HidingMethodWithRefReadOnlySignatureAndNewKeywordWillNotErrorOut()
+        public void HidingMethodWithRefReadOnlySignatureAndNewKeywordWillNotProduceAnError()
         {
             var code = @"
 class A
@@ -4047,7 +4047,7 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void OverridingMethodWithRefReadOnlySignatureWillNotErrorOut()
+        public void OverridingMethodWithRefReadOnlySignatureWillNotProduceAnError()
         {
             var code = @"
 class A
@@ -4076,7 +4076,7 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void OverridingMethodWithDifferentRefnessWillNotErrorOut()
+        public void OverridingMethodWithDifferentRefnessWillNotProduceAnError()
         {
             var code = @"
 class A
@@ -4154,10 +4154,10 @@ class DerivedClass : BaseClass
             Assert.Empty(derivedIndexer.OverriddenOrHiddenMembers.HiddenMembers);
             Assert.Equal(baseIndexer, derivedIndexer.OverriddenOrHiddenMembers.OverriddenMembers.Single());
         }
-        
+
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void OverloadsShouldPreserveReadOnlyRefness()
+        public void MethodOverloadsShouldPreserveReadOnlyRefness()
         {
             var text = @"
 abstract class BaseClass
