@@ -2357,11 +2357,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; must {2}return by reference to match overridden member &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Reference signature of the return type of &apos;{0}&apos; does not match overridden member &apos;{1}&apos;.
         /// </summary>
-        internal static string ERR_CantChangeRefReturnOnOverride {
+        internal static string ERR_CantChangeRefnessOfReturnOnOverride {
             get {
-                return ResourceManager.GetString("ERR_CantChangeRefReturnOnOverride", resourceCulture);
+                return ResourceManager.GetString("ERR_CantChangeRefnessOfReturnOnOverride", resourceCulture);
             }
         }
         

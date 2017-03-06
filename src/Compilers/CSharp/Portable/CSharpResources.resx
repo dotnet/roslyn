@@ -4729,8 +4729,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefPropertyCannotHaveSetAccessor" xml:space="preserve">
     <value>Properties which return by reference cannot have set accessors</value>
   </data>
-  <data name="ERR_CantChangeRefReturnOnOverride" xml:space="preserve">
-    <value>'{0}' must {2}return by reference to match overridden member '{1}'</value>
+  <data name="ERR_CantChangeRefnessOfReturnOnOverride" xml:space="preserve">
+    <value>Reference signature of the return type of '{0}' does not match overridden member '{1}'</value>
   </data>
   <data name="ERR_MustNotHaveRefReturn" xml:space="preserve">
     <value>By-reference returns may only be used in methods that return by reference</value>

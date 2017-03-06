@@ -3986,7 +3986,7 @@ void ValidatorBase<T>.DoValidate(T objectToValidate)");
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void HidingMethodWithRefReadOnlySignatureWillProduceAnError()
+        public void HidingMethodWithRefReadOnlyParameterWillProduceAWarning()
         {
             var code = @"
 class A
@@ -4018,7 +4018,40 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void HidingMethodWithRefReadOnlySignatureAndNewKeywordWillNotProduceAnError()
+        public void HidingMethodWithRefReadOnlyReturnTypeWillProduceAWarning()
+        {
+            var code = @"
+class A
+{
+    protected int x = 0;
+    public ref readonly int M() { return ref x; }
+}
+class B : A
+{
+    public ref readonly int M() { return ref x; }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (9,29): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
+                //     public ref readonly int M() { return ref x; }
+                Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(9, 29));
+
+            var aClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            var bClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+
+            var aMethod = aClass.GetMember<MethodSymbol>("M");
+            var bMethod = bClass.GetMember<MethodSymbol>("M");
+
+            Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
+
+            Assert.Empty(bMethod.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Equal(aMethod, bMethod.OverriddenOrHiddenMembers.HiddenMembers.Single());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void HidingMethodWithRefReadOnlyParameterAndNewKeywordWillNotProduceAWarning()
         {
             var code = @"
 class A
@@ -4047,7 +4080,37 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void OverridingMethodWithRefReadOnlySignatureWillNotProduceAnError()
+        public void HidingMethodWithRefReadOnlyReturnTypeAndNewKeywordWillNotProduceAWarning()
+        {
+            var code = @"
+class A
+{
+    protected int x = 0;
+    public ref readonly int M() { return ref x; }
+}
+class B : A
+{
+    public new ref readonly int M() { return ref x; }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics();
+
+            var aClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            var bClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+
+            var aMethod = aClass.GetMember<MethodSymbol>("M");
+            var bMethod = bClass.GetMember<MethodSymbol>("M");
+
+            Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
+
+            Assert.Empty(bMethod.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Equal(aMethod, bMethod.OverriddenOrHiddenMembers.HiddenMembers.Single());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void OverridingMethodWithRefReadOnlyParameterWillNotProduceAnError()
         {
             var code = @"
 class A
@@ -4076,7 +4139,37 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void OverridingMethodWithDifferentRefnessWillNotProduceAnError()
+        public void OverridingMethodWithRefReadOnlyReturnTypeWillNotProduceAnError()
+        {
+            var code = @"
+class A
+{
+    protected int x = 0;
+    public virtual ref readonly int M() { return ref x; }
+}
+class B : A
+{
+    public override ref readonly int M() { return ref x; }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics();
+
+            var aClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            var bClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+
+            var aMethod = aClass.GetMember<MethodSymbol>("M");
+            var bMethod = bClass.GetMember<MethodSymbol>("M");
+
+            Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
+
+            Assert.Equal(aMethod, bMethod.OverriddenOrHiddenMembers.OverriddenMembers.Single());
+            Assert.Empty(bMethod.OverriddenOrHiddenMembers.HiddenMembers);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void DeclaringMethodWithDifferentParameterRefnessWillNotProduceAnError()
         {
             var code = @"
 class A
@@ -4157,7 +4250,7 @@ class DerivedClass : BaseClass
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void MethodOverloadsShouldPreserveReadOnlyRefness()
+        public void MethodOverloadsShouldPreserveReadOnlyRefnessInParameters()
         {
             var text = @"
 abstract class BaseClass
@@ -4178,6 +4271,32 @@ class ChildClass : BaseClass
                 // (9,26): error CS0115: 'ChildClass.Method1(ref readonly int)': no suitable method found to override
                 //     public override void Method1(ref readonly int x) { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method1").WithArguments("ChildClass.Method1(ref readonly int)").WithLocation(9, 26));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void MethodOverloadsShouldPreserveReadOnlyRefnessInReturnTypes()
+        {
+            var text = @"
+abstract class BaseClass
+{
+    protected int x = 0 ;
+    public virtual ref int Method1() { return ref x; }
+    public virtual ref readonly int Method2() { return ref x; }
+}
+class ChildClass : BaseClass
+{
+    public override ref readonly int Method1() { return ref x; }
+    public override ref int Method2() { return ref x; }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (11,29): error CS8148: Reference signature of the return type of 'ChildClass.Method2()' does not match overridden member 'BaseClass.Method2()'
+                //     public override ref int Method2() { return ref x; }
+                Diagnostic(ErrorCode.ERR_CantChangeRefnessOfReturnOnOverride, "Method2").WithArguments("ChildClass.Method2()", "BaseClass.Method2()").WithLocation(11, 29),
+                // (10,38): error CS8148: Reference signature of the return type of 'ChildClass.Method1()' does not match overridden member 'BaseClass.Method1()'
+                //     public override ref readonly int Method1() { return ref x; }
+                Diagnostic(ErrorCode.ERR_CantChangeRefnessOfReturnOnOverride, "Method1").WithArguments("ChildClass.Method1()", "BaseClass.Method1()").WithLocation(10, 38));
         }
     }
 }
