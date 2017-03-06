@@ -148,10 +148,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
-            Return CompletionItemRules.Default
-        End Function
-
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
             Return CompletionUtilities.GetInsertionTextAtInsertionTime(item, ch)
         End Function

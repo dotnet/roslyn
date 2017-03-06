@@ -34,7 +34,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected abstract (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context);
-        protected abstract CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context);
+
+        protected virtual CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols)
+            => CompletionItemRules.Default;
 
         /// <summary>
         /// Given a list of symbols, creates the list of completion items for them.
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 contextPosition: context.Position,
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
-                rules: GetCompletionItemRules(symbols, context).WithMatchPriority(
+                rules: GetCompletionItemRules(symbols).WithMatchPriority(
                     preselect ? MatchPriority.Preselect : MatchPriority.Default));
         }
 

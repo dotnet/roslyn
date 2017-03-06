@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 displayText: displayText,
                 symbols: symbols,
                 // Always preselect
-                rules: GetCompletionItemRules(symbols, context).WithMatchPriority(MatchPriority.Preselect),
+                rules: GetCompletionItemRules(symbols).WithMatchPriority(MatchPriority.Preselect),
                 contextPosition: context.Position,
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),

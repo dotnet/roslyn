@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Dim rules = GetCompletionItemRules(symbols, context)
+            Dim rules = GetCompletionItemRules(symbols)
             rules = rules.WithMatchPriority(If(preselect, MatchPriority.Preselect, MatchPriority.Default))
 
             Return SymbolCompletionItem.CreateWithSymbolId(
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Shared ReadOnly s_rules As CompletionItemRules =
             CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol)) As CompletionItemRules
             Return s_rules
         End Function
 
