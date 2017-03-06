@@ -1,18 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return recommender.GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken);
         }
 
-        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<(ISymbol, CompletionItemRules)>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
             var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .ToSet();
             if (inferredTypes.Count == 0)
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
             var symbols = await recommender.GetRecommendedSymbolsAtPositionAsync(
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cancellationToken).ConfigureAwait(false);
 
             // Don't preselect intrinsic type symbols so we can preselect their keywords instead.
-            return symbols.WhereAsArray(s => inferredTypes.Contains(GetSymbolType(s)) && !IsInstrinsic(s));
+            return symbols.Where(s => inferredTypes.Contains(GetSymbolType(s)) && !IsInstrinsic(s)).Select(s => (s, CompletionItemRules.Default)).ToImmutableArray();
         }
 
         private ITypeSymbol GetSymbolType(ISymbol symbol)

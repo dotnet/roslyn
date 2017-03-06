@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// Given a list of symbols, creates the list of completion items for them.
         /// </summary>
         protected IEnumerable<CompletionItem> CreateItems(
-            IEnumerable<ISymbol> symbols,
+            IEnumerable<(ISymbol symbol, CompletionItemRules rules)> items,
             SyntaxContext context,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var tree = context.SyntaxTree;
 
-            var q = from symbol in symbols
-                    let texts = GetDisplayAndInsertionText(symbol, context)
-                    group symbol by texts into g
+            var q = from item in items
+                    let texts = GetDisplayAndInsertionText(item.symbol, context)
+                    group item.symbol by texts into g
                     select this.CreateItem(
                         g.Key.displayText, g.Key.insertionText, g.ToList(), context,
                         invalidProjectMap, totalProjects, preselect);
@@ -141,9 +141,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken);
 
-        protected virtual Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected virtual Task<ImmutableArray<(ISymbol, CompletionItemRules)>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            return SpecializedTasks.EmptyImmutableArray<(ISymbol, CompletionItemRules)>();
         }
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
@@ -205,9 +205,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (!relatedDocumentIds.Any())
             {
-                IEnumerable<ISymbol> itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
+                IEnumerable<(ISymbol, CompletionItemRules)> itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
 
-                itemsForCurrentDocument = itemsForCurrentDocument ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
+                itemsForCurrentDocument = itemsForCurrentDocument ?? SpecializedCollections.EmptyEnumerable<(ISymbol, CompletionItemRules)>();
                 return CreateItems(itemsForCurrentDocument, context,
                     invalidProjectMap: null,
                     totalProjects: null,
@@ -232,13 +232,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedTasks.True;
         }
 
-        private Task<ImmutableArray<ISymbol>> GetSymbolsWorker(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<(ISymbol, CompletionItemRules)>> GetSymbolsWorker(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)
         {
             try
             {
-                return preselect
-                    ? GetPreselectedSymbolsWorker(context, position, options, cancellationToken)
-                    : GetSymbolsWorker(context, position, options, cancellationToken);
+                if (preselect)
+                {
+                    return await GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
+                }
+
+                return (await GetSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false))
+                        .Select(s => (s, CompletionItemRules.Default)).ToImmutableArray();
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -279,7 +283,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (IsCandidateProject(context, cancellationToken))
                 {
-                    var symbols = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
+                    var symbols = (await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false))
+                                    .Select(t => t.Item1).ToImmutableArray();
+
                     perContextSymbols.Add(Tuple.Create(relatedDocument.Id, context, symbols));
                 }
             }

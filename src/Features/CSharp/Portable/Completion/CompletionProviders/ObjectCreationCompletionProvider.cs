@@ -1,9 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -56,20 +54,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<(ISymbol, CompletionItemRules)>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var result = await base.GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
-            if (result.Any())
+            var builder = ArrayBuilder<(ISymbol, CompletionItemRules)>.GetInstance();
+
+            foreach (var (symbol, rules) in result)
             {
-                var type = (ITypeSymbol)result.Single();
-                var alias = await type.FindApplicableAlias(position, context.SemanticModel, cancellationToken).ConfigureAwait(false);
-                if (alias != null)
-                {
-                    return ImmutableArray.Create(alias);
-                }
+                var alias = await symbol.FindApplicableAliasAsync(position, context.SemanticModel, cancellationToken).ConfigureAwait(false);
+                builder.Add((alias ?? symbol, rules));
             }
 
-            return result;
+            return builder.ToImmutableAndFree();
         }
 
         protected override (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)

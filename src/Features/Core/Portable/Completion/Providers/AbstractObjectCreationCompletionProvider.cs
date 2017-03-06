@@ -5,19 +5,22 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractObjectCreationCompletionProvider : AbstractSymbolCompletionProvider
     {
+        private static CompletionItemRules HardSelection = CompletionItemRules.Create(
+            selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
+
         /// <summary>
         /// Return null if not in object creation type context.
         /// </summary>
@@ -44,13 +47,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
-        protected override Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(
+        protected override async Task<ImmutableArray<(ISymbol, CompletionItemRules)>> GetPreselectedSymbolsWorker(
             SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var newExpression = this.GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
             if (newExpression == null)
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
             var typeInferenceService = context.GetLanguageService<ITypeInferenceService>();
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (type == null)
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
             // Unwrap nullable
@@ -79,17 +82,50 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (type.SpecialType == SpecialType.System_Void)
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
             if (type.ContainsAnonymousType())
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
             if (!type.CanBeReferencedByName)
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
+            }
+
+            if (type.IsInterfaceType())
+            {
+                var typeArity = type.GetArity();
+
+                var implementations = await SymbolFinder.FindImplementationsAsync(
+                    type, context.Workspace.CurrentSolution, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                var matchingImplementations = implementations.Where(
+                    impl => !impl.IsAbstract && impl.GetArity() == typeArity).Cast<INamedTypeSymbol>();
+
+                var userAssembly = context.SemanticModel.Compilation.Assembly;
+
+                matchingImplementations = matchingImplementations.Where(
+                    impl => impl.InstanceConstructors.Any(c => c.IsAccessibleWithin(userAssembly)));
+
+                if (typeArity > 0)
+                {
+                    var typeArguments = type.GetTypeArguments();
+
+                    var preselectionItems = ArrayBuilder<(ISymbol, CompletionItemRules)>.GetInstance();
+
+                    foreach (var impl in matchingImplementations)
+                    {
+                        preselectionItems.Add(CreatePreselectionItem(type, impl.Construct(typeArguments.ToArray())));
+                    }
+
+                    return preselectionItems.ToImmutableAndFree();
+                }
+
+
+                return matchingImplementations.Select(s => CreatePreselectionItem(type, s)).ToImmutableArray();
             }
 
             // Normally the user can't say things like "new IList".  Except for "IList[] x = new |".
@@ -97,30 +133,34 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // list even if they can't new them directly.
             if (!isArray)
             {
-                if (type.TypeKind == TypeKind.Interface ||
-                    type.TypeKind == TypeKind.Pointer ||
+                if (type.TypeKind == TypeKind.Pointer ||
                     type.TypeKind == TypeKind.Dynamic ||
                     type.IsAbstract)
                 {
-                    return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                    return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
                 }
 
                 if (type.TypeKind == TypeKind.TypeParameter &&
                     !((ITypeParameterSymbol)type).HasConstructorConstraint)
                 {
-                    return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                    return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
                 }
             }
 
             if (!type.IsEditorBrowsable(options.GetOption(RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language), context.SemanticModel.Compilation))
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return ImmutableArray<(ISymbol, CompletionItemRules)>.Empty;
             }
 
-            return Task.FromResult(ImmutableArray.Create((ISymbol)type));
+            return ImmutableArray.Create(((ISymbol)type, CompletionItemRules.Default));
         }
 
-        protected override(string displayText, string insertionText) GetDisplayAndInsertionText(
+        private static (ISymbol, CompletionItemRules) CreatePreselectionItem(ITypeSymbol lhsType, INamedTypeSymbol rhsType)
+        {
+            return (rhsType, lhsType.Name.Contains(rhsType.Name) ? HardSelection : CompletionItemRules.Default);
+        }
+
+        protected override (string displayText, string insertionText) GetDisplayAndInsertionText(
             ISymbol symbol, SyntaxContext context)
         {
             var displayService = context.GetLanguageService<ISymbolDisplayService>();

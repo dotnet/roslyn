@@ -15,24 +15,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Inherits AbstractSymbolCompletionProvider
 
         Protected Overrides Function GetPreselectedSymbolsWorker(
-                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (ISymbol, CompletionItemRules)))
 
             If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol, CompletionItemRules))()
             End If
 
             ' This providers provides fully qualified names, eg "DayOfWeek.Monday"
             ' Don't run after dot because SymbolCompletionProvider will provide
             ' members in situations like Dim x = DayOfWeek.$$
             If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol, CompletionItemRules))()
             End If
 
             Dim typeInferenceService = context.GetLanguageService(Of ITypeInferenceService)()
             Dim enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault:=True, cancellationToken:=cancellationToken)
 
             If enumType.TypeKind <> TypeKind.Enum Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of (ISymbol, CompletionItemRules))()
             End If
 
             Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return m.Kind = SymbolKind.Field AndAlso
                         DirectCast(m, IFieldSymbol).IsConst AndAlso
                         m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
-                End Function).ToImmutableArray()
+                End Function).Select(Function(s) (s, CompletionItemRules.Default)).ToImmutableArray()
 
             Return Task.FromResult(result)
         End Function
