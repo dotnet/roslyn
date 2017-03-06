@@ -97,12 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: escapedName + ColonString,
-                    insertionText: null,
                     symbol: parameter,
+                    rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
                     contextPosition: token.SpanStart,
-                    filterText: escapedName,
-                    rules: s_rules,
-                    matchPriority: SymbolMatchPriority.PreferNamedArgument));
+                    filterText: escapedName));
             }
         }
 

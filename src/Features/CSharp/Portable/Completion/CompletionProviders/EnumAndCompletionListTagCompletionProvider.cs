@@ -113,11 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var item = SymbolCompletionItem.CreateWithSymbolId(
                     displayText: displayText,
-                    insertionText: null,
                     symbol: alias ?? type,
-                    contextPosition: position,
-                    matchPriority: MatchPriority.Preselect,
-                    rules: s_rules);
+                    rules: s_rules.WithMatchPriority(MatchPriority.Preselect),
+                    contextPosition: position);
 
                 context.AddItem(item);
             }

@@ -126,8 +126,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 contextPosition: context.Position,
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
-                matchPriority: preselect ? MatchPriority.Preselect : MatchPriority.Default,
-                rules: GetCompletionItemRules(symbols, context));
+                rules: GetCompletionItemRules(symbols, context).WithMatchPriority(
+                    preselect ? MatchPriority.Preselect : MatchPriority.Default));
         }
 
         protected virtual string GetFilterText(ISymbol symbol, string displayText, SyntaxContext context)

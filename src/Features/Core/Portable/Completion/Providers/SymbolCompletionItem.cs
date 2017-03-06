@@ -16,17 +16,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static CompletionItem CreateWorker(
             string displayText,
             IReadOnlyList<ISymbol> symbols,
+            CompletionItemRules rules,
             Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> symbolEncoder,
             int contextPosition = -1,
             string sortText = null,
             string insertionText = null,
             Glyph? glyph = null,
             string filterText = null,
-            int? matchPriority = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>),
-            CompletionItemRules rules = null)
+            ImmutableArray<string> tags = default(ImmutableArray<string>))
         {
             var props = properties ?? ImmutableDictionary<string, string>.Empty;
 
@@ -42,14 +41,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var item = CommonCompletionItem.Create(
                 displayText: displayText,
+                rules: rules,
                 filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : symbols[0].Name),
                 sortText: sortText ?? symbols[0].Name,
                 glyph: glyph ?? symbols[0].GetGlyph(),
-                matchPriority: matchPriority.GetValueOrDefault(),
                 showsWarningIcon: supportedPlatforms != null,
                 properties: props,
-                tags: tags,
-                rules: rules);
+                tags: tags);
 
             item = WithSupportedPlatforms(item, supportedPlatforms);
             return symbolEncoder(symbols, item);
@@ -75,30 +73,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static CompletionItem CreateWorker(
             string displayText,
             ISymbol symbol,
+            CompletionItemRules rules,
             Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> symbolEncoder,
             int contextPosition = -1,
             string sortText = null,
             string insertionText = null,
             Glyph? glyph = null,
             string filterText = null,
-            int? matchPriority = null,
             SupportedPlatformData supportedPlatforms = null,
-            ImmutableDictionary<string, string> properties = null,
-            CompletionItemRules rules = null)
+            ImmutableDictionary<string, string> properties = null)
         {
             return CreateWorker(
                 displayText: displayText,
                 symbols: ImmutableArray.Create(symbol),
+                rules: rules,
                 symbolEncoder: symbolEncoder,
                 contextPosition: contextPosition,
                 sortText: sortText,
                 insertionText: insertionText,
                 glyph: glyph,
                 filterText: filterText,
-                matchPriority: matchPriority.GetValueOrDefault(),
                 supportedPlatforms: supportedPlatforms,
-                properties: properties,
-                rules: rules);
+                properties: properties);
         }
 
         public static string EncodeSymbols(IReadOnlyList<ISymbol> symbols)
@@ -279,54 +275,57 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static CompletionItem CreateWithSymbolId(
             string displayText,
             IReadOnlyList<ISymbol> symbols,
+            CompletionItemRules rules,
             int contextPosition,
             string sortText = null,
             string insertionText = null,
             Glyph? glyph = null,
             string filterText = null,
-            int? matchPriority = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>),
-            CompletionItemRules rules = null)
+            ImmutableArray<string> tags = default(ImmutableArray<string>))
         {
-            return CreateWorker(displayText, symbols, AddSymbolEncoding, contextPosition, sortText, insertionText, glyph,
-                          filterText, matchPriority, supportedPlatforms, properties, tags, rules);
+            return CreateWorker(
+                displayText, symbols, rules, AddSymbolEncoding, 
+                contextPosition, sortText, insertionText, glyph,
+                filterText, supportedPlatforms, properties, tags);
         }
 
         public static CompletionItem CreateWithSymbolId(
             string displayText,
             ISymbol symbol,
+            CompletionItemRules rules,
             int contextPosition,
             string sortText = null,
             string insertionText = null,
             Glyph? glyph = null,
             string filterText = null,
-            int? matchPriority = null,
             SupportedPlatformData supportedPlatforms = null,
-            ImmutableDictionary<string, string> properties = null,
-            CompletionItemRules rules = null)
+            ImmutableDictionary<string, string> properties = null)
         {
-            return CreateWorker(displayText, symbol, AddSymbolEncoding, contextPosition, sortText, insertionText, glyph,
-                          filterText, matchPriority, supportedPlatforms, properties, rules);
+            return CreateWorker(
+                displayText, symbol, rules, AddSymbolEncoding, 
+                contextPosition, sortText, insertionText, glyph,
+                filterText, supportedPlatforms, properties);
         }
 
         public static CompletionItem CreateWithNameAndKind(
             string displayText,
             IReadOnlyList<ISymbol> symbols,
+            CompletionItemRules rules,
             int contextPosition,
             string sortText = null,
             string insertionText = null,
             Glyph? glyph = null,
             string filterText = null,
-            int? matchPriority = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>),
-            CompletionItemRules rules = null)
+            ImmutableArray<string> tags = default(ImmutableArray<string>))
         {
-            return CreateWorker(displayText, symbols, AddSymbolNameAndKind, contextPosition, sortText, insertionText, glyph,
-                            filterText, matchPriority, supportedPlatforms, properties, tags, rules);
+            return CreateWorker(
+                displayText, symbols, rules, AddSymbolNameAndKind, 
+                contextPosition, sortText, insertionText, glyph,
+                filterText, supportedPlatforms, properties, tags);
         }
 
         internal static string GetSymbolName(CompletionItem item)
