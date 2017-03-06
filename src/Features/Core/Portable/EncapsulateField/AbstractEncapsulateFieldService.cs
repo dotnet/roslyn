@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return new EncapsulateFieldResult(c => EncapsulateFieldResultAsync(document, span, useDefaultBehavior, c));
         }
 
-        public async Task<IEnumerable<EncapsulateFieldCodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<EncapsulateFieldCodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var fields = (await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
             if (fields.Length == 0)
             {
-                return SpecializedCollections.EmptyEnumerable<EncapsulateFieldCodeAction>();
+                return ImmutableArray<EncapsulateFieldCodeAction>.Empty;
             }
 
             if (fields.Length == 1)
@@ -49,18 +49,19 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             else
             {
                 // there are multiple fields.
-                var current = SpecializedCollections.EmptyEnumerable<EncapsulateFieldCodeAction>();
+                var current = ArrayBuilder<EncapsulateFieldCodeAction>.GetInstance();
 
                 if (span.IsEmpty)
                 {
                     // if there is no selection, get action for each field + all of them.
                     for (var i = 0; i < fields.Length; i++)
                     {
-                        current = current.Concat(EncapsulateOneField(document, span, fields[i], i));
+                        current.AddRange(EncapsulateOneField(document, span, fields[i], i));
                     }
                 }
 
-                return current.Concat(EncapsulateAllFields(document, span));
+                current.AddRange(EncapsulateAllFields(document, span));
+                return current.ToImmutableAndFree();
             }
         }
 
@@ -76,16 +77,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             };
         }
 
-        private IEnumerable<EncapsulateFieldCodeAction> EncapsulateOneField(Document document, TextSpan span, IFieldSymbol field, int index)
+        private ImmutableArray<EncapsulateFieldCodeAction> EncapsulateOneField(Document document, TextSpan span, IFieldSymbol field, int index)
         {
             var action1Text = string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, field.Name);
             var action2Text = string.Format(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field, field.Name);
 
-            return new[]
-            {
+            return ImmutableArray.Create(
                 new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => SingleEncapsulateFieldResultAsync(document, span, index, true, c)), action1Text),
-                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => SingleEncapsulateFieldResultAsync(document, span, index, false, c)), action2Text)
-            };
+                new EncapsulateFieldCodeAction(new EncapsulateFieldResult(c => SingleEncapsulateFieldResultAsync(document, span, index, false, c)), action2Text));
         }
 
         private async Task<Result> SingleEncapsulateFieldResultAsync(Document document, TextSpan span, int index, bool updateReferences, CancellationToken cancellationToken)

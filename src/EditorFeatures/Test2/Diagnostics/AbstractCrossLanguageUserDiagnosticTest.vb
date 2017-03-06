@@ -67,7 +67,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 verifySolutions?.Invoke(oldSolution, updatedSolution)
 
-                If fileNameToExpected Is Nothing Then
+                If expected Is Nothing AndAlso fileNameToExpected Is Nothing Then
+                    Dim projectChanges = SolutionUtilities.GetSingleChangedProjectChanges(oldSolution, updatedSolution)
+                    Assert.Empty(projectChanges.GetChangedDocuments())
+                ElseIf expected IsNot Nothing Then
                     Dim updatedDocument = SolutionUtilities.GetSingleChangedDocument(oldSolution, updatedSolution)
 
                     Await VerifyAsync(expected, verifyTokens, updatedDocument)
