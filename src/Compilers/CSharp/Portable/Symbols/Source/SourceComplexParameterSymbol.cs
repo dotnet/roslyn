@@ -385,12 +385,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (bagCreatedOnThisThread)
                 {
-                    if (ContainingSymbol is LocalFunctionSymbol localFunc)
-                    {
-                        var attributes = ((ParameterSyntax)SyntaxReference.GetSyntax()).AttributeLists;
-                        localFunc.ReportAttributesDisallowed(attributes);
-                    }
-
                     state.NotePartComplete(CompletionPart.Attributes);
                 }
             }

@@ -257,17 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public static void ReportAttributesDisallowed(this LocalFunctionSymbol localFunc, SyntaxList<AttributeListSyntax> attributes)
-        {
-            var diagnostics = DiagnosticBag.GetInstance();
-            foreach (var attrList in attributes)
-            {
-                diagnostics.Add(ErrorCode.ERR_AttributesInLocalFuncDecl, attrList.Location);
-            }
-            localFunc.AddDeclarationDiagnostics(diagnostics);
-            diagnostics.Free();
-        }
-
         internal static bool ReportDefaultParameterErrors(
             Binder binder,
             Symbol owner,

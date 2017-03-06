@@ -67,9 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _declarationDiagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
             }
 
+            foreach (var param in syntax.ParameterList.Parameters)
+            {
+                ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);
+            }
+
             _binder = binder;
             _refKind = (syntax.ReturnType.Kind() == SyntaxKind.RefType) ? RefKind.Ref : RefKind.None;
-
         }
 
         /// <summary>
@@ -340,6 +344,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
+        private static void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, DiagnosticBag diagnostics)
+        {
+            foreach (var attrList in attributes)
+            {
+                diagnostics.Add(ErrorCode.ERR_AttributesInLocalFuncDecl, attrList.Location);
+            }
+        }
+
         private ImmutableArray<LocalFunctionTypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
         {
             var result = ArrayBuilder<LocalFunctionTypeParameterSymbol>.GetInstance();
@@ -351,6 +363,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
                 }
+
+                // Attributes are currently disallowed on local function type parameters
+                ReportAttributesDisallowed(parameter.AttributeLists, diagnostics);
 
                 var identifier = parameter.Identifier;
                 var location = identifier.GetLocation();

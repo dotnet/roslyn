@@ -190,12 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (lazyAttributesStored)
                 {
-                    if (ContainingSymbol is LocalFunctionSymbol localFunc)
-                    {
-                        var attributes = ((TypeParameterSyntax)_syntaxRefs.Single().GetSyntax()).AttributeLists;
-                        localFunc.ReportAttributesDisallowed(attributes);
-                    }
-
                     _state.NotePartComplete(CompletionPart.Attributes);
                 }
             }
