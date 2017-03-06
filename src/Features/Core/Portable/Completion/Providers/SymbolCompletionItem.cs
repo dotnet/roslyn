@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string displayText,
             IReadOnlyList<ISymbol> symbols,
             CompletionItemRules rules,
+            int contextPosition,
             Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> symbolEncoder,
-            int contextPosition = -1,
             string sortText = null,
             string insertionText = null,
             Glyph? glyph = null,
@@ -34,10 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 props = props.Add("InsertionText", insertionText);
             }
 
-            if (contextPosition >= 0)
-            {
-                props = props.Add("ContextPosition", contextPosition.ToString());
-            }
+            props = props.Add("ContextPosition", contextPosition.ToString());
 
             var item = CommonCompletionItem.Create(
                 displayText: displayText,
@@ -254,8 +251,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ImmutableArray<string> tags = default(ImmutableArray<string>))
         {
             return CreateWorker(
-                displayText, symbols, rules, AddSymbolEncoding, 
-                contextPosition, sortText, insertionText, glyph,
+                displayText, symbols, rules, contextPosition, 
+                AddSymbolEncoding, sortText, insertionText, glyph,
                 filterText, supportedPlatforms, properties, tags);
         }
 
@@ -273,8 +270,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ImmutableArray<string> tags = default(ImmutableArray<string>))
         {
             return CreateWorker(
-                displayText, symbols, rules, AddSymbolNameAndKind, 
-                contextPosition, sortText, insertionText, glyph,
+                displayText, symbols, rules, contextPosition, 
+                AddSymbolNameAndKind, sortText, insertionText, glyph,
                 filterText, supportedPlatforms, properties, tags);
         }
 
