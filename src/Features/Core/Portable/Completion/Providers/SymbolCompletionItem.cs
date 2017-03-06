@@ -65,33 +65,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                        .AddProperty("SymbolName", symbol.Name);
         }
 
-        private static CompletionItem CreateWorker(
-            string displayText,
-            ISymbol symbol,
-            CompletionItemRules rules,
-            Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> symbolEncoder,
-            int contextPosition = -1,
-            string sortText = null,
-            string insertionText = null,
-            Glyph? glyph = null,
-            string filterText = null,
-            SupportedPlatformData supportedPlatforms = null,
-            ImmutableDictionary<string, string> properties = null)
-        {
-            return CreateWorker(
-                displayText: displayText,
-                symbols: ImmutableArray.Create(symbol),
-                rules: rules,
-                symbolEncoder: symbolEncoder,
-                contextPosition: contextPosition,
-                sortText: sortText,
-                insertionText: insertionText,
-                glyph: glyph,
-                filterText: filterText,
-                supportedPlatforms: supportedPlatforms,
-                properties: properties);
-        }
-
         public static string EncodeSymbols(IReadOnlyList<ISymbol> symbols)
         {
             if (symbols.Count > 1)
@@ -284,24 +257,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 displayText, symbols, rules, AddSymbolEncoding, 
                 contextPosition, sortText, insertionText, glyph,
                 filterText, supportedPlatforms, properties, tags);
-        }
-
-        public static CompletionItem CreateWithSymbolId(
-            string displayText,
-            ISymbol symbol,
-            CompletionItemRules rules,
-            int contextPosition,
-            string sortText = null,
-            string insertionText = null,
-            Glyph? glyph = null,
-            string filterText = null,
-            SupportedPlatformData supportedPlatforms = null,
-            ImmutableDictionary<string, string> properties = null)
-        {
-            return CreateWorker(
-                displayText, symbol, rules, AddSymbolEncoding, 
-                contextPosition, sortText, insertionText, glyph,
-                filterText, supportedPlatforms, properties);
         }
 
         public static CompletionItem CreateWithNameAndKind(

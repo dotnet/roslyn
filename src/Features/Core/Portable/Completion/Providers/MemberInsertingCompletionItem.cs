@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
-                symbol: symbol,
+                symbols: ImmutableArray.Create(symbol),
                 glyph: glyph,
                 contextPosition: descriptionPosition,
                 properties: props,

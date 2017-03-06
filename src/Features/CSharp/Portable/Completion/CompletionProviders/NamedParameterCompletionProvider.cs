@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: escapedName + ColonString,
-                    symbol: parameter,
+                    symbols: ImmutableArray.Create(parameter),
                     rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
                     contextPosition: token.SpanStart,
                     filterText: escapedName));
