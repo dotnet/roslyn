@@ -136,5 +136,29 @@ Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        Public Async Function TestInExpressionOfT() As Task
+            Await TestAsync(
+"
+Imports System
+Imports System.Linq.Expressions
+
+Class C
+    Sub M(x as integer?, y as integer)
+        dim e as Expression(of Func(of integer)) = function() [||]If (x.HasValue, x.Value, y)
+    End Sub
+End Class",
+"
+Imports System
+Imports System.Linq.Expressions
+
+Class C
+    Sub M(x as integer?, y as integer)
+        dim e as Expression(of Func(of integer)) = function() {|Warning:If (x, y)|}
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

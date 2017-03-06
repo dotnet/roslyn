@@ -1544,5 +1544,52 @@ class Derived : Base
     public override int Prop => throw new NotImplementedException();
 }", options: Option(ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd));
         }
+
+        [WorkItem(17274, "https://github.com/dotnet/roslyn/issues/17274")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestAddedUsingWithBanner1()
+        {
+            await TestAsync(
+@"// Copyright ...
+
+using Microsoft.Win32;
+
+namespace My
+{
+    public abstract class Foo
+    {
+        public abstract void Bar(System.Collections.Generic.List<object> values);
     }
+
+    public class [|Foo2|] : Foo // Implement Abstract Class
+    {
+    }
+}",
+@"// Copyright ...
+
+using System;
+using System.Collections.Generic;
+using Microsoft.Win32;
+
+namespace My
+{
+    public abstract class Foo
+    {
+        public abstract void Bar(System.Collections.Generic.List<object> values);
+    }
+
+    public class Foo2 : Foo // Implement Abstract Class
+    {
+        public override void Bar(List<object> values)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}", compareTokens: false);
+        }
+                
+#if false
+
+#endif
+        }
 }

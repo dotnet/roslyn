@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (conversion.ConversionKind)
             {
                 case ConversionKind.MethodGroup:
-                    EmitMethodGroupConversion(conversion, used);
-                    return;
+                    throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
                 case ConversionKind.NullToPointer:
                     // The null pointer is represented as 0u.
                     _builder.EmitIntConstant(0);
@@ -312,12 +311,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // The delegate '{0}' does not have a valid constructor
             _diagnostics.Add(ErrorCode.ERR_BadDelegateConstructor, syntax.Location, delegateType);
             return null;
-        }
-
-        private void EmitMethodGroupConversion(BoundConversion conversion, bool used)
-        {
-            var group = (BoundMethodGroup)conversion.Operand;
-            EmitDelegateCreation(conversion, group.InstanceOpt, conversion.IsExtensionMethod, conversion.SymbolOpt, conversion.Type, used);
         }
     }
 }

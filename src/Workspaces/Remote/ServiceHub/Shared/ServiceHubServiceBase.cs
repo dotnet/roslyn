@@ -17,8 +17,9 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private static int s_instanceId;
 
-        private readonly int _instanceId;
         private readonly CancellationTokenSource _cancellationTokenSource;
+
+        protected readonly int InstanceId;
 
         protected readonly JsonRpc Rpc;
         protected readonly TraceSource Logger;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
         [Obsolete("For backward compatibility. this will be removed once all callers moved to new ctor")]
         protected ServiceHubServiceBase(Stream stream, IServiceProvider serviceProvider)
         {
-            _instanceId = Interlocked.Add(ref s_instanceId, 1);
+            InstanceId = Interlocked.Add(ref s_instanceId, 1);
 
             // in unit test, service provider will return asset storage, otherwise, use the default one
             AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream)
         {
-            _instanceId = Interlocked.Add(ref s_instanceId, 1);
+            InstanceId = Interlocked.Add(ref s_instanceId, 1);
 
             // in unit test, service provider will return asset storage, otherwise, use the default one
             AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Rpc.Disconnected += OnRpcDisconnected;
         }
 
-        protected string DebugInstanceString => $"{GetType()} ({_instanceId})";
+        protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
 
         protected RoslynServices RoslynServices
         {

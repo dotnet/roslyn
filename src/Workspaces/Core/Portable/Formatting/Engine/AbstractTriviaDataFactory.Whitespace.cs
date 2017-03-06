@@ -36,23 +36,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 this.Spaces = indentation;
             }
 
-            public override bool TreatAsElastic
-            {
-                get { return _elastic; }
-            }
+            public override bool TreatAsElastic => _elastic;
 
-            public override bool IsWhitespaceOnlyTrivia
-            {
-                get { return true; }
-            }
+            public override bool IsWhitespaceOnlyTrivia => true;
 
-            public override bool ContainsChanges
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            public override bool ContainsChanges => false;
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
             {

@@ -4616,7 +4616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return default(SymbolInfo);
+                return SymbolInfo.None;
             }
         }
 
@@ -4624,7 +4624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return expression is ExpressionSyntax
                 ? GetSpeculativeTypeInfo(position, (ExpressionSyntax)expression, bindingOption)
-                : default(TypeInfo);
+                : CSharpTypeInfo.None;
         }
 
         protected sealed override IAliasSymbol GetSpeculativeAliasInfoCore(int position, SyntaxNode nameSyntax, SpeculativeBindingOption bindingOption)

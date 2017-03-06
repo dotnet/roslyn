@@ -53,21 +53,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this.EnumUnderlyingType);
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return _typeKind;
-            }
-        }
+        public override TypeKind TypeKind => _typeKind;
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.NamedType;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.NamedType;
 
         public override int Arity
         {
@@ -85,29 +73,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override bool IsUnboundGenericType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsUnboundGenericType => false;
 
-        public override bool IsScriptClass
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsScriptClass => false;
 
-        public override bool IsImplicitClass
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsImplicitClass => false;
 
         public override IEnumerable<string> MemberNames
         {
@@ -127,13 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override INamedTypeSymbol EnumUnderlyingType
-        {
-            get
-            {
-                return _enumUnderlyingType;
-            }
-        }
+        public override INamedTypeSymbol EnumUnderlyingType => _enumUnderlyingType;
 
         public override INamedTypeSymbol ConstructedFrom
         {
@@ -172,13 +136,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override INamedTypeSymbol BaseType
-        {
-            get
-            {
-                return _baseType;
-            }
-        }
+        public override INamedTypeSymbol BaseType => _baseType;
 
         public override ImmutableArray<INamedTypeSymbol> Interfaces
         {

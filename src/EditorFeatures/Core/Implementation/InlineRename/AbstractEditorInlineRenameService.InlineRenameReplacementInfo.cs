@@ -26,13 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            public Solution NewSolution
-            {
-                get
-                {
-                    return _conflicts.NewSolution;
-                }
-            }
+            public Solution NewSolution => _conflicts.NewSolution;
 
             public IEnumerable<RelatedLocationType> Resolutions
             {
@@ -42,13 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            public bool ReplacementTextValid
-            {
-                get
-                {
-                    return _conflicts.ReplacementTextValid;
-                }
-            }
+            public bool ReplacementTextValid => _conflicts.ReplacementTextValid;
 
             public IEnumerable<InlineRenameReplacement> GetReplacements(DocumentId documentId)
             {
