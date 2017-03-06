@@ -4027,7 +4027,7 @@ class c : [|d|]
 
 class c : d
 {
-    public void m(int? x = 5, int? y = default(int?))
+    public void m(int? x = 5, int? y = null)
     {
         throw new System.NotImplementedException();
     }

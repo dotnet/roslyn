@@ -495,7 +495,7 @@ abstract class d
 
 class c : d
 {
-    public override void m(b? x = default(b?), b? y = default(b?))
+    public override void m(b? x = null, b? y = null)
     {
         throw new System.NotImplementedException();
     }
@@ -522,7 +522,7 @@ class [|c|] : d
 
 class c : d
 {
-    public override void m(int? x = 5, int? y = default(int?))
+    public override void m(int? x = 5, int? y = null)
     {
         throw new System.NotImplementedException();
     }
