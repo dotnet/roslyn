@@ -3965,7 +3965,7 @@ interface d
 
 class c : d
 {
-    public void m(b? x = default(b?), b? y = default(b?))
+    public void m(b? x = null, b? y = null)
     {
         throw new System.NotImplementedException();
     }
@@ -4027,7 +4027,7 @@ class c : [|d|]
 
 class c : d
 {
-    public void m(int? x = 5, int? y = default(int?))
+    public void m(int? x = 5, int? y = null)
     {
         throw new System.NotImplementedException();
     }
