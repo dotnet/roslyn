@@ -223,9 +223,8 @@ Friend Module ParserTestUtilities
         ' IsEquivalentTo should be a bit faster than comparing Xml
         If Not newTreeRoot.IsEquivalentTo(incTreeRoot) Then
             ' init
-            If (NodeHelpers.KindProvider Is Nothing) Then
-                NodeHelpers.KindProvider = New VBKindProvider()
-            End If
+            NodeHelpers.KindProvider = If(NodeHelpers.KindProvider, New VBKindProvider())
+
             Dim x1 = newTreeRoot.ToXml(newTree)
             Dim x2 = incTreeRoot.ToXml(incTree)
             ' Verify Incremental parse
@@ -321,7 +320,7 @@ Public Module VerificationHelpers
 
     <Extension()>
     Public Function FindNodeOrTokenByKind(tree As SyntaxTree, kind As SyntaxKind, Optional occurrence As Integer = 1) As SyntaxNodeOrToken
-        If Not occurrence > 0 Then
+        If occurrence <= 0 Then
             Throw New ArgumentException("Specified value must be greater than zero.", NameOf(occurrence))
         End If
         Dim foundNode As SyntaxNodeOrToken = Nothing
@@ -578,37 +577,35 @@ Public Module VerificationHelpers
     End Function
 
     Private Function AreErrorsEquivalent(syntaxError As Diagnostic, xmlError As XElement) As Boolean
-        Dim areEquivalent As Boolean = True
-
         Dim id = xmlError.@id
         If id IsNot Nothing Then
             If CInt(id) <> syntaxError.Code Then
-                areEquivalent = False
+                Return False
             End If
         Else
             Throw New ArgumentException("The 'id' attribute is required for all errors")
         End If
         Dim message = xmlError.@message
         If message IsNot Nothing AndAlso message <> syntaxError.GetMessage(EnsureEnglishUICulture.PreferredOrNull) Then
-            areEquivalent = False
+            Return False
         End If
 
         Dim syntaxErrorSpan = syntaxError.Location.SourceSpan
 
         Dim spanStart = xmlError.@start
         If spanStart IsNot Nothing AndAlso CInt(spanStart) <> syntaxErrorSpan.Start Then
-            areEquivalent = False
+            Return False
         End If
         Dim spanEnd = xmlError.@end
         If spanEnd IsNot Nothing AndAlso CInt(spanEnd) <> syntaxErrorSpan.End Then
-            areEquivalent = False
+            Return False
         End If
         Dim spanLength = xmlError.@length
         If spanLength IsNot Nothing AndAlso CInt(spanLength) <> syntaxErrorSpan.Length Then
-            areEquivalent = False
+            Return False
         End If
 
-        Return areEquivalent
+        Return True
     End Function
 
     Private Sub VerifyContainsErrors(node As SyntaxNodeOrToken, tree As SyntaxTree,
@@ -1015,11 +1012,8 @@ Public Module VerificationHelpers
         End Sub
 
         Public Function GetCount(Node As String) As Integer
-            If _Dict.ContainsKey(Node) Then
-                Return _Dict(Node)
-            Else
-                Return 0
-            End If
+            Dim value As Integer = 0
+            Return If(_Dict.TryGetValue(Node, value), value, 0)
         End Function
 
         Public Function GetItem() As List(Of VisualBasicSyntaxNode)
