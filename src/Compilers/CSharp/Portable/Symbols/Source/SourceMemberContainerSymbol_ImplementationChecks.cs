@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeRefnessOfReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                             }
-                            else if (!MemberSignatureComparer.HaveSameReturnTypes(overridingMethod, overriddenMethod, considerCustomModifiers: false))
+                            else if (!MemberSignatureComparer.HaveSameReturnTypes(overridingMethod, overriddenMethod, considerCustomModifiers: false, considerRefKindDifferences: false))
                             {
                                 // Suppose we have a virtual base class method M<T>() that returns C<T>, and the overriding
                                 // method M<V> returns void. The error should be "return type must be C<V>", not 

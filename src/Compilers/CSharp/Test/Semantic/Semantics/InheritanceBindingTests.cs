@@ -2486,15 +2486,15 @@ class Class : Interface
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (10,15): error CS8152: 'Class' does not implement interface member 'Interface.Method4(ref object)'. 'Class.Method4(ref object)' cannot implement 'Interface.Method4(ref object)' because it does not return by value
+                // (10,15): error CS8152: 'Class' does not implement interface member 'Interface.Method4(ref object)'. 'Class.Method4(ref object)' cannot implement 'Interface.Method4(ref object)' because it does not have the matching return type reference signature.
                 // class Class : Interface
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Method4(ref object)", "Class.Method4(ref object)", "value").WithLocation(10, 15),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Method4(ref object)", "Class.Method4(ref object)").WithLocation(10, 15),
                 // (10,15): error CS0535: 'Class' does not implement interface member 'Interface.Method2(int)'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Method2(int)").WithLocation(10, 15),
-                // (10,15): error CS8152: 'Class' does not implement interface member 'Interface.Method3(ref object)'. 'Class.Method3(ref object)' cannot implement 'Interface.Method3(ref object)' because it does not return by reference
+                // (10,15): error CS8152: 'Class' does not implement interface member 'Interface.Method3(ref object)'. 'Class.Method3(ref object)' cannot implement 'Interface.Method3(ref object)' because it does not have the matching return type reference signature.
                 // class Class : Interface
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Method3(ref object)", "Class.Method3(ref object)", "reference").WithLocation(10, 15),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Method3(ref object)", "Class.Method3(ref object)").WithLocation(10, 15),
                 // (10,15): error CS0535: 'Class' does not implement interface member 'Interface.Method1()'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Method1()").WithLocation(10, 15));
@@ -2550,12 +2550,12 @@ class Class : Interface
                 // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property7.set'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property7.set").WithLocation(17, 15),
-                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.Property8'. 'Class.Property8' cannot implement 'Interface.Property8' because it does not return by reference
+                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.Property8'. 'Class.Property8' cannot implement 'Interface.Property8' because it does not have the matching return type reference signature.
                 // class Class : Interface
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Property8", "Class.Property8", "reference").WithLocation(17, 15),
-                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.Property9'. 'Class.Property9' cannot implement 'Interface.Property9' because it does not return by value
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Property8", "Class.Property8").WithLocation(17, 15),
+                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.Property9'. 'Class.Property9' cannot implement 'Interface.Property9' because it does not have the matching return type reference signature.
                 // class Class : Interface
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Property9", "Class.Property9", "value").WithLocation(17, 15),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Property9", "Class.Property9").WithLocation(17, 15),
                 // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property1'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property1").WithLocation(17, 15));
@@ -2602,12 +2602,12 @@ class Class : Interface
                 // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.this[int, string, string, string].set'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, string, string, string].set").WithLocation(17, 15),
-                // (17,15): error CS8086: 'Class' does not implement interface member 'Interface.this[string, int, int, int]'. 'Class.this[string, int, int, int]' cannot implement 'Interface.this[string, int, int, int]' because it does not return by reference.
+                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.this[string, int, int, int]'. 'Class.this[string, int, int, int]' cannot implement 'Interface.this[string, int, int, int]' because it does not have the matching return type reference signature.
                 // class Class : Interface
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.this[string, int, int, int]", "Class.this[string, int, int, int]", "reference").WithLocation(17, 15),
-                // (17,15): error CS8086: 'Class' does not implement interface member 'Interface.this[string, int, int, string]'. 'Class.this[string, int, int, string]' cannot implement 'Interface.this[string, int, int, string]' because it does not return by value.
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.this[string, int, int, int]", "Class.this[string, int, int, int]").WithLocation(17, 15),
+                // (17,15): error CS8152: 'Class' does not implement interface member 'Interface.this[string, int, int, string]'. 'Class.this[string, int, int, string]' cannot implement 'Interface.this[string, int, int, string]' because it does not have the matching return type reference signature.
                 // class Class : Interface
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.this[string, int, int, string]", "Class.this[string, int, int, string]", "value").WithLocation(17, 15),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.this[string, int, int, string]", "Class.this[string, int, int, string]").WithLocation(17, 15),
                 // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.this[int, int, string, string].get'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, int, string, string].get").WithLocation(17, 15),
