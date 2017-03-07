@@ -36,18 +36,24 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
         }
 
-        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName, string projectTemplate, bool clearEditor = true)
+        protected AbstractEditorTest(
+            VisualStudioInstanceFactory instanceFactory,
+            string solutionName,
+            string projectTemplate)
            : base(instanceFactory)
         {
             VisualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
             VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, projectTemplate, LanguageName);
 
             VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
-            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-
             Editor = VisualStudio.Instance.Editor;
-            if (clearEditor)
+
+            // Winforms and XAML do not open text files on creation
+            // so these editor tasks will not work if that is the project template being used.
+            if (projectTemplate != WellKnownProjectTemplates.WinFormsApplication &&
+                projectTemplate != WellKnownProjectTemplates.WpfApplication)
             {
+                VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
                 ClearEditor();
             }
         }
