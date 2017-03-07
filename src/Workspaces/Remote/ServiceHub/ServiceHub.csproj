@@ -82,6 +82,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
+    <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
