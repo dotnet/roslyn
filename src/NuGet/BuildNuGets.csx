@@ -172,6 +172,26 @@ void ReportError(string message)
     Console.ForegroundColor = color;
 }
 
+string GetPackageVersion(string packageName)
+{
+    // HACK: since Microsoft.Net.Compilers 2.0.0 was uploaded by accident and later deleted, we must bump the minor.
+    // We will do this to both the regular Microsoft.Net.Compilers package and also the netcore package to keep them
+    // in sync.
+    if (BuildVersion.StartsWith("2.0.") && packageName.StartsWith("Microsoft.Net.Compilers", StringComparison.OrdinalIgnoreCase))
+    {
+        string[] buildVersionParts = BuildVersion.Split('-');
+        string[] buildVersionBaseParts = buildVersionParts[0].Split('.');
+        
+        buildVersionBaseParts[buildVersionBaseParts.Length - 1] =
+            (int.Parse(buildVersionBaseParts[buildVersionBaseParts.Length - 1]) + 1).ToString();
+
+        buildVersionParts[0] = string.Join(".", buildVersionBaseParts);
+        return string.Join("-", buildVersionParts);
+    }
+
+    return BuildVersion;
+}
+
 int PackFiles(string[] nuspecFiles, string licenseUrl)
 {
     var commonProperties = new Dictionary<string, string>()
@@ -213,8 +233,10 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
 
         if (!IsCoreBuild)
         {
+            string packageArgs = commonArgs.Replace($"-prop version=\"{BuildVersion}\"", $"-prop version=\"{GetPackageVersion(Path.GetFileNameWithoutExtension(file))}\"");
+
             p.StartInfo.FileName = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
-            p.StartInfo.Arguments = $@"pack {file} {commonArgs}";
+            p.StartInfo.Arguments = $@"pack {file} {packageArgs}";
         }
         else
         {
@@ -267,7 +289,7 @@ XElement MakePackageElement(string packageName, string version)
 
 IEnumerable<XElement> MakeRoslynPackageElements(string[] roslynPackageNames)
 {
-    return roslynPackageNames.Select(packageName => MakePackageElement(packageName, BuildVersion));
+    return roslynPackageNames.Select(packageName => MakePackageElement(packageName, GetPackageVersion(packageName)));
 }
 
 void GeneratePublishingConfig(string fileName, IEnumerable<XElement> packages)
