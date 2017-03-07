@@ -60,8 +60,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected abstract string LanguageName { get; }
 
-        protected void WaitForAsyncOperations(string featuresToWaitFor)
-            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(featuresToWaitFor);
+        protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
+            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";",featuresToWaitFor));
 
         protected void ClearEditor()
             => SetUpEditor("$$");
@@ -120,7 +120,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
         }
 
-        protected void PlaceCaret(string text, int charsOffset)
+        protected void DeleteText(string text)
+        {
+            SelectTextInCurrentDocument(text);
+            SendKeys(VirtualKey.Delete);
+        }
+
+        protected void PlaceCaret(string text, int charsOffset = 0)
             => VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: charsOffset, occurrence: 0, extendSelection: false, selectBlock: false);
 
         protected void BuildSolution(bool waitForBuildToFinish)
@@ -169,8 +175,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
             WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
-        protected void ExecuteCommand(string commandName)
-            => VisualStudio.Instance.ExecuteCommand(commandName);
+        protected void ExecuteCommand(string commandName, string argument = "")
+            => VisualStudio.Instance.ExecuteCommand(commandName, argument);
 
         private void VerifyCurrentLineTextAndAssertCaretPosition(string expectedText, bool trimWhitespace)
         {
@@ -447,6 +453,18 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
             Assert.Contains(referencedProjectName, projectReferences);
+        }
+
+        public void VerifyCurrentTokenType(string tokenType)
+        {
+            WaitForAsyncOperations(
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.Classification);
+            var actualTokenTypes = Editor.GetCurrentClassifications();
+            Assert.Equal(actualTokenTypes.Length, 1);
+            Assert.Contains(tokenType, actualTokenTypes[0]);
+            Assert.NotEqual("text", tokenType);
         }
     }
 }

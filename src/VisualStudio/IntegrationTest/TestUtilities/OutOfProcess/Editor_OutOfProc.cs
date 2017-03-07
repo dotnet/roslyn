@@ -44,6 +44,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void MoveCaret(int position)
             => _inProc.MoveCaret(position);
 
+        public string[] GetCurrentClassifications()
+            => _inProc.GetCurrentClassifications();
+
         public void PlaceCaret(string marker, int charsOffset, int occurrence, bool extendSelection, bool selectBlock)
             => _inProc.PlaceCaret(marker, charsOffset, occurrence, extendSelection, selectBlock);
 

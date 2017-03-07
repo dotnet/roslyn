@@ -16,7 +16,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -42,6 +44,36 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             return vsTextView;
         }
+
+        public string[] GetCurrentClassifications()
+            => InvokeOnUIThread(() =>
+            {
+                IClassifier classifier = null;
+                try
+                {
+                    var textView = GetActiveTextView();
+                    var selectionSpan = textView.Selection.StreamSelectionSpan.SnapshotSpan;
+                    if (selectionSpan.Length == 0)
+                    {
+                        var textStructureNavigatorSelectorService = GetComponentModelService<ITextStructureNavigatorSelectorService>();
+                        selectionSpan = textStructureNavigatorSelectorService
+                            .GetTextStructureNavigator(textView.TextBuffer)
+                            .GetExtentOfWord(selectionSpan.Start).Span;
+                    }
+
+                    var classifierAggregatorService = GetComponentModelService<IViewClassifierAggregatorService>();
+                    classifier = classifierAggregatorService.GetClassifier(textView);
+                    var classifiedSpans = classifier.GetClassificationSpans(selectionSpan);
+                    return classifiedSpans.Select(x => x.ClassificationType.Classification).ToArray();
+                }
+                finally
+                {
+                    if (classifier is IDisposable classifierDispose)
+                    {
+                        classifierDispose.Dispose();
+                    }
+                }
+            });
 
         private static IWpfTextViewHost GetActiveTextViewHost()
         {
