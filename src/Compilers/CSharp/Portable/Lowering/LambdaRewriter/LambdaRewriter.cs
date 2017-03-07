@@ -1434,7 +1434,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     structClosureParamBuilder.Add(containerAsFrame);
                 }
-                if (_analysis.NeedsParentFrame.Contains(lambdaScope) && FindParentFrame())
+                if (_analysis.NeedsParentFrame.Contains(lambdaScope)
+                    && FindParentFrame(ref containerAsFrame, ref lambdaScope))
                 {
                     continue;
                 }
@@ -1447,11 +1448,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             structClosureParamBuilder.ReverseContents();
             return structClosureParamBuilder.ToImmutableAndFree();
 
-            bool FindParentFrame()
+            bool FindParentFrame(ref LambdaFrame container, ref BoundNode scope)
             {
-                while (_analysis.ScopeParent.TryGetValue(lambdaScope, out lambdaScope))
+                while (_analysis.ScopeParent.TryGetValue(scope, out scope))
                 {
-                    if (_frames.TryGetValue(lambdaScope, out containerAsFrame))
+                    if (_frames.TryGetValue(scope, out container))
                     {
                         return true;
                     }
