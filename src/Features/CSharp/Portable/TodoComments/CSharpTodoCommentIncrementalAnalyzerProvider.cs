@@ -4,13 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.TodoComments
+namespace Microsoft.CodeAnalysis.CSharp.TodoComments
 {
     [ExportLanguageService(typeof(ITodoCommentService), LanguageNames.CSharp), Shared]
     internal class CSharpTodoCommentService : AbstractTodoCommentService

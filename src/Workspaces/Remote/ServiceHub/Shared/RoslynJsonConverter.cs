@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.Remote
             _map[value.GetType()].WriteJson(writer, value, serializer);
         }
 
+        // this type is shared by multiple teams such as Razor, LUT and etc which have either separated/shared/shim repo
+        // so some types might not available to those context. this partial method let us add Roslyn specific types
+        // without breaking them
+        partial void AppendRoslynSpecificJsonConverters(ImmutableDictionary<Type, JsonConverter>.Builder builder);
+
         private ImmutableDictionary<Type, JsonConverter> CreateConverterMap()
         {
             var builder = ImmutableDictionary.CreateBuilder<Type, JsonConverter>();
@@ -44,6 +49,8 @@ namespace Microsoft.CodeAnalysis.Remote
             builder.Add(typeof(DocumentId), new DocumentIdJsonConverter());
             builder.Add(typeof(TextSpan), new TextSpanJsonConverter());
             builder.Add(typeof(SymbolKey), new SymbolKeyJsonConverter());
+
+            AppendRoslynSpecificJsonConverters(builder);
 
             return builder.ToImmutable();
         }

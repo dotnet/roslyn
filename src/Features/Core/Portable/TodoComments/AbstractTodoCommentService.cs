@@ -5,9 +5,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
+namespace Microsoft.CodeAnalysis.TodoComments
 {
     internal abstract class AbstractTodoCommentService : ITodoCommentService
     {
@@ -21,6 +23,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         protected abstract void AppendTodoComments(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList);
 
         public async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        {
+            // same service run in both inproc and remote host, but remote host will not have RemoteHostClient service, 
+            // so inproc one will always run
+            var client = await document.Project.Solution.Workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (client != null && !document.IsOpen())
+            {
+                // run todo scanner on remote host. 
+                // we only run closed files to make open document to have better responsiveness. 
+                // also we cache everything related to open files anyway, no saving by running
+                // them in remote host
+                return await GetTodoCommentsInRemoteHostAsync(client, document, commentDescriptors, cancellationToken).ConfigureAwait(false);
+            }
+
+            return await GetTodoCommentsInCurrentProcessAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<IList<TodoComment>> GetTodoCommentsInRemoteHostAsync(
+            RemoteHostClient client, Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        {
+            return await client.RunCodeAnalysisServiceOnRemoteHostAsync<IList<TodoComment>>(
+                document.Project.Solution, nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
+                new object[] { document.Id, commentDescriptors }, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<IList<TodoComment>> GetTodoCommentsInCurrentProcessAsync(
+            Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

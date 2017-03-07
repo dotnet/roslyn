@@ -51,6 +51,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return child;
         }
 
+        /// <summary>
+        /// Given an <see cref="AutomationElement"/>, returns all descendants with the given <paramref name="className"/>.
+        /// If none are found, the resulting collection will be empty.
+        /// </summary>
+        /// <returns></returns>
+        public static AutomationElementCollection FindDescendantsByClass(this AutomationElement parent, string className)
+        {
+            if (parent == null)
+            {
+                throw new ArgumentNullException(nameof(parent));
+            }
+
+            var condition = new PropertyCondition(AutomationElement.ClassNameProperty, className);
+            return parent.FindAll(TreeScope.Descendants, condition);
+        }
 
         /// <summary>
         /// Invokes an <see cref="AutomationElement"/>.
@@ -117,6 +132,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             else
             {
                 throw new InvalidOperationException($"The element '{element.GetNameForExceptionMessage()}' does not support the SelectionItemPattern.");
+            }
+        }
+
+        /// <summary>
+        /// Sets the value of the given <see cref="AutomationElement"/>.
+        /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
+        /// support the <see cref="ValuePattern"/>.
+        /// </summary>
+        public static void SetValue(this AutomationElement element, string value)
+        {
+            if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var valuePattern))
+            {
+                (valuePattern as ValuePattern).SetValue(value);
+            }
+            else
+            {
+                throw new InvalidOperationException($"The element '{element.GetNameForExceptionMessage()}' does not support the ValuePattern.");
             }
         }
 

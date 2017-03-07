@@ -196,6 +196,7 @@
     <Compile Include="Debugging\DataTipInfoGetterTests.cs" />
     <Compile Include="Debugging\LocationInfoGetterTests.cs" />
     <Compile Include="Debugging\NameResolverTests.cs" />
+    <Compile Include="DesignerAttribute\DesignerAttributeServiceTests.cs" />
     <Compile Include="Interactive\Commands\InteractiveCommandHandlerTests.cs" />
     <Compile Include="Interactive\Commands\TestInteractiveCommandHandler.cs" />
     <Compile Include="Interactive\Commands\InteractiveWindowCommandHandlerTestState.cs" />
@@ -244,5 +245,6 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

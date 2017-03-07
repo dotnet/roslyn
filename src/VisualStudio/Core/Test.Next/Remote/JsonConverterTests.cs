@@ -3,12 +3,14 @@
 extern alias hub;
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.TodoComments;
 using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -49,7 +51,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 logAnalyzerExecutionTime: false,
                 projectId: ProjectId.CreateNewId("project"),
                 optionSetChecksum: Checksum.Null,
-                hostAnalyzerChecksums: ImmutableArray.CreateRange(new[] { new Checksum(Guid.NewGuid().ToByteArray()), new Checksum(Guid.NewGuid().ToByteArray()) }),
                 analyzerIds: new[] { "analyzer1", "analyzer2" });
 
             VerifyJsonSerialization(arguments, (x, y) =>
@@ -58,8 +59,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     x.LogAnalyzerExecutionTime == y.LogAnalyzerExecutionTime &&
                     x.ProjectId == y.ProjectId &&
                     x.OptionSetChecksum == y.OptionSetChecksum &&
-                    x.HostAnalyzerChecksums.Length == y.HostAnalyzerChecksums.Length &&
-                    x.HostAnalyzerChecksums.Except(y.HostAnalyzerChecksums).Count() == 0 &&
                     x.AnalyzerIds.Length == y.AnalyzerIds.Length &&
                     x.AnalyzerIds.Except(y.AnalyzerIds).Count() == 0)
                 {
@@ -80,6 +79,38 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public void TestSymbolKey()
         {
             VerifyJsonSerialization(new SymbolKey("TEST"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestTodoCommentDescriptor()
+        {
+            VerifyJsonSerialization(new TodoCommentDescriptor("Test", 0));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestTodoComment()
+        {
+            VerifyJsonSerialization(new TodoComment(new TodoCommentDescriptor("Test", 1), "Message", 10));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestTodoCommentDescriptorImmutableArray()
+        {
+            VerifyJsonSerialization(ImmutableArray.Create(new TodoCommentDescriptor("Test", 0), new TodoCommentDescriptor("Test1", 1)), (x, y) =>
+            {
+                return x.SequenceEqual(y) ? 0 : 1;
+            });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestTodoCommentList()
+        {
+            VerifyJsonSerialization(new[] {
+                new TodoComment(new TodoCommentDescriptor("Test1", 1), "Message1", 10),
+                new TodoComment(new TodoCommentDescriptor("Test2", 2), "Message2", 20)}.ToList(), (x, y) =>
+                {
+                    return x.SequenceEqual(y) ? 0 : 1;
+                });
         }
 
         private static void VerifyJsonSerialization<T>(T value, Comparison<T> equality = null)

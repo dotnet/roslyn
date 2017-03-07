@@ -3,10 +3,10 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.TodoComments
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TodoComments
+Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
     <ExportLanguageService(GetType(ITodoCommentService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicTodoCommentService
         Inherits AbstractTodoCommentService

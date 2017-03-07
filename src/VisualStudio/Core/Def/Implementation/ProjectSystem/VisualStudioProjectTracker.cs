@@ -50,13 +50,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool _solutionIsClosing = false;
 
         /// <summary>
+        /// Set during <see cref="IVsSolutionEvents.OnBeforeCloseSolution"/>, so that <see cref="IVsSolutionEvents.OnAfterCloseSolution"/> knows
+        /// whether or not to clean up deferred projects.
+        /// </summary>
+        private bool _deferredLoadWasEnabledForLastSolution = false;
+
+        /// <summary>
         /// Set to true once the solution has already been completely loaded and all future changes
         /// should be pushed immediately to the workspace hosts. This may not actually result in changes
         /// being pushed to a particular host if <see cref="WorkspaceHostState.HostReadyForEvents"/> isn't true yet.
         /// </summary>
         private bool _solutionLoadComplete = false;
-
-        private uint? _solutionEventsCookie;
         #endregion
 
         #region Mutable fields accessed from foreground or background threads - need locking for access.
@@ -113,8 +117,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            _vsSolution.AdviseSolutionEvents(this, out var solutionEventsCookie);
-            _solutionEventsCookie = solutionEventsCookie;
 
             // It's possible that we're loading after the solution has already fully loaded, so see if we missed the event
             var shellMonitorSelection = (IVsMonitorSelection)serviceProvider.GetService(typeof(SVsShellMonitorSelection));
@@ -226,12 +228,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void Dispose()
         {
-            if (_solutionEventsCookie.HasValue)
-            {
-                _vsSolution.UnadviseSolutionEvents(_solutionEventsCookie.Value);
-                _solutionEventsCookie = null;
-            }
-
             if (this.RuleSetFileProvider != null)
             {
                 this.RuleSetFileProvider.Dispose();
@@ -495,7 +491,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // If we created a project for this while in deferred project load mode, let's close it
             // now that we're being asked to make a "real" project for it, so that we'll prefer the
             // "real" project
-            if (IsDeferredSolutionLoadEnabled())
+            if (VisualStudioWorkspaceImpl.IsDeferredSolutionLoadEnabled(_serviceProvider))
             {
                 var existingProject = GetProject(projectId);
                 if (existingProject != null)
@@ -506,12 +502,59 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private bool IsDeferredSolutionLoadEnabled()
+        public void OnBeforeCloseSolution()
         {
-            // NOTE: It is expected that the "as" will fail on Dev14, as IVsSolution7 was
-            // introduced in Dev15.  Be sure to handle the null result here.
-            var solution7 = _serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution7;
-            return solution7?.IsSolutionLoadDeferred() == true;
+            AssertIsForeground();
+
+            _solutionIsClosing = true;
+
+            foreach (var p in this.ImmutableProjects)
+            {
+                p.StopPushingToWorkspaceHosts();
+            }
+
+            _solutionLoadComplete = false;
+            _deferredLoadWasEnabledForLastSolution = VisualStudioWorkspaceImpl.IsDeferredSolutionLoadEnabled(_serviceProvider);
+
+            // Cancel any background solution parsing. NOTE: This means that work needs to
+            // check the token periodically, and whenever resuming from an "await"
+            _solutionParsingCancellationTokenSource.Cancel();
+            _solutionParsingCancellationTokenSource = new CancellationTokenSource();
+        }
+
+        public void OnAfterCloseSolution()
+        {
+            AssertIsForeground();
+
+            if (_deferredLoadWasEnabledForLastSolution)
+            {
+                // Copy to avoid modifying the collection while enumerating
+                var loadedProjects = ImmutableProjects.ToList();
+                foreach (var p in loadedProjects)
+                {
+                    p.Disconnect();
+                }
+            }
+
+            lock (_gate)
+            {
+                Contract.ThrowIfFalse(_projectMap.Count == 0);
+            }
+
+            NotifyWorkspaceHosts(host => host.OnSolutionRemoved());
+            NotifyWorkspaceHosts(host => host.ClearSolution());
+
+            lock (_gate)
+            {
+                _projectPathToIdMap.Clear();
+            }
+
+            foreach (var workspaceHost in _workspaceHosts)
+            {
+                workspaceHost.SolutionClosed();
+            }
+
+            _solutionIsClosing = false;
         }
     }
 }

@@ -116,6 +116,9 @@
     <Compile Include="ConflictMarkerResolution\AbstractConflictMarkerCodeFixProvider.cs" />
     <Compile Include="Completion\Providers\AbstractCrefCompletionProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
+    <Compile Include="DesignerAttributes\AbstractDesignerAttributeService.cs" />
+    <Compile Include="DesignerAttributes\IDesignerAttributeService.cs" />
+    <Compile Include="DesignerAttributes\IRemoteDesignerAttributeService.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\DiagnosticArguments.cs" />
     <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
@@ -160,6 +163,9 @@
     <Compile Include="Remote\RemoteArguments.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
     <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
+    <Compile Include="TodoComments\AbstractTodoCommentService.cs" />
+    <Compile Include="TodoComments\IRemoteTodoCommentService.cs" />
+    <Compile Include="TodoComments\ITodoCommentService.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />

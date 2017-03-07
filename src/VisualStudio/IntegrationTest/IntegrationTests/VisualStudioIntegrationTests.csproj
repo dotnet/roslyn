@@ -21,7 +21,9 @@
   <ItemGroup>
     <Compile Include="AbstractIntegrationTest.cs" />
     <Compile Include="AbstractInteractiveWindowTest.cs" />
+    <Compile Include="CSharp\CSharpChangeSignatureDialog.cs" />
     <Compile Include="CSharp\CSharpFindReferences.cs" />
+    <Compile Include="CSharp\CSharpGenerateTypeDialog.cs" />
     <Compile Include="CSharp\CSharpInteractiveAsyncOutput.cs" />
     <Compile Include="CSharp\CSharpAutomaticBraceCompletion.cs" />
     <Compile Include="CSharp\CSharpBuild.cs" />
@@ -30,15 +32,20 @@
     <Compile Include="CSharp\CSharpInteractive.cs" />
     <Compile Include="AbstractEditorTest.cs" />
     <Compile Include="CSharp\CSharpSignatureHelp.cs" />
+    <Compile Include="CSharp\CSharpWinForms.cs" />
+    <Compile Include="CSharp\CSharpAddMissingReference.cs" />
     <Compile Include="SharedIntegrationHostFixture.cs" />
+    <Compile Include="VisualBasic\BasicAddMissingReference.cs" />
     <Compile Include="VisualBasic\BasicAutomaticBraceCompletion.cs" />
     <Compile Include="VisualBasic\BasicBuild.cs" />
     <Compile Include="VisualBasic\BasicGenerateEqualsAndGetHashCodeDialog.cs" />
     <Compile Include="VisualBasic\BasicGenerateConstructorDialog.cs" />
     <Compile Include="VisualBasic\BasicChangeSignatureDialog.cs" />
     <Compile Include="VisualBasic\BasicFindReferences.cs" />
+    <Compile Include="VisualBasic\BasicGenerateTypeDialog.cs" />
     <Compile Include="VisualBasic\BasicIntelliSense.cs" />
     <Compile Include="VisualBasic\BasicSignatureHelp.cs" />
+    <Compile Include="VisualBasic\BasicWinForms.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

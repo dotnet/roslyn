@@ -56,6 +56,8 @@
   <ItemGroup>
     <Compile Include="CodeLens\CodeLensArguments.cs" />
     <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
+    <Compile Include="Services\CodeAnalysisService_DesignerAttributes.cs" />
+    <Compile Include="Services\CodeAnalysisService_TodoComments.cs" />
     <Compile Include="Services\CodeAnalysisService_FindReferences.cs" />
     <Compile Include="Services\RemoteSymbolSearchUpdateEngine.cs" />
     <Compile Include="Services\CodeAnalysisService_NavigateTo.cs" />
@@ -63,6 +65,7 @@
     <Compile Include="Services\CodeAnalysisService.cs" />
     <Compile Include="Services\CodeAnalysisService_Diagnostics.cs" />
     <Compile Include="Services\RemoteHostService.cs" />
+    <Compile Include="Shared\RoslynJsonConverter.RoslynOnly.cs" />
     <Compile Include="Shared\ServiceHubServiceBase.cs" />
     <Compile Include="Services\SnapshotService.cs" />
     <Compile Include="Shared\Extensions.cs" />
