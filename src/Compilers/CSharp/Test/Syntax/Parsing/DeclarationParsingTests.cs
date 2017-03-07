@@ -5189,39 +5189,66 @@ class Class1<T>{
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
             Assert.Equal(text, file.ToString());
 
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, ns.Errors().Length);
+            Assert.Equal(0, ns.Errors().Length);
             Assert.Equal(SyntaxKind.AliasQualifiedName, ns.Name.Kind());
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedAliasedName, ns.Name.Errors()[0].Code);
 
             text = "namespace A<B> { }";
             file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
             Assert.Equal(text, file.ToString());
 
             ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, ns.Errors().Length);
+            Assert.Equal(0, ns.Errors().Length);
             Assert.Equal(SyntaxKind.GenericName, ns.Name.Kind());
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedGenericName, ns.Name.Errors()[0].Code);
 
             text = "namespace A<,> { }";
             file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
             Assert.Equal(text, file.ToString());
 
             ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, ns.Errors().Length);
+            Assert.Equal(0, ns.Errors().Length);
             Assert.Equal(SyntaxKind.GenericName, ns.Name.Kind());
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedGenericName, ns.Name.Errors()[0].Code);
+        }
+
+        [Fact]
+        public void TestNamespaceDeclarationsBadNames1()
+        {
+            var text = @"namespace A::B { }";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (1,11): error CS7000: Unexpected use of an aliased name
+                // namespace A::B { }
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "A::B").WithLocation(1, 11));
+        }
+
+        [Fact]
+        public void TestNamespaceDeclarationsBadNames2()
+        {
+            var text = @"namespace A<B> { }";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (1,11): error CS7002: Unexpected use of a generic name
+                // namespace A<B> { }
+                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "A<B>").WithLocation(1, 11));
+        }
+
+        [Fact]
+        public void TestNamespaceDeclarationsBadNames3()
+        {
+            var text = @"namespace A<,> { }";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (1,11): error CS7002: Unexpected use of a generic name
+                // namespace A<,> { }
+                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "A<,>").WithLocation(1, 11));
         }
 
         [WorkItem(537690, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537690")]
@@ -5240,6 +5267,61 @@ class Program {
             var file = this.ParseFile(text);
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[0].Code);
+        }
+
+        [Fact]
+        public void TestPartialPartial()
+        {
+            var text = @"
+partial class PartialPartial
+{
+    int i = 1;
+    partial partial void PM();
+    partial partial void PM()
+    {
+        i = 0;
+    }
+    static int Main()
+    {
+        PartialPartial t = new PartialPartial();
+        t.PM();
+        return t.i;
+    }
+}
+";
+            // These errors aren't great.  Ideally we can improve things in the future.
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (5,13): error CS1525: Invalid expression term 'partial'
+                //     partial partial void PM();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(5, 13),
+                // (5,13): error CS1002: ; expected
+                //     partial partial void PM();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 13),
+                // (6,13): error CS1525: Invalid expression term 'partial'
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(6, 13),
+                // (6,13): error CS1002: ; expected
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(6, 13),
+                // (6,13): error CS0102: The type 'PartialPartial' already contains a definition for ''
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("PartialPartial", "").WithLocation(6, 13),
+                // (5,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial partial void PM();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 5),
+                // (6,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(6, 5));
+        }
+
+        [Fact]
+        public void TestPartialEnum()
+        {
+            var text = @"partial enum E{}";
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum E{}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
         }
 
         [WorkItem(539120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539120")]
@@ -5397,8 +5479,14 @@ class C
    void M(__arglist, int j)  {}
 }";
 
-            TestError(text1, ErrorCode.ERR_ParamsLast);
-            TestError(text2, ErrorCode.ERR_VarargsLast);
+            CreateCompilationWithMscorlib(text1).VerifyDiagnostics(
+                // (4,11): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //    void M(params int[] i, int j)  {}
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] i").WithLocation(4, 11));
+            CreateCompilationWithMscorlib(text2).VerifyDiagnostics(
+                // (4,11): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
+                //    void M(__arglist, int j)  {}
+                Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist").WithLocation(4, 11));
         }
 
         [Fact]

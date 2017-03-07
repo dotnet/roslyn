@@ -47,10 +47,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    if (!IsAnonymousTypeMemberExpression(expression))
+                    {
+                        hasError = true;
+                        diagnostics.Add(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, expression.GetLocation());
+                    }
+
                     nameToken = expression.ExtractAnonymousTypeMemberName();
                 }
 
-                hasError = hasError || expression.HasErrors;
+                hasError |= expression.HasErrors;
                 boundExpressions[i] = this.BindValue(expression, diagnostics, BindValueKind.RValue);
 
                 //  check the name to be unique
@@ -129,6 +135,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declarators.ToImmutableAndFree(),
                 anonymousType,
                 hasError);
+        }
+
+        private static bool IsAnonymousTypeMemberExpression(ExpressionSyntax expr)
+        {
+            while (true)
+            {
+                switch (expr.Kind())
+                {
+                    case SyntaxKind.QualifiedName:
+                        expr = ((QualifiedNameSyntax)expr).Right;
+                        continue;
+                    case SyntaxKind.ConditionalAccessExpression:
+                        expr = ((ConditionalAccessExpressionSyntax)expr).WhenNotNull;
+                        if (expr.Kind() == SyntaxKind.MemberBindingExpression)
+                        {
+                            return true;
+                        }
+
+                        continue;
+                    case SyntaxKind.IdentifierName:
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
         }
 
         /// <summary>

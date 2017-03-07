@@ -13316,18 +13316,18 @@ partial class C
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                   // (5,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                   //     partial int f;
-                   Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "f"),
-                   // (6,20): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                   //     partial object P { get { return null; } }
-                   Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "P"),
-                  // (7,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                  //     partial int this[int index]
-                  Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "this"),
-                   // (5,17): warning CS0169: The field 'C.f' is never used
-                   //     partial int f;
-                   Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C.f"));
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial int f;
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial object P { get { return null; } }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
+                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial int this[int index]
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5),
+                // (4,17): warning CS0169: The field 'C.f' is never used
+                //     partial int f;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C.f").WithLocation(4, 17));
         }
 
         [Fact]
@@ -19213,9 +19213,13 @@ static class A
     public static int f1<T>() { return 1; }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, Line = 3, Column = 22 }
-            );
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (3,22): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //     object F = new { f1<int> };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "f1<int>").WithLocation(3, 22),
+                // (3,22): error CS0828: Cannot assign method group to anonymous type property
+                //     object F = new { f1<int> };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "f1<int>").WithArguments("method group").WithLocation(3, 22));
         }
 
         [Fact]

@@ -2849,21 +2849,17 @@ class Test
             var text = @"
 unsafe class Test
 {
-    int[] property { get; } = stackalloc int[256];
+    int* property { get; } = stackalloc int[256];
 
     static void Main(string[] args)
     {
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-    // (4,31): error CS1525: Invalid expression term 'stackalloc'
-    //     int[] property { get; } = stackalloc int[256];
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 31),
-    // (2,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
-    // unsafe class Test
-    Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Test").WithLocation(2, 14)
-                );
+            CreateCompilationWithMscorlib(text, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (4,30): error CS1525: Invalid expression term 'stackalloc'
+                //     int* property { get; } = stackalloc int[256];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 30));
         }
         [Fact]
         public void RefPropertyWithoutGetter()
