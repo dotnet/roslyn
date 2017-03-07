@@ -53,6 +53,10 @@
     <AssemblyVersionAttribute Include="System.Reflection.AssemblyInformationalVersionAttribute">
       <_Parameter1>$(NuGetPerBuildPreReleaseVersion). Commit Hash: $(GitHeadSha)</_Parameter1>
     </AssemblyVersionAttribute>
+     <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute"
+                               Condition="'$(ProjectName)' == 'CSharpCodeAnalysis' Or '$(ProjectName)' == 'BasicCodeAnalysis'">
+      <_Parameter1>$(GitHeadSha)</_Parameter1>
+    </AssemblyVersionAttribute>
   </ItemGroup>
 
   <PropertyGroup>

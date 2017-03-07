@@ -130,37 +130,28 @@ namespace Microsoft.CodeAnalysis
         {
             if (_clientDirectory != null)
             {
-                var name = $"{Type.GetTypeInfo().Assembly.GetName().Name}.dll";
+                Assembly assembly = Type.GetTypeInfo().Assembly;
+                var name = $"{assembly.GetName().Name}.dll";
                 var filePath = Path.Combine(_clientDirectory, name);
                 var fileVersionInfo = FileVersionInfo.GetVersionInfo(filePath);
+                string hash = ExtractShortCommitHash(assembly);
 
-                return $"{fileVersionInfo.FileVersion} ({ExtractShortSHA(fileVersionInfo.ProductVersion)})";
+                return $"{fileVersionInfo.FileVersion} ({hash})";
             }
 
             return "";
         }
 
-        internal static string ExtractShortSHA(string productVersion)
+        private static string ExtractShortCommitHash(Assembly assembly)
         {
-            if (productVersion != null)
+            // leave "<developer build>" alone, but truncate SHA to 8 characters
+            string hash = assembly.GetCustomAttribute<CommitHashAttribute>()?._hash;
+            if (hash != null && hash.Length >= 8 && hash[0] != '<')
             {
-                string marker = "Commit Hash: "; // format used from AssemblyVersionAttribute
-                int found = productVersion.IndexOf(marker, StringComparison.CurrentCulture);
-                if (found > 0)
-                {
-                    int start = found + marker.Length;
-                    if (start < productVersion.Length && productVersion[start] == '<') // <developer build>
-                    {
-                        return productVersion.Substring(start, productVersion.Length - start);
-                    }
-                    else if (productVersion.Length >= start + 8)
-                    {
-                        return productVersion.Substring(start, 8);
-                    }
-                }
+                hash = hash.Substring(0, 8);
             }
 
-            return "";
+            return hash;
         }
 
         /// <summary>
