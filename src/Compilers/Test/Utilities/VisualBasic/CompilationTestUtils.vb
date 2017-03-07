@@ -116,7 +116,6 @@ Friend Module CompilationUtils
 
     Public Function CreateWinRtCompilation(text As XElement) As VisualBasicCompilation
         Return CreateCompilationWithReferences(text, WinRtRefs)
-
     End Function
 
     ''' <summary>
@@ -926,18 +925,22 @@ Friend Module CompilationUtils
         Dim expectedReader = New StringReader(expected)
         Dim actualReader = New StringReader(actual)
 
-        Dim expectedBuilder = PooledStringBuilderPool.Allocate()
-        Dim actualBuilder = PooledStringBuilderPool.Allocate()
+        Dim expectedPooledBuilder = PooledStringBuilderPool.Allocate()
+        Dim actualPooledBuilder = PooledStringBuilderPool.Allocate()
+
+        Dim expectedBuilder = expectedPooledBuilder.Builder
+        Dim actualBuilder = actualPooledBuilder.Builder
+
         Dim expectedLine = expectedReader.ReadLine()
         Dim actualLine = actualReader.ReadLine()
 
         While expectedLine IsNot Nothing AndAlso actualLine IsNot Nothing
             If Not expectedLine.Equals(actualLine) Then
-                expectedBuilder.Builder.AppendLine("<! " & expectedLine)
-                actualBuilder.Builder.AppendLine("!> " & actualLine)
+                expectedBuilder.AppendLine("<! " & expectedLine)
+                actualBuilder.AppendLine("!> " & actualLine)
             Else
-                expectedBuilder.Builder.AppendLine(expectedLine)
-                actualBuilder.Builder.AppendLine(actualLine)
+                expectedBuilder.AppendLine(expectedLine)
+                actualBuilder.AppendLine(actualLine)
             End If
 
             expectedLine = expectedReader.ReadLine()
@@ -946,16 +949,16 @@ Friend Module CompilationUtils
         End While
 
         While expectedLine IsNot Nothing
-            expectedBuilder.Builder.AppendLine("<! " & expectedLine)
+            expectedBuilder.AppendLine("<! " & expectedLine)
             expectedLine = expectedReader.ReadLine()
         End While
 
         While actualLine IsNot Nothing
-            actualBuilder.Builder.AppendLine("!> " & actualLine)
+            actualBuilder.AppendLine("!> " & actualLine)
             actualLine = actualReader.ReadLine()
         End While
 
-        Assert.Equal(expectedBuilder.ToStringAndFree(), actualBuilder.ToStringAndFree())
+        Assert.Equal(expectedPooledBuilder.ToStringAndFree(), actualPooledBuilder.ToStringAndFree())
     End Sub
 
     ' There are certain cases where multiple distinct errors are
@@ -980,11 +983,13 @@ Friend Module CompilationUtils
         Array.Sort(diagnosticsAndIndices, Function(diag1, diag2) CompareErrors(diag1, diag2))
 
         Dim builder = PooledStringBuilderPool.Allocate()
-        For Each e In diagnosticsAndIndices
-            If Not suppressInfos OrElse e.Diagnostic.Severity > DiagnosticSeverity.Info Then
-                builder.Builder.Append(ErrorText(e.Diagnostic))
-            End If
-        Next
+        With builder.Builder
+            For Each e In diagnosticsAndIndices
+                If Not suppressInfos OrElse e.Diagnostic.Severity > DiagnosticSeverity.Info Then
+                    .Append(ErrorText(e.Diagnostic))
+                End If
+            Next
+        End With
         Return builder.ToStringAndFree()
     End Function
 
@@ -1214,12 +1219,14 @@ Friend Module CompilationUtils
     Public Function SortAndMergeStrings(ParamArray strings As String()) As String
         Array.Sort(strings)
         Dim builder = PooledStringBuilderPool.Allocate()
-        For Each str In strings
-            If builder.Length > 0 Then
-                builder.Builder.AppendLine()
-            End If
-            builder.Builder.Append(str)
-        Next
+        With builder.Builder
+            For Each str In strings
+                If .Length > 0 Then
+                    .AppendLine()
+                End If
+                .Append(str)
+            Next
+        End With
         Return builder.ToStringAndFree()
     End Function
 
