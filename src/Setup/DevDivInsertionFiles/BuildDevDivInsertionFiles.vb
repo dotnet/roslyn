@@ -103,6 +103,11 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.CodeAnalysis.VisualBasic.dll",
         "Microsoft.DiaSymReader.Native.amd64.dll",
         "Microsoft.DiaSymReader.Native.x86.dll",
+        ' N.B. This list of facades must be kept in-sync with the
+        ' other facades used by the compiler. Facades are listed in
+        ' the src/NuGet/Microsoft.Net.Compilers.nuspec file, the
+        ' src/Setup/DevDivVsix/CompilersPackage/Microsoft.CodeAnalysis.Compilers.swr file,
+        ' and src/Compilers/Extension/CompilerExtension.csproj file.
         "System.AppContext.dll",
         "System.Console.dll",
         "System.Diagnostics.FileVersionInfo.dll",
