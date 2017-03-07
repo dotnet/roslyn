@@ -4729,8 +4729,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefPropertyCannotHaveSetAccessor" xml:space="preserve">
     <value>Properties which return by reference cannot have set accessors</value>
   </data>
-  <data name="ERR_CantChangeRefnessOfReturnOnOverride" xml:space="preserve">
-    <value>Reference signature of the return type of '{0}' does not match overridden member '{1}'</value>
+  <data name="ERR_CantChangeRefReturnOnOverride" xml:space="preserve">
+    <value>'{0}' must match by reference return of overridden member '{1}'</value>
   </data>
   <data name="ERR_MustNotHaveRefReturn" xml:space="preserve">
     <value>By-reference returns may only be used in methods that return by reference</value>
@@ -4742,7 +4742,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The return expression must be of type '{0}' because this method returns by reference</value>
   </data>
   <data name="ERR_CloseUnimplementedInterfaceMemberWrongRefReturn" xml:space="preserve">
-    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not have the matching return type reference signature.</value>
+    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not have matching return by reference.</value>
   </data>
   <data name="ERR_BadIteratorReturnRef" xml:space="preserve">
     <value>The body of '{0}' cannot be an iterator block because '{0}' returns by reference</value>

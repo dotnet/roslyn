@@ -2357,11 +2357,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reference signature of the return type of &apos;{0}&apos; does not match overridden member &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; must match by reference return of overridden member &apos;{1}&apos;.
         /// </summary>
-        internal static string ERR_CantChangeRefnessOfReturnOnOverride {
+        internal static string ERR_CantChangeRefReturnOnOverride {
             get {
-                return ResourceManager.GetString("ERR_CantChangeRefnessOfReturnOnOverride", resourceCulture);
+                return ResourceManager.GetString("ERR_CantChangeRefReturnOnOverride", resourceCulture);
             }
         }
         
@@ -2717,7 +2717,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement interface member &apos;{1}&apos;. &apos;{2}&apos; cannot implement &apos;{1}&apos; because it does not have the matching return type reference signature..
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement interface member &apos;{1}&apos;. &apos;{2}&apos; cannot implement &apos;{1}&apos; because it does not have matching return by reference..
         /// </summary>
         internal static string ERR_CloseUnimplementedInterfaceMemberWrongRefReturn {
             get {

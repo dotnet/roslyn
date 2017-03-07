@@ -822,7 +822,7 @@ public class ITest : ITest.Test{
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void HidingMethodWithRefReadOnlyParameterWillProduceAWarning()
+        public void HidingMethodWithRefReadOnlyParameter()
         {
             var code = @"
 interface A
@@ -839,11 +839,8 @@ interface B : A
                 //     void M(ref readonly int x);
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M(ref readonly int)", "A.M(ref readonly int)").WithLocation(8, 10));
 
-            var aClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var bClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
-
-            var aMethod = aClass.GetMember<MethodSymbol>("M");
-            var bMethod = bClass.GetMember<MethodSymbol>("M");
+            var aMethod = comp.GetMember<MethodSymbol>("A.M");
+            var bMethod = comp.GetMember<MethodSymbol>("B.M");
 
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
@@ -854,7 +851,7 @@ interface B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void HidingMethodWithRefReadOnlyReturnTypeWillProduceAWarning()
+        public void HidingMethodWithRefReadOnlyReturnType_RefReadOnly_RefReadOnly()
         {
             var code = @"
 interface A
@@ -871,11 +868,8 @@ interface B : A
                 //     ref readonly int M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(8, 22));
 
-            var aClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var bClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
-
-            var aMethod = aClass.GetMember<MethodSymbol>("M");
-            var bMethod = bClass.GetMember<MethodSymbol>("M");
+            var aMethod = comp.GetMember<MethodSymbol>("A.M");
+            var bMethod = comp.GetMember<MethodSymbol>("B.M");
 
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
@@ -886,7 +880,65 @@ interface B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void HidingPropertyWithRefReadOnlyReturnTypeWillProduceAWarning()
+        public void HidingMethodWithRefReadOnlyReturnType_Ref_RefReadOnly()
+        {
+            var code = @"
+interface A
+{
+    ref int M();
+}
+interface B : A
+{
+    ref readonly int M();
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (8,22): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
+                //     ref readonly int M();
+                Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(8, 22));
+
+            var aMethod = comp.GetMember<MethodSymbol>("A.M");
+            var bMethod = comp.GetMember<MethodSymbol>("B.M");
+
+            Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
+
+            Assert.Empty(bMethod.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Equal(aMethod, bMethod.OverriddenOrHiddenMembers.HiddenMembers.Single());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void HidingMethodWithRefReadOnlyReturnType_RefReadOnly_Ref()
+        {
+            var code = @"
+interface A
+{
+    ref readonly int M();
+}
+interface B : A
+{
+    ref int M();
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (8,13): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
+                //     ref readonly int M();
+                Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(8, 13));
+
+            var aMethod = comp.GetMember<MethodSymbol>("A.M");
+            var bMethod = comp.GetMember<MethodSymbol>("B.M");
+
+            Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
+
+            Assert.Empty(bMethod.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Equal(aMethod, bMethod.OverriddenOrHiddenMembers.HiddenMembers.Single());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void HidingPropertyWithRefReadOnlyReturnType_RefReadonly_RefReadonly()
         {
             var code = @"
 interface A
@@ -903,11 +955,8 @@ interface B : A
                 //     ref readonly int Property { get; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(8, 22));
 
-            var aClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var bClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
-
-            var aProperty = aClass.GetMember<PropertySymbol>("Property");
-            var bProperty = bClass.GetMember<PropertySymbol>("Property");
+            var aProperty = comp.GetMember<PropertySymbol>("A.Property");
+            var bProperty = comp.GetMember<PropertySymbol>("B.Property");
 
             Assert.Empty(aProperty.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aProperty.OverriddenOrHiddenMembers.HiddenMembers);
@@ -918,7 +967,65 @@ interface B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void HidingMethodWithRefReadOnlyParameterAndNewKeywordWillNotProduceAWarning()
+        public void HidingPropertyWithRefReadOnlyReturnType_RefReadonly_Ref()
+        {
+            var code = @"
+interface A
+{
+    ref readonly int Property { get; }
+}
+interface B : A
+{
+    ref int Property { get; }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (8,13): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
+                //     ref int Property { get; }
+                Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(8, 13));
+
+            var aProperty = comp.GetMember<PropertySymbol>("A.Property");
+            var bProperty = comp.GetMember<PropertySymbol>("B.Property");
+
+            Assert.Empty(aProperty.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Empty(aProperty.OverriddenOrHiddenMembers.HiddenMembers);
+
+            Assert.Empty(bProperty.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Equal(aProperty, bProperty.OverriddenOrHiddenMembers.HiddenMembers.Single());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void HidingPropertyWithRefReadOnlyReturnType_Ref_RefReadonly()
+        {
+            var code = @"
+interface A
+{
+    ref int Property { get; }
+}
+interface B : A
+{
+    ref readonly int Property { get; }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (8,22): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
+                //     ref readonly int Property { get; }
+                Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(8, 22));
+
+            var aProperty = comp.GetMember<PropertySymbol>("A.Property");
+            var bProperty = comp.GetMember<PropertySymbol>("B.Property");
+
+            Assert.Empty(aProperty.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Empty(aProperty.OverriddenOrHiddenMembers.HiddenMembers);
+
+            Assert.Empty(bProperty.OverriddenOrHiddenMembers.OverriddenMembers);
+            Assert.Equal(aProperty, bProperty.OverriddenOrHiddenMembers.HiddenMembers.Single());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void HidingMethodWithRefReadOnlyParameterAndNewKeyword()
         {
             var code = @"
 interface A
@@ -932,11 +1039,8 @@ interface B : A
 
             var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics();
 
-            var aClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var bClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
-
-            var aMethod = aClass.GetMember<MethodSymbol>("M");
-            var bMethod = bClass.GetMember<MethodSymbol>("M");
+            var aMethod = comp.GetMember<MethodSymbol>("A.M");
+            var bMethod = comp.GetMember<MethodSymbol>("B.M");
 
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
@@ -947,7 +1051,7 @@ interface B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void HidingMethodWithRefReadOnlyReturnTypeAndNewKeywordWillNotProduceAWarning()
+        public void HidingMethodWithRefReadOnlyReturnTypeAndNewKeyword()
         {
             var code = @"
 interface A
@@ -961,11 +1065,8 @@ interface B : A
 
             var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics();
 
-            var aClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var bClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
-
-            var aMethod = aClass.GetMember<MethodSymbol>("M");
-            var bMethod = bClass.GetMember<MethodSymbol>("M");
+            var aMethod = comp.GetMember<MethodSymbol>("A.M");
+            var bMethod = comp.GetMember<MethodSymbol>("B.M");
 
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
@@ -976,7 +1077,7 @@ interface B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void HidingPropertyWithRefReadOnlyReturnTypeAndNewKeywordWillProduceAWarning()
+        public void HidingPropertyWithRefReadOnlyReturnTypeAndNewKeyword()
         {
             var code = @"
 interface A
@@ -990,11 +1091,8 @@ interface B : A
 
             var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics();
 
-            var aClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var bClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
-
-            var aProperty = aClass.GetMember<PropertySymbol>("Property");
-            var bProperty = bClass.GetMember<PropertySymbol>("Property");
+            var aProperty = comp.GetMember<PropertySymbol>("A.Property");
+            var bProperty = comp.GetMember<PropertySymbol>("B.Property");
 
             Assert.Empty(aProperty.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aProperty.OverriddenOrHiddenMembers.HiddenMembers);
@@ -1005,7 +1103,7 @@ interface B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void ImplementingMethodWithRefReadOnlyParameterWillNotProduceAnError()
+        public void ImplementingMethodWithRefReadOnlyParameter()
         {
             var code = @"
 interface A
@@ -1022,7 +1120,7 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void ImplementingMethodWithRefReadOnlyReturnTypeWillNotProduceAnError()
+        public void ImplementingMethodWithRefReadOnlyReturnType()
         {
             var code = @"
 interface A
@@ -1040,7 +1138,7 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void ImplementingPropertyWithRefReadOnlyReturnTypeWillNotProduceAnError()
+        public void ImplementingPropertyWithRefReadOnlyReturnType()
         {
             var code = @"
 interface A
@@ -1058,7 +1156,7 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-        public void ImplementingMethodWithDifferentParameterRefnessWillProduceAnError()
+        public void ImplementingMethodWithDifferentParameterRefness()
         {
             var code = @"
 interface A
@@ -1142,10 +1240,10 @@ class ChildClass : BaseInterface
 }";
 
             var comp = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (7,20): error CS8152: 'ChildClass' does not implement interface member 'BaseInterface.Method2()'. 'ChildClass.Method2()' cannot implement 'BaseInterface.Method2()' because it does not have the matching return type reference signature.
+                // (7,20): error CS8152: 'ChildClass' does not implement interface member 'BaseInterface.Method2()'. 'ChildClass.Method2()' cannot implement 'BaseInterface.Method2()' because it does not have matching return by reference.
                 // class ChildClass : BaseInterface
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "BaseInterface").WithArguments("ChildClass", "BaseInterface.Method2()", "ChildClass.Method2()").WithLocation(7, 20),
-                // (7,20): error CS8152: 'ChildClass' does not implement interface member 'BaseInterface.Method1()'. 'ChildClass.Method1()' cannot implement 'BaseInterface.Method1()' because it does not have the matching return type reference signature.
+                // (7,20): error CS8152: 'ChildClass' does not implement interface member 'BaseInterface.Method1()'. 'ChildClass.Method1()' cannot implement 'BaseInterface.Method1()' because it does not have matching return by reference.
                 // class ChildClass : BaseInterface
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "BaseInterface").WithArguments("ChildClass", "BaseInterface.Method1()", "ChildClass.Method1()").WithLocation(7, 20));
         }
@@ -1168,12 +1266,111 @@ class B : A
 }";
 
             var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics(
-                // (7,11): error CS8152: 'B' does not implement interface member 'A.Property2'. 'B.Property2' cannot implement 'A.Property2' because it does not have the matching return type reference signature.
+                // (7,11): error CS8152: 'B' does not implement interface member 'A.Property2'. 'B.Property2' cannot implement 'A.Property2' because it does not have matching return by reference.
                 // class B : A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "A").WithArguments("B", "A.Property2", "B.Property2").WithLocation(7, 11),
-                // (7,11): error CS8152: 'B' does not implement interface member 'A.Property1'. 'B.Property1' cannot implement 'A.Property1' because it does not have the matching return type reference signature.
+                // (7,11): error CS8152: 'B' does not implement interface member 'A.Property1'. 'B.Property1' cannot implement 'A.Property1' because it does not have matching return by reference.
                 // class B : A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "A").WithArguments("B", "A.Property1", "B.Property1").WithLocation(7, 11));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void IndexerImplementationsShouldPreserveReadOnlyRefnessInReturnTypes_Ref_RefReadOnly()
+        {
+            var code = @"
+interface A
+{
+    ref int this[int p] { get; }
+}
+class B : A
+{
+    protected int x = 0;
+    public ref readonly int this[int p] { get { return ref x; } }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (6,11): error CS8152: 'B' does not implement interface member 'A.this[int]'. 'B.this[int]' cannot implement 'A.this[int]' because it does not have matching return by reference.
+                // class B : A
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "A").WithArguments("B", "A.this[int]", "B.this[int]").WithLocation(6, 11));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void IndexerImplementationsShouldPreserveReadOnlyRefnessInReturnTypes_RefReadOnly_Ref()
+        {
+            var code = @"
+interface A
+{
+    ref readonly int this[int p] { get; }
+}
+class B : A
+{
+    protected int x = 0;
+    public ref int this[int p] { get { return ref x; } }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (6,11): error CS8152: 'B' does not implement interface member 'A.this[int]'. 'B.this[int]' cannot implement 'A.this[int]' because it does not have matching return by reference.
+                // class B : A
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "A").WithArguments("B", "A.this[int]", "B.this[int]").WithLocation(6, 11));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void IndexerImplementationsShouldPreserveReadOnlyRefnessInIndexes_Valid()
+        {
+            var code = @"
+interface A
+{
+    int this[ref readonly int p] { get; }
+}
+class B : A
+{
+    public int this[ref readonly int p] { get { return p; } }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void IndexerImplementationsShouldPreserveReadOnlyRefnessInIndexes_Source()
+        {
+            var code = @"
+interface A
+{
+    int this[ref readonly int p] { get; }
+}
+class B : A
+{
+    public int this[int p] { get { return p; } }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (6,11): error CS0535: 'B' does not implement interface member 'A.this[ref readonly int]'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.this[ref readonly int]").WithLocation(6, 11));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void IndexerImplementationsShouldPreserveReadOnlyRefnessInIndexes_Destination()
+        {
+            var code = @"
+interface A
+{
+    int this[int p] { get; }
+}
+class B : A
+{
+    public int this[ref readonly int p] { get { return p; } }
+}";
+
+            var comp = CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (6,11): error CS0535: 'B' does not implement interface member 'A.this[int]'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.this[int]").WithLocation(6, 11));
         }
     }
 }

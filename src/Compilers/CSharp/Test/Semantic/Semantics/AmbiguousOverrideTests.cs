@@ -1329,14 +1329,14 @@ C# GEI.F(int): CG::F(T)
             var text = @"
 abstract class TestClass
 {
-    public virtual void Method(ref int x) { }
-    public virtual void Method(ref readonly int x) { }
+    public void Method(ref int x) { }
+    public void Method(ref readonly int x) { }
 }";
 
             var comp = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (5,25): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'ref'
-                //     public virtual void Method(ref readonly int x) { }
-                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "ref readonly", "ref").WithLocation(5, 25));
+                // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'ref'
+                //     public void Method(ref readonly int x) { }
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "ref readonly", "ref").WithLocation(5, 17));
         }
 
         [Fact]
@@ -1346,14 +1346,14 @@ abstract class TestClass
             var text = @"
 abstract class TestClass
 {
-    public virtual void Method(out int x) { x = 0; }
-    public virtual void Method(ref readonly int x) { }
+    public void Method(out int x) { x = 0; }
+    public void Method(ref readonly int x) { }
 }";
 
             var comp = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (5,25): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'out'
-                //     public virtual void Method(ref readonly int x) { }
-                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "ref readonly", "out").WithLocation(5, 25));
+                // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'out'
+                //     public void Method(ref readonly int x) { }
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "ref readonly", "out").WithLocation(5, 17));
         }
     }
 }

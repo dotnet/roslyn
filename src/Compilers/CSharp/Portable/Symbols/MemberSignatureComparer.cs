@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeMap2 = GetTypeMap(member2);
 
             if (_considerReturnType && !HaveSameReturnTypes(member1, typeMap1, member2, typeMap2,
-                                                            _considerCustomModifiers, _ignoreDynamic, _ignoreTupleNames, _considerRefKindDifferences))
+                                                            _considerCustomModifiers, _ignoreDynamic, _ignoreTupleNames))
             {
                 return false;
             }
@@ -463,12 +463,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        public static bool HaveSameReturnTypes(MethodSymbol member1, MethodSymbol member2, bool considerCustomModifiers, bool considerRefKindDifferences)
+        public static bool HaveSameReturnTypes(MethodSymbol member1, MethodSymbol member2, bool considerCustomModifiers)
         {
-            return HaveSameReturnTypes(member1, GetTypeMap(member1), member2, GetTypeMap(member2), considerCustomModifiers, ignoreDynamic: true, ignoreTupleNames: true, considerRefKindDifferences: considerRefKindDifferences);
+            return HaveSameReturnTypes(member1, GetTypeMap(member1), member2, GetTypeMap(member2), considerCustomModifiers, ignoreDynamic: true, ignoreTupleNames: true);
         }
 
-        private static bool HaveSameReturnTypes(Symbol member1, TypeMap typeMap1, Symbol member2, TypeMap typeMap2, bool considerCustomModifiers, bool ignoreDynamic, bool ignoreTupleNames, bool considerRefKindDifferences)
+        private static bool HaveSameReturnTypes(Symbol member1, TypeMap typeMap1, Symbol member2, TypeMap typeMap2, bool considerCustomModifiers, bool ignoreDynamic, bool ignoreTupleNames)
         {
             RefKind refKind1;
             TypeSymbol unsubstitutedReturnType1;
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             member2.GetTypeOrReturnType(out refKind2, out unsubstitutedReturnType2, out returnTypeCustomModifiers2, out refCustomModifiers2);
 
             // short-circuit type map building in the easiest cases
-            if (considerRefKindDifferences && refKind1 != refKind2)
+            if (refKind1 != refKind2)
             {
                 return false;
             }

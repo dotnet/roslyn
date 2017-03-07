@@ -1392,7 +1392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AutoPropertyCannotBeRefReturning = 8145,
         ERR_RefPropertyMustHaveGetAccessor = 8146,
         ERR_RefPropertyCannotHaveSetAccessor = 8147,
-        ERR_CantChangeRefnessOfReturnOnOverride = 8148,
+        ERR_CantChangeRefReturnOnOverride = 8148,
         ERR_MustNotHaveRefReturn = 8149,
         ERR_MustHaveRefReturn = 8150,
         ERR_RefReturnMustHaveIdentityConversion = 8151,

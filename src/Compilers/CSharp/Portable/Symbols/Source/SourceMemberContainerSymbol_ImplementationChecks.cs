@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
                             if (overridingProperty.RefKind != overriddenProperty.RefKind)
                             {
-                                diagnostics.Add(ErrorCode.ERR_CantChangeRefnessOfReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
+                                diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the ref kind is mismatched
                             }
                             else if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
@@ -762,9 +762,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
                             if (overridingMethod.RefKind != overriddenMethod.RefKind)
                             {
-                                diagnostics.Add(ErrorCode.ERR_CantChangeRefnessOfReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
+                                diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                             }
-                            else if (!MemberSignatureComparer.HaveSameReturnTypes(overridingMethod, overriddenMethod, considerCustomModifiers: false, considerRefKindDifferences: false))
+                            else if (!MemberSignatureComparer.HaveSameReturnTypes(overridingMethod, overriddenMethod, considerCustomModifiers: false))
                             {
                                 // Suppose we have a virtual base class method M<T>() that returns C<T>, and the overriding
                                 // method M<V> returns void. The error should be "return type must be C<V>", not 
