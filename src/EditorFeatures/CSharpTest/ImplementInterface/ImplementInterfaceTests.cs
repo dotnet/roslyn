@@ -3965,7 +3965,7 @@ interface d
 
 class c : d
 {
-    public void m(b? x = default(b?), b? y = default(b?))
+    public void m(b? x = null, b? y = null)
     {
         throw new System.NotImplementedException();
     }
