@@ -354,45 +354,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IOperation ISingleValueCaseClause.Value => this.ExpressionOpt;
 
-        BinaryOperationKind ISingleValueCaseClause.Equality
-        {
-            get
-            {
-                BoundExpression caseValue = this.ExpressionOpt;
-                if (caseValue != null)
-                {
-                    switch (caseValue.Type.SpecialType)
-                    {
-                        case SpecialType.System_Int32:
-                        case SpecialType.System_Int64:
-                        case SpecialType.System_UInt32:
-                        case SpecialType.System_UInt64:
-                        case SpecialType.System_UInt16:
-                        case SpecialType.System_Int16:
-                        case SpecialType.System_SByte:
-                        case SpecialType.System_Byte:
-                        case SpecialType.System_Char:
-                            return BinaryOperationKind.IntegerEquals;
-
-                        case SpecialType.System_Boolean:
-                            return BinaryOperationKind.BooleanEquals;
-
-                        case SpecialType.System_String:
-                            return BinaryOperationKind.StringEquals;
-                    }
-
-                    if (caseValue.Type.TypeKind == TypeKind.Enum)
-                    {
-                        return BinaryOperationKind.EnumEquals;
-                    }
-
-                    return BinaryOperationKind.Invalid;
-                }
-                // Return None for `default` case.
-                return BinaryOperationKind.None;
-            }
-        }
-
         CaseKind ICaseClause.CaseKind => this.ExpressionOpt != null ? CaseKind.SingleValue : CaseKind.Default;
 
         OperationKind IOperation.Kind => OperationKind.SingleValueCaseClause;

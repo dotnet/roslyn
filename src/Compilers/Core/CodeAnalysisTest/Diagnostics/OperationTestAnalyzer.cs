@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                  {
                                                      IOperation advanceExpression = ((IExpressionStatement)advance).Expression;
                                                      IOperation advanceIncrement = null;
-                                                     BinaryOperationKind advanceOperationCode = BinaryOperationKind.None;
+                                                     TypedBinaryOperationKind advanceOperationCode = TypedBinaryOperationKind.None;
 
                                                      if (advanceExpression.Kind == OperationKind.AssignmentExpression)
                                                      {
@@ -224,19 +224,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                      if (advanceIncrement != null)
                                                      {
                                                          int incrementValue = (int)advanceIncrement.ConstantValue.Value;
-                                                         if (advanceOperationCode == BinaryOperationKind.IntegerSubtract)
+                                                         if (advanceOperationCode == TypedBinaryOperationKind.IntegerSubtract)
                                                          {
-                                                             advanceOperationCode = BinaryOperationKind.IntegerAdd;
+                                                             advanceOperationCode = TypedBinaryOperationKind.IntegerAdd;
                                                              incrementValue = -incrementValue;
                                                          }
 
-                                                         if (advanceOperationCode == BinaryOperationKind.IntegerAdd &&
+                                                         if (advanceOperationCode == TypedBinaryOperationKind.IntegerAdd &&
                                                              incrementValue != 0 &&
-                                                             (condition.BinaryOperationKind == BinaryOperationKind.IntegerLessThan ||
-                                                              condition.BinaryOperationKind == BinaryOperationKind.IntegerLessThanOrEqual ||
-                                                              condition.BinaryOperationKind == BinaryOperationKind.IntegerNotEquals ||
-                                                              condition.BinaryOperationKind == BinaryOperationKind.IntegerGreaterThan ||
-                                                              condition.BinaryOperationKind == BinaryOperationKind.IntegerGreaterThanOrEqual))
+                                                             (condition.BinaryOperationKind == TypedBinaryOperationKind.IntegerLessThan ||
+                                                              condition.BinaryOperationKind == TypedBinaryOperationKind.IntegerLessThanOrEqual ||
+                                                              condition.BinaryOperationKind == TypedBinaryOperationKind.IntegerNotEquals ||
+                                                              condition.BinaryOperationKind == TypedBinaryOperationKind.IntegerGreaterThan ||
+                                                              condition.BinaryOperationKind == TypedBinaryOperationKind.IntegerGreaterThanOrEqual))
                                                          {
                                                              int iterationCount = (testValue - initialValue) / incrementValue;
                                                              if (iterationCount >= 1000000)
@@ -383,25 +383,25 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                              int relationalValue = (int)relationalValueExpression.ConstantValue.Value;
                                              switch (relationalClause.Relation)
                                              {
-                                                 case BinaryOperationKind.IntegerEquals:
+                                                 case TypedBinaryOperationKind.IntegerEquals:
                                                      rangeMinValue = relationalValue;
                                                      rangeMaxValue = relationalValue;
                                                      break;
-                                                 case BinaryOperationKind.IntegerNotEquals:
+                                                 case TypedBinaryOperationKind.IntegerNotEquals:
                                                      return;
-                                                 case BinaryOperationKind.IntegerLessThan:
+                                                 case TypedBinaryOperationKind.IntegerLessThan:
                                                      rangeMinValue = int.MinValue;
                                                      rangeMaxValue = relationalValue - 1;
                                                      break;
-                                                 case BinaryOperationKind.IntegerLessThanOrEqual:
+                                                 case TypedBinaryOperationKind.IntegerLessThanOrEqual:
                                                      rangeMinValue = int.MinValue;
                                                      rangeMaxValue = relationalValue;
                                                      break;
-                                                 case BinaryOperationKind.IntegerGreaterThanOrEqual:
+                                                 case TypedBinaryOperationKind.IntegerGreaterThanOrEqual:
                                                      rangeMinValue = relationalValue;
                                                      rangeMaxValue = int.MaxValue;
                                                      break;
-                                                 case BinaryOperationKind.IntegerGreaterThan:
+                                                 case TypedBinaryOperationKind.IntegerGreaterThan:
                                                      rangeMinValue = relationalValue + 1;
                                                      rangeMaxValue = int.MaxValue;
                                                      break;
@@ -1522,11 +1522,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (operationContext) =>
                 {
                     IBinaryOperatorExpression binary = (IBinaryOperatorExpression)operationContext.Operation;
-                    if (binary.GetSimpleBinaryOperationKind() == SimpleBinaryOperationKind.Add)
+                    if (binary.GetSimpleBinaryOperationKind() == BinaryOperationKind.Add)
                     {
                         if (binary.GetBinaryOperandsKind() == BinaryOperandsKind.OperatorMethod)
                         {
-                            if (binary.BinaryOperationKind == BinaryOperationKind.OperatorMethodAdd)
+                            if (binary.BinaryOperationKind == TypedBinaryOperationKind.OperatorMethodAdd)
                             {
                                 if (binary.OperatorMethod.Name.Contains("Addition"))
                                 {
@@ -1536,11 +1536,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         }
                     }
 
-                    if (binary.GetSimpleBinaryOperationKind() == SimpleBinaryOperationKind.Multiply)
+                    if (binary.GetSimpleBinaryOperationKind() == BinaryOperationKind.Multiply)
                     {
                         if (binary.GetBinaryOperandsKind() == BinaryOperandsKind.Floating)
                         {
-                            if (binary.BinaryOperationKind == BinaryOperationKind.FloatingMultiply && binary.Type.SpecialType == SpecialType.System_Double)
+                            if (binary.BinaryOperationKind == TypedBinaryOperationKind.FloatingMultiply && binary.Type.SpecialType == SpecialType.System_Double)
                             {
                                 operationContext.ReportDiagnostic(Diagnostic.Create(DoubleMultiplyDescriptor, binary.Syntax.GetLocation()));
                             }
@@ -1553,11 +1553,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (operationContext) =>
                 {
                     IUnaryOperatorExpression unary = (IUnaryOperatorExpression)operationContext.Operation;
-                    if (unary.GetSimpleUnaryOperationKind() == SimpleUnaryOperationKind.Minus)
+                    if (unary.GetSimpleUnaryOperationKind() == UnaryOperationKind.Minus)
                     {
                         if (unary.GetUnaryOperandKind() == UnaryOperandKind.OperatorMethod)
                         {
-                            if (unary.UnaryOperationKind == UnaryOperationKind.OperatorMethodMinus)
+                            if (unary.UnaryOperationKind == TypedUnaryOperationKind.OperatorMethodMinus)
                             {
                                 if (unary.OperatorMethod.Name.Contains("UnaryNegation"))
                                 {
@@ -1567,22 +1567,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         }
                     }
 
-                    if (unary.GetSimpleUnaryOperationKind() == SimpleUnaryOperationKind.LogicalNot)
+                    if (unary.GetSimpleUnaryOperationKind() == UnaryOperationKind.LogicalNot)
                     {
                         if (unary.GetUnaryOperandKind() == UnaryOperandKind.Boolean)
                         {
-                            if (unary.UnaryOperationKind == UnaryOperationKind.BooleanLogicalNot)
+                            if (unary.UnaryOperationKind == TypedUnaryOperationKind.BooleanLogicalNot)
                             {
                                 operationContext.ReportDiagnostic(Diagnostic.Create(BooleanNotDescriptor, unary.Syntax.GetLocation()));
                             }
                         }
                     }
 
-                    if (unary.GetSimpleUnaryOperationKind() == SimpleUnaryOperationKind.BitwiseNegation)
+                    if (unary.GetSimpleUnaryOperationKind() == UnaryOperationKind.BitwiseNegation)
                     {
                         if (unary.GetUnaryOperandKind() == UnaryOperandKind.Boolean)
                         {
-                            if (unary.UnaryOperationKind == UnaryOperationKind.BooleanBitwiseNegation)
+                            if (unary.UnaryOperationKind == TypedUnaryOperationKind.BooleanBitwiseNegation)
                             {
                                 operationContext.ReportDiagnostic(Diagnostic.Create(BooleanNotDescriptor, unary.Syntax.GetLocation()));
                             }
@@ -1829,7 +1829,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      if (operation.Kind == OperationKind.BinaryOperatorExpression)
                      {
                          var binary = (IBinaryOperatorExpression)operation;
-                         if (binary.IsInvalid && binary.BinaryOperationKind == BinaryOperationKind.Invalid)
+                         if (binary.IsInvalid && binary.BinaryOperationKind == TypedBinaryOperationKind.Invalid)
                          {
                              operationContext.ReportDiagnostic(Diagnostic.Create(InvalidBinaryDescriptor, binary.Syntax.GetLocation()));
                          }
@@ -1837,7 +1837,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      else if (operation.Kind == OperationKind.UnaryOperatorExpression)
                      {
                          var unary = (IUnaryOperatorExpression)operation;
-                         if (unary.IsInvalid && unary.UnaryOperationKind == UnaryOperationKind.Invalid)
+                         if (unary.IsInvalid && unary.UnaryOperationKind == TypedUnaryOperationKind.Invalid)
                          {
                              operationContext.ReportDiagnostic(Diagnostic.Create(InvalidUnaryDescriptor, unary.Syntax.GetLocation()));
                          }
@@ -1845,7 +1845,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      else if (operation.Kind == OperationKind.IncrementExpression)
                      {
                          var inc = (IIncrementExpression)operation;
-                         if (inc.IsInvalid && inc.BinaryOperationKind == BinaryOperationKind.Invalid)
+                         if (inc.IsInvalid && inc.BinaryOperationKind == TypedBinaryOperationKind.Invalid)
                          {
                              operationContext.ReportDiagnostic(Diagnostic.Create(InvalidIncrementDescriptor, inc.Syntax.GetLocation()));
                          }
@@ -2012,11 +2012,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var unary = (IUnaryOperatorExpression)operationContext.Operation;
-                     if (unary.UnaryOperationKind == UnaryOperationKind.OperatorMethodTrue)
+                     if (unary.UnaryOperationKind == TypedUnaryOperationKind.OperatorMethodTrue)
                      {
                          operationContext.ReportDiagnostic(Diagnostic.Create(UnaryTrueDescriptor, unary.Syntax.GetLocation()));
                      }
-                     else if (unary.UnaryOperationKind == UnaryOperationKind.OperatorMethodFalse)
+                     else if (unary.UnaryOperationKind == TypedUnaryOperationKind.OperatorMethodFalse)
                      {
                          operationContext.ReportDiagnostic(Diagnostic.Create(UnaryFalseDescriptor, unary.Syntax.GetLocation()));
                      }
