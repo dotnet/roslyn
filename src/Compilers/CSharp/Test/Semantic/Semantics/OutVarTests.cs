@@ -32851,6 +32851,37 @@ class C
                 //             group x > 1 && F(out var y) && y == null
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y").WithLocation(7, 38));
         }
+
+        [Fact]
+        [WorkItem(388744, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
+        public void SpeculativeSemanticModelWithOutDiscard()
+        {
+            var source =
+@"class C
+{
+    static void F()
+    {
+        C.G(out _);
+    }
+    static void G(out object o)
+    {
+        o = null;
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var identifierBefore = GetReferences(tree, "G").Single();
+            Assert.Equal(tree, identifierBefore.Location.SourceTree);
+            var statementBefore = identifierBefore.Ancestors().OfType<StatementSyntax>().First();
+            var statementAfter = SyntaxFactory.ParseStatement(@"G(out _);");
+            bool success = model.TryGetSpeculativeSemanticModel(statementBefore.SpanStart, statementAfter, out model);
+            Assert.True(success);
+            var identifierAfter = statementAfter.DescendantNodes().OfType<IdentifierNameSyntax>().Single(id => id.Identifier.ValueText == "G");
+            Assert.Null(identifierAfter.Location.SourceTree);
+            var info = model.GetSymbolInfo(identifierAfter);
+            Assert.Equal("void C.G(out System.Object o)", info.Symbol.ToTestDisplayString());
+        }
     }
 
     internal static class OutVarTestsExtensions

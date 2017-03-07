@@ -40,8 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             #region Fields that should be locked by _gate
 
             /// <summary>
+            /// If we've been cleared or not.  If we're cleared we'll just return an empty
+            /// list of results whenever queried for the current snapshot.
+            /// </summary>
+            private bool _cleared;
+
+            /// <summary>
             /// The list of all definitions we've heard about.  This may be a superset of the
-            /// keys in <see cref="_definitionToBucket"/> becaue we may encounter definitions
+            /// keys in <see cref="_definitionToBucket"/> because we may encounter definitions
             /// we don't create definition buckets for.  For example, if the definition asks
             /// us to not display it if it has no references, and we don't run into any 
             /// references for it (common with implicitly declared symbols).
@@ -162,6 +168,32 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public sealed override CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
+            public void Clear()
+            {
+                this.Presenter.AssertIsForeground();
+
+                // Stop all existing work.
+                this.CancelSearch();
+
+                // Clear the title of the window.  It will go back to the default editor title.
+                this._findReferencesWindow.Title = null;
+
+                lock (Gate)
+                {
+                    // Mark ourselves as clear so that no further changes are made.
+                    // Note: we don't actually mutate any of our entry-lists.  Instead, 
+                    // GetCurrentSnapshot will simply ignore them if it sees that _cleared
+                    // is true.  This way we don't have to do anything complicated if we
+                    // keep hearing about definitions/references on the background.
+                    _cleared = true;
+                    CurrentVersionNumber++;
+                }
+
+                // Let all our subscriptions know that we've updated.  That way they'll refresh
+                // and remove all the data.
+                NotifyChange();
+            }
+
             #region ITableDataSource
 
             public string DisplayName => "Roslyn Data Source";
@@ -218,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // The FAR system needs to know the guid for the project that a def/reference is 
                 // from (to support features like filtering).  Normally that would mean we could
                 // only support this from a VisualStudioWorkspace.  However, we want till work 
-                // in cases lke Any-Code (which does not use a VSWorkspace).  So we are tolerant
+                // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
                 // when we have another type of workspace.  This means we will show results, but
                 // certain features (like filtering) may not work in that context.
                 var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
@@ -517,9 +549,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // our version.
                     if (_lastSnapshot?.VersionNumber != CurrentVersionNumber)
                     {
-                        var entries = _currentlyGroupingByDefinition
-                            ? EntriesWhenGroupingByDefinition
-                            : EntriesWhenNotGroupingByDefinition;
+                        // If we've been cleared, then just return an empty list of entries.
+                        // Otherwise return the appropriate list based on how we're currently
+                        // grouping.
+                        var entries = _cleared 
+                            ? ImmutableList<Entry>.Empty
+                            : _currentlyGroupingByDefinition
+                                ? EntriesWhenGroupingByDefinition
+                                : EntriesWhenNotGroupingByDefinition;
 
                         _lastSnapshot = new TableEntriesSnapshot(entries, CurrentVersionNumber);
                     }
@@ -551,6 +588,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             void IDisposable.Dispose()
             {
+                this.Presenter.AssertIsForeground();
+
                 // VS is letting go of us.  i.e. because a new FAR call is happening, or because
                 // of some other event (like the solution being closed).  Remove us from the set
                 // of sources for the window so that the existing data is cleared out.
@@ -560,6 +599,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _findReferencesWindow.Manager.RemoveSource(this);
 
                 CancelSearch();
+
+                // Remove ourselves from the list of contexts that are currently active.
+                Presenter._currentContexts.Remove(this);
             }
 
             #endregion
