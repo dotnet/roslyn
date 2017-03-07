@@ -48,7 +48,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string[] GetCurrentClassifications()
             => InvokeOnUIThread(() =>
             {
-
                 IClassifier classifier = null;
                 try
                 {

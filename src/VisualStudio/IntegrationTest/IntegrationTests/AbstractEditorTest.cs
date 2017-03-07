@@ -60,8 +60,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected abstract string LanguageName { get; }
 
-        protected void WaitForAsyncOperations(string featuresToWaitFor)
-            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(featuresToWaitFor);
+        protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
+            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";",featuresToWaitFor));
 
         protected void ClearEditor()
             => SetUpEditor("$$");
@@ -77,21 +77,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             {
                 Editor.SetText(code);
                 Editor.MoveCaret(caretPosition);
-            }
-            finally
-            {
-                VisualStudioWorkspaceOutOfProc.SetPrettyListing(LanguageName, originalValue);
-            }
-        }
-
-        protected void SetEditorText(string contents)
-        {
-            var originalValue = VisualStudioWorkspaceOutOfProc.IsPrettyListingOn(LanguageName);
-
-            VisualStudioWorkspaceOutOfProc.SetPrettyListing(LanguageName, false);
-            try
-            {
-                Editor.SetText(contents);
             }
             finally
             {
@@ -137,7 +122,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void DeleteText(string text)
         {
-            Editor.MoveCaret(0);
             SelectTextInCurrentDocument(text);
             SendKeys(VirtualKey.Delete);
         }
@@ -471,9 +455,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
             Assert.Contains(referencedProjectName, projectReferences);
         }
 
-        public void VerifyTokenType(string tokenType)
+        public void VerifyCurrentTokenType(string tokenType)
         {
-            WaitForAsyncOperations(FeatureAttribute.SolutionCrawler + FeatureAttribute.DiagnosticService + FeatureAttribute.Classification);
+            WaitForAsyncOperations(
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.Classification);
             var actualTokenTypes = Editor.GetCurrentClassifications();
             Assert.Equal(actualTokenTypes.Length, 1);
             Assert.Contains(tokenType, actualTokenTypes[0]);

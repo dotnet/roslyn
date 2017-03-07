@@ -18,7 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
-        public void Add_Control()
+        public void AddControl()
         {
             OpenFileWithDesigner(ProjectName, "Form1.cs");
             AddWinFormButton("SomeButton");
@@ -29,7 +29,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
-        public void Change_Control_Property()
+        public void ChangeControlProperty()
         {
             OpenFileWithDesigner(ProjectName, "Form1.cs");
             AddWinFormButton("SomeButton");
@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
-        public void Change_Control_Property_In_Code()
+        public void ChangeControlPropertyInCode()
         {
             OpenFileWithDesigner(ProjectName, "Form1.cs");
             AddWinFormButton("SomeButton");
@@ -65,7 +65,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
-        public void Add_Click_Handler()
+        public void AddClickHandler()
         {
             OpenFileWithDesigner(ProjectName, "Form1.cs");
             AddWinFormButton("SomeButton");
@@ -88,7 +88,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
-        public void Rename_Control()
+        public void RenameControl()
         {
             OpenFileWithDesigner(ProjectName, "Form1.cs");
             AddWinFormButton("SomeButton");
@@ -109,7 +109,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
-        public void Remove_Event_Handler()
+        public void RemoveEventHandler()
         {
             OpenFileWithDesigner(ProjectName, "Form1.cs");
             AddWinFormButton("SomeButton");
@@ -123,7 +123,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
-        public void Change_Accessibility()
+        public void ChangeAccessibility()
         {
             OpenFileWithDesigner(ProjectName, "Form1.cs");
             AddWinFormButton("SomeButton");
@@ -136,7 +136,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
-        public void Delete_Control()
+        public void DeleteControl()
         {
             OpenFileWithDesigner(ProjectName, "Form1.cs");
             AddWinFormButton("SomeButton");
