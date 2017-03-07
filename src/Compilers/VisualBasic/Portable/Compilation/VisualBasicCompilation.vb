@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Throw ExceptionUtilities.Unreachable
                             End If
 
-                            If Object.Equals(Interlocked.CompareExchange(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy), VisualBasicSyntaxTree.Dummy) Then
+                            If Interlocked.CompareExchange(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy) Is VisualBasicSyntaxTree.Dummy Then
                                 ' set global cache
                                 s_myTemplateCache(parseOptions) = tree
                             End If
