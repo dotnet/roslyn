@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.HideBase
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
         public async Task TestAddNewToProperty()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Application
 {
     public static Application Current { get; }
@@ -41,7 +41,7 @@ class App : Application
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
         public async Task TestAddNewToMethod()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Application
 {
     public static void Method()
@@ -73,7 +73,7 @@ class App : Application
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
         public async Task TestAddNewToMember()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Application
 {
     public string Test;

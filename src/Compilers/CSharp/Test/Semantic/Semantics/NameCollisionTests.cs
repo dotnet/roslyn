@@ -828,31 +828,31 @@ class Class
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-    // (7,22): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         foreach (var name1 in "string")            // 0136
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(7, 22),
-    // (9,26): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //             foreach (var name2 in "string")        // 0136
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(9, 26),
-    // (11,21): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //                 int name1 = name2.GetHashCode();     // 0136
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(11, 21),
-    // (17,17): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //             int name1 = 1;                           // 0136
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(17, 17),
-    // (24,21): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //                 int name2 = 3;                       // 0136
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(24, 21),
-    // (27,25): error CS0412: 'name3': a parameter or local variable cannot have the same name as a method type parameter
-    //                     int name3 = 2;                   // 0136
-    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "name3").WithArguments("name3").WithLocation(27, 25),
-    // (32,17): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         return (name1, name2) => name1;              // 0136 on both name1 and name2
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(32, 17),
-    // (32,24): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         return (name1, name2) => name1;              // 0136 on both name1 and name2
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(32, 24)
-);
+                // (7,22): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         foreach (var name1 in "string")            // 0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(7, 22),
+                // (9,26): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             foreach (var name2 in "string")        // 0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(9, 26),
+                // (11,21): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                 int name1 = name2.GetHashCode();     // 0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(11, 21),
+                // (17,17): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int name1 = 1;                           // 0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(17, 17),
+                // (24,21): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                 int name2 = 3;                       // 0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(24, 21),
+                // (27,25): error CS0136: A local or parameter named 'name3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                     int name3 = 2;                   // 0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name3").WithArguments("name3").WithLocation(27, 25),
+                // (32,17): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         return (name1, name2) => name1;              // 0136 on both name1 and name2
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(32, 17),
+                // (32,24): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         return (name1, name2) => name1;              // 0136 on both name1 and name2
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(32, 24)
+                );
         }
 
         [Fact]
@@ -873,19 +873,19 @@ class Class
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-    // (5,57): error CS0100: The parameter name 'name2' is a duplicate
-    //     public static void Method(int name1, int name2, int name2) // 0100 on name2
-    Diagnostic(ErrorCode.ERR_DuplicateParamName, "name2").WithArguments("name2").WithLocation(5, 57),
-    // (9,56): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(9, 56),
-    // (9,70): error CS0100: The parameter name 'name4' is a duplicate
-    //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
-    Diagnostic(ErrorCode.ERR_DuplicateParamName, "name4").WithArguments("name4").WithLocation(9, 70),
-    // (9,77): error CS0412: 'name3': a parameter or local variable cannot have the same name as a method type parameter
-    //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
-    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "name3").WithArguments("name3").WithLocation(9, 77)
-    );
+                // (5,57): error CS0100: The parameter name 'name2' is a duplicate
+                //     public static void Method(int name1, int name2, int name2) // 0100 on name2
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, "name2").WithArguments("name2").WithLocation(5, 57),
+                // (9,56): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(9, 56),
+                // (9,70): error CS0100: The parameter name 'name4' is a duplicate
+                //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, "name4").WithArguments("name4").WithLocation(9, 70),
+                // (9,77): error CS0136: A local or parameter named 'name3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             Action<int, int, int, int> nestedLambda = (name1, name4, name4, name3) => // 0100 on name4, 0136 on name1 and name3
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name3").WithArguments("name3").WithLocation(9, 77)
+                );
         }
 
         [WorkItem(930252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930252")]

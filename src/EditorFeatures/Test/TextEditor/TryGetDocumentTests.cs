@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
     {
         [Fact]
         [WorkItem(624315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624315")]
-        public async Task MultipleTextChangesTest()
+        public void MultipleTextChangesTest()
         {
             var code = @"class C
 ";
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var hostDocument = workspace.Documents.First();
                 var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));
@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
         }
 
         [Fact]
-        public async Task EmptyTextChanges()
+        public void EmptyTextChanges()
         {
             var code = @"class C";
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var hostDocument = workspace.Documents.First();
                 var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));

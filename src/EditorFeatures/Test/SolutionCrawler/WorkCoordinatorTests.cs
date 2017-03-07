@@ -839,7 +839,7 @@ End Class";
 
         private async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
-            using (var workspace = await TestWorkspace.CreateAsync(
+            using (var workspace = TestWorkspace.Create(
                 SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: code, exportProvider: EditorServicesUtil.ExportProvider))
             {
                 SetOptions(workspace);

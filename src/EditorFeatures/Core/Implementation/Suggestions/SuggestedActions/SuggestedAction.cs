@@ -90,14 +90,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(CancellationToken cancellationToken)
         {
-            // WaitIndicator cannot be used with async/await. Even though we call async methods later in this call chain, do not await them.
-            SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
+            // While we're not technically doing anything async here, we need to let the 
+            // integration test harness know that it should not proceed until all this
+            // work is done.  Otherwise it might ask to do some work before we finish.
+            // That can happen because although we're on the UI thread, we may do things
+            // that end up causing VS to pump the messages that the test harness enqueues
+            // to the UI thread as well.  
+            using (SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}"))
             {
-                using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, waitContext.CancellationToken))
+                // WaitIndicator cannot be used with async/await. Even though we call async methods 
+                // later in this call chain, do not await them.
+                SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
                 {
-                    InnerInvoke(waitContext.ProgressTracker, linkedSource.Token);
-                }
-            });
+                    using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, waitContext.CancellationToken))
+                    {
+                        InnerInvoke(waitContext.ProgressTracker, linkedSource.Token);
+                    }
+                });
+            }
         }
 
         protected virtual void InnerInvoke(IProgressTracker progressTracker, CancellationToken cancellationToken)

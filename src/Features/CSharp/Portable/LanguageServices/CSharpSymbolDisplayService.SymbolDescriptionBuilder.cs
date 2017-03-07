@@ -183,15 +183,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position));
             }
 
-            protected override SymbolDisplayFormat MinimallyQualifiedFormat
-            {
-                get { return s_minimallyQualifiedFormat; }
-            }
+            protected override SymbolDisplayFormat MinimallyQualifiedFormat => s_minimallyQualifiedFormat;
 
-            protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstants
-            {
-                get { return s_minimallyQualifiedFormatWithConstants; }
-            }
+            protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstants => s_minimallyQualifiedFormatWithConstants;
         }
     }
 }

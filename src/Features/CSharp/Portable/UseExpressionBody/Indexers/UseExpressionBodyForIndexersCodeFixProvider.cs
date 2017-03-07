@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             => declaration.ExpressionBody;
 
         protected override BlockSyntax GetBody(IndexerDeclarationSyntax declaration)
-            => declaration.AccessorList.Accessors[0].Body;
+            => declaration.AccessorList?.Accessors[0].Body;
 
         protected override IndexerDeclarationSyntax WithSemicolonToken(IndexerDeclarationSyntax declaration, SyntaxToken token)
             => declaration.WithSemicolonToken(token);

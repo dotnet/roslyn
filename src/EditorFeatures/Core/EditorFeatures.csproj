@@ -613,9 +613,7 @@
     <Compile Include="Implementation\TextDiffing\EditorTextDifferencingService.cs" />
     <Compile Include="Implementation\TextStructureNavigation\AbstractTextStructureNavigatorProvider.cs" />
     <Compile Include="Implementation\TextStructureNavigation\AbstractTextStructureNavigatorProvider.TextStructureNavigator.cs" />
-    <Compile Include="Implementation\TodoComment\AbstractTodoCommentIncrementalAnalyzer.cs" />
-    <Compile Include="Implementation\TodoComment\AbstractTodoCommentService.cs" />
-    <Compile Include="Implementation\TodoComment\ITodoCommentService.cs" />
+    <Compile Include="Implementation\TodoComment\TodoCommentIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\TodoComment\TodoCommentIncrementalAnalyzerProvider.cs" />
     <Compile Include="Implementation\TodoComment\TodoCommentOptions.cs" />
     <Compile Include="Implementation\TodoComment\TodoCommentState.cs" />
