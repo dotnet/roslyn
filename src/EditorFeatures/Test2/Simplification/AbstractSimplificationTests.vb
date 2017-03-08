@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
         Private Async Function TestAsync(workspace As Workspace,
                          listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, ImmutableArray(Of TextSpan))),
-                         explicitSpansToSimplifyWithin As IEnumerable(Of TextSpan),
+                         explicitSpansToSimplifyWithin As ImmutableArray(Of TextSpan),
                          expected As XElement,
                          simplificationOptions As Dictionary(Of OptionKey, Object)) As System.Threading.Tasks.Task
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             document = document.WithSyntaxRoot(root)
 
             Dim simplifiedDocument As Document
-            If explicitSpansToSimplifyWithin IsNot Nothing Then
+            If Not explicitSpansToSimplifyWithin.IsDefaultOrEmpty Then
                 simplifiedDocument = Await Simplifier.ReduceAsync(document, explicitSpansToSimplifyWithin, optionSet)
             Else
                 simplifiedDocument = Await Simplifier.ReduceAsync(document, Simplifier.Annotation, optionSet)
