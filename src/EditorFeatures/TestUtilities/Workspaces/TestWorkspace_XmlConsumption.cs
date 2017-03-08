@@ -198,10 +198,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 // The document
                 var markupCode = submissionElement.NormalizedValue();
-                string code;
-                int? cursorPosition;
-                IDictionary<string, IList<TextSpan>> spans;
-                MarkupTestFile.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
+                MarkupTestFile.GetPositionAndSpans(markupCode, 
+                    out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
                 var languageServices = workspace.Services.GetLanguageServices(languageName);
                 var contentTypeLanguageService = languageServices.GetService<IContentTypeLanguageService>();
@@ -619,10 +617,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var contentTypeLanguageService = languageServiceProvider.GetService<IContentTypeLanguageService>();
             var contentType = contentTypeLanguageService.GetDefaultContentType();
 
-            string code;
-            int? cursorPosition;
-            IDictionary<string, IList<TextSpan>> spans;
-            MarkupTestFile.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
+            MarkupTestFile.GetPositionAndSpans(markupCode,
+                out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             // For linked files, use the same ITextBuffer for all linked documents
             ITextBuffer textBuffer;
@@ -672,7 +668,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             var compilation = CreateCompilation(workspace, referencedSource);
 
-            var aliasElement = referencedSource.Attribute("Aliases") != null ? referencedSource.Attribute("Aliases").Value : null;
+            var aliasElement = referencedSource.Attribute("Aliases")?.Value;
             var aliases = aliasElement != null ? aliasElement.Split(',').Select(s => s.Trim()).ToImmutableArray() : default(ImmutableArray<string>);
 
             bool includeXmlDocComments = false;

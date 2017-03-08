@@ -1,10 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
@@ -16,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
             Return (Nothing, New GenerateTypeCodeFixProvider())
         End Function
 
-        Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
+        Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
             Return FlattenActions(actions)
         End Function
 
@@ -459,7 +461,7 @@ End Class",
         End Sub
     End Class
 End Namespace",
-expectedContainers:={"Foo"},
+expectedContainers:=ImmutableArray.Create("Foo"),
 expectedDocumentName:="Bar.vb")
         End Function
 
@@ -476,7 +478,7 @@ Module Program
 End Module",
 "Friend Class Foo
 End Class",
-expectedContainers:=Array.Empty(Of String)(),
+expectedContainers:=ImmutableArray(Of String).Empty,
 expectedDocumentName:="Foo.vb")
         End Function
 
@@ -688,7 +690,7 @@ End Class",
     Public Sub New()
     End Sub
 End Class",
-expectedContainers:=Array.Empty(Of String)(),
+expectedContainers:=ImmutableArray(Of String).Empty,
 expectedDocumentName:="Derived.vb")
         End Function
 
@@ -1690,7 +1692,7 @@ index:=2)
                         New GenerateTypeCodeFixProvider())
             End Function
 
-            Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
+            Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
                 Return FlattenActions(actions)
             End Function
 
