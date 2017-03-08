@@ -42,15 +42,15 @@ namespace Microsoft.CodeAnalysis.Simplification
         public abstract SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Func<SyntaxNode, bool> expandInsideNode, CancellationToken cancellationToken);
 
         public async Task<Document> ReduceAsync(
-            Document document, 
-            IEnumerable<TextSpan> spans,
+            Document document,
+            ImmutableArray<TextSpan> spans,
             OptionSet optionSet = null,
             ImmutableArray<AbstractReducer> reducers = default(ImmutableArray<AbstractReducer>), 
             CancellationToken cancellationToken = default(CancellationToken))
         {
             using (Logger.LogBlock(FunctionId.Simplifier_ReduceAsync, cancellationToken))
             {
-                var spanList = spans?.ToList() ?? new List<TextSpan>();
+                var spanList = spans.NullToEmpty();
 
                 // we have no span
                 if (!spanList.Any())
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         private async Task<Document> ReduceAsyncInternal(
             Document document,
-            List<TextSpan> spans,
+            ImmutableArray<TextSpan> spans,
             OptionSet optionSet,
             ImmutableArray<AbstractReducer> reducers,
             CancellationToken cancellationToken)
