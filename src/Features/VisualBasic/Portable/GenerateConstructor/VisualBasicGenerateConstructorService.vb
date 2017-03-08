@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateConstructor
+Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     <ExportLanguageService(GetType(IGenerateConstructorService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicGenerateConstructorService
         Inherits AbstractGenerateConstructorService(Of VisualBasicGenerateConstructorService, ArgumentSyntax, AttributeSyntax)

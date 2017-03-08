@@ -831,9 +831,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsFromSource(this ISymbol symbol)
-        {
-            return symbol.Locations.Any() && symbol.Locations.All(location => location.IsInSource);
-        }
+            => symbol.Locations.Any() && symbol.Locations.All(location => location.IsInSource);
+
+        public static bool IsNonImplicitAndFromSource(this ISymbol symbol)
+            => !symbol.IsImplicitlyDeclared && symbol.IsFromSource();
 
         public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
         {

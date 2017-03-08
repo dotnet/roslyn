@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
+namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 {
     [ExportLanguageService(typeof(IGenerateConstructorService), LanguageNames.CSharp), Shared]
     internal class CSharpGenerateConstructorService : AbstractGenerateConstructorService<CSharpGenerateConstructorService, ArgumentSyntax, AttributeArgumentSyntax>

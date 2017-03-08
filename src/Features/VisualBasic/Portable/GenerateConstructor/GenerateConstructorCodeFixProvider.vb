@@ -9,12 +9,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports System.Composition
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateConstructor), [Shared]>
-    <ExtensionOrder(After:=PredefinedCodeFixProviderNames.FullyQualify)>
-    Friend Class GenerateConstructorCodeFixProvider
-        Inherits AbstractGenerateMemberCodeFixProvider
-
+Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
+    Friend Class GenerateConstructorDiagnosticIds
         Friend Const BC30057 As String = "BC30057" ' error BC30057: Too many arguments to 'Public Sub New()'.
         Friend Const BC30272 As String = "BC30272" ' error BC30272: 'p' is not a parameter of 'Public Sub New()'.
         Friend Const BC30274 As String = "BC30274" ' error BC30274: Parameter 'prop' of 'Public Sub New(prop As String)' already has a matching argument.
@@ -24,9 +20,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
         Friend Const BC32006 As String = "BC32006" ' error BC32006: 'Char' values cannot be converted to 'Integer'. 
         Friend Const BC30387 As String = "BC30387" ' error BC32006: Class 'Derived' must declare a 'Sub New' because its base class 'Base' does not have an accessible 'Sub New' that can be called with no arguments. 
 
+        Friend Shared ReadOnly AllDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057, BC30272, BC30274, BC30389, BC30455, BC32006, BC30512, BC30387)
+        Friend Shared ReadOnly TooManyArgumentsDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057)
+    End Class
+
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateConstructor), [Shared]>
+    <ExtensionOrder(After:=PredefinedCodeFixProviderNames.FullyQualify)>
+    Friend Class GenerateConstructorCodeFixProvider
+        Inherits AbstractGenerateMemberCodeFixProvider
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(BC30057, BC30272, BC30274, BC30389, BC30455, BC32006, BC30512, BC30387)
+                Return GenerateConstructorDiagnosticIds.AllDiagnosticIds
             End Get
         End Property
 
@@ -61,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
                 Return True
             End If
 
-            Return diagnostic.Id = BC30387 AndAlso
+            Return diagnostic.Id = GenerateConstructorDiagnosticIds.BC30387 AndAlso
                 TypeOf node Is ClassBlockSyntax AndAlso
                 IsInClassDeclarationHeader(DirectCast(node, ClassBlockSyntax), token)
         End Function
