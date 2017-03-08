@@ -1217,14 +1217,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 languageVersion: languageVersion,
                 preprocessorSymbols: defines.ToImmutableAndFree(),
                 documentationMode: parseDocumentationComments ? DocumentationMode.Diagnose : DocumentationMode.None,
-                kind: SourceCodeKind.Regular,
+                kind: IsScriptRunner ? SourceCodeKind.Script : SourceCodeKind.Regular,
                 features: parsedFeatures
             );
-
-            if (IsScriptRunner)
-            {
-                parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
-            }
 
             // We want to report diagnostics with source suppression in the error log file.
             // However, these diagnostics won't be reported on the command line.

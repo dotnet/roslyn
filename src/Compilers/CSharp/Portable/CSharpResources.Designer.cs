@@ -1331,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Provided Documentation Mode is unsupported or invalid: &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Provided documentation mode is unsupported or invalid: &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadDocumentationMode {
             get {
@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Provided Language Version is unsupported or invalid: &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Provided language version is unsupported or invalid: &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadLanguageVersion {
             get {
@@ -1876,6 +1876,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadSKunknown {
             get {
                 return ResourceManager.GetString("ERR_BadSKunknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Provided source code kind is unsupported or invalid: &apos;{0}&apos;.
+        /// </summary>
+        internal static string ERR_BadSourceCodeKind {
+            get {
+                return ResourceManager.GetString("ERR_BadSourceCodeKind", resourceCulture);
             }
         }
         
@@ -11106,24 +11115,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid: &apos;{0}&apos;.
-        /// </summary>
-        internal static string WRN_BadSourceCodeKind {
-            get {
-                return ResourceManager.GetString("WRN_BadSourceCodeKind", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Provided Source Code Kind is unsupported or invalid.
-        /// </summary>
-        internal static string WRN_BadSourceCodeKind_Title {
-            get {
-                return ResourceManager.GetString("WRN_BadSourceCodeKind_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The language name &apos;{0}&apos; is invalid..
         /// </summary>
         internal static string WRN_BadUILang {
@@ -12141,7 +12132,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid value for a preprocessing symbol; &apos;{0}&apos; is not a valid identifier.
+        ///   Looks up a localized string similar to Invalid name for a preprocessing symbol; &apos;{0}&apos; is not a valid identifier.
         /// </summary>
         internal static string WRN_DefineIdentifierRequired {
             get {
@@ -12150,7 +12141,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid value for a preprocessing symbol; not a valid identifier.
+        ///   Looks up a localized string similar to Invalid name for a preprocessing symbol; not a valid identifier.
         /// </summary>
         internal static string WRN_DefineIdentifierRequired_Title {
             get {

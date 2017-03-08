@@ -1307,13 +1307,9 @@ lVbRuntimePlus:
             Dim parseOptions = New VisualBasicParseOptions(
                 languageVersion:=languageVersion,
                 documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
-                kind:=SourceCodeKind.Regular,
+                kind:=If(IsScriptRunner, SourceCodeKind.Script, SourceCodeKind.Regular),
                 preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()),
                 features:=parsedFeatures)
-
-            If IsScriptRunner Then
-                parseOptions = parseOptions.WithKind(SourceCodeKind.Script)
-            End If
 
             ' We want to report diagnostics with source suppression in the error log file.
             ' However, these diagnostics won't be reported on the command line.
@@ -1357,9 +1353,8 @@ lVbRuntimePlus:
                 runtimeMetadataVersion:=Nothing,
                 instrumentationKinds:=instrumentationKinds.ToImmutableAndFree())
 
-            ' add option incompatibility errors if any
+            ' add option incompatibility errors if any (parse options will be included in options.Errors)
             diagnostics.AddRange(options.Errors)
-            diagnostics.AddRange(parseOptions.Errors)
 
             If documentationPath Is GenerateFileNameForDocComment Then
                 documentationPath = PathUtilities.CombineAbsoluteAndRelativePaths(outputDirectory, PathUtilities.RemoveExtension(outputFileName))
@@ -1677,6 +1672,7 @@ lVbRuntimePlus:
         ''' </summary>
         ''' <exception cref="ArgumentException">Invalid value provided.</exception>
         Private Shared Function PublicSymbolsToInternalDefines(symbols As IEnumerable(Of KeyValuePair(Of String, Object)),
+                                                               diagnosticBuilder As ArrayBuilder(Of Diagnostic),
                                                                parameterName As String) As ImmutableDictionary(Of String, InternalSyntax.CConst)
 
             Dim result = ImmutableDictionary.CreateBuilder(Of String, InternalSyntax.CConst)(CaseInsensitiveComparison.Comparer)
@@ -1686,7 +1682,7 @@ lVbRuntimePlus:
                     Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
 
                     If constant Is Nothing Then
-                        Throw New ArgumentException(String.Format(ErrorFactory.IdToString(ERRID.IDS_InvalidPreprocessorConstantType, Culture), symbol.Key, symbol.Value.GetType()), parameterName)
+                        diagnosticBuilder.Add(Diagnostic.Create(VisualBasic.MessageProvider.Instance, ERRID.ERR_InvalidPreprocessorConstantType, symbol.Key, symbol.Value.GetType))
                     End If
 
                     result(symbol.Key) = constant
@@ -1730,7 +1726,7 @@ lVbRuntimePlus:
             Dim diagnosticBuilder = ArrayBuilder(Of Diagnostic).GetInstance()
             Dim parsedTokensAsString As New StringBuilder
 
-            Dim defines As ImmutableDictionary(Of String, InternalSyntax.CConst) = PublicSymbolsToInternalDefines(symbols, "symbols")
+            Dim defines As ImmutableDictionary(Of String, InternalSyntax.CConst) = PublicSymbolsToInternalDefines(symbols, diagnosticBuilder, "symbols")
 
             ' remove quotes around the whole /define argument (incl. nested)
             Dim unquotedString As String
@@ -1772,7 +1768,7 @@ lVbRuntimePlus:
 
                             diagnosticBuilder.Add(
                                 New DiagnosticWithInfo(
-                                    ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
+                                    ErrorFactory.ErrorInfo(ERRID.ERR_ConditionalCompilationConstantNotValid,
                                         ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedEOS),
                                         parsedTokensAsString.ToString),
                                     Location.None))
@@ -1796,7 +1792,7 @@ lVbRuntimePlus:
 
                                 diagnosticBuilder.Add(
                                     New DiagnosticWithInfo(
-                                        ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
+                                        ErrorFactory.ErrorInfo(ERRID.ERR_ConditionalCompilationConstantNotValid,
                                             ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedIdentifier),
                                             parsedTokensAsString.ToString),
                                         Location.None))
@@ -1825,7 +1821,7 @@ lVbRuntimePlus:
 
                                     diagnosticBuilder.Add(
                                         New DiagnosticWithInfo(
-                                            ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
+                                            ErrorFactory.ErrorInfo(ERRID.ERR_ConditionalCompilationConstantNotValid,
                                             ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedIdentifier),
                                             parsedTokensAsString.ToString),
                                         Location.None))
@@ -1842,7 +1838,7 @@ lVbRuntimePlus:
 
                             diagnosticBuilder.Add(
                                 New DiagnosticWithInfo(
-                                    ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
+                                    ErrorFactory.ErrorInfo(ERRID.ERR_ConditionalCompilationConstantNotValid,
                                         ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedIdentifier),
                                         parsedTokensAsString.ToString),
                                     Location.None))
@@ -1897,7 +1893,7 @@ lVbRuntimePlus:
                                 Dim errorSkipped As Boolean = False
                                 For Each diag In expression.VbGreen.GetSyntaxErrors
                                     If diag.Code <> ERRID.ERR_ExpectedExpression AndAlso diag.Code <> ERRID.ERR_BadCCExpression Then
-                                        diagnosticBuilder.Add(New DiagnosticWithInfo(ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1, diag, parsedTokensAsString.ToString), Location.None))
+                                        diagnosticBuilder.Add(New DiagnosticWithInfo(ErrorFactory.ErrorInfo(ERRID.ERR_ConditionalCompilationConstantNotValid, diag, parsedTokensAsString.ToString), Location.None))
                                     Else
                                         errorSkipped = True
                                     End If
@@ -1906,7 +1902,7 @@ lVbRuntimePlus:
                                 If errorSkipped Then
                                     diagnosticBuilder.Add(
                                         New DiagnosticWithInfo(
-                                            ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
+                                            ErrorFactory.ErrorInfo(ERRID.ERR_ConditionalCompilationConstantNotValid,
                                                 ErrorFactory.ErrorInfo(If(atTheEndOrSeparator, ERRID.ERR_ExpectedExpression, ERRID.ERR_BadCCExpression)),
                                                 parsedTokensAsString.ToString),
                                             Location.None))
@@ -1927,7 +1923,7 @@ lVbRuntimePlus:
 
                                 diagnosticBuilder.Add(
                                     New DiagnosticWithInfo(
-                                        ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
+                                        ErrorFactory.ErrorInfo(ERRID.ERR_ConditionalCompilationConstantNotValid,
                                             ErrorFactory.ErrorInfo(err, value.ErrorArgs),
                                             parsedTokensAsString.ToString),
                                         Location.None))
@@ -1955,7 +1951,7 @@ lVbRuntimePlus:
 
                             diagnosticBuilder.Add(
                                 New DiagnosticWithInfo(
-                                    ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
+                                    ErrorFactory.ErrorInfo(ERRID.ERR_ConditionalCompilationConstantNotValid,
                                         ErrorFactory.ErrorInfo(ERRID.ERR_IllegalChar),
                                         parsedTokensAsString.ToString),
                                     Location.None))
@@ -1965,7 +1961,7 @@ lVbRuntimePlus:
 
                             diagnosticBuilder.Add(
                                 New DiagnosticWithInfo(
-                                    ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
+                                    ErrorFactory.ErrorInfo(ERRID.ERR_ConditionalCompilationConstantNotValid,
                                         ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedEOS),
                                         parsedTokensAsString.ToString),
                                     Location.None))

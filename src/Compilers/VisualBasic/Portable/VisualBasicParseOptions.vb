@@ -251,15 +251,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not PreprocessorSymbols.IsDefaultOrEmpty Then
                 For Each symbol In PreprocessorSymbols
                     If Not IsValidIdentifier(symbol.Key) OrElse SyntaxFacts.GetKeywordKind(symbol.Key) <> SyntaxKind.None Then
-                        builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_ProjectCCError1, VBResources.ERR_ExpectedIdentifier, symbol.Key))
+                        builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_ConditionalCompilationConstantNotValid, VBResources.ERR_ExpectedIdentifier, symbol.Key))
                     Else
-
                         Debug.Assert(SyntaxFactory.ParseTokens(symbol.Key).Select(Function(t) t.Kind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
+                    End If
 
-                        Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
-                        If constant Is Nothing Then
-                            builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.IDS_InvalidPreprocessorConstantType, symbol.Key, symbol.Value.GetType))
-                        End If
+                    If InternalSyntax.CConst.TryCreate(symbol.Value) Is Nothing Then
+                        builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_InvalidPreprocessorConstantType, symbol.Key, symbol.Value.GetType))
                     End If
                 Next
             End If

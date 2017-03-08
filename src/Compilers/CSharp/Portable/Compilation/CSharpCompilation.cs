@@ -1917,6 +1917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var syntaxTrees = this.SyntaxTrees;
                 if (this.Options.ConcurrentBuild)
                 {
+                    var parseOptionsReported = new ConcurrentSet<ParseOptions>();
                     var parallelOptions = cancellationToken.CanBeCanceled
                                         ? new ParallelOptions() { CancellationToken = cancellationToken }
                                         : DefaultParallelOptions;
@@ -1927,11 +1928,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var syntaxTree = syntaxTrees[i];
                             AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
                             builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
-                            builder.AddRange(syntaxTree.Options.Errors);
+                            if (parseOptionsReported.Add(syntaxTree.Options))
+                            {
+                                builder.AddRange(syntaxTree.Options.Errors);
+                            }
                         }));
                 }
                 else
                 {
+                    var parseOptionsReported = new HashSet<ParseOptions>();
                     foreach (var syntaxTree in syntaxTrees)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -1939,7 +1944,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         cancellationToken.ThrowIfCancellationRequested();
                         builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
-                        builder.AddRange(syntaxTree.Options.Errors);
+                        if (parseOptionsReported.Add(syntaxTree.Options))
+                        {
+                            builder.AddRange(syntaxTree.Options.Errors);
+                        }
                     }
                 }
             }

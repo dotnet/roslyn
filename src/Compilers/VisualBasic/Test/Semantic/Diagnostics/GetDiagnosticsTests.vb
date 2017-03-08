@@ -231,7 +231,7 @@ End Namespace
             Dim compilation = CreateCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
-BC31030: Project-level conditional compilation constant '1' is not valid: Identifier expected.
+BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
 </errors>)
         End Sub
 
@@ -242,7 +242,7 @@ BC31030: Project-level conditional compilation constant '1' is not valid: Identi
 #Enable Warning BC40000 ' Type or member is obsolete
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
-BC37284: Provided Source Code Kind is unsupported or invalid: 'Interactive'
+BC37285: Provided source code kind is unsupported or invalid: 'Interactive'
 </errors>)
         End Sub
 
@@ -251,16 +251,16 @@ BC37284: Provided Source Code Kind is unsupported or invalid: 'Interactive'
             Dim compilation = CreateCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithLanguageVersion(DirectCast(10000, LanguageVersion)))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
-BC37286: Provided Language Version is unsupported or invalid: '10000'.
+BC37287: Provided language version is unsupported or invalid: '10000'.
 </errors>)
         End Sub
 
         <Fact>
         Public Sub CompilingCodeWithInvalidDocumentationModeShouldProvideDiagnostics()
-            Dim compilation = CreateCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithDocumentationMode(DirectCast(CType(100, Byte), DocumentationMode)))
+            Dim compilation = CreateCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithDocumentationMode(CType(100, DocumentationMode)))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
-BC37285: Provided Documentation Mode is unsupported or invalid: '100'.
+BC37286: Provided documentation mode is unsupported or invalid: '100'.
 </errors>)
         End Sub
 
@@ -275,16 +275,91 @@ BC37285: Provided Documentation Mode is unsupported or invalid: '100'.
 
             Dim syntaxTree1 = Parse(String.Empty, options:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict1))
             Dim syntaxTree2 = Parse(String.Empty, options:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict2))
-            Dim syntaxTree3 = Parse(String.Empty, options:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict3).WithDocumentationMode(DirectCast(CType(100, Byte), DocumentationMode)))
+            Dim syntaxTree3 = Parse(String.Empty, options:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict3).WithDocumentationMode(CType(100, DocumentationMode)))
 
-            Dim Compilation = CreateCompilation({syntaxTree1, syntaxTree2, syntaxTree3})
+            Dim Compilation = CreateCompilationWithMscorlib({syntaxTree1, syntaxTree2, syntaxTree3}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             CompilationUtils.AssertTheseDiagnostics(Compilation,
 <errors>
-BC31030: Project-level conditional compilation constant '1' is not valid: Identifier expected.
-BC31030: Project-level conditional compilation constant '2' is not valid: Identifier expected.
-BC31030: Project-level conditional compilation constant '3' is not valid: Identifier expected.
-BC37285: Provided Documentation Mode is unsupported or invalid: '100'.
+BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
+BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
+BC31030: Conditional compilation constant '3' is not valid: Identifier expected.
+BC37286: Provided documentation mode is unsupported or invalid: '100'.
+</errors>)
+        End Sub
+
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        Public Sub CompilingCodeWithSameParseOptionsInMultipleSyntaxTreesShouldReportOnlyNonDuplicates_SerialBuild(concurrentBuild As Boolean)
+            Dim dict1 = New Dictionary(Of String, Object)
+            dict1.Add("1", Nothing)
+            Dim dict2 = New Dictionary(Of String, Object)
+            dict2.Add("2", Nothing)
+
+            Dim parseOptions1 = New VisualBasicParseOptions().WithPreprocessorSymbols(dict1)
+            Dim parseOptions2 = New VisualBasicParseOptions().WithPreprocessorSymbols(dict2)
+
+            Dim syntaxTree1 = Parse(String.Empty, options:=parseOptions1)
+            Dim syntaxTree2 = Parse(String.Empty, options:=parseOptions2)
+            Dim syntaxTree3 = Parse(String.Empty, options:=parseOptions2)
+
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, concurrentBuild:=concurrentBuild)
+            Dim Compilation = CreateCompilationWithMscorlib({syntaxTree1, syntaxTree2, syntaxTree3}, options:=options)
+
+            CompilationUtils.AssertTheseDiagnostics(Compilation,
+<errors>
+BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
+BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
+</errors>)
+        End Sub
+
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        Public Sub DiagnositcsInCompilationOptionsParseOptionsAreDedupedWithParseTreesParseOptions(concurrentBuild As Boolean)
+            Dim dict1 = New Dictionary(Of String, Object)
+            dict1.Add("1", Nothing)
+            Dim dict2 = New Dictionary(Of String, Object)
+            dict2.Add("2", Nothing)
+
+            Dim parseOptions1 = New VisualBasicParseOptions().WithPreprocessorSymbols(dict1)
+            Dim parseOptions2 = New VisualBasicParseOptions().WithPreprocessorSymbols(dict2)
+
+            Dim syntaxTree1 = Parse(String.Empty, options:=parseOptions1)
+            Dim syntaxTree2 = Parse(String.Empty, options:=parseOptions2)
+
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, concurrentBuild:=concurrentBuild, parseOptions:=parseOptions1)
+            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime({syntaxTree1, syntaxTree2}, options:=options)
+
+            CompilationUtils.AssertTheseDiagnostics(Compilation,
+<errors>
+BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
+BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
+</errors>)
+        End Sub
+
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        Public Sub DiagnositcsInCompilationOptionsParseOptionsAreReportedSeparately(concurrentBuild As Boolean)
+            Dim dict1 = New Dictionary(Of String, Object)
+            dict1.Add("1", Nothing)
+            Dim dict2 = New Dictionary(Of String, Object)
+            dict2.Add("2", Nothing)
+
+            Dim parseOptions1 = New VisualBasicParseOptions().WithPreprocessorSymbols(dict1)
+            Dim parseOptions2 = New VisualBasicParseOptions().WithPreprocessorSymbols(dict2)
+
+            Dim syntaxTree1 = Parse(String.Empty, options:=parseOptions1)
+
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, concurrentBuild:=concurrentBuild, parseOptions:=parseOptions2)
+            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime({syntaxTree1}, options:=options)
+
+            CompilationUtils.AssertTheseDiagnostics(Compilation,
+<errors>
+BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
+BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
 </errors>)
         End Sub
 

@@ -189,6 +189,14 @@ Friend Module CompilationUtils
         Return CreateCompilationWithReferences(sources, references, options, parseOptions:=parseOptions)
     End Function
 
+    Public Function CreateCompilationWithMscorlibAndVBRuntime(trees As IEnumerable(Of SyntaxTree),
+                                                              options As VisualBasicCompilationOptions,
+                                                              Optional assemblyName As String = Nothing) As VisualBasicCompilation
+
+        Dim references = {MscorlibRef, SystemRef, MsvbRef}
+        Return CreateCompilation(trees, references, options, assemblyName)
+    End Function
+
     Public Function CreateCompilationWithMscorlibAndVBRuntime(sources As XElement,
                                                               options As VisualBasicCompilationOptions) As VisualBasicCompilation
         Return CreateCompilationWithMscorlibAndVBRuntime(sources, Nothing, options, parseOptions:=If(options Is Nothing, Nothing, options.ParseOptions))

@@ -3321,7 +3321,10 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>'id#' syntax is no longer supported. Use '$id' instead.</value>
   </data>
   <data name="WRN_DefineIdentifierRequired" xml:space="preserve">
-    <value>Invalid value for a preprocessing symbol; '{0}' is not a valid identifier</value>
+    <value>Invalid name for a preprocessing symbol; '{0}' is not a valid identifier</value>
+  </data>
+  <data name="WRN_DefineIdentifierRequired_Title" xml:space="preserve">
+    <value>Invalid name for a preprocessing symbol; not a valid identifier</value>
   </data>
   <data name="FTL_OutputFileExists" xml:space="preserve">
     <value>Cannot create short filename '{0}' when a long filename with the same short filename already exists</value>
@@ -5018,18 +5021,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>It is not legal to use the type 'dynamic' in a pattern.</value>
   </data>
   <data name="ERR_BadDocumentationMode" xml:space="preserve">
-    <value>Provided Documentation Mode is unsupported or invalid: '{0}'.</value>
+    <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
   </data>
-  <data name="WRN_BadSourceCodeKind" xml:space="preserve">
-    <value>Provided Source Code Kind is unsupported or invalid: '{0}'</value>
+  <data name="ERR_BadSourceCodeKind" xml:space="preserve">
+    <value>Provided source code kind is unsupported or invalid: '{0}'</value>
   </data>
   <data name="ERR_BadLanguageVersion" xml:space="preserve">
-    <value>Provided Language Version is unsupported or invalid: '{0}'.</value>
-  </data>
-  <data name="WRN_BadSourceCodeKind_Title" xml:space="preserve">
-    <value>Provided Source Code Kind is unsupported or invalid</value>
-  </data>
-  <data name="WRN_DefineIdentifierRequired_Title" xml:space="preserve">
-    <value>Invalid value for a preprocessing symbol; not a valid identifier</value>
+    <value>Provided language version is unsupported or invalid: '{0}'.</value>
   </data>
 </root>

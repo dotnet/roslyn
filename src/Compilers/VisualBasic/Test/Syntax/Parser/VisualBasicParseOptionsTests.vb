@@ -226,7 +226,13 @@ Public Class VisualBasicParseOptionsTests
 
     <Fact>
     Public Sub SpecifiedKindIsMappedCorrectly()
-        Dim options = New VisualBasicParseOptions(kind:=SourceCodeKind.Regular)
+        Dim options = New VisualBasicParseOptions()
+        Assert.Equal(SourceCodeKind.Regular, options.Kind)
+        Assert.Equal(SourceCodeKind.Regular, options.SpecifiedKind)
+
+        options.Errors.Verify()
+
+        options = New VisualBasicParseOptions(kind:=SourceCodeKind.Regular)
         Assert.Equal(SourceCodeKind.Regular, options.Kind)
         Assert.Equal(SourceCodeKind.Regular, options.SpecifiedKind)
 
@@ -244,7 +250,13 @@ Public Class VisualBasicParseOptionsTests
         Assert.Equal(SourceCodeKind.Interactive, options.SpecifiedKind)
 #Enable Warning BC40000 ' SourceCodeKind.Interactive is obsolete
 
-        options.Errors.Verify(Diagnostic(ERRID.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1))
+        options.Errors.Verify(Diagnostic(ERRID.ERR_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1))
+
+        options = New VisualBasicParseOptions(kind:=CType(Int32.MinValue, SourceCodeKind))
+        Assert.Equal(SourceCodeKind.Regular, options.Kind)
+        Assert.Equal(CType(Int32.MinValue, SourceCodeKind), options.SpecifiedKind)
+
+        options.Errors.Verify(Diagnostic(ERRID.ERR_BadSourceCodeKind).WithArguments("-2147483648").WithLocation(1, 1))
     End Sub
 
     <Fact>
@@ -285,12 +297,12 @@ Public Class VisualBasicParseOptionsTests
         Dim options = New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive)
 #Enable Warning BC40000 ' Type Or member Is obsolete
 
-        options.Errors.Verify(Diagnostic(ERRID.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1))
+        options.Errors.Verify(Diagnostic(ERRID.ERR_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1))
     End Sub
 
     <Fact>
     Public Sub BadDocumentationModeShouldProduceDiagnostics()
-        Dim options = New VisualBasicParseOptions(documentationMode:=DirectCast(CType(100, Byte), DocumentationMode))
+        Dim options = New VisualBasicParseOptions(documentationMode:=CType(100, DocumentationMode))
 
         options.Errors.Verify(Diagnostic(ERRID.ERR_BadDocumentationMode).WithArguments("100").WithLocation(1, 1))
     End Sub
@@ -309,27 +321,27 @@ Public Class VisualBasicParseOptionsTests
         symbols.Add("1", Nothing)
         Dim options = New VisualBasicParseOptions(preprocessorSymbols:=symbols)
 
-        options.Errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "1").WithLocation(1, 1))
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "1").WithLocation(1, 1))
     End Sub
 
     <Fact>
-    Public Sub BadSourceCodeKindShouldProduceDiagnostics_WithDimiation()
+    Public Sub BadSourceCodeKindShouldProduceDiagnostics_WithVariation()
 #Disable Warning BC40000 ' Type Or member Is obsolete
         Dim options = New VisualBasicParseOptions().WithKind(SourceCodeKind.Interactive)
 #Enable Warning BC40000 ' Type Or member Is obsolete
 
-        options.Errors.Verify(Diagnostic(ERRID.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1))
+        options.Errors.Verify(Diagnostic(ERRID.ERR_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1))
     End Sub
 
     <Fact>
-    Public Sub BadDocumentationModeShouldProduceDiagnostics_WithDimiation()
-        Dim options = New VisualBasicParseOptions().WithDocumentationMode(DirectCast(CType(100, Byte), DocumentationMode))
+    Public Sub BadDocumentationModeShouldProduceDiagnostics_WithVariation()
+        Dim options = New VisualBasicParseOptions().WithDocumentationMode(CType(100, DocumentationMode))
 
         options.Errors.Verify(Diagnostic(ERRID.ERR_BadDocumentationMode).WithArguments("100").WithLocation(1, 1))
     End Sub
 
     <Fact>
-    Public Sub BadLanguageVersionShouldProduceDiagnostics_WithDimiation()
+    Public Sub BadLanguageVersionShouldProduceDiagnostics_WithVariation()
         Dim options = New VisualBasicParseOptions().WithLanguageVersion(DirectCast(10000, LanguageVersion))
 
         options.Errors.Verify(Diagnostic(ERRID.ERR_BadLanguageVersion).WithArguments("10000").WithLocation(1, 1))
@@ -341,7 +353,7 @@ Public Class VisualBasicParseOptionsTests
         symbols.Add("", Nothing)
         Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)
 
-        options.Errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "").WithLocation(1, 1))
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "").WithLocation(1, 1))
     End Sub
 
     <Fact>
@@ -350,7 +362,7 @@ Public Class VisualBasicParseOptionsTests
         symbols.Add(" ", Nothing)
         Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)
 
-        options.Errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", " ").WithLocation(1, 1))
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", " ").WithLocation(1, 1))
     End Sub
 
     <Fact>
@@ -360,7 +372,7 @@ Public Class VisualBasicParseOptionsTests
         symbols.Add("Bad.Symbol", Nothing)
         Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)
 
-        options.Errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "Bad.Symbol").WithLocation(1, 1))
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "Bad.Symbol").WithLocation(1, 1))
     End Sub
 
     <Fact>
@@ -370,7 +382,7 @@ Public Class VisualBasicParseOptionsTests
         symbols.Add("Bad\\Symbol", Nothing)
         Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)
 
-        options.Errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", "Bad\\Symbol").WithLocation(1, 1))
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "Bad\\Symbol").WithLocation(1, 1))
     End Sub
 
 End Class

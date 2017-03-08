@@ -1857,8 +1857,8 @@
   <data name="ERR_EventHandlerSignatureIncompatible2" xml:space="preserve">
     <value>Method '{0}' cannot handle event '{1}' because they do not have a compatible signature.</value>
   </data>
-  <data name="ERR_ProjectCCError1" xml:space="preserve">
-    <value>Project-level conditional compilation constant '{1}' is not valid: {0}</value>
+  <data name="ERR_ConditionalCompilationConstantNotValid" xml:space="preserve">
+    <value>Conditional compilation constant '{1}' is not valid: {0}</value>
   </data>
   <data name="ERR_InterfaceImplementedTwice1" xml:space="preserve">
     <value>Interface '{0}' can be implemented only once by this type.</value>
@@ -5263,7 +5263,7 @@
   <data name="ERR_InvalidFormatSpecifier" xml:space="preserve">
     <value>'{0}' is not a valid format specifier</value>
   </data>
-  <data name="IDS_InvalidPreprocessorConstantType" xml:space="preserve">
+  <data name="ERR_InvalidPreprocessorConstantType" xml:space="preserve">
     <value>Preprocessor constant '{0}' of type '{1}' is not supported, only primitive types are allowed.</value>
   </data>
   <data name="ERR_ExpectedWarningKeyword" xml:space="preserve">
@@ -5468,15 +5468,12 @@
     <value>Merge conflict marker encountered</value>
   </data>
   <data name="ERR_BadDocumentationMode" xml:space="preserve">
-    <value>Provided Documentation Mode is unsupported or invalid: '{0}'.</value>
+    <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
   </data>
   <data name="ERR_BadLanguageVersion" xml:space="preserve">
-    <value>Provided Language Version is unsupported or invalid: '{0}'.</value>
+    <value>Provided language version is unsupported or invalid: '{0}'.</value>
   </data>
-  <data name="WRN_BadSourceCodeKind" xml:space="preserve">
-    <value>Provided Source Code Kind is unsupported or invalid: '{0}'</value>
-  </data>
-  <data name="WRN_BadSourceCodeKind_Title" xml:space="preserve">
-    <value>Provided Source Code Kind is unsupported or invalid</value>
+  <data name="ERR_BadSourceCodeKind" xml:space="preserve">
+    <value>Provided source code kind is unsupported or invalid: '{0}'</value>
   </data>
 </root>

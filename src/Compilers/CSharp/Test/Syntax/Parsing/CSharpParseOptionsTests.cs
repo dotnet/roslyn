@@ -56,7 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void SpecifiedKindIsMappedCorrectly()
         {
-            var options = new CSharpParseOptions(kind: SourceCodeKind.Regular);
+            var options = new CSharpParseOptions();
+            Assert.Equal(SourceCodeKind.Regular, options.Kind);
+            Assert.Equal(SourceCodeKind.Regular, options.SpecifiedKind);
+
+            options.Errors.Verify();
+
+            options = new CSharpParseOptions(kind: SourceCodeKind.Regular);
             Assert.Equal(SourceCodeKind.Regular, options.Kind);
             Assert.Equal(SourceCodeKind.Regular, options.SpecifiedKind);
 
@@ -75,8 +81,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 #pragma warning restore CS0618 // SourceCodeKind.Interactive is obsolete
 
             options.Errors.Verify(
-                // error CS8190: Provided Source Code Kind is unsupported or invalid: 'Interactive'.
-                Diagnostic(ErrorCode.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1));
+                // error CS8190: Provided source code kind is unsupported or invalid: 'Interactive'.
+                Diagnostic(ErrorCode.ERR_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1));
+
+            options = new CSharpParseOptions(kind: (SourceCodeKind)int.MinValue);
+            Assert.Equal(SourceCodeKind.Regular, options.Kind);
+            Assert.Equal((SourceCodeKind)int.MinValue, options.SpecifiedKind);
+
+            options.Errors.Verify(
+                // warning CS8190: Provided source code kind is unsupported or invalid: '-2147483648'
+                Diagnostic(ErrorCode.ERR_BadSourceCodeKind).WithArguments("-2147483648").WithLocation(1, 1));
         }
 
         [Fact]
@@ -121,8 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 #pragma warning restore CS0618 // Type or member is obsolete
 
             options.Errors.Verify(
-                // error CS8190: Provided Source Code Kind is unsupported or invalid: 'Interactive'.
-                Diagnostic(ErrorCode.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1));
+                // error CS8190: Provided source code kind is unsupported or invalid: 'Interactive'.
+                Diagnostic(ErrorCode.ERR_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1));
         }
 
         [Fact]
@@ -131,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions(documentationMode: unchecked((DocumentationMode)100));
 
             options.Errors.Verify(
-                // error CS8191: Provided Documentation Mode is unsupported or invalid: '100'.
+                // error CS8191: Provided documentation mode is unsupported or invalid: '100'.
                 Diagnostic(ErrorCode.ERR_BadDocumentationMode).WithArguments("100").WithLocation(1, 1));
         }
 
@@ -141,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions(languageVersion: unchecked((LanguageVersion)10000));
 
             options.Errors.Verify(
-                // error CS8191: Provided Language Version is unsupported or invalid: '10000'.
+                // error CS8191: Provided language version is unsupported or invalid: '10000'.
                 Diagnostic(ErrorCode.ERR_BadLanguageVersion).WithArguments("10000").WithLocation(1, 1));
         }
 
@@ -151,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions(preprocessorSymbols: new[] { "test", "1" });
 
             options.Errors.Verify(
-                // warning CS2029: Invalid value for a preprocessing symbol; '1' is not a valid identifier
+                // warning CS2029: Invalid name for a preprocessing symbol; '1' is not a valid identifier
                 Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("1").WithLocation(1, 1));
         }
 
@@ -163,8 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 #pragma warning restore CS0618 // Type or member is obsolete
 
             options.Errors.Verify(
-                // error CS8190: Provided Source Code Kind is unsupported or invalid: 'Interactive'.
-                Diagnostic(ErrorCode.WRN_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1));
+                // error CS8190: Provided source code kind is unsupported or invalid: 'Interactive'.
+                Diagnostic(ErrorCode.ERR_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1));
         }
 
         [Fact]
@@ -173,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100));
 
             options.Errors.Verify(
-                // error CS8191: Provided Documentation Mode is unsupported or invalid: '100'.
+                // error CS8191: Provided documentation mode is unsupported or invalid: '100'.
                 Diagnostic(ErrorCode.ERR_BadDocumentationMode).WithArguments("100").WithLocation(1, 1));
         }
 
@@ -183,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions().WithLanguageVersion(unchecked((LanguageVersion)10000));
 
             options.Errors.Verify(
-                // error CS8191: Provided Language Version is unsupported or invalid: '10000'.
+                // error CS8191: Provided language version is unsupported or invalid: '10000'.
                 Diagnostic(ErrorCode.ERR_BadLanguageVersion).WithArguments("10000").WithLocation(1, 1));
         }
 
@@ -193,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "" });
 
             options.Errors.Verify(
-                // warning CS2029: Invalid value for a preprocessing symbol; '' is not a valid identifier
+                // warning CS2029: Invalid name for a preprocessing symbol; '' is not a valid identifier
                 Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("").WithLocation(1, 1));
         }
 
@@ -203,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { " " });
 
             options.Errors.Verify(
-                // warning CS2029: Invalid value for a preprocessing symbol; ' ' is not a valid identifier
+                // warning CS2029: Invalid name for a preprocessing symbol; ' ' is not a valid identifier
                 Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments(" ").WithLocation(1, 1));
         }
 
@@ -213,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", "Bad.Symbol" });
 
             options.Errors.Verify(
-                // warning CS2029: Invalid value for a preprocessing symbol; 'Bad.Symbol' is not a valid identifier
+                // warning CS2029: Invalid name for a preprocessing symbol; 'Bad.Symbol' is not a valid identifier
                 Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("Bad.Symbol").WithLocation(1, 1));
         }
 
@@ -223,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", "Bad\\Symbol" });
 
             options.Errors.Verify(
-                // warning CS2029: Invalid value for a preprocessing symbol; 'Bad\Symbol' is not a valid identifier
+                // warning CS2029: Invalid name for a preprocessing symbol; 'Bad\Symbol' is not a valid identifier
                 Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("Bad\\Symbol").WithLocation(1, 1));
         }
 
@@ -233,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", null });
 
             options.Errors.Verify(
-                // warning CS2029: Invalid value for a preprocessing symbol; 'null' is not a valid identifier
+                // warning CS2029: Invalid name for a preprocessing symbol; 'null' is not a valid identifier
                 Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("null").WithLocation(1, 1));
         }
     }

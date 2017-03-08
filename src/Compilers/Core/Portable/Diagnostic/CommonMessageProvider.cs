@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_CompileCancelled { get; }
 
         // parse options:
-        public abstract int WRN_BadSourceCodeKind { get; }
+        public abstract int ERR_BadSourceCodeKind { get; }
         public abstract int ERR_BadDocumentationMode { get; }
 
         // compilation options:

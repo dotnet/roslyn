@@ -1440,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion stragglers for C# 7
 
         #region diagnostics for parse options
-        WRN_BadSourceCodeKind = 8190,
+        ERR_BadSourceCodeKind = 8190,
         ERR_BadDocumentationMode = 8191,
         ERR_BadLanguageVersion = 8192,
         #endregion
