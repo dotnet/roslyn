@@ -2357,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; must {2}return by reference to match overridden member &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; must match by reference return of overridden member &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_CantChangeRefReturnOnOverride {
             get {
@@ -2717,7 +2717,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement interface member &apos;{1}&apos;. &apos;{2}&apos; cannot implement &apos;{1}&apos; because it does not return by {3}.
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement interface member &apos;{1}&apos;. &apos;{2}&apos; cannot implement &apos;{1}&apos; because it does not have matching return by reference..
         /// </summary>
         internal static string ERR_CloseUnimplementedInterfaceMemberWrongRefReturn {
             get {
@@ -7100,20 +7100,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot define overloaded methods that differ only on ref and out.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot define an overloaded {1} that differs only on parameter modifiers &apos;{2}&apos; and &apos;{3}&apos;.
         /// </summary>
-        internal static string ERR_OverloadRefOut {
+        internal static string ERR_OverloadRefKind {
             get {
-                return ResourceManager.GetString("ERR_OverloadRefOut", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot define overloaded constructor &apos;{0}&apos; because it differs from another constructor only on ref and out.
-        /// </summary>
-        internal static string ERR_OverloadRefOutCtor {
-            get {
-                return ResourceManager.GetString("ERR_OverloadRefOutCtor", resourceCulture);
+                return ResourceManager.GetString("ERR_OverloadRefKind", resourceCulture);
             }
         }
         
@@ -10346,6 +10337,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_SK_ALIAS {
             get {
                 return ResourceManager.GetString("IDS_SK_ALIAS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to constructor.
+        /// </summary>
+        internal static string IDS_SK_CONSTRUCTOR {
+            get {
+                return ResourceManager.GetString("IDS_SK_CONSTRUCTOR", resourceCulture);
             }
         }
         

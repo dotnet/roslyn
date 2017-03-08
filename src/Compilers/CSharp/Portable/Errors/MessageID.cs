@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         None = 0,
         MessageBase = 1200,
+
         IDS_SK_METHOD = MessageBase + 2000,
         IDS_SK_TYPE = MessageBase + 2001,
         IDS_SK_NAMESPACE = MessageBase + 2002,
@@ -23,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_SK_ALIAS = MessageBase + 2010,
         //IDS_SK_EXTERNALIAS = MessageBase + 2011,
         IDS_SK_LABEL = MessageBase + 2012,
+        IDS_SK_CONSTRUCTOR = MessageBase + 2013,
+
         IDS_NULL = MessageBase + 10001,
         //IDS_RELATEDERROR = MessageBase + 10002,
         //IDS_RELATEDWARNING = MessageBase + 10003,
@@ -129,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_ThrowExpression = MessageBase + 12717,
 
         IDS_FeatureReadonlyReferences = MessageBase + 12718,
-
     }
 
     // Message IDs may refer to strings that need to be localized.

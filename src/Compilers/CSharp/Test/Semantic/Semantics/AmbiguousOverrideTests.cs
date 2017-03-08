@@ -1321,5 +1321,39 @@ C# GEI.F(int): CG::F(T)
             // since the runtime can distinguish signatures with different modopts.
             verifier.VerifyDiagnostics();
         }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void OverloadsWithDifferentParameterModifiers_Ref_RefReadOnly()
+        {
+            var text = @"
+abstract class TestClass
+{
+    public void Method(ref int x) { }
+    public void Method(ref readonly int x) { }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'ref'
+                //     public void Method(ref readonly int x) { }
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "ref readonly", "ref").WithLocation(5, 17));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        public void OverloadsWithDifferentParameterModifiers_Out_RefReadOnly()
+        {
+            var text = @"
+abstract class TestClass
+{
+    public void Method(out int x) { x = 0; }
+    public void Method(ref readonly int x) { }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'out'
+                //     public void Method(ref readonly int x) { }
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "ref readonly", "out").WithLocation(5, 17));
+        }
     }
 }

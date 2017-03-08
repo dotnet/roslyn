@@ -1538,23 +1538,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (DifferByOutOrRef(method1, method2))
+            Debug.Assert(method1.ParameterCount == method2.ParameterCount);
+
+            for (int i = 0; i < method1.ParameterCount; i++)
             {
-                // '{0}' cannot define overloaded methods that differ only on ref and out
-                ErrorCode errorCode = method1.MethodKind == MethodKind.Constructor ?
-                    ErrorCode.ERR_OverloadRefOutCtor :
-                    ErrorCode.ERR_OverloadRefOut;
-                diagnostics.Add(errorCode, method1.Locations[0], this);
+                var refKind1 = method1.Parameters[i].RefKind;
+                var refKind2 = method2.Parameters[i].RefKind;
+
+                if (refKind1 != refKind2)
+                {
+                    // '{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'
+                    var methodKind = method1.MethodKind == MethodKind.Constructor ? MessageID.IDS_SK_CONSTRUCTOR : MessageID.IDS_SK_METHOD;
+                    diagnostics.Add(ErrorCode.ERR_OverloadRefKind, method1.Locations[0], this, methodKind.Localize(), refKind1.ToDisplayString(), refKind2.ToDisplayString());
+
+                    return;
+                }
             }
-            else
-            {
-                // Special case: if there are two destructors, use the destructor syntax instead of "Finalize"
-                var methodName = (method1.MethodKind == MethodKind.Destructor && method2.MethodKind == MethodKind.Destructor) ?
-                    "~" + this.Name :
-                    method1.Name;
-                // Type '{1}' already defines a member called '{0}' with the same parameter types
-                diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.Locations[0], methodName, this);
-            }
+
+            // Special case: if there are two destructors, use the destructor syntax instead of "Finalize"
+            var methodName = (method1.MethodKind == MethodKind.Destructor && method2.MethodKind == MethodKind.Destructor) ?
+                "~" + this.Name :
+                method1.Name;
+            // Type '{1}' already defines a member called '{0}' with the same parameter types
+            diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.Locations[0], methodName, this);
         }
 
         private void CheckIndexerNameConflicts(DiagnosticBag diagnostics, Dictionary<string, ImmutableArray<Symbol>> membersByName)
@@ -2436,23 +2442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return builder.ToImmutableAndFree();
         }
-
-        private static bool DifferByOutOrRef(SourceMethodSymbol m1, SourceMethodSymbol m2)
-        {
-            var pl1 = m1.Parameters;
-            var pl2 = m2.Parameters;
-            int n = pl1.Length;
-            for (int i = 0; i < n; i++)
-            {
-                if (pl1[i].RefKind != pl2[i].RefKind)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
+        
         /// <summary>
         /// Report an error if a member (other than a method) exists with the same name
         /// as the property accessor, or if a method exists with the same name and signature.

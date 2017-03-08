@@ -1162,11 +1162,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (closestMismatch.Kind)
                 {
                     case SymbolKind.Method:
-                        hasRefReturnMismatch = (((MethodSymbol)closestMismatch).RefKind != RefKind.None) != (interfaceMemberRefKind != RefKind.None);
+                        hasRefReturnMismatch = ((MethodSymbol)closestMismatch).RefKind != interfaceMemberRefKind;
                         break;
 
                     case SymbolKind.Property:
-                        hasRefReturnMismatch = (((PropertySymbol)closestMismatch).RefKind != RefKind.None) != (interfaceMemberRefKind != RefKind.None);
+                        hasRefReturnMismatch = ((PropertySymbol)closestMismatch).RefKind != interfaceMemberRefKind;
                         break;
                 }
 
@@ -1179,7 +1179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (hasRefReturnMismatch)
                 {
-                    diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, interfaceLocation, implementingType, interfaceMember, closestMismatch, interfaceMemberRefKind != RefKind.None ? "reference" : "value");
+                    diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, interfaceLocation, implementingType, interfaceMember, closestMismatch);
                 }
                 else
                 {

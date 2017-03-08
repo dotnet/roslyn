@@ -11348,24 +11348,27 @@ public class A4 : Attribute
             var comp = CreateCompilationWithMscorlib(text);
 
             comp.VerifyDiagnostics(
-                // (7,14): error CS0663: 'NS.IFoo<T>' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "M").WithArguments("NS.IFoo<T>"),
-                // (24,20): error CS0663: 'NS.CFoo' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "RetInt").WithArguments("NS.CFoo"),
-                // (16,18): error CS0663: 'NS.CFoo.SFoo' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "M").WithArguments("NS.CFoo.SFoo"),
+                // (7,14): error CS0663: 'IFoo<T>' cannot define an overloaded method that differ only on parameter modifiers 'out' and 'ref'
+                //         void M(out T t);
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.IFoo<T>", "method", "out", "ref").WithLocation(7, 14),
+                // (24,20): error CS0663: 'CFoo' cannot define an overloaded method that differ only on parameter modifiers 'ref' and 'out'
+                //         public int RetInt(byte b, ref int j)
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "RetInt").WithArguments("NS.CFoo", "method", "ref", "out").WithLocation(24, 20),
+                // (16,18): error CS0663: 'CFoo.SFoo' cannot define an overloaded method that differ only on parameter modifiers 'out' and 'ref'
+                //             void M<T>(out T t) { }
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.CFoo.SFoo", "method", "out", "ref").WithLocation(16, 18),
 
                 // Dev10 stops after reporting the overload problems.  However, it produces the errors below once those problems are fixed.
 
                 // (21,20): error CS0269: Use of unassigned out parameter 'i'
-                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "i").WithArguments("i"),
+                //             return i;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "i").WithArguments("i").WithLocation(21, 20),
                 // (21,13): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return i;").WithArguments("i"),
+                //             return i;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return i;").WithArguments("i").WithLocation(21, 13),
                 // (16,18): error CS0177: The out parameter 't' must be assigned to before control leaves the current method
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("t"));
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
+                //             void M<T>(out T t) { }
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("t").WithLocation(16, 18));
         }
 
         [Fact]
@@ -13805,8 +13808,9 @@ namespace TestNamespace
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (8,17): error CS0851: Cannot define overloaded constructor 'TestNamespace.MyClass' because it differs from another constructor only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOutCtor, "MyClass").WithArguments("TestNamespace.MyClass"));
+                // (8,17): error CS0663: 'MyClass' cannot define an overloaded constructor that differs only on parameter modifiers 'out' and 'ref'
+                //         public  MyClass(out int num)
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "MyClass").WithArguments("TestNamespace.MyClass", "constructor", "out", "ref").WithLocation(8, 17));
         }
 
         [Fact]

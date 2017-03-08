@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_EqualityOpWithoutEquals = 660,
         WRN_EqualityOpWithoutGetHashCode = 661,
         ERR_OutAttrOnRefParam = 662,
-        ERR_OverloadRefOut = 663,
+        ERR_OverloadRefKind = 663,
         ERR_LiteralDoubleCast = 664,
         WRN_IncorrectBooleanAssg = 665,
         ERR_ProtectedInStruct = 666,
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsBadCoalesce = 845,
         ERR_ArrayInitializerExpected = 846,
         ERR_ArrayInitializerIncorrectLength = 847,
-        ERR_OverloadRefOutCtor = 851,
+        // ERR_OverloadRefOutCtor = 851,                                Replaced By ERR_OverloadRefKind
         ERR_ExpressionTreeContainsNamedArgument = 853,
         ERR_ExpressionTreeContainsOptionalArgument = 854,
         ERR_ExpressionTreeContainsIndexedProperty = 855,
