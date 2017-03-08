@@ -1197,5 +1197,291 @@ class C
     }
 }");
         }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotInLoops1()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        do
+        {
+        }
+        while (!TryExtractTokenFromEmail(out token));
+
+        Console.WriteLine(token == ""Test"");
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotInLoops2()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        while (!TryExtractTokenFromEmail(out token))
+        {
+        }
+
+        Console.WriteLine(token == ""Test"");
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotInLoops3()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        foreach (var v in TryExtractTokenFromEmail(out token))
+        {
+        }
+
+        Console.WriteLine(token == ""Test"");
+    }
+
+    private static IEnumerable<bool> TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotInLoops4()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        for ( ; TryExtractTokenFromEmail(out token); )
+        {
+        }
+
+        Console.WriteLine(token == ""Test"");
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInLoops1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        do
+        {
+        }
+        while (!TryExtractTokenFromEmail(out token));
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        do
+        {
+        }
+        while (!TryExtractTokenFromEmail(out string token));
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInLoops2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        while (!TryExtractTokenFromEmail(out token))
+        {
+        }
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        while (!TryExtractTokenFromEmail(out string token))
+        {
+        }
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17635"),
+         Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInLoops3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        foreach (var v in TryExtractTokenFromEmail(out token))
+        {
+        }
+    }
+
+    private static IEnumerable<bool> TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        foreach (var v in TryExtractTokenFromEmail(out string token))
+        {
+        }
+    }
+
+    private static IEnumerable<bool> TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInLoops4()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        for ( ; TryExtractTokenFromEmail(out token); )
+        {
+        }
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        for ( ; TryExtractTokenFromEmail(out string token); )
+        {
+        }
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
     }
 }

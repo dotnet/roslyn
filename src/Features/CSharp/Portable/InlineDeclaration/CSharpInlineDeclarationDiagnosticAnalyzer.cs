@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // If the local has an initializer, only allow the refactoring if it is initialized
             // with a simple literal or 'default' expression.  i.e. it's ok to inline "var v = 0"
             // since there are no side-effects of the initialization.  However something like
-            // "var v = M()" shoudl not be inlined as that could break program semantics.
+            // "var v = M()" should not be inlined as that could break program semantics.
             if (localDeclarator.Initializer != null)
             {
                 if (!(localDeclarator.Initializer.Value is LiteralExpressionSyntax) &&
@@ -320,6 +320,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 {
                     // We were in a lambda.  The lambda body will be the new scope of the 
                     // out var.
+                    return current;
+                }
+
+                // Any loop construct defines a scope for out-variables.
+                if (current.Kind() == SyntaxKind.WhileStatement ||
+                    current.Kind() == SyntaxKind.DoStatement ||
+                    current.Kind() == SyntaxKind.ForStatement ||
+                    current.Kind() == SyntaxKind.ForEachStatement)
+                {
                     return current;
                 }
 
