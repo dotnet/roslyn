@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Test.Utilities;
@@ -84,7 +85,7 @@ class Class2 { }
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, 
-                destinationDocumentText, destinationDocumentContainers: new [] {"A", "B"});
+                destinationDocumentText, destinationDocumentContainers: ImmutableArray.Create("A", "B"));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]

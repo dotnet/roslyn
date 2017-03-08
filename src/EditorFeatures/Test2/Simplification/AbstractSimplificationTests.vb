@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -36,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         End Function
 
         Private Async Function TestAsync(workspace As Workspace,
-                         listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, IList(Of TextSpan))),
+                         listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, ImmutableArray(Of TextSpan))),
                          explicitSpansToSimplifyWithin As IEnumerable(Of TextSpan),
                          expected As XElement,
                          simplificationOptions As Dictionary(Of OptionKey, Object)) As System.Threading.Tasks.Task

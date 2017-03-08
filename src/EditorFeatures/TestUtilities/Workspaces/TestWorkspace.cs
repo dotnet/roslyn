@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -399,11 +400,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// <returns></returns>
         public TestHostDocument CreateProjectionBufferDocument(string markup, IList<TestHostDocument> baseDocuments, string languageName, string path = "projectionbufferdocumentpath", ProjectionBufferOptions options = ProjectionBufferOptions.None, IProjectionEditResolver editResolver = null)
         {
-            IList<object> projectionBufferSpans;
-            Dictionary<string, IList<TextSpan>> mappedSpans;
-            int? mappedCaretLocation;
-
-            GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments, out projectionBufferSpans, out mappedSpans, out mappedCaretLocation);
+            GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments,
+                out var projectionBufferSpans, out Dictionary<string, ImmutableArray<TextSpan>> mappedSpans, out var mappedCaretLocation);
 
             var projectionBufferFactory = this.GetService<IProjectionBufferFactoryService>();
             var projectionBuffer = projectionBufferFactory.CreateProjectionBuffer(editResolver, projectionBufferSpans, options);
@@ -411,7 +409,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Add in mapped spans from each of the base documents
             foreach (var document in baseDocuments)
             {
-                mappedSpans[string.Empty] = mappedSpans.ContainsKey(string.Empty) ? mappedSpans[string.Empty] : new List<TextSpan>();
+                mappedSpans[string.Empty] = mappedSpans.ContainsKey(string.Empty) 
+                    ? mappedSpans[string.Empty] 
+                    : ImmutableArray<TextSpan>.Empty;
                 foreach (var span in document.SelectedSpans)
                 {
                     var snapshotSpan = span.ToSnapshotSpan(document.TextBuffer.CurrentSnapshot);
@@ -421,11 +421,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 // Order unnamed spans as they would be ordered by the normal span finding 
                 // algorithm in MarkupTestFile
-                mappedSpans[string.Empty] = mappedSpans[string.Empty].OrderBy(s => s.End).ThenBy(s => -s.Start).ToList();
+                mappedSpans[string.Empty] = mappedSpans[string.Empty].OrderBy(s => s.End).ThenBy(s => -s.Start).ToImmutableArray();
 
                 foreach (var kvp in document.AnnotatedSpans)
                 {
-                    mappedSpans[kvp.Key] = mappedSpans.ContainsKey(kvp.Key) ? mappedSpans[kvp.Key] : new List<TextSpan>();
+                    mappedSpans[kvp.Key] = mappedSpans.ContainsKey(kvp.Key)
+                        ? mappedSpans[kvp.Key] 
+                        : ImmutableArray<TextSpan>.Empty;
 
                     foreach (var span in kvp.Value)
                     {
@@ -450,16 +452,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return projectionDocument;
         }
 
-        private void GetSpansAndCaretFromSurfaceBufferMarkup(string markup, IList<TestHostDocument> baseDocuments, out IList<object> projectionBufferSpans, out Dictionary<string, IList<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
+        private void GetSpansAndCaretFromSurfaceBufferMarkup(
+            string markup, IList<TestHostDocument> baseDocuments, 
+            out IList<object> projectionBufferSpans,
+            out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
         {
-            IDictionary<string, IList<TextSpan>> markupSpans;
             projectionBufferSpans = new List<object>();
             var projectionBufferSpanStartingPositions = new List<int>();
             mappedCaretLocation = null;
             string inertText;
             int? markupCaretLocation;
 
-            MarkupTestFile.GetPositionAndSpans(markup, out inertText, out markupCaretLocation, out markupSpans);
+            MarkupTestFile.GetPositionAndSpans(markup, 
+                out inertText, out markupCaretLocation, out var markupSpans);
 
             var namedSpans = markupSpans.Where(kvp => kvp.Key != string.Empty);
             var sortedAndNamedSpans = namedSpans.OrderBy(kvp => kvp.Value.Single().Start)
@@ -546,13 +551,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             MapMarkupSpans(markupSpans, out mappedMarkupSpans, projectionBufferSpans, projectionBufferSpanStartingPositions);
         }
 
-        private void MapMarkupSpans(IDictionary<string, IList<TextSpan>> markupSpans, out Dictionary<string, IList<TextSpan>> mappedMarkupSpans, IList<object> projectionBufferSpans, IList<int> projectionBufferSpanStartingPositions)
+        private void MapMarkupSpans(
+            IDictionary<string, ImmutableArray<TextSpan>> markupSpans,
+            out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans,
+            IList<object> projectionBufferSpans, IList<int> projectionBufferSpanStartingPositions)
         {
-            mappedMarkupSpans = new Dictionary<string, IList<TextSpan>>();
+            var tempMappedMarkupSpans = new Dictionary<string, ArrayBuilder<TextSpan>>();
 
             foreach (string key in markupSpans.Keys)
             {
-                mappedMarkupSpans[key] = new List<TextSpan>();
+                tempMappedMarkupSpans[key] = ArrayBuilder<TextSpan>.GetInstance();
                 foreach (var markupSpan in markupSpans[key])
                 {
                     var positionInMarkup = 0;
@@ -587,9 +595,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                         spanIndex++;
                     }
 
-                    mappedMarkupSpans[key].Add(new TextSpan(spanStartLocation.Value, spanEndLocationExclusive.Value - spanStartLocation.Value));
+                    tempMappedMarkupSpans[key].Add(new TextSpan(spanStartLocation.Value, spanEndLocationExclusive.Value - spanStartLocation.Value));
                 }
             }
+
+            mappedMarkupSpans = tempMappedMarkupSpans.ToDictionary(
+                kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
         }
 
         public override void OpenDocument(DocumentId documentId, bool activate = true)

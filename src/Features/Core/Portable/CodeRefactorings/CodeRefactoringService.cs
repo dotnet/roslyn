@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             try
             {
-                var actions = new List<CodeAction>();
+                var actions = ArrayBuilder<CodeAction>.GetInstance();
                 var context = new CodeRefactoringContext(document, state,
 
                     // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
@@ -140,10 +140,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                 var task = provider.ComputeRefactoringsAsync(context) ?? SpecializedTasks.EmptyTask;
                 await task.ConfigureAwait(false);
-                if (actions.Count > 0)
-                {
-                    return new CodeRefactoring(provider, actions);
-                }
+
+                var result = actions.Count > 0
+                    ? new CodeRefactoring(provider, actions.ToImmutable())
+                    : null;
+
+                actions.Free();
+
+                return result;
             }
             catch (OperationCanceledException)
             {

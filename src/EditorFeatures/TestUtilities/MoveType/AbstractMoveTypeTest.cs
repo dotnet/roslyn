@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 {
@@ -133,9 +134,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             return await TestOperationsAsync(workspace,
                 expectedText: expectedCode,
                 operations: operations,
-                conflictSpans: null,
-                renameSpans: null,
-                warningSpans: null,
+                conflictSpans: ImmutableArray<TextSpan>.Empty,
+                renameSpans: ImmutableArray<TextSpan>.Empty,
+                warningSpans: ImmutableArray<TextSpan>.Empty,
                 ignoreTrivia: ignoreTrivia,
                 expectedChangedDocumentId: null);
         }
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string expectedSourceTextAfterRefactoring,
             string expectedDocumentName,
             string destinationDocumentText,
-            IList<string> destinationDocumentContainers = null,
+            ImmutableArray<string> destinationDocumentContainers = default(ImmutableArray<string>),
             bool expectedCodeAction = true,
             int index = 0,
             bool ignoreTrivia = true,
@@ -159,10 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     onAfterWorkspaceCreated?.Invoke(workspace);
 
                     // replace with default values on null.
-                    if (destinationDocumentContainers == null)
-                    {
-                        destinationDocumentContainers = Array.Empty<string>();
-                    }
+                    destinationDocumentContainers = destinationDocumentContainers.NullToEmpty();
 
                     var sourceDocumentId = workspace.Documents[0].Id;
 

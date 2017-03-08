@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal abstract Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters);
 
-        protected override async Task<IList<CodeAction>> GetCodeActionsWorkerAsync(
+        protected override async Task<ImmutableArray<CodeAction>> GetCodeActionsWorkerAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             var diagnostics = await GetDiagnosticAndFixAsync(workspace, parameters);
-            return diagnostics?.Item2?.Fixes.Select(f => f.Action).ToList();
+            return (diagnostics?.Item2?.Fixes.Select(f => f.Action).ToImmutableArray()).GetValueOrDefault().NullToEmpty();
         }
 
         internal async Task<Tuple<Diagnostic, CodeFixCollection>> GetDiagnosticAndFixAsync(
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string diagnosticId = null,
             TestParameters parameters = default(TestParameters))
         {
-            MarkupTestFile.GetSpans(initialMarkup, out var unused, out IList<TextSpan> spansList);
+            MarkupTestFile.GetSpans(initialMarkup, out var unused, out ImmutableArray<TextSpan> spansList);
 
             var expectedTextSpans = spansList.ToSet();
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string projectName = null,
             bool isNewFile = false,
             string existingFilename = null,
-            IList<string> newFileFolderContainers = null,
+            ImmutableArray<string> newFileFolderContainers = default(ImmutableArray<string>),
             string fullFilePath = null,
             string newFileName = null,
             string assertClassName = null,
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var fixes = generateTypeDiagFixes.Item2.Fixes;
                 Assert.NotNull(fixes);
 
-                var fixActions = MassageActions(fixes.Select(f => f.Action).ToList());
+                var fixActions = MassageActions(fixes.SelectAsArray(f => f.Action));
                 Assert.NotNull(fixActions);
 
                 // Since the dialog option is always fed as the last CodeAction
@@ -364,7 +364,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {
                     oldSolutionAndNewSolution = await TestOperationsAsync(
                         testState.Workspace, expected, operations,
-                        conflictSpans: null, renameSpans: null, warningSpans: null,
+                        conflictSpans: ImmutableArray<TextSpan>.Empty, 
+                        renameSpans: ImmutableArray<TextSpan>.Empty,
+                        warningSpans: ImmutableArray<TextSpan>.Empty,
                         ignoreTrivia: false, expectedChangedDocumentId: testState.ExistingDocument.Id);
                 }
                 else
@@ -384,7 +386,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {
                     Assert.NotNull(expectedTextWithUsings);
                     await TestOperationsAsync(testState.Workspace, expectedTextWithUsings, operations,
-                        conflictSpans: null, renameSpans: null, warningSpans: null, ignoreTrivia: false,
+                        conflictSpans: ImmutableArray<TextSpan>.Empty,
+                        renameSpans: ImmutableArray<TextSpan>.Empty,
+                        warningSpans: ImmutableArray<TextSpan>.Empty, ignoreTrivia: false,
                         expectedChangedDocumentId: testState.InvocationDocument.Id);
                 }
 
