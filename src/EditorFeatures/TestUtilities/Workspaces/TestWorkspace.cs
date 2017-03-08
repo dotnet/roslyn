@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     var snapshotSpan = span.ToSnapshotSpan(document.TextBuffer.CurrentSnapshot);
                     var mappedSpan = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan).Single();
-                    mappedSpans[string.Empty].Add(mappedSpan.ToTextSpan());
+                    mappedSpans[string.Empty] = mappedSpans[string.Empty].Add(mappedSpan.ToTextSpan());
                 }
 
                 // Order unnamed spans as they would be ordered by the normal span finding 
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     {
                         var snapshotSpan = span.ToSnapshotSpan(document.TextBuffer.CurrentSnapshot);
                         var mappedSpan = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan).Single();
-                        mappedSpans[kvp.Key].Add(mappedSpan.ToTextSpan());
+                        mappedSpans[kvp.Key] = mappedSpans[kvp.Key].Add(mappedSpan.ToTextSpan());
                     }
                 }
             }
