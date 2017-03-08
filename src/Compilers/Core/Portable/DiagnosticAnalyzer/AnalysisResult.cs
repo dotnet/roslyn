@@ -76,11 +76,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return GetDiagnostics(Analyzers, getLocalSyntaxDiagnostics: true, getLocalSemanticDiagnostics: true, getNonLocalDiagnostics: true);
         }
 
-        internal ImmutableArray<Diagnostic> GetSyntaxDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers)
-        {
-            return GetDiagnostics(analyzers, getLocalSyntaxDiagnostics: true, getLocalSemanticDiagnostics: false, getNonLocalDiagnostics: false);
-        }
-
         internal ImmutableArray<Diagnostic> GetSemanticDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             return GetDiagnostics(analyzers, getLocalSyntaxDiagnostics: false, getLocalSemanticDiagnostics: true, getNonLocalDiagnostics: false);

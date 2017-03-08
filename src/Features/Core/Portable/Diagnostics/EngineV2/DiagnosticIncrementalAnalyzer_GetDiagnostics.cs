@@ -84,7 +84,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected StateManager StateManager => this.Owner._stateManager;
 
             protected Project CurrentProject => CurrentSolution.GetProject(CurrentProjectId);
-            protected Document CurrentDocument => CurrentSolution.GetDocument(CurrentDocumentId);
 
             protected virtual bool ShouldIncludeDiagnostic(DiagnosticData diagnostic) => true;
 

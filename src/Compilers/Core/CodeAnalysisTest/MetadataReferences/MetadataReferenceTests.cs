@@ -384,13 +384,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(@"compilation name", r.Display);
         }
 
-        private static readonly AssemblyIdentity s_mscorlibIdentity = new AssemblyIdentity(
-                name: "mscorlib",
-                version: new Version(4, 0, 0, 0),
-                cultureName: "",
-                publicKeyOrToken: new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }.AsImmutableOrNull(),
-                hasPublicKey: true);
-
         private class MyReference : PortableExecutableReference
         {
             private readonly string _display;

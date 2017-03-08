@@ -27,15 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CSharpTestBaseBase
     {
-        protected CSharpCompilation GetCSharpCompilationForEmit(
-            IEnumerable<string> source,
-            IEnumerable<MetadataReference> additionalRefs,
-            CompilationOptions options,
-            ParseOptions parseOptions)
-        {
-            return (CSharpCompilation)base.GetCompilationForEmit(source, additionalRefs, options, parseOptions);
-        }
-
         internal new IEnumerable<ModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public)
         {
             return base.ReferencesToModuleSymbols(references, importOptions).Cast<ModuleSymbol>();

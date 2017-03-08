@@ -1182,8 +1182,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 this.Children = (Node[])reader.ReadValue();
             }
 
-            private static readonly Func<ObjectReader, object> s_createInstance = r => new Node(r);
-
             public void WriteTo(ObjectWriter writer)
             {
                 writer.WriteString(this.Name);

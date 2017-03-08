@@ -114,14 +114,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return new Enumerator(this);
         }
 
-        internal void CopyTo(int offset, ArrayElement<GreenNode>[] array, int arrayOffset, int count)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                array[arrayOffset + i].Value = this[i + offset];
-            }
-        }
-
         public static bool operator ==(SyntaxList<TNode> left, SyntaxList<TNode> right)
         {
             return left._node == right._node;

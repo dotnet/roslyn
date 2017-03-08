@@ -137,13 +137,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _executingCompilationOrNonConcurrentTreeTask = null;
         }
 
-        private void AddExceptionDiagnostic(Exception exception, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
-        {
-            _analysisOptions.OnAnalyzerException?.Invoke(exception, analyzer, diagnostic);
-
-            _exceptionDiagnostics.Add(diagnostic);
-        }
-
         #region Helper methods for public API argument validation
 
         private static void VerifyArguments(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions analysisOptions)
@@ -182,16 +175,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // Has duplicate analyzer instances.
                 throw new ArgumentException(CodeAnalysisResources.DuplicateAnalyzerInstances, nameof(analyzers));
-            }
-        }
-
-        private void VerifyAnalyzersArgument(ImmutableArray<DiagnosticAnalyzer> analyzers)
-        {
-            VerifyAnalyzersArgumentForStaticApis(analyzers);
-
-            if (analyzers.Any(a => !_analyzers.Contains(a)))
-            {
-                throw new ArgumentException(CodeAnalysisResources.UnsupportedAnalyzerInstance, nameof(analyzers));
             }
         }
 

@@ -769,11 +769,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public int CodeBlockEndActionsCount { get { return _codeBlockEndActions.Length; } }
         public int CodeBlockActionsCount { get { return _codeBlockActions.Length; } }
 
-        internal ImmutableArray<CompilationStartAnalyzerAction> CompilationStartActions
-        {
-            get { return _compilationStartActions; }
-        }
-
         internal ImmutableArray<CompilationAnalyzerAction> CompilationEndActions
         {
             get { return _compilationEndActions; }

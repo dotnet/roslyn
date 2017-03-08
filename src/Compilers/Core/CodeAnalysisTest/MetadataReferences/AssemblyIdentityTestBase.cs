@@ -51,11 +51,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             '\u0017', '\u0018', '\u0019', '\u001a', '\u001b', '\u001c', '\u001d', '\u001e', '\u001f',
         };
 
-        internal static readonly HashSet<char> ClrBackslashEscapedCharacters = new HashSet<char>
-        {
-            ',', '/', '=', '\\'
-        };
-
         internal static string ToDisplayString(byte[] key)
         {
             StringBuilder sb = new StringBuilder();

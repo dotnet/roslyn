@@ -227,13 +227,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return actual.Select(i => i.Metadata.Name);
         }
 
-        private void VerifyOrder(IEnumerable<string> expected, IEnumerable<Lazy<Extension, ExtensionMetadata>> actual)
-        {
-            var expectedOrder = string.Join(string.Empty, expected);
-            var actualOrder = string.Join(string.Empty, GetNames(actual));
-            Assert.Equal(expectedOrder, actualOrder);
-        }
-
         private void VerifyOrder(string expected, IEnumerable<Lazy<Extension, ExtensionMetadata>> actual)
         {
             var actualOrder = string.Join(string.Empty, GetNames(actual));

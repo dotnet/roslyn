@@ -51,10 +51,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        private void CleanUpPersistentFolder()
-        {
-        }
-
         [Fact]
         public async Task PersistentService_Solution_WriteReadDifferentInstances()
         {

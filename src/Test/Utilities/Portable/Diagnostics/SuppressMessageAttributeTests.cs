@@ -1172,11 +1172,6 @@ public class C2
             await VerifyAsync(source, LanguageNames.CSharp, analyzers, diagnostics, onAnalyzerException);
         }
 
-        protected async Task VerifyCSharpAsync(string source, DiagnosticAnalyzer[] analyzers, bool logAnalyzerExceptionsAsDiagnostics, params DiagnosticDescription[] diagnostics)
-        {
-            await VerifyAsync(source, LanguageNames.CSharp, analyzers, diagnostics, onAnalyzerException: null, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionsAsDiagnostics);
-        }
-
         protected Task VerifyTokenDiagnosticsCSharpAsync(string markup, params DiagnosticDescription[] diagnostics)
         {
             return VerifyTokenDiagnosticsAsync(markup, LanguageNames.CSharp, diagnostics);
@@ -1191,16 +1186,6 @@ public class C2
         protected async Task VerifyBasicAsync(string source, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
             await VerifyAsync(source, LanguageNames.VisualBasic, analyzers, diagnostics);
-        }
-
-        protected async Task VerifyBasicAsync(string source, DiagnosticAnalyzer[] analyzers, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, params DiagnosticDescription[] diagnostics)
-        {
-            await VerifyAsync(source, LanguageNames.VisualBasic, analyzers, diagnostics, onAnalyzerException);
-        }
-
-        protected async Task VerifyBasicAsync(string source, DiagnosticAnalyzer[] analyzers, bool logAnalyzerExceptionAsDiagnostics, params DiagnosticDescription[] diagnostics)
-        {
-            await VerifyAsync(source, LanguageNames.VisualBasic, analyzers, diagnostics, onAnalyzerException: null, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics);
         }
 
         protected Task VerifyTokenDiagnosticsBasicAsync(string markup, params DiagnosticDescription[] diagnostics)

@@ -251,12 +251,6 @@ public class TestAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        private static Assembly OnResolve(object sender, ResolveEventArgs e)
-        {
-            Console.WriteLine($"Resolve in {AppDomain.CurrentDomain.Id} for {e.Name}");
-            return null;
-        }
-
         [Fact]
         [WorkItem(1029928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029928")]
         public void BadAnalyzerReference_DisplayName()

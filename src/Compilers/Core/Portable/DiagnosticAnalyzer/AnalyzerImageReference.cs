@@ -65,27 +65,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return _id;
             }
         }
-
-        private string GetDebuggerDisplay()
-        {
-            var sb = new StringBuilder();
-            sb.Append("Assembly");
-
-            if (_fullPath != null)
-            {
-                sb.Append(" Path='");
-                sb.Append(_fullPath);
-                sb.Append("'");
-            }
-
-            if (_display != null)
-            {
-                sb.Append(" Display='");
-                sb.Append(_display);
-                sb.Append("'");
-            }
-
-            return sb.ToString();
-        }
     }
 }

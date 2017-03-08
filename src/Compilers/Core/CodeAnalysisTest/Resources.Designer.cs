@@ -59,45 +59,5 @@ namespace Microsoft.CodeAnalysis.UnitTests {
                 resourceCulture = value;
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] defaultWin32Manifest {
-            get {
-                object obj = ResourceManager.GetObject("defaultWin32Manifest", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] nativeWithStringIDsAndTypesAndIntTypes {
-            get {
-                object obj = ResourceManager.GetObject("nativeWithStringIDsAndTypesAndIntTypes", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] Roslyn_ico {
-            get {
-                object obj = ResourceManager.GetObject("Roslyn_ico", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] VerResourceBuiltByRC {
-            get {
-                object obj = ResourceManager.GetObject("VerResourceBuiltByRC", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
     }
 }

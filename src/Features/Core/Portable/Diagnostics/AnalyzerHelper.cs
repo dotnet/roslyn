@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // Shared with Compiler
         internal const string AnalyzerExceptionDiagnosticId = "AD0001";
-        internal const string AnalyzerDriverExceptionDiagnosticId = "AD0002";
 
         // IDE only errors
         internal const string WRN_AnalyzerCannotBeCreatedId = "AD1000";
