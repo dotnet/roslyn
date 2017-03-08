@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDiscard = containingDeconstruction != null || IsOutVarDiscardIdentifier(node);
             if (isDiscard)
             {
-                CheckFeatureAvailability(node.Location, MessageID.IDS_FeatureTuples, diagnostics);
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureTuples, diagnostics);
             }
 
             return isDiscard;
@@ -1496,7 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SymbolKind.Alias:
                     {
-                        var alias = symbol as AliasSymbol;
+                        var alias = (AliasSymbol)symbol;
                         symbol = alias.Target;
                         switch (symbol.Kind)
                         {
@@ -1511,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SymbolKind.RangeVariable:
-                    return BindRangeVariable(node, symbol as RangeVariableSymbol, diagnostics);
+                    return BindRangeVariable(node, (RangeVariableSymbol)symbol, diagnostics);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
@@ -2159,13 +2159,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (argumentSyntax.Expression.Kind() == SyntaxKind.DeclarationExpression)
             {
-                return BindOutVariableArgument((DeclarationExpressionSyntax)argumentSyntax.Expression, diagnostics);
+                var declarationExpression = (DeclarationExpressionSyntax)argumentSyntax.Expression;
+                if (declarationExpression.IsOutDeclaration())
+                {
+                    return BindOutDeclarationArgument(declarationExpression, diagnostics);
+                }
             }
 
             return BindArgumentExpression(diagnostics, argumentSyntax.Expression, refKind, allowArglist);
         }
 
-        private BoundExpression BindOutVariableArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
+        private BoundExpression BindOutDeclarationArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
         {
             TypeSyntax typeSyntax = declarationExpression.Type;
             VariableDesignationSyntax designation = declarationExpression.Designation;
@@ -2192,6 +2196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
              DeclarationExpressionSyntax declarationExpression,
              DiagnosticBag diagnostics)
         {
+            Debug.Assert(declarationExpression.IsOutVarDeclaration());
             bool isVar;
             var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
             TypeSyntax typeSyntax = declarationExpression.Type;
@@ -2200,6 +2205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
             if ((object)localSymbol != null)
             {
+                Debug.Assert(localSymbol.DeclarationKind == LocalDeclarationKind.OutVariable);
                 if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                 {
                     Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, declarationExpression);

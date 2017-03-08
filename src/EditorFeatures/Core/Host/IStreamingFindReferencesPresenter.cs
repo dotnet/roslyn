@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// If false, the presenter will not group by definitions, and will show the definition
         /// items in isolation.</param>
         FindUsagesContext StartSearch(string title, bool supportsReferences);
+
+        /// <summary>
+        /// Clears all the items from the presenter.
+        /// </summary>
+        void ClearAll();
     }
 
     internal static class IStreamingFindUsagesPresenterExtensions

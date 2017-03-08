@@ -16,7 +16,7 @@ Namespace NS
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddOverload)>
         Public Async Function TestAddOverloadsToProperty() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Application
     Shared Property Current As Application
 End Class
@@ -33,7 +33,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddOverload)>
         Public Async Function TestAddOverloadsToFunction() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Application
     Shared Function Test() As Integer
         Return 1
@@ -58,7 +58,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddOverload)>
         Public Async Function TestAddOverloadsToSub() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Application
     Shared Sub Test()
     End Sub

@@ -2176,6 +2176,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pick members to be used in Equals/GetHashCode.
+        /// </summary>
+        internal static string Pick_members_to_be_used_in_Equals_GetHashCode {
+            get {
+                return ResourceManager.GetString("Pick_members_to_be_used_in_Equals_GetHashCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to  + additional {0} {1}.
         /// </summary>
         internal static string plus_additional_0_1 {
@@ -2652,6 +2661,42 @@ namespace Microsoft.CodeAnalysis {
         internal static string Suppress_0 {
             get {
                 return ResourceManager.GetString("Suppress_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Take &apos;{0}&apos;.
+        /// </summary>
+        internal static string Take_0 {
+            get {
+                return ResourceManager.GetString("Take_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Take both.
+        /// </summary>
+        internal static string Take_both {
+            get {
+                return ResourceManager.GetString("Take_both", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Take bottom.
+        /// </summary>
+        internal static string Take_bottom {
+            get {
+                return ResourceManager.GetString("Take_bottom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Take top.
+        /// </summary>
+        internal static string Take_top {
+            get {
+                return ResourceManager.GetString("Take_top", resourceCulture);
             }
         }
         

@@ -117,6 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         /// </summary>
         public const string CS7036 = nameof(CS7036);
 
+        /// <summary>
+        /// o Deconstruct instance or extension method was found for type 'X', with N out parameters
+        /// </summary>
+        public const string CS8129 = nameof(CS8129);
+
         public static ImmutableArray<string> FixableTypeIds =
             ImmutableArray.Create(
                 CS0103,
@@ -127,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 CS0307,
                 CS0616,
                 CS1580,
-                CS1581);
+                CS1581,
+                CS8129);
 
         public static ImmutableArray<string> FixableDiagnosticIds =
             FixableTypeIds.Concat(ImmutableArray.Create(
@@ -260,6 +266,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return true;
         }
 
+        protected override bool CanAddImportForDeconstruct(Diagnostic diagnostic, SyntaxNode node)
+            => diagnostic.Id == CS8129;
+
         protected override bool CanAddImportForNamespace(Diagnostic diagnostic, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
             nameNode = null;
@@ -344,6 +353,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             CancellationToken cancellationToken)
         {
             return semanticModel.GetUsingNamespacesInScope(node);
+        }
+
+        protected override ITypeSymbol GetDeconstructInfo(
+            SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetTypeInfo(node).Type;
         }
 
         protected override ITypeSymbol GetQueryClauseInfo(

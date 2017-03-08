@@ -231,9 +231,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsUsingStatement(SyntaxNode node)
-        {
-            return node is UsingStatementSyntax;
-        }
+            => node.Kind() == SyntaxKind.UsingStatement;
+
+        public bool IsReturnStatement(SyntaxNode node)
+            => node.Kind() == SyntaxKind.ReturnStatement;
+
+        public SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node)
+            => (node as ReturnStatementSyntax)?.Expression;
 
         public bool IsThisConstructorInitializer(SyntaxToken token)
         {
@@ -1817,6 +1821,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode WalkDownParentheses(SyntaxNode node)
             => (node as ExpressionSyntax)?.WalkDownParentheses() ?? node;
 
+        public bool IsLogicalAndExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.LogicalAndExpression;
+
         public bool IsLogicalNotExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalNotExpression;
 
@@ -1910,7 +1917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 token = token.GetPreviousToken();
             }
 
-            var typeDecl = token.GetAncestor<TypeDeclarationSyntax>();
+            var typeDecl = token.GetAncestor<BaseTypeDeclarationSyntax>();
             if (typeDecl == null)
             {
                 return false;
@@ -1918,8 +1925,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var start = typeDecl.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart ??
                         typeDecl.SpanStart;
-            var end = typeDecl.TypeParameterList?.GetLastToken().FullSpan.End ??
-                      typeDecl.Identifier.FullSpan.End;
+            var end = typeDecl.GetTypeParameterList()?.GetLastToken().FullSpan.End ??
+                        typeDecl.Identifier.FullSpan.End;
 
             return position >= start && position <= end;
         }

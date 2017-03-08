@@ -55,7 +55,6 @@
     <Compile Include="Execution\DesktopReferenceSerializationServiceFactory.cs" />
     <Compile Include="Execution\SerializationAnalyzerAssemblyLoader.cs" />
     <Compile Include="Options\ExportOptionAttribute.cs" />
-    <Compile Include="InternalUtilities\FilePathUtilities.cs" />
     <Compile Include="Log\EtwLogger.cs" />
     <Compile Include="Log\RoslynEventSource.cs" />
     <Compile Include="Options\Providers\ExportedOptionKeyOptionProvider.cs" />

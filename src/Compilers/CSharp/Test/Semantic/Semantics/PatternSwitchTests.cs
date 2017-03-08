@@ -2756,7 +2756,7 @@ class Program
             var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17089")]
+        [Fact]
         [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
         public void Dynamic_01()
         {
@@ -2769,12 +2769,79 @@ class Program
         dynamic d = 1;
         switch (d)
         {
-            case dynamic x: // should be an error
+            case dynamic x: // error 1
+                break;
+        }
+        if (d is dynamic y) {} // error 2
+        if (d is var z) // ok
+        {
+            long l = z;
+            string s = z;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (9,18): error CS8207: It is not legal to use the type 'dynamic' in a pattern.
+                //             case dynamic x: // error 1
+                Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic"),
+                // (12,18): error CS8207: It is not legal to use the type 'dynamic' in a pattern.
+                //         if (d is dynamic y) {} // error 2
+                Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic").WithLocation(12, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
+        public void Dynamic_02()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        switch (d)
+        {
+            case object x:
+            case var y: // OK, catches null
+            case var z: // error: subsumed
                 break;
         }
         switch (d)
         {
-            case int i: // should not be an error
+            case object x:
+            case null:
+            case var y: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case object x:
+            case 1: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case object x:
+            case int y: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case object x:
+            case (dynamic)null:
+            case (string)null: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case int i:
+            case long l:
+            case object o:
+            case var v:
                 break;
         }
     }
@@ -2782,7 +2849,21 @@ class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // Per https://github.com/dotnet/roslyn/issues/17089, the compiler does not produce correct diagnostics for this.
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var z: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var z").WithLocation(11, 18),
+                // (18,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var y: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var y").WithLocation(18, 18),
+                // (24,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 1: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 1:"),
+                // (30,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case int y: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int y").WithLocation(30, 18),
+                // (37,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
+                //             case (string)null: // error: subsumed
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (string)null:").WithArguments("null").WithLocation(37, 13)
                 );
         }
     }

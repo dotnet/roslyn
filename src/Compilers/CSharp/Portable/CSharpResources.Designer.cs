@@ -5993,6 +5993,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Merge conflict marker encountered.
+        /// </summary>
+        internal static string ERR_Merge_conflict_marker_encountered {
+            get {
+                return ResourceManager.GetString("ERR_Merge_conflict_marker_encountered", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name &apos;{0}&apos; exceeds the maximum length allowed in metadata..
         /// </summary>
         internal static string ERR_MetadataNameTooLong {
@@ -7483,6 +7492,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PartialWrongTypeParamsVariance {
             get {
                 return ResourceManager.GetString("ERR_PartialWrongTypeParamsVariance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to It is not legal to use the type &apos;dynamic&apos; in a pattern..
+        /// </summary>
+        internal static string ERR_PatternDynamicType {
+            get {
+                return ResourceManager.GetString("ERR_PatternDynamicType", resourceCulture);
             }
         }
         

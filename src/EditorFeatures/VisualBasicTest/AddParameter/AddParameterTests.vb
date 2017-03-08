@@ -29,7 +29,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestOnEmptyConstructor() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     public sub new()
@@ -56,7 +56,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestNamedArg() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     public sub new()
@@ -99,7 +99,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestAddBeforeMatchingArg() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     public sub new(i as integer)
@@ -128,7 +128,7 @@ end class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestAddAfterMatchingConstructorParam() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     public sub new(i as integer)
@@ -156,7 +156,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestParams1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 option strict on
 class C

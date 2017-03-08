@@ -2285,6 +2285,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_OpenEndedComment" xml:space="preserve">
     <value>End-of-file found, '*/' expected</value>
   </data>
+  <data name="ERR_Merge_conflict_marker_encountered" xml:space="preserve">
+    <value>Merge conflict marker encountered</value>
+  </data>
   <data name="ERR_OvlOperatorExpected" xml:space="preserve">
     <value>Overloadable operator expected</value>
   </data>
@@ -5013,5 +5016,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TypeForwardedToMultipleAssemblies" xml:space="preserve">
     <value>Module '{0}' in assembly '{1}' is forwarding the type '{2}' to multiple assemblies: '{3}' and '{4}'.</value>
+  </data>
+  <data name="ERR_PatternDynamicType" xml:space="preserve">
+    <value>It is not legal to use the type 'dynamic' in a pattern.</value>
   </data>
 </root>

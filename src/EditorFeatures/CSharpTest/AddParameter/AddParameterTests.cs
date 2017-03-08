@@ -36,7 +36,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestOnEmptyConstructor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -68,7 +68,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestNamedArg()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -119,7 +119,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestAddBeforeMatchingArg()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -151,7 +151,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestAddAfterMatchingConstructorParam()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -183,7 +183,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestParams1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {

@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;

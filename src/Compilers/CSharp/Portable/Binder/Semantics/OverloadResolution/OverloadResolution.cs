@@ -312,13 +312,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var normalResult = IsConstructorApplicableInNormalForm(constructor, arguments, ref useSiteDiagnostics);
+            var normalResult = IsConstructorApplicableInNormalForm(constructor, arguments, completeResults, ref useSiteDiagnostics);
             var result = normalResult;
             if (!normalResult.IsValid)
             {
                 if (IsValidParams(constructor))
                 {
-                    var expandedResult = IsConstructorApplicableInExpandedForm(constructor, arguments, ref useSiteDiagnostics);
+                    var expandedResult = IsConstructorApplicableInExpandedForm(constructor, arguments, completeResults, ref useSiteDiagnostics);
                     if (expandedResult.IsValid || completeResults)
                     {
                         result = expandedResult;
@@ -333,7 +333,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private MemberAnalysisResult IsConstructorApplicableInNormalForm(MethodSymbol constructor, AnalyzedArguments arguments, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private MemberAnalysisResult IsConstructorApplicableInNormalForm(
+            MethodSymbol constructor,
+            AnalyzedArguments arguments,
+            bool completeResults,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var argumentAnalysis = AnalyzeArguments(constructor, arguments, isMethodGroupConversion: false, expanded: false); // Constructors are never involved in method group conversion.
             if (!argumentAnalysis.IsValid)
@@ -349,10 +353,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var effectiveParameters = GetEffectiveParametersInNormalForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false);
 
-            return IsApplicable(constructor, effectiveParameters, arguments, argumentAnalysis.ArgsToParamsOpt, isVararg: constructor.IsVararg, hasAnyRefOmittedArgument: false, ignoreOpenTypes: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            return IsApplicable(
+                constructor,
+                effectiveParameters,
+                arguments,
+                argumentAnalysis.ArgsToParamsOpt,
+                isVararg: constructor.IsVararg,
+                hasAnyRefOmittedArgument: false,
+                ignoreOpenTypes: false,
+                completeResults: completeResults,
+                useSiteDiagnostics: ref useSiteDiagnostics);
         }
 
-        private MemberAnalysisResult IsConstructorApplicableInExpandedForm(MethodSymbol constructor, AnalyzedArguments arguments, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private MemberAnalysisResult IsConstructorApplicableInExpandedForm(
+            MethodSymbol constructor,
+            AnalyzedArguments arguments,
+            bool completeResults,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var argumentAnalysis = AnalyzeArguments(constructor, arguments, isMethodGroupConversion: false, expanded: true);
             if (!argumentAnalysis.IsValid)
@@ -371,7 +388,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // A vararg ctor is never applicable in its expanded form because
             // it is never a params method.
             Debug.Assert(!constructor.IsVararg);
-            var result = IsApplicable(constructor, effectiveParameters, arguments, argumentAnalysis.ArgsToParamsOpt, isVararg: false, hasAnyRefOmittedArgument: false, ignoreOpenTypes: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            var result = IsApplicable(
+                constructor,
+                effectiveParameters,
+                arguments,
+                argumentAnalysis.ArgsToParamsOpt,
+                isVararg: false,
+                hasAnyRefOmittedArgument: false,
+                ignoreOpenTypes: false,
+                completeResults: completeResults,
+                useSiteDiagnostics: ref useSiteDiagnostics);
 
             return result.IsValid ? MemberAnalysisResult.ExpandedForm(result.ArgsToParamsOpt, result.ConversionsOpt, hasAnyRefOmittedArgument: false) : result;
         }
@@ -492,7 +518,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
 
             var normalResult = (allowUnexpandedForm || !IsValidParams(leastOverriddenMember))
-                ? IsMemberApplicableInNormalForm(member, leastOverriddenMember, typeArguments, arguments, isMethodGroupConversion, allowRefOmittedArguments, inferWithDynamic, ref useSiteDiagnostics, completeResults: completeResults)
+                ? IsMemberApplicableInNormalForm(
+                    member,
+                    leastOverriddenMember,
+                    typeArguments,
+                    arguments,
+                    isMethodGroupConversion: isMethodGroupConversion,
+                    allowRefOmittedArguments: allowRefOmittedArguments,
+                    inferWithDynamic: inferWithDynamic,
+                    completeResults: completeResults,
+                    useSiteDiagnostics: ref useSiteDiagnostics)
                 : default(MemberResolutionResult<TMember>);
 
             var result = normalResult;
@@ -505,7 +540,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!isMethodGroupConversion && IsValidParams(leastOverriddenMember))
                 {
-                    var expandedResult = IsMemberApplicableInExpandedForm(member, leastOverriddenMember, typeArguments, arguments, allowRefOmittedArguments, ref useSiteDiagnostics);
+                    var expandedResult = IsMemberApplicableInExpandedForm(
+                        member,
+                        leastOverriddenMember,
+                        typeArguments,
+                        arguments,
+                        allowRefOmittedArguments: allowRefOmittedArguments,
+                        completeResults: completeResults,
+                        useSiteDiagnostics: ref useSiteDiagnostics);
                     if (PreferExpandedFormOverNormalForm(normalResult.Result, expandedResult.Result))
                     {
                         result = expandedResult;
@@ -2537,7 +2579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new EffectiveParameters(types.ToImmutableAndFree(), refKinds);
         }
 
-        internal MemberResolutionResult<TMember> IsMemberApplicableInNormalForm<TMember>(
+        private MemberResolutionResult<TMember> IsMemberApplicableInNormalForm<TMember>(
             TMember member,                // method or property
             TMember leastOverriddenMember, // method or property
             ArrayBuilder<TypeSymbol> typeArguments,
@@ -2545,8 +2587,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
             bool inferWithDynamic,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool completeResults = false)
+            bool completeResults,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
             // AnalyzeArguments matches arguments to parameter names and positions. 
@@ -2601,9 +2643,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var applicableResult = IsApplicable(
                 member, leastOverriddenMember,
                 typeArguments, arguments, originalEffectiveParameters, constructedEffectiveParameters,
-                argumentAnalysis.ArgsToParamsOpt, hasAnyRefOmittedArgument,
-                ref useSiteDiagnostics,
-                inferWithDynamic);
+                argumentAnalysis.ArgsToParamsOpt,
+                hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
+                inferWithDynamic: inferWithDynamic,
+                completeResults: completeResults,
+                useSiteDiagnostics: ref useSiteDiagnostics);
 
             // If we were producing complete results and had missing arguments, we pushed on in order to call IsApplicable for
             // type inference and lambda binding. In that case we still need to return the argument mismatch failure here.
@@ -2621,6 +2665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeSymbol> typeArguments,
             AnalyzedArguments arguments,
             bool allowRefOmittedArguments,
+            bool completeResults,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
@@ -2665,7 +2710,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = IsApplicable(
                 member, leastOverriddenMember,
                 typeArguments, arguments, originalEffectiveParameters, constructedEffectiveParameters,
-                argumentAnalysis.ArgsToParamsOpt, hasAnyRefOmittedArgument, ref useSiteDiagnostics);
+                argumentAnalysis.ArgsToParamsOpt,
+                hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
+                inferWithDynamic: false,
+                completeResults: completeResults,
+                useSiteDiagnostics: ref useSiteDiagnostics);
 
             return result.Result.IsValid ?
                 new MemberResolutionResult<TMember>(
@@ -2684,8 +2733,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             EffectiveParameters constructedEffectiveParameters,
             ImmutableArray<int> argsToParamsMap,
             bool hasAnyRefOmittedArgument,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool inferWithDynamic = false)
+            bool inferWithDynamic,
+            bool completeResults,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
             bool ignoreOpenTypes;
@@ -2791,10 +2841,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ignoreOpenTypes = false;
             }
 
-            return new MemberResolutionResult<TMember>(
+            var applicableResult = IsApplicable(
                 member,
-                leastOverriddenMember,
-                IsApplicable(member, effectiveParameters, arguments, argsToParamsMap, member.GetIsVararg(), hasAnyRefOmittedArgument, ignoreOpenTypes, ref useSiteDiagnostics));
+                effectiveParameters,
+                arguments,
+                argsToParamsMap,
+                isVararg: member.GetIsVararg(),
+                hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
+                ignoreOpenTypes: ignoreOpenTypes,
+                completeResults: completeResults,
+                useSiteDiagnostics: ref useSiteDiagnostics);
+            return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult);
         }
 
         private ImmutableArray<TypeSymbol> InferMethodTypeArguments(
@@ -2849,6 +2906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVararg,
             bool hasAnyRefOmittedArgument,
             bool ignoreOpenTypes,
+            bool completeResults,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // The effective parameters are in the right order with respect to the arguments.
@@ -2903,8 +2961,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RefKind parameterRefKind = parameters.ParameterRefKinds.IsDefault ? RefKind.None : parameters.ParameterRefKinds[argumentPosition];
                     conversion = CheckArgumentForApplicability(candidate, argument, argumentRefKind, parameters.ParameterTypes[argumentPosition], parameterRefKind, ignoreOpenTypes, ref useSiteDiagnostics);
 
-                    if (!conversion.Exists ||
-                        (arguments.IsExtensionMethodThisArgument(argumentPosition) && !Conversions.IsValidExtensionMethodThisArgConversion(conversion)))
+                    if (arguments.IsExtensionMethodThisArgument(argumentPosition) && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
+                    {
+                        // Return early, without checking conversions of subsequent arguments,
+                        // if the instance argument is not convertible to the 'this' parameter,
+                        // even when 'completeResults' is requested. This avoids unnecessary
+                        // lambda binding in particular, for instance, with LINQ expressions.
+                        // Note that BuildArgumentsForErrorRecovery will still bind some number
+                        // of overloads for the semantic model.
+                        Debug.Assert(badArguments == null);
+                        Debug.Assert(conversions == null);
+                        return MemberAnalysisResult.BadArgumentConversions(argsToParameters, ImmutableArray.Create(argumentPosition), ImmutableArray.Create(conversion));
+                    }
+
+                    if (!conversion.Exists)
                     {
                         badArguments = badArguments ?? ArrayBuilder<int>.GetInstance();
                         badArguments.Add(argumentPosition);
@@ -2920,6 +2990,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversions = ArrayBuilder<Conversion>.GetInstance(paramCount);
                     conversions.AddMany(Conversion.Identity, argumentPosition);
                     conversions.Add(conversion);
+                }
+
+                if (badArguments != null && !completeResults)
+                {
+                    break;
                 }
             }
 

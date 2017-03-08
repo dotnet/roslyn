@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -39,7 +41,7 @@ class C
     /// <param name=""i2"">an integer, anything you like.</param>
     /// <returns>returns an object of type C</returns>
     C Method(int i, int i2) { return null; }
-    
+
     /// <summary>
     /// Hello Generic World!
     /// </summary>
@@ -48,7 +50,7 @@ class C
     /// <returns>Null</returns>
     C GenericMethod<T1>(T1 i) { return null; }
     C GenericMethod<T1, T2>(T1 i, T2 i2) { return null; }
-    
+
     /// <summary>
     /// Complex Method Params
     /// </summary>
@@ -98,7 +100,7 @@ class C
     /// <param name=""i2"">an integer, anything you like.</param>
     /// <returns>returns an object of type C</returns>
     C Method(int i, int i2) { return null; }
-    
+
     /// <summary>
     /// Hello Generic World!
     /// </summary>
@@ -107,7 +109,7 @@ class C
     /// <returns>Null</returns>
     C GenericMethod<T1>(T1 i) { return null; }
     C GenericMethod<T1, T2>(T1 i, T2 i2) { return null; }
-    
+
     /// <summary>
     /// Complex Method Params
     /// </summary>
@@ -146,7 +148,7 @@ class C
     /// <param name=""i2"">an integer, anything you like.</param>
     /// <returns>returns an object of type C</returns>
     C Method(int i, int i2) { return null; }
-    
+
     /// <summary>
     /// Hello Generic World!
     /// </summary>
@@ -155,7 +157,7 @@ class C
     /// <returns>Null</returns>
     C GenericMethod<T1>(T1 i) { return null; }
     C GenericMethod<T1, T2>(T1 i, T2 i2) { return null; }
-    
+
     /// <summary>
     /// Complex Method Params
     /// </summary>

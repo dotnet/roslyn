@@ -52,17 +52,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             try
             {
-                if (eventArgs.Exception is XunitException)
-                {
-                    var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
-                    var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
-                    var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
-                    var fileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}.png";
+                var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
+                var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
+                var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
+                var fileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}.png";
 
-                    var fullPath = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots", fileName);
+                var fullPath = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots", fileName);
 
-                    ScreenshotService.TakeScreenshot(fullPath);
-                }
+                ScreenshotService.TakeScreenshot(fullPath);
             }
             catch (Exception e)
             {
@@ -166,7 +163,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 // Fallback to P/Invoke if the COM registration is missing
                 var hresult = NativeMethods.GetSetupConfiguration(out var setupConfiguration, pReserved: IntPtr.Zero);
-                
+
                 if (hresult < 0)
                 {
                     throw Marshal.GetExceptionForHR(hresult);

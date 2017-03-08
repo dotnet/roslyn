@@ -256,9 +256,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
         {
-            var argumentSyntax = (ArgumentSyntax)node.Parent;
-            var argumentListSyntax = argumentSyntax.Parent as BaseArgumentListSyntax;
-            var variable = MakeDeclarationExpressionVariable(node, argumentListSyntax, _nodeToBind);
+            var argumentSyntax = node.Parent as ArgumentSyntax;
+            var argumentListSyntaxOpt = argumentSyntax?.Parent as BaseArgumentListSyntax;
+            var variable = MakeDeclarationExpressionVariable(node, argumentListSyntaxOpt, _nodeToBind);
             if ((object)variable != null)
             {
                 _variablesBuilder.Add(variable);
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             nodeToBind: nodeToBind,
                             forbiddenZone: null);
         }
-        protected override LocalSymbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntax, SyntaxNode nodeToBind)
+        protected override LocalSymbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntaxOpt, SyntaxNode nodeToBind)
         {
             NamedTypeSymbol container = _scopeBinder.ContainingType;
             var designation = node.Designation as SingleVariableDesignationSyntax;
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             identifierToken: designation.Identifier,
                             kind: node.IsOutVarDeclaration() ? LocalDeclarationKind.OutVariable : LocalDeclarationKind.DeclarationExpressionVariable,
                             nodeToBind: nodeToBind,
-                            forbiddenZone: argumentListSyntax);
+                            forbiddenZone: argumentListSyntaxOpt);
         }
 
         protected override LocalSymbol MakeDeconstructionVariable(
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _containingFieldOpt, nodeToBind);
         }
 
-        protected override Symbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntax, SyntaxNode nodeToBind)
+        protected override Symbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntaxOpt, SyntaxNode nodeToBind)
         {
             var designation = (SingleVariableDesignationSyntax)node.Designation;
             return GlobalExpressionVariable.Create(

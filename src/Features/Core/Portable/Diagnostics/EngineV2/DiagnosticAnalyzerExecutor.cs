@@ -24,37 +24,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     [ExportWorkspaceServiceFactory(typeof(ICodeAnalysisDiagnosticAnalyzerExecutor)), Shared]
     internal class DiagnosticAnalyzerExecutor : IWorkspaceServiceFactory
     {
-        private readonly IDiagnosticAnalyzerService _analyzerServiceOpt;
         private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSourceOpt;
 
         [ImportingConstructor]
-        public DiagnosticAnalyzerExecutor(
-            [Import(AllowDefault = true)]IDiagnosticAnalyzerService analyzerService,
-            [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+        public DiagnosticAnalyzerExecutor([Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
-            // analyzerService, hostDiagnosticUpdateSource can be null in unit test
-            _analyzerServiceOpt = analyzerService;
+            // hostDiagnosticUpdateSource can be null in unit test
             _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSource;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new AnalyzerExecutor(_analyzerServiceOpt, _hostDiagnosticUpdateSourceOpt);
+            return new AnalyzerExecutor(_hostDiagnosticUpdateSourceOpt);
         }
 
         private class AnalyzerExecutor : ICodeAnalysisDiagnosticAnalyzerExecutor
         {
-            private readonly IDiagnosticAnalyzerService _analyzerServiceOpt;
             private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSourceOpt;
 
             // TODO: this should be removed once we move options down to compiler layer
             private readonly ConcurrentDictionary<string, ValueTuple<OptionSet, CustomAsset>> _lastOptionSetPerLanguage;
 
-            public AnalyzerExecutor(
-                IDiagnosticAnalyzerService analyzerService,
-                AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            public AnalyzerExecutor(AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
             {
-                _analyzerServiceOpt = analyzerService;
                 _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSource;
 
                 // currently option is a bit wierd since it is not part of snapshot and 
@@ -122,12 +114,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var optionAsset = GetOptionsAsset(solution, project.Language, cancellationToken);
-                var hostChecksums = GetHostAnalyzerReferences(snapshotService, project.Language, _analyzerServiceOpt?.GetHostAnalyzerReferences(), cancellationToken);
 
                 var argument = new DiagnosticArguments(
                     analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics,
                     analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
-                    project.Id, optionAsset.Checksum, hostChecksums, analyzerMap.Keys.ToArray());
+                    project.Id, optionAsset.Checksum, analyzerMap.Keys.ToArray());
 
                 using (var session = await client.TryCreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
                 {
@@ -207,34 +198,6 @@ This data should always be correct as we're never persisting the data between se
                         _hostDiagnosticUpdateSourceOpt?.ReportAnalyzerDiagnostic(analyzer, diagnostic, project);
                     }
                 }
-            }
-
-            private ImmutableArray<Checksum> GetHostAnalyzerReferences(
-                ISolutionSynchronizationService snapshotService, string language, IEnumerable<AnalyzerReference> references, CancellationToken cancellationToken)
-            {
-                if (references == null)
-                {
-                    return ImmutableArray<Checksum>.Empty;
-                }
-
-                // TODO: cache this to somewhere
-                var builder = ImmutableArray.CreateBuilder<Checksum>();
-                foreach (var reference in references)
-                {
-                    var analyzers = reference.GetAnalyzers(language);
-                    if (analyzers.Length == 0)
-                    {
-                        // skip reference that doesn't contain any analyzers for the given language
-                        // we do this so that we don't load analyzer dlls that MEF exported from vsix
-                        // not related to this solution
-                        continue;
-                    }
-
-                    var asset = snapshotService.GetGlobalAsset(reference, cancellationToken);
-                    builder.Add(asset.Checksum);
-                }
-
-                return builder.ToImmutable();
             }
 
             private Dictionary<string, DiagnosticAnalyzer> CreateAnalyzerMap(IEnumerable<DiagnosticAnalyzer> analyzers)

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 {
     public class ReplaceMethodWithPropertyTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ReplaceMethodWithPropertyCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -189,7 +189,7 @@ compareTokens: false);
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -248,7 +248,7 @@ compareTokens: false);
     }
 }",
 index: 1,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -337,7 +337,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestInAttribute()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     [At[||]tr]
@@ -350,7 +350,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestInMethod()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     int GetFoo()
@@ -363,7 +363,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestVoidMethod()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void [||]GetFoo()
@@ -375,7 +375,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestAsyncMethod()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     async Task [||]GetFoo()
@@ -387,7 +387,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestGenericMethod()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo<T>()
@@ -399,7 +399,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestExtensionMethod()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"static class C
 {
     int [||]GetFoo(this int i)
@@ -411,7 +411,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithParameters_1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo(int i)
@@ -423,7 +423,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithParameters_2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo(int i = 0)
@@ -435,7 +435,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestNotInSignature_1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     [At[||]tr]
@@ -448,7 +448,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestNotInSignature_2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     int GetFoo()
@@ -1215,9 +1215,7 @@ index: 1);
         {
         }
     }
-}",
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1251,9 +1249,7 @@ class C
         }
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
-index: 1,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1287,9 +1283,7 @@ class C
         }
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
-index: 1,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1311,9 +1305,7 @@ class C
     }
 }",
 @"",
-index: 1,
-parseOptions: TestOptions.Regular,
-withScriptOption: true));
+index: 1));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1357,7 +1349,7 @@ withScriptOption: true));
     }
 }",
 index: 0,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1401,13 +1393,13 @@ compareTokens: false);
     }
 }",
 index: 1,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestOutVarDeclaration_3()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     // Foo
@@ -1430,7 +1422,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestOutVarDeclaration_4()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     // Foo
@@ -1488,7 +1480,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo()
@@ -1509,7 +1501,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo()
@@ -1527,7 +1519,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo()
@@ -1545,7 +1537,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo()
@@ -1574,7 +1566,7 @@ options: PreferExpressionBodiedAccessors);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle5()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo()
@@ -1603,7 +1595,7 @@ options: PreferExpressionBodiedProperties);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle6()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo()
@@ -1632,7 +1624,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle7()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo() => 0;
@@ -1647,7 +1639,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle8()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo() => 0;
@@ -1662,7 +1654,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle9()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo() => throw e;
@@ -1677,7 +1669,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestCodeStyle10()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int [||]GetFoo() { throw e; }
@@ -1691,14 +1683,13 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup, 
             ParseOptions parseOptions = null, int index = 0, 
-            bool compareTokens = true, bool withScriptOption = false)
+            bool ignoreTrivia = true)
         {
             await TestAsync(
                 initialMarkup, expectedMarkup, parseOptions,
                 index: index,
-                compareTokens: compareTokens,
-                options: AllCodeStyleOff,
-                withScriptOption: withScriptOption);
+                ignoreTrivia: ignoreTrivia,
+                options: AllCodeStyleOff);
         }
 
         private IDictionary<OptionKey, object> AllCodeStyleOff =>

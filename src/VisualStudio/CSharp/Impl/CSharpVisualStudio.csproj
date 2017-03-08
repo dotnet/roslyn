@@ -143,7 +143,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpVSResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="DesignerAttribute\CSharpDesignerAttributeIncrementalAnalyzerProvider.cs" />
     <Compile Include="EventCompletion\HACK_EventHookupDismissalOnBufferChangePreventerService.cs" />
     <Compile Include="LanguageService\CSharpCodePageEditorFactory.cs" />
     <Compile Include="LanguageService\CSharpDebuggerIntelliSenseContext.cs" />

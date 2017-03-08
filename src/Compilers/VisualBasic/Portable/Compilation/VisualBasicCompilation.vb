@@ -239,12 +239,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim parseOptions = If(compilationOptions.ParseOptions, VisualBasicParseOptions.Default)
 
                         Dim tree As SyntaxTree = Nothing
+
                         If s_myTemplateCache.TryGetValue(parseOptions, tree) Then
                             Debug.Assert(tree IsNot Nothing)
                             Debug.Assert(tree IsNot VisualBasicSyntaxTree.Dummy)
                             Debug.Assert(tree.IsMyTemplate)
 
-                            _lazyMyTemplate = tree
+                            Interlocked.CompareExchange(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy)
                         Else
                             ' we need to make one.
                             Dim text As String = EmbeddedResources.VbMyTemplateText
@@ -259,13 +260,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Throw ExceptionUtilities.Unreachable
                             End If
 
-                            ' set global cache
-                            s_myTemplateCache(parseOptions) = tree
-
-                            _lazyMyTemplate = tree
+                            If Interlocked.CompareExchange(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy) Is VisualBasicSyntaxTree.Dummy Then
+                                ' set global cache
+                                s_myTemplateCache(parseOptions) = tree
+                            End If
                         End If
                     End If
-
                     Debug.Assert(_lazyMyTemplate Is Nothing OrElse _lazyMyTemplate.IsMyTemplate)
                 End If
 
@@ -669,7 +669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _embeddedTrees,
                 _declarationTable,
                 info?.PreviousScriptCompilation,
-                info?.ReturnType,
+                info?.ReturnTypeOpt,
                 info?.GlobalsType,
                 info IsNot Nothing,
                 _referenceManager,
@@ -2231,7 +2231,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
             Else
                 ' start generating PDB checksums if we need to emit PDBs
-                If emittingPdb AndAlso Not CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics) Then
+                If (emittingPdb OrElse moduleBeingBuilt.EmitOptions.EmitTestCoverageData) AndAlso
+                   Not CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics) Then
                     Return False
                 End If
 

@@ -100,6 +100,7 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddImport\SymbolReferenceFinder_PackageAssemblySearch.cs" />
     <Compile Include="AddPackage\AbstractAddPackageCodeFixProvider.cs" />
     <Compile Include="AddPackage\AbstractAddSpecificPackageCodeFixProvider.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeActionOperation.cs" />
@@ -113,8 +114,12 @@
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
+    <Compile Include="ConflictMarkerResolution\AbstractConflictMarkerCodeFixProvider.cs" />
     <Compile Include="Completion\Providers\AbstractCrefCompletionProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
+    <Compile Include="DesignerAttributes\AbstractDesignerAttributeService.cs" />
+    <Compile Include="DesignerAttributes\IDesignerAttributeService.cs" />
+    <Compile Include="DesignerAttributes\IRemoteDesignerAttributeService.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\DiagnosticArguments.cs" />
     <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
@@ -130,6 +135,8 @@
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
     <Compile Include="AddConstructorParametersFromMembers\State.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorWithDialogCodeAction.cs" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\FormatLargeBinaryExpressionRule.cs" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndHashWithDialogCodeAction.cs" />
     <Compile Include="PickMembers\IPickMembersService.cs" />
     <Compile Include="PickMembers\PickMembersResult.cs" />
     <Compile Include="GenerateFromMembers\SelectedMemberInfo.cs" />
@@ -157,6 +164,9 @@
     <Compile Include="Remote\RemoteArguments.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
     <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
+    <Compile Include="TodoComments\AbstractTodoCommentService.cs" />
+    <Compile Include="TodoComments\IRemoteTodoCommentService.cs" />
+    <Compile Include="TodoComments\ITodoCommentService.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
@@ -520,7 +530,7 @@
     <Compile Include="GenerateConstructorFromMembers\ConstructorDelegatingCodeAction.cs" />
     <Compile Include="GenerateConstructorFromMembers\FieldDelegatingCodeAction.cs" />
     <Compile Include="GenerateConstructorFromMembers\State.cs" />
-    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndHashCodeAction.cs" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeAction.cs" />
     <Compile Include="GenerateMember\AbstractGenerateMemberService.cs" />
     <Compile Include="GenerateMember\GenerateConstructor\AbstractGenerateConstructorService.CodeAction.cs" />
     <Compile Include="GenerateMember\GenerateConstructor\AbstractGenerateConstructorService.cs" />
