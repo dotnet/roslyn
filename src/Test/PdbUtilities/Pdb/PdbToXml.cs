@@ -290,7 +290,7 @@ namespace Roslyn.Test.PdbUtilities
                         case CustomDebugInfoKind.StateMachineHoistedLocalScopes:
                             WriteStateMachineHoistedLocalScopesCustomDebugInfo(record);
                             break;
-                        case CustomDebugInfoKind.ForwardIteratorInfo:
+                        case CustomDebugInfoKind.StateMachineTypeName:
                             WriteForwardIteratorCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.DynamicLocals:
@@ -443,7 +443,7 @@ namespace Roslyn.Test.PdbUtilities
         /// </remarks>
         private void WriteForwardIteratorCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardIteratorInfo);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.StateMachineTypeName);
 
             _writer.WriteStartElement("forwardIterator");
 

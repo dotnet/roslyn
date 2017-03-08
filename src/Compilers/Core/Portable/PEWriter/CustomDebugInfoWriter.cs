@@ -84,7 +84,7 @@ namespace Microsoft.Cci
             var encoder = new CustomDebugInfoEncoder(pooledBuilder);
 
             // NOTE: This is an attempt to match Dev10's apparent behavior.  For iterator methods (i.e. the method
-            // that appears in source, not the synthesized ones), Dev10 only emits the ForwardIterator and IteratorLocal
+            // that appears in source, not the synthesized ones), Dev10 only emits the StateMachineTypeName
             // custom debug info (e.g. there will be no information about the usings that were in scope).
             // NOTE: There seems to be an unusual behavior in ISymUnmanagedWriter where, if all the methods in a type are
             // iterator methods, no custom debug info is emitted for any method.  Adding a single non-iterator
@@ -93,7 +93,7 @@ namespace Microsoft.Cci
             // is not a regression).
             if (methodBody.StateMachineTypeName != null)
             {
-                encoder.AddForwardIteratorInfo(methodBody.StateMachineTypeName);
+                encoder.AddStateMachineTypeName(methodBody.StateMachineTypeName);
             }
             else
             {

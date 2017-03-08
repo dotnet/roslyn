@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.Debugging
             return Builder.ToArray();
         }
 
-        public void AddForwardIteratorInfo(string iteratorClassName)
+        public void AddStateMachineTypeName(string typeName)
         {
-            Debug.Assert(iteratorClassName != null);
+            Debug.Assert(typeName != null);
 
             AddRecord(
-                CustomDebugInfoKind.ForwardIteratorInfo,
-                iteratorClassName,
+                CustomDebugInfoKind.StateMachineTypeName,
+                typeName,
                 (name, builder) => 
                 {
                     builder.WriteUTF16(name);

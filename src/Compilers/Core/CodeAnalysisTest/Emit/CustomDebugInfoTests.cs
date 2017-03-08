@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 0x01, 0x00, // using count #1
                 0x02, 0x00, // using count #2
                 0x03, 0x00, // using count #3
-                0x04, 0x00, // using count #3
+                0x04, 0x00, // using count #4
                 0x00, 0x00  // alignment
             }, cdi);
         }
