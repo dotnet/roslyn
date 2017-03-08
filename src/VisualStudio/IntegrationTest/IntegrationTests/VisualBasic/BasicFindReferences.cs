@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [Fact(Skip="https://github.com/dotnet/roslyn/issues/17631"), Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToLocals()
         {
             SetUpEditor(@"
@@ -61,7 +61,7 @@ End Class
                 });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [Fact(Skip="https://github.com/dotnet/roslyn/issues/17631"), Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToSharedField()
         {
             SetUpEditor(@"
