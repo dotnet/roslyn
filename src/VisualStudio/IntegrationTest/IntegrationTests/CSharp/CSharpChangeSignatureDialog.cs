@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
+namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpChangeSignatureDialog : AbstractEditorTest
@@ -17,7 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         private ChangeSignatureDialog_OutOfProc ChangeSignatureDialog => VisualStudio.Instance.ChangeSignatureDialog;
 
         public CSharpChangeSignatureDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicChangeSignatureDialog))
+            : base(instanceFactory, nameof(CSharpChangeSignatureDialog))
         {
         }
 
@@ -56,7 +56,8 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact (Skip = "https://github.com/dotnet/roslyn/issues/17640"), 
+         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderParameters()
         {
             SetUpEditor(@"
