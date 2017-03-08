@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.CSharp.Rename.CSharpRenameConflictLanguageService),
                 typeof(CodeAnalysis.VisualBasic.Rename.VisualBasicRenameRewriterLanguageServiceFactory),
                 typeof(CodeAnalysis.CSharp.CSharpSemanticFactsServiceFactory),
-                typeof(CodeAnalysis.VisualBasic.VisualBasicSemanticFactsService),
+                typeof(CodeAnalysis.VisualBasic.VisualBasicSemanticFactsServiceFactory),
                 typeof(CodeAnalysis.CSharp.CodeGeneration.CSharpSyntaxGenerator),
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicSyntaxGenerator),
                 typeof(CSharp.LanguageServices.CSharpContentTypeLanguageService),
