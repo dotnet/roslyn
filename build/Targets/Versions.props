@@ -78,7 +78,7 @@
       <!-- On non-official builds we don't burn in a git sha.  In large part because it
            hurts our determinism efforts as binaries which should be the same between
            builds will not (due to developers building against different HEAD
-           values -->
+           values). -->
       <PropertyGroup>
         <GitHeadSha>&lt;developer build&gt;</GitHeadSha>
       </PropertyGroup>
