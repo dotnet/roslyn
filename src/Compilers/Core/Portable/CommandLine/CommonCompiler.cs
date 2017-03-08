@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis
                 var name = $"{assembly.GetName().Name}.dll";
                 var filePath = Path.Combine(_clientDirectory, name);
                 var fileVersionInfo = FileVersionInfo.GetVersionInfo(filePath);
-                string hash = ExtractShortCommitHash(assembly);
+                string hash = ExtractShortCommitHash(assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash);
 
                 return $"{fileVersionInfo.FileVersion} ({hash})";
             }
@@ -142,13 +142,12 @@ namespace Microsoft.CodeAnalysis
             return "";
         }
 
-        private static string ExtractShortCommitHash(Assembly assembly)
+        internal static string ExtractShortCommitHash(string hash)
         {
             // leave "<developer build>" alone, but truncate SHA to 8 characters
-            string hash = assembly.GetCustomAttribute<CommitHashAttribute>()?._hash;
             if (hash != null && hash.Length >= 8 && hash[0] != '<')
             {
-                hash = hash.Substring(0, 8);
+                return hash.Substring(0, 8);
             }
 
             return hash;
