@@ -14,14 +14,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' In Dev10 (and earlier), this didn't generate an error.
         <Fact, WorkItem(529599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529599")>
         Public Sub ParsePreprocessorEndIfInMethodBody()
-            ParseAndVerify(<![CDATA[
-                Module Module1
-                    Sub Main()
-                        #If True
-                        #Endif    
-                    End Sub
-                End Module
-            ]]>,
+            ParseAndVerify(
+"Module Module1
+    Sub Main()
+        #If True
+        #Endif    
+    End Sub
+End Module
+",
             <errors>
                 <error id="30826"/>
             </errors>)
@@ -33,34 +33,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(885304, "DevDiv/Personal")>
         <Fact>
         Public Sub BreakingChangeParseXmlRequiresParens()
-            ParseAndVerify(<![CDATA[
-                           Class Class1
-                             Dim obj = New With {Key <xmlLiteral />.BaseUri}
-                           End Class
-                ]]>)
+            ParseAndVerify(
+"Class Class1
+  Dim obj = New With {Key <xmlLiteral/>.BaseUri}
+End Class"
+          )
         End Sub
 
         <WorkItem(885416, "DevDiv/Personal")>
         <Fact>
         Public Sub ParseExpectedEOS()
-            ParseAndVerify(<![CDATA[
-                          Module Module1
-                              Enum Test
-                                [Class]
-                                [GetXmlNamespace]
-                              End Enum
-                            Sub Main()
-                               Dim t As Test
-                               Select Case t
-                               Case Test.Class
-                               'COMPILEERROR: BC30205, " "  
-                               Case Test.GetXmlNamespace _
-     
-                               'There must be space in between
-                               End Select
-                            End Sub
-                          End Module
-                ]]>)
+            ParseAndVerify("
+Module Module1
+    Enum Test
+      [Class]
+      [GetXmlNamespace]
+    End Enum
+  Sub Main()
+     Dim t As Test
+     Select Case t
+     Case Test.Class
+     'COMPILEERROR: BC30205, "" ""  
+     Case Test.GetXmlNamespace _
+
+     'There must be space in between
+     End Select
+  End Sub
+End Module")
         End Sub
 
         ''' Roslyn doesn't give warning BC30934 while Dev10 does (Eval ctor as no const)
@@ -70,18 +69,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub BC30934ERR_RequiredAttributeConstConversion2_1()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlib(
-    <compilation>
-        <file name="a.vb"><![CDATA[
-Imports System
+                Unit.Make().With_a_vb(
+"Imports System
 Class Test
-    Const x = ""
+    Const x = """"
     <Obsolete(Foo(New Test()).x)>
     Shared Function Foo(ByVal x As Object) As Test
         Return Nothing
     End Function
 End Class
-        ]]></file>
-    </compilation>).GetDiagnostics()
+")).GetDiagnostics()
             Assert.Equal(1, errs.Length)
             Assert.Equal(42025, errs(0).Code)
             Assert.Equal(DiagnosticSeverity.Warning, errs(0).Severity)
@@ -90,9 +87,8 @@ End Class
         <Fact(), WorkItem(542389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542389")>
         Public Sub BC30519_InferVariableAsRHSValueType()
             Dim text =
-<compilation>
-    <file name="a.vb">
-Option Infer On
+                Unit.Make().With_a_vb(
+"Option Infer On
 
 Imports System.Math
 
@@ -106,8 +102,7 @@ Namespace Round001
         End Sub
     End Module
 End Namespace
-    </file>
-</compilation>
+")
 
             ' Not Breaking anymore - Dev11 gives NO error
             CreateCompilationWithMscorlibAndVBRuntime(text).VerifyDiagnostics()
@@ -119,9 +114,8 @@ End Namespace
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef01()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation>
-        <file name="a.vb"><![CDATA[
-Imports System
+                Unit.Make().With_a_vb(
+"Imports System
 
 Module ModuleA
 
@@ -135,9 +129,7 @@ Module ModuleA
     Sub Main()
         Console.Write(Prop)
     End Sub
-End Module
-        ]]></file>
-    </compilation>).GetDiagnostics()
+End Module")).GetDiagnostics()
 
             ' Preserving backward compatibility: property do not warn on unassigned use
             Assert.Equal(0, errs.Length)
@@ -151,9 +143,8 @@ End Module
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef02()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation>
-        <file name="a.vb"><![CDATA[
-Imports System
+                 Unit.Make().With_a_vb(
+"Imports System
 
 Module ModuleA
 
@@ -167,8 +158,7 @@ Module ModuleA
         Console.Write(Func)
     End Sub
 End Module
-        ]]></file>
-    </compilation>).GetDiagnostics()
+")).GetDiagnostics()
 
             ' Preserving backward compatibility: property do not warn on unassigned use
             Assert.Equal(0, errs.Length)
@@ -181,9 +171,8 @@ End Module
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr01()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation>
-        <file name="a.vb"><![CDATA[
-Imports System
+                Unit.Make().With_a_vb(
+"Imports System
 
 Module ModuleA
 
@@ -202,8 +191,7 @@ Module ModuleA
         Console.Write(Prop)
     End Sub
 End Module
-        ]]></file>
-    </compilation>).GetDiagnostics()
+")).GetDiagnostics()
             Assert.Equal(1, errs.Length)
             Assert.Equal(42109, errs(0).Code)
             Assert.Equal(DiagnosticSeverity.Warning, errs(0).Severity)
@@ -213,25 +201,23 @@ End Module
         <Fact()>
         Public Sub PartialMethod_EmitNamesInProperCase()
             CompileAndVerify(
-<compilation>
-    <file name="a.vb">
-Imports System
+                Unit.Make().With_a_vb(
+"Imports System
 Imports System.Reflection
 Class C
     Partial Private Shared Sub M(Of T, U)(X As T, Y As U)
     End Sub
     Private Shared Sub m(Of t, u)(x As t, y As u)
-        Dim method = GetType(C).GetMethod("M", BindingFlags.Static Or BindingFlags.NonPublic)
+        Dim method = GetType(C).GetMethod(""M"", BindingFlags.Static Or BindingFlags.NonPublic)
         Console.Write(method.ToString())
         Dim params = method.GetParameters()
-        Console.Write(" | {0}, {1}", params(0), params(1))
+        Console.Write("" | {0}, {1}"", params(0), params(1))
     End Sub
     Shared Sub Main(args As String())
         M(1, 2)
     End Sub
 End Class
-    </file>
-</compilation>, expectedOutput:="Void M[T,U](T, U) | T X, U Y") 'Dev10 would emit "Void m[t,u](t, u) | t x, u y"
+"), expectedOutput:="Void M[T,U](T, U) | T X, U Y") 'Dev10 would emit "Void m[t,u](t, u) | t x, u y"
         End Sub
 
         <WorkItem(529261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529261")>
@@ -239,9 +225,8 @@ End Class
         Public Sub PartialMethod_AllowNonExecutableStatements()
             'Dev10 used to report errors for each of the three cases identified below. Roslyn doesn't.
             'This is not strictly a breaking change since we just removed some errors that we used to give before.
-            CompileAndVerify(<compilation>
-                                 <file name="a.vb">
-Imports System
+            CompileAndVerify(                Unit.Make().With_a_vb(
+"Imports System
 Public Module Program
     'Case1: Preprocessor directives – but no executable statements
     Private Partial Sub M1
@@ -265,21 +250,18 @@ Public Module Program
     Sub Main()
         M1() : M2() : M3()
         #If something
-            Console.WriteLine("Success")
+            Console.WriteLine(""Success"")
         #End If
     End Sub
-End Module
-                                 </file>
-                             </compilation>, expectedOutput:="Success")
+End Module"), expectedOutput:="Success")
         End Sub
 
         <WorkItem(543241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543241")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr02()
             Dim errs = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation>
-        <file name="a.vb"><![CDATA[
-Imports System
+                 Unit.Make().With_a_vb(
+"Imports System
 
 Module ModuleA
 
@@ -296,9 +278,7 @@ Module ModuleA
     Sub Main()
         Console.Write(Func)
     End Sub
-End Module
-        ]]></file>
-    </compilation>).GetDiagnostics()
+End Module")).GetDiagnostics()
             Assert.Equal(1, errs.Length)
             Assert.Equal(42109, errs(0).Code)
             Assert.Equal(DiagnosticSeverity.Warning, errs(0).Severity)
@@ -308,9 +288,8 @@ End Module
         <Fact>
         Public Sub PartialConstructors()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb">
-Imports System
+                Unit.Make().With_a_vb(
+"Imports System
 Partial Class C1(Of U, V)
     Class C1(Of T As U)
         Partial Private Sub New(x As T, y As C1(Of U), z As U, w As C1(Of U, V))
@@ -328,37 +307,34 @@ Module Module1
         Dim x = C1(Of Exception, Integer).C1(Of ArgumentException).FactoryMethod(e, Nothing, e, Nothing)
     End Sub
 End Module
-    </file>
-    <file name="b.vb">
-Imports System
+").With_b_vb(
+"Imports System
 Class C1(Of U, V)
     Partial Class C1(Of T As U)
         Private Sub New(x As T, y As C1(Of U), z As U, w As C1(Of U, V))
-            Console.WriteLine("Success")
+            Console.WriteLine(""Success"")
         End Sub
     End Class
 End Class
-    </file>
-</compilation>)
+"))
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation,
-<errors>
+<errs>
 BC36969: 'Sub New' cannot be declared 'Partial'.
         Partial Private Sub New(x As T, y As C1(Of U), z As U, w As C1(Of U, V))
         ~~~~~~~
 BC30269: 'Private Sub New(x As T, y As C1(Of U, V).C1(Of U), z As U, w As C1(Of U, V))' has multiple definitions with identical signatures.
         Partial Private Sub New(x As T, y As C1(Of U), z As U, w As C1(Of U, V))
                             ~~~
-</errors>)
+</errs>)
         End Sub
 
         <WorkItem(544500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544500")>
         <Fact>
         Public Sub PartialConstructors2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb">
-Imports System
+                Unit.Make().With_a_vb(
+"Imports System
 Partial Class C1
     Partial Private Sub New()
     End Sub
@@ -368,36 +344,34 @@ Module Module1
     Sub Main()
         Dim e As New C1()
     End Sub
-End Module
-    </file>
-</compilation>)
+End Module"))
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation,
-<errors>
-BC36969: 'Sub New' cannot be declared 'Partial'.
+<errs>
+    BC36969: 'Sub New' cannot be declared 'Partial'.
     Partial Private Sub New()
     ~~~~~~~
-</errors>)
+</errs>)
         End Sub
 
         <WorkItem(528311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528311")>
         <Fact()>
         Public Sub TestHideBySigChangeForOverriddenMethods()
             Dim vbCompilation = CreateVisualBasicCompilation("TestHideBySigChangeForOverriddenMethods",
-            <![CDATA[Imports System
+"Imports System
 
 Public Class Class1
     Public Sub Foo(i As Integer)
-        Console.WriteLine("Class1.Foo(i As Integer)")
+        Console.WriteLine(""Class1.Foo(i As Integer)"")
     End Sub
     Public Overridable Sub Foo()
-        Console.WriteLine("Class1.Foo()")
+            Console.WriteLine(""Class1.Foo()"")
     End Sub
 End Class
 
 Public Class Class2 : Inherits Class1
     Public Overrides Sub Foo()
-        Console.WriteLine("Class2.Foo()")
+        Console.WriteLine(""Class2.Foo()"")
     End Sub
 End Class
 
@@ -410,7 +384,7 @@ Public Module Program
         d.Foo
         d.Foo(1)
     End Sub
-End Module]]>,
+End Module",
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
 
             'In Dev10 the emitted signature for overridden methods did not 
@@ -429,11 +403,10 @@ End Module]]>,
             'TODO: Add tests for the latebinder breaks (See Dev10 bug 850631,849009).
 
             Dim vbVerifier = CompileAndVerify(vbCompilation,
-                expectedOutput:=<![CDATA[Class2.Foo()
+                expectedOutput:="Class2.Foo()
 Class1.Foo(i As Integer)
 Class2.Foo()
-Class1.Foo(i As Integer)
-]]>,
+Class1.Foo(i As Integer)",
                 expectedSignatures:=
                 {
                     Signature("Class2", "Foo", ".method public hidebysig strict virtual instance System.Void Foo() cil managed")
@@ -442,7 +415,7 @@ Class1.Foo(i As Integer)
             vbVerifier.VerifyDiagnostics()
 
             Dim csCompilation = CreateCSharpCompilation("CS",
-            <![CDATA[public class Class3 : Class2
+"public class Class3 : Class2
 {
 }
 
@@ -462,7 +435,7 @@ public class Program
         b.Foo();
         b.Foo(1);
     }
-}]]>,
+}",
                 compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={vbCompilation})
             csCompilation.VerifyDiagnostics() 'No errors
@@ -471,36 +444,35 @@ public class Program
         <Fact(), WorkItem(529471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529471")>
         Public Sub LiftedLogicalOperationsNoSideEffect()
             CompileAndVerify(
-                <compilation>
-                    <file name="a.vb">
-Imports System
+                Unit.Make().With_a_vb(
+"Imports System
 Module M
 
     Sub Main()
         Dim b As Boolean? = False
-        Console.Write("F OrElse F=")
+        Console.Write(""F OrElse F="")
         If b OrElse Foo(b) Then
-            Console.Write("True |")
+            Console.Write(""True |"")
         Else
-            Console.Write("False |")
+            Console.Write(""False |"")
         End If
 
         b = True
-        Console.Write("T AndAlso T=")
+        Console.Write(""T AndAlso T="")
         If b AndAlso Bar(b) Then
-            Console.Write("True | ")
+            Console.Write(""True | "")
         Else
-            Console.Write("False | ")
+            Console.Write(""False | "")
         End If
 
         Dim bF As Boolean? = False
         Dim bT As Boolean? = True
-        Console.Write("F Or F={0} | ", bF Or Foo(bF))
-        Console.Write("T Or F={0} | ", bT Or Foo(bT))
+        Console.Write(""F Or F={0} | "", bF Or Foo(bF))
+        Console.Write(""T Or F={0} | "", bT Or Foo(bT))
         bF = False
         bT = True
-        Console.Write("T And T={0} | ", bT And Bar(bT))
-        Console.Write("F And T={0}", bF And Bar(bF))
+        Console.Write(""T And T={0} | "", bT And Bar(bT))
+        Console.Write(""F And T={0}"", bF And Bar(bF))
 
     End Sub
 
@@ -513,9 +485,7 @@ Module M
         b = Not b
         Return True
     End Function
-End Module
-                    </file>
-                </compilation>, expectedOutput:="F OrElse F=False |T AndAlso T=True | F Or F=False | T Or F=True | T And T=True | F And T=False")
+End Module"), expectedOutput:="F OrElse F=False |T AndAlso T=True | F Or F=False | T Or F=True | T And T=True | F And T=False")
         End Sub
 
         <Fact(), WorkItem(545050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545050")>
@@ -524,25 +494,23 @@ End Module
             ' Native: error BC32126: Methods of 'System.Nullable(Of T)' cannot be used as operands of the 'AddressOf' operator.
             ' Roslyn: No error
             CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation>
-        <file name="a.vb">
-            Imports System
+                Unit.Make().With_a_vb(
+"            Imports System
             Imports System.Collections.Generic
             Module M
                 Sub Main()
                     Dim ef As Action(Of Integer) = AddressOf Nullable(Of Integer).op_Implicit ' it is legal to take address of static method
                 End Sub
             End Module
-        </file>
-    </compilation>).AssertNoDiagnostics()
+")).AssertNoDiagnostics()
         End Sub
 
         <Fact(), WorkItem(529544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529544")>
         Public Sub TestMissingSynchronizedFlagForEvents()
             Dim comp = CreateVisualBasicCompilation("TestMissingSynchronizedFlagForEvents",
-            <![CDATA[Public Class C1
+"Public Class C1
     Public Event foo()
-End Class]]>,
+End Class",
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             ' In Dev11, we used to emit an additional 'synchronized' metadata flag in the signature of add_foo() and remove_foo() methods below.
@@ -559,7 +527,7 @@ End Class]]>,
         <Fact, WorkItem(529653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529653")>
         Public Sub TestExecutionOrderForHandles()
             Dim vbCompilation = CreateVisualBasicCompilation("TestExecutionOrderForHandles",
-            <![CDATA[Option Strict Off
+"Option Strict Off
 Imports System
 Imports AliasedType = Base
 
@@ -568,27 +536,27 @@ Public Class Base
     Protected Friend Event Ev1 As Action(Of Integer)
 
     Friend Sub A() Handles w.Ev1
-        Console.WriteLine("Base A")
+        Console.WriteLine(""Base A"")
     End Sub
 
     Friend Sub B() Handles w.Ev1
-        Console.WriteLine("Base B")
+        Console.WriteLine(""Base B"")
     End Sub
 
     Friend Sub C() Handles w.Ev1
-        Console.WriteLine("Base C")
+        Console.WriteLine(""Base C"")
     End Sub
 
     Friend Sub D() Handles w.Ev1
-        Console.WriteLine("Base D")
+        Console.WriteLine(""Base D"")
     End Sub
 
     Friend Sub E() Handles w.Ev1
-        Console.WriteLine("Base E")
+        Console.WriteLine(""Base E"")
     End Sub
 
     Friend Sub F() Handles w.Ev1
-        Console.WriteLine("Base F")
+        Console.WriteLine(""Base F"")
     End Sub
 
     Overridable Sub Raise()
@@ -601,19 +569,19 @@ Public Module Program
         Dim x = New Base()
         x.Raise()
     End Sub
-End Module]]>,
-                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+End Module",
+                CompilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
 
             'Breaking Change: Dev11 processes event handlers in a different order than Roslyn.
             'This is basically because Dev11 has no deterministic order for processing these.
             'See bug 13880 for more details.
             Dim vbVerifier = CompileAndVerify(vbCompilation,
-                expectedOutput:=<![CDATA[Base A
+                expectedOutput:="Base A
 Base B
 Base C
 Base D
 Base E
-Base F]]>)
+Base F")
             vbVerifier.VerifyDiagnostics()
         End Sub
 
@@ -629,10 +597,10 @@ Base F]]>)
         ev("hi", 1, 2, 3);
     }
 }]]>,
-                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             csCompilation.VerifyDiagnostics()
             Dim vbCompilation = CreateVisualBasicCompilation("TestCrossLanguageOptionalAndParamarrayForHandles_VB",
-            <![CDATA[
+"
 Public Class VBClass : Inherits CSClass
     Public WithEvents w As CSClass = New CSClass
     Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
@@ -641,7 +609,7 @@ Public Class VBClass : Inherits CSClass
     Function Foo(x As String, ParamArray y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
         Return 0
     End Function
-    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+    Function Foo2(Optional x As String = """") Handles w.ev, MyBase.ev, MyClass.ev
         Return 0
     End Function
     Function Foo2(x As String, y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
@@ -654,7 +622,7 @@ Public Module Program
         x.raise()
         x.w.raise()
     End Sub
-End Module]]>,
+End Module",
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
 
@@ -671,9 +639,8 @@ End Module]]>,
 
         <Fact, WorkItem(569036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569036")>
         Public Sub DifferenceInExceptionEvaluationWithRoslyn()
-            CompileAndVerify(
-<compilation>
-    <file name="bug.vb">
+            CompileAndVerify(Unit.Make().WithFile("bug.vb",
+"
 Imports System
 Module Module1
     Public Structure NullableRetStructure
@@ -707,17 +674,16 @@ Module Module1
         eval = 19
         Try
             Dim x = CheckType(foo_eval_check(eval) / foo_exc())
-            Console.Write("Exception expected ")
+            Console.Write(""Exception expected "")
         Catch ex As ArgumentException
-            Console.Write("19:")
+            Console.Write(""19:"")
             Console.Write(eval)
         Catch ex As Exception
-            Console.Write("Wrong Exception")
+            Console.Write(""Wrong Exception"")
         End Try
     End Sub
 End Module
-    </file>
-</compilation>, expectedOutput:="19:20") 'Dev11 would emit "19:19"
+"), expectedOutput:="19:20") 'Dev11 would emit "19:19"
         End Sub
     End Class
 End Namespace

@@ -16,25 +16,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub ErrorHandler_WithValidLabel_No_Resume()
-            Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-Imports System
+            Dim compilationDef = Unit.Make.With_a_vb(
+"Imports System
 Module Module1
     Sub Main()
-        Dim sPath As String = ""
-        sPath = "Test1"
+        Dim sPath As String = """"
+        sPath = ""Test1""
         On Error GoTo foo
         Error 5
         Console.WriteLine(sPath)
         Exit Sub
 foo:
-        sPath &amp;= "foo"
+        sPath &= ""foo""
         Console.WriteLine(sPath)
     End Sub
-End Module
-</file>
-    </compilation>
+End Module")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
             CompileAndVerify(compilation)
@@ -42,10 +38,8 @@ End Module
 
         <Fact()>
         Public Sub ErrorHandler_WithGotoMinus1andMatchingLabel()
-            Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-Imports System
+            Dim compilationDef = Unit.Make.With_a_vb(
+"Imports System
 
 Module Module1    
     Public Sub Main()        
@@ -56,8 +50,7 @@ foo:
         Resume 
     End Sub
 End Module 
-</file>
-    </compilation>
+")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
             CompileAndVerify(compilation)
@@ -65,10 +58,8 @@ End Module
 
         <Fact()>
         Public Sub Error_ErrorHandler_WithGoto0andNoMatchingLabel()
-            Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-Imports System
+            Dim compilationDef = Unit.Make.With_a_vb(
+"Imports System
 
 Module Module1    
     Public Sub Main()
@@ -79,9 +70,7 @@ Foo:
         Resume 
     End Sub
 End Module 
-</file>
-    </compilation>
-
+")
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
             CompileAndVerify(compilation)
             'compilation.VerifyDiagnostics()
@@ -89,10 +78,8 @@ End Module
 
         <Fact()>
         Public Sub Error_ErrorHandler_WithResumeNext()
-            Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-Imports System
+            Dim compilationDef = Unit.Make.With_a_vb(
+"Imports System
 
 Module Module1    
     Public Sub Main()
@@ -101,8 +88,7 @@ Module Module1
         exit sub
     End Sub
 End Module 
-</file>
-    </compilation>
+")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
             CompileAndVerify(compilation)
@@ -111,10 +97,8 @@ End Module
 
         <Fact()>
         Public Sub ErrorHandler_WithValidLabelMatchingKeywordsEscaped()
-            Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-Imports System
+            Dim compilationDef = Unit.Make.With_a_vb(
+"Imports System
 
 Module Module1    
     Public Sub Main()        
@@ -133,8 +117,7 @@ Module Module1
         Resume [Goto]
     End Sub
 End Module 
-</file>
-    </compilation>
+")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
             CompileAndVerify(compilation)
@@ -143,10 +126,8 @@ End Module
 
         <Fact()>
         Public Sub Error_ErrorHandler_WithValidLabelMatchingKeywordsNotEscaped()
-            Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Module Module1    
+            Dim compilationDef = Unit.Make.With_a_vb(
+"    Module Module1    
         Public Sub Main()        
             On Error GoTo On
             On Error GoTo goto  
@@ -162,8 +143,7 @@ End Module
             Resume [Goto]
         End Sub
     End Module 
-    </file>
-    </compilation>
+")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
@@ -178,10 +158,8 @@ End Module
 
         <Fact()>
         Public Sub Error_ErrorHandler_WithInValidLabelMatchingKeywordsEscaped()
-            Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Module Module1    
+            Dim compilationDef = Unit.Make.With_a_vb(
+"    Module Module1    
         Public Sub Main()        
             On Error GoTo [On]
             On Error GoTo [goto]  'Doesn't matter if case mismatch (Didn't pretty list correctly)
@@ -197,8 +175,7 @@ End Module
             Resume Goto
         End Sub
     End Module 
-    </file>
-    </compilation>
+")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
@@ -220,10 +197,8 @@ End Module
 
         <Fact()>
         Public Sub Error_ErrorHandler_WithGoto0andMatchingLabel()
-            Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Imports System
+            Dim compilationDef = Unit.Make.With_a_vb(
+"    Imports System
 
     Module Module1    
         Public Sub Main()
@@ -234,14 +209,13 @@ End Module
             Resume 
         End Sub
     End Module 
-    </file>
-    </compilation>
+")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
-            compilationVerifier.VerifyIL("Module1.Main", <![CDATA[
-    {
+            compilationVerifier.VerifyIL("Module1.Main",
+"    {
       // Code size      155 (0x9b)
       .maxstack  3
       .locals init (Integer V_0,
@@ -250,23 +224,23 @@ End Module
       Integer V_3)
       .try
     {
-      IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+      IL_0000:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
       IL_0005:  ldc.i4.0
       IL_0006:  stloc.0
       IL_0007:  ldc.i4.2
       IL_0008:  stloc.2
       IL_0009:  ldc.i4.5
-      IL_000a:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+      IL_000a:  call       ""Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception""
       IL_000f:  throw
       IL_0010:  ldc.i4.0
       IL_0011:  stloc.3
       IL_0012:  ldc.i4.5
       IL_0013:  stloc.2
-      IL_0014:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+      IL_0014:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
       IL_0019:  ldloc.1
       IL_001a:  brtrue.s   IL_0029
       IL_001c:  ldc.i4     0x800a0014
-      IL_0021:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+      IL_0021:  call       ""Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception""
       IL_0026:  throw
       IL_0027:  leave.s    IL_0092
       IL_0029:  ldloc.1
@@ -295,7 +269,7 @@ End Module
     }
       filter
     {
-      IL_0066:  isinst     "System.Exception"
+      IL_0066:  isinst     ""System.Exception""
       IL_006b:  ldnull
       IL_006c:  cgt.un
       IL_006e:  ldloc.0
@@ -309,46 +283,44 @@ End Module
       IL_0078:  endfilter
     }  // end filter
     {  // handler
-      IL_007a:  castclass  "System.Exception"
+      IL_007a:  castclass  ""System.Exception""
       IL_007f:  ldloc.3
-      IL_0080:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception, Integer)"
+      IL_0080:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception, Integer)""
       IL_0085:  leave.s    IL_0054
     }
       IL_0087:  ldc.i4     0x800a0033
-      IL_008c:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+      IL_008c:  call       ""Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception""
       IL_0091:  throw
       IL_0092:  ldloc.1
       IL_0093:  brfalse.s  IL_009a
-      IL_0095:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+      IL_0095:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
       IL_009a:  ret
     }
-    ]]>)
+")
         End Sub
 
         <Fact()>
         Public Sub Error_ErrorHandler_WithGoto1andMatchingLabel()
             Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Imports System
+ Unit.Make.With_a_vb(
+"    Imports System
 
     Module Module1    
         Public Sub Main()        
             On Error GoTo 1
-            Console.writeline("Start")        
+            Console.writeline(""Start"")        
             Error 5
-            Console.writeline("2")
+            Console.writeline(""2"")
             exit sub
     1:
-    Console.writeline("1")
+    Console.writeline(""1"")
             Resume Next
         End Sub
     End Module 
-    </file>
-    </compilation>
+")
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start
 1
 2]]>)
@@ -357,9 +329,8 @@ End Module
         <Fact()>
         Public Sub Error_ErrorHandler_WithMissingOrIncorrectLabels()
             Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Module Module1   
+ Unit.Make.With_a_vb(
+"    Module Module1   
         sing Labels
         Public Sub Main()           
         End Sub
@@ -384,11 +355,10 @@ End Module
     DiffMethodLabel:
         End Sub
     End Module 
-    </file>
-    </compilation>
+")
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedSpecifier, "Labels"),
                                           Diagnostic(ERRID.ERR_ExpectedDeclaration, "sing"),
                                           Diagnostic(ERRID.ERR_ExpectedEOS, "."),
@@ -402,10 +372,8 @@ End Module
 
         <Fact()>
         Public Sub Error_ErrorHandler_BothTypesOfErrorHandling()
-            Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Imports System
+            Dim compilationDef = Unit.Make.With_a_vb(
+"    Imports System
 
     Module Module1   
         Sub Main
@@ -431,10 +399,9 @@ End Module
             End Try
         End Sub
     End Module 
-    </file>
-    </compilation>
+")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
 
             Dim ExpectedOutput = <![CDATA[Try
                 On Error GoTo foo
@@ -457,16 +424,14 @@ End Module
         Public Sub Error_ErrorHandler_InVBCore()
             'Old Style handling not supported in VBCore
             Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Module Module1   
+ Unit.Make.With_a_vb(
+"    Module Module1   
         Public Sub Main        
             On Error GoTo foo
     foo:
         End Sub
     End Module 
-    </file>
-    </compilation>
+")
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
@@ -484,24 +449,22 @@ End Module
         <Fact()>
         Public Sub Error_ErrorHandler_InVBCore_LateBound1()
             Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-Module Module1
+ Unit.Make.With_a_vb(
+"Module Module1
     Dim a As Object
 
     Sub Main()
         a = New ABC
         a = a + 1
         
-        a = a &amp; "test"
+        a = a & ""test""
     End Sub
 End Module
 
 Class ABC
 
 End Class
-    </file>
-    </compilation>
+")
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
@@ -517,17 +480,15 @@ End Class
         <Fact()>
         Public Sub Error_ErrorHandler_InVBCore_LikeOperator()
             Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-Module Module1
+ Unit.Make.With_a_vb(
+"Module Module1
 
     Sub Main()
         Dim testCheck As Boolean      
-        testCheck = "F" Like "F"
+        testCheck = ""F"" Like ""F""
     End Sub
 End Module
-    </file>
-    </compilation>
+")
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
@@ -541,16 +502,14 @@ End Module
         <Fact()>
         Public Sub Error_ErrorHandler_InVBCore_ErrObject()
             Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-        Module Module1
+ Unit.Make.With_a_vb(
+"        Module Module1
 
             Sub Main()
                  Error 1
             End Sub
         End Module
-            </file>
-    </compilation>
+")
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
@@ -562,20 +521,16 @@ End Module
         <Fact()>
         Public Sub Error_ErrorHandler_InVBCore_AnonymousType()
             Dim source =
-    <compilation>
-        <file name="a.vb">
-Module Module1
+ Unit.Make.With_a_vb(
+"Module Module1
     Dim a As Object
 
     Sub Main()
-        a = "1"
+        a = ""1""
         Dim x = New With {.a = a, .b = a + 1}
     End Sub
 
-End Module
-
-            </file>
-    </compilation>
+End Module")
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(source,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
@@ -588,15 +543,13 @@ End Module
         <Fact(), WorkItem(545772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545772")>
         Public Sub VbCoreMyNamespace()
             Dim source =
-<compilation>
-    <file name="a.vb">
-Module Module1
+ Unit.Make.With_a_vb(
+"Module Module1
         Public Sub Main()
-            My.Computer.FileSystem.WriteAllText("Test.txt","abc")
+            My.Computer.FileSystem.WriteAllText(""Test.txt"",""abc"")
         End Sub
 End Module
-    </file>
-</compilation>
+")
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(source,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
@@ -608,9 +561,8 @@ End Module
         <Fact()>
         Public Sub Error_ErrorHandler_OutsideOfMethodBody()
             Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Module Module1   
+ Unit.Make.With_a_vb(
+"    Module Module1   
         Sub Main
 
         End Sub
@@ -621,10 +573,9 @@ End Module
         Sub Foo
         End Sub
     End Module 
-    </file>
-    </compilation>
+")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "On Error Goto foo"))
         End Sub
 
@@ -633,9 +584,8 @@ End Module
             'Basic Validation that this is permissible in Class/Structure/(Module Tested elsewhere)
             'Generic
             Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Imports System
+ Unit.Make.With_a_vb(
+"    Imports System
 
     Module Module1   
         Sub Main        
@@ -711,19 +661,17 @@ End Module
             End Property
         End Class
     End Module 
-    </file>
-    </compilation>
+")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
             compilation.AssertNoDiagnostics()
         End Sub
 
         <Fact()>
         Public Sub ErrorHandler_Other_Constructor_Dispose()
             Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Imports System
+ Unit.Make.With_a_vb(
+"    Imports System
 
     Module Module1   
         Sub Main        
@@ -748,7 +696,7 @@ End Module
             Sub New()
             End Sub
 
-    #Region "IDisposable Support"
+    #Region ""IDisposable Support""
             Private disposedValue As Boolean ' To detect redundant calls
 
             ' IDisposable
@@ -787,10 +735,9 @@ End Module
             End Sub
     #End Region
         End Class
-    </file>
-    </compilation>
+")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -798,46 +745,41 @@ End Module
         Public Sub Error_InvalidTypes_ImplicitConversions()
 
             Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Imports System
+ Unit.Make.With_a_vb(
+"Imports System
 
-    Module Module1   
-        Sub Main        
-            Error 1L    
-            Error 2S
-            Error &quot;3&quot;
-            Error 4!      
-            Error 5%
-        End Sub
-        End Module
-    </file>
-    </compilation>
-
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+Module Module1 
+    Sub Main
+        Error 1L
+        Error 2S
+        Error ""3""
+        Error 4!
+        Error 5%
+    End Sub
+End Module
+")
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
             compilation.AssertNoDiagnostics()
         End Sub
 
         <Fact()>
         Public Sub Error_InvalidTypes_InvalidTypes_StrictOn()
             Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Option Strict On
+ Unit.Make.With_a_vb(
+"    Option Strict On
 
     Module Module1   
         Sub Main        
             Error 1L    
             Error 2S
-            Error &quot;3&quot;
+            Error ""3""
             Error 4!      
             Error 5%
         End Sub
         End Module
-    </file>
-    </compilation>
+")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_NarrowingConversionDisallowed2, """3""").WithArguments("String", "Integer"),
                                           Diagnostic(ERRID.ERR_NarrowingConversionDisallowed2, "4!").WithArguments("Single", "Integer"))
         End Sub
@@ -845,9 +787,8 @@ End Module
         <Fact()>
         Public Sub ErrorHandler_Error_InSyncLockBlock()
             Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Class LockClass
+ Unit.Make.With_a_vb(
+"    Class LockClass
     End Class
 
     Module Module1
@@ -865,10 +806,9 @@ End Module
             Exit Sub
         End Sub
     End Module
-    </file>
-    </compilation>
+")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_LabelNotDefined1, "handler").WithArguments("handler"),
                                           Diagnostic(ERRID.ERR_OnErrorInSyncLock, "On Error GoTo foo"))
         End Sub
@@ -877,10 +817,8 @@ End Module
         Public Sub ErrorHandler_Error_InMethodWithSyncLockBlock()
             'Method has a Error Handler and Error Occurs within SyncLock
             'resume next will occur outside of the SyncLock Block
-            Dim compilationDef =
-    <compilation>
-        <file name="a.vb">
-    Imports System
+            Dim compilationDef = Unit.Make.With_a_vb(
+"    Imports System
 
     Class LockClass
     End Class
@@ -888,34 +826,33 @@ End Module
     Module Module1
         Sub Main()
             Dim lock As New LockClass
-            Console.WriteLine("Start")
+            Console.WriteLine(""Start"")
             On Error GoTo handler
 
             SyncLock lock
-                Console.WriteLine("In SyncLock")
+                Console.WriteLine(""In SyncLock"")
                 Error 1
-                Console.WriteLine("After Error In SyncLock")
+                Console.WriteLine(""After Error In SyncLock"")
             End SyncLock
 
-            Console.WriteLine("End")
+            Console.WriteLine(""End"")
             Exit Sub
     handler:
-            Console.WriteLine("Handler")
+            Console.WriteLine(""Handler"")
             Resume Next
         End Sub
     End Module
-    </file>
-    </compilation>
+")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, options:=TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics()
-            Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start
+            Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:="Start
 In SyncLock
 Handler
-End]]>)
+End")
 
-            CompilationVerifier.VerifyIL("Module1.Main", <![CDATA[
-{
+            CompilationVerifier.VerifyIL("Module1.Main",
+"{
   // Code size      248 (0xf8)
   .maxstack  3
   .locals init (Integer V_0,
@@ -928,13 +865,13 @@ End]]>)
   {
     IL_0000:  ldc.i4.1
     IL_0001:  stloc.2
-    IL_0002:  newobj     "Sub LockClass..ctor()"
+    IL_0002:  newobj     ""Sub LockClass..ctor()""
     IL_0007:  stloc.3
     IL_0008:  ldc.i4.2
     IL_0009:  stloc.2
-    IL_000a:  ldstr      "Start"
-    IL_000f:  call       "Sub System.Console.WriteLine(String)"
-    IL_0014:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_000a:  ldstr      ""Start""
+    IL_000f:  call       ""Sub System.Console.WriteLine(String)""
+    IL_0014:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
     IL_0019:  ldc.i4.2
     IL_001a:  stloc.0
     IL_001b:  ldc.i4.4
@@ -947,11 +884,11 @@ End]]>)
     {
       IL_0023:  ldloc.s    V_4
       IL_0025:  ldloca.s   V_5
-      IL_0027:  call       "Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)"
-      IL_002c:  ldstr      "In SyncLock"
-      IL_0031:  call       "Sub System.Console.WriteLine(String)"
+      IL_0027:  call       ""Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)""
+      IL_002c:  ldstr      ""In SyncLock""
+      IL_0031:  call       ""Sub System.Console.WriteLine(String)""
       IL_0036:  ldc.i4.1
-      IL_0037:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+      IL_0037:  call       ""Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception""
       IL_003c:  throw
     }
     finally
@@ -959,25 +896,25 @@ End]]>)
       IL_003d:  ldloc.s    V_5
       IL_003f:  brfalse.s  IL_0048
       IL_0041:  ldloc.s    V_4
-      IL_0043:  call       "Sub System.Threading.Monitor.Exit(Object)"
+      IL_0043:  call       ""Sub System.Threading.Monitor.Exit(Object)""
       IL_0048:  endfinally
     }
     IL_0049:  ldc.i4.5
     IL_004a:  stloc.2
-    IL_004b:  ldstr      "End"
-    IL_0050:  call       "Sub System.Console.WriteLine(String)"
+    IL_004b:  ldstr      ""End""
+    IL_0050:  call       ""Sub System.Console.WriteLine(String)""
     IL_0055:  br.s       IL_0078
     IL_0057:  ldc.i4.7
     IL_0058:  stloc.2
-    IL_0059:  ldstr      "Handler"
-    IL_005e:  call       "Sub System.Console.WriteLine(String)"
+    IL_0059:  ldstr      ""Handler""
+    IL_005e:  call       ""Sub System.Console.WriteLine(String)""
     IL_0063:  ldc.i4.8
     IL_0064:  stloc.2
-    IL_0065:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0065:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
     IL_006a:  ldloc.1
     IL_006b:  brtrue.s   IL_007a
     IL_006d:  ldc.i4     0x800a0014
-    IL_0072:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_0072:  call       ""Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception""
     IL_0077:  throw
     IL_0078:  leave.s    IL_00ef
     IL_007a:  ldloc.1
@@ -1008,7 +945,7 @@ End]]>)
   }
   filter
   {
-    IL_00c4:  isinst     "System.Exception"
+    IL_00c4:  isinst     ""System.Exception""
     IL_00c9:  ldnull
     IL_00ca:  cgt.un
     IL_00cc:  ldloc.0
@@ -1022,19 +959,19 @@ End]]>)
     IL_00d6:  endfilter
   }  // end filter
   {  // handler
-    IL_00d8:  castclass  "System.Exception"
-    IL_00dd:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00d8:  castclass  ""System.Exception""
+    IL_00dd:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
     IL_00e2:  leave.s    IL_00ae
   }
   IL_00e4:  ldc.i4     0x800a0033
-  IL_00e9:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_00e9:  call       ""Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception""
   IL_00ee:  throw
   IL_00ef:  ldloc.1
   IL_00f0:  brfalse.s  IL_00f7
-  IL_00f2:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_00f2:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
   IL_00f7:  ret
 }
-]]>)
+")
         End Sub
 
     End Class

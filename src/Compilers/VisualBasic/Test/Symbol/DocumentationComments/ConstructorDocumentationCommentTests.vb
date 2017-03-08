@@ -12,22 +12,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Public Sub New()
             _compilation = CompilationUtils.CreateCompilationWithMscorlib(
-                <compilation name="ConstructorDocumentationCommentTests">
-                    <file name="a.vb">
-                    Namespace Acme
-                        Class Widget
-                            Shared Sub New()
-                            End Sub
+                Unit.Make("ConstructorDocumentationCommentTests").With_a_vb(
+"Namespace Acme
+   Class Widget
+       Shared Sub New()
+       End Sub
 
-                            Public Sub New()
-                            End Sub
+       Public Sub New()
+       End Sub
 
-                            Public Sub New(s As String)
-                            End Sub
-                        End Class
-                    End Namespace
-                    </file>
-                </compilation>)
+       Public Sub New(s As String)
+       End Sub
+   End Class
+End Namespace
+"))
 
             _acmeNamespace = DirectCast(_compilation.GlobalNamespace.GetMembers("Acme").Single(), NamespaceSymbol)
             _widgetClass = DirectCast(_acmeNamespace.GetTypeMembers("Widget").Single(), NamedTypeSymbol)
