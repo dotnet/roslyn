@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -359,10 +360,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             DeclarationModifiers? modifiersOpt = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var modifiers = modifiersOpt ?? symbol.GetSymbolModifiers();
-            modifiers = modifiers.WithIsOverride(true)
-                                 .WithIsAbstract(false)
-                                 .WithIsVirtual(false);
+            var modifiers = modifiersOpt ?? GetOverrideModifiers(symbol);
 
             if (symbol is IMethodSymbol method)
             {
@@ -383,6 +381,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 throw ExceptionUtilities.Unreachable;
             }
         }
+
+        private static DeclarationModifiers GetOverrideModifiers(ISymbol symbol)
+            => symbol.GetSymbolModifiers()
+                     .WithIsOverride(true)
+                     .WithIsAbstract(false)
+                     .WithIsVirtual(false);
 
         private static async Task<IMethodSymbol> OverrideMethodAsync(
             this SyntaxGenerator codeFactory,
