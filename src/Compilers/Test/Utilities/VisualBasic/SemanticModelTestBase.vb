@@ -60,11 +60,10 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     Private Function FindBindingTextPosition(compilation As Compilation, fileName As String, ByRef bindText As String, Optional which As Integer = 0) As Integer
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
 
-        Dim bindMarker As String
+        Dim bindMarker As String = "'BIND:"""
+
         If which > 0 Then
             bindMarker = "'BIND" & which.ToString() & ":"""
-        Else
-            bindMarker = "'BIND:"""
         End If
 
         Dim text As String = tree.GetRoot().ToFullString()
