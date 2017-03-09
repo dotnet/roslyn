@@ -10,8 +10,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -104,56 +106,63 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private async Task PopulateWorkspaceFromDeferredProjectInfoAsync(
             CancellationToken cancellationToken)
         {
-            // NOTE: We need to check cancellationToken after each await, in case the user has
-            // already closed the solution.
-            AssertIsForeground();
-
-            var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-            var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
-
-            var dte = _serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
-            var solutionConfig = (EnvDTE80.SolutionConfiguration2)dte.Solution.SolutionBuild.ActiveConfiguration;
-
-            OutputToOutputWindow($"Getting project information - start");
-            var start = DateTimeOffset.UtcNow;
-
-            var projectInfos = SpecializedCollections.EmptyReadOnlyDictionary<string, DeferredProjectInformation>();
-
-            // Note that `solutionConfig` may be null. For example: if the solution doesn't actually
-            // contain any projects.
-            if (solutionConfig != null)
+            try
             {
-                // Capture the context so that we come back on the UI thread, and do the actual project creation there.
-                var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
-                projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
-                    $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
-                    cancellationToken).ConfigureAwait(true);
-            }
+                // NOTE: We need to check cancellationToken after each await, in case the user has
+                // already closed the solution.
+                AssertIsForeground();
 
-            AssertIsForeground();
-            cancellationToken.ThrowIfCancellationRequested();
-            OutputToOutputWindow($"Getting project information - done (took {DateTimeOffset.UtcNow - start})");
+                var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+                var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
 
-            OutputToOutputWindow($"Creating projects - start");
-            start = DateTimeOffset.UtcNow;
-            var targetPathsToProjectPaths = BuildTargetPathMap(projectInfos);
-            var analyzerAssemblyLoader = _workspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
-            foreach (var projectFilename in projectInfos.Keys)
-            {
+                var dte = _serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
+                var solutionConfig = (EnvDTE80.SolutionConfiguration2)dte.Solution.SolutionBuild.ActiveConfiguration;
+
+                OutputToOutputWindow($"Getting project information - start");
+                var start = DateTimeOffset.UtcNow;
+
+                var projectInfos = SpecializedCollections.EmptyReadOnlyDictionary<string, DeferredProjectInformation>();
+
+                // Note that `solutionConfig` may be null. For example: if the solution doesn't actually
+                // contain any projects.
+                if (solutionConfig != null)
+                {
+                    // Capture the context so that we come back on the UI thread, and do the actual project creation there.
+                    var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
+                    projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
+                        $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
+                        cancellationToken).ConfigureAwait(true);
+                }
+
+                AssertIsForeground();
                 cancellationToken.ThrowIfCancellationRequested();
-                GetOrCreateProjectFromArgumentsAndReferences(
-                    workspaceProjectContextFactory,
-                    analyzerAssemblyLoader,
-                    projectFilename,
-                    projectInfos,
-                    targetPathsToProjectPaths);
-            }
-            OutputToOutputWindow($"Creating projects - done (took {DateTimeOffset.UtcNow - start})");
+                OutputToOutputWindow($"Getting project information - done (took {DateTimeOffset.UtcNow - start})");
 
-            OutputToOutputWindow($"Pushing to workspace - start");
-            start = DateTimeOffset.UtcNow;
-            FinishLoad();
-            OutputToOutputWindow($"Pushing to workspace - done (took {DateTimeOffset.UtcNow - start})");
+                OutputToOutputWindow($"Creating projects - start");
+                start = DateTimeOffset.UtcNow;
+                var targetPathsToProjectPaths = BuildTargetPathMap(projectInfos);
+                var analyzerAssemblyLoader = _workspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
+                foreach (var projectFilename in projectInfos.Keys)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    GetOrCreateProjectFromArgumentsAndReferences(
+                        workspaceProjectContextFactory,
+                        analyzerAssemblyLoader,
+                        projectFilename,
+                        projectInfos,
+                        targetPathsToProjectPaths);
+                }
+                OutputToOutputWindow($"Creating projects - done (took {DateTimeOffset.UtcNow - start})");
+
+                OutputToOutputWindow($"Pushing to workspace - start");
+                start = DateTimeOffset.UtcNow;
+                FinishLoad();
+                OutputToOutputWindow($"Pushing to workspace - done (took {DateTimeOffset.UtcNow - start})");
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw;
+            }
         }
 
         private static ImmutableDictionary<string, string> BuildTargetPathMap(IReadOnlyDictionary<string, DeferredProjectInformation> projectInfos)
@@ -280,8 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // NOTE: ImmutableProjects might contain projects for other languages like
                 // Xaml, or Typescript where the project file ends up being identical.
                 var referencedProject = ImmutableProjects.SingleOrDefault(
-                    p => (p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
-                         && StringComparer.OrdinalIgnoreCase.Equals(p.ProjectFilePath, projectReferencePath));
+                    p => ProjectMatchesPath(p, projectReferencePath));
                 if (referencedProject == null)
                 {
                     referencedProject = GetOrCreateProjectFromArgumentsAndReferences(
@@ -355,6 +363,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             return (AbstractProject)projectContext;
+        }
+
+        private static bool ProjectMatchesPath(AbstractProject project, string path)
+        {
+            if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+            {
+                return false;
+            }
+
+            if (!StringComparer.OrdinalIgnoreCase.Equals(project.ProjectFilePath, path))
+            {
+                return false;
+            }
+
+            // Note: In Web Application Projects we might have several projects with the same "project file path"
+            // One will be for the project itself, and there will be an additional one for each open aspx/cshtml/vbhtml file.
+            // We only want to match the *main* project, so avoid any projects that have a "Contained" document.
+            return !project.GetCurrentDocuments().Any(doc => doc is ContainedDocument);
         }
 
         private static string GetLanguageOfProject(string projectFilename)
