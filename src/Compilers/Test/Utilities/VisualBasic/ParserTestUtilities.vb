@@ -997,7 +997,7 @@ Public Module VerificationHelpers
 
         Public Function GetCount(Node As String) As Integer
             Dim value As Integer = 0
-            Return  If( _Dict.TryGetValue(Node,value),value,0)n
+            Return  If( _Dict.TryGetValue(Node,value),value,0)
         End Function
 
         Public Function GetItem() As List(Of VisualBasicSyntaxNode)
