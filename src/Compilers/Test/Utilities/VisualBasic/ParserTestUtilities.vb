@@ -550,27 +550,20 @@ Public Module VerificationHelpers
 
     Private Function GetErrorString(id As Integer, message As String, start As String, [end] As String) As String
         Dim errorString As New StringBuilder()
-        errorString.Append(vbTab)
-        errorString.Append("<error id=""")
-        errorString.Append(id)
-        errorString.Append("""")
+        With errorString
+        .Append(vbTab).Append("<error id=""").Append(id).Append("""")
         If message IsNot Nothing Then
-            errorString.Append(" message=""")
-            errorString.Append(message)
-            errorString.Append("""")
+            .Append(" message=""").Append(message).Append("""")
         End If
         If start IsNot Nothing Then
-            errorString.Append(" start=""")
-            errorString.Append(start)
-            errorString.Append("""")
+            .Append(" start=""").Append(start).Append("""")
         End If
         If [end] IsNot Nothing Then
-            errorString.Append(" end=""")
-            errorString.Append([end])
-            errorString.Append("""")
+            .Append(" end=""").Append([end]).Append("""")
         End If
-        errorString.Append("/>")
-        Return errorString.ToString()
+        .Append("/>")
+        Return .ToString()
+        End With
     End Function
 
     Private Function AreErrorsEquivalent(syntaxError As Diagnostic, xmlError As XElement) As Boolean
