@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
+using Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers;
 using Xunit;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Roslyn.Test.Utilities;
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         {
         }
 
-        internal override ISignatureHelpProvider CreateSignatureHelpProvider()
+        internal override SignatureHelpProvider CreateSignatureHelpProvider()
         {
             return new TupleConstructionSignatureHelpProvider();
         }

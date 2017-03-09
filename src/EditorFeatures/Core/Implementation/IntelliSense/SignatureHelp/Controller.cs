@@ -1,17 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
@@ -22,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     {
         private static readonly object s_controllerPropertyKey = new object();
 
-        private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
-        private IList<ISignatureHelpProvider> _providers;
-        private IContentType _lastSeenContentType;
+        private SignatureHelpService _service;
 
         public Controller(
             ITextView textView,
@@ -32,30 +29,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
-            IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
+            SignatureHelpService service = null)
             : base(textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
         {
-            _allProviders = allProviders;
-        }
-
-        // For testing purposes.
-        internal Controller(
-            ITextView textView,
-            ITextBuffer subjectBuffer,
-            IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
-            IAsynchronousOperationListener asyncListener,
-            IDocumentProvider documentProvider,
-            IList<ISignatureHelpProvider> providers)
-            : base(textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
-        {
-            _providers = providers;
+            this._service = service;
         }
 
         internal static Controller GetInstance(
             CommandArgs args,
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
-            IAsynchronousOperationListener asyncListener,
-            IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
+            IAsynchronousOperationListener asyncListener)
         {
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
@@ -63,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 (v, b) => new Controller(v, b,
                     presenter,
                     asyncListener,
-                    new DocumentProvider(),
-                    allProviders));
+                    new DocumentProvider()));
         }
 
         private SnapshotPoint GetCaretPointInViewBuffer()
@@ -98,37 +80,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
         }
 
-        private void StartSession(IList<ISignatureHelpProvider> providers, SignatureHelpTriggerInfo triggerInfo)
+        private void StartSession(SignatureHelpTrigger trigger)
         {
             AssertIsForeground();
             VerifySessionIsInactive();
 
-            this.sessionOpt = new Session(this, Presenter.CreateSession(TextView, SubjectBuffer, null));
-            this.sessionOpt.ComputeModel(providers, triggerInfo);
+            this.sessionOpt = new Session(this, Presenter.CreateSession(TextView, SubjectBuffer, null), _service);
+            this.sessionOpt.ComputeModel(trigger);
         }
 
-        private IList<ISignatureHelpProvider> GetProviders()
+        private SignatureHelpService GetSignatureHelpService()
         {
-            this.AssertIsForeground();
-
-            var snapshot = this.SubjectBuffer.CurrentSnapshot;
-            var currentContentType = snapshot.ContentType;
-
-            // if a file's content-type changes (e.g., File.cs is renamed to File.vb) after the list of providers has been populated, then we need to re-filter
-            if (_providers == null || currentContentType != _lastSeenContentType)
+            Workspace workspace;
+            if (!Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
             {
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document != null)
-                {
-                    _providers = document.Project.LanguageServices.WorkspaceServices.SelectMatchingExtensionValues(_allProviders, this.SubjectBuffer.ContentType);
-                    _lastSeenContentType = currentContentType;
-                }
+                Trace.WriteLine("Failed to get a workspace, cannot have a signature help service.");
+                return null;
             }
 
-            return _providers;
+            return workspace.Services.GetLanguageServices(this.SubjectBuffer).GetService<SignatureHelpService>();
         }
 
-        private void Retrigger()
+        private OptionSet GetOptions()
+        {
+            AssertIsForeground();
+
+            Workspace workspace;
+            if (!Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
+            {
+                return null;
+            }
+
+            return workspace.Options;
+        }
+
+        private void Update()
         {
             AssertIsForeground();
             if (!IsSessionActive)
@@ -142,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return;
             }
 
-            sessionOpt.ComputeModel(GetProviders(), new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.RetriggerCommand));
+            sessionOpt.ComputeModel(SignatureHelpTrigger.CreateUpdateTrigger());
         }
     }
 }

@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         public int ArgumentCount { get; }
         public string ArgumentName { get; }
         public int? SelectedParameter { get; }
-        public ISignatureHelpProvider Provider { get; }
+        public SignatureList OriginalList { get; }
 
         public Model(
             DisconnectedBufferGraph disconnectedBufferGraph,
             TextSpan textSpan,
-            ISignatureHelpProvider provider,
+            SignatureList originalList,
             IList<SignatureHelpItem> items,
             SignatureHelpItem selectedItem,
             int argumentIndex,
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             _disconnectedBufferGraph = disconnectedBufferGraph;
             this.TextSpan = textSpan;
             this.Items = items;
-            this.Provider = provider;
+            this.OriginalList = originalList;
             this.SelectedItem = selectedItem;
             this.ArgumentIndex = argumentIndex;
             this.ArgumentCount = argumentCount;
@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         {
             return selectedItem == this.SelectedItem
                 ? this
-                : new Model(_disconnectedBufferGraph, TextSpan, Provider, Items, selectedItem, ArgumentIndex, ArgumentCount, ArgumentName, SelectedParameter);
+                : new Model(_disconnectedBufferGraph, TextSpan, OriginalList, Items, selectedItem, ArgumentIndex, ArgumentCount, ArgumentName, SelectedParameter);
         }
 
         public Model WithSelectedParameter(int? selectedParameter)
         {
             return selectedParameter == this.SelectedParameter
                 ? this
-                : new Model(_disconnectedBufferGraph, TextSpan, Provider, Items, SelectedItem, ArgumentIndex, ArgumentCount, ArgumentName, selectedParameter);
+                : new Model(_disconnectedBufferGraph, TextSpan, OriginalList, Items, SelectedItem, ArgumentIndex, ArgumentCount, ArgumentName, selectedParameter);
         }
 
         public SnapshotSpan GetCurrentSpanInSubjectBuffer(ITextSnapshot bufferSnapshot)

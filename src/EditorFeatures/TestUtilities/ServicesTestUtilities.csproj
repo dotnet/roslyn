@@ -197,6 +197,7 @@
     <Compile Include="ServiceTestExportProvider.cs" />
     <Compile Include="SignatureHelp\AbstractSignatureHelpProviderTests.cs" />
     <Compile Include="SignatureHelp\SignatureHelpTestItem.cs" />
+    <Compile Include="SignatureHelp\TestSignatureHelpService.cs" />
     <Compile Include="Squiggles\AbstractSquiggleProducerTests.cs" />
     <Compile Include="Structure\AbstractSyntaxNodeStructureProviderTests.cs" />
     <Compile Include="Structure\AbstractSyntaxStructureProviderTests.cs" />

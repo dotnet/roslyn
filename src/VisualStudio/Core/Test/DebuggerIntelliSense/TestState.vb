@@ -44,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
         Private Sub New(workspaceElement As XElement,
                         extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
-                        extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
+                        extraSignatureHelpProviders As IEnumerable(Of Lazy(Of SignatureHelpProvider, OrderableLanguageMetadata)),
                         isImmediateWindow As Boolean)
 
             MyBase.New(
@@ -62,6 +62,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 completionService.SetTestProviders(extraCompletionProviders.Select(Function(lz) lz.Value).ToList())
             End If
 
+            If extraSignatureHelpProviders IsNot Nothing Then
+                Dim signatureHelpService = DirectCast(languageServices.GetService(Of SignatureHelpService), CommonSignatureHelpService)
+                signatureHelpService.SetTestProviders(extraSignatureHelpProviders.Select(Function(lz) lz.Value).ToList(), augmentBuiltInProviders:=True)
+            End If
+
             Me.AsyncCompletionService = New AsyncCompletionService(
                 GetService(Of IEditorOperationsFactoryService)(),
                 UndoHistoryRegistry,
@@ -75,7 +80,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Me.SignatureHelpCommandHandler = New SignatureHelpCommandHandler(
                 GetService(Of IInlineRenameService)(),
                 New TestSignatureHelpPresenter(Me),
-                GetExports(Of ISignatureHelpProvider, OrderableLanguageMetadata)().Concat(extraSignatureHelpProviders),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)())
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
@@ -128,7 +132,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 documentElement As XElement,
                 isImmediateWindow As Boolean,
                 Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing) As TestState
+                Optional extraSignatureHelpProviders As SignatureHelpProvider() = Nothing) As TestState
 
             Return New TestState(documentElement,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
@@ -140,7 +144,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 workspaceElement As XElement,
                 isImmediateWindow As Boolean,
                 Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing) As TestState
+                Optional extraSignatureHelpProviders As SignatureHelpProvider() = Nothing) As TestState
 
             Return New TestState(
                 workspaceElement,
@@ -358,7 +362,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End If
 
             If documentation IsNot Nothing Then
-                Assert.Equal(documentation, Me.CurrentSignatureHelpPresenterSession.SelectedItem.DocumentationFactory(CancellationToken.None).GetFullText())
+                Dim document = Me.CurrentSignatureHelpPresenterSession.Document
+                Dim service = SignatureHelpService.GetService(document)
+                Dim actualDocumentation = service.GetItemDocumentationAsync(document, Me.CurrentSignatureHelpPresenterSession.SelectedItem).Result.GetFullText()
+                Assert.Equal(documentation, actualDocumentation)
             End If
 
             If selectedParameter IsNot Nothing Then

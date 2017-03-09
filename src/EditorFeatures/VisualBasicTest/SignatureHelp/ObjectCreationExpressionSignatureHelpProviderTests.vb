@@ -3,7 +3,7 @@
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.SignatureHelp
-Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
+Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
+        Friend Overrides Function CreateSignatureHelpProvider() As SignatureHelpProvider
             Return New ObjectCreationExpressionSignatureHelpProvider()
         End Function
 

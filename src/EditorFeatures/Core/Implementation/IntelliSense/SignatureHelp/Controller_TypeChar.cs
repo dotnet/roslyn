@@ -1,11 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
@@ -22,13 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         void ICommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
         {
             AssertIsForeground();
-
-            var allProviders = GetProviders();
-            if (allProviders == null)
-            {
-                nextHandler();
-                return;
-            }
 
             // Note: while we're doing this, we don't want to hear about buffer changes (since we
             // know they're going to happen).  So we disconnect and reconnect to the event
@@ -63,28 +57,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return;
             }
 
-            // Separate the sig help providers into two buckets; one bucket for those that were triggered
-            // by the typed character, and those that weren't.  To keep our queries to a minimum, we first
-            // check with the textually triggered providers.  If none of those produced any sig help items
-            // then we query the other providers to see if they can produce anything viable.  This takes
-            // care of cases where the filtered set of providers didn't provide anything but one of the
-            // other providers could still be valid, but doesn't explicitly treat the typed character as
-            // a trigger character.
-            var filteredProviders = FilterProviders(allProviders, args.TypedChar);
-            var textuallyTriggeredProviders = filteredProviders.Item1;
-            var untriggeredProviders = filteredProviders.Item2;
-            var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.TypeCharCommand, args.TypedChar);
+            var service = GetSignatureHelpService();
+            if (service == null)
+            {
+                return;
+            }
 
-            if (!IsSessionActive)
+            var options = GetOptions();
+
+            if (IsSessionActive)
+            {
+                // We already have a session. Update our model
+                sessionOpt.ComputeModel(SignatureHelpTrigger.CreateUpdateTrigger());
+            }
+            else
             {
                 // No computation at all.  If this is not a trigger character, we just ignore it and
                 // stay in this state.  Otherwise, if it's a trigger character, start up a new
                 // computation and start computing the model in the background.
-                if (textuallyTriggeredProviders.Any())
+                if (IsTextualTriggerCharacter(service, args.TypedChar, options))
                 {
                     // First create the session that represents that we now have a potential 
                     // signature help list. Then tell it to start computing.
-                    StartSession(textuallyTriggeredProviders, triggerInfo);
+                    StartSession(SignatureHelpTrigger.CreateInsertionTrigger(args.TypedChar));
                     return;
                 }
                 else
@@ -93,56 +88,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     return;
                 }
             }
-            else
-            {
-                var computed = false;
-                if (allProviders.Any(p => p.IsRetriggerCharacter(args.TypedChar)))
-                {
-                    // The user typed a character that might close the scope of the current model.
-                    // In this case, we should requery all providers.
-                    //
-                    // e.g.     Math.Max(Math.Min(1,2)$$
-                    sessionOpt.ComputeModel(allProviders, new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.RetriggerCommand, triggerInfo.TriggerCharacter));
-                    computed = true;
-                }
-
-                if (textuallyTriggeredProviders.Any())
-                {
-                    // The character typed was something like "(".  It can both filter a list if
-                    // it was in a string like: Foo(bar, "(
-                    //
-                    // Or it can trigger a new list. Ask the computation to compute again.
-                    sessionOpt.ComputeModel(textuallyTriggeredProviders, untriggeredProviders, triggerInfo);
-                    computed = true;
-                }
-
-                if (!computed)
-                {
-                    // A character was typed and we haven't updated our model; do so now.
-                    sessionOpt.ComputeModel(allProviders, new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.RetriggerCommand));
-                }
-            }
         }
 
-        private Tuple<List<ISignatureHelpProvider>, List<ISignatureHelpProvider>> FilterProviders(IList<ISignatureHelpProvider> providers, char ch)
+        private bool IsTextualTriggerCharacter(SignatureHelpService signatureHelpService, char ch, OptionSet options)
         {
             AssertIsForeground();
 
-            var matchedProviders = new List<ISignatureHelpProvider>();
-            var unmatchedProviders = new List<ISignatureHelpProvider>();
-            foreach (var provider in providers)
-            {
-                if (provider.IsTriggerCharacter(ch))
-                {
-                    matchedProviders.Add(provider);
-                }
-                else
-                {
-                    unmatchedProviders.Add(provider);
-                }
-            }
+            // Note: When this function is called we've already guaranteed that
+            // TypeCharWasHandledStrangely returned false.  That means we know that the caret is in
+            // our buffer, and is after the character just typed.
 
-            return Tuple.Create(matchedProviders, unmatchedProviders);
+            var caretPosition = this.TextView.GetCaretPoint(this.SubjectBuffer).Value;
+            var previousPosition = caretPosition - 1;
+            Contract.ThrowIfFalse(this.SubjectBuffer.CurrentSnapshot[previousPosition] == ch);
+
+            var trigger = SignatureHelpTrigger.CreateInsertionTrigger(ch);
+            return signatureHelpService.ShouldTriggerSignatureHelp(
+                this.SubjectBuffer.CurrentSnapshot.AsText(), caretPosition, trigger, options);
         }
     }
 }

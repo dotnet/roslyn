@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
+using Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         {
         }
 
-        internal override ISignatureHelpProvider CreateSignatureHelpProvider()
+        internal override SignatureHelpProvider CreateSignatureHelpProvider()
         {
             return new InvocationExpressionSignatureHelpProvider();
         }
@@ -1915,7 +1915,7 @@ class Foo
             await TestAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task MethodOverloadDifferencesIgnored()
         {
             var markup = @"<Workspace>

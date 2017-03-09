@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
     {
         protected TWorkspaceFixture workspaceFixture;
 
-        internal abstract ISignatureHelpProvider CreateSignatureHelpProvider();
+        internal abstract SignatureHelpProvider CreateSignatureHelpProvider();
 
         protected AbstractSignatureHelpProviderTests(TWorkspaceFixture workspaceFixture)
         {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         private void VerifyTriggerCharactersWorker(char[] expectedTriggerCharacters, char[] unexpectedTriggerCharacters, SourceCodeKind sourceCodeKind)
         {
-            ISignatureHelpProvider signatureHelpProvider = CreateSignatureHelpProvider();
+            var signatureHelpProvider = CreateSignatureHelpProvider();
 
             foreach (var expectedTriggerCharacter in expectedTriggerCharacters)
             {
@@ -160,28 +160,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             }
         }
 
-        private static async Task<SignatureHelpState> GetArgumentStateAsync(int cursorPosition, Document document, ISignatureHelpProvider signatureHelpProvider, SignatureHelpTriggerInfo triggerInfo)
+        private static async Task<SignatureHelpState> GetArgumentStateAsync(SignatureHelpProvider provider, Document document, int position, SignatureHelpTrigger trigger)
         {
-            var items = await signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, CancellationToken.None);
-            return items == null ? null : new SignatureHelpState(items.ArgumentIndex, items.ArgumentCount, items.ArgumentName, null);
+            var context = new SignatureContext(provider, document, position, trigger, document.Project.Solution.Workspace.Options, CancellationToken.None);
+            await provider.ProvideSignaturesAsync(context);
+
+            var signatureList = context.ToSignatureList();
+
+            return signatureList != null
+                ? new SignatureHelpState(signatureList.ArgumentIndex, signatureList.ArgumentCount, signatureList.ArgumentName, null)
+                : null;
         }
 
         private async Task VerifyCurrentParameterNameWorkerAsync(string markup, string expectedParameterName, SourceCodeKind sourceCodeKind)
         {
             string code;
-            int cursorPosition;
-            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out code, out cursorPosition);
+            int position;
+            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out code, out position);
 
             var document = workspaceFixture.UpdateDocument(code, sourceCodeKind);
 
-            var signatureHelpProvider = CreateSignatureHelpProvider();
-            var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
-            var items = await signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, CancellationToken.None);
-            Assert.Equal(expectedParameterName, (await GetArgumentStateAsync(cursorPosition, document, signatureHelpProvider, triggerInfo)).ArgumentName);
+            var provider = CreateSignatureHelpProvider();
+            var trigger = SignatureHelpTrigger.Default;
+
+            Assert.Equal(expectedParameterName, (await GetArgumentStateAsync(provider, document, position, trigger)).ArgumentName);
         }
 
         private void CompareAndAssertCollectionsAndCurrentParameter(
-            IEnumerable<SignatureHelpTestItem> expectedTestItems, SignatureHelpItems actualSignatureHelpItems, ISignatureHelpProvider signatureHelpProvider, Document document, int cursorPosition)
+            IEnumerable<SignatureHelpTestItem> expectedTestItems, SignatureList actualSignatureHelpItems, SignatureHelpProvider signatureHelpProvider, Document document, int cursorPosition)
         {
             Assert.Equal(expectedTestItems.Count(), actualSignatureHelpItems.Items.Count());
 
@@ -199,10 +205,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         }
 
         private void CompareSigHelpItemsAndCurrentPosition(
-            SignatureHelpItems items,
+            SignatureList items,
             SignatureHelpItem actualSignatureHelpItem,
             SignatureHelpTestItem expectedTestItem,
-            ISignatureHelpProvider signatureHelpProvider,
+            SignatureHelpProvider signatureHelpProvider,
             Document document,
             int cursorPosition,
             TextSpan applicableSpan)
@@ -216,7 +222,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 }
             }
 
-            var signature = new Signature(applicableToSpan: null, signatureHelpItem: actualSignatureHelpItem, selectedParameterIndex: currentParameterIndex);
+            var service = new TestSignatureHelpService(signatureHelpProvider);
+            var signature = new Signature(applicableToSpan: null, signatureHelpItem: actualSignatureHelpItem, selectedParameterIndex: currentParameterIndex, signatureHelpService: service, document: document);
 
             // We're a match if the signature matches...
             // We're now combining the signature and documentation to make classification work.
@@ -236,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
             if (expectedTestItem.MethodDocumentation != null)
             {
-                Assert.Equal(expectedTestItem.MethodDocumentation, actualSignatureHelpItem.DocumentationFactory(CancellationToken.None).GetFullText());
+                Assert.Equal(expectedTestItem.MethodDocumentation, signatureHelpProvider.GetItemDocumentationAsync(document, actualSignatureHelpItem, CancellationToken.None).Result.GetFullText());
             }
 
             if (expectedTestItem.ParameterDocumentation != null)
@@ -375,47 +382,49 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         private async Task TestSignatureHelpWorkerSharedAsync(
             string code,
-            int cursorPosition,
+            int position,
             SourceCodeKind sourceCodeKind,
             Document document,
             TextSpan? textSpan,
             IEnumerable<SignatureHelpTestItem> expectedOrderedItemsOrNull = null,
             bool usePreviousCharAsTrigger = false)
         {
-            var signatureHelpProvider = CreateSignatureHelpProvider();
-            var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
+            var provider = CreateSignatureHelpProvider();
+            var trigger = SignatureHelpTrigger.Default;
 
             if (usePreviousCharAsTrigger)
             {
-                triggerInfo = new SignatureHelpTriggerInfo(
-                    SignatureHelpTriggerReason.TypeCharCommand,
-                    code.ElementAt(cursorPosition - 1));
+                trigger = SignatureHelpTrigger.CreateInsertionTrigger(code.ElementAt(position - 1));
 
-                if (!signatureHelpProvider.IsTriggerCharacter(triggerInfo.TriggerCharacter.Value))
+                if (!provider.IsTriggerCharacter(trigger.Character))
                 {
                     return;
                 }
             }
 
-            var items = await signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, CancellationToken.None);
+            var context = new SignatureContext(provider, document, position, trigger, document.Project.Solution.Workspace.Options, CancellationToken.None);
+
+            await provider.ProvideSignaturesAsync(context);
+
+            var signatureList = context.ToSignatureList();
 
             // If we're expecting 0 items, then there's no need to compare them
-            if ((expectedOrderedItemsOrNull == null || !expectedOrderedItemsOrNull.Any()) && items == null)
+            if ((expectedOrderedItemsOrNull == null || !expectedOrderedItemsOrNull.Any()) && signatureList.Items.Length == 0)
             {
                 return;
             }
 
-            AssertEx.NotNull(items, "Signature help provider returned null for items. Did you forget $$ in the test or is the test otherwise malformed, e.g. quotes not escaped?");
+            AssertEx.NotNull(signatureList, "Signature help provider returned null for items. Did you forget $$ in the test or is the test otherwise malformed, e.g. quotes not escaped?");
 
             // Verify the span
             if (textSpan != null)
             {
-                Assert.Equal(textSpan, items.ApplicableSpan);
+                Assert.Equal(textSpan, signatureList.ApplicableSpan);
             }
 
             if (expectedOrderedItemsOrNull != null)
             {
-                CompareAndAssertCollectionsAndCurrentParameter(expectedOrderedItemsOrNull, items, signatureHelpProvider, document, cursorPosition);
+                CompareAndAssertCollectionsAndCurrentParameter(expectedOrderedItemsOrNull, signatureList, provider, document, position);
             }
         }
 

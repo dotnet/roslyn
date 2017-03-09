@@ -3,7 +3,8 @@
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.SignatureHelp
-Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
+Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
+Imports Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class FunctionAggregationSignatureHelpProviderTests
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
+        Friend Overrides Function CreateSignatureHelpProvider() As SignatureHelpProvider
             Return New FunctionAggregationSignatureHelpProvider()
         End Function
 

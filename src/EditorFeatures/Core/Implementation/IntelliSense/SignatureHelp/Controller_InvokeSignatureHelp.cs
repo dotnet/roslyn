@@ -19,13 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             AssertIsForeground();
             DismissSessionIfActive();
 
-            var providers = GetProviders();
-            if (providers == null)
-            {
-                return;
-            }
-
-            this.StartSession(providers, new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand));
+            this.StartSession(SignatureHelpTrigger.Default);
         }
     }
 }

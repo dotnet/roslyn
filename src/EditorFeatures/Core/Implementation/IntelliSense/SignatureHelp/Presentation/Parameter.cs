@@ -5,22 +5,23 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation
 {
     internal class Parameter : IParameter
     {
+        private readonly Signature _signature;
         private readonly SignatureHelpParameter _parameter;
         private string _documentation;
         private readonly int _contentLength;
         private readonly int _index;
         private readonly int _prettyPrintedIndex;
 
-        public string Documentation => _documentation ?? (_documentation = _parameter.DocumentationFactory(CancellationToken.None).GetFullText());
         public string Name => _parameter.Name;
         public Span Locus => new Span(_index, _contentLength);
         public Span PrettyPrintedLocus => new Span(_prettyPrintedIndex, _contentLength);
-        public ISignature Signature { get; }
+        public ISignature Signature => _signature;
 
         public Parameter(
             Signature signature,
@@ -29,11 +30,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             int index,
             int prettyPrintedIndex)
         {
+            _signature = signature;
             _parameter = parameter;
-            this.Signature = signature;
             _contentLength = content.Length;
             _index = index;
             _prettyPrintedIndex = prettyPrintedIndex;
+        }
+
+        public string Documentation
+        {
+            get
+            {
+                if (_documentation == null)
+                {
+                    _documentation = _signature.Service.GetParameterDocumentationAsync(_signature.Document, _parameter, CancellationToken.None).Result.GetFullText();
+                }
+
+                return _documentation;
+            }
         }
     }
 }
