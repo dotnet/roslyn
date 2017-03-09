@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
             ParseOptions parseOptions)
         {
             var parameters = new TestParameters(parseOptions: parseOptions);
-            using (var workspace = await CreateWorkspaceFromOptionsAsync(initialMarkup, parameters))
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var actions = await GetCodeActionsAsync(workspace, parameters);
                 var operations = await VerifyInputsAndGetOperationsAsync(index, actions, priority: null);
