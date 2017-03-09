@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.GenerateOverrides), Shared]
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers)]
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers)]
+    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
     internal partial class GenerateOverridesCodeRefactoringProvider : CodeRefactoringProvider
     {
         private readonly IPickMembersService _pickMembersService_forTestingPurposes;
