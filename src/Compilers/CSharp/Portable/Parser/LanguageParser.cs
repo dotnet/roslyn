@@ -7347,14 +7347,21 @@ tryAgain:
                 statement = SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
             }
 
-            // An "embedded" statement is simply a statement that is not a labelled
-            // statement or a declaration statement.
             switch (statement.Kind)
             {
+                // An "embedded" statement is simply a statement that is not a labelled
+                // statement or a declaration statement.
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.LocalFunctionStatement:
                     statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
+                    break;
+                // Expression statements as embedded statements should be followed by semicolon.
+                case SyntaxKind.ExpressionStatement:
+                    if (((ExpressionStatementSyntax)statement).SemicolonToken.IsMissing)
+                    {
+                        statement = this.AddError(statement, ErrorCode.ERR_SemicolonExpected);
+                    }
                     break;
             }
 

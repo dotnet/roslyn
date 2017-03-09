@@ -179,6 +179,35 @@ d.Do()"
         }
 
         [Fact]
+        public void TestRunEmbeddedStatementNotFollowedBySemicolon()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                var state = CSharpScript.RunAsync(@"
+ if (true)
+ System.Console.WriteLine(true)", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_SemicolonExpected, "System.Console.WriteLine(true)").WithLocation(3, 2));
+            }
+
+             Assert.True(exceptionThrown);
+        }
+
+        [Fact]
+        public void TestRunEmbeddedStatementFollowedBySemicolon()
+        {
+            var state = CSharpScript.RunAsync(@"
+if (true)
+System.Console.WriteLine(true);", globals: new ScriptTests());
+            Assert.Null(state.Exception);
+        }
+
+        [Fact]
         public async Task TestRunScriptWithGlobals()
         {
             var state = await CSharpScript.RunAsync("X + Y", globals: new Globals { X = 1, Y = 2 });
