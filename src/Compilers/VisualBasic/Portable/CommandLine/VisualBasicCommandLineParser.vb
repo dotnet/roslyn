@@ -462,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If String.IsNullOrEmpty(unquoted) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file>")
                             Else
-                                errorLogPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory)
+                                outputRefFileName = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory)
                             End If
                             Continue For
 
