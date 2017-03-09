@@ -567,37 +567,35 @@ Public Module VerificationHelpers
     End Function
 
     Private Function AreErrorsEquivalent(syntaxError As Diagnostic, xmlError As XElement) As Boolean
-        Dim areEquivalent As Boolean = True
-
         Dim id = xmlError.@id
         If id IsNot Nothing Then
             If CInt(id) <> syntaxError.Code Then
-                areEquivalent = False
+                Return False
             End If
         Else
             Throw New ArgumentException("The 'id' attribute is required for all errors")
         End If
         Dim message = xmlError.@message
         If message IsNot Nothing AndAlso message <> syntaxError.GetMessage(EnsureEnglishUICulture.PreferredOrNull) Then
-            areEquivalent = False
+            return False
         End If
 
         Dim syntaxErrorSpan = syntaxError.Location.SourceSpan
 
         Dim spanStart = xmlError.@start
         If spanStart IsNot Nothing AndAlso CInt(spanStart) <> syntaxErrorSpan.Start Then
-            areEquivalent = False
+            return False
         End If
         Dim spanEnd = xmlError.@end
         If spanEnd IsNot Nothing AndAlso CInt(spanEnd) <> syntaxErrorSpan.End Then
-            areEquivalent = False
+            return False
         End If
         Dim spanLength = xmlError.@length
         If spanLength IsNot Nothing AndAlso CInt(spanLength) <> syntaxErrorSpan.Length Then
-            areEquivalent = False
+            return False
         End If
 
-        Return areEquivalent
+        Return True
     End Function
 
     Private Sub VerifyContainsErrors(node As SyntaxNodeOrToken, tree As SyntaxTree,
