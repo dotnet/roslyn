@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
         private async Task TestAsync(
             string initialMarkup,
             LanguageVersion expected,
-            int index,
-            ParseOptions parseOptions)
+            ParseOptions parseOptions,
+            int index = 0)
         {
             var parameters = new TestParameters(parseOptions: parseOptions);
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
@@ -51,9 +51,8 @@ class Program
         var x = [|(1, 2)|];
     }
 }",
-LanguageVersion.Default,
-0,
-new CSharpParseOptions(LanguageVersion.CSharp6));
+                LanguageVersion.Default,
+                new CSharpParseOptions(LanguageVersion.CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
@@ -68,9 +67,11 @@ class Program
         var x = [|(1, 2)|];
     }
 }",
-LanguageVersion.CSharp7,
-1,
-new CSharpParseOptions(LanguageVersion.CSharp6));
+                LanguageVersion.CSharp7,
+                new CSharpParseOptions(LanguageVersion.CSharp6),
+                index: 1);
         }
+
+        // PROTOTYPE add test for Fix All
     }
 }

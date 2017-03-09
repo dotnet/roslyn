@@ -118,10 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Version = version;
         }
 
-        public override string ToString()
-        {
-            return Version.ToDisplayString();
-        }
+        public override string ToString() => Version.ToDisplayString();
     }
 
     public static class LanguageVersionExtensions

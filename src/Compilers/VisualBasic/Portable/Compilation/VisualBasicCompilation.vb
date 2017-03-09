@@ -2735,7 +2735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The driving scenario for this API (upgrading project based on language versions reported in diagnostics)
             ' is not supported in VB at this point
             ' See https://github.com/dotnet/roslyn/issues/17173
-            Throw New NotSupportedException()
+            Return Nothing
         End Function
 
 #End Region

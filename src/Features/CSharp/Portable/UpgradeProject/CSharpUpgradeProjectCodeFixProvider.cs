@@ -22,9 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         private const string CS8026 = nameof(CS8026); // error CS8026: Feature is not available in C# 5.  Please use language version X or greater.
         private const string CS8059 = nameof(CS8059); // error CS8059: Feature is not available in C# 6.  Please use language version X or greater.
 
-        private static readonly ImmutableArray<string> s_diagnostics =
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS8022, CS8023, CS8024, CS8025, CS8026, CS8059);
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = s_diagnostics;
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;
         public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0;
@@ -74,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             }
             else
             {
+                // when fixing all projects in a solution, don't downgrade those with newer language versions
                 return project.Solution;
             }
         }

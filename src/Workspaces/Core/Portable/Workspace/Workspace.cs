@@ -1196,10 +1196,11 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
+            // Currently, only changes to the LanguageVersion of parse options are supported.
             var newLanguageVersion = parseOptionsService.GetLanguageVersion(newOptions);
             var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
 
-            return newOptions == updated; // is LanguageVersion the only difference between oldOptions and newOptions?
+            return newOptions == updated;
         }
 
         /// <summary>

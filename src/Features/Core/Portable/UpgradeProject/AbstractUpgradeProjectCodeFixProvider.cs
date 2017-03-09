@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 {
     internal abstract partial class AbstractUpgradeProjectCodeFixProvider : CodeFixProvider
     {
+        public abstract ImmutableArray<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics);
+        public abstract Solution UpgradeProject(Project project, string version);
+        public abstract string UpgradeThisProjectResource { get; }
+        public abstract string UpgradeAllProjectsResource { get; }
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostics = context.Diagnostics;
@@ -34,19 +39,19 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
             {
                 var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, newVersion);
 
-                CodeAction fixOneProject = new ParseOptionsChangeAction(fixOneProjectTitle,
-                    ct => Task.FromResult(UpgradeProject(project, newVersion)));
+                var fixOneProject = new ParseOptionsChangeAction(fixOneProjectTitle,
+                    _ => Task.FromResult(UpgradeProject(project, newVersion)));
 
                 result.Add(fixOneProject);
             }
 
-            if (solution.Projects.Count(p => CouldBeUpgraded(p, language)) > 1)
+            if (solution.Projects.Count(p => p.Language == language) > 1)
             {
                 foreach (var newVersion in newVersions)
                 {
                     var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, newVersion);
 
-                    CodeAction fixAllProjects = new ParseOptionsChangeAction(fixAllProjectsTitle,
+                    var fixAllProjects = new ParseOptionsChangeAction(fixAllProjectsTitle,
                         ct => Task.FromResult(UpgradeAllProjects(solution, language, newVersion, ct)));
 
                     result.Add(fixAllProjects);
@@ -62,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
             foreach (var project in solution.Projects)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (CouldBeUpgraded(project, language))
+                if (project.Language == language)
                 {
                     currentSolution = UpgradeProject(currentSolution.GetProject(project.Id), version);
                 }
@@ -70,30 +75,16 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 
             return currentSolution;
         }
-
-        public bool CouldBeUpgraded(Project project, string language)
-        {
-            return project.Language == language;
-        }
-
-        public abstract ImmutableArray<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics);
-
-        public abstract string UpgradeThisProjectResource { get; }
-        public abstract Solution UpgradeProject(Project project, string version);
-
-        public abstract string UpgradeAllProjectsResource { get; }
     }
 
     internal class ParseOptionsChangeAction : SolutionChangeAction
     {
-        public ParseOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey = null)
-            : base(title, createChangedSolution, equivalenceKey)
+        public ParseOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+            : base(title, createChangedSolution, equivalenceKey: null)
         {
         }
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-        {
-            return Task.FromResult(Enumerable.Empty<CodeActionOperation>());
-        }
+            => Task.FromResult(Enumerable.Empty<CodeActionOperation>());
     }
 }
