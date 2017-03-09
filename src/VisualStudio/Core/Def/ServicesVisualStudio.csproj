@@ -194,7 +194,6 @@
     <Compile Include="Telemetry\ProjectTypeLookupService.cs" />
     <Compile Include="Telemetry\ProjectTelemetryIncrementalAnalyzerProvider.cs" />
     <Compile Include="Telemetry\RoslynTelemetrySetup.cs" />
-    <Compile Include="Telemetry\VSTelemetryActivityLogger.cs" />
     <Compile Include="Telemetry\VSTelemetryCache.cs" />
     <Compile Include="Telemetry\VSTelemetryLogger.cs" />
     <Compile Include="Utilities\IVsEditorAdaptersFactoryServiceExtensions.cs" />
