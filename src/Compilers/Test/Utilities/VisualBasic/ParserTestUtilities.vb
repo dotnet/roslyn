@@ -817,11 +817,8 @@ Public Module VerificationHelpers
             Next
         End If
         If node.Parent IsNot Nothing Then
-            Assert.True(node.SpanStart >= node.Parent.SpanStart AndAlso
-                        node.Span.End <= node.Parent.Span.End, "Span of child (" &
-                        node.Kind().ToString & node.Span.ToString &
-                        ") is not within span of parent (" &
-                        node.Parent.Kind.ToString & node.Parent.Span.ToString & ")")
+            Assert.True(node.SpanStart >= node.Parent.SpanStart AndAlso node.Span.End <= node.Parent.Span.End,
+                        $"Span of child ({node.Kind().ToString & node.Span.ToString}) is not within span of parent ({node.Parent.Kind.ToString & node.Parent.Span.ToString })")
         End If
     End Sub
 
@@ -839,7 +836,7 @@ Public Module VerificationHelpers
             MyBase.New(depth)
         End Sub
 
-        Public _Dict As New Dictionary(Of String, Integer)
+        Public _Dict As New Concurrent.ConcurrentDictionary(Of String, Integer)
         Public ReadOnly _Items As New List(Of VisualBasicSyntaxNode)
 
         Public Overrides Sub VisitForBlock(node As ForBlockSyntax)
@@ -986,13 +983,11 @@ Public Module VerificationHelpers
             MyBase.VisitXmlBracketedName(node)
         End Sub
 
+
+        Private Shared Update As Func(Of String,Integer,Integer)=Function(key,value) value +1
         Public Sub IncrementTypeCounter(Node As VisualBasicSyntaxNode, NodeKey As String)
             _Items.Add(Node)
-            If _Dict.ContainsKey(NodeKey) Then
-                _Dict(NodeKey) = _Dict(NodeKey) + 1 'Increment Count
-            Else
-                _Dict.Add(NodeKey, 1) ' New Item
-            End If
+            _Dict.AddOrUpdate(NodeKey,1,Update)
         End Sub
 
         Public Function GetCount(Node As String) As Integer
