@@ -93,9 +93,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     End Function
 
     Protected Function GetStartSpanErrorMessage(syntax As SyntaxNode, tpSymbol As ISymbol) As String
-        Return "    Syntax.SpanStart : " & syntax.SpanStart &
-               "    Location1.SourceSpan.Start : " & tpSymbol.Locations.Item(0).SourceSpan.Start &
-               "    Location2.SourceSpan.Start : " & tpSymbol.Locations.Item(0).SourceSpan.Start
+        Return $"    Syntax.SpanStart : {syntax.SpanStart}    Location1.SourceSpan.Start : {tpSymbol.Locations.Item(0).SourceSpan.Start}    Location2.SourceSpan.Start : {tpSymbol.Locations.Item(0).SourceSpan.Start}"
     End Function
 
     Friend Function GetAliasInfoForTest(compilation As Compilation, fileName As String, Optional which As Integer = 0) As AliasSymbol
@@ -130,7 +128,15 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
         Return binding.LookupNames(FindBindingTextPosition(compilation, "a.vb"), container).ToList()
     End Function
 
-    Friend Function GetLookupSymbols(compilation As Compilation, filename As String, Optional container As NamespaceOrTypeSymbol = Nothing, Optional name As String = Nothing, Optional arity As Integer? = Nothing, Optional includeReducedExtensionMethods As Boolean = False, Optional mustBeStatic As Boolean = False) As List(Of ISymbol)
+    Friend Function GetLookupSymbols(
+                                      compilation As Compilation,
+                                      filename As String,
+                             Optional container As NamespaceOrTypeSymbol = Nothing,
+                             Optional name As String = Nothing,
+                             Optional arity As Integer? = Nothing,
+                             Optional includeReducedExtensionMethods As Boolean = False,
+                             Optional mustBeStatic As Boolean = False
+                                    ) As List(Of ISymbol)
         Debug.Assert(Not includeReducedExtensionMethods OrElse Not mustBeStatic)
 
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = filename).Single()
@@ -138,11 +144,10 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
 
         Dim anyArity = Not arity.HasValue
         Dim position = FindBindingTextPosition(compilation, "a.vb")
-        Return If(
-            mustBeStatic,
-            binding.LookupStaticMembers(position, container, name),
-            binding.LookupSymbols(position, container, name, includeReducedExtensionMethods)
-            ).Where(Function(s) anyArity OrElse DirectCast(s, Symbol).GetArity() = arity.Value).ToList()
+        Return If( mustBeStatic,
+                   binding.LookupStaticMembers(position, container, name),
+                   binding.LookupSymbols(position, container, name, includeReducedExtensionMethods)
+                 ).Where(Function(s) anyArity OrElse DirectCast(s, Symbol).GetArity() = arity.Value).ToList()
     End Function
 
 End Class
