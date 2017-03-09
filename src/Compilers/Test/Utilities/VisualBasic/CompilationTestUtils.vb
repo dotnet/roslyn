@@ -540,36 +540,52 @@ Friend Module CompilationUtils
         Dim semanticModel = DirectCast(model, VBSemanticModel)
         Dim symbolInfo As SymbolInfo
         If TypeOf node Is ExpressionSyntax Then
-            symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, ExpressionSyntax))
-            summary.MemberGroup = semanticModel.GetMemberGroup(DirectCast(node, ExpressionSyntax))
-            summary.ConstantValue = semanticModel.GetConstantValue(DirectCast(node, ExpressionSyntax))
-            Dim typeInfo = semanticModel.GetTypeInfo(DirectCast(node, ExpressionSyntax))
-            summary.Type = DirectCast(typeInfo.Type, TypeSymbol)
-            summary.ConvertedType = DirectCast(typeInfo.ConvertedType, TypeSymbol)
-            summary.ImplicitConversion = semanticModel.GetConversion(DirectCast(node, ExpressionSyntax))
+            symbolInfo = GetSemanticInfoSummaryOfExpressionSyntax(node, summary, semanticModel, symbolInfo)
         ElseIf TypeOf node Is AttributeSyntax Then
-            symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, AttributeSyntax))
-            summary.MemberGroup = semanticModel.GetMemberGroup(DirectCast(node, AttributeSyntax))
-            Dim typeInfo = semanticModel.GetTypeInfo(DirectCast(node, AttributeSyntax))
-            summary.Type = DirectCast(typeInfo.Type, TypeSymbol)
-            summary.ConvertedType = DirectCast(typeInfo.ConvertedType, TypeSymbol)
-            summary.ImplicitConversion = semanticModel.GetConversion(DirectCast(node, AttributeSyntax))
+            symbolInfo = GetSemanticInfoSummaryOfAttributeSyntax(node, summary, semanticModel, symbolInfo)
         ElseIf TypeOf node Is QueryClauseSyntax Then
             symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, QueryClauseSyntax))
         Else
             Throw New NotSupportedException("Type of syntax node is not supported by GetSemanticInfo")
         End If
         Assert.NotNull(symbolInfo)
-        summary.Symbol = DirectCast(symbolInfo.Symbol, Symbol)
-        summary.CandidateReason = symbolInfo.CandidateReason
-        summary.CandidateSymbols = symbolInfo.CandidateSymbols
-        summary.AllSymbols = symbolInfo.GetAllSymbols()
+        With summary
+            .Symbol = DirectCast(symbolInfo.Symbol, Symbol)
+            .CandidateReason = symbolInfo.CandidateReason
+            .CandidateSymbols = symbolInfo.CandidateSymbols
+            .AllSymbols = symbolInfo.GetAllSymbols()
 
         If TypeOf node Is IdentifierNameSyntax Then
-            summary.Alias = semanticModel.GetAliasInfo(DirectCast(node, IdentifierNameSyntax))
+            .Alias = semanticModel.GetAliasInfo(DirectCast(node, IdentifierNameSyntax))
         End If
+        End With
 
         Return summary
+    End Function
+    
+    Private Function GetSemanticInfoSummaryOfAttributeSyntax(node As SyntaxNode, summary As SemanticInfoSummary, semanticModel As VBSemanticModel, symbolInfo As SymbolInfo) As SymbolInfo
+        With summary
+            symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, AttributeSyntax))
+            .MemberGroup = semanticModel.GetMemberGroup(DirectCast(node, AttributeSyntax))
+            Dim typeInfo = semanticModel.GetTypeInfo(DirectCast(node, AttributeSyntax))
+            .Type = DirectCast(typeInfo.Type, TypeSymbol)
+            .ConvertedType = DirectCast(typeInfo.ConvertedType, TypeSymbol)
+            .ImplicitConversion = semanticModel.GetConversion(DirectCast(node, AttributeSyntax))
+        End With
+        Return symbolInfo
+    End Function
+
+    Private Function GetSemanticInfoSummaryOfExpressionSyntax(node As SyntaxNode, summary As SemanticInfoSummary, semanticModel As VBSemanticModel, symbolInfo As SymbolInfo) As SymbolInfo
+        With summary
+            symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, ExpressionSyntax))
+            .MemberGroup = semanticModel.GetMemberGroup(DirectCast(node, ExpressionSyntax))
+            .ConstantValue = semanticModel.GetConstantValue(DirectCast(node, ExpressionSyntax))
+            Dim typeInfo = semanticModel.GetTypeInfo(DirectCast(node, ExpressionSyntax))
+            .Type = DirectCast(typeInfo.Type, TypeSymbol)
+            .ConvertedType = DirectCast(typeInfo.ConvertedType, TypeSymbol)
+            .ImplicitConversion = semanticModel.GetConversion(DirectCast(node, ExpressionSyntax))
+        End With
+        Return symbolInfo
     End Function
 
     <Extension()>
