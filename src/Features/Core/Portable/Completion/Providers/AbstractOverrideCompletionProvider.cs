@@ -37,29 +37,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        protected override async Task<ISymbol> GenerateMemberAsync(ISymbol newOverriddenMember, INamedTypeSymbol newContainingType, Document newDocument, CompletionItem completionItem, CancellationToken cancellationToken)
+        protected override Task<ISymbol> GenerateMemberAsync(ISymbol newOverriddenMember, INamedTypeSymbol newContainingType, Document newDocument, CompletionItem completionItem, CancellationToken cancellationToken)
         {
             // Figure out what to insert, and do it. Throw if we've somehow managed to get this far and can't.
             var syntaxFactory = newDocument.GetLanguageService<SyntaxGenerator>();
-            var codeGenService = newDocument.GetLanguageService<ICodeGenerationService>();
 
             var itemModifiers = MemberInsertionCompletionItem.GetModifiers(completionItem);
             var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | newOverriddenMember.IsUnsafe());
-            if (newOverriddenMember.Kind == SymbolKind.Method)
-            {
-                return await syntaxFactory.OverrideMethodAsync((IMethodSymbol)newOverriddenMember,
-                    modifiers, newContainingType, newDocument, cancellationToken).ConfigureAwait(false);
-            }
-            else if (newOverriddenMember.Kind == SymbolKind.Property)
-            {
-                return await syntaxFactory.OverridePropertyAsync((IPropertySymbol)newOverriddenMember,
-                    modifiers, newContainingType, newDocument, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                return syntaxFactory.OverrideEvent((IEventSymbol)newOverriddenMember,
-                    modifiers, newContainingType);
-            }
+
+            return syntaxFactory.OverrideAsync(
+                newOverriddenMember, newContainingType, newDocument, modifiers, cancellationToken);
         }
 
         public abstract bool TryDetermineReturnType(

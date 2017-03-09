@@ -207,10 +207,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static async Task<IPropertySymbol> OverridePropertyAsync(
             this SyntaxGenerator codeFactory,
             IPropertySymbol overriddenProperty,
-            DeclarationModifiers modifiers,
             INamedTypeSymbol containingType,
             Document document,
-            CancellationToken cancellationToken)
+            DeclarationModifiers? modifiers = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             var getAccessibility = overriddenProperty.GetMethod.ComputeResultantAccessibility(containingType);
             var setAccessibility = overriddenProperty.SetMethod.ComputeResultantAccessibility(containingType);
@@ -249,8 +249,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     && (await SymbolFinder.FindSourceDefinitionAsync(overriddenProperty, document.Project.Solution, cancellationToken).ConfigureAwait(false))
                         .Language == LanguageNames.VisualBasic)
                 {
-                    var getName = overriddenProperty.GetMethod != null ? overriddenProperty.GetMethod.Name : null;
-                    var setName = overriddenProperty.SetMethod != null ? overriddenProperty.SetMethod.Name : null;
+                    var getName = overriddenProperty.GetMethod?.Name;
+                    var setName = overriddenProperty.SetMethod?.Name;
 
                     getBody = getName == null
                         ? null
@@ -338,8 +338,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEventSymbol OverrideEvent(
             this SyntaxGenerator codeFactory,
             IEventSymbol overriddenEvent,
-            DeclarationModifiers modifiers,
-            INamedTypeSymbol newContainingType)
+            INamedTypeSymbol newContainingType,
+            DeclarationModifiers? modifiers = null)
         {
             return CodeGenerationSymbolFactory.CreateEventSymbol(
                 overriddenEvent,
@@ -350,14 +350,52 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 name: overriddenEvent.Name);
         }
 
+        public static async Task<ISymbol> OverrideAsync(
+            this SyntaxGenerator generator,
+            ISymbol symbol,
+            INamedTypeSymbol containingType,
+            Document document,
+            DeclarationModifiers? modifiersOpt = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var modifiers = modifiersOpt ?? symbol.GetSymbolModifiers();
+            modifiers = modifiers.WithIsOverride(true)
+                                 .WithIsAbstract(false)
+                                 .WithIsVirtual(false);
+
+            if (symbol is IMethodSymbol method)
+            {
+                return await generator.OverrideMethodAsync(method,
+                    containingType, document, cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+            else if (symbol is IPropertySymbol property)
+            {
+                return await generator.OverridePropertyAsync(property,
+                    containingType, document, cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+            else if (symbol is IEventSymbol ev)
+            {
+                return generator.OverrideEvent(ev, containingType);
+            }
+            else
+            {
+                return symbol;
+            }
+        }
+
         public static async Task<IMethodSymbol> OverrideMethodAsync(
             this SyntaxGenerator codeFactory,
             IMethodSymbol overriddenMethod,
-            DeclarationModifiers modifiers,
             INamedTypeSymbol newContainingType,
             Document newDocument,
-            CancellationToken cancellationToken)
+            DeclarationModifiers? modifiersOpt = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
+            var modifiers = modifiersOpt ?? overriddenMethod.GetSymbolModifiers();
+            modifiers = modifiers.WithIsOverride(true)
+                                 .WithIsAbstract(false)
+                                 .WithIsVirtual(false);
+
             // Abstract: Throw not implemented
             if (overriddenMethod.IsAbstract)
             {

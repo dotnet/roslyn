@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Filter based on accessibility
                 if (seenAccessibility != Accessibility.NotApplicable)
                 {
-                    result = result.WhereAsArray(m => m.DeclaredAccessibility != seenAccessibility);
+                    result = result.WhereAsArray(m => m.DeclaredAccessibility == seenAccessibility);
                 }
 
                 overridableMembers = result;
