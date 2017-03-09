@@ -996,11 +996,8 @@ Public Module VerificationHelpers
         End Sub
 
         Public Function GetCount(Node As String) As Integer
-            If _Dict.ContainsKey(Node) Then
-                Return _Dict(Node)
-            Else
-                Return 0
-            End If
+            Dim value As Integer = 0
+            Return  If( _Dict.TryGetValue(Node,value),value,0)n
         End Function
 
         Public Function GetItem() As List(Of VisualBasicSyntaxNode)
