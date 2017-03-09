@@ -4,8 +4,6 @@
     "NETStandard.Library": "1.6.1",
   },
   "frameworks": {
-    // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458
-    "netstandard1.6": { },
     "NETCoreApp1.0": { }
   },
   "runtimes": {

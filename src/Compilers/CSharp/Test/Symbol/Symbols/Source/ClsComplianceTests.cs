@@ -3047,7 +3047,7 @@ public sealed class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, WinRtRefs, options: TestOptions.ReleaseWinMD);
+            var comp = CreateCompilation(source, WinRtRefs, options: TestOptions.ReleaseWinMD);
 
             // CONSIDER: The CLS spec requires that event accessors have a certain shape and WinRT event
             // accessors do not.  However, dev11 does not report a diagnostic.
@@ -3441,7 +3441,7 @@ public class C
 }
 ";
             // NOTE: As in dev11, we ignore the fact that Derived inherits CLSCompliantAttribute from Base.
-            var libRef = CompileIL(libIL, appendDefaultHeader: false);
+            var libRef = CompileIL(libIL, prependDefaultHeader: false);
             CreateCompilationWithMscorlib(source, new[] { libRef }).VerifyDiagnostics(
                 // (8,14): warning CS3003: Type of 'C.b' is not CLS-compliant
                 // 	public Base b;

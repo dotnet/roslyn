@@ -453,6 +453,13 @@
                                TargetMonikers=".NETFramework,Version=v4.6">
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ReferenceCopyLocalPaths" />
     </ResolveNuGetPackageAssets>
+
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\src\Test\Utilities\Desktop\TestUtilities.Desktop.csproj"
+             Targets="GetTargetPath"
+             BuildInParallel="true">
+
+        <Output TaskParameter="TargetOutputs" ItemName="ReferenceCopyLocalPaths" />
+    </MSBuild>
   </Target>
 
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->

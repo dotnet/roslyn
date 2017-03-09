@@ -309,7 +309,7 @@ public class C
         {
             var dummyComp = CreateCompilation("", assemblyName: "Error");
             var errorType = dummyComp.GetSpecialType(SpecialType.System_Int32);
-            var validType = CreateCompilationWithMscorlib("").GetSpecialType(SpecialType.System_Int32);
+            var validType = CreateCompilation("", new[] { MscorlibRef }).GetSpecialType(SpecialType.System_Int32);
 
             Assert.NotEqual(TypeKind.Error, validType.TypeKind);
             Assert.Equal(TypeKind.Error, errorType.TypeKind);

@@ -2068,7 +2068,7 @@ partial class C
             Assert.Equal(expected, actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
         public void NonXmlWhitespace()
         {
@@ -2107,7 +2107,7 @@ class C {{ }}
             Assert.Equal(expected, actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
         public void Repro637435()
         {
@@ -2338,7 +2338,7 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void IncludeFileResolution()
         {
             var xml1 = @"
@@ -2727,7 +2727,7 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void WRN_XMLParseIncludeError_Xml()
         {
             var xmlFile1 = Temp.CreateFile(extension: ".xml").WriteAllText("<OpenWithoutClose>");
@@ -4930,7 +4930,7 @@ class A { }
         }
 
         [WorkItem(547311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547311")]
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void UndeclaredXmlNamespace()
         {
             var source = @"
@@ -5681,7 +5681,7 @@ public class C {} // CS1587
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithWarningAsError(true));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void Dev11_303769()
         {
             // XML processing instructions
@@ -5852,7 +5852,7 @@ namespace Demo
             Assert.Equal(expected, actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void Dev11_142553()
         {
             // Need to cache XML files.
@@ -5933,7 +5933,7 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void DtdDenialOfService()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(
@@ -6150,7 +6150,7 @@ class Module1
         /// "--" is not valid within an XML comment.
         /// </summary>
         [WorkItem(8807, "https://github.com/dotnet/roslyn/issues/8807")]
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void IncludeErrorDashDashInName()
         {
             var dir = Temp.CreateDirectory();

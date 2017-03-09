@@ -1307,7 +1307,7 @@ class M
 }
 ";
 
-            var reference = CompileIL(il, appendDefaultHeader: true);
+            var reference = CompileIL(il, prependDefaultHeader: true);
 
             var verifier = CompileAndVerify(csharp, new[] { reference }, options: TestOptions.ReleaseExe, expectedOutput: @"
 ***** Start mod opt tests ****

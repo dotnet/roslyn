@@ -5445,7 +5445,7 @@ namespace NS
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0436WRN_SameFullNameThisAggAgg_01()
         {
@@ -5502,7 +5502,7 @@ namespace NS
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0436WRN_SameFullNameThisAggAgg_02()
         {
@@ -5561,7 +5561,7 @@ namespace NS
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0435WRN_SameFullNameThisNsAgg_01()
         {
@@ -5620,7 +5620,7 @@ namespace NS
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         [WorkItem(568953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568953")]
         public void CS0437WRN_SameFullNameThisAggNs_01()
         {
@@ -6620,7 +6620,7 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Util", "NS"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         [WorkItem(641639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641639")]
         public void Bug641639()
         {
@@ -6692,7 +6692,7 @@ public static int AT = (new { field = 2 }).field;
 ";
 
             ImmutableArray<Byte> ilBytes;
-            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, appendDefaultHeader: false))
+            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, prependDefaultHeader: false))
             {
                 ilBytes = ReadFromFile(reference.Path);
             }
@@ -6761,7 +6761,7 @@ interface ITest20
 ";
 
             ImmutableArray<Byte> ilBytes;
-            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, appendDefaultHeader: false))
+            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, prependDefaultHeader: false))
             {
                 ilBytes = ReadFromFile(reference.Path);
             }
@@ -14118,7 +14118,7 @@ class B
 {
     public static void M4(this object o) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilation(source, new[] { MscorlibRef });
             compilation.VerifyDiagnostics(
                 // (3,27): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 27),
@@ -15266,7 +15266,7 @@ class Test
                 new ErrorDescription { Code = 1751, Line = 3, Column = 34 });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void CS1754ERR_NoPIANestedType()
         {
             var textdll = @"using System;
@@ -15334,7 +15334,7 @@ public class Test
             //    new ErrorDescription { Code = 1755, Line = 4, Column = 14 });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void CS1757ERR_InteropStructContainsMethods()
         {
             var textdll = @"using System;
@@ -16795,11 +16795,11 @@ namespace System
 
             CreateCompilationWithMscorlib(new SyntaxTree[] { Parse(text, "foo.cs") }).VerifyDiagnostics(
                 // foo.cs(6,15): warning CS0436: The type 'System.Int32' in 'foo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'foo.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Int32").WithArguments("foo.cs", "System.Int32", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "int"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Int32").WithArguments("foo.cs", "System.Int32", RuntimeCorLibName.FullName, "int"),
                 // foo.cs(9,13): warning CS0436: The type 'System.Int32' in 'foo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'foo.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Int32").WithArguments("foo.cs", "System.Int32", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "int"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Int32").WithArguments("foo.cs", "System.Int32", RuntimeCorLibName.FullName, "int"),
                 // foo.cs(9,23): warning CS0436: The type 'System.Int32' in 'foo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'foo.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "System.Int32").WithArguments("foo.cs", "System.Int32", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "int"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "System.Int32").WithArguments("foo.cs", "System.Int32", RuntimeCorLibName.FullName, "int"),
                 // foo.cs(9,19): warning CS0219: The variable 'x' is assigned but its value is never used
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x"));
         }
@@ -16825,7 +16825,7 @@ namespace System
 
             CreateCompilationWithMscorlib(new SyntaxTree[] { Parse(text, "foo.cs") }).VerifyDiagnostics(
                 // foo.cs(11,17): warning CS0436: The type 'System.Object' in 'foo.cs' conflicts with the imported type 'object' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'foo.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Object").WithArguments("foo.cs", "System.Object", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "object"));
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Object").WithArguments("foo.cs", "System.Object", RuntimeCorLibName.FullName, "object"));
         }
 
         /// <summary>
@@ -16888,7 +16888,7 @@ class System { }
             compilation.VerifyDiagnostics(
                 // (2,7): warning CS0437: The type 'System' in '' conflicts with the imported namespace 'System' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 // using System;
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "System").WithArguments("", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "System").WithArguments("", "System", RuntimeCorLibName.FullName, "System"),
                 // (2,7): error CS0138: A using namespace directive can only be applied to namespaces; 'System' is a type not a namespace
                 // using System;
                 Diagnostic(ErrorCode.ERR_BadUsingNamespace, "System").WithArguments("System"),
@@ -19460,7 +19460,7 @@ internal abstract event System.EventHandler E;";
             IL_0007:  ret
         }
 }";
-            var ilReference = CompileIL(forwardingIL, appendDefaultHeader: false);
+            var ilReference = CompileIL(forwardingIL, prependDefaultHeader: false);
 
             var code = @"
 using TestSpace;
@@ -19650,7 +19650,7 @@ namespace A
 	.assembly extern D2
 }";
 
-            var referenceC2 = CompileIL(codeC2, appendDefaultHeader: false);
+            var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
 
             CreateCompilationWithMscorlib(codeA, references: new MetadataReference[] { referenceB, referenceC2 }, assemblyName: "A").VerifyDiagnostics(
                 // (10,13): error CS8206: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -19717,7 +19717,7 @@ namespace A
 	.assembly extern D
 }";
 
-            var referenceC2 = CompileIL(codeC2, appendDefaultHeader: false);
+            var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
 
             CreateCompilationWithMscorlib(codeA, references: new MetadataReference[] { referenceB, referenceC2 }).VerifyDiagnostics(
                 // (10,38): error CS0012: The type 'ClassC' is defined in an assembly that is not referenced. You must add a reference to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -19753,7 +19753,7 @@ namespace C
 	.assembly extern D2
 }";
 
-            var ilModule = GetILModuleReference(ilSource, appendDefaultHeader: false);
+            var ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false);
             CreateCompilationWithMscorlib(string.Empty, references: new MetadataReference[] { ilModule }, assemblyName: "Forwarder").VerifyDiagnostics(
                 // error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies).WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
@@ -19773,7 +19773,7 @@ namespace C
 	.assembly extern D
 }";
 
-            var ilModule = GetILModuleReference(ilSource, appendDefaultHeader: false);
+            var ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false);
             CreateCompilationWithMscorlib(string.Empty, references: new MetadataReference[] { ilModule }).VerifyDiagnostics(
                 // error CS0012: The type 'TestType' is defined in an assembly that is not referenced. You must add a reference to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("Testspace.TestType", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
@@ -19807,7 +19807,7 @@ namespace Testspace
 	.assembly extern D2
 }";
 
-            var ilModuleReference = GetILModuleReference(ilSource, appendDefaultHeader: false);
+            var ilModuleReference = GetILModuleReference(ilSource, prependDefaultHeader: false);
             var forwarderCompilation = CreateCompilation(
                 source: string.Empty,
                 references: new MetadataReference[] { ilModuleReference },
@@ -19856,7 +19856,7 @@ namespace UserSpace
 	.assembly extern D2
 }";
 
-            var module1Reference = GetILModuleReference(module1IL, appendDefaultHeader: false);
+            var module1Reference = GetILModuleReference(module1IL, prependDefaultHeader: false);
 
             var module2IL = @"
 .module module12L.dll
@@ -19871,7 +19871,7 @@ namespace UserSpace
 	.assembly extern D4
 }";
 
-            var module2Reference = GetILModuleReference(module2IL, appendDefaultHeader: false);
+            var module2Reference = GetILModuleReference(module2IL, prependDefaultHeader: false);
 
             var forwarderCompilation = CreateCompilation(
                 source: string.Empty,
@@ -19948,7 +19948,7 @@ namespace B
 	.assembly extern E
 }";
 
-            var referenceC2 = CompileIL(codeC2, appendDefaultHeader: false);
+            var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
 
             var codeD = @"
 .assembly D { }
@@ -19958,7 +19958,7 @@ namespace B
 	.assembly extern E
 }";
 
-            var referenceD = CompileIL(codeD, appendDefaultHeader: false);
+            var referenceD = CompileIL(codeD, prependDefaultHeader: false);
             var referenceE = CreateCompilationWithMscorlib(codeC, assemblyName: "E").EmitToImageReference();
 
             var codeA = @"

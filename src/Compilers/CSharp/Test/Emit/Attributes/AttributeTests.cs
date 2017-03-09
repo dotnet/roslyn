@@ -6098,7 +6098,7 @@ public class IA
     ret
   }
 }";
-            var reference1 = CompileIL(source1, appendDefaultHeader: false);
+            var reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C
 {
@@ -6140,7 +6140,7 @@ public class IA
     ret
   }
 }";
-            var reference1 = CompileIL(source1, appendDefaultHeader: false);
+            var reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C
 {
@@ -6183,7 +6183,7 @@ public class IA
     ret
   }
 }";
-            var reference1 = CompileIL(source1, appendDefaultHeader: false);
+            var reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C
 {
@@ -6229,7 +6229,7 @@ public class IA
     ret
   }
 }";
-            var reference1 = CompileIL(source1, appendDefaultHeader: false);
+            var reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C
 {
@@ -6278,7 +6278,7 @@ public class IA
 
 } // end of class Library1.Foo
 ";
-            var reference1 = CompileIL(source1, appendDefaultHeader: false);
+            var reference1 = CompileIL(source1, prependDefaultHeader: false);
 
             var compilation = CreateCompilationWithMscorlib("", new[] { reference1 });
 

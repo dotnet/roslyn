@@ -5523,7 +5523,7 @@ class C
         return c;
     }
 }";
-            var metadata0 = (MetadataImageReference)CompileIL(ilSource, appendDefaultHeader: false);
+            var metadata0 = (MetadataImageReference)CompileIL(ilSource, prependDefaultHeader: false);
             // Still need a compilation with source for the initial
             // generation - to get a MethodSymbol and syntax map.
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);

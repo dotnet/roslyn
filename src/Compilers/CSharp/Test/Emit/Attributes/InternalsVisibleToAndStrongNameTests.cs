@@ -1521,7 +1521,7 @@ class Derived : Base
 }
 ";
 
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
 
             var comp = CreateCompilationWithMscorlib(csharp, new[] { ilRef }, assemblyName: "asm2", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
             comp.VerifyDiagnostics(
@@ -1866,7 +1866,7 @@ public class C : B
             comp1.VerifyDiagnostics();
             var ref1 = new CSharpCompilationReference(comp1);
 
-            var ref2 = CompileIL(source2, appendDefaultHeader: false);
+            var ref2 = CompileIL(source2, prependDefaultHeader: false);
 
             var comp3 = CreateCompilationWithMscorlib(source3,
                 new[] { SystemCoreRef, ref1, ref2 },

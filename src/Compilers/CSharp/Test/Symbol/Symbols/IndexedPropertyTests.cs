@@ -1140,7 +1140,7 @@ class B
         o = a.R[3];
     }
 }";
-            CreateCompilationWithMscorlib(source, new[] { MscorlibRef, SystemRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, new[] { SystemRef }).VerifyDiagnostics(
                 // (14,13): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "a.P[1]").WithArguments("object").WithLocation(14, 13),
                 // (16,15): error CS1061: 'A' does not contain a definition for 'R' and no extension method 'R' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
@@ -2644,7 +2644,7 @@ P[2] = 2
         }
 
         [WorkItem(853401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853401")]
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void IndexedPropertyDynamicInvocation()
         {
             var source1 =
@@ -2703,7 +2703,7 @@ End Class";
 
         [WorkItem(846234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846234")]
         [WorkItem(853401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853401")]
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         public void IndexedPropertyDynamicColorColorInvocation()
         {
             var source1 =

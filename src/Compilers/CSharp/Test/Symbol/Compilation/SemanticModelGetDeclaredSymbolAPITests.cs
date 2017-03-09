@@ -3661,7 +3661,8 @@ class Program
         [Fact]
         public void SourceNamespaceSymbolMergeWithMetadata()
         {
-            var compilation = CreateCompilationWithMscorlib(new string[] {@"namespace System {
+            var compilation = CreateCompilation(new string[] {
+@"namespace System {
     public partial class PartialClass 
     {
         public int Prop { get; set; }
@@ -3673,8 +3674,8 @@ class Program
     {
         public int this[int i] { get { return i; } set {} }
     }
-}"}
- );
+}"},
+new[] { MscorlibRef });
 
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();

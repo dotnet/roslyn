@@ -2675,8 +2675,9 @@ class D : C
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "D").WithArguments("D", "A.this[int].get"));
         }
 
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         [WorkItem(545658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545658")]
-        [ClrOnlyFact]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void MethodConstructedFromOverrideWithCustomModifiers()
         {
             var il = @"
@@ -3239,7 +3240,7 @@ public class B : A
             var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, assemblyName: "B");
             var ref2 = comp2.EmitToImageReference();
 
-            var ilRef = CompileIL(source3, appendDefaultHeader: false);
+            var ilRef = CompileIL(source3, prependDefaultHeader: false);
 
             var comp3 = CreateCompilationWithMscorlib("", new[] { ref1, ref2, ilRef }, assemblyName: "Test");
             comp3.VerifyDiagnostics();

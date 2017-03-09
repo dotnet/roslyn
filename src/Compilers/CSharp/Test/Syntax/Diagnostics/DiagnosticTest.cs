@@ -2462,7 +2462,7 @@ class Program
 
         #region CoreCLR Signing Tests
         // These aren't actually syntax tests, but this is in one of only two assemblies tested on linux
-        [ConditionalFact(typeof(UnixLikeOnly), typeof(NotMonoOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
+        [ConditionalFact(typeof(UnixLikeOnly), typeof(ClrOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
         public void Bug9288_keyfile()
         {
             var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
@@ -2478,7 +2478,7 @@ class Program
             );
         }
 
-        [ConditionalFact(typeof(UnixLikeOnly), typeof(NotMonoOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
+        [ConditionalFact(typeof(UnixLikeOnly), typeof(ClrOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
         public void Bug9288_keycontainer()
         {
             const string source = "";

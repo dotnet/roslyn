@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -2216,7 +2217,7 @@ public class C<T> where T : {1}
 
         [WorkItem(542966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542966")]
         [Fact]
-        public void IndexerMemberRace()
+        public async Task IndexerMemberRaceAsync()
         {
             var text = @"
 using System;
@@ -2263,24 +2264,23 @@ class Program
             {
                 var comp = CreateCompilationWithMscorlib(text);
 
-                var thread1 = new Thread(() => comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMembers());
-                var thread2 = new Thread(() => comp.GlobalNamespace.GetMember<NamedTypeSymbol>("IA").GetMembers());
+                var task1 = new Task(() => comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMembers());
+                var task2 = new Task(() => comp.GlobalNamespace.GetMember<NamedTypeSymbol>("IA").GetMembers());
 
                 if (i % 2 == 0)
                 {
-                    thread1.Start();
-                    thread2.Start();
+                    task1.Start();
+                    task2.Start();
                 }
                 else
                 {
-                    thread2.Start();
-                    thread1.Start();
+                    task2.Start();
+                    task1.Start();
                 }
 
                 comp.VerifyDiagnostics();
 
-                thread1.Join(timeout);
-                thread2.Join(timeout);
+                await Task.WhenAll(task1, task2);
             }
         }
 

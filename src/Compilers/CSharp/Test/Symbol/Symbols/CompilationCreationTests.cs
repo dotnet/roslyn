@@ -2531,10 +2531,9 @@ class Module1
     {}
 }
 ";
-            var tree = Parse(text);
-
-            var c1 = CreateCompilationWithMscorlib(tree, new MetadataReference[]
+            var c1 = CreateCompilation(text, new MetadataReference[]
             {
+                MscorlibRef,
                 TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                 TestReferences.SymbolsTests.V1.MTTestModule2.netmodule
             });
@@ -2761,7 +2760,6 @@ System.Diagnostics.Process.GetCurrentProcess();
             var csInterfaces01 = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01).Path;
 
             var source = @"
-#r """ + typeof(object).Assembly.Location + @"""
 #r """ + "!@#$%^/&*-resolve" + @"""
 #r """ + csInterfaces01 + @"""
 class C : Metadata.ICSPropImpl { }";

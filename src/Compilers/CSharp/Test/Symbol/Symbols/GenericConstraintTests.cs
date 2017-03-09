@@ -3691,7 +3691,7 @@ class C : I
             CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier);
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void SpellingOfGenericClassNameIsPreserved5()
         {
             var ilSource =

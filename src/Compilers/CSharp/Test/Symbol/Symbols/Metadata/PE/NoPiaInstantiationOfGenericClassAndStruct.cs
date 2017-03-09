@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
@@ -487,7 +488,7 @@ public class DrivedClass
             Assert.Equal(SymbolKind.ErrorType, ((ArrayTypeSymbol)localField.Type).ElementType.Kind);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NoPIAGenericsAssemblyRefsWithClassThatInheritsGenericOfNoPiaType()
         {
             //Test class that inherits Generic(Of NoPIAType)
@@ -503,7 +504,7 @@ public class DrivedClass
             Assert.True(localField.Type is ArrayTypeSymbol);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NoPIAGenericsAssemblyRefs3()
         {
             //Test a static method that returns Generic(Of NoPIAType)

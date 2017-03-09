@@ -22,6 +22,7 @@ using Roslyn.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
 using System.Globalization;
+using static TestReferences;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -480,13 +481,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CreateCompilationWithMscorlib(new SyntaxTree[] { syntaxTree }, references, options, assemblyName);
         }
 
+        private static readonly ImmutableArray<MetadataReference> s_stdRefs = CoreClrShim.IsRunningOnCoreClr
+            ? ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemDynamicRuntimeRef)
+            : ImmutableArray.Create(MscorlibRef);
+
+        private static readonly ImmutableArray<MetadataReference> s_desktopRefsToRemove = ImmutableArray.Create(SystemRef, SystemCoreRef);
+
         public static CSharpCompilation CreateCompilationWithMscorlib(
             IEnumerable<SyntaxTree> trees,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             string assemblyName = "")
         {
-            return CreateCompilation(trees, (references != null) ? new[] { MscorlibRef }.Concat(references) : new[] { MscorlibRef }, options, assemblyName);
+            if (CoreClrShim.IsRunningOnCoreClr)
+            {
+                references = references?.Except(s_desktopRefsToRemove);
+            }
+            return CreateCompilation(trees, (references != null) ? s_stdRefs.Concat(references) : s_stdRefs, options, assemblyName);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlibAndSystemCore(
@@ -514,15 +525,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 assemblyName: assemblyName);
         }
 
+        private static ImmutableArray<MetadataReference> s_mscorlibRefArray = ImmutableArray.Create(MscorlibRef);
+
         public static CSharpCompilation CreateCompilationWithMscorlibAndDocumentationComments(
             string text,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             string assemblyName = "Test")
         {
-            return CreateCompilationWithMscorlib(
+            return CreateCompilation(
                 new[] { Parse(text, options: TestOptions.RegularWithDocumentationComments) },
-                references: references,
+                references: references?.Concat(s_mscorlibRefArray) ?? s_mscorlibRefArray,
                 options: (options ?? TestOptions.ReleaseDll).WithXmlReferenceResolver(XmlFileResolver.Default),
                 assemblyName: assemblyName);
         }
@@ -605,6 +618,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 globalsType: hostObjectType);
         }
 
+        private static ImmutableArray<MetadataReference> s_scriptRefs = ImmutableArray.Create(MscorlibRef_v4_0_30316_17626);
+
         public static CSharpCompilation CreateSubmission(
            string code,
            IEnumerable<MetadataReference> references = null,
@@ -616,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
-                references: (references != null) ? new[] { MscorlibRef_v4_0_30316_17626 }.Concat(references) : new[] { MscorlibRef_v4_0_30316_17626 },
+                references: (references != null) ? s_scriptRefs.Concat(references) : s_scriptRefs,
                 options: options,
                 syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Script),
                 previousScriptCompilation: previous,

@@ -3991,13 +3991,11 @@ public class C
     }
 }
 ";
-            var oldCulture = Thread.CurrentThread.CurrentCulture;
-            try
+            var newCulture = (CultureInfo)CultureInfo.CurrentUICulture.Clone();
+            newCulture.NumberFormat.NegativeSign = "~";
+            newCulture.NumberFormat.NumberDecimalSeparator = ",";
+            using (new CultureContext(newCulture))
             {
-                Thread.CurrentThread.CurrentCulture = (CultureInfo)oldCulture.Clone();
-                Thread.CurrentThread.CurrentCulture.NumberFormat.NegativeSign = "~";
-                Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator = ",";
-
                 var compilation = CreateCompilationWithMscorlib(text);
                 compilation.VerifyDiagnostics();
 
@@ -4010,10 +4008,6 @@ public class C
                     "[System.Single p5 = -0.5], " +
                     "[System.Double p6 = -0.5], " +
                     "[System.Decimal p7 = -0.5])", symbol.ToTestDisplayString());
-            }
-            finally
-            {
-                Thread.CurrentThread.CurrentCulture = oldCulture;
             }
         }
 
@@ -5328,7 +5322,7 @@ public class C
     public ref int P => ref _p;
     public ref int this[int i] => ref _p;
 }";
-            var compA = CreateCompilationWithMscorlib(sourceA);
+            var compA = CreateCompilation(sourceA, new[] { MscorlibRef });
             compA.VerifyDiagnostics();
             var refA = compA.EmitToImageReference();
             // From C# symbols.

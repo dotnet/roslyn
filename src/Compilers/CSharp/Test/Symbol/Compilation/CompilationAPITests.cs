@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
@@ -152,104 +153,6 @@ namespace A.B {
             var comp1 = CSharpCompilation.Create(asmname, listSyntaxTree, listRef, null);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
-        public void EmitToMemoryStreams()
-        {
-            var comp = CSharpCompilation.Create("Compilation", options: TestOptions.ReleaseDll);
-
-            using (var output = new MemoryStream())
-            {
-                using (var outputPdb = new MemoryStream())
-                {
-                    using (var outputxml = new MemoryStream())
-                    {
-                        var result = comp.Emit(output, outputPdb, null);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, outputPdb);
-                        Assert.True(result.Success);
-                        result = comp.Emit(peStream: output, xmlDocumentationStream: null);
-                        Assert.True(result.Success);
-                        result = comp.Emit(peStream: output, pdbStream: outputPdb);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, outputPdb, null);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, outputPdb);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, outputPdb, outputxml);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, null, null, null);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, null, outputxml);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, xmlDocumentationStream: outputxml);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, xmlDocumentationStream: outputxml);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, options: null);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, options: EmitOptions.Default.WithHighEntropyVirtualAddressSpace(true));
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, options: EmitOptions.Default.WithOutputNameOverride("foo"));
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, options: EmitOptions.Default.WithPdbFilePath("foo.pdb"));
-                        Assert.True(result.Success);
-                    }
-                }
-            }
-        }
-
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
-        public void EmitToBoundedStreams()
-        {
-            var pdbArray = new byte[100000];
-            var pdbStream = new MemoryStream(pdbArray, 1, pdbArray.Length - 10);
-
-            var peArray = new byte[100000];
-            var peStream = new MemoryStream(peArray);
-
-            var c = CSharpCompilation.Create("a",
-                new[] { SyntaxFactory.ParseSyntaxTree("class C { static void Main() {} }") },
-                new[] { MscorlibRef });
-
-            var r = c.Emit(peStream, pdbStream);
-            r.Diagnostics.Verify();
-        }
-
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
-        public void EmitToStreamWithNonZeroPosition()
-        {
-            var pdbStream = new MemoryStream();
-            pdbStream.WriteByte(0x12);
-            var peStream = new MemoryStream();
-            peStream.WriteByte(0x12);
-
-            var c = CSharpCompilation.Create("a",
-                new[] { SyntaxFactory.ParseSyntaxTree("class C { static void Main() {} }") },
-                new[] { MscorlibRef });
-
-            var r = c.Emit(peStream, pdbStream);
-            r.Diagnostics.Verify();
-
-            AssertEx.Equal(new byte[] { 0x12, (byte)'M', (byte)'i', (byte)'c', (byte)'r', (byte)'o' }, pdbStream.GetBuffer().Take(6).ToArray());
-            AssertEx.Equal(new byte[] { 0x12, (byte)'M', (byte)'Z' }, peStream.GetBuffer().Take(3).ToArray());
-        }
-
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
-        public void EmitToNonSeekableStreams()
-        {
-            var peStream = new TestStream(canRead: false, canSeek: false, canWrite: true);
-            var pdbStream = new TestStream(canRead: false, canSeek: false, canWrite: true);
-
-            var c = CSharpCompilation.Create("a",
-                new[] { SyntaxFactory.ParseSyntaxTree("class C { static void Main() {} }") },
-                new[] { MscorlibRef });
-
-            var r = c.Emit(peStream, pdbStream);
-            r.Diagnostics.Verify();
-        }
-
         [Fact]
         public void EmitToNonWritableStreams()
         {
@@ -289,24 +192,6 @@ namespace A.B {
                 Diagnostic(ErrorCode.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000").WithLocation(1, 1));
 
             Assert.False(result.Success);
-        }
-
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
-        public void NegEmit()
-        {
-            var ops = TestOptions.ReleaseDll;
-            var comp = CSharpCompilation.Create("Compilation", null, null, ops);
-            using (MemoryStream output = new MemoryStream())
-            {
-                using (MemoryStream outputPdb = new MemoryStream())
-                {
-                    using (MemoryStream outputxml = new MemoryStream())
-                    {
-                        var result = comp.Emit(output, outputPdb, outputxml);
-                        Assert.True(result.Success);
-                    }
-                }
-            }
         }
 
         [Fact]
@@ -1770,7 +1655,7 @@ using alias=alias;
 class myClass : alias::Uri
 {
 }";
-            var comp = CreateCompilationWithMscorlib(text, references: new MetadataReference[] { alias });
+            var comp = CreateCompilation(text, references: new[] { MscorlibRef, alias });
             Assert.Equal(2, comp.References.Count());
             Assert.Equal("alias", comp.References.Last().Properties.Aliases.Single());
             comp.VerifyDiagnostics(
@@ -2119,9 +2004,9 @@ class C { }", options: TestOptions.Script);
             string libSource = @"
 using System.Runtime.Versioning;
 public class C { public static FrameworkName Foo() { return null; }}";
-            var libComp = CreateCompilationWithMscorlib(
+            var libComp = CreateCompilation(
                 libSource,
-                references: new[] { TestReferences.NetFx.v4_0_30319.System },
+                references: new[] { MscorlibRef, TestReferences.NetFx.v4_0_30319.System },
                 options: TestOptions.ReleaseDll);
 
             libComp.VerifyDiagnostics();
@@ -2421,7 +2306,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
 
         #region Script return values
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnNullAsObject()
         {
             var script = CreateSubmission("return null;", returnType: typeof(object));
@@ -2429,7 +2314,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnStringAsObject()
         {
             var script = CreateSubmission("return \"¡Hola!\";", returnType: typeof(object));
@@ -2437,7 +2322,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnIntAsObject()
         {
             var script = CreateSubmission("return 42;", returnType: typeof(object));
@@ -2445,7 +2330,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TrailingReturnVoidAsObject()
         {
             var script = CreateSubmission("return", returnType: typeof(object));
@@ -2459,7 +2344,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.False(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnIntAsInt()
         {
             var script = CreateSubmission("return 42;", returnType: typeof(int));
@@ -2467,7 +2352,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnNullResultType()
         {
             // test that passing null is the same as passing typeof(object)
@@ -2476,7 +2361,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnNoSemicolon()
         {
             var script = CreateSubmission("return 42", returnType: typeof(uint));
@@ -2487,7 +2372,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.False(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnAwait()
         {
             var script = CreateSubmission("return await System.Threading.Tasks.Task.FromResult(42);", returnType: typeof(int));
@@ -2502,7 +2387,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnTaskNoAwait()
         {
             var script = CreateSubmission("return System.Threading.Tasks.Task.FromResult(42);", returnType: typeof(int));
@@ -2513,7 +2398,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnInNestedScopes()
         {
             var script = CreateSubmission(@"
@@ -2530,7 +2415,7 @@ else
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnInNestedScopeWithTrailingExpression()
         {
             var script = CreateSubmission(@"
@@ -2558,7 +2443,7 @@ System.Console.WriteLine()", returnType: typeof(object));
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnInNestedScopeNoTrailingExpression()
         {
             var script = CreateSubmission(@"
@@ -2572,7 +2457,7 @@ System.Console.WriteLine();", returnType: typeof(int));
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnInNestedMethod()
         {
             var script = CreateSubmission(@"
@@ -2593,7 +2478,7 @@ TopMethod().ToString()", returnType: typeof(string));
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnInNestedLambda()
         {
             var script = CreateSubmission(@"
@@ -2612,7 +2497,7 @@ System.Func<object> f = () => new System.Exception();
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnInNestedAnonymousMethod()
         {
             var script = CreateSubmission(@"
@@ -2625,7 +2510,7 @@ System.Func<object> f = delegate ()
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void LoadedFileWithWrongReturnType()
         {
             var resolver = TestSourceReferenceResolver.Create(
@@ -2643,7 +2528,7 @@ System.Func<object> f = delegate ()
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnVoidInNestedMethodOrLambda()
         {
             var script = CreateSubmission(@"

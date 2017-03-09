@@ -14296,7 +14296,7 @@ public class Program
 {
     static void Main(string[] args)
     {
-        var c = new /*<bind>*/IAppDomainSetup/*</bind>*/
+        var c = new /*<bind>*/IFormattable/*</bind>*/
     }
 }
 
@@ -14311,7 +14311,7 @@ public class Program
             Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.IAppDomainSetup", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("System.IFormattable", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -14328,23 +14328,23 @@ public class Program
 {
     static void Main(string[] args)
     {
-        var c = /*<bind>*/new IAppDomainSetup()/*</bind>*/
+        var c = /*<bind>*/new IFormattable()/*</bind>*/
     }
 }
 
 ";
             var semanticInfo = GetSemanticInfoForTest<ObjectCreationExpressionSyntax>(sourceCode);
 
-            Assert.Equal("System.IAppDomainSetup", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.IFormattable", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Interface, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.IAppDomainSetup", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.IFormattable", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Interface, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal("System.IAppDomainSetup", semanticInfo.CandidateSymbols.First().ToTestDisplayString());
+            Assert.Equal("System.IFormattable", semanticInfo.CandidateSymbols.First().ToTestDisplayString());
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -14721,7 +14721,8 @@ namespace Test
             }
         }
 
-        [Fact, WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")]
         public void ObjectCreation3()
         {
             var pia = CreateCompilationWithMscorlib(

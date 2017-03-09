@@ -116,7 +116,7 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -836,7 +836,7 @@ namespace System
                 SystemRef_v4_0_30319_17929,
                 SystemCoreRef_v4_0_30319_17929,
                 MsvbRef_v4_0_30319_17929,
-                CSharpRef,
+                DesktopCSharpRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
                 SystemWindowsFormsRef,

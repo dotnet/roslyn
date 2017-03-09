@@ -449,7 +449,8 @@ class D
                 Diagnostic(ErrorCode.ERR_BindToBogus, "P2").WithArguments("C.P2"));
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void TestDynamicTransformsBadMetadata()
         {
             var il = @"
@@ -546,7 +547,7 @@ str
 3
 str";
 
-            var compilation = CreateCompilationWithCustomILSource(source, il, references: new[] { MscorlibRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, il, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             var classDerived = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");

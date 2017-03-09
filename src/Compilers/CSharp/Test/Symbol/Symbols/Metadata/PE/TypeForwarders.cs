@@ -158,9 +158,9 @@ class Derived : Base
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
-            var ref3 = CompileIL(il3, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
+            var ref3 = CompileIL(il3, prependDefaultHeader: false);
 
             var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2, ref3 });
 
@@ -222,8 +222,8 @@ class Derived : Base
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
 
             var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2 });
 
@@ -295,9 +295,9 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
-            var ref3 = CompileIL(il3, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
+            var ref3 = CompileIL(il3, prependDefaultHeader: false);
 
             var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2, ref3 });
 
@@ -393,10 +393,10 @@ class Derived : Base
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
-            var ref3 = CompileIL(il3, appendDefaultHeader: false);
-            var ref4 = CompileIL(il4, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
+            var ref3 = CompileIL(il3, prependDefaultHeader: false);
+            var ref4 = CompileIL(il4, prependDefaultHeader: false);
 
             var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2, ref3, ref4 });
 
@@ -502,9 +502,9 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
-            var ref3 = CompileIL(il3, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
+            var ref3 = CompileIL(il3, prependDefaultHeader: false);
 
             var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2, ref3 });
 
@@ -559,8 +559,8 @@ class Derived
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
 
             var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2 });
 
@@ -623,8 +623,8 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
 
             CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2 }).VerifyDiagnostics();
         }
@@ -692,8 +692,8 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
 
             CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2 }).VerifyDiagnostics();
         }
@@ -742,8 +742,8 @@ class Test : Derived
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
 
             // NOTE: not referring to pe3, even though pe2 forwards there.
             var comp3 = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2 });
@@ -790,7 +790,7 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
             CreateCompilationWithMscorlib(csharp, new[] { ref1 }).VerifyDiagnostics(
                 // (5,5): error CS1070: The type name 'Outer' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
@@ -845,7 +845,7 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
             // NOTE: nothing about forwarded types.
             CreateCompilationWithMscorlib(csharp, new[] { ref1 }).VerifyDiagnostics(
@@ -886,7 +886,7 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
             CreateCompilationWithMscorlib(csharp, new[] { ref1 }).VerifyDiagnostics(
                 // (6,29): error CS1068: The type name 'Forwarded' could not be found in the global namespace. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
@@ -933,7 +933,7 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
             CreateCompilationWithMscorlib(csharp, new[] { ref1 }).VerifyDiagnostics(
                 // (8,21): error CS0246: The type or namespace name 'Forwarded' could not be found (are you missing a using directive or an assembly reference?)
@@ -986,7 +986,7 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
             var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1 });
 
@@ -1062,7 +1062,7 @@ namespace N1
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
             var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1 });
 
@@ -1367,7 +1367,7 @@ namespace NS
         }
 
         [WorkItem(545911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545911")]
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         public void EmitForwarder_ModuleInReferencedAssembly()
         {
             string moduleA = @"public class Foo{ public static string A = ""Original""; }";
@@ -1436,7 +1436,8 @@ using System;
             CheckForwarderEmit2(source0, source1, source2, "X.Foo");
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [WorkItem(18437, "https://github.com/dotnet/roslyn/issues/18437")]
         public void TypeForwarderInAModule()
         {
             string forwardedTypes =
@@ -1511,13 +1512,7 @@ public class CF1
          = {type(class 'CF1, ForwarderTargetAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null')}
 ";
 
-            var ilBytes = default(ImmutableArray<Byte>);
-            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, appendDefaultHeader: false))
-            {
-                ilBytes = ReadFromFile(reference.Path);
-            }
-
-            var modRef2 = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
+            var modRef2 = GetILModuleReference(ilSource, prependDefaultHeader: false);
 
             appCompilation = CreateCompilationWithMscorlib(app, references: new MetadataReference[] { modRef2, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
 

@@ -364,7 +364,8 @@ class A
                 Assert.Equal(1, e2.GetAttributes(AttributeDescription.DynamicAttribute).Count());
                 Assert.Equal(1, p.GetAttributes(AttributeDescription.DynamicAttribute).Count());
             };
-            CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef }, symbolValidator: validator);
+            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef });
+            CompileAndVerify(comp, symbolValidator: validator);
         }
 
         [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
@@ -375,7 +376,7 @@ public class A
 {
     public event System.Action<dynamic> E1;
 }";
-            var libComp = CreateCompilationWithMscorlib(text: source).VerifyDiagnostics(
+            var libComp = CreateCompilation(source, new[] { MscorlibRef }).VerifyDiagnostics(
                 // (4,32): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public event System.Action<dynamic> E1;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(4, 32),
@@ -392,7 +393,7 @@ public class A
 {
     public event System.Action<dynamic> E1 { add {} remove {} }
 }";
-            var libComp = CreateCompilationWithMscorlib(text: source).VerifyDiagnostics(
+            var libComp = CreateCompilation(source, references: new[] { MscorlibRef }).VerifyDiagnostics(
                 // (4,32): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public event System.Action<dynamic> E1 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(4, 32));
@@ -408,7 +409,7 @@ public class C
     public void RaiseEvent() => E1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef }).VerifyDiagnostics();
+            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { SystemCoreRef }).VerifyDiagnostics();
             var libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
@@ -439,7 +440,7 @@ class LambdaConsumer
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libAssemblyRef },
+            CompileAndVerify(source: source, additionalRefs: new[] { SystemCoreRef, CSharpRef, libAssemblyRef },
                                                     expectedOutput: "Print method ran.", sourceSymbolValidator: validator);
         }
 
@@ -453,7 +454,7 @@ public class C {
     public void RaiseEvent() => _e1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { SystemCoreRef });
             libComp.VerifyDiagnostics();
             var libAssemblyRef = libComp.EmitToImageReference();
 
@@ -485,7 +486,7 @@ class D
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libAssemblyRef }, 
+            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { SystemCoreRef, CSharpRef, libAssemblyRef }, 
                                                     expectedOutput: "Print method ran.");
         }
 
@@ -499,7 +500,7 @@ public class C
     public void RaiseEvent() => E1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libComp = CreateCompilationWithMscorlib(libText, references: new[] { SystemCoreRef });
             var libCompRef = new CSharpCompilationReference(libComp);
             var source = @"
 class D
@@ -512,8 +513,9 @@ class D
     }
 }";
             var expectedOutput = "Print method ran.";
-            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libCompRef },
-                                                    expectedOutput: expectedOutput);
+            var compilationVerifier = CompileAndVerify(source: source,
+                additionalRefs: new[] { SystemCoreRef, CSharpRef, libCompRef },
+                expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
@@ -526,7 +528,7 @@ public class C
     public virtual event System.Action<dynamic> E2 { add { System.Console.WriteLine(""Not called""); } remove {} }
     public virtual event System.Action<object> E3 { add { System.Console.WriteLine(""Not called""); } remove {} }
 }";
-            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { SystemCoreRef });
             var libAssemblyRef = libComp.EmitToImageReference();
             var source = @"
 class B : C
@@ -569,7 +571,7 @@ Printed: Alice
 Printed: Bob
 Printed: Charlie
 ";
-            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libAssemblyRef },
+            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { SystemCoreRef, CSharpRef, libAssemblyRef },
                                                     expectedOutput: expectedOutput);
         }
 
@@ -582,7 +584,7 @@ public class CL1
     public virtual event System.Action<dynamic> E1 { add {} remove {} }
     public virtual event System.Action<dynamic> E2 { add {} remove {} }
 }";
-            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { SystemCoreRef });
             var libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
@@ -614,7 +616,7 @@ public class CL1
     public virtual event System.Action<dynamic> E1;
     public virtual event System.Action<dynamic> E2;
 }";
-            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { SystemCoreRef });
             var libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"

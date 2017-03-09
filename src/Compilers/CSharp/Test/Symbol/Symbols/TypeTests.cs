@@ -525,7 +525,7 @@ public class A {
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateCompilation(text, new[] { MscorlibRef });
             int[] ary = new int[2];
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
@@ -699,7 +699,7 @@ namespace System
             compilation.VerifyDiagnostics(
                 // (10,13): warning CS0436: The type 'System.Void' in '' conflicts with the imported type 'void' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //             System.Void.Equals(1, 1);
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "System.Void").WithArguments("", "System.Void", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "void"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "System.Void").WithArguments("", "System.Void", RuntimeCorLibName.FullName, "void"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));

@@ -2140,7 +2140,7 @@ internal static class C
     private static void Main(string[] args) { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilation(source, new[] { MscorlibRef });
             compilation.VerifyDiagnostics(
                 // (4,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(4, 29));
@@ -2389,7 +2389,7 @@ B");
 
                 // mscorlib.dll
                 var mscorlib = type.GetMember<FieldSymbol>("F").Type.ContainingAssembly;
-                Assert.Equal(mscorlib.Name, "mscorlib");
+                Assert.Equal(RuntimeCorLibName.Name, mscorlib.Name);
                 // We assume every PE assembly may contain extension methods.
                 Assert.True(mscorlib.MightContainExtensionMethods);
 
@@ -2398,7 +2398,6 @@ B");
                 {
                     // System.Core.dll
                     var systemCore = type.GetMember<FieldSymbol>("G").Type.ContainingAssembly;
-                    Assert.Equal(systemCore.Name, "System.Core");
                     Assert.True(systemCore.MightContainExtensionMethods);
                 }
 
@@ -3121,7 +3120,7 @@ class Test
     ret
   }
 }";
-            var reference1 = CompileIL(source1, appendDefaultHeader: false);
+            var reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C : A
 {

@@ -1339,7 +1339,7 @@ class P
 } // end of class Test
 ";
 
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilation("", new[] { ilRef });
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");

@@ -765,7 +765,7 @@ class UsePia
                 // (5,9): error CS1774: Embedded interop method 'void D.M3()' contains a body.
                 Diagnostic(ErrorCode.ERR_InteropMethodWithBody).WithArguments("void D.M3()")
             };
-            var reference1 = CompileIL(sources1, appendDefaultHeader: false, embedInteropTypes: true);
+            var reference1 = CompileIL(sources1, prependDefaultHeader: false, embedInteropTypes: true);
             var compilation2 = CreateCompilationWithMscorlib(sources2, references: new MetadataReference[] { reference1 });
             VerifyEmitDiagnostics(compilation2, false, expected, expectedMetadataOnly);
         }
@@ -2605,7 +2605,7 @@ class UsePia
 } // end of class Interface1_Event
 ";
 
-            MetadataReference piaReference = CompileIL(iLSource, appendDefaultHeader: false, embedInteropTypes: true);
+            MetadataReference piaReference = CompileIL(iLSource, prependDefaultHeader: false, embedInteropTypes: true);
 
             string consumer = @"
 class UsePia
@@ -3296,7 +3296,7 @@ class UsePia5 : ITest30
 } // end of class ITest30
 ";
 
-            MetadataReference piaReference = CompileIL(iLSource, appendDefaultHeader: false, embedInteropTypes: true);
+            MetadataReference piaReference = CompileIL(iLSource, prependDefaultHeader: false, embedInteropTypes: true);
 
             string consumer = @"
 class UsePia
@@ -5669,7 +5669,7 @@ class UsePia
   } // end of method IA::M
 } // end of class IA
 ";
-            MetadataReference piaReference = CompileIL(il, appendDefaultHeader: false, embedInteropTypes: true);
+            MetadataReference piaReference = CompileIL(il, prependDefaultHeader: false, embedInteropTypes: true);
             var csharp = @"
 class B : IA
 {
@@ -5737,7 +5737,7 @@ class B : IA
   } // end of method IA::M
 } // end of class IA
 ";
-            MetadataReference piaReference = CompileIL(il, appendDefaultHeader: false, embedInteropTypes: true);
+            MetadataReference piaReference = CompileIL(il, prependDefaultHeader: false, embedInteropTypes: true);
             var csharp = @"
 class B : IA
 {

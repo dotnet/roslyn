@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ImplicitClassSymbol()
         {
-            var c = CreateCompilationWithMscorlib(@"
+            var c = CreateCompilation(@"
 namespace N
 {
     void Foo()
     {
     }
 }
-");
+", new[] { MscorlibRef });
             var n = ((NamespaceSymbol)c.Assembly.GlobalNamespace.GetMembers("N").Single());
             var implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
             Assert.Equal(0, implicitClass.GetAttributes().Length);

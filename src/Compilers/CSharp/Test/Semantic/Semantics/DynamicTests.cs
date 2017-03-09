@@ -3641,7 +3641,7 @@ class Program
 }
 ";
 
-            MetadataReference reference = CompileIL(iLSource, appendDefaultHeader: false, embedInteropTypes: false);
+            MetadataReference reference = CompileIL(iLSource, prependDefaultHeader: false, embedInteropTypes: false);
 
             string consumer1 = @"
 using Microsoft.Office.Interop.Excel;
@@ -3769,7 +3769,7 @@ class Test
 } // end of class WithIndexer
 ";
 
-            MetadataReference reference = CompileIL(iLSource, appendDefaultHeader: true, embedInteropTypes: false);
+            MetadataReference reference = CompileIL(iLSource, prependDefaultHeader: true, embedInteropTypes: false);
 
             string consumer1 = @"
 class Test

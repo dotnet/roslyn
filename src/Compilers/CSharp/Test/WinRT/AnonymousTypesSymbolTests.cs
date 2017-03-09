@@ -14,6 +14,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -229,7 +230,7 @@ class Program
 
         private void TestAnonymousTypeFieldSymbols_InQuery(ImmutableArray<byte> image)
         {
-            Assembly refAsm = Assembly.Load(image.ToArray());
+            Assembly refAsm = CorLightup.Desktop.LoadAssembly(image.ToArray());
             Type type = refAsm.GetType("<>f__AnonymousType0`2");
             Assert.NotNull(type);
             Assert.Equal(2, type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Count());
@@ -245,9 +246,9 @@ class Program
             Assert.Equal(fieldType, field.FieldType);
             Assert.Equal(FieldAttributes.Private | FieldAttributes.InitOnly, field.Attributes);
 
-            var attrs = field.GetCustomAttributesData().ToArray();
-            Assert.Equal(1, attrs.Length);
-            Assert.Equal(typeof(DebuggerBrowsableAttribute), attrs[0].Constructor.DeclaringType);
+            var attrs = field.CustomAttributes.ToList();
+            Assert.Equal(1, attrs.Count);
+            Assert.Equal(typeof(DebuggerBrowsableAttribute), attrs[0].AttributeType);
 
             var args = attrs[0].ConstructorArguments.ToArray();
             Assert.Equal(1, args.Length);
@@ -1296,9 +1297,7 @@ class Query
         public void AnonymousType_ToString()
         {
             // test AnonymousType.ToString()
-            var currCulture = System.Threading.Thread.CurrentThread.CurrentCulture;
-            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
-            try
+            using (new EnsureInvariantCulture())
             {
                 var source = @"
 using System;
@@ -1314,10 +1313,7 @@ class Query
                 CompileAndVerify(
                     source,
                     expectedOutput: "{ a = 1, b = text, c = 123.456 }");
-            }
-            finally
-            {
-                System.Threading.Thread.CurrentThread.CurrentCulture = currCulture;
+
             }
         }
 

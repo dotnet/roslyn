@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using System.Collections.Generic;
+using DesktopTestHelpers = Roslyn.Test.Utilities.Desktop.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
@@ -77,12 +78,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
             return ServiceTestExportProvider.GetLanguageNeutralTypes()
                 .Concat(types)
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
                 .Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions).Assembly, typeof(CodeAnalysis.Options.IOption)))
                 .Distinct()
                 .ToArray();

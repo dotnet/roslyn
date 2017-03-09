@@ -308,7 +308,7 @@ class C
     }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
             var comp = CreateCompilationWithMscorlib(csharp, new[] { ilRef });
             WithRuntimeInstance(comp, runtime =>
             {

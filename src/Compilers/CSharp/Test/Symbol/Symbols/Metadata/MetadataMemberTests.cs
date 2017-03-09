@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class MetadataMemberTests : CSharpTestBase
     {
-        private const string VTableGapClassIL = @"
+        private static readonly string VTableGapClassIL = @"
 .class public auto ansi beforefieldinit Class
        extends [mscorlib]System.Object
 {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
-            Assert.Equal("mscorlib", mscorNS.Name);
+            Assert.Equal(RuntimeCorLibName.Name, mscorNS.Name);
             Assert.Equal(SymbolKind.Assembly, mscorNS.Kind);
             var ns1 = mscorNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
             var type1 = ns1.GetTypeMembers("StringComparer").Single() as NamedTypeSymbol;
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataMethodSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateCompilation(text, new[] { MscorlibRef });
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataParameterSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateCompilation(text, new[] { MscorlibRef });
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
