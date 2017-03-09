@@ -162,20 +162,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add optional parameters to &apos;{0}({1})&apos;.
+        ///   Looks up a localized string similar to Add optional parameters to &apos;{0}&apos;.
         /// </summary>
-        internal static string Add_optional_parameters_to_0_1 {
+        internal static string Add_optional_parameters_to_0 {
             get {
-                return ResourceManager.GetString("Add_optional_parameters_to_0_1", resourceCulture);
+                return ResourceManager.GetString("Add_optional_parameters_to_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add parameters to &apos;{0}({1})&apos;.
+        ///   Looks up a localized string similar to Add parameter to &apos;{0}&apos;.
         /// </summary>
-        internal static string Add_parameters_to_0_1 {
+        internal static string Add_parameter_to_0 {
             get {
-                return ResourceManager.GetString("Add_parameters_to_0_1", resourceCulture);
+                return ResourceManager.GetString("Add_parameter_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add parameters to &apos;{0}&apos;.
+        /// </summary>
+        internal static string Add_parameters_to_0 {
+            get {
+                return ResourceManager.GetString("Add_parameters_to_0", resourceCulture);
             }
         }
         
@@ -575,6 +584,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Change_signature {
             get {
                 return ResourceManager.GetString("Change_signature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes to expression trees may result in behavior changes at runtime.
+        /// </summary>
+        internal static string Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime {
+            get {
+                return ResourceManager.GetString("Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime", resourceCulture);
             }
         }
         
@@ -1185,6 +1203,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Generate_constant_1_0 {
             get {
                 return ResourceManager.GetString("Generate_constant_1_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate constructor....
+        /// </summary>
+        internal static string Generate_constructor {
+            get {
+                return ResourceManager.GetString("Generate_constructor", resourceCulture);
             }
         }
         
@@ -2140,6 +2167,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pick members to be used as constructor parameters.
+        /// </summary>
+        internal static string Pick_members_to_be_used_as_constructor_parameters {
+            get {
+                return ResourceManager.GetString("Pick_members_to_be_used_as_constructor_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pick members to be used in Equals/GetHashCode.
+        /// </summary>
+        internal static string Pick_members_to_be_used_in_Equals_GetHashCode {
+            get {
+                return ResourceManager.GetString("Pick_members_to_be_used_in_Equals_GetHashCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to  + additional {0} {1}.
         /// </summary>
         internal static string plus_additional_0_1 {
@@ -2307,6 +2352,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remove_Unnecessary_Cast {
             get {
                 return ResourceManager.GetString("Remove_Unnecessary_Cast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused variable.
+        /// </summary>
+        internal static string Remove_unused_variable {
+            get {
+                return ResourceManager.GetString("Remove_unused_variable", resourceCulture);
             }
         }
         
@@ -2607,6 +2661,42 @@ namespace Microsoft.CodeAnalysis {
         internal static string Suppress_0 {
             get {
                 return ResourceManager.GetString("Suppress_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Take &apos;{0}&apos;.
+        /// </summary>
+        internal static string Take_0 {
+            get {
+                return ResourceManager.GetString("Take_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Take both.
+        /// </summary>
+        internal static string Take_both {
+            get {
+                return ResourceManager.GetString("Take_both", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Take bottom.
+        /// </summary>
+        internal static string Take_bottom {
+            get {
+                return ResourceManager.GetString("Take_bottom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Take top.
+        /// </summary>
+        internal static string Take_top {
+            get {
+                return ResourceManager.GetString("Take_top", resourceCulture);
             }
         }
         

@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
         Protected Overrides Function AddAsyncTokenAndFixReturnType(
                 keepVoid As Boolean, methodSymbolOpt As IMethodSymbol, node As SyntaxNode,
-                taskType As INamedTypeSymbol, taskOfTType As INamedTypeSymbol) As SyntaxNode
+                taskType As INamedTypeSymbol, taskOfTType As INamedTypeSymbol, valueTaskOfTType As INamedTypeSymbol) As SyntaxNode
 
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
                node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) Then
@@ -59,17 +59,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             ElseIf node.IsKind(SyntaxKind.SubBlock) Then
                 Return FixSubBlock(keepVoid, DirectCast(node, MethodBlockSyntax), taskType)
             Else
-                Return FixFunctionBlock(methodSymbolOpt, DirectCast(node, MethodBlockSyntax), taskType, taskOfTType)
+                Return FixFunctionBlock(
+                    methodSymbolOpt, DirectCast(node, MethodBlockSyntax), taskType, taskOfTType, valueTaskOfTType)
             End If
         End Function
 
         Private Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax,
-                                          taskType As INamedTypeSymbol, taskOfTType As INamedTypeSymbol) As SyntaxNode
+                                          taskType As INamedTypeSymbol, taskOfTType As INamedTypeSymbol, valueTaskOfTType As INamedTypeSymbol) As SyntaxNode
 
             Dim functionStatement = node.SubOrFunctionStatement
             Dim newFunctionStatement = AddAsyncKeyword(functionStatement)
 
-            If Not IsTaskLike(methodSymbol.ReturnType, taskType, taskOfTType) Then
+            If Not IsTaskLike(methodSymbol.ReturnType, taskType, taskOfTType, valueTaskOfTType) Then
                 ' if the current return type is not already task-list, then wrap it in Task(of ...)
                 Dim returnType = taskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax()
                 newFunctionStatement = newFunctionStatement.WithAsClause(

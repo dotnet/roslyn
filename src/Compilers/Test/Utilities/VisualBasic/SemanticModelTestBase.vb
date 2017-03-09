@@ -60,13 +60,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     Private Function FindBindingTextPosition(compilation As Compilation, fileName As String, ByRef bindText As String, Optional which As Integer = 0) As Integer
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
 
-        Dim bindMarker As String
-        If which > 0 Then
-            bindMarker = $"'BIND{which.ToString()}:"""
-        Else
-            bindMarker = "'BIND:"""
-        End If
-
+        Dim bindMarker As String = bindMarkerHelper(which)
         Dim text As String = tree.GetRoot().ToFullString()
         Dim bindCommentIndex As Integer = text.IndexOf(bindMarker, StringComparison.Ordinal) + bindMarker.Length
         bindText = text.Substring(bindCommentIndex, text.IndexOf(""""c, bindCommentIndex) - bindCommentIndex)
@@ -135,7 +129,15 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
         Return binding.LookupNames(FindBindingTextPosition(compilation, "a.vb"), container).ToList()
     End Function
 
-    Friend Function GetLookupSymbols(compilation As Compilation, filename As String, Optional container As NamespaceOrTypeSymbol = Nothing, Optional name As String = Nothing, Optional arity As Integer? = Nothing, Optional includeReducedExtensionMethods As Boolean = False, Optional mustBeStatic As Boolean = False) As List(Of ISymbol)
+    Friend Function GetLookupSymbols(
+                                      compilation As Compilation,
+                                      filename As String,
+                             Optional container As NamespaceOrTypeSymbol = Nothing,
+                             Optional name As String = Nothing,
+                             Optional arity As Integer? = Nothing,
+                             Optional includeReducedExtensionMethods As Boolean = False,
+                             Optional mustBeStatic As Boolean = False
+                                    ) As List(Of ISymbol)
         Debug.Assert(Not includeReducedExtensionMethods OrElse Not mustBeStatic)
 
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = filename).Single()
@@ -143,11 +145,10 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
 
         Dim anyArity = Not arity.HasValue
         Dim position = FindBindingTextPosition(compilation, "a.vb")
-        Return If(
-            mustBeStatic,
-            binding.LookupStaticMembers(position, container, name),
-            binding.LookupSymbols(position, container, name, includeReducedExtensionMethods)
-            ).Where(Function(s) anyArity OrElse DirectCast(s, Symbol).GetArity() = arity.Value).ToList()
+        Return If( mustBeStatic,
+                   binding.LookupStaticMembers(position, container, name),
+                   binding.LookupSymbols(position, container, name, includeReducedExtensionMethods)
+                 ).Where(Function(s) anyArity OrElse DirectCast(s, Symbol).GetArity() = arity.Value).ToList()
     End Function
 
 End Class

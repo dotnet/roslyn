@@ -7,7 +7,8 @@ Public Class BasicTrackingDiagnosticAnalyzer
     Inherits TrackingDiagnosticAnalyzer(Of SyntaxKind)
     Private Shared ReadOnly s_omittedSyntaxKindRegex As Regex = New Regex(
         "End|Exit|Empty|Imports|Option|Module|Sub|Function|Inherits|Implements|Handles|Argument|Yield|NameColonEquals|" &
-        "Print|With|Label|Stop|Continue|Resume|SingleLine|Error|Clause|Forever|Re[Dd]im|Mid|Type|Cast|Exponentiate|Erase|Date|Concatenate|Like|Divide|UnaryPlus")
+        "Print|With|Label|Stop|Continue|Resume|SingleLine|Error|Clause|Forever|Re[Dd]im|Mid|Type|Cast|Exponentiate|Erase|Date|Concatenate|Like|Divide|UnaryPlus",
+        RegexOptions.Compiled)
 
     Protected Overrides Function IsOnCodeBlockSupported(symbolKind As SymbolKind, methodKind As MethodKind, returnsVoid As Boolean) As Boolean
         Return MyBase.IsOnCodeBlockSupported(symbolKind, methodKind, returnsVoid) AndAlso

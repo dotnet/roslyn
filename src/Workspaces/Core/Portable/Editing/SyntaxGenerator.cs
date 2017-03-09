@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Editing
         public static SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
+
+        internal abstract SyntaxTrivia EndOfLine(string text);
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
@@ -308,6 +311,16 @@ namespace Microsoft.CodeAnalysis.Editing
                 getAccessorStatements,
                 setAccessorStatements);
         }
+
+        /// <summary>
+        /// Creates a statement that adds the given handler to the given event.
+        /// </summary>
+        public abstract SyntaxNode AddEventHandler(SyntaxNode @event, SyntaxNode handler);
+
+        /// <summary>
+        /// Creates a statement that removes the given handler from the given event.
+        /// </summary>
+        public abstract SyntaxNode RemoveEventHandler(SyntaxNode @event, SyntaxNode handler);
 
         /// <summary>
         /// Creates an event declaration.
@@ -1418,6 +1431,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode UsingStatement(SyntaxNode expression, IEnumerable<SyntaxNode> statements);
 
         /// <summary>
+        /// Creates a statement that represents a lock-block pattern.
+        /// </summary>
+        public abstract SyntaxNode LockStatement(SyntaxNode expression, IEnumerable<SyntaxNode> statements);
+
+        /// <summary>
         /// Creates a try-catch or try-catch-finally statement.
         /// </summary>
         public abstract SyntaxNode TryCatchStatement(IEnumerable<SyntaxNode> tryStatements, IEnumerable<SyntaxNode> catchClauses, IEnumerable<SyntaxNode> finallyStatements = null);
@@ -1614,6 +1632,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes a type.
         /// </summary>
         public abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol);
+
+        /// <summary>
+        /// Creates an expression that denotes a type. If addImport is false,
+        /// adds a <see cref="DoNotAddImportsAnnotation"/> which will prevent any
+        /// imports or usings from being added for the type.
+        /// </summary>
+        public SyntaxNode TypeExpression(ITypeSymbol typeSymbol, bool addImport)
+        {
+            var expression = TypeExpression(typeSymbol);
+            return addImport
+                ? expression
+                : expression.WithAdditionalAnnotations(DoNotAddImportsAnnotation.Annotation);
+        }
 
         /// <summary>
         /// Creates an expression that denotes a special type name.

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -741,13 +742,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static PatternMatch? TryMatchSingleWordPattern(string candidate, string pattern)
         {
-            MarkupTestFile.GetSpans(candidate, out candidate, out IList<TextSpan> spans);
+            MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> spans);
 
             var match = new PatternMatcher(pattern).MatchSingleWordPattern_ForTestingOnly(candidate);
 
             if (match == null)
             {
-                Assert.True(spans == null || spans.Count == 0);
+                Assert.True(spans.Length == 0);
             }
             else
             {
@@ -759,13 +760,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static IEnumerable<PatternMatch> TryMatchMultiWordPattern(string candidate, string pattern)
         {
-            MarkupTestFile.GetSpans(candidate, out candidate, out IList<TextSpan> expectedSpans);
+            MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> expectedSpans);
 
             var matches = new PatternMatcher(pattern).GetMatches(candidate, includeMatchSpans: true);
 
             if (matches.IsDefaultOrEmpty)
             {
-                Assert.True(expectedSpans == null || expectedSpans.Count == 0);
+                Assert.True(expectedSpans.Length == 0);
                 return null;
             }
             else

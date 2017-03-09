@@ -359,10 +359,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private CodeRefactoring FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace)
             {
-                var actions = refactoring.Actions.Where(a => IsApplicable(a, workspace)).ToList();
-                return actions.Count == 0
+                var actions = refactoring.Actions.WhereAsArray(a => IsApplicable(a, workspace));
+                return actions.Length == 0
                     ? null
-                    : actions.Count == refactoring.Actions.Count
+                    : actions.Length == refactoring.Actions.Length
                         ? refactoring
                         : new CodeRefactoring(refactoring.Provider, actions);
             }

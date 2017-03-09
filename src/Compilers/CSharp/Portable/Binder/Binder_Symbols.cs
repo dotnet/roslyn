@@ -189,8 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isVar)
                 {
-                    // GetLocation() so that it also works in speculative contexts.
-                    CheckFeatureAvailability(syntax.GetLocation(), MessageID.IDS_FeatureImplicitLocal, diagnostics);
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureImplicitLocal, diagnostics);
                 }
 
                 return symbol;
@@ -2060,22 +2059,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static void CheckFeatureAvailability(Location location, MessageID feature, DiagnosticBag diagnostics)
+        internal static void CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location locationOpt = null)
         {
-            var options = (CSharpParseOptions)location.SourceTree.Options;
+            var options = (CSharpParseOptions)syntax.SyntaxTree.Options;
             if (options.IsFeatureEnabled(feature))
             {
                 return;
             }
 
+            var location = locationOpt ?? syntax.GetLocation();
             string requiredFeature = feature.RequiredFeature();
             if (requiredFeature != null)
             {
-                if (!options.IsFeatureEnabled(feature))
-                {
-                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize(), requiredFeature);
-                }
-
+                diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize(), requiredFeature);
                 return;
             }
 

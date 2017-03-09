@@ -100,6 +100,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
 
             internal void AugmentQuickInfoSession(IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
             {
+                if (_item == null)
+                {
+                    applicableToSpan = null;
+                    return;
+                }
+
                 applicableToSpan = _triggerSpan;
                 quickInfoContent.Add(_item.Content.Create());
             }

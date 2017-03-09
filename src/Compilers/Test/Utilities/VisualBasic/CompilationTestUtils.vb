@@ -208,7 +208,8 @@ Friend Module CompilationUtils
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
-        Dim references = {MscorlibRef, SystemRef, MsvbRef}.Concat(If(additionalRefs, Array.Empty(Of MetadataImageReference)))
+        If additionalRefs Is Nothing Then additionalRefs = Array.Empty(Of MetadataReference)
+        Dim references = {MscorlibRef, SystemRef, MsvbRef}.Concat(additionalRefs)
 
         Return CreateCompilationWithReferences(sources, references, options, parseOptions:=parseOptions)
     End Function
@@ -307,7 +308,7 @@ Friend Module CompilationUtils
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
-        additionalRefs = If(additionalRefs, SpecializedCollections.EmptyEnumerable(Of MetadataImageReference))
+        If additionalRefs Is Nothing Then additionalRefs = SpecializedCollections.EmptyEnumerable(Of MetadataReference)
 
         Dim references = {MscorlibRef, SystemRef, MsvbRef}.Concat(additionalRefs)
         If parseOptions Is Nothing AndAlso options IsNot Nothing Then
@@ -610,13 +611,15 @@ Friend Module CompilationUtils
         Return DirectCast(node, TNode)
     End Function
 
+    Friend Function bindMarkerHelper(which As integer) As String
+        If which > 0 Then return "'BIND" & which.ToString() & ":""" 
+        Return "'BIND:"""
+    End Function
+
     Public Function FindBindingTextPosition(compilation As Compilation, fileName As String, ByRef bindText As String, Optional which As Integer = 0) As Integer
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
 
-        Dim bindMarker As String = "'BIND:"""
-        If which > 0 Then
-            bindMarker = "'BIND" & which.ToString() & ":"""
-        End If
+        Dim bindMarker As String= bindMarkerHelper(which)
 
         Dim text As String = tree.GetRoot().ToFullString()
         Dim startCommentIndex As Integer = text.IndexOf(bindMarker, StringComparison.Ordinal) + bindMarker.Length
@@ -692,9 +695,9 @@ Friend Module CompilationUtils
         Dim semanticModel = DirectCast(model, VBSemanticModel)
         Dim symbolInfo As SymbolInfo
         If TypeOf node Is ExpressionSyntax Then
-            symbolInfo = GetSemanticInforSummaryOnExpressionSyntax(node, summary, semanticModel, symbolInfo)
+            symbolInfo = GetSemanticInfoSummaryOfExpressionSyntax(node, summary, semanticModel, symbolInfo)
         ElseIf TypeOf node Is AttributeSyntax Then
-            symbolInfo = GetSemanticInforSummaryOnAttributeSyntax(node, summary, semanticModel, symbolInfo)
+            symbolInfo = GetSemanticInfoSummaryOfAttributeSyntax(node, summary, semanticModel, symbolInfo)
         ElseIf TypeOf node Is QueryClauseSyntax Then
             symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, QueryClauseSyntax))
         Else
@@ -714,14 +717,10 @@ Friend Module CompilationUtils
 
         Return summary
     End Function
-    Private Function GetSemanticInforSummaryOnAttributeSyntax(
-                                                               node As SyntaxNode,
-                                                               summary As SemanticInfoSummary,
-                                                               semanticModel As VBSemanticModel,
-                                                               symbolInfo As SymbolInfo
-                                                             ) As SymbolInfo
-        symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, AttributeSyntax))
+    
+    Private Function GetSemanticInfoSummaryOfAttributeSyntax(node As SyntaxNode, summary As SemanticInfoSummary, semanticModel As VBSemanticModel, symbolInfo As SymbolInfo) As SymbolInfo
         With summary
+            symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, AttributeSyntax))
             .MemberGroup = semanticModel.GetMemberGroup(DirectCast(node, AttributeSyntax))
             Dim typeInfo = semanticModel.GetTypeInfo(DirectCast(node, AttributeSyntax))
             .Type = DirectCast(typeInfo.Type, TypeSymbol)
@@ -731,14 +730,9 @@ Friend Module CompilationUtils
         Return symbolInfo
     End Function
 
-    Private Function GetSemanticInforSummaryOnExpressionSyntax(
-                                                               node As SyntaxNode,
-                                                               summary As SemanticInfoSummary,
-                                                               semanticModel As VBSemanticModel,
-                                                               symbolInfo As SymbolInfo
-                                                             ) As SymbolInfo
-        symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, ExpressionSyntax))
+    Private Function GetSemanticInfoSummaryOfExpressionSyntax(node As SyntaxNode, summary As SemanticInfoSummary, semanticModel As VBSemanticModel, symbolInfo As SymbolInfo) As SymbolInfo
         With summary
+            symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, ExpressionSyntax))
             .MemberGroup = semanticModel.GetMemberGroup(DirectCast(node, ExpressionSyntax))
             .ConstantValue = semanticModel.GetConstantValue(DirectCast(node, ExpressionSyntax))
             Dim typeInfo = semanticModel.GetTypeInfo(DirectCast(node, ExpressionSyntax))
@@ -826,7 +820,7 @@ Friend Module CompilationUtils
     Public Function CreateParseTreeAndSpans(programElement As XElement, Optional parseOptions As VisualBasicParseOptions = Nothing) As (tree As SyntaxTree, spans As IList(Of TextSpan))
         Dim codeWithMarker As String = FilterString(programElement.Value)
         Dim codeWithoutMarker As String = Nothing
-        Dim spans As IList(Of TextSpan) = Nothing
+        Dim spans As ImmutableArray(Of TextSpan) = Nothing
         MarkupTestFile.GetSpans(codeWithMarker, codeWithoutMarker, spans)
 
         Dim text = SourceText.From(codeWithoutMarker, Encoding.UTF8)
@@ -1234,7 +1228,6 @@ Friend Module CompilationUtils
             ' source by tree, then span start, then span end, then error code, then message
             Dim sourceTree1 = loc1.SourceTree
             Dim sourceTree2 = loc2.SourceTree
-
             If sourceTree1.FilePath <> sourceTree2.FilePath Then Return sourceTree1.FilePath.CompareTo(sourceTree2.FilePath)
             cmp = loc1.SourceSpan.Start.CompareTo(loc2.SourceSpan.Start)
             If cmp <> 0 Then Return cmp

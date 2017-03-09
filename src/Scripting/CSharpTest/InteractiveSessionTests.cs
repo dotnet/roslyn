@@ -475,7 +475,7 @@ Environment.ProcessorCount
         }
 
         [Fact]
-        public void CompilationChain_SubmissionSlotResize()
+        public async void CompilationChain_SubmissionSlotResize()
         {
             var state = CSharpScript.RunAsync("");
 
@@ -486,7 +486,7 @@ Environment.ProcessorCount
 
             using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
             {
-                state.ContinueWith(@"System.Console.WriteLine(i);").Wait();
+                await state.ContinueWith(@"System.Console.WriteLine(i);");
                 Assert.Equal(1, int.Parse(redirect.Output));
             }
         }
@@ -822,7 +822,7 @@ x
 
         [WorkItem(5397, "DevDiv_Projects/Roslyn")]
         [Fact]
-        public void TopLevelLambda()
+        public async void TopLevelLambda()
         {
             var s = CSharpScript.RunAsync(@"
 using System;
@@ -835,7 +835,7 @@ TestDelegate testDelB = delegate (string s) { Console.WriteLine(s); };
 
             using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
             {
-                s.ContinueWith(@"testDelB(""hello"");").Wait();
+                await s.ContinueWith(@"testDelB(""hello"");");
                 Assert.Equal("hello", redirect.Output.Trim());
             }
         }

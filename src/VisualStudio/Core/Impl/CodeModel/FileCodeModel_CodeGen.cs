@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -209,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 CodeModelService.GetUnescapedName(name),
                 access,
                 baseType: baseTypeSymbol,
-                implementedInterfaces: implementedInterfaceSymbols);
+                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -342,7 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 TypeKind.Interface,
                 CodeModelService.GetUnescapedName(name),
                 access,
-                implementedInterfaces: implementedInterfaceSymbols);
+                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -405,7 +406,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 TypeKind.Struct,
                 CodeModelService.GetUnescapedName(name),
                 access,
-                implementedInterfaces: implementedInterfaceSymbols);
+                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 

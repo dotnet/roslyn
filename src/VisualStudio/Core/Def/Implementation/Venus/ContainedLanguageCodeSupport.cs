@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -172,27 +173,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 throw new InvalidOperationException(ServicesVSResources.Event_type_is_invalid);
             }
 
-            var handlesExpressions = useHandlesClause ?
-                new[]
-                {
-                    syntaxFactory.MemberAccessExpression(
+            var handlesExpressions = useHandlesClause
+                ? ImmutableArray.Create(syntaxFactory.MemberAccessExpression(
                         objectName != null ? syntaxFactory.IdentifierName(objectName) : syntaxFactory.ThisExpression(),
-                        syntaxFactory.IdentifierName(nameOfEvent))
-                }
-            : null;
+                        syntaxFactory.IdentifierName(nameOfEvent)))
+                : default(ImmutableArray<SyntaxNode>);
 
             var invokeMethod = ((INamedTypeSymbol)eventType).DelegateInvokeMethod;
             var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: Accessibility.Protected,
                 modifiers: new DeclarationModifiers(),
                 returnType: targetDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSpecialType(SpecialType.System_Void),
                 returnsByRef: false,
                 explicitInterfaceSymbol: null,
                 name: eventHandlerName,
-                typeParameters: null,
-                parameters: invokeMethod.Parameters.ToArray(),
-                statements: null,
+                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                parameters: invokeMethod.Parameters,
+                statements: default(ImmutableArray<SyntaxNode>),
                 handlesExpressions: handlesExpressions);
 
             var annotation = new SyntaxAnnotation();

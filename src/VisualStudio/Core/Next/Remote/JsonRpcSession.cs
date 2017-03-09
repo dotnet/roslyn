@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -154,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             /// <summary>
             /// this is callback from remote host side to get asset associated with checksum from VS.
             /// </summary>
-            public async Task RequestAssetAsync(int sessionId, byte[][] checksums, string streamName)
+            public async Task RequestAssetAsync(int sessionId, Checksum[] checksums, string streamName)
             {
                 try
                 {
@@ -185,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
-            private async Task WriteAssetAsync(ObjectWriter writer, byte[][] checksums)
+            private async Task WriteAssetAsync(ObjectWriter writer, Checksum[] checksums)
             {
                 // special case
                 if (checksums.Length == 0)
@@ -209,20 +208,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return SpecializedTasks.EmptyTask;
             }
 
-            private async Task WriteOneAssetAsync(ObjectWriter writer, byte[] checksum)
+            private async Task WriteOneAssetAsync(ObjectWriter writer, Checksum checksum)
             {
-                var remotableData = PinnedScope.GetRemotableData(new Checksum(checksum), _source.Token) ?? RemotableData.Null;
+                var remotableData = PinnedScope.GetRemotableData(checksum, _source.Token) ?? RemotableData.Null;
                 writer.WriteInt32(1);
 
-                writer.WriteValue(checksum);
+                checksum.WriteTo(writer);
                 writer.WriteString(remotableData.Kind);
 
                 await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
             }
 
-            private async Task WriteMultipleAssetsAsync(ObjectWriter writer, byte[][] checksums)
+            private async Task WriteMultipleAssetsAsync(ObjectWriter writer, Checksum[] checksums)
             {
-                var remotableDataMap = PinnedScope.GetRemotableData(checksums.Select(c => new Checksum(c)), _source.Token);
+                var remotableDataMap = PinnedScope.GetRemotableData(checksums, _source.Token);
                 writer.WriteInt32(remotableDataMap.Count);
 
                 foreach (var kv in remotableDataMap)

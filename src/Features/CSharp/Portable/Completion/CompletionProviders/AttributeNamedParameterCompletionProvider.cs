@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
                        insertionText: null,
-                       symbol: p,
+                       symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,
                        sortText: p.Name,
                        rules: _spaceItemFilterRule);
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                    select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString() + ColonString,
                        insertionText: null,
-                       symbol: p,
+                       symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,
                        sortText: p.Name,
                        rules: CompletionItemRules.Default);

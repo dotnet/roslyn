@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsInside && pattern.Kind == BoundKind.DeclarationPattern)
             {
                 var decl = (BoundDeclarationPattern)pattern;
-                if (decl.Variable.Kind == SymbolKind.Local)
+                // The variable may be null if it is a discard designation `_`.
+                if (decl.Variable?.Kind == SymbolKind.Local)
                 {
                     // Because this API only returns local symbols and parameters,
                     // we exclude pattern variables that have become fields in scripts.
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // deconstruction foreach declares multiple variables
-                   deconstructionAssignment.Left.VisitAllElements((x, self) => self.Visit(x), this);
+                    ((BoundTupleExpression)deconstructionAssignment.Left).VisitAllElements((x, self) => self.Visit(x), this);
                 }
             }
         }

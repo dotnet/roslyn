@@ -22,7 +22,11 @@ namespace Microsoft.CodeAnalysis.Serialization
     internal partial class Serializer
     {
         private readonly HostWorkspaceServices _workspaceServices;
+
         private readonly IReferenceSerializationService _hostSerializationService;
+        private readonly ITemporaryStorageService2 _tempService;
+        private readonly ITextFactoryService _textService;
+
         private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
 
         public Serializer(Solution solution) : this(solution.Workspace)
@@ -36,7 +40,10 @@ namespace Microsoft.CodeAnalysis.Serialization
         public Serializer(HostWorkspaceServices workspaceServices)
         {
             _workspaceServices = workspaceServices;
+
             _hostSerializationService = _workspaceServices.GetService<IReferenceSerializationService>();
+            _tempService = _workspaceServices.GetService<ITemporaryStorageService>() as ITemporaryStorageService2;
+            _textService = _workspaceServices.GetService<ITextFactoryService>();
 
             _lazyLanguageSerializationService = new ConcurrentDictionary<string, IOptionsSerializationService>(concurrencyLevel: 2, capacity: _workspaceServices.SupportedLanguages.Count());
         }

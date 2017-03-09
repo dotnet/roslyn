@@ -458,9 +458,9 @@ End Module")
         End Sub
 
         ''' <summary>
-        ''' If this test fails, please update the <see cref="CompilationOptions.GetHashCode" />
-        ''' And <see cref="CompilationOptions.Equals" /> methods to
-        ''' make sure they are doing the right thing with your New field And then update the baseline
+        ''' If this test fails, please update the <see cref="VisualBasicCompilationOptions.GetHashCode" />
+        ''' and <see cref="VisualBasicCompilationOptions.Equals" /> methods and <see cref="VisualBasicCompilationOptions.New"/> to
+        ''' make sure they are doing the right thing with your new field And then update the baseline
         ''' here.
         ''' </summary>
         <Fact>
@@ -476,7 +476,8 @@ End Module")
                 "OptionCompareText",
                 "EmbedVbCoreRuntime",
                 "SuppressEmbeddedDeclarations",
-                "ParseOptions")
+                "ParseOptions",
+                "IgnoreCorLibraryDuplicatedTypes")
         End Sub
 
         <Fact>
@@ -488,6 +489,24 @@ End Module")
 
             Assert.Same(options, options.WithCryptoPublicKey(Nothing))
             Assert.Same(options, options.WithCryptoPublicKey(ImmutableArray(Of Byte).Empty))
+        End Sub
+
+        <Fact>
+        Public Sub WithIgnoreCorLibraryDuplicatedTypes()
+            Dim optionFalse = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
+            Dim optionTrue = optionFalse.WithIgnoreCorLibraryDuplicatedTypes(True)
+
+            Assert.False(optionFalse.IgnoreCorLibraryDuplicatedTypes)
+            Assert.True(optionTrue.IgnoreCorLibraryDuplicatedTypes)
+
+            Assert.Same(optionFalse, optionFalse.WithIgnoreCorLibraryDuplicatedTypes(False))
+
+            Assert.True(optionTrue.Equals(optionFalse.WithIgnoreCorLibraryDuplicatedTypes(True)))
+            Assert.False(optionTrue.Equals(optionFalse))
+
+            Dim optionTrueClone = New VisualBasicCompilationOptions(optionTrue)
+            Assert.Equal(optionTrue, optionTrueClone)
+            Assert.NotEqual(optionFalse, optionTrueClone)
         End Sub
 
     End Class

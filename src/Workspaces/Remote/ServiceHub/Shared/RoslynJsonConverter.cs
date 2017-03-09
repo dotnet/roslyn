@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.Remote
             _map[value.GetType()].WriteJson(writer, value, serializer);
         }
 
+        // this type is shared by multiple teams such as Razor, LUT and etc which have either separated/shared/shim repo
+        // so some types might not available to those context. this partial method let us add Roslyn specific types
+        // without breaking them
+        partial void AppendRoslynSpecificJsonConverters(ImmutableDictionary<Type, JsonConverter>.Builder builder);
+
         private ImmutableDictionary<Type, JsonConverter> CreateConverterMap()
         {
             var builder = ImmutableDictionary.CreateBuilder<Type, JsonConverter>();
@@ -43,6 +48,9 @@ namespace Microsoft.CodeAnalysis.Remote
             builder.Add(typeof(ProjectId), new ProjectIdJsonConverter());
             builder.Add(typeof(DocumentId), new DocumentIdJsonConverter());
             builder.Add(typeof(TextSpan), new TextSpanJsonConverter());
+            builder.Add(typeof(SymbolKey), new SymbolKeyJsonConverter());
+
+            AppendRoslynSpecificJsonConverters(builder);
 
             return builder.ToImmutable();
         }
@@ -102,6 +110,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WriteEndObject();
             }
+        }
+
+        private class SymbolKeyJsonConverter : BaseJsonConverter
+        {
+            public override bool CanConvert(Type objectType) => typeof(SymbolKey) == objectType;
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+                => new SymbolKey((string)reader.Value);
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) =>
+                writer.WriteValue(value.ToString());
         }
 
         private class ChecksumJsonConverter : JsonConverter

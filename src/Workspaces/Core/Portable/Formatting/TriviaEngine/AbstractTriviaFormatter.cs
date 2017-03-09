@@ -222,10 +222,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             get { return this.Context.OptionSet; }
         }
 
-        protected string Language
-        {
-            get { return _language; }
-        }
+        protected string Language => _language;
 
         protected TokenStream TokenStream
         {

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Linq;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -54,6 +55,49 @@ public class Cls
     IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object)
   IArgument (Matching Parameter: x) (OperationKind.Argument)
     ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null)");
+        }
+
+        [Fact]
+        public void DeconstructionAssignmentFromTuple()
+        {
+            var text = @"
+public class C
+{
+    public static void M()
+    {
+        int x, y, z;
+        (x, y, z) = (1, 2, 3);
+        (x, y, z) = new C();
+        var (a, b) = (1, 2);
+    }
+    public void Deconstruct(out int a, out int b, out int c)
+    {
+        a = b = c = 1;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.RegularWithIOperationFeature);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var assignments = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().ToArray();
+            Assert.Equal("(x, y, z) = (1, 2, 3)", assignments[0].ToString());
+            IOperation operation1 = model.GetOperation(assignments[0]);
+            Assert.NotNull(operation1);
+            Assert.Equal(OperationKind.None, operation1.Kind);
+            Assert.False(operation1 is IAssignmentExpression);
+
+            Assert.Equal("(x, y, z) = new C()", assignments[1].ToString());
+            IOperation operation2 = model.GetOperation(assignments[1]);
+            Assert.NotNull(operation2);
+            Assert.Equal(OperationKind.None, operation2.Kind);
+            Assert.False(operation2 is IAssignmentExpression);
+
+            Assert.Equal("var (a, b) = (1, 2)", assignments[2].ToString());
+            IOperation operation3 = model.GetOperation(assignments[2]);
+            Assert.NotNull(operation3);
+            Assert.Equal(OperationKind.None, operation3.Kind);
+            Assert.False(operation3 is IAssignmentExpression);
         }
     }
 }

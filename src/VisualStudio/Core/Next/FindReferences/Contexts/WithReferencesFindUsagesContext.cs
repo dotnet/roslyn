@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 // Ok, we got a *reference* to some definition item.  This may have been
                 // a reference for some definition that we haven't created any declaration
-                // entries for (i.e. becuase it had DisplayIfNoReferences = false).  Because
+                // entries for (i.e. because it had DisplayIfNoReferences = false).  Because
                 // we've now found a reference, we want to make sure all its declaration
                 // entries are added.
                 await AddDeclarationEntriesAsync(definition).ConfigureAwait(false);

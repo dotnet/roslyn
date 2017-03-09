@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <see cref="AddSimplifierAnnotationsAsync(Document, ImmutableArray{Diagnostic}, FixAllState, CancellationToken)"/> will end up invoking <see cref="AddSimplifyAnnotationsAsync(Document, SyntaxNode, CancellationToken)"/> for each node to simplify.
         /// Ensure that you override <see cref="AddSimplifyAnnotationsAsync(Document, SyntaxNode, CancellationToken)"/> method when this property returns true.
         /// </summary>
-        protected virtual bool NeedsParentFixup { get { return false; } }
+        protected virtual bool NeedsParentFixup => false;
 
         private async Task<Document> AddSimplifierAnnotationsAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,

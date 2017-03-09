@@ -33,14 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return VSConstants.S_OK;
         }
 
-        private async Task LoadSolutionFromMSBuildAsync(
-            CancellationToken cancellationToken)
+        public async Task LoadSolutionFromMSBuildAsync()
         {
             AssertIsForeground();
             InitializeOutputPane();
 
             // Continue on the UI thread for these operations, since we are touching the VisualStudioWorkspace, etc.
-            await PopulateWorkspaceFromDeferredProjectInfoAsync(cancellationToken).ConfigureAwait(true);
+            await PopulateWorkspaceFromDeferredProjectInfoAsync(_solutionParsingCancellationTokenSource.Token).ConfigureAwait(true);
         }
 
         [Conditional("DEBUG")]
