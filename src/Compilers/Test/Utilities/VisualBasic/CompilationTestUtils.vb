@@ -841,7 +841,7 @@ Friend Module CompilationUtils
                                            ) As (tree As SyntaxTree, spans As IList(Of TextSpan))
         Dim codeWithMarker As String = programElement.Source.Text
         Dim codeWithoutMarker As String = Nothing
-        Dim spans As IList(Of TextSpan) = Nothing
+        Dim spans As ImmutableArray(Of TextSpan) = Nothing
         MarkupTestFile.GetSpans(codeWithMarker, codeWithoutMarker, spans)
 
         Dim text = SourceText.From(codeWithoutMarker, Encoding.UTF8)
