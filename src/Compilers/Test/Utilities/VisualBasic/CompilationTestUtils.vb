@@ -1020,12 +1020,13 @@ Friend Module CompilationUtils
         Dim diag2 = diagAndIndex2.Diagnostic
         Dim loc1 = diag1.Location
         Dim loc2 = diag2.Location
+        Dim cmp As Integer =0
 
         If Not (loc1.IsInSource Or loc1.IsInMetadata) Then
             If Not (loc2.IsInSource Or loc2.IsInMetadata) Then
                 ' Both have no location. Sort by code, then by message.
-                If diag1.Code < diag2.Code Then Return -1
-                If diag1.Code > diag2.Code Then Return 1
+                cmp = diag1.Code.ComparedTo(diag2.Code)
+                If cmp <> 0 Then Return cmp
                 Return diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull).CompareTo(diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
             Else
                 Return -1
@@ -1036,25 +1037,24 @@ Friend Module CompilationUtils
             ' source by tree, then span start, then span end, then error code, then message
             Dim sourceTree1 = loc1.SourceTree
             Dim sourceTree2 = loc2.SourceTree
-
             If sourceTree1.FilePath <> sourceTree2.FilePath Then Return sourceTree1.FilePath.CompareTo(sourceTree2.FilePath)
-            If loc1.SourceSpan.Start < loc2.SourceSpan.Start Then Return -1
-            If loc1.SourceSpan.Start > loc2.SourceSpan.Start Then Return 1
-            If loc1.SourceSpan.Length < loc2.SourceSpan.Length Then Return -1
-            If loc1.SourceSpan.Length > loc2.SourceSpan.Length Then Return 1
-            If diag1.Code < diag2.Code Then Return -1
-            If diag1.Code > diag2.Code Then Return 1
-
+            cmp = loc1.SourceSpan.Start.ComparedTo(loc2.SourceSpan.Start)
+            If cmp<>0 Then Return cmp
+            cmp = loc.SourceSpan.Length.ComparedTo(loc2.SourceSpan.Length)
+            If cmp <>0 Then Return cmp
+            cmp = diag1.Code.ComparedTo(diag2.Code)
+            If cmp <> 0 Then Return cmp
             Return diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull).CompareTo(diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
+
         ElseIf loc1.IsInMetadata AndAlso loc2.IsInMetadata Then
             ' sort by assembly name, then by error code
             Dim name1 = loc1.MetadataModule.ContainingAssembly.Name
             Dim name2 = loc2.MetadataModule.ContainingAssembly.Name
             If name1 <> name2 Then Return name1.CompareTo(name2)
-            If diag1.Code < diag2.Code Then Return -1
-            If diag1.Code > diag2.Code Then Return 1
-
+            cmp = diag1.Code.ComparedTo(diag2.Code)
+            If cmp <> 0 Then Return cmp
             Return diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull).CompareTo(diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
+
         ElseIf loc1.IsInSource Then
             Return -1
         ElseIf loc2.IsInSource Then
