@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
                 var generator = SyntaxGenerator.GetGenerator(_document);
                 var memberTasks = result.Members.SelectAsArray(
-                    m => GenerateOverride(generator, m, cancellationToken));
+                    m => GenerateOverrideAsync(generator, m, cancellationToken));
 
                 var members = await Task.WhenAll(memberTasks).ConfigureAwait(false);
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                     new ApplyChangesOperation(newDocument.Project.Solution));
             }
 
-            private Task<ISymbol> GenerateOverride(
+            private Task<ISymbol> GenerateOverrideAsync(
                 SyntaxGenerator generator, ISymbol symbol, 
                 CancellationToken cancellationToken)
             {
