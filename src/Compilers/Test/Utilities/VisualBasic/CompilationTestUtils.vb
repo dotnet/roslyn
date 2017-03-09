@@ -23,9 +23,7 @@ Friend Module CompilationUtils
                                       Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                       Optional options As VisualBasicCompilationOptions = Nothing,
                                       Optional assemblyName As String = Nothing) As VisualBasicCompilation
-        If options Is Nothing Then
-            options = TestOptions.ReleaseDll
-        End If
+        options = If( options,TestOptions.ReleaseDll)
 
         ' Using single-threaded build if debugger attached, to simplify debugging.
         If Debugger.IsAttached Then
@@ -831,9 +829,8 @@ Friend Module CompilationUtils
     ''' <remarks></remarks>
     <Extension()>
     Public Sub AssertTheseEmitDiagnostics(compilation As Compilation, Optional errs As XElement = Nothing, Optional suppressInfos As Boolean = True)
-        If errs Is Nothing Then
-            errs = <errors/>
-        End If
+        errs = If( errs, <errors/>)
+
         Using assemblyStream As New MemoryStream()
             Using pdbStream As New MemoryStream()
                 Dim diagnostics = compilation.Emit(assemblyStream, pdbStream:=pdbStream).Diagnostics
@@ -857,9 +854,7 @@ Friend Module CompilationUtils
     ''' <remarks></remarks>
     <Extension()>
     Public Sub AssertTheseDiagnostics(compilation As Compilation, Optional errs As XElement = Nothing, Optional suppressInfos As Boolean = True)
-        If errs Is Nothing Then
-            errs = <errors/>
-        End If
+        errs = If( errs, <errors/>)
         AssertTheseDiagnostics(DirectCast(compilation, VisualBasicCompilation).GetDiagnostics(CompilationStage.Compile), errs, suppressInfos)
     End Sub
 
