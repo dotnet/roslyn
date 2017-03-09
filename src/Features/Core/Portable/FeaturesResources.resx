@@ -1205,4 +1205,10 @@ This version used in: {2}</value>
   <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
     <value>Changes to expression trees may result in behavior changes at runtime</value>
   </data>
+  <data name="Generate_overrides" xml:space="preserve">
+    <value>Generate overrides...</value>
+  </data>
+  <data name="Pick_members_to_override" xml:space="preserve">
+    <value>Pick members to override</value>
+  </data>
 </root>
