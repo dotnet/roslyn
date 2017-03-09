@@ -428,9 +428,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return currentSymbol;
         }
 
+        /// <summary>
+        /// Gets the set of members in the inheritance chain of <paramref name="containingType"/> that
+        /// are overridable.  The members will be returned in furthest-base type to closest-base
+        /// type order.  i.e. the overridable members of <see cref="System.Object"/> will be at the start
+        /// of the list, and the members of the direct parent type of <paramref name="containingType"/> 
+        /// will be at the end of the list.
+        /// 
+        /// If a member has already been overridden (in <paramref name="containingType"/> or any base type) 
+        /// it will not be included in the list.
+        /// </summary>
         public static ImmutableArray<ISymbol> GetOverridableMembers(
             this INamedTypeSymbol containingType, CancellationToken cancellationToken)
         {
+            // Keep track of the symbols we've seen and what order we saw them in.  The 
+            // order allows us to produce the symbols in the end from the furthest base-type
+            // to the closest base-type
             var result = new Dictionary<ISymbol, int>();
             var index = 0;
 
