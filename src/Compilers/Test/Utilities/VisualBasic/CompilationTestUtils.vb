@@ -174,7 +174,7 @@ Friend Module CompilationUtils
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
-        If additionalRefs Is Nothing Then additionalRefs = Array.Empty(Of MethodReference)
+        If additionalRefs Is Nothing Then additionalRefs = Array.Empty(Of MetadataReference)
         Dim references = {MscorlibRef, SystemRef, MsvbRef}.Concat(additionalRefs)
 
         Return CreateCompilationWithReferences(sources, references, options, parseOptions:=parseOptions)
@@ -203,7 +203,7 @@ Friend Module CompilationUtils
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
-        If additionalRefs Is Nothing Then additionalRefs = SpecializedCollection.EmptyEnumerable(Of MetadataReference)
+        If additionalRefs Is Nothing Then additionalRefs = SpecializedCollections.EmptyEnumerable(Of MetadataReference)
         Dim references = {MscorlibRef, SystemRef, MsvbRef}.Concat(additionalRefs)
         If parseOptions Is Nothing AndAlso options IsNot Nothing Then
             parseOptions = options.ParseOptions
@@ -456,15 +456,15 @@ Friend Module CompilationUtils
         Return DirectCast(node, TNode)
     End Function
 
+    Private Function bindMarkerHelper(which As integer) As String
+        If which > 0 Then return "'BIND" & which.ToString() & ":""" 
+        Return "'BIND:"""
+    End Function
+
     Public Function FindBindingTextPosition(compilation As Compilation, fileName As String, ByRef bindText As String, Optional which As Integer = 0) As Integer
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
 
-        Dim bindMarker As String
-        If which > 0 Then
-            bindMarker = "'BIND" & which.ToString() & ":"""
-        Else
-            bindMarker = "'BIND:"""
-        End If
+        Dim bindMarker As String= bindMarkerHelper(which)
 
         Dim text As String = tree.GetRoot().ToFullString()
         Dim startCommentIndex As Integer = text.IndexOf(bindMarker, StringComparison.Ordinal) + bindMarker.Length
@@ -1041,7 +1041,7 @@ Friend Module CompilationUtils
         If Not (loc1.IsInSource Or loc1.IsInMetadata) Then
             If Not (loc2.IsInSource Or loc2.IsInMetadata) Then
                 ' Both have no location. Sort by code, then by message.
-                cmp = diag1.Code.ComparedTo(diag2.Code)
+                cmp = diag1.Code.CompareTo(diag2.Code)
                 If cmp <> 0 Then Return cmp
                 Return diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull).CompareTo(diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
             Else
@@ -1054,11 +1054,11 @@ Friend Module CompilationUtils
             Dim sourceTree1 = loc1.SourceTree
             Dim sourceTree2 = loc2.SourceTree
             If sourceTree1.FilePath <> sourceTree2.FilePath Then Return sourceTree1.FilePath.CompareTo(sourceTree2.FilePath)
-            cmp = loc1.SourceSpan.Start.ComparedTo(loc2.SourceSpan.Start)
+            cmp = loc1.SourceSpan.Start.CompareTo(loc2.SourceSpan.Start)
             If cmp<>0 Then Return cmp
-            cmp = loc.SourceSpan.Length.ComparedTo(loc2.SourceSpan.Length)
+            cmp = loc1.SourceSpan.Length.CompareTo(loc2.SourceSpan.Length)
             If cmp <>0 Then Return cmp
-            cmp = diag1.Code.ComparedTo(diag2.Code)
+            cmp = diag1.Code.CompareTo(diag2.Code)
             If cmp <> 0 Then Return cmp
             Return diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull).CompareTo(diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
 
@@ -1067,7 +1067,7 @@ Friend Module CompilationUtils
             Dim name1 = loc1.MetadataModule.ContainingAssembly.Name
             Dim name2 = loc2.MetadataModule.ContainingAssembly.Name
             If name1 <> name2 Then Return name1.CompareTo(name2)
-            cmp = diag1.Code.ComparedTo(diag2.Code)
+            cmp = diag1.Code.CompareTo(diag2.Code)
             If cmp <> 0 Then Return cmp
             Return diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull).CompareTo(diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
 
