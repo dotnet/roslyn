@@ -36,26 +36,32 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
         }
 
-        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName, string projectTemplate, bool clearEditor = true)
+        protected AbstractEditorTest(
+            VisualStudioInstanceFactory instanceFactory,
+            string solutionName,
+            string projectTemplate)
            : base(instanceFactory)
         {
             VisualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
             VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, projectTemplate, LanguageName);
 
             VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
-            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-
             Editor = VisualStudio.Instance.Editor;
-            if (clearEditor)
+
+            // Winforms and XAML do not open text files on creation
+            // so these editor tasks will not work if that is the project template being used.
+            if (projectTemplate != WellKnownProjectTemplates.WinFormsApplication &&
+                projectTemplate != WellKnownProjectTemplates.WpfApplication)
             {
+                VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
                 ClearEditor();
             }
         }
 
         protected abstract string LanguageName { get; }
 
-        protected void WaitForAsyncOperations(string featuresToWaitFor)
-            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(featuresToWaitFor);
+        protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
+            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";",featuresToWaitFor));
 
         protected void ClearEditor()
             => SetUpEditor("$$");
@@ -114,7 +120,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
         }
 
-        protected void PlaceCaret(string text, int charsOffset)
+        protected void DeleteText(string text)
+        {
+            SelectTextInCurrentDocument(text);
+            SendKeys(VirtualKey.Delete);
+        }
+
+        protected void PlaceCaret(string text, int charsOffset = 0)
             => VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: charsOffset, occurrence: 0, extendSelection: false, selectBlock: false);
 
         protected void BuildSolution(bool waitForBuildToFinish)
@@ -163,8 +175,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
             WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
-        protected void ExecuteCommand(string commandName)
-            => VisualStudio.Instance.ExecuteCommand(commandName);
+        protected void ExecuteCommand(string commandName, string argument = "")
+            => VisualStudio.Instance.ExecuteCommand(commandName, argument);
 
         private void VerifyCurrentLineTextAndAssertCaretPosition(string expectedText, bool trimWhitespace)
         {
@@ -441,6 +453,18 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
             Assert.Contains(referencedProjectName, projectReferences);
+        }
+
+        public void VerifyCurrentTokenType(string tokenType)
+        {
+            WaitForAsyncOperations(
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.Classification);
+            var actualTokenTypes = Editor.GetCurrentClassifications();
+            Assert.Equal(actualTokenTypes.Length, 1);
+            Assert.Contains(tokenType, actualTokenTypes[0]);
+            Assert.NotEqual("text", tokenType);
         }
     }
 }

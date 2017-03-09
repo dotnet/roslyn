@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Threading;
-using System.Windows.Automation;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        private const string ChangeSignatureDialogAutomationId = "ChangeSignatureDialog";
+        private ChangeSignatureDialog_OutOfProc ChangeSignatureDialog => VisualStudio.Instance.ChangeSignatureDialog;
 
         public BasicChangeSignatureDialog(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, nameof(BasicChangeSignatureDialog))
@@ -40,17 +38,16 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyRefactoringCancelled()
         {
-
             SetUpEditor(@"
 Class C
     Sub Method$$(a As Integer, b As String)
     End Sub
 End Class");
 
-            InvokeChangeSignature();
-            VerifyChangeSignatureDialog(isOpen: true);
-            ClickCancel();
-            VerifyChangeSignatureDialog(isOpen: false);
+            ChangeSignatureDialog.Invoke();
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.ClickCancel();
+            ChangeSignatureDialog.VerifyClosed();
 
             VerifyTextContains(@"
 Class C
@@ -68,12 +65,12 @@ Class C
     End Sub
 End Class");
 
-            InvokeChangeSignature();
-            VerifyChangeSignatureDialog(isOpen: true);
-            SelectParameter("Integer a");
-            ClickDownButton();
-            ClickOK();
-            VerifyChangeSignatureDialog(isOpen: false);
+            ChangeSignatureDialog.Invoke();
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.SelectParameter("Integer a");
+            ChangeSignatureDialog.ClickDownButton();
+            ChangeSignatureDialog.ClickOK();
+            ChangeSignatureDialog.VerifyClosed();
 
             VerifyTextContains(@"
 Class C
@@ -82,75 +79,71 @@ Class C
 End Class");
         }
 
-        private void InvokeChangeSignature()
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public void VerifyReorderAndRemoveParametersAcrossLanguages()
         {
-            Editor.SendKeys(Ctrl(VirtualKey.R), Ctrl(VirtualKey.V));
-        }
+            SetUpEditor(@"
+Class VBTest
+    Sub TestMethod()
+        Dim x As New CSharpClass
+        x.Method$$(0, ""str"", 3.0)
+    End Sub
+End Class");
 
-        private void VerifyChangeSignatureDialog(bool isOpen)
-        {
-            VerifyDialog(ChangeSignatureDialogAutomationId, isOpen);
-        }
+            VisualStudio.Instance.SolutionExplorer.AddProject("CSharpProject", WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
+            Editor.SetText(@"
+public class CSharpClass
+{
+    /// <summary>
+    /// A method in CSharp.
+    /// </summary>
+    /// <param name=""a"">parameter a</param>
+    /// <param name=""b"">parameter b</param>
+    /// <param name=""c"">parameter c</param>
+    /// <returns>One</returns>
+    public int Method(int a, string b, double c)
+    {
+        return 1;
+    }
+}");
+            VisualStudio.Instance.SolutionExplorer.SaveAll();
+            VisualStudio.Instance.SolutionExplorer.AddProjectReference(ProjectName, "CSharpProject");
+            VisualStudio.Instance.SolutionExplorer.OpenFile(ProjectName, "Class1.vb");
 
-        private void ClickOK()
-        {
-            PressDialogButton(ChangeSignatureDialogAutomationId, "OKButton");
-        }
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
 
-        private void ClickCancel()
-        {
-            PressDialogButton(ChangeSignatureDialogAutomationId, "CancelButton");
-        }
+            ChangeSignatureDialog.Invoke();
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.SelectParameter("int a");
+            ChangeSignatureDialog.ClickRemoveButton();
+            ChangeSignatureDialog.SelectParameter("string b");
+            ChangeSignatureDialog.ClickRemoveButton();
+            ChangeSignatureDialog.SelectParameter("double c");
+            ChangeSignatureDialog.ClickRemoveButton();
+            ChangeSignatureDialog.SelectParameter("string b");
+            ChangeSignatureDialog.ClickDownButton();
+            ChangeSignatureDialog.ClickRestoreButton();
+            ChangeSignatureDialog.ClickOK();
+            ChangeSignatureDialog.VerifyClosed();
 
-        private void ClickDownButton()
-        {
-            PressDialogButton(ChangeSignatureDialogAutomationId, "DownButton");
-        }
+            VerifyTextContains(@"x.Method(""str"")");
 
-        private void ClickUpButton()
-        {
-            PressDialogButton(ChangeSignatureDialogAutomationId, "UpButton");
-        }
-
-        private void SelectParameter(string parameterName)
-        {
-            var dialogAutomationElement = GetDialog(ChangeSignatureDialogAutomationId);
-
-            Condition propertyCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, "MemberSelectionList");
-            var grid = dialogAutomationElement.FindFirst(TreeScope.Descendants, propertyCondition);
-
-            var gridPattern = grid.GetCurrentPattern(GridPattern.Pattern) as GridPattern;
-            var rowCount = (int)grid.GetCurrentPropertyValue(GridPattern.RowCountProperty);
-            var columnToSelect = 2;
-            int i = 0;
-            for (; i < rowCount; i++)
-            {
-                // Modifier | Type | Parameter | Default
-                var item = gridPattern.GetItem(i, columnToSelect);
-                var name = item.GetCurrentPropertyValue(AutomationElement.NameProperty) as string;
-                if (name == parameterName)
-                {
-                    // The parent of a cell is of DataItem control type, which support SelectionItemPattern.
-                    TreeWalker walker = TreeWalker.ControlViewWalker;
-                    var parent = walker.GetParent(item);
-                    object pattern;
-                    if (parent.TryGetCurrentPattern(SelectionItemPattern.Pattern, out pattern))
-                    {
-                        (pattern as SelectionItemPattern).Select();
-                    }
-                    else
-                    {
-                        AssertEx.Fail("Unexpected error. Item's parent is expected to support SelectionItemPattern.");
-                    }
-
-                    return;
-                }
-            }
-
-            if (i == rowCount)
-            {
-                AssertEx.Fail($"Unable to find the parameter {parameterName}");
-            }
+            VisualStudio.Instance.SolutionExplorer.OpenFile("CSharpProject", "Class1.cs");
+            VerifyTextContains(@"
+public class CSharpClass
+{
+    /// <summary>
+    /// A method in CSharp.
+    /// </summary>
+    /// <param name=""b"">parameter b</param>
+    /// 
+    /// 
+    /// <returns>One</returns>
+    public int Method(string b)
+    {
+        return 1;
+    }
+}");
         }
     }
 }

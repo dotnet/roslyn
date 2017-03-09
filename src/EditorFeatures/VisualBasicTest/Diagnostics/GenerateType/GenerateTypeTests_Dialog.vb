@@ -1,6 +1,7 @@
+Option Strict Off
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.GenerateType
 
@@ -426,7 +427,7 @@ End Namespace
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 newFileName:="Test2.vb")
         End Function
 
@@ -460,7 +461,7 @@ checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 newFileName:="Test2.vb")
         End Function
 
@@ -492,7 +493,7 @@ checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
-newFileFolderContainers:=New String() {"@@@@@", "#####"},
+newFileFolderContainers:=ImmutableArray.Create("@@@@@", "#####"),
 areFoldersValidIdentifiers:=False,
 newFileName:="Test2.vb")
         End Function
@@ -533,7 +534,7 @@ End Class</Text>.NormalizedValue,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 newFileName:="Test2.vb")
         End Function
 
@@ -574,7 +575,7 @@ End Class</Text>.NormalizedValue,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
-newFileFolderContainers:=New String() {"outer"},
+newFileFolderContainers:=ImmutableArray.Create("outer"),
 newFileName:="Test2.vb")
         End Function
 
@@ -606,7 +607,7 @@ End Namespace
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 newFileName:="Test2.vb")
         End Function
 #End Region
@@ -781,7 +782,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileName:="Test2.vb",
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 
@@ -824,7 +825,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileName:="Test2.vb",
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 projectName:="Assembly2")
         End Function
 
@@ -862,7 +863,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileName:="Test2.vb",
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 
@@ -905,7 +906,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileName:="Test3.vb",
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 #End Region
@@ -942,7 +943,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 
@@ -992,7 +993,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 projectName:="Assembly2")
         End Function
 
@@ -1029,7 +1030,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 projectName:="Assembly2")
         End Function
 
@@ -1079,7 +1080,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 projectName:="Assembly2")
         End Function
 
@@ -1118,7 +1119,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 projectName:="Assembly2")
         End Function
 
@@ -1320,7 +1321,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 #End Region
@@ -2113,7 +2114,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 

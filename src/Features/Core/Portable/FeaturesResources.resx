@@ -183,11 +183,11 @@
   <data name="generated_code_is_overlapping_with_hidden_portion_of_the_code" xml:space="preserve">
     <value>generated code is overlapping with hidden portion of the code</value>
   </data>
-  <data name="Add_optional_parameters_to_0_1" xml:space="preserve">
-    <value>Add optional parameters to '{0}({1})'</value>
+  <data name="Add_optional_parameters_to_0" xml:space="preserve">
+    <value>Add optional parameters to '{0}'</value>
   </data>
-  <data name="Add_parameters_to_0_1" xml:space="preserve">
-    <value>Add parameters to '{0}({1})'</value>
+  <data name="Add_parameters_to_0" xml:space="preserve">
+    <value>Add parameters to '{0}'</value>
   </data>
   <data name="Generate_delegating_constructor_0_1" xml:space="preserve">
     <value>Generate delegating constructor '{0}({1})'</value>
@@ -1189,6 +1189,9 @@ This version used in: {2}</value>
   </data>
   <data name="Remove_separators" xml:space="preserve">
     <value>Remove separators</value>
+  </data>
+  <data name="Add_parameter_to_0" xml:space="preserve">
+    <value>Add parameter to '{0}'</value>
   </data>
   <data name="Generate_constructor" xml:space="preserve">
     <value>Generate constructor...</value>

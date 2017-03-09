@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.MoveType
@@ -57,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
             expectedSourceTextAfterRefactoring As XElement,
             expectedDocumentName As String,
             destinationDocumentText As XElement,
-            Optional destinationDocumentContainers As IList(Of String) = Nothing,
+            Optional destinationDocumentContainers As ImmutableArray(Of String) = Nothing,
             Optional expectedCodeAction As Boolean = True,
             Optional index As Integer = 0,
             Optional ignoreTrivia As Boolean = True

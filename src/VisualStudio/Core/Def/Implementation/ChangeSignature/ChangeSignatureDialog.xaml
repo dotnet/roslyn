@@ -269,7 +269,7 @@
                         IsEnabled="{Binding CanRemove, Mode=OneWay}" 
                         AutomationProperties.Name="{Binding RemoveAutomationText}"
                         Click="Remove_Click" 
-                        AutomationProperties.AutomationId="Remove" 
+                        AutomationProperties.AutomationId="RemoveButton" 
                         Content="{Binding ElementName=dialog, Path=Remove}" 
                         Height="Auto" Width="Auto">
                 </vs:DialogButton>
@@ -278,7 +278,7 @@
                         Margin="9 9 0 0"
                         IsEnabled="{Binding CanRestore, Mode=OneWay}" 
                         Click="Restore_Click" 
-                        AutomationProperties.AutomationId="Restore" 
+                        AutomationProperties.AutomationId="RestoreButton" 
                         AutomationProperties.Name="{Binding RestoreAutomationText}"
                         Content="{Binding ElementName=dialog, Path=Restore}" 
                         Height="Auto" Width="Auto"/>

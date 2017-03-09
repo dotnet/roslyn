@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -39,6 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private readonly IFindAllReferencesService _vsFindAllReferencesService;
         private readonly VisualStudioWorkspace _workspace;
 
+        private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
+            new HashSet<AbstractTableDataSourceFindUsagesContext>();
+
         [ImportingConstructor]
         public StreamingFindUsagesPresenter(
             VisualStudioWorkspace workspace,
@@ -65,7 +69,30 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
         }
 
+        public void ClearAll()
+        {
+            this.AssertIsForeground();
+
+            foreach (var context in _currentContexts)
+            {
+                context.Clear();
+            }
+        }
+
         public FindUsagesContext StartSearch(string title, bool supportsReferences)
+        {
+            this.AssertIsForeground();
+            var context = StartSearchWorker(title, supportsReferences);
+
+            // Keep track of this context object as long as it is being displayed in the UI.
+            // That way we can Clear it out if requested by a client.  When the context is
+            // no longer being displayed, VS will dispose it and it will remove itself from
+            // this set.
+            _currentContexts.Add(context);
+            return context;
+        }
+
+        private AbstractTableDataSourceFindUsagesContext StartSearchWorker(string title, bool supportsReferences)
         {
             this.AssertIsForeground();
 
@@ -87,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 : StartSearchWithoutReferences(window);
         }
 
-        private FindUsagesContext StartSearchWithReferences(IFindAllReferencesWindow window, int desiredGroupingPriority)
+        private AbstractTableDataSourceFindUsagesContext StartSearchWithReferences(IFindAllReferencesWindow window, int desiredGroupingPriority)
         {
             // Ensure that the window's definition-grouping reflects what the user wants.
             // i.e. we may have disabled this column for a previous GoToImplementation call. 
@@ -105,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             return new WithReferencesFindUsagesContext(this, window);
         }
 
-        private FindUsagesContext StartSearchWithoutReferences(IFindAllReferencesWindow window)
+        private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences(IFindAllReferencesWindow window)
         {
             // If we're not showing references, then disable grouping by definition, as that will
             // just lead to a poor experience.  i.e. we'll have the definition entry buckets, 

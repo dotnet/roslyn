@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 = new Dictionary<ProjectId, Dictionary<ProjectId, bool>>();
 
             private readonly Dictionary<string, ProjectId> _projectPathToProjectIdMap
-                = new Dictionary<string, ProjectId>();
+                = new Dictionary<string, ProjectId>(PathUtilities.Comparer);
 
             public LoadState(IReadOnlyDictionary<string, ProjectId> projectPathToProjectIdMap)
             {

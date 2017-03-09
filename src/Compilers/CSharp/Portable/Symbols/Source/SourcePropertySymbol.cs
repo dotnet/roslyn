@@ -202,10 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (notRegularProperty)
                 {
-                    Binder.CheckFeatureAvailability(location,
-                                                    isReadOnly ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties :
-                                                                 MessageID.IDS_FeatureAutoImplementedProperties,
-                                                    diagnostics);
+                    Binder.CheckFeatureAvailability(
+                        syntax,
+                        isReadOnly ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties : MessageID.IDS_FeatureAutoImplementedProperties,
+                        diagnostics,
+                        location);
                 }
             }
 
@@ -774,8 +775,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             SyntaxToken arglistToken;
             var parameters = ParameterHelpers.MakeParameters(
-                binder, owner, parameterSyntaxOpt, out arglistToken, diagnostics, 
-                allowRefOrOut: false, allowThis: false, beStrict: false);
+                binder, owner, parameterSyntaxOpt, out arglistToken,
+                allowRefOrOut: false,
+                allowThis: false,
+                diagnostics: diagnostics);
 
             if (arglistToken.Kind() != SyntaxKind.None)
             {

@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        private void AddProjectReference(string projectName, string projectToReferenceName)
+        public void AddProjectReference(string projectName, string projectToReferenceName)
         {
             var project = GetProject(projectName);
             var projectToReference = GetProject(projectToReferenceName);
