@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public abstract SyntaxToken FindStartingToken(SyntaxTree tree, int position, CancellationToken cancellationToken);
-        public abstract ISet<ISymbol> FilterOverrides(ISet<ISymbol> members, ITypeSymbol returnType);
+        public abstract ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol returnType);
         public abstract bool TryDetermineModifiers(SyntaxToken startToken, SourceText text, int startLine, out Accessibility seenAccessibility, out DeclarationModifiers modifiers);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -67,34 +68,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CancellationToken cancellationToken,
             out ITypeSymbol returnType,
             out SyntaxToken nextToken);
-
-        public bool IsOverridable(ISymbol member, INamedTypeSymbol containingType)
-        {
-            if (member.IsAbstract || member.IsVirtual || member.IsOverride)
-            {
-                if (member.IsSealed)
-                {
-                    return false;
-                }
-
-                if (!member.IsAccessibleWithin(containingType))
-                {
-                    return false;
-                }
-
-                switch (member.Kind)
-                {
-                    case SymbolKind.Event:
-                        return true;
-                    case SymbolKind.Method:
-                        return ((IMethodSymbol)member).MethodKind == MethodKind.Ordinary;
-                    case SymbolKind.Property:
-                        return !((IPropertySymbol)member).IsWithEvents;
-                }
-            }
-
-            return false;
-        }
 
         protected bool IsOnStartLine(int position, SourceText text, int startLine)
         {

@@ -419,12 +419,101 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamespaceOrTypeSymbol GenerateRootNamespaceOrType(this INamedTypeSymbol namedType, string[] containers)
         {
             INamespaceOrTypeSymbol currentSymbol = namedType;
-            for (int i = containers.Length - 1; i >= 0; i--)
+
+            for (var i = containers.Length - 1; i >= 0; i--)
             {
                 currentSymbol = CodeGenerationSymbolFactory.CreateNamespaceSymbol(containers[i], members: new[] { currentSymbol });
             }
 
             return currentSymbol;
+        }
+
+        public static ImmutableArray<ISymbol> GetOverridableMembers(
+            this INamedTypeSymbol containingType, CancellationToken cancellationToken)
+        {
+            var result = new Dictionary<ISymbol, int>();
+            var index = 0;
+
+            if (containingType != null && !containingType.IsScriptClass && !containingType.IsImplicitClass)
+            {
+                if (containingType.TypeKind == TypeKind.Class || containingType.TypeKind == TypeKind.Struct)
+                {
+                    var baseTypes = containingType.GetBaseTypes().Reverse();
+                    foreach (var type in baseTypes)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        // Prefer overrides in derived classes
+                        RemoveOverriddenMembers(result, type, cancellationToken);
+
+                        // Retain overridable methods
+                        AddOverridableMembers(result, containingType, type, ref index, cancellationToken);
+                    }
+
+                    // Don't suggest already overridden members
+                    RemoveOverriddenMembers(result, containingType, cancellationToken);
+                }
+            }
+
+            return result.Keys.OrderBy(s => result[s]).ToImmutableArray();
+        }
+
+        private static void AddOverridableMembers(
+            Dictionary<ISymbol, int> result, INamedTypeSymbol containingType,
+            INamedTypeSymbol type, ref int index, CancellationToken cancellationToken)
+        {
+            foreach (var member in type.GetMembers())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (IsOverridable(member, containingType))
+                {
+                    result[member] = index++;
+                }
+            }
+        }
+
+        private static bool IsOverridable(ISymbol member, INamedTypeSymbol containingType)
+        {
+            if (member.IsAbstract || member.IsVirtual || member.IsOverride)
+            {
+                if (member.IsSealed)
+                {
+                    return false;
+                }
+
+                if (!member.IsAccessibleWithin(containingType))
+                {
+                    return false;
+                }
+
+                switch (member.Kind)
+                {
+                    case SymbolKind.Event:
+                        return true;
+                    case SymbolKind.Method:
+                        return ((IMethodSymbol)member).MethodKind == MethodKind.Ordinary;
+                    case SymbolKind.Property:
+                        return !((IPropertySymbol)member).IsWithEvents;
+                }
+            }
+
+            return false;
+        }
+
+        private static void RemoveOverriddenMembers(
+            Dictionary<ISymbol, int> result, INamedTypeSymbol containingType, CancellationToken cancellationToken)
+        {
+            foreach (var member in containingType.GetMembers())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var overriddenMember = member.OverriddenMember();
+                if (overriddenMember != null)
+                {
+                    result.Remove(overriddenMember);
+                }
+            }
         }
     }
 }
