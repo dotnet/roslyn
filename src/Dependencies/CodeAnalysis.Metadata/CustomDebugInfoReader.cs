@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             {
                 switch (record.Kind)
                 {
-                    case CustomDebugInfoKind.UsingInfo:
+                    case CustomDebugInfoKind.UsingGroups:
                         if (!groupSizes.IsDefault)
                         {
                             throw new InvalidOperationException(string.Format("Expected at most one Using record for method {0}", FormatMethodToken(methodToken)));
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                         groupSizes = DecodeUsingRecord(record.Data);
                         break;
 
-                    case CustomDebugInfoKind.ForwardInfo:
+                    case CustomDebugInfoKind.ForwardMethodInfo:
                         if (!externAliasStrings.IsDefault)
                         {
                             throw new InvalidOperationException(string.Format("Did not expect both Forward and ForwardToModule records for method {0}", FormatMethodToken(methodToken)));
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Debugging
 
                         break;
 
-                    case CustomDebugInfoKind.ForwardToModuleInfo:
+                    case CustomDebugInfoKind.ForwardModuleInfo:
                         if (!externAliasStrings.IsDefault)
                         {
                             throw new InvalidOperationException(string.Format("Expected at most one ForwardToModule record for method {0}", FormatMethodToken(methodToken)));
