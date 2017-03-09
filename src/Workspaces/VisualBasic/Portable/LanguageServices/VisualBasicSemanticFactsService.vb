@@ -4,15 +4,29 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    <ExportLanguageService(GetType(ISemanticFactsService), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageServiceFactory(GetType(ISemanticFactsService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicSemanticFactsServiceFactory
+        Implements ILanguageServiceFactory
+
+        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+            Return VisualBasicSemanticFactsService.Instance
+        End Function
+    End Class
+
     Friend Class VisualBasicSemanticFactsService
         Implements ISemanticFactsService
+
+        Public Shared ReadOnly Instance As New VisualBasicSemanticFactsService()
+
+        Private Sub New()
+        End Sub
 
         Public ReadOnly Property SupportsImplicitInterfaceImplementation As Boolean Implements ISemanticFactsService.SupportsImplicitInterfaceImplementation
             Get
