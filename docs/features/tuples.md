@@ -253,6 +253,16 @@ M1((1, ()=>(2, 3)));         // the first overload is used due to "exact match" 
 
 ``` 
 
+Conversions
+--------------
+
+Tuple types and expressions support a variety of conversions by "lifting" conversions of the elements into overal _tuple conversion_.
+For the classification purpose, all element conversions are considered recursively. For example: To have an implicit conversion, all element expressions/types must have implicit conversions to the corresponding element types.
+
+Typele conversions are *Standard Conversions* and therefore can stack with user-defined operators to form user-defined conversions.
+
+A tuple conversion can be classified as a valid instance conversion for an extension method invocation as long as all element conversions are applicable as instance conversions.
+
 Language grammar changes
 ---------------------
 This is based on the [ANTLR grammar](https://raw.githubusercontent.com/ljw1004/csharpspec/gh-pages/csharp.g4) from Lucian.
