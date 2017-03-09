@@ -8,7 +8,7 @@ Friend NotInheritable Class LocalVariableDeclaratorsCollector
     Private ReadOnly _builder As ArrayBuilder(Of SyntaxNode)
 
     Public Sub New(builder As ArrayBuilder(Of SyntaxNode))
-        Me._builder = builder
+        _builder = builder
     End Sub
 
     Friend Shared Function GetDeclarators(method As SourceMethodSymbol) As ImmutableArray(Of SyntaxNode)
@@ -20,33 +20,33 @@ Friend NotInheritable Class LocalVariableDeclaratorsCollector
     End Function
 
     Public Overrides Sub VisitForEachStatement(node As ForEachStatementSyntax)
-        Me._builder.Add(node)
+        _builder.Add(node)
         MyBase.VisitForEachStatement(node)
     End Sub
 
     Public Overrides Sub VisitForStatement(node As ForStatementSyntax)
-        Me._builder.Add(node)
+        _builder.Add(node)
         MyBase.VisitForStatement(node)
     End Sub
 
     Public Overrides Sub VisitSyncLockStatement(node As SyncLockStatementSyntax)
-        Me._builder.Add(node)
+        _builder.Add(node)
         MyBase.VisitSyncLockStatement(node)
     End Sub
 
     Public Overrides Sub VisitWithStatement(node As WithStatementSyntax)
-        Me._builder.Add(node)
+        _builder.Add(node)
         MyBase.VisitWithStatement(node)
     End Sub
 
     Public Overrides Sub VisitUsingStatement(node As UsingStatementSyntax)
-        Me._builder.Add(node)
+        _builder.Add(node)
         MyBase.VisitUsingStatement(node)
     End Sub
 
     Public Overrides Sub VisitVariableDeclarator(node As VariableDeclaratorSyntax)
         For Each name In node.Names
-            Me._builder.Add(name)
+            _builder.Add(name)
         Next
         MyBase.VisitVariableDeclarator(node)
     End Sub
