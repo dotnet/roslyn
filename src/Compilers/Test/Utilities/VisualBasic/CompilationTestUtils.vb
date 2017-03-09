@@ -174,7 +174,7 @@ Friend Module CompilationUtils
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
-        If additionalRefs Is Nothing Then additionalRefs = {}
+        If additionalRefs Is Nothing Then additionalRefs = Array.Empty(Of MethodReference)
         Dim references = {MscorlibRef, SystemRef, MsvbRef}.Concat(additionalRefs)
 
         Return CreateCompilationWithReferences(sources, references, options, parseOptions:=parseOptions)
@@ -203,7 +203,7 @@ Friend Module CompilationUtils
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
-        If additionalRefs Is Nothing Then additionalRefs = {}
+        If additionalRefs Is Nothing Then additionalRefs = SpecializedCollection.EmptyEnumerable(Of MetadataReference)
         Dim references = {MscorlibRef, SystemRef, MsvbRef}.Concat(additionalRefs)
         If parseOptions Is Nothing AndAlso options IsNot Nothing Then
             parseOptions = options.ParseOptions
