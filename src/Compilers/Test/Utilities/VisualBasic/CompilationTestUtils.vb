@@ -454,7 +454,7 @@ Friend Module CompilationUtils
         Return DirectCast(node, TNode)
     End Function
 
-    Private Function bindMarkerHelper(which As integer) As String
+    Friend Function bindMarkerHelper(which As integer) As String
         If which > 0 Then return "'BIND" & which.ToString() & ":""" 
         Return "'BIND:"""
     End Function
