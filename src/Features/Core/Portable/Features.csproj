@@ -101,7 +101,6 @@
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
     <Compile Include="AddImport\SymbolReferenceFinder_PackageAssemblySearch.cs" />
-    <Compile Include="UpgradeProject\AbstractUpgradeProjectCodeFixProvider.cs" />
     <Compile Include="AddPackage\AbstractAddPackageCodeFixProvider.cs" />
     <Compile Include="AddPackage\AbstractAddSpecificPackageCodeFixProvider.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeActionOperation.cs" />
