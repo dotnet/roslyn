@@ -207,10 +207,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static async Task<IPropertySymbol> OverridePropertyAsync(
             this SyntaxGenerator codeFactory,
             IPropertySymbol overriddenProperty,
+            DeclarationModifiers modifiers,
             INamedTypeSymbol containingType,
             Document document,
-            DeclarationModifiers? modifiers = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             var getAccessibility = overriddenProperty.GetMethod.ComputeResultantAccessibility(containingType);
             var setAccessibility = overriddenProperty.SetMethod.ComputeResultantAccessibility(containingType);
@@ -338,8 +338,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEventSymbol OverrideEvent(
             this SyntaxGenerator codeFactory,
             IEventSymbol overriddenEvent,
-            INamedTypeSymbol newContainingType,
-            DeclarationModifiers? modifiers = null)
+            DeclarationModifiers modifiers,
+            INamedTypeSymbol newContainingType)
         {
             return CodeGenerationSymbolFactory.CreateEventSymbol(
                 overriddenEvent,
@@ -366,16 +366,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (symbol is IMethodSymbol method)
             {
                 return await generator.OverrideMethodAsync(method,
-                    containingType, document, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    modifiers, containingType, document, cancellationToken).ConfigureAwait(false);
             }
             else if (symbol is IPropertySymbol property)
             {
                 return await generator.OverridePropertyAsync(property,
-                    containingType, document, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    modifiers, containingType, document, cancellationToken).ConfigureAwait(false);
             }
             else if (symbol is IEventSymbol ev)
             {
-                return generator.OverrideEvent(ev, containingType);
+                return generator.OverrideEvent(ev, modifiers, containingType);
             }
             else
             {
@@ -383,19 +383,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static async Task<IMethodSymbol> OverrideMethodAsync(
+        private static async Task<IMethodSymbol> OverrideMethodAsync(
             this SyntaxGenerator codeFactory,
             IMethodSymbol overriddenMethod,
+            DeclarationModifiers modifiers,
             INamedTypeSymbol newContainingType,
             Document newDocument,
-            DeclarationModifiers? modifiersOpt = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
-            var modifiers = modifiersOpt ?? overriddenMethod.GetSymbolModifiers();
-            modifiers = modifiers.WithIsOverride(true)
-                                 .WithIsAbstract(false)
-                                 .WithIsVirtual(false);
-
             // Abstract: Throw not implemented
             if (overriddenMethod.IsAbstract)
             {
