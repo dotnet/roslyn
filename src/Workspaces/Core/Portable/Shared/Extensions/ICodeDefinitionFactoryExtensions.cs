@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -379,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return symbol;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
