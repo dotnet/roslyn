@@ -19,6 +19,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <ItemGroup>
+    <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
+      <_Parameter1>$(GitHeadSha)</_Parameter1>
+    </AssemblyVersionAttribute>
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj">
       <Project>{6da08f12-32f2-4dd9-bbad-982eb71a2c9b}</Project>
