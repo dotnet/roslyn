@@ -1,4 +1,4 @@
-﻿{
+{
   "dependencies": {
     "EnvDTE": "8.0.1",
     "Microsoft.Composition": "1.0.27"
