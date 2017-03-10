@@ -232,16 +232,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             else if (overriddenProperty.IsIndexer() && document.Project.Language == LanguageNames.CSharp)
             {
                 // Indexer: return or set base[]. Only in C#, since VB must refer to these by name.
-                var body = codeFactory.ElementAccessExpression(
-                    codeFactory.BaseExpression(),
-                    codeFactory.CreateArguments(overriddenProperty.Parameters));
 
-                if (overriddenProperty.ReturnsByRef)
-                {
-                    body = codeFactory.RefExpression(body);
-                }
-
-                getBody = codeFactory.ReturnStatement(body);
+                getBody = codeFactory.ReturnStatement(
+                    WrapWithRefIfNecessary(codeFactory, overriddenProperty, 
+                        codeFactory.ElementAccessExpression(
+                            codeFactory.BaseExpression(),
+                            codeFactory.CreateArguments(overriddenProperty.Parameters))));
 
                 setBody = codeFactory.ExpressionStatement(
                     codeFactory.AssignmentStatement(
@@ -280,17 +276,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
                 else
                 {
-                    var body = codeFactory.InvocationExpression(
-                        codeFactory.MemberAccessExpression(
-                            codeFactory.BaseExpression(),
-                            codeFactory.IdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters));
+                    getBody = codeFactory.ReturnStatement(
+                        WrapWithRefIfNecessary(codeFactory, overriddenProperty, 
+                            codeFactory.InvocationExpression(
+                                codeFactory.MemberAccessExpression(
+                                    codeFactory.BaseExpression(),
+                                    codeFactory.IdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters))));
 
-                    if (overriddenProperty.ReturnsByRef)
-                    {
-                        body = codeFactory.RefExpression(body);
-                    }
-
-                    getBody = codeFactory.ReturnStatement(body);
                     setBody = codeFactory.ExpressionStatement(
                         codeFactory.AssignmentStatement(
                             codeFactory.InvocationExpression(
@@ -303,16 +295,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             else
             {
                 // Regular property: return or set the base property
-                var body = codeFactory.MemberAccessExpression(
-                    codeFactory.BaseExpression(),
-                    codeFactory.IdentifierName(overriddenProperty.Name));
 
-                if (overriddenProperty.ReturnsByRef)
-                {
-                    body = codeFactory.RefExpression(body);
-                }
+                getBody = codeFactory.ReturnStatement(
+                    WrapWithRefIfNecessary(codeFactory, overriddenProperty,
+                        codeFactory.MemberAccessExpression(
+                            codeFactory.BaseExpression(),
+                            codeFactory.IdentifierName(overriddenProperty.Name))));
 
-                getBody = codeFactory.ReturnStatement(body);
                 setBody = codeFactory.ExpressionStatement(
                     codeFactory.AssignmentStatement(
                         codeFactory.MemberAccessExpression(
@@ -354,6 +343,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 getMethod: accessorGet,
                 setMethod: accessorSet);
         }
+
+        private static SyntaxNode WrapWithRefIfNecessary(SyntaxGenerator codeFactory, IPropertySymbol overriddenProperty, SyntaxNode body)
+            => overriddenProperty.ReturnsByRef
+                ? codeFactory.RefExpression(body)
+                : body;
 
         public static IEventSymbol OverrideEvent(
             this SyntaxGenerator codeFactory,
