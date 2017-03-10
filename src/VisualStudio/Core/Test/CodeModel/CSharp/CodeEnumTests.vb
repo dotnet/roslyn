@@ -577,13 +577,7 @@ enum $$E
 }
 </Code>
 
-            Dim expectedPropertyNames =
-                {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind", "IsCodeType",
-                 "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
-                 "ExtenderCATID", "Parent", "Namespace", "Bases", "Members", "Access", "Attributes",
-                 "DocComment", "Comment", "DerivedTypes"}
-
-            TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(Of EnvDTE.CodeEnum)(code)
         End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
