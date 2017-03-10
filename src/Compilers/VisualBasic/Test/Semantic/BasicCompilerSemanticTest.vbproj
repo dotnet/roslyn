@@ -96,7 +96,7 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.vb" />
     <Compile Include="Diagnostics\DiagnosticTests.vb" />
     <Compile Include="Diagnostics\GetDiagnosticsTests.vb" />
-    <Compile Include="Diagnostics\IOperationTests.vb" />
+    <Compile Include="IOperation\IOperationTests.vb" />
     <Compile Include="Diagnostics\OperationAnalyzerTests.vb" />
     <Compile Include="ExtensionMethods\SemanticModelTests.vb" />
     <Compile Include="Extensions.vb" />
