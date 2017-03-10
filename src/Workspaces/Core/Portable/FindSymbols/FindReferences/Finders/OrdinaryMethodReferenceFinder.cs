@@ -41,12 +41,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var otherPartsOfPartial = GetOtherPartsOfPartial(symbolAndProjectId);
                 var baseCascadedSymbols = await base.DetermineCascadedSymbolsAsync(symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
-
-                if (otherPartsOfPartial == null && baseCascadedSymbols == null)
-                {
-                    return ImmutableArray<SymbolAndProjectId>.Empty;
-                }
-
                 return otherPartsOfPartial.Concat(baseCascadedSymbols);
             }
         }

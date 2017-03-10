@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             get
             {
-                if (s_defaultAssemblies == null)
+                if (s_defaultAssemblies.IsDefault)
                 {
                     ImmutableInterlocked.InterlockedCompareExchange(ref s_defaultAssemblies, CreateDefaultAssemblies(), default(ImmutableArray<Assembly>));
                 }
