@@ -472,7 +472,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (!(expression is ObjectCreationExpressionSyntax) && !(expression is AnonymousObjectCreationExpressionSyntax))
+            if (!(expression is ObjectCreationExpressionSyntax) && 
+                !(expression is AnonymousObjectCreationExpressionSyntax) &&
+                !expression.IsLeftSideOfAssignExpression())
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
                 if (!symbolInfo.GetBestOrAllSymbols().All(CanReplace))
@@ -517,12 +519,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 // If the parent is a conditional access expression, we could introduce an LValue
                 // for the given expression, unless it is itself a MemberBindingExpression or starts with one.
-                // Case (1) : The WhenNotNull clause always starts with a memberbindingexpression.
+                // Case (1) : The WhenNotNull clause always starts with a MemberBindingExpression.
                 //              expression '.Method()' in a?.Method()
-                // Case (2) : The Expression clause always starts with a memberbindingexpression if 
+                // Case (2) : The Expression clause always starts with a MemberBindingExpression if 
                 // the grandparent is a conditional access expression.
                 //              expression '.Method' in a?.Method()?.Length
-                // Case (3) : The child Conditional access expression always starts with a memberbindingexpression if
+                // Case (3) : The child Conditional access expression always starts with a MemberBindingExpression if
                 // the parent is a conditional access expression. This case is already covered before the parent kind switch
                 case SyntaxKind.ConditionalAccessExpression:
                     var parentConditionalAccessExpression = (ConditionalAccessExpressionSyntax)expression.Parent;
@@ -723,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            // if this node is annotated as being a specialtype, let's use this information.
+            // if this node is annotated as being a SpecialType, let's use this information.
             if (memberAccess.HasAnnotations(SpecialTypeAnnotation.Kind))
             {
                 replacementNode = SyntaxFactory.PredefinedType(
@@ -1230,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     if (name.TryReplaceWithAlias(semanticModel, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification), cancellationToken, out var aliasReplacement))
                     {
-                        // get the token text as it appears in source code to preserve e.g. unicode character escaping
+                        // get the token text as it appears in source code to preserve e.g. Unicode character escaping
                         var text = aliasReplacement.Name;
                         var syntaxRef = aliasReplacement.DeclaringSyntaxReferences.FirstOrDefault();
 
@@ -1393,7 +1395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         }
                     }
 
-                    // nullable rewrite: Nullable<int> -> int?
+                    // Nullable rewrite: Nullable<int> -> int?
                     // Don't rewrite in the case where Nullable<int> is part of some qualified name like Nullable<int>.Something
                     if (!name.IsVar && (symbol.Kind == SymbolKind.NamedType) && !name.IsLeftSideOfQualifiedName())
                     {
@@ -1584,10 +1586,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             return false;
                         }
 
-                        // if this attribute name in source contained unicode escaping, we will loose it now
+                        // if this attribute name in source contained Unicode escaping, we will loose it now
                         // because there is no easy way to determine the substring from identifier->ToString() 
                         // which would be needed to pass to SyntaxFactory.Identifier
-                        // The result is an unescaped unicode character in source.
+                        // The result is an unescaped Unicode character in source.
 
                         // once we remove the Attribute suffix, we can't use an escaped identifier
                         var newIdentifierToken = identifierToken.CopyAnnotationsTo(
@@ -2318,9 +2320,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         /// <summary>
-        /// Returns the predefined keyword kind for a given specialtype.
+        /// Returns the predefined keyword kind for a given <see cref="SpecialType"/>.
         /// </summary>
-        /// <param name="specialType">The specialtype of this type.</param>
+        /// <param name="specialType">The <see cref="SpecialType"/> of this type.</param>
         /// <returns>The keyword kind for a given special type, or SyntaxKind.None if the type name is not a predefined type.</returns>
         public static SyntaxKind GetPredefinedKeywordKind(SpecialType specialType)
         {
