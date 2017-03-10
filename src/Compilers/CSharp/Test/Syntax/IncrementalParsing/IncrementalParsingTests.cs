@@ -2341,6 +2341,51 @@ class Program
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }
 
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void InsertExpressionStatementWithoutSemicolonBefore()
+        {
+            SourceText oldText = SourceText.From(@"
+System.Console.WriteLine(true)\n
+");
+            var startTree = SyntaxFactory.ParseSyntaxTree(oldText);
+
+            var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), "System.Console.WriteLine(false)\n"));
+            var reparsedTree = startTree.WithChangedText(newText);
+            var parsedTree = SyntaxFactory.ParseSyntaxTree(newText);
+            CompareIncToFullParseErrors(reparsedTree, parsedTree);
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void InsertExpressionStatementWithoutSemicolonAfter()
+        {
+            SourceText oldText = SourceText.From(@"
+System.Console.WriteLine(true)\n
+");
+            var startTree = SyntaxFactory.ParseSyntaxTree(oldText);
+
+            var newText = oldText.WithInsertAt(oldText.Length, "System.Console.WriteLine(false)\n");
+            var reparsedTree = startTree.WithChangedText(newText);
+            var parsedTree = SyntaxFactory.ParseSyntaxTree(newText);
+            CompareIncToFullParseErrors(reparsedTree, parsedTree);
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void MakeEmbeddedExpressionStatementWithoutSemicolon()
+        {
+            SourceText oldText = SourceText.From(@"
+System.Console.WriteLine(true)\n
+");
+            var startTree = SyntaxFactory.ParseSyntaxTree(oldText);
+
+            var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), "if (false)\n"));
+            var reparsedTree = startTree.WithChangedText(newText);
+            var parsedTree = SyntaxFactory.ParseSyntaxTree(newText);
+            CompareIncToFullParseErrors(reparsedTree, parsedTree);
+        }
+
         [WorkItem(531404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531404")]
         [Fact]
         public void AppendDisabledText()

@@ -7356,9 +7356,9 @@ tryAgain:
                 case SyntaxKind.LocalFunctionStatement:
                     statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
                     break;
-                // Expression statements as embedded statements should be followed by semicolon.
+                // Expression statements as embedded statements should be followed by semicolon in scripts.
                 case SyntaxKind.ExpressionStatement:
-                    if (((ExpressionStatementSyntax)statement).SemicolonToken.IsMissing)
+                    if (IsScript && ((ExpressionStatementSyntax)statement).SemicolonToken.IsMissing)
                     {
                         statement = this.AddError(statement, ErrorCode.ERR_SemicolonExpected);
                     }

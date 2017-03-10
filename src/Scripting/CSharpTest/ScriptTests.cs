@@ -178,6 +178,7 @@ d.Do()"
 , ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
         }
 
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
         [Fact]
         public void TestRunEmbeddedStatementNotFollowedBySemicolon()
         {
@@ -198,6 +199,7 @@ d.Do()"
              Assert.True(exceptionThrown);
         }
 
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
         [Fact]
         public void TestRunEmbeddedStatementFollowedBySemicolon()
         {
