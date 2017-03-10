@@ -4158,6 +4158,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 (ExpressionSyntax)expression);
         }
 
+        internal override SyntaxNode RefExpression(SyntaxNode expression)
+            => SyntaxFactory.RefExpression((ExpressionSyntax)expression);
+
         #endregion
     }
 }

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -8,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 typeName: typeName,
                 parameters: constructor.Parameters,
                 statements: default(ImmutableArray<SyntaxNode>),
-                baseConstructorArguments: constructor.Parameters.Length == 0 
+                baseConstructorArguments: constructor.Parameters.Length == 0
                     ? default(ImmutableArray<SyntaxNode>)
                     : factory.CreateArguments(constructor.Parameters));
         }
@@ -232,10 +230,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             else if (overriddenProperty.IsIndexer() && document.Project.Language == LanguageNames.CSharp)
             {
                 // Indexer: return or set base[]. Only in C#, since VB must refer to these by name.
+
                 getBody = codeFactory.ReturnStatement(
-                    codeFactory.ElementAccessExpression(
-                        codeFactory.BaseExpression(),
-                        codeFactory.CreateArguments(overriddenProperty.Parameters)));
+                    WrapWithRefIfNecessary(codeFactory, overriddenProperty,
+                        codeFactory.ElementAccessExpression(
+                            codeFactory.BaseExpression(),
+                            codeFactory.CreateArguments(overriddenProperty.Parameters))));
 
                 setBody = codeFactory.ExpressionStatement(
                     codeFactory.AssignmentStatement(
@@ -275,10 +275,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 else
                 {
                     getBody = codeFactory.ReturnStatement(
-                        codeFactory.InvocationExpression(
-                        codeFactory.MemberAccessExpression(
-                            codeFactory.BaseExpression(),
-                            codeFactory.IdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters)));
+                        WrapWithRefIfNecessary(codeFactory, overriddenProperty,
+                            codeFactory.InvocationExpression(
+                                codeFactory.MemberAccessExpression(
+                                    codeFactory.BaseExpression(),
+                                    codeFactory.IdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters))));
+
                     setBody = codeFactory.ExpressionStatement(
                         codeFactory.AssignmentStatement(
                             codeFactory.InvocationExpression(
@@ -291,10 +293,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             else
             {
                 // Regular property: return or set the base property
+
                 getBody = codeFactory.ReturnStatement(
-                    codeFactory.MemberAccessExpression(
-                        codeFactory.BaseExpression(),
-                        codeFactory.IdentifierName(overriddenProperty.Name)));
+                    WrapWithRefIfNecessary(codeFactory, overriddenProperty,
+                        codeFactory.MemberAccessExpression(
+                            codeFactory.BaseExpression(),
+                            codeFactory.IdentifierName(overriddenProperty.Name))));
+
                 setBody = codeFactory.ExpressionStatement(
                     codeFactory.AssignmentStatement(
                         codeFactory.MemberAccessExpression(
@@ -336,6 +341,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 getMethod: accessorGet,
                 setMethod: accessorSet);
         }
+
+        private static SyntaxNode WrapWithRefIfNecessary(SyntaxGenerator codeFactory, IPropertySymbol overriddenProperty, SyntaxNode body)
+            => overriddenProperty.ReturnsByRef
+                ? codeFactory.RefExpression(body)
+                : body;
 
         public static IEventSymbol OverrideEvent(
             this SyntaxGenerator codeFactory,
@@ -418,6 +428,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         ? codeFactory.IdentifierName(overriddenMethod.Name)
                         : codeFactory.GenericName(overriddenMethod.Name, typeParams)),
                     codeFactory.CreateArguments(overriddenMethod.GetParameters()));
+
+                if (overriddenMethod.ReturnsByRef)
+                {
+                    body = codeFactory.RefExpression(body);
+                }
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     method: overriddenMethod,
