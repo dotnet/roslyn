@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpUpgradeProjectCodeFixProvider());
 
-        private async Task TestAsync(
+        private async Task TestLanguageVersionUpgradedAsync(
             string initialMarkup,
             LanguageVersion expected,
             ParseOptions parseOptions,
@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
                 var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
                 var oldSolution = appliedChanges.Item1;
                 var newSolution = appliedChanges.Item2;
-                Assert.True(newSolution.Projects.Where(p => p.Language == "C#").All(p => ((CSharpParseOptions)p.ParseOptions).SpecifiedLanguageVersion == expected));
+                Assert.True(newSolution.Projects.Where(p => p.Language == LanguageNames.CSharp)
+                    .All(p => ((CSharpParseOptions)p.ParseOptions).SpecifiedLanguageVersion == expected));
             }
 
             await TestAsync(initialMarkup, initialMarkup, parseOptions); // no change to markup
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
         public async Task UpgradeProjectToDefault()
         {
-            await TestAsync(
+            await TestLanguageVersionUpgradedAsync(
 @"
 class Program
 {
@@ -56,7 +57,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
         public async Task UpgradeProjectToCSharp7()
         {
-            await TestAsync(
+            await TestLanguageVersionUpgradedAsync(
 @"
 class Program
 {
@@ -73,7 +74,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
         public async Task UpgradeAllProjectsToDefault()
         {
-            await TestAsync(
+            await TestLanguageVersionUpgradedAsync(
 @"<Workspace>
     <Project Language=""C#"" LanguageVersion=""6"">
         <Document>
@@ -96,7 +97,7 @@ class C
     </Project>
 </Workspace>",
                 LanguageVersion.Default,
-                null,
+                parseOptions: null,
                 index: 2);
 
         }
@@ -104,7 +105,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
         public async Task UpgradeAllProjectsToCSharp7()
         {
-            await TestAsync(
+            await TestLanguageVersionUpgradedAsync(
 @"<Workspace>
     <Project Language=""C#"" LanguageVersion=""6"">
         <Document>
@@ -127,8 +128,62 @@ class C
     </Project>
 </Workspace>",
                 LanguageVersion.Default,
-                null,
+                parseOptions: null,
                 index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task ListAllSuggestions()
+        {
+            await TestExactActionSetOfferedAsync(
+
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""6"">
+        <Document>
+class C
+{
+    void A()
+    {
+        var x = [|(1, 2)|];
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""7"">
+    </Project>
+</Workspace>",
+new[] {
+    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "default"),
+    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7"),
+    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "default"),
+    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7")
+    });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task FixAllProjectsNotOffered()
+        {
+            await TestExactActionSetOfferedAsync(
+
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""6"">
+        <Document>
+class C
+{
+    void A()
+    {
+        var x = [|(1, 2)|];
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""Visual Basic"">
+    </Project>
+</Workspace>",
+new[] {
+    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "default"),
+    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7")
+    });
         }
     }
 }
