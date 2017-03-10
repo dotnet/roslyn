@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -31,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         public override ImmutableArray<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics)
         {
             var required = RequiredVersion(diagnostics);
-
             var builder = ArrayBuilder<string>.GetInstance(1);
 
             var generic = required <= LanguageVersion.Default.MapSpecifiedToEffectiveVersion()
@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                : LanguageVersion.Latest; // for more recent versions
 
             builder.Add(generic.ToDisplayString());
-
-            // also suggest the specific required version
-            builder.Add(required.ToDisplayString());
+            builder.Add(required.ToDisplayString()); // also suggest the specific required version
 
             return builder.ToImmutableAndFree();
         }
@@ -61,21 +59,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             return max;
         }
 
-        public override Solution UpgradeProject(Project project, string version)
+        public override Solution UpgradeProject(Project project, string newVersion)
         {
             var parseOptions = (CSharpParseOptions)project.ParseOptions;
-            Contract.ThrowIfFalse(CSharpParseOptions.TryParseLanguageVersion(version, out var newVersion));
-
-            if (parseOptions.LanguageVersion.ToDisplayString() != version &&
-                newVersion.MapSpecifiedToEffectiveVersion() >= parseOptions.LanguageVersion)
+            if (IsUpgrade(parseOptions, newVersion))
             {
-                return project.Solution.WithProjectParseOptions(project.Id, parseOptions.WithLanguageVersion(newVersion));
+                Contract.ThrowIfFalse(CSharpParseOptions.TryParseLanguageVersion(newVersion, out var parsedNewVersion));
+                return project.Solution.WithProjectParseOptions(project.Id, parseOptions.WithLanguageVersion(parsedNewVersion));
             }
             else
             {
                 // when fixing all projects in a solution, don't downgrade those with newer language versions
                 return project.Solution;
             }
+        }
+
+        public override bool IsUpgrade(ParseOptions projectOptions, string newVersion)
+        {
+            var parseOptions = (CSharpParseOptions)projectOptions;
+            Contract.ThrowIfFalse(CSharpParseOptions.TryParseLanguageVersion(newVersion, out var parsedNewVersion));
+
+            // treat equivalent versions (one generic and one specific) to be a valid upgrade
+            return parsedNewVersion.MapSpecifiedToEffectiveVersion() >= parseOptions.LanguageVersion &&
+                parseOptions.SpecifiedLanguageVersion.ToDisplayString() != newVersion;
         }
     }
 }

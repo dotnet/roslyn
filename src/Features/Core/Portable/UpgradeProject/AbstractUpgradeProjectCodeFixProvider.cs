@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
     {
         public abstract ImmutableArray<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics);
         public abstract Solution UpgradeProject(Project project, string version);
+        public abstract bool IsUpgrade(ParseOptions projectOptions, string newVersion);
         public abstract string UpgradeThisProjectResource { get; }
         public abstract string UpgradeAllProjectsResource { get; }
 
@@ -45,9 +46,9 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
                 result.Add(fixOneProject);
             }
 
-            if (solution.Projects.Count(p => p.Language == language) > 1)
+            foreach (var newVersion in newVersions)
             {
-                foreach (var newVersion in newVersions)
+                if (solution.Projects.Count(p => CanUpgrade(p, language, newVersion)) > 1)
                 {
                     var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, newVersion);
 
@@ -64,16 +65,23 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         public Solution UpgradeAllProjects(Solution solution, string language, string version, CancellationToken cancellationToken)
         {
             var currentSolution = solution;
-            foreach (var project in solution.Projects)
+            foreach (var projectId in solution.Projects.Select(p => p.Id))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (project.Language == language)
+                var currentProject = currentSolution.GetProject(projectId);
+
+                if (CanUpgrade(currentProject, language, version))
                 {
-                    currentSolution = UpgradeProject(currentSolution.GetProject(project.Id), version);
+                    currentSolution = UpgradeProject(currentProject, version);
                 }
             }
 
             return currentSolution;
+        }
+
+        private bool CanUpgrade(Project project, string language, string version)
+        {
+            return project.Language == language && IsUpgrade(project.ParseOptions, version);
         }
     }
 
