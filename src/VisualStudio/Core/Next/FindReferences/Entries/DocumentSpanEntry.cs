@@ -31,28 +31,30 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// </summary>
         private class DocumentSpanEntry : AbstractDocumentSpanEntry
         {
-            private readonly bool _isDefinitionLocation;
+            private readonly HighlightSpanKind _spanKind;
             private readonly ClassifiedSpansAndHighlightSpan _classifiedSpansAndHighlights;
 
             public DocumentSpanEntry(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
-                bool isDefinitionLocation,
+                HighlightSpanKind spanKind,
                 Guid projectGuid,
                 SourceText sourceText,
                 ClassifiedSpansAndHighlightSpan classifiedSpans)
                 : base(context, definitionBucket, documentSpan, projectGuid, sourceText)
             {
-                _isDefinitionLocation = isDefinitionLocation;
+                _spanKind = spanKind;
                 _classifiedSpansAndHighlights = classifiedSpans;
             }
 
             protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()
             {
-                var propertyId = _isDefinitionLocation
+                var propertyId = _spanKind == HighlightSpanKind.Definition
                     ? DefinitionHighlightTag.TagId
-                    : ReferenceHighlightTag.TagId;
+                    : _spanKind == HighlightSpanKind.WrittenReference
+                        ? WrittenReferenceHighlightTag.TagId
+                        : ReferenceHighlightTag.TagId;
 
                 var properties = Presenter.FormatMapService
                                           .GetEditorFormatMap("text")
@@ -81,31 +83,34 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return inlines;
             }
 
-            private DisposableToolTip CreateDisposableToolTip()
+            protected override Func<DisposableToolTip> CreateDisposableToolTipFactory()
             {
-                Presenter.AssertIsForeground();
-
-                // Create a new buffer that we'll show a preview for.  We can't search for an 
-                // existing buffer because:
-                //   1. the file may not be open.
-                //   2. our results may not be in sync with what's actually in the editor.
-                var textBuffer = CreateNewBuffer();
-
-                // Create the actual tooltip around the region of that text buffer we want to show.
-                var toolTip = new ToolTip
+                return () =>
                 {
-                    Content = CreateToolTipContent(textBuffer),
-                    Background = (Brush)Application.Current.Resources[EnvironmentColors.ToolWindowBackgroundBrushKey]
+                    Presenter.AssertIsForeground();
+
+                    // Create a new buffer that we'll show a preview for.  We can't search for an 
+                    // existing buffer because:
+                    //   1. the file may not be open.
+                    //   2. our results may not be in sync with what's actually in the editor.
+                    var textBuffer = CreateNewBuffer();
+
+                    // Create the actual tooltip around the region of that text buffer we want to show.
+                    var toolTip = new ToolTip
+                    {
+                        Content = CreateToolTipContent(textBuffer),
+                        Background = (Brush)Application.Current.Resources[EnvironmentColors.ToolWindowBackgroundBrushKey]
+                    };
+
+                    // Create a preview workspace for this text buffer and open it's corresponding 
+                    // document.  That way we'll get nice things like classification as well as the
+                    // reference highlight span.
+                    var newDocument = Document.WithText(textBuffer.AsTextContainer().CurrentText);
+                    var workspace = new PreviewWorkspace(newDocument.Project.Solution);
+                    workspace.OpenDocument(newDocument.Id);
+
+                    return new DisposableToolTip(toolTip, workspace);
                 };
-
-                // Create a preview workspace for this text buffer and open it's corresponding 
-                // document.  That way we'll get nice things like classification as well as the
-                // reference highlight span.
-                var newDocument = Document.WithText(textBuffer.AsTextContainer().CurrentText);
-                var workspace = new PreviewWorkspace(newDocument.Project.Solution);
-                workspace.OpenDocument(newDocument.Id);
-
-                return new DisposableToolTip(toolTip, workspace);
             }
 
             private ContentControl CreateToolTipContent(ITextBuffer textBuffer)
@@ -146,9 +151,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     _sourceText.ToString(), contentType);
 
                 // Create an appropriate highlight span on that buffer for the reference.
-                var key = _isDefinitionLocation
+                var key = _spanKind == HighlightSpanKind.Definition
                     ? PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey
-                    : PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
+                    : _spanKind == HighlightSpanKind.WrittenReference
+                        ? PredefinedPreviewTaggerKeys.WrittenReferenceHighlightingSpansKey
+                        : PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
                 textBuffer.Properties.RemoveProperty(key);
                 textBuffer.Properties.AddProperty(key, new NormalizedSnapshotSpanCollection(
                     SourceSpan.ToSnapshotSpan(textBuffer.CurrentSnapshot)));
