@@ -68,18 +68,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return null;
             }
 
-            public sealed override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
+            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
             {
                 if (columnName == StandardTableColumnDefinitions2.LineText)
                 {
                     var inlines = CreateLineTextInlines();
                     var textBlock = inlines.ToTextBlock(Presenter.TypeMap, wrap: false);
-
-                    var toolTipFactory = CreateDisposableToolTipFactory();
-                    if (toolTipFactory != null)
-                    {
-                        LazyToolTip.AttachTo(textBlock, toolTipFactory);
-                    }
 
                     content = textBlock;
                     return true;
@@ -90,8 +84,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             protected abstract IList<Inline> CreateLineTextInlines();
-
-            protected virtual Func<DisposableToolTip> CreateDisposableToolTipFactory() => null;
         }
     }
 }

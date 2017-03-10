@@ -83,34 +83,43 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return inlines;
             }
 
-            protected override Func<DisposableToolTip> CreateDisposableToolTipFactory()
+            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
             {
-                return () =>
+                if (base.TryCreateColumnContent(columnName, out content))
                 {
-                    Presenter.AssertIsForeground();
+                    LazyToolTip.AttachTo(content, CreateDisposableToolTip);
 
-                    // Create a new buffer that we'll show a preview for.  We can't search for an 
-                    // existing buffer because:
-                    //   1. the file may not be open.
-                    //   2. our results may not be in sync with what's actually in the editor.
-                    var textBuffer = CreateNewBuffer();
+                    return true;
+                }
 
-                    // Create the actual tooltip around the region of that text buffer we want to show.
-                    var toolTip = new ToolTip
-                    {
-                        Content = CreateToolTipContent(textBuffer),
-                        Background = (Brush)Application.Current.Resources[EnvironmentColors.ToolWindowBackgroundBrushKey]
-                    };
+                return false;
+            }
 
-                    // Create a preview workspace for this text buffer and open it's corresponding 
-                    // document.  That way we'll get nice things like classification as well as the
-                    // reference highlight span.
-                    var newDocument = Document.WithText(textBuffer.AsTextContainer().CurrentText);
-                    var workspace = new PreviewWorkspace(newDocument.Project.Solution);
-                    workspace.OpenDocument(newDocument.Id);
+            private DisposableToolTip CreateDisposableToolTip()
+            {
+                Presenter.AssertIsForeground();
 
-                    return new DisposableToolTip(toolTip, workspace);
+                // Create a new buffer that we'll show a preview for.  We can't search for an 
+                // existing buffer because:
+                //   1. the file may not be open.
+                //   2. our results may not be in sync with what's actually in the editor.
+                var textBuffer = CreateNewBuffer();
+
+                // Create the actual tooltip around the region of that text buffer we want to show.
+                var toolTip = new ToolTip
+                {
+                    Content = CreateToolTipContent(textBuffer),
+                    Background = (Brush)Application.Current.Resources[EnvironmentColors.ToolWindowBackgroundBrushKey]
                 };
+
+                // Create a preview workspace for this text buffer and open it's corresponding 
+                // document.  That way we'll get nice things like classification as well as the
+                // reference highlight span.
+                var newDocument = Document.WithText(textBuffer.AsTextContainer().CurrentText);
+                var workspace = new PreviewWorkspace(newDocument.Project.Solution);
+                workspace.OpenDocument(newDocument.Id);
+
+                return new DisposableToolTip(toolTip, workspace);
             }
 
             private ContentControl CreateToolTipContent(ITextBuffer textBuffer)
