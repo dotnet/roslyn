@@ -1964,10 +1964,38 @@ namespace Microsoft.CodeAnalysis
                 cancellationToken);
         }
 
+        // 2.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public EmitResult Emit(
+            Stream peStream,
+            Stream pdbStream,
+            Stream xmlDocumentationStream,
+            Stream win32Resources,
+            IEnumerable<ResourceDescription> manifestResources,
+            EmitOptions options,
+            IMethodSymbol debugEntryPoint,
+            Stream sourceLinkStream,
+            IEnumerable<EmbeddedText> embeddedTexts,
+            CancellationToken cancellationToken)
+        {
+            return Emit(
+                peStream,
+                pdbStream,
+                xmlDocumentationStream,
+                win32Resources,
+                manifestResources,
+                options,
+                debugEntryPoint,
+                sourceLinkStream,
+                embeddedTexts,
+                metadataPeStream: null,
+                cancellationToken: cancellationToken);
+        }
+
         /// <summary>
         /// Emit the IL for the compiled source code into the specified stream.
         /// </summary>
         /// <param name="peStream">Stream to which the compilation will be written.</param>
+        /// <param name="metadataPeStream">Stream to which the metadata-only output will be written.</param>
         /// <param name="pdbStream">Stream to which the compilation's debug info will be written.  Null to forego PDB generation.</param>
         /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
         /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
@@ -2008,6 +2036,7 @@ namespace Microsoft.CodeAnalysis
             IMethodSymbol debugEntryPoint = null,
             Stream sourceLinkStream = null,
             IEnumerable<EmbeddedText> embeddedTexts = null,
+            Stream metadataPeStream = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (peStream == null)
@@ -2033,6 +2062,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            if (metadataPeStream != null && options.EmitMetadataOnly)
+            {
+                throw new ArgumentException(CodeAnalysisResources.StreamMustSupportWrite, nameof(metadataPeStream)); // PROTOTYPE(refout) fix error message and add test
+            }
+
             if (win32Resources != null)
             {
                 if (!win32Resources.CanRead || !win32Resources.CanSeek)
@@ -2055,6 +2089,7 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentException(CodeAnalysisResources.StreamMustSupportRead, nameof(sourceLinkStream));
                 }
             }
+
             if (embeddedTexts != null && !embeddedTexts.IsEmpty())
             {
                 if (options == null || 
@@ -2067,6 +2102,7 @@ namespace Microsoft.CodeAnalysis
 
             return Emit(
                 peStream,
+                metadataPeStream,
                 pdbStream,
                 xmlDocumentationStream,
                 win32Resources,
@@ -2085,6 +2121,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal EmitResult Emit(
             Stream peStream,
+            Stream metadataPeStream,
             Stream pdbStream,
             Stream xmlDocumentationStream,
             Stream win32Resources,
@@ -2152,6 +2189,7 @@ namespace Microsoft.CodeAnalysis
                     success = SerializeToPeStream(
                         moduleBeingBuilt,
                         new SimpleEmitStreamProvider(peStream),
+                        (metadataPeStream != null) ? new SimpleEmitStreamProvider(metadataPeStream) : null,
                         (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
                         testData?.SymWriterFactory,
                         diagnostics,
@@ -2318,6 +2356,7 @@ namespace Microsoft.CodeAnalysis
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,
             EmitStreamProvider peStreamProvider,
+            EmitStreamProvider metadataPeStreamProvider,
             EmitStreamProvider pdbStreamProvider,
             Func<object> testSymWriterFactory,
             DiagnosticBag diagnostics,
@@ -2331,6 +2370,7 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag metadataDiagnostics = null;
             DiagnosticBag pdbBag = null;
             Stream peStream = null;
+            Stream refPeStream = null;
             Stream portablePdbStream = null;
 
             bool deterministic = IsEmitDeterministic;
@@ -2429,12 +2469,33 @@ namespace Microsoft.CodeAnalysis
                     return retStream;
                 };
 
+                Func<Stream> getRefPeStream;
+                if (metadataPeStreamProvider != null)
+                {
+                    getRefPeStream = () =>
+                    {
+                        if (metadataDiagnostics.HasAnyErrors())
+                        {
+                            return null;
+                        }
+
+                        refPeStream = metadataPeStreamProvider.GetOrCreateStream(metadataDiagnostics);
+                        Debug.Assert(refPeStream != null || metadataDiagnostics.HasAnyErrors());
+                        return refPeStream;
+                    };
+                }
+                else
+                {
+                    getRefPeStream = null;
+                }
+
                 try
                 {
                     if (Cci.PeWriter.WritePeToStream(
                         new EmitContext(moduleBeingBuilt, null, metadataDiagnostics),
                         this.MessageProvider,
                         getPeStream,
+                        getRefPeStream,
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbPath,
@@ -2506,6 +2567,7 @@ namespace Microsoft.CodeAnalysis
             {
                 nativePdbWriter?.Dispose();
                 signingInputStream?.Dispose();
+                refPeStream?.Dispose();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
             }

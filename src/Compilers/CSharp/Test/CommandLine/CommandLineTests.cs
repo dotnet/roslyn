@@ -8894,12 +8894,6 @@ class C {
                         .Select(p => metadataReader.GetTypeReference((TypeReferenceHandle)p).Name)
                         .Select(n => metadataReader.GetString(n)),
                     new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" });
-
-                // no method implementations
-                foreach (var typeDef in metadataReader.TypeDefinitions)
-                {
-                    Assert.Equal(0, metadataReader.GetTypeDefinition(typeDef).GetMethodImplementations().Count());
-                }
             }
 
             // Clean up temp files
@@ -8924,7 +8918,7 @@ class C {
             Assert.False(File.Exists(dll));
 
             var refDll = Path.Combine(dir.Path, "ref\\a.dll");
-            Assert.True(File.Exists(refDll));
+            Assert.False(File.Exists(refDll)); // PROTOTYPE Should we produce ref assemblies on method body errors?
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);

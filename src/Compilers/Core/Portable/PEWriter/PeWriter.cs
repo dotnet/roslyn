@@ -26,21 +26,70 @@ namespace Microsoft.Cci
 
     internal static class PeWriter
     {
-        public static bool WritePeToStream(
+        internal static bool WritePeToStream(
+             EmitContext context,
+             CommonMessageProvider messageProvider,
+             Func<Stream> getPeStream,
+             Func<Stream> getMetadataPeStreamOpt,
+             Func<Stream> getPortablePdbStreamOpt,
+             PdbWriter nativePdbWriterOpt,
+             string pdbPathOpt,
+             bool metadataOnly,
+             bool isDeterministic,
+             CancellationToken cancellationToken)
+        {
+            if (!WritePeToStream(
+                context,
+                messageProvider,
+                getPeStream,
+                getPortablePdbStreamOpt,
+                nativePdbWriterOpt,
+                pdbPathOpt,
+                metadataOnly,
+                isDeterministic,
+                cancellationToken))
+            {
+                return false;
+            }
+
+            // produce the secondary output (ref assembly) if needed
+            if (getMetadataPeStreamOpt != null)
+            {
+                Debug.Assert(!metadataOnly);
+
+                if (!WritePeToStream(
+                    context,
+                    messageProvider,
+                    getMetadataPeStreamOpt,
+                    getPortablePdbStreamOpt: null,
+                    nativePdbWriterOpt: null,
+                    pdbPathOpt: null,
+                    metadataOnly: true,
+                    isDeterministic: isDeterministic,
+                    cancellationToken: cancellationToken))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        internal static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
             Func<Stream> getPeStream,
             Func<Stream> getPortablePdbStreamOpt,
             PdbWriter nativePdbWriterOpt,
             string pdbPathOpt,
-            bool allowMissingMethodBodies,
+            bool metadataOnly,
             bool isDeterministic,
             CancellationToken cancellationToken)
         {
             // If PDB writer is given, we have to have PDB path.
             Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
-            var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, isDeterministic, getPortablePdbStreamOpt != null, cancellationToken);
+            var mdWriter = FullMetadataWriter.Create(context, messageProvider, metadataOnly, isDeterministic, getPortablePdbStreamOpt != null, cancellationToken);
 
             var properties = context.Module.SerializationProperties;
 

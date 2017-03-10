@@ -235,6 +235,7 @@ namespace Roslyn.Test.Utilities
                 {
                     result = compilation.Emit(
                         executableStream,
+                        metadataPeStream: null,
                         pdbStream: pdbStream,
                         xmlDocumentationStream: null,
                         win32Resources: null,

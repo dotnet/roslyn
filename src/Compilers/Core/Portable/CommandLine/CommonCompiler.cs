@@ -628,16 +628,6 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    string finalRefPeFilePath = Arguments.OutputRefFilePath;
-                    if (finalRefPeFilePath != null)
-                    {
-                        if (!CompileAndEmitRefAssembly(compilation, emitOptions.WithEmitMetadataOnly(true),
-                            finalRefPeFilePath, touchedFilesLogger, diagnosticBag, cancellationToken))
-                        {
-                            return Failed;
-                        }
-                    }
-
                     var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
                         diagnosticBag,
                         Arguments.ManifestResources,
@@ -746,11 +736,15 @@ namespace Microsoft.CodeAnalysis
                             var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath);
                             var pdbStreamProviderOpt = emitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
 
+                            string finalRefPeFilePath = Arguments.OutputRefFilePath;
+                            var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;
+
                             try
                             {
                                 success = compilation.SerializeToPeStream(
                                     moduleBeingBuilt,
                                     peStreamProvider,
+                                    refPeStreamProviderOpt,
                                     pdbStreamProviderOpt,
                                     testSymWriterFactory: null,
                                     diagnostics: diagnosticBag,
@@ -760,6 +754,7 @@ namespace Microsoft.CodeAnalysis
                             finally
                             {
                                 peStreamProvider.Close(diagnosticBag);
+                                refPeStreamProviderOpt?.Close(diagnosticBag);
                                 pdbStreamProviderOpt?.Close(diagnosticBag);
                             }
 
@@ -768,6 +763,10 @@ namespace Microsoft.CodeAnalysis
                                 if (pdbStreamProviderOpt != null)
                                 {
                                     touchedFilesLogger.AddWritten(finalPdbFilePath);
+                                }
+                                if (refPeStreamProviderOpt != null)
+                                {
+                                    touchedFilesLogger.AddWritten(finalRefPeFilePath);
                                 }
                                 touchedFilesLogger.AddWritten(finalPeFilePath);
                             }
@@ -842,67 +841,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return Succeeded;
-        }
-
-        private bool CompileAndEmitRefAssembly(Compilation compilation, EmitOptions refEmitOptions, string finalRefPeFilePath,
-            TouchedFileLogger touchedFilesLogger, DiagnosticBag diagnosticBag, CancellationToken cancellationToken)
-        {
-            var refModuleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
-                diagnosticBag,
-                Arguments.ManifestResources,
-                refEmitOptions,
-                debugEntryPoint: null,
-                sourceLinkStream: null,
-                embeddedTexts: null,
-                testData: null,
-                cancellationToken: cancellationToken);
-
-            bool success = true;
-            if (refModuleBeingBuilt != null)
-            {
-                try
-                {
-                    var diagnostics = DiagnosticBag.GetInstance();
-
-                    success = compilation.CompileMethods(
-                        refModuleBeingBuilt,
-                        emittingPdb: false,
-                        diagnostics: diagnostics,
-                        filterOpt: null,
-                        cancellationToken: cancellationToken);
-                }
-                finally
-                {
-                    refModuleBeingBuilt.CompilationFinished();
-                }
-
-                if (success)
-                {
-                    var refPeStreamProvider = new CompilerEmitStreamProvider(this, finalRefPeFilePath);
-
-                    try
-                    {
-                        success = compilation.SerializeToPeStream(
-                            refModuleBeingBuilt,
-                            refPeStreamProvider,
-                            pdbStreamProvider: null,
-                            testSymWriterFactory: null,
-                            diagnostics: diagnosticBag,
-                            metadataOnly: true,
-                            cancellationToken: cancellationToken);
-                    }
-                    finally
-                    {
-                        refPeStreamProvider.Close(diagnosticBag);
-                    }
-
-                    if (success && touchedFilesLogger != null)
-                    {
-                        touchedFilesLogger.AddWritten(finalRefPeFilePath);
-                    }
-                }
-            }
-            return success;
         }
 
         private bool WriteTouchedFiles(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, string finalXmlFilePath)

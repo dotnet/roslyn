@@ -65,8 +65,7 @@ namespace Microsoft.Cci
         private readonly int _numTypeDefsEstimate;
         private readonly bool _deterministic;
 
-        // If true, it is allowed to have methods not have bodies (for emitting metadata-only assembly)
-        internal readonly bool allowMissingMethodBodies;
+        internal readonly bool metadataOnly;
 
         // A map of method body before token translation to RVA. Used for deduplication of small bodies.
         private readonly Dictionary<ImmutableArray<byte>, int> _smallMethodBodies;
@@ -77,13 +76,13 @@ namespace Microsoft.Cci
             DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
             EmitContext context,
             CommonMessageProvider messageProvider,
-            bool allowMissingMethodBodies,
+            bool metadataOnly,
             bool deterministic,
             CancellationToken cancellationToken)
         {
             this.module = context.Module;
             _deterministic = deterministic;
-            this.allowMissingMethodBodies = allowMissingMethodBodies;
+            this.metadataOnly = metadataOnly;
 
             // EDMAURER provide some reasonable size estimates for these that will avoid
             // much of the reallocation that would occur when growing these from empty.
@@ -2829,10 +2828,9 @@ namespace Microsoft.Cci
                 IMethodBody body;
                 StandaloneSignatureHandle localSignatureHandleOpt;
 
-                if (method.HasBody())
+                if (method.HasBody() && !metadataOnly)
                 {
                     body = method.GetBody(Context);
-                    Debug.Assert(body != null || allowMissingMethodBodies);
 
                     if (body != null)
                     {

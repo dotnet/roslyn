@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                         () => peStream,
                         () => pdbStream,
                         null, null,
-                        allowMissingMethodBodies: true,
+                        metadataOnly: true,
                         isDeterministic: false,
                         cancellationToken: default(CancellationToken));
 

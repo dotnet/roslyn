@@ -331,7 +331,7 @@ public class PublicClass
 
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
 
-            var verifier = CompileAndVerify(comp, emitOptions: emitRefOnly, verify: false);
+            var verifier = CompileAndVerify(comp, emitOptions: emitRefOnly, verify: false); // PROTOTYPE(refout) PEVerify fails
             Assert.True(verifier.TestData.Methods.IsEmpty); // no method bodies
 
             var image = comp.EmitToImageReference(emitRefOnly);

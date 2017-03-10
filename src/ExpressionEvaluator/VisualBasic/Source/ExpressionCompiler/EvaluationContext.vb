@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
-                        allowMissingMethodBodies:=False,
+                        metadataOnly:=False,
                         isDeterministic:=False,
                         cancellationToken:=Nothing)
 
@@ -442,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
-                        allowMissingMethodBodies:=False,
+                        metadataOnly:=False,
                         isDeterministic:=False,
                         cancellationToken:=Nothing)
 
@@ -486,7 +486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
-                        allowMissingMethodBodies:=False,
+                        metadataOnly:=False,
                         isDeterministic:=False,
                         cancellationToken:=Nothing)
 

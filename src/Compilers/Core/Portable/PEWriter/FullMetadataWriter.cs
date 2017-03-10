@@ -37,7 +37,7 @@ namespace Microsoft.Cci
         public static MetadataWriter Create(
             EmitContext context,
             CommonMessageProvider messageProvider,
-            bool allowMissingMethodBodies,
+            bool metadataOnly,
             bool deterministic,
             bool hasPdbStream,
             CancellationToken cancellationToken)
@@ -63,7 +63,7 @@ namespace Microsoft.Cci
                 new DynamicAnalysisDataWriter(context.Module.DebugDocumentCount, context.Module.HintNumberOfMethodDefinitions) : 
                 null;
 
-            return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, metadataOnly, deterministic, cancellationToken);
         }
 
         private FullMetadataWriter(
@@ -72,10 +72,10 @@ namespace Microsoft.Cci
             MetadataBuilder debugBuilderOpt,
             DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
             CommonMessageProvider messageProvider,
-            bool allowMissingMethodBodies,
+            bool metadataOnly,
             bool deterministic,
             CancellationToken cancellationToken)
-            : base(builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
+            : base(builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, metadataOnly, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;

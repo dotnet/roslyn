@@ -119,7 +119,7 @@ namespace Microsoft.Cci
                         }
                     }
                 }
-                else if (!metadataWriter.allowMissingMethodBodies)
+                else if (!metadataWriter.metadataOnly)
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
