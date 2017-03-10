@@ -25,7 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             private readonly DocumentSpan _documentSpan;
             private readonly object _boxedProjectGuid;
-
             protected readonly SourceText _sourceText;
 
             protected AbstractDocumentSpanEntry(
