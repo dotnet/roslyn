@@ -1,15 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
+using Microsoft.CodeAnalysis.PickMembers;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.PickMembers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHashCodeFromMembers
 {
@@ -385,6 +386,13 @@ class Program
 {
     int i;
 
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               i == program.i;
+    }
+
     public override int GetHashCode()
     {
         return 165851236 + i.GetHashCode();
@@ -408,6 +416,13 @@ class Program
 class Program
 {
     int j;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               j == program.j;
+    }
 
     public override int GetHashCode()
     {
@@ -440,6 +455,13 @@ class Base {
 class Program : Base
 {
     int j;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               j == program.j;
+    }
 
     public override int GetHashCode()
     {
@@ -477,6 +499,12 @@ class Program : Base
 {
     int j;
 
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null;
+    }
+
     public override int GetHashCode()
     {
         return base.GetHashCode();
@@ -502,6 +530,13 @@ class Program
 {
     int i;
 
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               i == program.i;
+    }
+
     public override int GetHashCode() => 165851236 + i.GetHashCode();
 }",
 index: 1,
@@ -523,6 +558,13 @@ class Program<T>
 class Program<T>
 {
     T i;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program<T>;
+        return program != null &&
+               EqualityComparer<T>.Default.Equals(i, program.i);
+    }
 
     public override int GetHashCode()
     {
@@ -547,6 +589,13 @@ class Program<T>
 class Program<T>
 {
     Program<T> i;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program<T>;
+        return program != null &&
+               EqualityComparer<Program<T>>.Default.Equals(i, program.i);
+    }
 
     public override int GetHashCode()
     {
@@ -575,6 +624,14 @@ class Program
     int i;
 
     string S { get; }
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               i == program.i &&
+               S == program.S;
+    }
 
     public override int GetHashCode()
     {
@@ -622,7 +679,7 @@ class Program
         this.b = b;
     }
 }",
-FeaturesResources.Generate_GetHashCode,
+FeaturesResources.Generate_Equals_and_GetHashCode,
 index: 1);
         }
 
@@ -642,8 +699,8 @@ class Program
         this.b = b;
     }
 }",
-FeaturesResources.Generate_Both,
-index: 2);
+FeaturesResources.Generate_Equals_and_GetHashCode,
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -665,7 +722,8 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null && EqualityComparer<(int, string)>.Default.Equals(a, c.a);
+        return c != null &&
+               a.Equals(c.a);
     }
 }",
 index: 0,
@@ -691,7 +749,8 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null && EqualityComparer<(int, string)>.Default.Equals(a, c.a);
+        return c != null &&
+               a.Equals(c.a);
     }
 }");
         }
@@ -715,7 +774,8 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null && EqualityComparer<(int x, string y)>.Default.Equals(a, c.a);
+        return c != null &&
+               a.Equals(c.a);
     }
 }");
         }
@@ -735,6 +795,13 @@ class Program
 class Program
 {
     (int, string) i;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               i.Equals(program.i);
+    }
 
     public override int GetHashCode()
     {
@@ -759,6 +826,13 @@ class Program
 class Program
 {
     (int x, string y) i;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               i.Equals(program.i);
+    }
 
     public override int GetHashCode()
     {
