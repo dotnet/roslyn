@@ -1195,13 +1195,11 @@ namespace Microsoft.CodeAnalysis
             {
                 return false;
             }
-
-            // Currently, only changes to the LanguageVersion of parse options are supported.
-            var newLanguageVersion = parseOptionsService.GetLanguageVersion(newOptions);
-            var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
-
-            return newOptions == updated;
+            return CanApplyParseOptionChange(oldOptions, newOptions, parseOptionsService);
         }
+
+        internal virtual bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, IParseOptionsService parseOptionsService)
+            => false;
 
         /// <summary>
         /// This method is called during <see cref="TryApplyChanges(Solution)"/> for each project 

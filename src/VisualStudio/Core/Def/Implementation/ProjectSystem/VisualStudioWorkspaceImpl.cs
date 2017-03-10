@@ -195,6 +195,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
+        internal override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, IParseOptionsService parseOptionsService)
+        {
+            // Currently, only changes to the LanguageVersion of parse options are supported.
+            var newLanguageVersion = parseOptionsService.GetLanguageVersion(newOptions);
+            var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
+
+            return newOptions == updated;
+        }
+
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
             switch (feature)
