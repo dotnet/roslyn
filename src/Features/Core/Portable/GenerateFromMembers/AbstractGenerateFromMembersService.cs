@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         /// <see cref="SemanticModel.GetEnclosingSymbol"/> because that doesn't return
         /// the type you're current on if you're on the header of a class/interface.
         /// </summary>
-        protected static INamedTypeSymbol GetEnclosingNamedType(
+        internal static INamedTypeSymbol GetEnclosingNamedType(
             SemanticModel semanticModel, SyntaxNode root, int start, CancellationToken cancellationToken)
         {
             var token = root.FindToken(start);
