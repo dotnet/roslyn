@@ -1,11 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.Async;
 using Microsoft.CodeAnalysis.CSharp.UpgradeProject;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
                 var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
                 var oldSolution = appliedChanges.Item1;
                 var newSolution = appliedChanges.Item2;
-                Assert.Equal(expected, ((CSharpParseOptions)newSolution.Projects.First().ParseOptions).SpecifiedLanguageVersion);
+                Assert.True(newSolution.Projects.Where(p => p.Language == "C#").All(p => ((CSharpParseOptions)p.ParseOptions).SpecifiedLanguageVersion == expected));
             }
 
             await TestAsync(initialMarkup, initialMarkup, parseOptions); // no change to markup
@@ -72,6 +70,65 @@ class Program
                 index: 1);
         }
 
-        // PROTOTYPE add test for Fix All
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task UpgradeAllProjectsToDefault()
+        {
+            await TestAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""6"">
+        <Document>
+class C
+{
+    void A()
+    {
+        var x = [|(1, 2)|];
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""6"">
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""Default"">
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""7"">
+    </Project>
+    <Project Language=""Visual Basic"">
+    </Project>
+</Workspace>",
+                LanguageVersion.Default,
+                null,
+                index: 2);
+
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task UpgradeAllProjectsToCSharp7()
+        {
+            await TestAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""6"">
+        <Document>
+class C
+{
+    void A()
+    {
+        var x = [|(1, 2)|];
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""6"">
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""Default"">
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""7"">
+    </Project>
+    <Project Language=""Visual Basic"">
+    </Project>
+</Workspace>",
+                LanguageVersion.Default,
+                null,
+                index: 2);
+        }
     }
 }
