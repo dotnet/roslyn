@@ -80,7 +80,8 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"),
+         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyRemoveParameter()
         {
             SetUpEditor(@"
@@ -124,7 +125,8 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"),
+         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCrossLanguageGlobalUndo()
         {
             SetUpEditor(@"using VBProject;
