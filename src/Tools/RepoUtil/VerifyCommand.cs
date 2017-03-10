@@ -112,7 +112,7 @@ namespace RepoUtil
 
                 if (!allGood)
                 {
-                    writer.WriteLine($@"Generated contents out of date. Run ""RepoUtil.change"" to correct");
+                    writer.WriteLine($@"Generated contents out of date. Run ""RepoUtil change"" to correct");
                     return false;
                 }
 
