@@ -232,10 +232,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             else if (overriddenProperty.IsIndexer() && document.Project.Language == LanguageNames.CSharp)
             {
                 // Indexer: return or set base[]. Only in C#, since VB must refer to these by name.
-                getBody = codeFactory.ReturnStatement(
-                    codeFactory.ElementAccessExpression(
-                        codeFactory.BaseExpression(),
-                        codeFactory.CreateArguments(overriddenProperty.Parameters)));
+                var body = codeFactory.ElementAccessExpression(
+                    codeFactory.BaseExpression(),
+                    codeFactory.CreateArguments(overriddenProperty.Parameters));
+
+                if (overriddenProperty.ReturnsByRef)
+                {
+                    body = codeFactory.RefExpression(body);
+                }
+
+                getBody = codeFactory.ReturnStatement(body);
 
                 setBody = codeFactory.ExpressionStatement(
                     codeFactory.AssignmentStatement(
@@ -274,11 +280,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
                 else
                 {
-                    getBody = codeFactory.ReturnStatement(
-                        codeFactory.InvocationExpression(
+                    var body = codeFactory.InvocationExpression(
                         codeFactory.MemberAccessExpression(
                             codeFactory.BaseExpression(),
-                            codeFactory.IdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters)));
+                            codeFactory.IdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters));
+
+                    if (overriddenProperty.ReturnsByRef)
+                    {
+                        body = codeFactory.RefExpression(body);
+                    }
+
+                    getBody = codeFactory.ReturnStatement(body);
                     setBody = codeFactory.ExpressionStatement(
                         codeFactory.AssignmentStatement(
                             codeFactory.InvocationExpression(
@@ -291,10 +303,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             else
             {
                 // Regular property: return or set the base property
-                getBody = codeFactory.ReturnStatement(
-                    codeFactory.MemberAccessExpression(
-                        codeFactory.BaseExpression(),
-                        codeFactory.IdentifierName(overriddenProperty.Name)));
+                var body = codeFactory.MemberAccessExpression(
+                    codeFactory.BaseExpression(),
+                    codeFactory.IdentifierName(overriddenProperty.Name));
+
+                if (overriddenProperty.ReturnsByRef)
+                {
+                    body = codeFactory.RefExpression(body);
+                }
+
+                getBody = codeFactory.ReturnStatement(body);
                 setBody = codeFactory.ExpressionStatement(
                     codeFactory.AssignmentStatement(
                         codeFactory.MemberAccessExpression(
@@ -418,6 +436,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         ? codeFactory.IdentifierName(overriddenMethod.Name)
                         : codeFactory.GenericName(overriddenMethod.Name, typeParams)),
                     codeFactory.CreateArguments(overriddenMethod.GetParameters()));
+
+                if (overriddenMethod.ReturnsByRef)
+                {
+                    body = codeFactory.RefExpression(body);
+                }
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     method: overriddenMethod,
