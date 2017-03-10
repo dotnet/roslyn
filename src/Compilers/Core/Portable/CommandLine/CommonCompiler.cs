@@ -862,10 +862,12 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
+                    var diagnostics = DiagnosticBag.GetInstance();
+
                     success = compilation.CompileMethods(
                         refModuleBeingBuilt,
                         emittingPdb: false,
-                        diagnostics: diagnosticBag,
+                        diagnostics: diagnostics,
                         filterOpt: null,
                         cancellationToken: cancellationToken);
                 }

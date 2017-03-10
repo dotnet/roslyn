@@ -314,6 +314,44 @@ public class C
             }
         }
 
+        [Fact]
+        public void VerifyRefAssembly()
+        {
+            string source = @"
+public class PublicClass
+{
+    public void PublicMethod() { }
+    private void PrivateMethod() { }
+    protected void ProtectedMethod() { }
+    internal void InternalMethod() { }
+}
+";
+            CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
+
+            var verifier = CompileAndVerify(comp, emitOptions: emitRefOnly, verify: false);
+            Assert.True(verifier.TestData.Methods.IsEmpty); // no method bodies
+
+            var image = comp.EmitToImageReference(emitRefOnly);
+            var comp2 = CreateCompilation("", references: new[] { MscorlibRef, image },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            AssemblySymbol assembly = comp2.SourceModule.GetReferencedAssemblySymbols().Last();
+            var members = assembly.GlobalNamespace.GetMembers();
+            AssertEx.SetEqual(members.Select(m => m.ToDisplayString()),
+                new[] { "<Module>", "PublicClass" });
+
+            AssertEx.SetEqual(((NamedTypeSymbol)assembly.GlobalNamespace.GetMember("PublicClass")).GetMembers().Select(m => m.ToTestDisplayString()),
+                new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
+                    "void PublicClass.InternalMethod()", "void PublicClass.ProtectedMethod()", "PublicClass..ctor()" });
+
+            AssertEx.SetEqual(assembly.GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()),
+                new[] { "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute" });
+        }
+
         /// <summary>
         /// Check that when we emit metadata only, we include metadata for
         /// compiler generate methods (e.g. the ones for implicit interface
