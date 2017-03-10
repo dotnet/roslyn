@@ -33,6 +33,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";
+            public const string CodeActionsAddParameter = "CodeActions.AddParameter";
             public const string CodeActionsChangeToAsync = "CodeActions.ChangeToAsync";
             public const string CodeActionsChangeToIEnumerable = "CodeActions.ChangeToIEnumerable";
             public const string CodeActionsChangeToYield = "CodeActions.ChangeToYield";
@@ -52,6 +53,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsGenerateEqualsAndGetHashCode = "CodeActions.GenerateEqualsAndGetHashCodeFromMembers";
             public const string CodeActionsGenerateVariable = "CodeActions.GenerateVariable";
             public const string CodeActionsGenerateMethod = "CodeActions.GenerateMethod";
+            public const string CodeActionsGenerateOverrides = "CodeActions.GenerateOverrides";
             public const string CodeActionsGenerateType = "CodeActions.GenerateType";
             public const string CodeActionsExtractMethod = "CodeActions.ExtractMethod";
             public const string CodeActionsFixAllOccurrences = "CodeActions.FixAllOccurrences";

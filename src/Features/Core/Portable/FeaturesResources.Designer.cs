@@ -162,20 +162,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add optional parameters to &apos;{0}({1})&apos;.
+        ///   Looks up a localized string similar to Add optional parameters to &apos;{0}&apos;.
         /// </summary>
-        internal static string Add_optional_parameters_to_0_1 {
+        internal static string Add_optional_parameters_to_0 {
             get {
-                return ResourceManager.GetString("Add_optional_parameters_to_0_1", resourceCulture);
+                return ResourceManager.GetString("Add_optional_parameters_to_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add parameters to &apos;{0}({1})&apos;.
+        ///   Looks up a localized string similar to Add parameter to &apos;{0}&apos;.
         /// </summary>
-        internal static string Add_parameters_to_0_1 {
+        internal static string Add_parameter_to_0 {
             get {
-                return ResourceManager.GetString("Add_parameters_to_0_1", resourceCulture);
+                return ResourceManager.GetString("Add_parameter_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add parameters to &apos;{0}&apos;.
+        /// </summary>
+        internal static string Add_parameters_to_0 {
+            get {
+                return ResourceManager.GetString("Add_parameters_to_0", resourceCulture);
             }
         }
         
@@ -1315,6 +1324,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate overrides....
+        /// </summary>
+        internal static string Generate_overrides {
+            get {
+                return ResourceManager.GetString("Generate_overrides", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate property &apos;{1}.{0}&apos;.
         /// </summary>
         internal static string Generate_property_1_0 {
@@ -2172,6 +2190,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Pick_members_to_be_used_in_Equals_GetHashCode {
             get {
                 return ResourceManager.GetString("Pick_members_to_be_used_in_Equals_GetHashCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pick members to override.
+        /// </summary>
+        internal static string Pick_members_to_override {
+            get {
+                return ResourceManager.GetString("Pick_members_to_override", resourceCulture);
             }
         }
         
