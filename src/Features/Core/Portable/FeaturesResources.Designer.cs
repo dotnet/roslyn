@@ -1189,15 +1189,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate Both.
-        /// </summary>
-        internal static string Generate_Both {
-            get {
-                return ResourceManager.GetString("Generate_Both", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Generate constant &apos;{1}.{0}&apos;.
         /// </summary>
         internal static string Generate_constant_1_0 {
@@ -1248,6 +1239,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Generate_enum_member_1_0 {
             get {
                 return ResourceManager.GetString("Generate_enum_member_1_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate &apos;Equals(object) and GetHashCode()&apos;.
+        /// </summary>
+        internal static string Generate_Equals_and_GetHashCode {
+            get {
+                return ResourceManager.GetString("Generate_Equals_and_GetHashCode", resourceCulture);
             }
         }
         
