@@ -2102,7 +2102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             var unusedDiagnostics = DiagnosticBag.GetInstance();
-                            bool receiverIsLValue = CheckValueKind(receiver, BindValueKind.AddressOf, unusedDiagnostics);
+                            bool receiverIsLValue = CheckValueKind(receiver.Syntax, receiver, BindValueKind.AddressOf, checkingReceiver: false, diagnostics: unusedDiagnostics);
                             unusedDiagnostics.Free();
 
                             if (!receiverIsLValue)

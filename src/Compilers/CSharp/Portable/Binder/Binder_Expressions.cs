@@ -2084,7 +2084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.PropertyAccess:
                     case BoundKind.IndexerAccess:
-                        return CheckIsVariable(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
+                        return CheckValueKind(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
                 }
             }
 
@@ -3755,7 +3755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //      2) CS0200 (ERR_AssgReadonlyProp)
 
                 Debug.Assert(Flags.Includes(CSharp.BinderFlags.ObjectInitializerMember));
-                if (!CheckValueKind(boundMember, valueKind, diagnostics))
+                if (!CheckValueKind(boundMember.Syntax, boundMember, valueKind, checkingReceiver: false, diagnostics: diagnostics))
                 {
                     hasErrors = true;
                     resultKind = isRhsNestedInitializer ? LookupResultKind.NotAValue : LookupResultKind.NotAVariable;
@@ -5757,7 +5757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!hasError)
                 {
-                    hasError = !CheckIsVariable(node, receiver, BindValueKind.FixedReceiver, checkingReceiver: false, diagnostics: diagnostics);
+                    hasError = !CheckValueKind(node, receiver, BindValueKind.FixedReceiver, checkingReceiver: false, diagnostics: diagnostics);
                 }
             }
 

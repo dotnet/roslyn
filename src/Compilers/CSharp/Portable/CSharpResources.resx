@@ -2785,23 +2785,23 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_AssgReadonly2" xml:space="preserve">
     <value>Members of readonly field '{0}' cannot be modified (except in a constructor or a variable initializer)</value>
   </data>
-  <data name="ERR_RefReadonlyParam" xml:space="preserve">
-    <value>A readonly parameter cannot be used as a ref or out value</value>
+  <data name="ERR_RefReadonlyNotField" xml:space="preserve">
+    <value>Cannot use {0} '{1}' as a ref or out value because it is a readonly variable</value>
   </data>
-  <data name="ERR_RefReadonlyParam2" xml:space="preserve">
-    <value>Members of readonly parameter '{0}' cannot be used as a ref or out value</value>
+  <data name="ERR_RefReadonlyNotField2" xml:space="preserve">
+    <value>Members of {0} '{1}' cannot be used as a ref or out value because it is a readonly variable</value>
   </data>
-  <data name="ERR_AssignReadonlyParam" xml:space="preserve">
-    <value>A readonly parameter cannot be assigned to</value>
+  <data name="ERR_AssignReadonlyNotField" xml:space="preserve">
+    <value>Cannot assign to {0} '{1}' because it is a readonly variable</value>
   </data>
-  <data name="ERR_AssignReadonlyParam2" xml:space="preserve">
-    <value>Members of readonly parameter '{0}' cannot be assigned to</value>
+  <data name="ERR_AssignReadonlyNotField2" xml:space="preserve">
+    <value>Cannot assign to a member of {0} '{1}' because it is a readonly variable</value>
   </data>
-  <data name="ERR_RefReturnReadonlyParam" xml:space="preserve">
-    <value>A readonly parameter cannot be returned by reference</value>
+  <data name="ERR_RefReturnReadonlyNotField" xml:space="preserve">
+    <value>Cannot return {0} '{1}' by reference because it is a readonly variable</value>
   </data>
-  <data name="ERR_RefReturnReadonlyParam2" xml:space="preserve">
-    <value>Members of readonly parameter '{0}' cannot be returned by reference</value>
+  <data name="ERR_RefReturnReadonlyNotField2" xml:space="preserve">
+    <value>Members of {0} '{1}' cannot be returned by reference because it is a readonly variable</value>
   </data>
   <data name="ERR_AssgReadonlyStatic2" xml:space="preserve">
     <value>Fields of static readonly field '{0}' cannot be assigned to (except in a static constructor or a variable initializer)</value>

@@ -647,20 +647,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A readonly parameter cannot be assigned to.
+        ///   Looks up a localized string similar to Cannot assign to {0} &apos;{1}&apos; because it is a readonly variable.
         /// </summary>
-        internal static string ERR_AssignReadonlyParam {
+        internal static string ERR_AssignReadonlyNotField {
             get {
-                return ResourceManager.GetString("ERR_AssignReadonlyParam", resourceCulture);
+                return ResourceManager.GetString("ERR_AssignReadonlyNotField", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Members of readonly parameter &apos;{0}&apos; cannot be assigned to.
+        ///   Looks up a localized string similar to Cannot assign to a member of {0} &apos;{1}&apos; because it is a readonly variable.
         /// </summary>
-        internal static string ERR_AssignReadonlyParam2 {
+        internal static string ERR_AssignReadonlyNotField2 {
             get {
-                return ResourceManager.GetString("ERR_AssignReadonlyParam2", resourceCulture);
+                return ResourceManager.GetString("ERR_AssignReadonlyNotField2", resourceCulture);
             }
         }
         
@@ -8081,20 +8081,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A readonly parameter cannot be used as a ref or out value.
+        ///   Looks up a localized string similar to Cannot use {0} &apos;{1}&apos; as a ref or out value because it is a readonly variable.
         /// </summary>
-        internal static string ERR_RefReadonlyParam {
+        internal static string ERR_RefReadonlyNotField {
             get {
-                return ResourceManager.GetString("ERR_RefReadonlyParam", resourceCulture);
+                return ResourceManager.GetString("ERR_RefReadonlyNotField", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Members of readonly parameter &apos;{0}&apos; cannot be used as a ref or out value.
+        ///   Looks up a localized string similar to Members of {0} &apos;{1}&apos; cannot be used as a ref or out value because it is a readonly variable.
         /// </summary>
-        internal static string ERR_RefReadonlyParam2 {
+        internal static string ERR_RefReadonlyNotField2 {
             get {
-                return ResourceManager.GetString("ERR_RefReadonlyParam2", resourceCulture);
+                return ResourceManager.GetString("ERR_RefReadonlyNotField2", resourceCulture);
             }
         }
         
@@ -8279,20 +8279,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A readonly parameter cannot be returned by reference.
+        ///   Looks up a localized string similar to Cannot return {0} &apos;{1}&apos; by reference because it is a readonly variable.
         /// </summary>
-        internal static string ERR_RefReturnReadonlyParam {
+        internal static string ERR_RefReturnReadonlyNotField {
             get {
-                return ResourceManager.GetString("ERR_RefReturnReadonlyParam", resourceCulture);
+                return ResourceManager.GetString("ERR_RefReturnReadonlyNotField", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Members of readonly parameter &apos;{0}&apos; cannot be returned by reference.
+        ///   Looks up a localized string similar to Members of {0} &apos;{1}&apos; cannot be returned by reference because it is a readonly variable.
         /// </summary>
-        internal static string ERR_RefReturnReadonlyParam2 {
+        internal static string ERR_RefReturnReadonlyNotField2 {
             get {
-                return ResourceManager.GetString("ERR_RefReturnReadonlyParam2", resourceCulture);
+                return ResourceManager.GetString("ERR_RefReturnReadonlyNotField2", resourceCulture);
             }
         }
         

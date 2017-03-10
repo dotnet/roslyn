@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (localSymbol.RefKind != RefKind.None && initializerOpt != null)
             {
                 var ignoredDiagnostics = DiagnosticBag.GetInstance();
-                if (this.CheckValueKind(initializerOpt, BindValueKind.ReturnableReference, ignoredDiagnostics))
+                if (this.CheckValueKind(initializerOpt.Syntax, initializerOpt, BindValueKind.ReturnableReference, checkingReceiver: false, diagnostics: ignoredDiagnostics))
                 {
                     localSymbol.SetReturnable();
                 }
@@ -2728,12 +2728,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (refKind != RefKind.None)
             {
                 GetCurrentReturnType(out var sigRefKind);
-                if (sigRefKind == RefKind.Ref)
-                {
-                    requiredValueKind = sigRefKind == RefKind.Ref ?
-                                            BindValueKind.RefReturn :
-                                            BindValueKind.RefReadonlyReturn;
-                }
+                requiredValueKind = sigRefKind == RefKind.Ref ?
+                                        BindValueKind.RefReturn :
+                                        BindValueKind.RefReadonlyReturn;
             }
 
             return requiredValueKind;

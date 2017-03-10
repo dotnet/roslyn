@@ -121,24 +121,24 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8208: A readonly parameter cannot be assigned to
+                // (6,9): error CS8208: Cannot assign to variable 'ref readonly int' because it is a readonly variable
                 //         arg1 = 1;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyParam, "arg1").WithLocation(6, 9),
-                // (7,9): error CS8209: Members of readonly parameter 'ref readonly (int Alice, int Bob)' cannot be assigned to
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "ref readonly int").WithLocation(6, 9),
+                // (7,9): error CS8209: Cannot assign to a member of variable 'ref readonly (int Alice, int Bob)' because it is a readonly variable
                 //         arg2.Alice = 2;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyParam2, "arg2.Alice").WithArguments("ref readonly (int Alice, int Bob)").WithLocation(7, 9),
-                // (9,9): error CS8208: A readonly parameter cannot be assigned to
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "ref readonly (int Alice, int Bob)").WithLocation(7, 9),
+                // (9,9): error CS8208: Cannot assign to variable 'ref readonly int' because it is a readonly variable
                 //         arg1 ++;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyParam, "arg1").WithLocation(9, 9),
-                // (10,9): error CS8209: Members of readonly parameter 'ref readonly (int Alice, int Bob)' cannot be assigned to
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "ref readonly int").WithLocation(9, 9),
+                // (10,9): error CS8209: Cannot assign to a member of variable 'ref readonly (int Alice, int Bob)' because it is a readonly variable
                 //         arg2.Alice --;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyParam2, "arg2.Alice").WithArguments("ref readonly (int Alice, int Bob)").WithLocation(10, 9),
-                // (12,9): error CS8208: A readonly parameter cannot be assigned to
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "ref readonly (int Alice, int Bob)").WithLocation(10, 9),
+                // (12,9): error CS8208: Cannot assign to variable 'ref readonly int' because it is a readonly variable
                 //         arg1 += 1;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyParam, "arg1").WithLocation(12, 9),
-                // (13,9): error CS8209: Members of readonly parameter 'ref readonly (int Alice, int Bob)' cannot be assigned to
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "ref readonly int").WithLocation(12, 9),
+                // (13,9): error CS8209: Cannot assign to a member of variable 'ref readonly (int Alice, int Bob)' because it is a readonly variable
                 //         arg2.Alice -= 2;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyParam2, "arg2.Alice").WithArguments("ref readonly (int Alice, int Bob)").WithLocation(13, 9)
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "ref readonly (int Alice, int Bob)").WithLocation(13, 9)
             );
         }
 
@@ -158,12 +158,51 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,25): error CS8206: A readonly parameter cannot be used as a ref or out value
+                // (6,25): error CS8206: Cannot use variable 'ref readonly int' as a ref or out value because it is a readonly variable
                 //         ref var y = ref arg1;
-                Diagnostic(ErrorCode.ERR_RefReadonlyParam, "arg1").WithLocation(6, 25),
-                // (7,25): error CS8207: Members of readonly parameter 'ref readonly (int Alice, int Bob)' cannot be used as a ref or out value
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "arg1").WithArguments("variable", "ref readonly int").WithLocation(6, 25),
+                // (7,25): error CS8207: Members of variable 'ref readonly (int Alice, int Bob)' cannot be used as a ref or out value because it is a readonly variable
                 //         ref int a = ref arg2.Alice;
-                Diagnostic(ErrorCode.ERR_RefReadonlyParam2, "arg2.Alice").WithArguments("ref readonly (int Alice, int Bob)").WithLocation(7, 25)
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg2.Alice").WithArguments("variable", "ref readonly (int Alice, int Bob)").WithLocation(7, 25)
+            );
+        }
+
+        [Fact]
+        public void ReadonlyParamCannotTakePtr()
+        {
+            var text = @"
+class Program
+{
+    unsafe static void M(in int arg1, in (int Alice, int Bob) arg2)
+    {
+        int* a = & arg1;
+        int* b = & arg2.Alice;
+
+        fixed(int* c = & arg1)
+        {
+        }
+
+        fixed(int* d = & arg2.Alice)
+        {
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,20): error CS0211: Cannot take the address of the given expression
+                //         int* a = & arg1;
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "arg1").WithLocation(6, 20),
+                // (7,20): error CS0211: Cannot take the address of the given expression
+                //         int* b = & arg2.Alice;
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "arg2.Alice").WithLocation(7, 20),
+                // (9,26): error CS0211: Cannot take the address of the given expression
+                //         fixed(int* c = & arg1)
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "arg1").WithLocation(9, 26),
+                // (13,26): error CS0211: Cannot take the address of the given expression
+                //         fixed(int* d = & arg2.Alice)
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "arg2.Alice").WithLocation(13, 26)
             );
         }
 
@@ -191,12 +230,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (10,24): error CS8206: A readonly parameter cannot be used as a ref or out value
+                // (10,24): error CS8206: Cannot use variable 'ref readonly int' as a ref or out value because it is a readonly variable
                 //             return ref arg1;
-                Diagnostic(ErrorCode.ERR_RefReadonlyParam, "arg1").WithLocation(10, 24),
-                // (14,24): error CS8207: Members of readonly parameter 'ref readonly (int Alice, int Bob)' cannot be used as a ref or out value
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "arg1").WithArguments("variable", "ref readonly int").WithLocation(10, 24),
+                // (14,24): error CS8207: Members of variable 'ref readonly (int Alice, int Bob)' cannot be used as a ref or out value because it is a readonly variable
                 //             return ref arg2.Alice;
-                Diagnostic(ErrorCode.ERR_RefReadonlyParam2, "arg2.Alice").WithArguments("ref readonly (int Alice, int Bob)").WithLocation(14, 24)
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg2.Alice").WithArguments("variable", "ref readonly (int Alice, int Bob)").WithLocation(14, 24)
             );
         }
 
