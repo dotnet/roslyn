@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.Remote
             lock (_gate)
             {
                 this.OnSolutionAdded(solutionInfo);
-                this.UpdateReferencesAfterAdd();
 
                 return this.CurrentSolution;
             }
@@ -91,8 +90,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var newSolution = this.SetCurrentSolution(solution);
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
-
-                this.UpdateReferencesAfterAdd();
 
                 return this.CurrentSolution;
             }
