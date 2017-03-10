@@ -54,6 +54,12 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryCache.cs">
+      <Link>Telemetry\VSTelemetryCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryLogger.cs">
+      <Link>Telemetry\VSTelemetryLogger.cs</Link>
+    </Compile>
     <Compile Include="CodeLens\CodeLensArguments.cs" />
     <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
     <Compile Include="Services\CodeAnalysisService_DesignerAttributes.cs" />
@@ -73,8 +79,6 @@
     <Compile Include="Shared\RoslynJsonConverter.SolutionIdConverters.cs" />
     <Compile Include="Shared\ServerDirectStream.cs" />
     <Compile Include="Shared\ClientDirectStream.cs" />
-    <Compile Include="Telemetry\VSTelemetryCache.cs" />
-    <Compile Include="Telemetry\VSTelemetryLogger.cs" />
     <Compile Include="Telemetry\WatsonReporter.cs" />
   </ItemGroup>
   <ItemGroup>

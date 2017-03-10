@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         {
             var formattingService = document.GetLanguageService<IEditorFormattingService>();
 
-            using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, cancellationToken))
+            using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Formatting, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
                 var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
