@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected async Task<Entry> CreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
-                bool isDefinitionLocation)
+                HighlightSpanKind spanKind)
             {
                 var document = documentSpan.Document;
                 var (guid, sourceText) = await GetGuidAndSourceTextAsync(document).ConfigureAwait(false);
@@ -274,7 +274,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var taggedLineParts = await GetTaggedTextForDocumentRegionAsync(document, narrowSpan, lineSpan).ConfigureAwait(false);
 
                 return new DocumentSpanEntry(
-                    this, definitionBucket, documentSpan, isDefinitionLocation,
+                    this, definitionBucket, documentSpan, spanKind,
                     guid, sourceText, taggedLineParts);
             }
 

@@ -41,6 +41,12 @@ End Class",
 "Class Z
     Private a As Integer
 
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim z = TryCast(obj, Z)
+        Return z IsNot Nothing AndAlso
+               a = z.a
+    End Function
+
     Public Overrides Function GetHashCode() As Integer
         Return -1757793268 + a.GetHashCode()
     End Function
@@ -68,7 +74,7 @@ End Class",
         Return -1757793268 + a.GetHashCode()
     End Function
 End Class",
-index:=2, ignoreTrivia:=False)
+index:=1, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545205")>

@@ -198,8 +198,8 @@
   <data name="Generate_field_assigning_constructor_0_1" xml:space="preserve">
     <value>Generate field assigning constructor '{0}({1})'</value>
   </data>
-  <data name="Generate_Both" xml:space="preserve">
-    <value>Generate Both</value>
+  <data name="Generate_Equals_and_GetHashCode" xml:space="preserve">
+    <value>Generate 'Equals(object) and GetHashCode()'</value>
   </data>
   <data name="Generate_Equals_object" xml:space="preserve">
     <value>Generate 'Equals(object)'</value>

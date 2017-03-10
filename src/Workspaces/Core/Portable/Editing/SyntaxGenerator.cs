@@ -1791,6 +1791,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxNode MemberAccessExpressionWorker(SyntaxNode expression, SyntaxNode memberName);
 
+        internal abstract SyntaxNode RefExpression(SyntaxNode expression);
+
         /// <summary>
         /// Creates a member access expression.
         /// </summary>

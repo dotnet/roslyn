@@ -156,22 +156,30 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             bool withDialog)
         {
             var result = ArrayBuilder<CodeAction>.GetInstance();
-            if (!hasEquals)
+
+            if (!hasEquals && !hasGetHashCode)
+            {
+                // if we don't have either Equals or GetHashCode then offer:
+                //  "Generate Equals" and
+                //  "Generate Equals and GethashCode"
+                //
+                // Don't bother offering to just "Generate GetHashCode" as it's very unlikely 
+                // the user would need to bother just generating that member without also 
+                // generating 'Equals' as well.
+                result.Add(CreateCodeAction(document, textSpan, containingType, selectedMembers,
+                    generateEquals: true, generateGetHashCode: false, withDialog: withDialog));
+                result.Add(CreateCodeAction(document, textSpan, containingType, selectedMembers,
+                    generateEquals: true, generateGetHashCode: true, withDialog: withDialog));
+            }
+            else if (!hasEquals)
             {
                 result.Add(CreateCodeAction(document, textSpan, containingType, selectedMembers,
                     generateEquals: true, generateGetHashCode: false, withDialog: withDialog));
             }
-
-            if (!hasGetHashCode)
+            else if (!hasGetHashCode)
             {
                 result.Add(CreateCodeAction(document, textSpan, containingType, selectedMembers,
                     generateEquals: false, generateGetHashCode: true, withDialog: withDialog));
-            }
-
-            if (!hasEquals && !hasGetHashCode)
-            {
-                result.Add(CreateCodeAction(document, textSpan, containingType, selectedMembers,
-                    generateEquals: true, generateGetHashCode: true, withDialog: withDialog));
             }
 
             return result.ToImmutableAndFree();

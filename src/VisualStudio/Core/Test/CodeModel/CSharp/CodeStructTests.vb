@@ -525,14 +525,7 @@ struct $$S
 }
 </Code>
 
-            Dim expectedPropertyNames =
-                {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind", "IsCodeType",
-                 "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
-                 "ExtenderCATID", "Parent", "Namespace", "Bases", "Members", "Access", "Attributes",
-                 "DocComment", "Comment", "DerivedTypes", "ImplementedInterfaces", "IsAbstract",
-                 "IsGeneric", "DataTypeKind", "Parts"}
-
-            TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(Of EnvDTE80.CodeStruct2)(code)
         End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
