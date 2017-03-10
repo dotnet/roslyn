@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            TypeSymbolWithAnnotations type = this.Type;
+            var type = this.Type;
 
             if (type.TypeSymbol.ContainsDynamic())
             {

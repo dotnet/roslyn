@@ -268,7 +268,7 @@ class C
                 Assert.Equal(new[] { null, "A", "B", null }, tupleElementNames);
                 var method = (MethodSymbol)testData.Methods.Single().Value.Method;
                 Assert.NotNull(GetTupleElementNamesAttributeIfAny(method));
-                var returnType = method.ReturnType;
+                var returnType = method.ReturnType.TypeSymbol;
                 Assert.False(returnType.IsTupleType);
                 Assert.True(returnType.ContainsTuple());
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "c", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
@@ -468,7 +468,7 @@ class C
                 Assert.NotNull(GetTupleElementNamesAttributeIfAny(method));
                 var returnType = (TypeSymbol)method.ReturnType;
                 Assert.False(returnType.IsTupleType);
-                Assert.True(((ArrayTypeSymbol)returnType).ElementType.IsTupleType);
+                Assert.True(((ArrayTypeSymbol)returnType).ElementType.TypeSymbol.IsTupleType);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "t", expectedILOpt:
 @"{
   // Code size       16 (0x10)

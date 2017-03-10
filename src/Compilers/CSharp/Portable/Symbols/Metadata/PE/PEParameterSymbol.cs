@@ -174,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isByRef,
             TypeSymbolWithAnnotations type,
             ParameterHandle handle,
+            int countOfCustomModifiers,
             out bool isBad)
         {
             Debug.Assert((object)moduleSymbol != null);
@@ -194,8 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 refKind = isByRef ? RefKind.Ref : RefKind.None;
 
-                type = TupleTypeSymbol.TransformToTupleIfCompatible(type);
-                _type = type;
+                TupleTypeSymbol tuple;
+                _type = TupleTypeSymbol.TryTransformToTuple(type.TypeSymbol, out tuple) ?
+                    TypeSymbolWithAnnotations.Create(tuple) :
+                    type;
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
                 _lazyHiddenAttributes = ImmutableArray<CSharpAttributeData>.Empty;
@@ -220,7 +223,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // CONSIDER: Can we make parameter type computation lazy?
-                _type = type.Update(TupleTypeDecoder.DecodeTupleTypesIfApplicable(DynamicTypeDecoder.TransformType(type, countOfCustomModifiers, handle, moduleSymbol, refKind), handle, moduleSymbol));
+                _type = type.Update(
+                    TupleTypeDecoder.DecodeTupleTypesIfApplicable(
+                        DynamicTypeDecoder.TransformType(type.TypeSymbol, countOfCustomModifiers, handle, moduleSymbol, refKind),
+                        handle,
+                        moduleSymbol),
+                    type.CustomModifiers);
             }
 
             bool hasNameInMetadata = !string.IsNullOrEmpty(_name);
@@ -258,8 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var typeWithModifiers = TypeSymbolWithAnnotations.Create(type, CSharpCustomModifier.Convert(customModifiers));
             if (customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty)
             {
-                return new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef,
-                                             typeWithModifiers, handle, out isBad);
+                return new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, handle, 0, out isBad);
             }
 
             return new PEParameterSymbolWithCustomModifiersPrecedingByRef(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, typeWithModifiers, handle, out isBad);
@@ -279,10 +286,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ParameterHandle handle,
                 out bool isBad) :
                     base(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle,
-                         refCustomModifiers.NullToEmpty().Length, 
+                         refCustomModifiers.NullToEmpty().Length + type.CustomModifiers.Length, 
                          out isBad)
             {
-                _customModifiers = CSharpCustomModifier.Convert(customModifiers);
                 _refCustomModifiers = CSharpCustomModifier.Convert(refCustomModifiers);
 
                 Debug.Assert(_refCustomModifiers.IsEmpty || isByRef);

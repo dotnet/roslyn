@@ -469,33 +469,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             CurrentMethod = null;
         }
 
+        public LocalSymbol SynthesizedLocal(
+            TypeSymbol type,
+            SyntaxNode syntax = null,
+            bool isPinned = false,
+            RefKind refKind = RefKind.None,
+            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp
 #if DEBUG
-        public LocalSymbol SynthesizedLocal(
-            TypeSymbol type,
-            SyntaxNode syntax = null,
-            bool isPinned = false,
-            RefKind refKind = RefKind.None,
-            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp,
+            ,
             [CallerLineNumber]int createdAtLineNumber = 0,
-            [CallerFilePath]string createdAtFilePath = null)
-        {
-            return new SynthesizedLocal(CurrentMethod, TypeSymbolWithAnnotations.Create(type), kind, syntax, isPinned, refKind, createdAtLineNumber, createdAtFilePath);
-        }
-#else
-        public LocalSymbol SynthesizedLocal(
-            TypeSymbol type,
-            SyntaxNode syntax = null,
-            bool isPinned = false,
-            RefKind refKind = RefKind.None,
-            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp)
-        {
-            return new SynthesizedLocal(CurrentMethod, TypeSymbolWithAnnotations.Create(type), kind, syntax, isPinned, refKind);
-        }
+            [CallerFilePath]string createdAtFilePath = null
 #endif
+            )
+        {
+            return new SynthesizedLocal(CurrentMethod, TypeSymbolWithAnnotations.Create(type), kind, syntax, isPinned, refKind
+#if DEBUG
+                , createdAtLineNumber, createdAtFilePath
+#endif
+                );
+        }
 
         public ParameterSymbol SynthesizedParameter(TypeSymbol type, string name, MethodSymbol container = null, int ordinal = 0)
         {
-            return SynthesizedParameterSymbol.Create(container, type, ordinal, RefKind.None, name);
+            return SynthesizedParameterSymbol.Create(container, TypeSymbolWithAnnotations.Create(type), ordinal, RefKind.None, name);
         }
 
         public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right)
@@ -1290,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundLocal MakeTempForDiscard(BoundDiscardExpression node, out LocalSymbol temp)
         {
-            temp = new SynthesizedLocal(this.CurrentMethod, node.Type, SynthesizedLocalKind.LoweringTemp);
+            temp = new SynthesizedLocal(this.CurrentMethod, TypeSymbolWithAnnotations.Create(node.Type), SynthesizedLocalKind.LoweringTemp);
 
             return new BoundLocal(node.Syntax, temp, constantValueOpt: null, type: node.Type) { WasCompilerGenerated = true };
         }

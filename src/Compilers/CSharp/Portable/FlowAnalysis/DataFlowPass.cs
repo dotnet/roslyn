@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    containingType = restField.Type.TupleUnderlyingTypeOrSelf();
+                    containingType = restField.Type.TypeSymbol.TupleUnderlyingTypeOrSelf();
                 }
             }
 

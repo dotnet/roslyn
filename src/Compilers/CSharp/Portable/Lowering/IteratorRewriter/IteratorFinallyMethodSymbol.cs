@@ -162,11 +162,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return ImmutableArray<MethodSymbol>.Empty; }
         }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
-        }
-
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }

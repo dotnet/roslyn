@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbolWithAnnotations Type
             {
-                get { return _containingMethod._typeMap.SubstituteType(this.underlyingParameter.Type); }
+                get { return _containingMethod._typeMap.SubstituteType(this._underlyingParameter.Type); }
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers

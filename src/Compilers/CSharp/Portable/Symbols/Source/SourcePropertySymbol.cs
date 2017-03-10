@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxReference _syntaxRef;
         private readonly Location _location;
         private readonly DeclarationModifiers _modifiers;
+        private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly SourcePropertyAccessorSymbol _getMethod;
         private readonly SourcePropertyAccessorSymbol _setMethod;
         private readonly SynthesizedBackingFieldSymbol _backingField;
@@ -210,6 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             PropertySymbol explicitlyImplementedProperty = null;
+            _refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
             // The runtime will not treat the accessors of this property as overrides or implementations
             // of those of another property unless both the signatures and the custom modifiers match.
@@ -219,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // are no conflicts.)  This is unnecessary for implicit implementations because, if the custom
             // modifiers don't match, we'll insert bridge methods for the accessors (explicit implementations 
             // that delegate to the implicit implementations) with the correct custom modifiers
-            // (see SourceNamedTypeSymbol.ImplementInterfaceMember).
+            // (see SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation).
 
             // Note: we're checking if the syntax indicates explicit implementation rather,
             // than if explicitInterfaceType is null because we don't want to look for an
@@ -254,6 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)overriddenOrImplementedProperty != null)
                 {
+                    _refCustomModifiers = _refKind != RefKind.None ? overriddenOrImplementedProperty.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty;
+
                     TypeSymbolWithAnnotations overriddenPropertyType = overriddenOrImplementedProperty.Type;
 
                     // We do an extra check before copying the type to handle the case where the overriding
@@ -629,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            get { return _customModifiers.RefCustomModifiers; }
+            get { return _refCustomModifiers; }
         }
 
         public override Accessibility DeclaredAccessibility

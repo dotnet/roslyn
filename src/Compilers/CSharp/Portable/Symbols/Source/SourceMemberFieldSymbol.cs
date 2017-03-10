@@ -277,8 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
         private int _lazyFieldTypeInferred;
 
-        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
-
         internal SourceMemberFieldSymbolFromDeclarator(
             SourceMemberContainerTypeSymbol containingType,
             VariableDeclaratorSyntax declarator,
@@ -481,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (IsFixed)
                 {
-                    type = new PointerTypeSymbol(type);
+                    type = TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(type));
 
                     if (ContainingType.TypeKind != TypeKind.Struct)
                     {

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Forwarded
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { return _underlyingParameter.Type; }
         }
@@ -109,11 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override string MetadataName
         {
             get { return _underlyingParameter.MetadataName; }
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return _underlyingParameter.CustomModifiers; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers

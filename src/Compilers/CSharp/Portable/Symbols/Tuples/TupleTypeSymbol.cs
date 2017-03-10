@@ -128,15 +128,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Ensure all Rest extensions are tuples
                 tupleCompatibleType = EnsureRestExtensionsAreTuples(tupleCompatibleType);
 
-                var extensionTupleElementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TupleElementTypes;
+                var extensionTupleElementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TypeSymbol.TupleElementTypes;
                 var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(RestPosition - 1 + extensionTupleElementTypes.Length);
-                typesBuilder.AddRange(tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics, RestPosition - 1);
+                typesBuilder.AddRange(tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(TypeMap.AsTypeSymbol), RestPosition - 1);
                 typesBuilder.AddRange(extensionTupleElementTypes);
                 elementTypes = typesBuilder.ToImmutableAndFree();
             }
             else
             {
-                elementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics;
+                elementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(TypeMap.AsTypeSymbol);
             }
 
             return new TupleTypeSymbol(locations, tupleCompatibleType, elementLocations, elementNames, elementTypes);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static NamedTypeSymbol EnsureRestExtensionsAreTuples(NamedTypeSymbol tupleCompatibleType)
         {
-            if (!tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].IsTupleType)
+            if (!tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TypeSymbol.IsTupleType)
             {
                 var nonTupleTypeChain = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 do
                 {
                     nonTupleTypeChain.Add(currentType);
-                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1];
+                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TypeSymbol;
                 }
                 while (currentType.Arity == RestPosition);
 
@@ -168,39 +168,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(nonTupleTypeChain.Count > 1);
                 tupleCompatibleType = nonTupleTypeChain.Pop();
 
-                var typeArgumentsBuilder = ArrayBuilder<TypeWithModifiers>.GetInstance(RestPosition);
-
                 do
                 {
                     var extensionTuple = Create(tupleCompatibleType);
                     tupleCompatibleType = nonTupleTypeChain.Pop();
 
-                    tupleCompatibleType = ReplaceRestExtensionType(tupleCompatibleType, typeArgumentsBuilder, extensionTuple);
+                    tupleCompatibleType = ReplaceRestExtensionType(tupleCompatibleType, extensionTuple);
                 }
                 while (nonTupleTypeChain.Count != 0);
 
-                typeArgumentsBuilder.Free();
                 nonTupleTypeChain.Free();
             }
 
             return tupleCompatibleType;
         }
 
-        private static NamedTypeSymbol ReplaceRestExtensionType(NamedTypeSymbol tupleCompatibleType, ArrayBuilder<TypeWithModifiers> typeArgumentsBuilder, TupleTypeSymbol extensionTuple)
+        private static NamedTypeSymbol ReplaceRestExtensionType(NamedTypeSymbol tupleCompatibleType, TupleTypeSymbol extensionTuple)
         {
-            var hasModifiers = tupleCompatibleType.HasTypeArgumentsCustomModifiers;
-
+            var typeArgumentsBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(RestPosition);
             var arguments = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics;
-            typeArgumentsBuilder.Clear();
+            typeArgumentsBuilder.AddRange(arguments, RestPosition - 1);
+            typeArgumentsBuilder.Add(TypeSymbolWithAnnotations.Create(extensionTuple, arguments[RestPosition - 1].CustomModifiers));
 
-            for (int i = 0; i < RestPosition - 1; i++)
-            {
-                typeArgumentsBuilder.Add(new TypeWithModifiers(arguments[i], hasModifiers ? tupleCompatibleType.GetTypeArgumentCustomModifiers(i) : ImmutableArray<CustomModifier>.Empty));
-            }
-
-            typeArgumentsBuilder.Add(new TypeWithModifiers(extensionTuple, hasModifiers ? tupleCompatibleType.GetTypeArgumentCustomModifiers(RestPosition - 1) : ImmutableArray<CustomModifier>.Empty));
-
-            tupleCompatibleType = tupleCompatibleType.ConstructedFrom.Construct(typeArgumentsBuilder.ToImmutable(), unbound: false);
+            tupleCompatibleType = tupleCompatibleType.ConstructedFrom.Construct(typeArgumentsBuilder.ToImmutableAndFree(), unbound: false);
             return tupleCompatibleType;
         }
 
@@ -242,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 underlyingTupleTypeChain.Add(currentType);
                 if (currentType.Arity == TupleTypeSymbol.RestPosition)
                 {
-                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].TupleUnderlyingType;
+                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].TypeSymbol.TupleUnderlyingType;
                 }
                 else
                 {
@@ -268,11 +258,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var regularElements = Math.Min(currentType.Arity, TupleTypeSymbol.RestPosition - 1);
-                tupleElementTypes.AddRange(currentType.TypeArguments, regularElements);
+                tupleElementTypes.AddRange(currentType.TypeArguments.SelectAsArray(TypeMap.AsTypeSymbol), regularElements);
 
                 if (currentType.Arity == TupleTypeSymbol.RestPosition)
                 {
-                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1];
+                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].TypeSymbol;
                 }
                 else
                 {
@@ -292,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol found = topLevelUnderlyingType;
             for (int i = 0; i < depth; i++)
             {
-                found = (NamedTypeSymbol)found.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TupleUnderlyingType;
+                found = (NamedTypeSymbol)found.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TypeSymbol.TupleUnderlyingType;
             }
 
             return found;
@@ -891,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var oldUnderlying = currentUnderlying;
-                currentUnderlying = oldUnderlying.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TupleUnderlyingType;
+                currentUnderlying = oldUnderlying.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TypeSymbol.TupleUnderlyingType;
                 currentNestingLevel++;
 
                 if (currentUnderlying.Arity != RestPosition)
@@ -1254,24 +1244,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
-        {
-            return GetEmptyTypeArgumentCustomModifiers(ordinal);
-        }
-
-        internal override bool HasTypeArgumentsCustomModifiers
+        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
         {
             get
             {
-                return false;
-            }
-        }
-
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
-        {
-            get
-            {
-                return ImmutableArray<TypeSymbol>.Empty;
+                return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
             }
         }
 
@@ -1500,14 +1477,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        public static TypeSymbol TransformToTupleIfCompatible(TypeSymbol target)
+        public static TypeSymbol TransformToTupleIfCompatible(TypeSymbol type)
         {
-            if (!target.IsErrorType() && target.IsTupleCompatible())
+            TupleTypeSymbol tuple;
+            return TryTransformToTuple(type, out tuple) ? tuple : type;
+        }
+
+        public static bool TryTransformToTuple(TypeSymbol type, out TupleTypeSymbol tuple)
+        {
+            if (!type.IsErrorType() && type.IsTupleCompatible())
             {
-                return TupleTypeSymbol.Create((NamedTypeSymbol)target);
+                tuple = TupleTypeSymbol.Create((NamedTypeSymbol)type);
+                return true;
             }
 
-            return target;
+            tuple = null;
+            return false;
         }
     }
 }

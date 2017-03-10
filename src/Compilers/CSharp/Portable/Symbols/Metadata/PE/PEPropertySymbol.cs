@@ -144,12 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // CONSIDER: Can we make parameter type computation lazy?
             TypeSymbol originalPropertyType = returnInfo.Type;
-            _propertyType = DynamicTypeDecoder.TransformType(originalPropertyType, typeCustomModifiers, handle, moduleSymbol, _refKind);
+            var propertyType = DynamicTypeDecoder.TransformType(originalPropertyType, typeCustomModifiers.Length, handle, moduleSymbol, _refKind);
 
             // Dynamify object type if necessary
-            _propertyType = TypeSymbolWithAnnotations.Create(propertyType.AsDynamicIfNoPia(_containingType), typeCustomModifiers);
+            propertyType = propertyType.AsDynamicIfNoPia(_containingType);
 
-            _propertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(_propertyType, handle, moduleSymbol);
+            _propertyType = TypeSymbolWithAnnotations.Create(TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyType, handle, moduleSymbol), typeCustomModifiers);
 
             // A property is bogus and must be accessed by calling its accessors directly if the
             // accessor signatures do not agree, both with each other and with the property,
@@ -701,7 +701,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private sealed class PEPropertySymbolWithCustomModifiers : PEPropertySymbol
         {
-            private readonly ImmutableArray<CustomModifier> _typeCustomModifiers;
             private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
             public PEPropertySymbolWithCustomModifiers(
@@ -717,13 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         propertyParams, metadataDecoder)
             {
                 var returnInfo = propertyParams[0];
-                _typeCustomModifiers = CSharpCustomModifier.Convert(returnInfo.CustomModifiers);
                 _refCustomModifiers = CSharpCustomModifier.Convert(returnInfo.RefCustomModifiers);
-            }
-
-            public override ImmutableArray<CustomModifier> TypeCustomModifiers
-            {
-                get { return _typeCustomModifiers; }
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers

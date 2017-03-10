@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var substituted1 = SubstituteAllTypeParameters(substitution, TypeSymbolWithAnnotations.Create(t1));
                 var substituted2 = SubstituteAllTypeParameters(substitution, TypeSymbolWithAnnotations.Create(t2));
 
-                Debug.Assert(substituted1.TypeSymbol.Equals(substituted2.TypeSymbol, TypeCompareKind.IgnoreTupleNames);
+                Debug.Assert(substituted1.TypeSymbol.Equals(substituted2.TypeSymbol, TypeCompareKind.IgnoreTupleNames));
                 Debug.Assert(substituted1.CustomModifiers.SequenceEqual(substituted2.CustomModifiers));
             }
 #endif
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return false;
                             }
 
-                            return CanUnifyHelper(new TypeWithModifiers(nt1.TupleUnderlyingType), new TypeWithModifiers(nt2.TupleUnderlyingType), ref substitution);
+                            return CanUnifyHelper(TypeSymbolWithAnnotations.Create(nt1.TupleUnderlyingType), TypeSymbolWithAnnotations.Create(nt2.TupleUnderlyingType), ref substitution);
                         }
 
                         if (!nt1.IsGenericType)
@@ -289,7 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NamedTypeSymbol namedType = (NamedTypeSymbol)type;
                         while ((object)namedType != null)
                         {
-                            ImmutableArray<TypeSymbol> typeParts = namedType.IsTupleType ? namedType.TupleElementTypes : namedType.TypeArgumentsNoUseSiteDiagnostics;
+                            var typeParts = namedType.IsTupleType ?
+                                namedType.TupleElementTypes.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations) :
+                                namedType.TypeArgumentsNoUseSiteDiagnostics;
                             foreach (TypeSymbolWithAnnotations typePart in typeParts)
                             {
                                 if (Contains(typePart.TypeSymbol, typeParam))

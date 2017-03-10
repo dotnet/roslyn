@@ -1057,23 +1057,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 return lazyCustomModifiers;
             }
 
-            internal CustomModifiersTuple RetargetModifiers(
-                ImmutableArray<CustomModifier> oldTypeModifiers,
-                ImmutableArray<CustomModifier> oldRefModifiers,
-                ref CustomModifiersTuple lazyCustomModifiers)
-            {
-                if (lazyCustomModifiers == null)
-                {
-                    bool modifiersHaveChanged;
-                    ImmutableArray<CustomModifier> newTypeModifiers = this.RetargetModifiers(oldTypeModifiers, out modifiersHaveChanged);
-                    ImmutableArray<CustomModifier> newRefModifiers = this.RetargetModifiers(oldRefModifiers, out modifiersHaveChanged);
-
-                    System.Threading.Interlocked.CompareExchange(ref lazyCustomModifiers, CustomModifiersTuple.Create(newTypeModifiers, newRefModifiers), null);
-                }
-
-                return lazyCustomModifiers;
-            }
-
             private ImmutableArray<CSharpAttributeData> RetargetAttributes(ImmutableArray<CSharpAttributeData> oldAttributes)
             {
                 return oldAttributes.SelectAsArray((a, t) => t.RetargetAttributeData(a), this);

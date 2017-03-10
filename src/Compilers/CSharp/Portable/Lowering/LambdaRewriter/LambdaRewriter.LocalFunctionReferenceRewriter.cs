@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = start; i < loweredSymbol.ParameterCount; i++)
                 {
                     // will always be a LambdaFrame, it's always a capture frame
-                    var frameType = (NamedTypeSymbol)loweredSymbol.Parameters[i].Type.OriginalDefinition;
+                    var frameType = (NamedTypeSymbol)loweredSymbol.Parameters[i].Type.TypeSymbol.OriginalDefinition;
 
                     Debug.Assert(frameType is LambdaFrame);
 
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// all references to the original type parameter T in L must be
         /// rewritten to the renamed parameter, T'.
         /// </example>
-        private ImmutableArray<TypeSymbol> SubstituteTypeArguments(ImmutableArray<TypeSymbol> typeArguments)
+        private ImmutableArray<TypeSymbolWithAnnotations> SubstituteTypeArguments(ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
         {
             Debug.Assert(!typeArguments.IsDefault);
 
@@ -269,19 +269,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // only one substition happens per lowering, but we need to do
             // N substitutions all at once, where N is the number of lowerings.
 
-            var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+            var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             foreach (var typeArg in typeArguments)
             {
-                TypeSymbol oldTypeArg;
-                TypeSymbol newTypeArg = typeArg;
+                TypeSymbolWithAnnotations oldTypeArg;
+                TypeSymbolWithAnnotations newTypeArg = typeArg;
                 do
                 {
                     oldTypeArg = newTypeArg;
-                    newTypeArg = this.TypeMap.SubstituteType(typeArg).Type;
+                    newTypeArg = this.TypeMap.SubstituteType(typeArg);
                 }
-                while (oldTypeArg != newTypeArg);
+                while (oldTypeArg.TypeSymbol != newTypeArg.TypeSymbol);
 
-                Debug.Assert((object)oldTypeArg == newTypeArg);
+                Debug.Assert((object)oldTypeArg.TypeSymbol == newTypeArg.TypeSymbol);
 
                 builder.Add(newTypeArg);
             }

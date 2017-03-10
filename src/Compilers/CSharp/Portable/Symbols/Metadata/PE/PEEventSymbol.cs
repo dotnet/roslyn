@@ -93,8 +93,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 originalEventType = metadataDecoder.GetTypeOfToken(eventType);
 
                 const int targetSymbolCustomModifierCount = 0;
-                _eventType = DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol);
-                _eventType = TypeSymbolWithAnnotations.Create(TupleTypeDecoder.DecodeTupleTypesIfApplicable(_eventType, handle, moduleSymbol));
+                _eventType = TypeSymbolWithAnnotations.Create(
+                    TupleTypeDecoder.DecodeTupleTypesIfApplicable(
+                        DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol),
+                        handle, moduleSymbol));
             }
 
             // IsWindowsRuntimeEvent checks the signatures, so we just have to check the accessors.

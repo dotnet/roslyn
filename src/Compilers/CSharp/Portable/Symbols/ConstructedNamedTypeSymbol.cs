@@ -95,14 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if (_hasTypeArgumentsCustomModifiers)
+            var typeArguments = this.TypeArgumentsNoUseSiteDiagnostics;
+            foreach (var typeArg in typeArguments)
             {
-                for (int i = 0; i < this.Arity; i++)
+                if (GetUnificationUseSiteDiagnosticRecursive(ref result, typeArg.CustomModifiers, owner, ref checkedTypes))
                 {
-                    if (GetUnificationUseSiteDiagnosticRecursive(ref result, this.GetTypeArgumentCustomModifiers(i), owner, ref checkedTypes))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 

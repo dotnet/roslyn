@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeIsDeclarationPattern(BoundDeclarationPattern loweredPattern, BoundExpression loweredInput)
         {
             Debug.Assert(((object)loweredPattern.Variable == null && loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression) ||
-                         loweredPattern.Variable.GetTypeOrReturnType() == loweredPattern.DeclaredType.Type);
+                         loweredPattern.Variable.GetTypeOrReturnType().TypeSymbol == loweredPattern.DeclaredType.Type);
 
             if (loweredPattern.IsVar)
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
 
-                Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type == loweredPattern.Variable.GetTypeOrReturnType());
+                Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type == loweredPattern.Variable.GetTypeOrReturnType().TypeSymbol);
 
                 var assignment = _factory.AssignmentExpression(loweredPattern.VariableAccess, loweredInput);
                 return _factory.MakeSequence(assignment, result);
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         BoundExpression MakeIsDeclarationPattern(SyntaxNode syntax, BoundExpression loweredInput, BoundExpression loweredTarget, bool requiresNullTest)
         {
-            var type = loweredTarget.Type.TypeSymbol;
+            var type = loweredTarget.Type;
 
             // The type here is not a Nullable<T> instance type, as that would have led to the semantic error:
             // ERR_PatternNullableType: It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.

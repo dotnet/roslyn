@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             foreach (CSharpSyntaxNode syntax in _analysis.CapturedVariables[captured])
                             {
                                 // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                                this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type);
+                                this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type.TypeSymbol);
                             }
                         }
                     }

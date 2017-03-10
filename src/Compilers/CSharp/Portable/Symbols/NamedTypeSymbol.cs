@@ -1015,6 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return true;
                 }
+            }
 
             return false;
         }
@@ -1276,7 +1277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     do
                     {
                         levelsOfNesting++;
-                        typeToCheck = ((NamedTypeSymbol)typeToCheck).TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1];
+                        typeToCheck = ((NamedTypeSymbol)typeToCheck).TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].TypeSymbol;
                     }
                     while (typeToCheck.OriginalDefinition == this.OriginalDefinition && !typeToCheck.IsDefinition);
 
@@ -1364,6 +1365,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(a => (ITypeSymbol)a.TypeSymbol);
             }
+        }
+
+        ImmutableArray<CustomModifier> INamedTypeSymbol.GetTypeArgumentCustomModifiers(int ordinal)
+        {
+            return this.TypeArgumentsNoUseSiteDiagnostics[ordinal].CustomModifiers;
         }
 
         INamedTypeSymbol INamedTypeSymbol.OriginalDefinition

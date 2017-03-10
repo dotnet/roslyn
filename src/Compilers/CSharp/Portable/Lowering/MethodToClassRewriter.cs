@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)newType == oldType)
                 {
                     //  tuple type symbol was not rewritten
-                    return constructedFrom.ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
+                    return constructedFrom.ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArguments));
                 }
 
                 Debug.Assert(newType.IsTupleType);
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if ((object)constructedFrom == oldMembers[i])
                     {
-                        return ((MethodSymbol)newMembers[i]).ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
+                        return ((MethodSymbol)newMembers[i]).ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArguments));
                     }
                 }
 
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //  Method of a regular type
                 return ((MethodSymbol)method.OriginalDefinition)
                     .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly())
-                    .ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
+                    .ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArguments));
             }
         }
 

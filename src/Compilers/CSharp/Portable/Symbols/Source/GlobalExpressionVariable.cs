@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class GlobalExpressionVariable : SourceMemberFieldSymbol
     {
-        private TypeSymbol _lazyType;
+        private TypeSymbolWithAnnotations _lazyType;
         private SyntaxReference _typeSyntax;
 
         internal GlobalExpressionVariable(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool earlyDecodingWellKnownAttributes,
             DiagnosticBag diagnostics) => null;
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             Debug.Assert(fieldsBeingBound != null);
 
@@ -72,13 +72,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
 
             var diagnostics = DiagnosticBag.GetInstance();
-            TypeSymbol type;
 
             var binderFactory = compilation.GetBinderFactory(SyntaxTree);
             var binder = binderFactory.GetBinder(typeSyntax);
 
             bool isVar;
-            type = binder.BindType(typeSyntax, diagnostics, out isVar);
+            var type = binder.BindType(typeSyntax, diagnostics, out isVar);
 
             Debug.Assert((object)type != null || isVar);
 
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (isVar)
                 {
                     diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, this.ErrorLocation, this);
-                    type = binder.CreateErrorType("var");
+                    type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
                 }
 
                 SetType(compilation, diagnostics, type);
@@ -106,32 +105,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Can add some diagnostics into <paramref name="diagnostics"/>. 
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        private TypeSymbol SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeSymbol type)
+        private TypeSymbol SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeSymbolWithAnnotations type)
         {
-            TypeSymbol originalType = _lazyType;
+            var originalType = _lazyType;
 
             // In the event that we race to set the type of a field, we should
             // always deduce the same type, unless the cached type is an error.
 
             Debug.Assert((object)originalType == null ||
-                originalType.IsErrorType() ||
-                originalType == type);
+                originalType.TypeSymbol.IsErrorType() ||
+                originalType.TypeSymbol == type.TypeSymbol);
 
             if ((object)Interlocked.CompareExchange(ref _lazyType, type, null) == null)
             {
-                TypeChecks(type, diagnostics);
+                TypeChecks(type.TypeSymbol, diagnostics);
 
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);
                 state.NotePartComplete(CompletionPart.Type);
             }
-            return _lazyType;
+            return _lazyType.TypeSymbol;
         }
 
         /// <summary>
         /// Can add some diagnostics into <paramref name="diagnostics"/>.
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        internal TypeSymbol SetType(TypeSymbol type, DiagnosticBag diagnostics)
+        internal TypeSymbol SetType(TypeSymbolWithAnnotations type, DiagnosticBag diagnostics)
         {
             return SetType(DeclaringCompilation, diagnostics, type);
         }

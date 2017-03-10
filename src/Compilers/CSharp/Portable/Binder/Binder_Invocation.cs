@@ -1292,13 +1292,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // look for a parameter by that name
                 foreach (var parameter in parameterList)
                 {
-                    if (parameter.Name == name) return parameter.Type;
+                    if (parameter.Name == name) return parameter.Type.TypeSymbol;
                 }
 
                 return null;
             }
 
-            return (i < parameterList.Length) ? parameterList[i].Type : null;
+            return (i < parameterList.Length) ? parameterList[i].Type.TypeSymbol : null;
             // CONSIDER: should we handle variable argument lists?
         }
 

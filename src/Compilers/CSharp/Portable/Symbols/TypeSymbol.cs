@@ -1023,8 +1023,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // In Dev10, as long as the corresponding properties have an implementation relationship,
                 // then the accessor can be considered an implementation, even though the name is different.
                 // Later on, when we check that implementation signatures match exactly
-                // (in SourceNamedTypeSymbol.ImplementInterfaceMember), they won't (because of the names)
-                // and an explicit implementation method will be synthesized.
+                // (in SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation),
+                // they won't (because of the names) and an explicit implementation method will be synthesized.
 
                 MethodSymbol interfaceAccessorWithImplementationName = new SignatureOnlyMethodSymbol(
                     correspondingImplementingAccessor.Name,
@@ -1292,7 +1292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// type because they will be copied into the bridge property that explicitly
         /// implements the interface property (or they would be, if we created such
         /// a bridge property).  Bridge *methods* (not properties) are inserted in 
-        /// SourceNamedTypeSymbol.ImplementInterfaceMember.
+        /// SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation.
         ///
         /// CONSIDER: The spec for interface mapping (13.4.4) could be interpreted to mean that this
         /// property is not an implementation unless it has an accessor for each accessor of the
@@ -1314,7 +1314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // We're specifically ignoring custom modifiers for source types because that's what Dev10 does.
                 // Inexact matches are acceptable because we'll just generate bridge members - explicit implementations
                 // with exact signatures that delegate to the inexact match.  This happens automatically in
-                // SourceNamedTypeSymbol.ImplementInterfaceMember.
+                // SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation.
                 return MemberSignatureComparer.CSharpImplicitImplementationComparer.Equals(interfaceMember, candidateMember);
             }
             else

@@ -223,20 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerRefOutDifference: false,
             considerCustomModifiers: true);
 
-        // NOTE: Not used anywhere. Do we still need to keep it?
-        /// <summary>
-        /// This instance is used to search for members that have the same name, parameters, (return) type, and constraints (if any)
-        /// according to the C# definition. Custom modifiers are ignored.
-        /// </summary>
-        public static readonly MemberSignatureComparer CSharpSignatureAndConstraintsAndReturnTypeComparer = new MemberSignatureComparer(
-            considerName: true,
-            considerExplicitlyImplementedInterfaces: true,
-            considerReturnType: true,
-            considerTypeConstraints: true,
-            considerCallingConvention: true,
-            considerRefOutDifference: true,
-            considerCustomModifiers: false); //intended for source types
-
         /// <summary>
         /// This instance is used to search for members that have identical signatures in every regard.
         /// </summary>
@@ -440,9 +426,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_considerReturnType)
                 {
                     RefKind refKind;
-                    TypeSymbol returnType;
+                    TypeSymbolWithAnnotations returnType;
                     ImmutableArray<CustomModifier> customModifiers_Ignored;
-                    member.GetTypeOrReturnType(out refKind, out returnType, out customModifiers_Ignored, out customModifiers_Ignored);
+                    member.GetTypeOrReturnType(out refKind, out returnType, out customModifiers_Ignored);
 
                     hash = Hash.Combine((int)refKind, hash);
 
@@ -642,7 +628,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // the runtime compares custom modifiers using (effectively) SequenceEqual
                 if (considerCustomModifiers)
                 {
-                    if (!type1.Equals(type2, TypeCompareKind.ConsiderEverything.AddIgnoreDynamic(ignoreDynamic).AddIgnoreTupleNames(ignoreTupleNames)) ||
+                    if (!type1.TypeSymbol.Equals(type2.TypeSymbol, TypeCompareKind.ConsiderEverything.AddIgnoreDynamic(ignoreDynamic).AddIgnoreTupleNames(ignoreTupleNames)) ||
+                        !type1.CustomModifiers.SequenceEqual(type2.CustomModifiers) ||
                         !SubstituteModifiers(typeMap1, param1.RefCustomModifiers).SequenceEqual(SubstituteModifiers(typeMap2, param2.RefCustomModifiers)))
                     {
                         return false;

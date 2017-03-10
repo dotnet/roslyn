@@ -53,10 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 TypeSymbolWithAnnotations substituted = ((TypeMap)mapOrType).SubstituteTypeWithTupleUnification(this._underlyingParameter.Type);
 
-                type = substituted.Type;
+                type = substituted;
 
                 if (substituted.CustomModifiers.IsEmpty && 
-                    this._underlyingParameter.CustomModifiers.IsEmpty &&
+                    this._underlyingParameter.Type.CustomModifiers.IsEmpty &&
                     this._underlyingParameter.RefCustomModifiers.IsEmpty)
                 {
                     _mapOrType = type;

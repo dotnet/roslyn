@@ -237,6 +237,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap)
+        {
+            var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
+            var newTypeWithModifiers = typeMap.SubstituteTypeWithTupleUnification(this.TypeSymbol);
+            if (!newTypeWithModifiers.Is(this.TypeSymbol) || newCustomModifiers != this.CustomModifiers)
+            {
+                return DoUpdate(newTypeWithModifiers.TypeSymbol, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
+            }
+            else
+            {
+                return this; // substitution had no effect on the type or modifiers
+            }
+        }
+
         /// <summary>
         /// Extract type under assumption that there should be no custom modifiers or annotations.
         /// The method asserts otherwise.

@@ -256,7 +256,7 @@ class C
             {
                 case SymbolKind.Method:
                     var methodSymbol = (MethodSymbol)symbol;
-                    typeSymbols.Add(methodSymbol.ReturnType);
+                    typeSymbols.Add(methodSymbol.ReturnType.TypeSymbol);
                     typeSymbols.AddRange(methodSymbol.ParameterTypes);
                     break;
                 case SymbolKind.NamedType:
@@ -264,13 +264,13 @@ class C
                     typeSymbols.Add(namedType.BaseType ?? namedType);
                     break;
                 case SymbolKind.Field:
-                    typeSymbols.Add(((FieldSymbol)symbol).Type);
+                    typeSymbols.Add(((FieldSymbol)symbol).Type.TypeSymbol);
                     break;
                 case SymbolKind.Property:
-                    typeSymbols.Add(((PropertySymbol)symbol).Type);
+                    typeSymbols.Add(((PropertySymbol)symbol).Type.TypeSymbol);
                     break;
                 case SymbolKind.Event:
-                    typeSymbols.Add(((EventSymbol)symbol).Type);
+                    typeSymbols.Add(((EventSymbol)symbol).Type.TypeSymbol);
                     break;
             }
             var symbolString = string.Join(" | ", typeSymbols
@@ -461,10 +461,10 @@ class C
                 // public static Base1<(int, ValueTuple<int, ValueTuple>)> Field6;
                 var field6 = _derivedClass.GetMember<FieldSymbol>("Field6");
                 ValidateTupleNameAttribute(field6, expectedTupleNamesAttribute: false);
-                var field6Type = Assert.IsType<ConstructedNamedTypeSymbol>(field6.Type);
+                var field6Type = Assert.IsType<ConstructedNamedTypeSymbol>(field6.Type.TypeSymbol);
                 Assert.Equal("Base1", field6Type.Name);
                 Assert.Equal(1, field6Type.TypeParameters.Length);
-                var firstTuple = field6Type.TypeArguments.Single();
+                var firstTuple = field6Type.TypeArguments.Single().TypeSymbol;
                 Assert.True(firstTuple.IsTupleType);
                 Assert.True(firstTuple.TupleElementNames.IsDefault);
                 Assert.Equal(2, firstTuple.TupleElementTypes.Length);
@@ -476,7 +476,7 @@ class C
                 // public static ValueTuple Field7;
                 var field7 = _derivedClass.GetMember<FieldSymbol>("Field7");
                 ValidateTupleNameAttribute(field7, expectedTupleNamesAttribute: false);
-                Assert.False(field7.Type.IsTupleType);
+                Assert.False(field7.Type.TypeSymbol.IsTupleType);
 
                 // public static (int e1, int e2, int e3, int e4, int e5, int e6, int e7, int e8, int e9) Field8;
                 var field8 = _derivedClass.GetMember<FieldSymbol>("Field8");
@@ -925,8 +925,8 @@ public interface I3<T>
                 void verifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
                 {
                     var typeParam = t.TypeParameters.Single();
-                    var constraint = (NamedTypeSymbol)typeParam.ConstraintTypes.Single();
-                    var typeArg = constraint.TypeArguments.Single();
+                    var constraint = (NamedTypeSymbol)typeParam.ConstraintTypes.Single().TypeSymbol;
+                    var typeArg = constraint.TypeArguments.Single().TypeSymbol;
                     Assert.True(typeArg.IsTupleType);
                     Assert.Equal(tupleNames, typeArg.TupleElementNames);
                 }
@@ -1025,7 +1025,7 @@ public interface I3 : I1<(int c, int d)> {}";
                 void VerifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
                 {
                     var interfaceImpl = t.Interfaces.Single();
-                    var typeArg = interfaceImpl.TypeArguments.Single();
+                    var typeArg = interfaceImpl.TypeArguments.Single().TypeSymbol;
                     Assert.True(typeArg.IsTupleType);
                     Assert.Equal(tupleNames, typeArg.TupleElementNames);
                 }

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             TypeSymbolWithAnnotations newTypeWithModifiers = this.Type.Update(newType, newCustomModifiers);
 
-            if (newCustomModifiers.IsEmpty && newRefCustomModifiers.IsEmpty)
+            if (newRefCustomModifiers.IsEmpty)
             {
                 return new SourceComplexParameterSymbol(
                     this.ContainingSymbol,
@@ -113,12 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Local functions should never have custom modifiers
             Debug.Assert(!(ContainingSymbol is LocalFunctionSymbol));
 
-            return new SourceComplexParameterSymbolWithCustomModifiers(
+            return new SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
                 this.ContainingSymbol,
                 this.Ordinal,
                 newTypeWithModifiers,
                 _refKind,
-                newCustomModifiers,
                 newRefCustomModifiers,
                 _name,
                 _locations,

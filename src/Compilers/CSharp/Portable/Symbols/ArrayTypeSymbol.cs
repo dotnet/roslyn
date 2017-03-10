@@ -483,15 +483,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _interfaces = constructedInterfaces;
             }
 
-            internal override ArrayTypeSymbol WithElementType(TypeSymbol newElementType)
+            internal override ArrayTypeSymbol WithElementType(TypeSymbolWithAnnotations newElementType)
             {
-                ImmutableArray<NamedTypeSymbol> newInterfaces = _interfaces;
-                if (newInterfaces.Length>0)
-                {
-                    newInterfaces = newInterfaces.SelectAsArray(i => i.OriginalDefinition.Construct(newElementType));
-                }
-
-                return new SZArray(newElementType, BaseTypeNoUseSiteDiagnostics, newInterfaces, CustomModifiers);
+                var newInterfaces = _interfaces.SelectAsArray((i, t) => i.OriginalDefinition.Construct(t), newElementType.TypeSymbol);
+                return new SZArray(newElementType, BaseTypeNoUseSiteDiagnostics, newInterfaces);
             }
 
             public override int Rank
@@ -574,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbolWithAnnotations elementType,
                 int rank,
                 NamedTypeSymbol array)
-                : base(elementType, rank, array, customModifiers)
+                : base(elementType, rank, array)
             {
             }
 

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenType: elementType,
                     @checked: node.Checked),
                 conversion: node.ElementConversion,
-                rewrittenType: node.IterationVariableType.Type.TypeSymbol,
+                rewrittenType: node.IterationVariableType.Type,
                 @checked: node.Checked);
 
             // V v = (V)(T)e.Current;  -OR-  (D1 d1, ...) = (V)(T)e.Current;

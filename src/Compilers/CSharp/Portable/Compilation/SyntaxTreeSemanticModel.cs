@@ -1127,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             AliasSymbol aliasOpt;
             DiagnosticBag discarded = DiagnosticBag.GetInstance();
-            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt);
+            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt).TypeSymbol;
             discarded.Free();
 
             return AttributeSemanticModel.Create(

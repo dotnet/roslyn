@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // Basically inlined BindVariableInitializer, but with conversion optional.
-                    initializerOpt = BindPossibleArrayInitializer(value, declTypeOpt, valueKind, diagnostics);
+                    initializerOpt = BindPossibleArrayInitializer(value, declTypeOpt.TypeSymbol, valueKind, diagnostics);
                     if (kind != LocalDeclarationKind.FixedVariable)
                     {
                         // If this is for a fixed statement, we'll do our own conversion since there are some special cases.
@@ -886,12 +886,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declTypeOpt, localDiagnostics, typeSyntax))
+            if (CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declTypeOpt.TypeSymbol, localDiagnostics, typeSyntax))
             {
                 hasErrors = true;
             }
 
-            localSymbol.SetType(declTypeOpt);
+            localSymbol.SetTypeSymbol(declTypeOpt);
 
             if (localSymbol.RefKind != RefKind.None && initializerOpt != null)
             {
@@ -3516,7 +3516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
             {
-                Debug.Assert(local.Type.IsErrorType() || (local.Type == type));
+                Debug.Assert(local.Type.TypeSymbol.IsErrorType() || (local.Type.TypeSymbol == type));
 
                 // Check for local variable conflicts in the *enclosing* binder, not the *current* binder;
                 // obviously we will find a local of the given name in the current binder.

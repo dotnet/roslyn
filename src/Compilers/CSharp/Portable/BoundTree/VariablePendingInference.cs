@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    localSymbol.SetType(type);
+                    localSymbol.SetTypeSymbol(TypeSymbolWithAnnotations.Create(type));
                     return new BoundLocal(this.Syntax, localSymbol, isDeclaration: true, constantValueOpt: null, type: type, hasErrors: this.HasErrors || inferenceFailed);
 
                 case SymbolKind.Field:
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportInferenceFailure(inferenceDiagnostics);
                     }
 
-                    type = fieldSymbol.SetType(type, inferenceDiagnostics);
+                    type = fieldSymbol.SetType(TypeSymbolWithAnnotations.Create(type), inferenceDiagnostics);
                     inferenceDiagnostics.Free();
 
                     return new BoundFieldAccess(this.Syntax,

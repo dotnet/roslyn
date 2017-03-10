@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbolWithAnnotations returnType = _binder.BindType(returnTypeSyntax, diagnostics);
             if (IsAsync &&
                 returnType.SpecialType != SpecialType.System_Void &&
-                !returnType.IsNonGenericTaskType(_binder.Compilation) &&
-                !returnType.IsGenericTaskType(_binder.Compilation))
+                !returnType.TypeSymbol.IsNonGenericTaskType(_binder.Compilation) &&
+                !returnType.TypeSymbol.IsGenericTaskType(_binder.Compilation))
             {
                 // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             lock (_declarationDiagnostics)
             {
-                if (_lazyReturnType != null)
+                if ((object)_lazyReturnType != null)
                 {
                     diagnostics.Free();
                     return;

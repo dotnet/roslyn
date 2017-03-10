@@ -197,8 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(delegateType, TypeSymbolWithAnnotations.Create(voidType), syntax, MethodKind.Constructor, DeclarationModifiers.Public)
             {
                 InitializeParameters(ImmutableArray.Create<ParameterSymbol>(
-                    SynthesizedParameterSymbol.Create(this, objectType, 0, RefKind.None, "object"),
-                    SynthesizedParameterSymbol.Create(this, intPtrType, 1, RefKind.None, "method")));
+                    SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(objectType), 0, RefKind.None, "object"),
+                    SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(intPtrType), 1, RefKind.None, "method")));
             }
 
             public override string Name
@@ -302,8 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 int paramCount = invoke.ParameterCount;
-                parameters.Add(SynthesizedParameterSymbol.Create(this, asyncCallbackType, paramCount, RefKind.None, GetUniqueParameterName(parameters, "callback")));
-                parameters.Add(SynthesizedParameterSymbol.Create(this, objectType, paramCount + 1, RefKind.None, GetUniqueParameterName(parameters, "object")));
+                parameters.Add(SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(asyncCallbackType), paramCount, RefKind.None, GetUniqueParameterName(parameters, "callback")));
+                parameters.Add(SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(objectType), paramCount + 1, RefKind.None, GetUniqueParameterName(parameters, "object")));
 
                 InitializeParameters(parameters.ToImmutableAndFree());
             }
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                parameters.Add(SynthesizedParameterSymbol.Create(this, iAsyncResultType, ordinal++, RefKind.None, GetUniqueParameterName(parameters, "result")));
+                parameters.Add(SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(iAsyncResultType), ordinal++, RefKind.None, GetUniqueParameterName(parameters, "result")));
                 InitializeParameters(parameters.ToImmutableAndFree());
             }
 

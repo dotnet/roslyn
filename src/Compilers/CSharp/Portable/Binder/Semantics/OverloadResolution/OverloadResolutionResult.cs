@@ -1025,7 +1025,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
                             TypeSymbolWithAnnotations.Create(argType),
                             ImmutableArray<CustomModifier>.Empty,
-                            ImmutableArray<CustomModifier>.Empty,
                             isParams: false,
                             refKind: refArg);
 

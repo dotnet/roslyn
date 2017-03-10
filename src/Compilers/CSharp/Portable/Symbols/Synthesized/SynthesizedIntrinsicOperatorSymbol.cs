@@ -3,9 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
 
@@ -448,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol type,
                 int ordinal,
                 string name
-            ) : base(container, type, ordinal, RefKind.None, name)
+            ) : base(container, TypeSymbolWithAnnotations.Create(type), ordinal, RefKind.None, name)
             {
             }
 
@@ -472,11 +469,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override int GetHashCode()
             {
                 return Hash.Combine(ContainingSymbol, Ordinal.GetHashCode());
-            }
-
-            public override ImmutableArray<CustomModifier> CustomModifiers
-            {
-                get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     for (int index = 0; index < fieldsCount; index++)
                     {
                         PropertySymbol property = properties[index];
-                        paramsArr[index] = SynthesizedParameterSymbol.Create(this, property.Type.TypeSymbol, index, RefKind.None, property.Name);
+                        paramsArr[index] = SynthesizedParameterSymbol.Create(this, property.Type, index, RefKind.None, property.Name);
                     }
                     _parameters = paramsArr.AsImmutableOrNull();
                 }

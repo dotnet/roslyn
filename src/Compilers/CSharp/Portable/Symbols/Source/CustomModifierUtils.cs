@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol sourceMethod,
             MethodSymbol destinationMethod,
             out TypeSymbolWithAnnotations returnType,
-            out CustomModifiersTuple customModifiers,
+            out ImmutableArray<CustomModifier> customModifiers,
             out ImmutableArray<ParameterSymbol> parameters,
             bool alsoCopyParamsModifier) // Last since always named.
         {
@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // have already been compared.
             MethodSymbol constructedSourceMethod = sourceMethod.ConstructIfGeneric(destinationMethod.TypeArguments);
 
-            customModifiers = CustomModifiersTuple.Create(
-                                                          destinationMethod.ReturnsByRef ? constructedSourceMethod.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty);
+            customModifiers = constructedSourceMethod.RefCustomModifiers;
 
             parameters = CopyParameterCustomModifiers(constructedSourceMethod.Parameters, destinationMethod.Parameters, alsoCopyParamsModifier);
 
@@ -49,10 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // method (incorrectly) has a different return type than the overridden method.  In such cases,
             // we want to retain the original (incorrect) return type to avoid hiding the return type
             // given in source.
-            TypeSymbol returnTypeWithCustomModifiers = constructedSourceMethod.ReturnType;
+            TypeSymbol returnTypeWithCustomModifiers = sourceMethodReturnType.TypeSymbol;
             if (returnTypeSymbol.Equals(returnTypeWithCustomModifiers, TypeCompareKind.AllIgnoreOptions))
             {
-                returnType = returnType.Update(CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnTypeSymbol, destinationMethod.ContainingAssembly);
+                returnType = returnType.Update(CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnTypeSymbol, destinationMethod.ContainingAssembly),
+                                               sourceMethodReturnType.CustomModifiers);
             }
         }
 

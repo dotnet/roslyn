@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         foreach (var nestedType in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
                         {
-                            var result = nestedType.VisitType(predicate, arg);
+                            var result = nestedType.TypeSymbol.VisitType(predicate, arg);
                             if ((object)result != null)
                             {
                                 return result;
@@ -1079,6 +1079,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns></returns>
         public static TypeSymbol AsDynamicIfNoPia(this TypeSymbol type, NamedTypeSymbol containingType)
         {
+            return type.TryAsDynamicIfNoPia(containingType, out TypeSymbol result) ? result : type;
+        }
+
+        public static bool TryAsDynamicIfNoPia(this TypeSymbol type, NamedTypeSymbol containingType, out TypeSymbol result)
+        {
             if (type.SpecialType == SpecialType.System_Object)
             {
                 AssemblySymbol assembly = containingType.ContainingAssembly;
@@ -1086,10 +1091,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     assembly.IsLinked &&
                     containingType.IsComImport)
                 {
-                    return DynamicTypeSymbol.Instance;
+                    result = DynamicTypeSymbol.Instance;
+                    return true;
                 }
             }
-            return type;
+            result = null;
+            return false;
         }
 
         /// <summary>
@@ -1385,6 +1392,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        private static bool NormalizeTaskTypesInType(CSharpCompilation compilation, ref TypeSymbolWithAnnotations typeWithAnnotations)
+        {
+            var type = typeWithAnnotations.TypeSymbol;
+            if (NormalizeTaskTypesInType(compilation, ref type))
+            {
+                typeWithAnnotations = TypeSymbolWithAnnotations.Create(type, typeWithAnnotations.CustomModifiers);
+                return true;
+            }
+            return false;
+        }
+
         private static bool NormalizeTaskTypesInNamedType(CSharpCompilation compilation, ref NamedTypeSymbol type)
         {
             bool hasChanged = false;
@@ -1392,18 +1410,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!type.IsDefinition)
             {
                 Debug.Assert(type.IsGenericType);
-                var typeArgumentsBuilder = ArrayBuilder<TypeWithModifiers>.GetInstance();
+                var typeArgumentsBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 type.GetAllTypeArguments(typeArgumentsBuilder, ref useSiteDiagnostics);
                 for (int i = 0; i < typeArgumentsBuilder.Count; i++)
                 {
                     var typeWithModifier = typeArgumentsBuilder[i];
-                    var typeArgNormalized = typeWithModifier.Type;
+                    var typeArgNormalized = typeWithModifier.TypeSymbol;
                     if (NormalizeTaskTypesInType(compilation, ref typeArgNormalized))
                     {
                         hasChanged = true;
                         // Preserve custom modifiers but without normalizing those types.
-                        typeArgumentsBuilder[i] = new TypeWithModifiers(typeArgNormalized, typeWithModifier.CustomModifiers);
+                        typeArgumentsBuilder[i] = TypeSymbolWithAnnotations.Create(typeArgNormalized, typeWithModifier.CustomModifiers);
                     }
                 }
                 if (hasChanged)
@@ -1433,10 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type = arity == 0 ?
                     taskType :
                     taskType.Construct(
-                        ImmutableArray.Create(
-                            new TypeWithModifiers(
-                                type.TypeArgumentsNoUseSiteDiagnostics[0],
-                                type.HasTypeArgumentsCustomModifiers ? type.GetTypeArgumentCustomModifiers(0) : default(ImmutableArray<CustomModifier>))),
+                        ImmutableArray.Create(type.TypeArgumentsNoUseSiteDiagnostics[0]),
                         unbound: false);
                 hasChanged = true;
             }
@@ -1475,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
             // Preserve custom modifiers but without normalizing those types.
-            pointerType = new PointerTypeSymbol(pointedAtType, pointerType.CustomModifiers);
+            pointerType = new PointerTypeSymbol(pointedAtType);
             return true;
         }
 

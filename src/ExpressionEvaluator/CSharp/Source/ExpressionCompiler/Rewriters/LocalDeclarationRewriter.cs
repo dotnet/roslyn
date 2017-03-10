@@ -64,12 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                 // Generate assignment to local. The assignment will
                 // be rewritten in PlaceholderLocalRewriter.
+                var type = local.Type.TypeSymbol;
                 var assignment = new BoundAssignmentOperator(
                     syntax,
-                    new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type),
+                    new BoundLocal(syntax, local, constantValueOpt: null, type: type),
                     initializer,
                     RefKind.None,
-                    local.Type);
+                    type);
                 statements.Add(new BoundExpressionStatement(syntax, assignment));
             }
         }

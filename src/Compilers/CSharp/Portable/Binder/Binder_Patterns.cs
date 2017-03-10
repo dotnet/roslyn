@@ -220,23 +220,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbolWithAnnotations declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
             if (isVar)
             {
-                declType = operandType;
+                declType = TypeSymbolWithAnnotations.Create(operandType);
             }
 
             if (declType == (object)null)
             {
                 Debug.Assert(hasErrors);
-                declType = this.CreateErrorType("var");
+                declType = TypeSymbolWithAnnotations.Create(this.CreateErrorType("var"));
             }
 
-            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType);
+            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType.TypeSymbol);
             if (IsOperatorErrors(node, operandType, boundDeclType, diagnostics))
             {
                 hasErrors = true;
             }
             else
             {
-                hasErrors |= CheckValidPatternType(typeSyntax, operand, operandType, declType,
+                hasErrors |= CheckValidPatternType(typeSyntax, operand, operandType, declType.TypeSymbol,
                                                    isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             }
 
@@ -261,14 +261,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
                 }
 
-                localSymbol.SetType(declType);
+                localSymbol.SetTypeSymbol(declType);
 
                 // Check for variable declaration errors.
                 hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
                 if (!hasErrors)
                 {
-                    hasErrors = CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
+                    hasErrors = CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType.TypeSymbol, diagnostics, typeSyntax);
                 }
 
                 return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);

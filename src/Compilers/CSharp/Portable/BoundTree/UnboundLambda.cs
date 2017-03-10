@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // delegate Invoke method if Invoke has a Task-like return type.
             // Otherwise the return type is Task or Task<T>.
             NamedTypeSymbol taskType = null;
-            var delegateReturnType = delegateType?.GetDelegateType()?.DelegateInvokeMethod?.ReturnType as NamedTypeSymbol;
+            var delegateReturnType = delegateType?.GetDelegateType()?.DelegateInvokeMethod?.ReturnType.TypeSymbol as NamedTypeSymbol;
             if ((object)delegateReturnType != null && delegateReturnType.SpecialType != SpecialType.System_Void)
             {
                 object builderType;
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null; // TODO: figure out if this should be somehow merged into BoundLambda.Diagnostics.
-            TypeSymbol returnType = result.InferredReturnType(ref useSiteDiagnostics) ?? LambdaSymbol.InferenceFailureReturnType;
+            TypeSymbol returnType = result.InferredReturnType(ref useSiteDiagnostics) ?? LambdaSymbol.InferenceFailureReturnType.TypeSymbol;
             lambdaSymbol.SetInferredReturnType(result.RefKind, returnType);
 
             return result;
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         foreach (var p in invoke.Parameters)
                         {
                             refKindsBuilder.Add(p.RefKind);
-                            typesBuilder.Add(p.Type);
+                            typesBuilder.Add(p.Type.TypeSymbol);
                         }
 
                         parameterTypes = typesBuilder.ToImmutableAndFree();
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (isAsync)
                     {
-                        var delegateReturnType = invoke.ReturnType as NamedTypeSymbol;
+                        var delegateReturnType = invoke.ReturnType.TypeSymbol as NamedTypeSymbol;
                         if ((object)delegateReturnType != null && delegateReturnType.SpecialType != SpecialType.System_Void)
                         {
                             if (delegateReturnType.IsCustomTaskType(out var builderType))

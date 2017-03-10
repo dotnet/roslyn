@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(SyntaxFacts.IsInTypeOnlyContext(decl.Type));
 
             var local = ((SourceLocalSymbol)symbol);
-            var type = local.Type;
+            var type = local.Type.TypeSymbol;
             if (type.IsErrorType())
             {
                 Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
 
-            var type = ((LocalSymbol)symbol).Type;
+            var type = ((LocalSymbol)symbol).Type.TypeSymbol;
             var decl = (DeclarationPatternSyntax)designation.Parent;
             if (!decl.Type.IsVar || !type.IsErrorType())
             {
@@ -217,16 +217,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
             Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
 
-            if (typeSyntax.IsVar && local.Type.IsErrorType())
+            var type = local.Type.TypeSymbol;
+            if (typeSyntax.IsVar && type.IsErrorType())
             {
                 Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
             }
             else
             {
-                Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
+                Assert.Equal(type, model.GetSymbolInfo(typeSyntax).Symbol);
             }
 
-            AssertTypeInfo(model, decl.Type, local.Type);
+            AssertTypeInfo(model, decl.Type, type);
 
             var declarator = designation.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
             var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     Assert.Same(symbol, referenceInfo.Symbol);
                     Assert.Same(symbol, symbols.Single());
-                    Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
+                    Assert.Equal(type, model.GetTypeInfo(reference).Type);
                 }
 
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(designation.Identifier.ValueText));
@@ -321,8 +322,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             if ((object)symbol != null)
             {
-                Assert.Equal(symbol.GetTypeOrReturnType(), typeInfo.Type);
-                Assert.Equal(symbol.GetTypeOrReturnType(), typeInfo.ConvertedType);
+                var type = symbol.GetTypeOrReturnType().TypeSymbol;
+                Assert.Equal(type, typeInfo.Type);
+                Assert.Equal(type, typeInfo.ConvertedType);
             }
             else
             {

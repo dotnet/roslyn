@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -95,6 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
+            ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
+            Debug.Assert(arguments.Length == targetElementTypes.Length);
+
             // check arguments against flattened list of target element types 
             var argumentConversions = ArrayBuilder<Conversion>.GetInstance(arguments.Length);
             for (int i = 0; i < arguments.Length; i++)
@@ -105,62 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentConversions.Free();
                     return Conversion.NoConversion;
                 }
-            }
-
-            // Ensure the body can be converted to that delegate type
-            var bound = anonymousFunction.Bind(delegateType);
-            if (ErrorFacts.PreventsSuccessfulDelegateConversion(bound.Diagnostics))
-            {
-                return LambdaConversionResult.BindingFailed;
-            }
-
-            return LambdaConversionResult.Success;
-        }
-
-        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithExpressionTree(UnboundLambda anonymousFunction, NamedTypeSymbol type)
-        {
-            Debug.Assert((object)anonymousFunction != null);
-            Debug.Assert((object)type != null);
-            Debug.Assert(type.IsExpressionTree());
-
-            // SPEC OMISSION:
-            // 
-            // The C# 3 spec said that anonymous methods and statement lambdas are *convertible* to expression tree
-            // types if the anonymous method/statement lambda is convertible to its delegate type; however, actually
-            // *using* such a conversion is an error. However, that is not what we implemented. In C# 3 we implemented
-            // that an anonymous method is *not convertible* to an expression tree type, period. (Statement lambdas
-            // used the rule described in the spec.)  
-            //
-            // This appears to be a spec omission; the intention is to make old-style anonymous methods not 
-            // convertible to expression trees.
-
-            var delegateType = type.TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
-            if (!delegateType.IsDelegateType())
-            {
-                return LambdaConversionResult.ExpressionTreeMustHaveDelegateTypeArgument;
-            }
-
-            if (anonymousFunction.Syntax.Kind() == SyntaxKind.AnonymousMethodExpression)
-            {
-                return LambdaConversionResult.ExpressionTreeFromAnonymousMethod;
-            }
-
-            return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType);
-        }
-
-        public static LambdaConversionResult IsAnonymousFunctionCompatibleWithType(UnboundLambda anonymousFunction, TypeSymbol type)
-        {
-            Debug.Assert((object)anonymousFunction != null);
-            Debug.Assert((object)type != null);
-
-            if (type.IsDelegateType())
-            {
-                return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type);
-            }
-            else if (type.IsExpressionTree())
-            {
-                return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
-            }
 
                 argumentConversions.Add(result);
             }

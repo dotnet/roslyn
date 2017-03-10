@@ -142,9 +142,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            return _type;
+            return TypeSymbolWithAnnotations.Create(_type);
         }
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()

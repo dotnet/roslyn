@@ -2623,6 +2623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
             // try binding as a type, but back off to binding as an expression if that does not work.
             AliasSymbol alias;
+            var isTypeDiagnostics = DiagnosticBag.GetInstance();
             TypeSymbol targetType = BindType(node.Right, isTypeDiagnostics, out alias).TypeSymbol;
 
             if (targetType?.IsErrorType() == true && isTypeDiagnostics.HasAnyResolvedErrors() &&

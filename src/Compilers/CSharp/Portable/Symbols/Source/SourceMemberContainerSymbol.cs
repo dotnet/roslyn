@@ -2595,7 +2595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return
                 methodParams.Length == 1 &&
                 methodParams[0].RefKind == RefKind.None &&
-                eventSymbol.Type.TypeSymbol.Equals(methodParams[0].Type, TypeCompareKind.AllIgnoreOptions);
+                eventSymbol.Type.TypeSymbol.Equals(methodParams[0].Type.TypeSymbol, TypeCompareKind.AllIgnoreOptions);
         }
 
         private void AddEnumMembers(MembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, DiagnosticBag diagnostics)

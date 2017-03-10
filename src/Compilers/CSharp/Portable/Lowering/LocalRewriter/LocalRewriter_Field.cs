@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)underlyingField == null)
             {
                 // Use-site error must have been reported elsewhere.
-                return _factory.BadExpression(tupleField.Type);
+                return _factory.BadExpression(tupleField.Type.TypeSymbol);
             }
 
             if (underlyingField.ContainingType != currentLinkType)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)tupleRestField == null)
                 {
                     // error tolerance for cases when Rest is missing
-                    return _factory.BadExpression(tupleField.Type);
+                    return _factory.BadExpression(tupleField.Type.TypeSymbol);
                 }
 
                 // make nested field accesses to Rest
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FieldSymbol nestedFieldSymbol = tupleRestField.AsMember(currentLinkType);
                     rewrittenReceiver = _factory.Field(rewrittenReceiver, nestedFieldSymbol);
 
-                    currentLinkType = currentLinkType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].TupleUnderlyingType;
+                    currentLinkType = currentLinkType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].TypeSymbol.TupleUnderlyingType;
                 }
                 while (underlyingField.ContainingType != currentLinkType);
             }

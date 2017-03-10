@@ -20,10 +20,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _isAsync;
 
         /// <summary>
+        /// This symbol is used as the return type of a LambdaSymbol when we are interpreting
+        /// lambda's body in order to infer its return type.
+        /// </summary>
+        internal static readonly TypeSymbolWithAnnotations ReturnTypeIsBeingInferred = TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol());
+
+        /// <summary>
         /// This symbol is used as the return type of a LambdaSymbol when we failed to infer its return type.
         /// </summary>
-        internal static readonly TypeSymbol InferenceFailureReturnType = TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol());
-        internal static readonly TypeSymbol UnknownReturnType = TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType);
+        internal static readonly TypeSymbolWithAnnotations InferenceFailureReturnType = TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol());
+
+        private static readonly TypeSymbolWithAnnotations UnknownReturnType = TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType);
 
         public LambdaSymbol(
             CSharpCompilation compilation,
@@ -38,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
             _refKind = refKind;
-            _returnType = (object)returnType == null ? InferenceFailureReturnType : TypeSymbolWithAnnotations.Create(returnType);
+            _returnType = (object)returnType == null ? ReturnTypeIsBeingInferred : TypeSymbolWithAnnotations.Create(returnType);
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
@@ -320,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return parameterTypes.SelectAsArray((type, ordinal, arg) =>
                                                         SynthesizedParameterSymbol.Create(
                                                             arg.owner,
-                                                            type,
+                                                            TypeSymbolWithAnnotations.Create(type),
                                                             ordinal,
                                                             arg.refKinds[ordinal],
                                                             GeneratedNames.LambdaCopyParameterName(ordinal)), // Make sure nothing binds to this.
@@ -348,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (p < numDelegateParameters)
                 {
-                    type = parameterTypes[p];
+                    type = TypeSymbolWithAnnotations.Create(parameterTypes[p]);
                     refKind = parameterRefKinds[p];
                 }
                 else

@@ -1619,7 +1619,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal("C.var", boundNode.IterationVariables.Single().TypeSymbol.ToTestDisplayString());
+            Assert.Equal("C.var", boundNode.IterationVariables.Single().Type.ToTestDisplayString());
         }
 
         [Fact]
