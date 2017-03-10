@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -8,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 typeName: typeName,
                 parameters: constructor.Parameters,
                 statements: default(ImmutableArray<SyntaxNode>),
-                baseConstructorArguments: constructor.Parameters.Length == 0 
+                baseConstructorArguments: constructor.Parameters.Length == 0
                     ? default(ImmutableArray<SyntaxNode>)
                     : factory.CreateArguments(constructor.Parameters));
         }
@@ -234,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // Indexer: return or set base[]. Only in C#, since VB must refer to these by name.
 
                 getBody = codeFactory.ReturnStatement(
-                    WrapWithRefIfNecessary(codeFactory, overriddenProperty, 
+                    WrapWithRefIfNecessary(codeFactory, overriddenProperty,
                         codeFactory.ElementAccessExpression(
                             codeFactory.BaseExpression(),
                             codeFactory.CreateArguments(overriddenProperty.Parameters))));
@@ -277,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 else
                 {
                     getBody = codeFactory.ReturnStatement(
-                        WrapWithRefIfNecessary(codeFactory, overriddenProperty, 
+                        WrapWithRefIfNecessary(codeFactory, overriddenProperty,
                             codeFactory.InvocationExpression(
                                 codeFactory.MemberAccessExpression(
                                     codeFactory.BaseExpression(),
