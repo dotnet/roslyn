@@ -1,25 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <NonShipping>True</NonShipping>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>RunTests</RootNamespace>
     <AssemblyName>RunTests</AssemblyName>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SignAssembly>false</SignAssembly>
-    <OutDir>$(OutDir)RunTests\</OutDir>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
-  <PropertyGroup>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -28,10 +24,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyScheduler.cs" />
+    <Compile Include="Cache\AssemblyUtil.cs" />
     <Compile Include="Cache\ContentUtil.cs" />
     <Compile Include="Cache\CachingTestExecutor.cs" />
     <Compile Include="Cache\ContentFile.cs" />
     <Compile Include="Cache\EmptyDataStorage.cs" />
+    <Compile Include="Cache\WebDataStorage.Json.cs" />
     <Compile Include="Cache\WebDataStorage.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="CrashDumps.cs" />
@@ -48,9 +46,8 @@
     <Compile Include="ConsoleUtil.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Program.Json.cs" />
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -1,8 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Text
 
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         Private Sub TestAll(markup As String)
             Dim position As Integer = Nothing
-            Dim expectedSpans As IList(Of TextSpan) = Nothing
+            Dim expectedSpans As ImmutableArray(Of TextSpan) = Nothing
             Dim source As String = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, source, position, expectedSpans)
 

@@ -1,17 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
-  <PropertyGroup>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>4.0</OldToolsVersion>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-  </PropertyGroup>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\..\src\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -30,13 +20,13 @@
     <NonShipping>true</NonShipping>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <ScrubbedSamplePath>VisualBasic\ConvertToAutoProperty</ScrubbedSamplePath>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{DA0874AB-377A-48CF-99FF-0B209916309D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>ConvertToAutoPropertyVB</RootNamespace>
     <AssemblyName>ConvertToAutoPropertyVB</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <UseCodeBase>true</UseCodeBase>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
@@ -44,23 +34,11 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup>
-    <OptionExplicit>On</OptionExplicit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <OptionCompare>Binary</OptionCompare>
-  </PropertyGroup>
-  <PropertyGroup>
+    <RoslynProjectType>Vsix</RoslynProjectType>
     <OptionStrict>Off</OptionStrict>
   </PropertyGroup>
-  <PropertyGroup>
-    <OptionInfer>On</OptionInfer>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <PropertyGroup>
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)devenv.exe</StartProgram>
@@ -78,12 +56,6 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Import Include="Microsoft.VisualBasic" />
-    <Import Include="System" />
-    <Import Include="System.Collections" />
-    <Import Include="System.Collections.Generic" />
-    <Import Include="System.Diagnostics" />
-    <Import Include="System.Linq" />
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
@@ -100,7 +72,5 @@
   <ItemGroup>
     <InternalsVisibleToTest Include="ConvertToAutoPropertyVB.UnitTests" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -4,7 +4,6 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -12,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
     Partial Friend MustInherit Class PEModuleBuilder
-        Inherits PEModuleBuilder(Of VisualBasicCompilation, SourceModuleSymbol, AssemblySymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, VisualBasicSyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState)
+        Inherits PEModuleBuilder(Of VisualBasicCompilation, SourceModuleSymbol, AssemblySymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, SyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState)
 
         ' Not many methods should end up here.
         Private ReadOnly _disableJITOptimization As ConcurrentDictionary(Of MethodSymbol, Boolean) = New ConcurrentDictionary(Of MethodSymbol, Boolean)(ReferenceEqualityComparer.Instance)
@@ -21,14 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ' See Assembly.MetadataName.
         Private ReadOnly _metadataName As String
 
-        Private _lazyExportedTypes As ImmutableArray(Of NamedTypeSymbol)
+        Private _lazyExportedTypes As ImmutableArray(Of Cci.ExportedType)
+        Private _lazyNumberOfTypesFromOtherModules As Integer
         Private _lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
         Private _lazyDefaultNamespace As String
-
-        ' These fields will only be set when running tests.  They allow realized IL for a given method to be looked up by method display name.
-        Private _testData As ConcurrentDictionary(Of String, CompilationTestData.MethodData)
-        Private _testDataKeyFormat As SymbolDisplayFormat
-        Private _testDataOperatorKeyFormat As SymbolDisplayFormat
 
         Friend Sub New(sourceModule As SourceModuleSymbol,
                        emitOptions As EmitOptions,
@@ -65,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ''' </remarks>
         Friend MustOverride ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
 
-        Friend Overrides ReadOnly Property Name As String
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return _metadataName
             End Get
@@ -83,13 +78,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property GenerateVisualBasicStylePdb As Boolean
+        Public NotOverridable Overrides ReadOnly Property GenerateVisualBasicStylePdb As Boolean
             Get
                 Return True
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property LinkedAssembliesDebugInfo As IEnumerable(Of String)
+        Public Overrides ReadOnly Property LinkedAssembliesDebugInfo As IEnumerable(Of String)
             Get
                 ' NOTE: Dev12 does not seem to emit anything but the name (i.e. no version, token, etc).
                 ' See Builder::WriteNoPiaPdbList
@@ -97,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Protected NotOverridable Overrides Function GetImports() As ImmutableArray(Of Cci.UsedNamespaceOrType)
+        Public NotOverridable Overrides Function GetImports() As ImmutableArray(Of Cci.UsedNamespaceOrType)
             ' Imports should have been translated in code gen phase.
             Debug.Assert(Not _lazyTranslatedImports.IsDefault)
             Return _lazyTranslatedImports
@@ -111,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Sub
 
-        Protected NotOverridable Overrides ReadOnly Property DefaultNamespace As String
+        Public NotOverridable Overrides ReadOnly Property DefaultNamespace As String
             Get
                 If _lazyDefaultNamespace IsNot Nothing Then
                     Return _lazyDefaultNamespace
@@ -127,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Protected Overrides Iterator Function GetAssemblyReferencesFromAddedModules(diagnostics As DiagnosticBag) As IEnumerable(Of Cci.IAssemblyReference)
+        Protected NotOverridable Overrides Iterator Function GetAssemblyReferencesFromAddedModules(diagnostics As DiagnosticBag) As IEnumerable(Of Cci.IAssemblyReference)
             Dim modules As ImmutableArray(Of ModuleSymbol) = SourceModule.ContainingAssembly.Modules
 
             For i As Integer = 1 To modules.Length - 1
@@ -181,19 +176,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Me.Compilation.TrySynthesizeAttribute(attributeConstructor)
         End Function
 
-        Friend NotOverridable Overrides Function GetSourceAssemblyAttributes() As IEnumerable(Of Cci.ICustomAttribute)
+        Public NotOverridable Overrides Function GetSourceAssemblyAttributes() As IEnumerable(Of Cci.ICustomAttribute)
             Return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(Me.CompilationState, emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
         End Function
 
-        Friend NotOverridable Overrides Function GetSourceAssemblySecurityAttributes() As IEnumerable(Of Cci.SecurityAttribute)
+        Public NotOverridable Overrides Function GetSourceAssemblySecurityAttributes() As IEnumerable(Of Cci.SecurityAttribute)
             Return SourceModule.ContainingSourceAssembly.GetSecurityAttributes()
         End Function
 
-        Friend NotOverridable Overrides Function GetSourceModuleAttributes() As IEnumerable(Of Cci.ICustomAttribute)
+        Public NotOverridable Overrides Function GetSourceModuleAttributes() As IEnumerable(Of Cci.ICustomAttribute)
             Return SourceModule.GetCustomAttributesToEmit(Me.CompilationState)
         End Function
 
-        Protected Overrides Function GetSymbolToLocationMap() As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)
+        Public NotOverridable Overrides Function GetSymbolToLocationMap() As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)
             Dim result As New MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)()
 
             Dim namespacesAndTypesToProcess As New Stack(Of NamespaceOrTypeSymbol)()
@@ -278,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Sub AddSymbolLocation(result As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation), location As Location, definition As Cci.IDefinition)
             Dim span As FileLinePositionSpan = location.GetLineSpan()
 
-            Dim doc As Cci.DebugSourceDocument = Me.TryGetDebugDocument(span.Path, basePath:=location.SourceTree.FilePath)
+            Dim doc As Cci.DebugSourceDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath:=location.SourceTree.FilePath)
             If (doc IsNot Nothing) Then
                 result.Add(doc,
                        New Cci.DefinitionWithLocation(
@@ -316,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend Overridable Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol) As VariableSlotAllocator
+        Friend Overridable Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
             Return Nothing
         End Function
 
@@ -335,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return False
         End Function
 
-        Friend Overrides Function GetAnonymousTypes() As ImmutableArray(Of Cci.INamespaceTypeDefinition)
+        Friend NotOverridable Overrides Function GetAnonymousTypes() As ImmutableArray(Of Cci.INamespaceTypeDefinition)
             If EmitOptions.EmitMetadataOnly Then
                 Return ImmutableArray(Of Cci.INamespaceTypeDefinition).Empty
             End If
@@ -384,122 +379,131 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Public Overrides Function GetExportedTypes(context As EmitContext) As IEnumerable(Of Cci.ITypeReference)
+        Public NotOverridable Overrides Function GetExportedTypes(diagnostics As DiagnosticBag) As ImmutableArray(Of Cci.ExportedType)
             Debug.Assert(HaveDeterminedTopLevelTypes)
 
             If _lazyExportedTypes.IsDefault Then
-                Dim builder = ArrayBuilder(Of NamedTypeSymbol).GetInstance()
-                Dim sourceAssembly As SourceAssemblySymbol = SourceModule.ContainingSourceAssembly
-
-                If Not OutputKind.IsNetModule() Then
-                    Dim modules = sourceAssembly.Modules
-
-                    For i As Integer = 1 To modules.Length - 1 'NOTE: skipping modules(0)
-                        GetExportedTypes(modules(i).GlobalNamespace, builder)
-                    Next
-                End If
-
-                Dim seenTopLevelForwardedTypes = New HashSet(Of NamedTypeSymbol)()
-                GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetSourceDecodedWellKnownAttributeData(), builder)
-
-                If Not OutputKind.IsNetModule() Then
-                    GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetNetModuleDecodedWellKnownAttributeData(), builder)
-                End If
-
-                Debug.Assert(_lazyExportedTypes.IsDefault)
-
-                _lazyExportedTypes = builder.ToImmutableAndFree()
+                _lazyExportedTypes = CalculateExportedTypes()
 
                 If _lazyExportedTypes.Length > 0 Then
-                    ' Report name collisions.
-                    Dim exportedNamesMap = New Dictionary(Of String, NamedTypeSymbol)()
-
-                    For Each exportedType In _lazyExportedTypes
-                        Debug.Assert(exportedType.IsDefinition)
-
-                        If exportedType.ContainingType Is Nothing Then
-                            Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName((DirectCast(exportedType, Cci.INamespaceTypeReference)).NamespaceName,
-                                                                                               Cci.MetadataWriter.GetMangledName(exportedType))
-
-                            ' First check against types declared in the primary module
-                            If ContainsTopLevelType(fullEmittedName) Then
-                                If exportedType.ContainingAssembly Is sourceAssembly Then
-                                    context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_ExportedTypeConflictsWithDeclaration, exportedType, exportedType.ContainingModule),
-                                            NoLocation.Singleton))
-                                Else
-                                    context.Diagnostics.Add(New VBDiagnostic(
-                                        ErrorFactory.ErrorInfo(ERRID.ERR_ForwardedTypeConflictsWithDeclaration,
-                                                               CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType)), NoLocation.Singleton))
-                                End If
-
-                                Continue For
-                            End If
-
-                            Dim contender As NamedTypeSymbol = Nothing
-
-                            ' Now check against other exported types
-                            If exportedNamesMap.TryGetValue(fullEmittedName, contender) Then
-
-                                If exportedType.ContainingAssembly Is sourceAssembly Then
-                                    ' all exported types precede forwarded types, therefore contender cannot be a forwarded type.
-                                    Debug.Assert(contender.ContainingAssembly Is sourceAssembly)
-
-                                    context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(
-                                                                                ERRID.ERR_ExportedTypesConflict,
-                                                                                CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType),
-                                                                                CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType.ContainingModule),
-                                                                                CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
-                                                                                CustomSymbolDisplayFormatter.DefaultErrorFormat(contender.ContainingModule)),
-                                                                             NoLocation.Singleton))
-                                Else
-                                    If contender.ContainingAssembly Is sourceAssembly Then
-                                        ' Forwarded type conflicts with exported type
-                                        context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(
-                                                                                    ERRID.ERR_ForwardedTypeConflictsWithExportedType,
-                                                                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType),
-                                                                                    exportedType.ContainingAssembly,
-                                                                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
-                                                                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(contender.ContainingModule)),
-                                                                                 NoLocation.Singleton))
-                                    Else
-                                        ' Forwarded type conflicts with another forwarded type
-                                        context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(
-                                                                                    ERRID.ERR_ForwardedTypesConflict,
-                                                                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(exportedType),
-                                                                                    exportedType.ContainingAssembly,
-                                                                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
-                                                                                    contender.ContainingAssembly),
-                                                                                 NoLocation.Singleton))
-                                    End If
-                                End If
-
-                                Continue For
-                            End If
-
-                            exportedNamesMap.Add(fullEmittedName, exportedType)
-                        End If
-                    Next
+                    ReportExportedTypeNameCollisions(_lazyExportedTypes, diagnostics)
                 End If
             End If
 
             Return _lazyExportedTypes
         End Function
 
-        Private Overloads Sub GetExportedTypes(symbol As NamespaceOrTypeSymbol, builder As ArrayBuilder(Of NamedTypeSymbol))
+        ''' <summary>
+        ''' Builds an array of public type symbols defined in netmodules included in the compilation
+        ''' And type forwarders defined in this compilation Or any included netmodule (in this order).
+        ''' </summary>
+        Private Function CalculateExportedTypes() As ImmutableArray(Of Cci.ExportedType)
+            Dim builder = ArrayBuilder(Of Cci.ExportedType).GetInstance()
+            Dim sourceAssembly As SourceAssemblySymbol = SourceModule.ContainingSourceAssembly
+
+            If Not OutputKind.IsNetModule() Then
+                Dim modules = sourceAssembly.Modules
+
+                For i As Integer = 1 To modules.Length - 1 'NOTE: skipping modules(0)
+                    GetExportedTypes(modules(i).GlobalNamespace, -1, builder)
+                Next
+            End If
+
+            Dim seenTopLevelForwardedTypes = New HashSet(Of NamedTypeSymbol)()
+            GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetSourceDecodedWellKnownAttributeData(), builder)
+
+            If Not OutputKind.IsNetModule() Then
+                GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetNetModuleDecodedWellKnownAttributeData(), builder)
+            End If
+
+            Return builder.ToImmutableAndFree()
+        End Function
+
+        Private Sub ReportExportedTypeNameCollisions(exportedTypes As ImmutableArray(Of Cci.ExportedType), diagnostics As DiagnosticBag)
+            Dim sourceAssembly As SourceAssemblySymbol = SourceModule.ContainingSourceAssembly
+            Dim exportedNamesMap = New Dictionary(Of String, NamedTypeSymbol)()
+
+            For Each exportedType In _lazyExportedTypes
+                Dim type = DirectCast(exportedType.Type, NamedTypeSymbol)
+
+                Debug.Assert(type.IsDefinition)
+
+                If type.ContainingType IsNot Nothing Then
+                    Continue For
+                End If
+
+                Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName(
+                    DirectCast(type, Cci.INamespaceTypeReference).NamespaceName,
+                    Cci.MetadataWriter.GetMangledName(type))
+
+                ' First check against types declared in the primary module
+                If ContainsTopLevelType(fullEmittedName) Then
+                    If type.ContainingAssembly Is sourceAssembly Then
+                        diagnostics.Add(ERRID.ERR_ExportedTypeConflictsWithDeclaration, NoLocation.Singleton, type, type.ContainingModule)
+                    Else
+                        diagnostics.Add(ERRID.ERR_ForwardedTypeConflictsWithDeclaration, NoLocation.Singleton, CustomSymbolDisplayFormatter.DefaultErrorFormat(type))
+                    End If
+
+                    Continue For
+                End If
+
+                Dim contender As NamedTypeSymbol = Nothing
+
+                ' Now check against other exported types
+                If exportedNamesMap.TryGetValue(fullEmittedName, contender) Then
+
+                    If type.ContainingAssembly Is sourceAssembly Then
+                        ' all exported types precede forwarded types, therefore contender cannot be a forwarded type.
+                        Debug.Assert(contender.ContainingAssembly Is sourceAssembly)
+
+                        diagnostics.Add(ERRID.ERR_ExportedTypesConflict, NoLocation.Singleton,
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(type),
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(type.ContainingModule),
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(contender.ContainingModule))
+                    ElseIf contender.ContainingAssembly Is sourceAssembly Then
+                        ' Forwarded type conflicts with exported type
+                        diagnostics.Add(ERRID.ERR_ForwardedTypeConflictsWithExportedType, NoLocation.Singleton,
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(type),
+                            type.ContainingAssembly,
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(contender.ContainingModule))
+                    Else
+                        ' Forwarded type conflicts with another forwarded type
+                        diagnostics.Add(ERRID.ERR_ForwardedTypesConflict, NoLocation.Singleton,
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(type),
+                            type.ContainingAssembly,
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
+                            contender.ContainingAssembly)
+                    End If
+
+                    Continue For
+                End If
+
+                exportedNamesMap.Add(fullEmittedName, type)
+            Next
+        End Sub
+
+        Private Overloads Sub GetExportedTypes(symbol As NamespaceOrTypeSymbol, parentIndex As Integer, builder As ArrayBuilder(Of Cci.ExportedType))
+            Dim index As Integer
+
             If symbol.Kind = SymbolKind.NamedType Then
-                If symbol.DeclaredAccessibility = Accessibility.Public Then
-                    Debug.Assert(symbol.IsDefinition)
-                    builder.Add(DirectCast(symbol, NamedTypeSymbol))
-                Else
+                If symbol.DeclaredAccessibility <> Accessibility.Public Then
                     Return
                 End If
+
+                Debug.Assert(symbol.IsDefinition)
+                index = builder.Count
+                builder.Add(New Cci.ExportedType(DirectCast(symbol, Cci.ITypeReference), parentIndex, isForwarder:=False))
+            Else
+                index = -1
             End If
 
             For Each member In symbol.GetMembers()
                 Dim namespaceOrType = TryCast(member, NamespaceOrTypeSymbol)
 
                 If namespaceOrType IsNot Nothing Then
-                    GetExportedTypes(namespaceOrType, builder)
+                    GetExportedTypes(namespaceOrType, index, builder)
                 End If
             Next
         End Sub
@@ -507,10 +511,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Shared Sub GetForwardedTypes(
             seenTopLevelTypes As HashSet(Of NamedTypeSymbol),
             wellKnownAttributeData As CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol),
-            builder As ArrayBuilder(Of NamedTypeSymbol)
-        )
-            If wellKnownAttributeData IsNot Nothing AndAlso wellKnownAttributeData.ForwardedTypes IsNot Nothing Then
-                For Each forwardedType As NamedTypeSymbol In wellKnownAttributeData.ForwardedTypes
+            builder As ArrayBuilder(Of Cci.ExportedType))
+
+            If wellKnownAttributeData?.ForwardedTypes?.Count > 0 Then
+                ' (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
+                Dim stack = ArrayBuilder(Of (type As NamedTypeSymbol, parentIndex As Integer)).GetInstance()
+
+                ' Hashset enumeration is not guaranteed to be deterministic. Emitting in the order of fully qualified names.
+                Dim orderedForwardedTypes = wellKnownAttributeData.ForwardedTypes.OrderBy(Function(t) t.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+
+                For Each forwardedType As NamedTypeSymbol In orderedForwardedTypes
                     Dim originalDefinition As NamedTypeSymbol = forwardedType.OriginalDefinition
                     Debug.Assert(originalDefinition.ContainingType Is Nothing, "How did a nested type get forwarded?")
 
@@ -521,29 +531,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     ' Return all nested types.
                     ' Note the order: depth first, children in reverse order (to match dev10, not a requirement).
-                    Dim stack = New Stack(Of NamedTypeSymbol)()
-                    stack.Push(originalDefinition)
+                    Debug.Assert(stack.Count = 0)
+                    stack.Push((originalDefinition, -1))
 
                     While stack.Count > 0
-                        Dim current As NamedTypeSymbol = stack.Pop()
+                        Dim entry = stack.Pop()
 
                         ' In general, we don't want private types to appear in the ExportedTypes table.
-                        If current.DeclaredAccessibility = Accessibility.Private Then
+                        If entry.type.DeclaredAccessibility = Accessibility.Private Then
                             ' NOTE: this will also exclude nested types of curr.
                             Continue While
                         End If
 
                         ' NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
 
-                        builder.Add(current)
+                        Dim index = builder.Count
+                        builder.Add(New Cci.ExportedType(entry.type, entry.parentIndex, isForwarder:=True))
 
                         ' Iterate backwards so they get popped in forward order.
-                        Dim nested As ImmutableArray(Of NamedTypeSymbol) = current.GetTypeMembers() ' Ordered.
+                        Dim nested As ImmutableArray(Of NamedTypeSymbol) = entry.type.GetTypeMembers() ' Ordered.
                         For i As Integer = nested.Length - 1 To 0 Step -1
-                            stack.Push(nested(i))
+                            stack.Push((nested(i), index))
                         Next
                     End While
                 Next
+
+                stack.Free()
             End If
         End Sub
 
@@ -557,7 +570,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
         End Function
 
-        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
+        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
             Dim systemTypeSymbol As NamedTypeSymbol = SourceModule.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type)
 
             Dim useSiteError = Binder.GetUseSiteErrorForWellKnownType(systemTypeSymbol)
@@ -570,7 +583,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Translate(systemTypeSymbol, syntaxOpt, diagnostics, needDeclaration:=True)
         End Function
 
-        Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
+        Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
+            Return Translate(GetUntranslatedSpecialType(specialType, syntaxNodeOpt, diagnostics),
+                             needDeclaration:=True,
+                             syntaxNodeOpt:=syntaxNodeOpt,
+                             diagnostics:=diagnostics)
+        End Function
+
+        Private Function GetUntranslatedSpecialType(specialType As SpecialType, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As NamedTypeSymbol
             Dim typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType)
 
             Dim info = Binder.GetUseSiteErrorForSpecialType(typeSymbol)
@@ -578,17 +598,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Binder.ReportDiagnostic(diagnostics, If(syntaxNodeOpt IsNot Nothing, syntaxNodeOpt.GetLocation(), NoLocation.Singleton), info)
             End If
 
-            Return Translate(typeSymbol,
-                             needDeclaration:=True,
-                             syntaxNodeOpt:=syntaxNodeOpt,
-                             diagnostics:=diagnostics)
+            Return typeSymbol
         End Function
 
-        Public Overrides Function GetInitArrayHelper() As Cci.IMethodReference
+        Public NotOverridable Overrides Function GetInitArrayHelper() As Cci.IMethodReference
             Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle), MethodSymbol)
         End Function
 
-        Protected Overrides Function IsPlatformType(typeRef As Cci.ITypeReference, platformType As Cci.PlatformType) As Boolean
+        Public NotOverridable Overrides Function IsPlatformType(typeRef As Cci.ITypeReference, platformType As Cci.PlatformType) As Boolean
             Dim namedType = TryCast(typeRef, NamedTypeSymbol)
 
             If namedType IsNot Nothing Then
@@ -602,7 +619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return False
         End Function
 
-        Protected Overrides Function GetCorLibraryReferenceToEmit(context As EmitContext) As Cci.IAssemblyReference
+        Protected NotOverridable Overrides Function GetCorLibraryReferenceToEmit(context As EmitContext) As Cci.IAssemblyReference
             Dim corLib = CorLibrary
 
             If Not corLib.IsMissing AndAlso
@@ -629,67 +646,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _disableJITOptimization.ContainsKey(methodSymbol)
         End Function
 
-#Region "Test Hooks"
-
-        Friend ReadOnly Property SaveTestData() As Boolean
-            Get
-                Return _testData IsNot Nothing
-            End Get
-        End Property
-
-        Friend Sub SetMethodTestData(methodSymbol As MethodSymbol, builder As ILBuilder)
-            If _testData Is Nothing Then
-                Throw New InvalidOperationException("Must call SetILBuilderMap before calling SetILBuilder")
-            End If
-
-            ' If this ever throws "ArgumentException: An item with the same key has already been added.", then
-            ' the ilBuilderMapKeyFormat will need to be updated to provide a unique key (see SetILBuilderMap).
-            _testData.Add(
-                methodSymbol.ToDisplayString(If(methodSymbol.IsUserDefinedOperator(), _testDataOperatorKeyFormat, _testDataKeyFormat)),
-                New CompilationTestData.MethodData(builder, methodSymbol))
-        End Sub
-
-        Friend Sub SetMethodTestData(methods As ConcurrentDictionary(Of String, CompilationTestData.MethodData))
-            Me._testData = methods
-            Me._testDataKeyFormat = New SymbolDisplayFormat(
-                compilerInternalOptions:=SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames Or SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers,
-                globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
-                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance,
-                memberOptions:=
-                    SymbolDisplayMemberOptions.IncludeParameters Or
-                    SymbolDisplayMemberOptions.IncludeContainingType Or
-                    SymbolDisplayMemberOptions.IncludeExplicitInterface,
-                parameterOptions:=
-                    SymbolDisplayParameterOptions.IncludeParamsRefOut Or
-                    SymbolDisplayParameterOptions.IncludeExtensionThis Or
-                    SymbolDisplayParameterOptions.IncludeType,
-                miscellaneousOptions:=
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes Or
-                    SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays Or
-                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName)
-            ' most methods don't need return type to disambiguate signatures, however,
-            ' it is necessary to disambiguate user defined operators:
-            '   Operator op_Implicit(Type) As Integer
-            '   Operator op_Implicit(Type) As Single
-            '   ... etc ...
-            Me._testDataOperatorKeyFormat = New SymbolDisplayFormat(
-                _testDataKeyFormat.CompilerInternalOptions,
-                _testDataKeyFormat.GlobalNamespaceStyle,
-                _testDataKeyFormat.TypeQualificationStyle,
-                _testDataKeyFormat.GenericsOptions,
-                _testDataKeyFormat.MemberOptions Or SymbolDisplayMemberOptions.IncludeType,
-                _testDataKeyFormat.ParameterOptions,
-                _testDataKeyFormat.DelegateStyle,
-                _testDataKeyFormat.ExtensionMethodStyle,
-                _testDataKeyFormat.PropertyStyle,
-                _testDataKeyFormat.LocalOptions,
-                _testDataKeyFormat.KindOptions,
-                _testDataKeyFormat.MiscellaneousOptions)
-        End Sub
-
-#End Region
-
+        Protected NotOverridable Overrides Function CreatePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.IMethodDefinition
+            Return New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics))
+        End Function
     End Class
 End Namespace

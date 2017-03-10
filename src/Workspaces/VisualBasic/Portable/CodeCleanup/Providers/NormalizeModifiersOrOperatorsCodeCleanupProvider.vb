@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 
 Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     <ExportCodeCleanupProvider(PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators, LanguageNames.VisualBasic), [Shared]>
@@ -75,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 ' if there are no overlapping spans, no need to walk down this node
                 If node Is Nothing OrElse
-                   Not _spans.GetOverlappingIntervals(node.FullSpan.Start, node.FullSpan.Length).Any() Then
+                   Not _spans.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length) Then
                     Return node
                 End If
 
@@ -185,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim visitedNode = DirectCast(MyBase.VisitOperatorStatement(node), OperatorStatementSyntax)
 
                 Dim span = node.Span
-                If Not _spans.GetContainingIntervals(span.Start, span.Length).Any() Then
+                If Not _spans.HasIntervalThatContains(span.Start, span.Length) Then
                     Return visitedNode
                 End If
 
@@ -225,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End If
 
                 Dim span = node.Span
-                If Not _spans.GetContainingIntervals(span.Start, span.Length).Any() Then
+                If Not _spans.HasIntervalThatContains(span.Start, span.Length) Then
                     Return binaryOperator
                 End If
 
@@ -254,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim newToken = MyBase.VisitToken(token)
 
                 Dim span = token.Span
-                If Not _spans.GetContainingIntervals(span.Start, span.Length).Any() Then
+                If Not _spans.HasIntervalThatContains(span.Start, span.Length) Then
                     Return newToken
                 End If
 
@@ -437,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 ' whole node must be under span, otherwise, we will just return
                 Dim span = originalNode.Span
-                If Not _spans.GetContainingIntervals(span.Start, span.Length).Any() Then
+                If Not _spans.HasIntervalThatContains(span.Start, span.Length) Then
                     Return node
                 End If
 

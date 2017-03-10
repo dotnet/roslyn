@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ParamInfo<TypeSymbol> parameter,
             out bool isBad)
         {
-            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.CountOfCustomModifiersPrecedingByRef, parameter.Type, parameter.Handle, parameter.CustomModifiers, out isBad);
+            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.RefCustomModifiers, parameter.Type, parameter.Handle, parameter.CustomModifiers, out isBad);
         }
 
         /// <summary>
@@ -165,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ParamInfo<TypeSymbol> parameter,
             out bool isBad)
         {
-            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.CountOfCustomModifiersPrecedingByRef, parameter.Type, handle, parameter.CustomModifiers, out isBad);
+            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.RefCustomModifiers, parameter.Type, handle, parameter.CustomModifiers, out isBad);
         }
 
         private PEParameterSymbol(
@@ -195,7 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 refKind = isByRef ? RefKind.Ref : RefKind.None;
 
+                type = TupleTypeSymbol.TransformToTupleIfCompatible(type);
                 _type = type;
+
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
                 _lazyHiddenAttributes = ImmutableArray<CSharpAttributeData>.Empty;
                 _lazyDefaultValue = ConstantValue.NotAvailable;
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // CONSIDER: Can we make parameter type computation lazy?
-                _type = type.Update(DynamicTypeDecoder.TransformType(type.TypeSymbol, type.CustomModifiers.Length, handle, moduleSymbol, refKind), type.CustomModifiers);
+                _type = type.Update(TupleTypeDecoder.DecodeTupleTypesIfApplicable(DynamicTypeDecoder.TransformType(type, countOfCustomModifiers, handle, moduleSymbol, refKind), handle, moduleSymbol));
             }
 
             bool hasNameInMetadata = !string.IsNullOrEmpty(_name);
@@ -248,51 +249,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Symbol containingSymbol,
             int ordinal,
             bool isByRef,
-            ushort countOfCustomModifiersPrecedingByRef,
+            ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers,
             TypeSymbol type,
             ParameterHandle handle,
             ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
             out bool isBad)
         {
             var typeWithModifiers = TypeSymbolWithAnnotations.Create(type, CSharpCustomModifier.Convert(customModifiers));
-
-            if (countOfCustomModifiersPrecedingByRef == 0)
+            if (customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty)
             {
                 return new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef,
                                              typeWithModifiers, handle, out isBad);
             }
 
-            return new PEParameterSymbolWithCustomModifiersPrecedingByRef(moduleSymbol, containingSymbol, ordinal, isByRef, countOfCustomModifiersPrecedingByRef,
-                                                                          typeWithModifiers, handle, out isBad);
+            return new PEParameterSymbolWithCustomModifiersPrecedingByRef(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, typeWithModifiers, handle, out isBad);
         }
 
         private sealed class PEParameterSymbolWithCustomModifiersPrecedingByRef : PEParameterSymbol
         {
-            private readonly ushort _countOfCustomModifiersPrecedingByRef;
+            private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
             public PEParameterSymbolWithCustomModifiersPrecedingByRef(
                 PEModuleSymbol moduleSymbol,
                 Symbol containingSymbol,
                 int ordinal,
                 bool isByRef,
-                ushort countOfCustomModifiersPrecedingByRef,
+                ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers,
                 TypeSymbolWithAnnotations type,
                 ParameterHandle handle,
                 out bool isBad) :
-                    base(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, out isBad)
+                    base(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle,
+                         refCustomModifiers.NullToEmpty().Length, 
+                         out isBad)
             {
-                _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef;
+                _customModifiers = CSharpCustomModifier.Convert(customModifiers);
+                _refCustomModifiers = CSharpCustomModifier.Convert(refCustomModifiers);
 
-                Debug.Assert(_countOfCustomModifiersPrecedingByRef > 0);
-                Debug.Assert(isByRef);
-                Debug.Assert(_countOfCustomModifiersPrecedingByRef <= type.CustomModifiers.Length);
+                Debug.Assert(_refCustomModifiers.IsEmpty || isByRef);
             }
 
-            internal override ushort CountOfCustomModifiersPrecedingByRef
+            public override ImmutableArray<CustomModifier> RefCustomModifiers
             {
                 get
                 {
-                    return _countOfCustomModifiersPrecedingByRef;
+                    return _refCustomModifiers;
                 }
             }
         }
@@ -583,11 +583,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
-                return 0;
+                return ImmutableArray<CustomModifier>.Empty;
             }
         }
 

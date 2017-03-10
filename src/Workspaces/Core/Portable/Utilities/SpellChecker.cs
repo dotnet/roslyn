@@ -6,12 +6,13 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
     internal class SpellChecker
     {
-        private const string SerializationFormat = "1";
+        private const string SerializationFormat = "2";
 
         public VersionStamp Version { get; }
         private readonly BKTree _bkTree;
@@ -22,16 +23,21 @@ namespace Roslyn.Utilities
             _bkTree = bKTree;
         }
 
-        public SpellChecker(VersionStamp version, IEnumerable<string> corpus) 
+        public SpellChecker(VersionStamp version, IEnumerable<StringSlice> corpus) 
             : this(version, BKTree.Create(corpus))
         {
         }
 
         public IList<string> FindSimilarWords(string value)
         {
+            return FindSimilarWords(value, substringsAreSimilar: false);
+        }
+
+        public IList<string> FindSimilarWords(string value, bool substringsAreSimilar)
+        {
             var result = _bkTree.Find(value, threshold: null);
 
-            using (var spellChecker = new WordSimilarityChecker(value))
+            using (var spellChecker = new WordSimilarityChecker(value, substringsAreSimilar))
             {
                 return result.Where(spellChecker.AreSimilar).ToArray();
             }
@@ -93,38 +99,52 @@ namespace Roslyn.Utilities
         private EditDistance _editDistance;
         private readonly int _threshold;
 
-        public WordSimilarityChecker(string text)
-        {
-            if (text == null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
+        /// <summary>
+        /// Whether or words should be considered similar if one is contained within the other
+        /// (regardless of edit distance).  For example if is true then IService would be considered
+        /// similar to IServiceFactory despite the edit distance being quite high at 7.
+        /// </summary>
+        private readonly bool _substringsAreSimilar;
 
-            _source = text;
+        public WordSimilarityChecker(string text, bool substringsAreSimilar)
+        {
+            _source = text ?? throw new ArgumentNullException(nameof(text));
             _threshold = GetThreshold(_source);
             _editDistance = new EditDistance(text);
+            _substringsAreSimilar = substringsAreSimilar;
         }
 
         public void Dispose()
         {
-            _editDistance.Dispose();
+            _editDistance?.Dispose();
             _editDistance = null;
         }
 
         public static bool AreSimilar(string originalText, string candidateText)
         {
-            double unused;
-            return AreSimilar(originalText, candidateText, out unused);
+            return AreSimilar(originalText, candidateText, substringsAreSimilar: false);
         }
 
+        public static bool AreSimilar(string originalText, string candidateText, bool substringsAreSimilar)
+        {
+            return AreSimilar(originalText, candidateText, substringsAreSimilar, out var unused);
+        }
+
+        public static bool AreSimilar(string originalText, string candidateText, out double similarityWeight)
+        {
+            return AreSimilar(
+                originalText, candidateText, 
+                substringsAreSimilar: false, similarityWeight: out similarityWeight);
+        }
+        
         /// <summary>
         /// Returns true if 'originalText' and 'candidateText' are likely a misspelling of each other.
         /// Returns false otherwise.  If it is a likely misspelling a similarityWeight is provided
         /// to help rank the match.  Lower costs mean it was a better match.
         /// </summary>
-        public static bool AreSimilar(string originalText, string candidateText, out double similarityWeight)
+        public static bool AreSimilar(string originalText, string candidateText, bool substringsAreSimilar, out double similarityWeight)
         {
-            using (var checker = new WordSimilarityChecker(originalText))
+            using (var checker = new WordSimilarityChecker(originalText, substringsAreSimilar))
             {
                 return checker.AreSimilar(candidateText, out similarityWeight);
             }
@@ -137,8 +157,7 @@ namespace Roslyn.Utilities
 
         public bool AreSimilar(string candidateText)
         {
-            double similarityWeight;
-            return AreSimilar(candidateText, out similarityWeight);
+            return AreSimilar(candidateText, out var similarityWeight);
         }
 
         public bool AreSimilar(string candidateText, out double similarityWeight)
@@ -180,7 +199,7 @@ namespace Roslyn.Utilities
                 // in the string we're currently looking at.  That's enough to consider it
                 // although we place it just at the threshold (i.e. it's worse than all
                 // other matches).
-                if (candidateText.IndexOf(_source, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (_substringsAreSimilar && candidateText.IndexOf(_source, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     similarityWeight = _threshold;
                 }

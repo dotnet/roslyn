@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -12,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 {
     internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct
     {
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.NameCanBeSimplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
-        private static readonly LocalizableString s_localizableTitleSimplifyNames = new LocalizableResourceString(nameof(FeaturesResources.SimplifyNames), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableTitleSimplifyNames = new LocalizableResourceString(nameof(FeaturesResources.Simplify_Names), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly DiagnosticDescriptor s_descriptorSimplifyNames = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                                                                     s_localizableTitleSimplifyNames,
                                                                     s_localizableMessage,
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
-        private static readonly LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(FeaturesResources.SimplifyMemberAccess), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(FeaturesResources.Simplify_Member_Access), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
                                                                     s_localizableTitleSimplifyMemberAccess,
                                                                     s_localizableMessage,
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
-        private static readonly LocalizableString s_localizableTitleRemoveThisOrMe = new LocalizableResourceString(nameof(FeaturesResources.RemoveQualification), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableTitleRemoveThisOrMe = new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly DiagnosticDescriptor s_descriptorRemoveThisOrMe = new DiagnosticDescriptor(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                                                                     s_localizableTitleRemoveThisOrMe,
                                                                     s_localizableMessage,
@@ -41,12 +43,52 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        private static readonly DiagnosticDescriptor s_descriptorPreferIntrinsicTypeInDeclarations = new DiagnosticDescriptor(IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId,
+                                                            s_localizableTitleSimplifyNames,
+                                                            s_localizableMessage,
+                                                            DiagnosticCategory.Style,
+                                                            DiagnosticSeverity.Hidden,
+                                                            isEnabledByDefault: true,
+                                                            customTags: DiagnosticCustomTags.Unnecessary);
+
+        private static readonly DiagnosticDescriptor s_descriptorPreferIntrinsicTypeInMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId,
+                                                            s_localizableTitleSimplifyNames,
+                                                            s_localizableMessage,
+                                                            DiagnosticCategory.Style,
+                                                            DiagnosticSeverity.Hidden,
+                                                            isEnabledByDefault: true,
+                                                            customTags: DiagnosticCustomTags.Unnecessary);
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+            = ImmutableArray.Create(
+                    s_descriptorSimplifyNames,
+                    s_descriptorSimplifyMemberAccess,
+                    s_descriptorRemoveThisOrMe,
+                    s_descriptorPreferIntrinsicTypeInDeclarations,
+                    s_descriptorPreferIntrinsicTypeInMemberAccess);
+
+        private readonly ImmutableArray<TLanguageKindEnum> _kindsOfInterest;
+
+        protected SimplifyTypeNamesDiagnosticAnalyzerBase(ImmutableArray<TLanguageKindEnum> kindsOfInterest)
         {
-            get
-            {
-                return ImmutableArray.Create(s_descriptorSimplifyNames, s_descriptorSimplifyMemberAccess, s_descriptorRemoveThisOrMe);
-            }
+            _kindsOfInterest = kindsOfInterest;
+        }
+
+        public bool OpenFileOnly(Workspace workspace)
+        {
+            var preferTypeKeywordInDeclarationOption = workspace.Options.GetOption(
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
+            var preferTypeKeywordInMemberAccessOption = workspace.Options.GetOption(
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
+
+            return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
+                     preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
         }
 
         protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
@@ -59,11 +101,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
         {
             diagnostic = default(Diagnostic);
 
-            var optionSet = analyzerOptions.GetOptionSet();
-            string diagnosticId;
+            var syntaxTree = node.SyntaxTree;
+            var optionSet = analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return false;
+            }
 
-            TextSpan issueSpan;
-            if (!CanSimplifyTypeNameExpressionCore(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken))
+            if (!CanSimplifyTypeNameExpressionCore(model, node, optionSet, out var issueSpan, out string diagnosticId, cancellationToken))
             {
                 return false;
             }
@@ -73,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                 return false;
             }
 
+            PerLanguageOption<CodeStyleOption<bool>> option;
             DiagnosticDescriptor descriptor;
             switch (diagnosticId)
             {
@@ -85,24 +131,80 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                     break;
 
                 case IDEDiagnosticIds.RemoveQualificationDiagnosticId:
-                    descriptor = s_descriptorRemoveThisOrMe;
+                    descriptor = GetRemoveQualificationDiagnosticDescriptor(model, node, optionSet, cancellationToken);
+                    break;
+
+                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId:
+                    option = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration;
+                    descriptor = GetApplicablePredefinedTypeDiagnosticDescriptor(
+                        IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId, option, optionSet);
+                    break;
+
+                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId:
+                    option = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
+                    descriptor = GetApplicablePredefinedTypeDiagnosticDescriptor(
+                        IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId, option, optionSet);
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(diagnosticId);
+            }
+
+            if (descriptor == null)
+            {
+                return false;
             }
 
             var tree = model.SyntaxTree;
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder["OptionName"] = nameof(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
+            builder["OptionName"] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
             diagnostic = Diagnostic.Create(descriptor, tree.GetLocation(issueSpan), builder.ToImmutable());
             return true;
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        private DiagnosticDescriptor GetApplicablePredefinedTypeDiagnosticDescriptor<T>(string id, PerLanguageOption<T> option, OptionSet optionSet) where T : CodeStyleOption<bool>
         {
-            return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+            var optionValue = optionSet.GetOption(option, GetLanguageName());
+
+            DiagnosticDescriptor descriptor = null;
+            if (optionValue.Notification.Value != DiagnosticSeverity.Hidden)
+            {
+                descriptor = new DiagnosticDescriptor(id,
+                        s_localizableTitleSimplifyNames,
+                        s_localizableMessage,
+                        DiagnosticCategory.Style,
+                        optionValue.Notification.Value,
+                        isEnabledByDefault: true,
+                        customTags: DiagnosticCustomTags.Unnecessary);
+            }
+
+            return descriptor;
         }
+
+        private DiagnosticDescriptor GetRemoveQualificationDiagnosticDescriptor(SemanticModel model, SyntaxNode node, OptionSet optionSet, CancellationToken cancellationToken)
+        {
+            var symbolInfo = model.GetSymbolInfo(node, cancellationToken);
+            if (symbolInfo.Symbol == null)
+            {
+                return null;
+            }
+
+            var applicableOption = AbstractQualifyMemberAccessDiagnosticAnalyzer<TLanguageKindEnum>.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
+            var optionValue = optionSet.GetOption(applicableOption, GetLanguageName());
+            var severity = optionValue.Notification.Value;
+
+            return new DiagnosticDescriptor(
+                IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                s_localizableTitleRemoveThisOrMe,
+                s_localizableMessage,
+                DiagnosticCategory.Style,
+                severity,
+                isEnabledByDefault: true,
+                customTags: DiagnosticCustomTags.Unnecessary);
+        }
+
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

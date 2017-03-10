@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -15,8 +15,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class ExplicitInterfaceCompletionProvider : CompletionListProvider
+    internal partial class ExplicitInterfaceCompletionProvider : CommonCompletionProvider
     {
+        private const string InsertionTextOnOpenParen = nameof(InsertionTextOnOpenParen);
+
         private static readonly SymbolDisplayFormat s_signatureDisplayFormat =
             new SymbolDisplayFormat(
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -30,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return text[characterPosition] == '.';
         }
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
             var position = context.Position;
@@ -81,30 +83,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var members = semanticModel.LookupSymbols(
                 position: name.SpanStart,
                 container: symbol)
-                    .Where(s => !s.IsStatic)
+                    .WhereAsArray(s => !s.IsStatic)
                     .FilterToVisibleAndBrowsableSymbols(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation);
 
             // We're going to create a entry for each one, including the signature
             var namePosition = name.SpanStart;
 
             var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textChangeSpan = CompletionUtilities.GetTextChangeSpan(text, position);
 
             foreach (var member in members)
             {
-                var displayText = member.ToMinimalDisplayString(semanticModel, namePosition, s_signatureDisplayFormat);
+                var displayText = member.ToMinimalDisplayString(
+                    semanticModel, namePosition, s_signatureDisplayFormat);
                 var insertionText = displayText;
 
-                context.AddItem(new SymbolCompletionItem(
-                    this,
+                var item = SymbolCompletionItem.CreateWithSymbolId(
                     displayText,
                     insertionText: insertionText,
-                    filterSpan: textChangeSpan,
-                    position: position,
-                    symbols: new List<ISymbol> { member },
-                    context: CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken),
-                    rules: ItemRules.Instance));
+                    symbols: ImmutableArray.Create(member),
+                    contextPosition: position,
+                    rules: CompletionItemRules.Default);
+                item = item.AddProperty(InsertionTextOnOpenParen, member.Name);
+
+                context.AddItem(item);
             }
+        }
+
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+
+        public override Task<TextChange?> GetTextChangeAsync(
+            Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        {
+            if (ch == '(')
+            {
+                if (selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, out var insertionText))
+                {
+                    return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
+                }
+            }
+
+            return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, selectedItem.DisplayText));
         }
     }
 }

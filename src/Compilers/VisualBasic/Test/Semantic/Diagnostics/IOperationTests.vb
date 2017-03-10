@@ -1,15 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
 Imports Microsoft.CodeAnalysis.Semantics
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -50,7 +44,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
             Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of AssignmentStatementSyntax).ToArray()
@@ -77,6 +71,15 @@ End Module
             Dim literal1 As ILiteralExpression = DirectCast(right1, ILiteralExpression)
             Assert.Equal(CInt(literal1.ConstantValue.Value), 10)
 
+            comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
+IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid)
+  IAssignmentExpression (OperationKind.AssignmentExpression, Type: B2, IsInvalid)
+    Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2)
+    Right: IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd) (OperationKind.BinaryOperatorExpression, Type: B2, IsInvalid)
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2)
+        Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10)
+")
+
             ' x = x + y passes semantic analysis.
 
             Assert.Equal("x = x + y", nodes(1).ToString())
@@ -98,6 +101,15 @@ End Module
             Assert.Equal(right2.Kind, OperationKind.LocalReferenceExpression)
             Assert.Equal(DirectCast(right2, ILocalReferenceExpression).Local.Name, "y")
 
+            comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
+IExpressionStatement (OperationKind.ExpressionStatement)
+  IAssignmentExpression (OperationKind.AssignmentExpression, Type: B2)
+    Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2)
+    Right: IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.BinaryOperatorExpression, Type: B2)
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2)
+        Right: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: B2)
+")
+
             ' -x fails semantic analysis and does not have an operator method, but the operand is available.
 
             Assert.Equal("x = -x", nodes(2).ToString())
@@ -114,6 +126,14 @@ End Module
             Dim operand3 As IOperation = negate3.Operand
             Assert.Equal(operand3.Kind, OperationKind.LocalReferenceExpression)
             Assert.Equal(DirectCast(operand3, ILocalReferenceExpression).Local.Name, "x")
+
+            comp.VerifyOperationTree(nodes(2), expectedOperationTree:="
+IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid)
+  IAssignmentExpression (OperationKind.AssignmentExpression, Type: B2, IsInvalid)
+    Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2)
+    Right: IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperationKind.UnaryOperatorExpression, Type: B2, IsInvalid)
+        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2)
+")
         End Sub
 
         <Fact>
@@ -140,7 +160,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
             Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of AssignmentStatementSyntax).ToArray()
@@ -164,6 +184,13 @@ End Module
             Assert.False(assignment1.UsesOperatorMethod)
             Assert.Null(assignment1.OperatorMethod)
 
+            comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
+IExpressionStatement (OperationKind.ExpressionStatement)
+  ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32)
+    Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32)
+    Right: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32)
+")
+
             ' a += b produces a compound assignment with an operator method add.
 
             Assert.Equal("a += b", nodes(1).ToString())
@@ -182,6 +209,146 @@ End Module
             Assert.True(assignment2.UsesOperatorMethod)
             Assert.NotNull(assignment2.OperatorMethod)
             Assert.Equal(assignment2.OperatorMethod.Name, "op_Addition")
+
+            comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
+IExpressionStatement (OperationKind.ExpressionStatement)
+  ICompoundAssignmentExpression (BinaryOperationKind.OperatorMethodAdd) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.CompoundAssignmentExpression, Type: B2)
+    Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: B2)
+    Right: ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: B2)
+")
+        End Sub
+
+        <Fact>
+        Public Sub VerifyOperationTree_IfStatement()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Sub Foo(x as Integer)
+        If x <> 0
+          System.Console.Write(x)
+        End If
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature) _
+                .VerifyOperationTree("Foo", "
+Sub C.Foo(x As System.Int32)
+  IIfStatement (OperationKind.IfStatement)
+    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerNotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
+        Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32)
+        Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
+    IBlockStatement (1 statements) (OperationKind.BlockStatement)
+      IExpressionStatement (OperationKind.ExpressionStatement)
+        IInvocationExpression (static Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void)
+          IArgument (Matching Parameter: value) (OperationKind.Argument)
+            IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32)
+")
+        End Sub
+
+        <Fact>
+        Public Sub VerifyOperationTree_ForStatement()
+
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Sub Foo()
+        For i = 0 To 10
+            System.Console.Write(i)
+        Next
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature) _
+                .VerifyOperationTree("Foo", "
+Sub C.Foo()
+  IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement)
+    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
+        Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32)
+        Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10)
+    Before: IExpressionStatement (OperationKind.ExpressionStatement)
+        IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32)
+          Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32)
+          Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
+    AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement)
+        ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32)
+          Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32)
+          Right: IConversionExpression (ConversionKind.Basic, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1)
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+    IBlockStatement (1 statements) (OperationKind.BlockStatement)
+      IExpressionStatement (OperationKind.ExpressionStatement)
+        IInvocationExpression (static Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void)
+          IArgument (Matching Parameter: value) (OperationKind.Argument)
+            ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32)
+")
+        End Sub
+
+        <Fact>
+        <WorkItem(382240, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=382240")>
+        Public Sub NothingOrAddressOfInPlaceOfParamArray()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Module Module1
+    Sub Main() 
+        Test1(Nothing)
+        Test2(new System.Guid(), Nothing)
+        Test1(AddressOf Main)
+        Test2(new System.Guid(), AddressOf Main)
+    End Sub
+
+    Sub Test1(ParamArray x as Integer())
+    End Sub
+
+    Sub Test2(y As Integer, ParamArray x as Integer())
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim tree = comp.SyntaxTrees.Single()
+
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30311: Value of type 'Guid' cannot be converted to 'Integer'.
+        Test2(new System.Guid(), Nothing)
+              ~~~~~~~~~~~~~~~~~
+BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
+        Test1(AddressOf Main)
+              ~~~~~~~~~~~~~~
+BC30311: Value of type 'Guid' cannot be converted to 'Integer'.
+        Test2(new System.Guid(), AddressOf Main)
+              ~~~~~~~~~~~~~~~~~
+BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
+        Test2(new System.Guid(), AddressOf Main)
+                                 ~~~~~~~~~~~~~~
+</expected>)
+
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().ToArray()
+
+            comp.VerifyOperationTree(nodes(0), expectedOperationTree:=
+"IInvocationExpression (static Sub Module1.Test1(ParamArray x As System.Int32())) (OperationKind.InvocationExpression, Type: System.Void)
+  IArgument (Matching Parameter: x) (OperationKind.Argument)
+    IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null)
+      ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null)")
+
+            comp.VerifyOperationTree(nodes(1), expectedOperationTree:=
+"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid)")
+
+            comp.VerifyOperationTree(nodes(2), expectedOperationTree:=
+"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid)")
+
+            comp.VerifyOperationTree(nodes(3), expectedOperationTree:=
+"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid)")
         End Sub
     End Class
 End Namespace

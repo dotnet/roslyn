@@ -1,18 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CaseCorrection
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
     Public Class CaseCorrectionServiceTests
@@ -27,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
         End Function
 
         Private Async Function TestAsync(input As String, expected As String) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(input)
+            Using workspace = TestWorkspace.CreateVisualBasic(input)
                 Await TestAsync(expected, workspace)
             End Using
         End Function
@@ -46,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
         End Function
 
         Private Async Function TestAsync(input As XElement, expected As String) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(input)
+            Using workspace = TestWorkspace.Create(input)
                 Await TestAsync(expected, workspace)
             End Using
         End Function

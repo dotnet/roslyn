@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -159,8 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     return;
                 }
 
-                SignatureHelpItem helpItem;
-                Contract.ThrowIfFalse(_signatureMap.TryGetKey((Signature)eventArgs.NewSelectedSignature, out helpItem));
+                Contract.ThrowIfFalse(_signatureMap.TryGetKey((Signature)eventArgs.NewSelectedSignature, out var helpItem));
 
                 var helpItemSelected = this.ItemSelected;
                 if (helpItemSelected != null && helpItem != null)

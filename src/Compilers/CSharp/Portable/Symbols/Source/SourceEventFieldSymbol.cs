@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <remarks>
     /// SourceFieldSymbol takes care of the initializer (plus "var" in the interactive case).
     /// </remarks>
-    internal sealed class SourceEventFieldSymbol : SourceMemberFieldSymbol
+    internal sealed class SourceEventFieldSymbol : SourceMemberFieldSymbolFromDeclarator
     {
         private readonly SourceEventSymbol _associatedEvent;
 

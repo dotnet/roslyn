@@ -1,14 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -101,7 +92,6 @@ class H
     public static implicit operator string(H h) { return null; }
     private class op_Implicit {}
 }
-
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
@@ -143,9 +133,6 @@ class H
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "op_Division").WithArguments("C.op_Division", "0")
                 );
         }
-
-
-
 
         [Fact]
         public void UserDefinedOperatorBodyErrors()
@@ -285,7 +272,6 @@ Diagnostic(ErrorCode.ERR_BadVisOpParam, "-").WithArguments("C.operator -(C, C.D)
 // (8,37): error CS0057: Inconsistent accessibility: parameter type 'C.D' is less accessible than operator 'C.explicit operator C(C.D)'
 //     public static explicit operator C(D d) { return null; }
 Diagnostic(ErrorCode.ERR_BadVisOpParam, "C").WithArguments("C.explicit operator C(C.D)", "C.D")
-
                 );
         }
 

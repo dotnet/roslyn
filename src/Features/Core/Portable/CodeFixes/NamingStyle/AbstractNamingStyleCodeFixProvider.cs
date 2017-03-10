@@ -1,28 +1,26 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
+using System.Composition;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Rename;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 {
-    internal abstract class AbstractNamingStyleCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
+        Name = PredefinedCodeFixProviderNames.ApplyNamingStyle), Shared]
+    internal class NamingStyleCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(IDEDiagnosticIds.NamingRuleId); }
-        }
+        public override ImmutableArray<string> FixableDiagnosticIds { get; }
+            = ImmutableArray.Create(IDEDiagnosticIds.NamingRuleId);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -38,22 +36,36 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             var model = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var symbol = model.GetDeclaredSymbol(node, context.CancellationToken);
 
+            // TODO: We should always be able to find the symbol that generated this diagnostic,
+            // but this cannot always be done by simply asking for the declared symbol on the node 
+            // from the symbol's declaration location.
+            // See https://github.com/dotnet/roslyn/issues/16588
+
+            if (symbol == null)
+            {
+                return;
+            }
+
             var fixedNames = style.MakeCompliant(symbol.Name);
             foreach (var fixedName in fixedNames)
             {
                 var solution = context.Document.Project.Solution;
                 context.RegisterCodeFix(
                     new FixNameCodeAction(
-                        string.Format(FeaturesResources.FixNamingViolation, fixedName),
-                        async c => await Renamer.RenameSymbolAsync(
-                            solution,
-                            symbol,
-                            fixedName,
-                            solution.Workspace.Options,
-                            c).ConfigureAwait(false), 
-                        nameof(AbstractNamingStyleCodeFixProvider)), 
+                        string.Format(FeaturesResources.Fix_Name_Violation_colon_0, fixedName),
+                        c => FixAsync(document, symbol, fixedName, c),
+                        nameof(NamingStyleCodeFixProvider)),
                     diagnostic);
             }
+        }
+
+        private static async Task<Solution> FixAsync(
+            Document document, ISymbol symbol, string fixedName, CancellationToken cancellationToken)
+        {
+            return await Renamer.RenameSymbolAsync(
+                document.Project.Solution, symbol, fixedName,
+                await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
+                cancellationToken).ConfigureAwait(false);
         }
 
         private class FixNameCodeAction : CodeAction.SolutionChangeAction

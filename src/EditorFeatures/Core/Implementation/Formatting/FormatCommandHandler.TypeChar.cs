@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.AutomaticFormatting))
+            using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Automatic_Formatting))
             {
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
                 document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);

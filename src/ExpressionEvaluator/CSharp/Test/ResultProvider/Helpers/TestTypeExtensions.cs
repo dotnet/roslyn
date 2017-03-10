@@ -11,12 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal static class TestTypeExtensions
     {
-        public static string GetTypeName(this System.Type type, bool[] dynamicFlags = null, bool escapeKeywordIdentifiers = false)
-        {
-            return type.GetTypeName(DynamicFlagsCustomTypeInfo.Create(dynamicFlags).GetCustomTypeInfo(), escapeKeywordIdentifiers, null);
-        }
-
-        public static string GetTypeName(this System.Type type, DkmClrCustomTypeInfo typeInfo, bool escapeKeywordIdentifiers = false, DkmInspectionContext inspectionContext = null)
+        public static string GetTypeName(this System.Type type, DkmClrCustomTypeInfo typeInfo = null, bool escapeKeywordIdentifiers = false, DkmInspectionContext inspectionContext = null)
         {
             var formatter = new CSharpFormatter();
             var clrType = new DkmClrType((TypeImpl)type);

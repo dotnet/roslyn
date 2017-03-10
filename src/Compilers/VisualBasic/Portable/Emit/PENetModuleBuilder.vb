@@ -32,6 +32,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return 0
             End Get
         End Property
-    End Class
 
+        Public Overrides Function GetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference)
+            Return SpecializedCollections.EmptyEnumerable(Of Cci.IFileReference)()
+        End Function
+
+        Public Overrides ReadOnly Property SourceAssemblyOpt As ISourceAssemblySymbolInternal
+            Get
+                Return Nothing
+            End Get
+        End Property
+    End Class
 End Namespace

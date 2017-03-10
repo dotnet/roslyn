@@ -38,6 +38,7 @@ End Module");
                 var expected = $@"#Region ""{FeaturesResources.Assembly} mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
 ' mscorlib.v4_0_30319_17626.dll
 #End Region
+
 Imports System.Runtime
 Imports System.Runtime.InteropServices
 
@@ -52,14 +53,15 @@ Namespace System
         Public Sub New(message As String)
         <__DynamicallyInvokableAttribute> <TargetedPatchingOptOut(""Performance critical to inline this type of method across NGen image boundaries"")>
         Public Sub New(message As String, [error] As Boolean)
-        <__DynamicallyInvokableAttribute>
-        Public ReadOnly Property IsError As Boolean
+
         <__DynamicallyInvokableAttribute>
         Public ReadOnly Property Message As String
+        <__DynamicallyInvokableAttribute>
+        Public ReadOnly Property IsError As Boolean
     End Class
 End Namespace";
 
-                using (var context = await TestContext.CreateAsync(LanguageNames.VisualBasic))
+                using (var context = TestContext.Create(LanguageNames.VisualBasic))
                 {
                     await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected);
                 }

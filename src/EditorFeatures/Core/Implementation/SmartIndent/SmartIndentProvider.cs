@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
         {
             if (textView == null)
             {
-                throw new ArgumentNullException(@"textView");
+                throw new ArgumentNullException(nameof(textView));
             }
 
-            if (!textView.TextBuffer.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
+            if (!textView.TextBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.SmartIndenter))
             {
                 return null;
             }

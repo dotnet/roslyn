@@ -2,6 +2,7 @@
 
 using System;
 using System.Composition;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
 
@@ -30,8 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
 
         public VersionStamp GetInitialProjectVersionFromSemanticVersion(Project project, VersionStamp semanticVersion)
         {
-            Versions versions;
-            if (!TryGetInitialVersions(s_initialSemanticVersions, project, SemanticVersion, out versions))
+            if (!TryGetInitialVersions(s_initialSemanticVersions, project, SemanticVersion, out var versions))
             {
                 return VersionStamp.Default;
             }
@@ -46,8 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
 
         public VersionStamp GetInitialDependentProjectVersionFromDependentSemanticVersion(Project project, VersionStamp dependentSemanticVersion)
         {
-            Versions versions;
-            if (!TryGetInitialVersions(s_initialDependentSemanticVersions, project, DependentSemanticVersion, out versions))
+            if (!TryGetInitialVersions(s_initialDependentSemanticVersions, project, DependentSemanticVersion, out var versions))
             {
                 return VersionStamp.Default;
             }
@@ -82,8 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
 
         public void LoadInitialSemanticVersions(Project project)
         {
-            Versions unused;
-            if (!s_initialSemanticVersions.TryGetValue(project.Id, out unused))
+            if (!s_initialSemanticVersions.TryGetValue(project.Id, out var unused))
             {
                 PersistedVersionStampLogger.LogProject();
 
@@ -124,36 +123,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
                 return false;
             }
 
-            using (var storage = service.GetStorage(project.Solution))
-            using (var stream = storage.ReadStreamAsync(keyName, CancellationToken.None).WaitAndGetResult(CancellationToken.None))
+            try
             {
-                if (stream == null)
+                using (var storage = service.GetStorage(project.Solution))
+                using (var stream = storage.ReadStreamAsync(keyName, CancellationToken.None).WaitAndGetResult(CancellationToken.None))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
-                    return false;
-                }
-
-                try
-                {
-                    using (var reader = new ObjectReader(stream))
+                    if (reader != null)
                     {
                         var formatVersion = reader.ReadInt32();
-                        if (formatVersion != SerializationFormat)
+                        if (formatVersion == SerializationFormat)
                         {
-                            return false;
+                            var persistedProjectVersion = VersionStamp.ReadFrom(reader);
+                            var persistedSemanticVersion = VersionStamp.ReadFrom(reader);
+
+                            versions = new Versions(persistedProjectVersion, persistedSemanticVersion);
+                            return true;
                         }
-
-                        var persistedProjectVersion = VersionStamp.ReadFrom(reader);
-                        var persistedSemanticVersion = VersionStamp.ReadFrom(reader);
-
-                        versions = new Versions(persistedProjectVersion, persistedSemanticVersion);
-                        return true;
                     }
                 }
-                catch (Exception)
-                {
-                    return false;
-                }
             }
+            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
+            {
+            }
+
+            return false;
         }
 
         public async Task RecordSemanticVersionsAsync(Project project, CancellationToken cancellationToken)

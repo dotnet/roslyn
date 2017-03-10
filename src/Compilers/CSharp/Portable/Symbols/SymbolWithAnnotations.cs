@@ -8,7 +8,6 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-
     /// <summary>
     /// A simple class that combines a single symbol with annotations
     /// </summary>
@@ -73,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
     }
-
 
     internal abstract class NamespaceOrTypeOrAliasSymbolWithAnnotations : SymbolWithAnnotations
     {
@@ -208,7 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool IsUnsafe() => TypeSymbol.IsUnsafe();
         public bool IsStatic => TypeSymbol.IsStatic;
         public bool IsNullableTypeOrTypeParameter() => TypeSymbol.IsNullableTypeOrTypeParameter();
-
 
         public bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {

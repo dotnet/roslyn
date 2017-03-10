@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using System.Collections.Immutable;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -31,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var substituted1 = SubstituteAllTypeParameters(substitution, TypeSymbolWithAnnotations.Create(t1));
                 var substituted2 = SubstituteAllTypeParameters(substitution, TypeSymbolWithAnnotations.Create(t2));
 
-                Debug.Assert(substituted1.TypeSymbol == substituted2.TypeSymbol &&
-                             substituted1.CustomModifiers.SequenceEqual(substituted2.CustomModifiers));
+                Debug.Assert(substituted1.TypeSymbol.Equals(substituted2.TypeSymbol, TypeCompareKind.IgnoreTupleNames);
+                Debug.Assert(substituted1.CustomModifiers.SequenceEqual(substituted2.CustomModifiers));
             }
 #endif
             return result;
@@ -149,6 +148,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         NamedTypeSymbol nt1 = (NamedTypeSymbol)t1.TypeSymbol;
                         NamedTypeSymbol nt2 = (NamedTypeSymbol)t2.TypeSymbol;
+
+                        if (nt1.IsTupleType)
+                        {
+                            if (!nt2.IsTupleType)
+                            {
+                                return false;
+                            }
+
+                            return CanUnifyHelper(new TypeWithModifiers(nt1.TupleUnderlyingType), new TypeWithModifiers(nt2.TupleUnderlyingType), ref substitution);
+                        }
 
                         if (!nt1.IsGenericType)
                         {
@@ -280,9 +289,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NamedTypeSymbol namedType = (NamedTypeSymbol)type;
                         while ((object)namedType != null)
                         {
-                            foreach (TypeSymbolWithAnnotations typeArg in namedType.TypeArgumentsNoUseSiteDiagnostics)
+                            ImmutableArray<TypeSymbol> typeParts = namedType.IsTupleType ? namedType.TupleElementTypes : namedType.TypeArgumentsNoUseSiteDiagnostics;
+                            foreach (TypeSymbolWithAnnotations typePart in typeParts)
                             {
-                                if (Contains(typeArg.TypeSymbol, typeParam))
+                                if (Contains(typePart.TypeSymbol, typeParam))
                                 {
                                     return true;
                                 }

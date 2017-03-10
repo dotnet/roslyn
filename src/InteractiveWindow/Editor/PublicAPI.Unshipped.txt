@@ -1,2 +1,0 @@
-Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.CopyCode() -> void
-Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.TypeChar(char typedChar) -> void

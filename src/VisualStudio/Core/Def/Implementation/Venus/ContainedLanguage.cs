@@ -2,27 +2,29 @@
 
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal partial class ContainedLanguage<TPackage, TLanguageService, TProject> : AbstractContainedLanguage
-        where TPackage : AbstractPackage<TPackage, TLanguageService, TProject>
-        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService, TProject>
-        where TProject : AbstractProject
+    internal partial class ContainedLanguage<TPackage, TLanguageService> : AbstractContainedLanguage
+        where TPackage : AbstractPackage<TPackage, TLanguageService>
+        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
         private readonly TLanguageService _languageService;
 
         protected readonly Workspace Workspace;
-        protected readonly new TProject Project;
         protected readonly IComponentModel ComponentModel;
         protected readonly ContainedDocument ContainedDocument;
 
@@ -35,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
-            TProject project,
+            AbstractProject project,
             IVsHierarchy hierarchy,
             uint itemid,
             TLanguageService languageService,
@@ -45,23 +47,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             this.BufferCoordinator = bufferCoordinator;
             this.ComponentModel = componentModel;
-            this.Project = project;
             _languageService = languageService;
 
             this.Workspace = componentModel.GetService<VisualStudioWorkspace>();
+
             _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            _diagnosticAnalyzerService = componentModel.GetService<IDiagnosticAnalyzerService>();
 
             // Get the ITextBuffer for the secondary buffer
-            IVsTextLines secondaryTextLines;
-            Marshal.ThrowExceptionForHR(bufferCoordinator.GetSecondaryBuffer(out secondaryTextLines));
+            Marshal.ThrowExceptionForHR(bufferCoordinator.GetSecondaryBuffer(out var secondaryTextLines));
             var secondaryVsTextBuffer = (IVsTextBuffer)secondaryTextLines;
             SetSubjectBuffer(_editorAdaptersFactoryService.GetDocumentBuffer(secondaryVsTextBuffer));
 
             var bufferTagAggregatorFactory = ComponentModel.GetService<IBufferTagAggregatorFactoryService>();
             _bufferTagAggregator = bufferTagAggregatorFactory.CreateTagAggregator<ITag>(SubjectBuffer);
-
-            IVsTextLines primaryTextLines;
-            Marshal.ThrowExceptionForHR(bufferCoordinator.GetPrimaryBuffer(out primaryTextLines));
+            Marshal.ThrowExceptionForHR(bufferCoordinator.GetPrimaryBuffer(out var primaryTextLines));
             var primaryVsTextBuffer = (IVsTextBuffer)primaryTextLines;
             var dataBuffer = _editorAdaptersFactoryService.GetDataBuffer(primaryVsTextBuffer);
             SetDataBuffer(dataBuffer);
@@ -70,12 +70,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 this, sourceCodeKind, this.Workspace, hierarchy, itemid, componentModel, vbHelperFormattingRule);
 
             // TODO: Can contained documents be linked or shared?
-            this.Project.AddDocument(this.ContainedDocument, isCurrentContext: true);
+            this.Project.AddDocument(this.ContainedDocument, isCurrentContext: true, hookupHandlers: true);
+            this.DataBuffer.Changed += OnDataBufferChanged;
         }
 
         private void OnDisconnect()
         {
+            this.DataBuffer.Changed -= OnDataBufferChanged;
             this.Project.RemoveDocument(this.ContainedDocument);
+        }
+
+        private void OnDataBufferChanged(object sender, TextContentChangedEventArgs e)
+        {
+            // we don't actually care what has changed in primary buffer. we just want to re-analyze secondary buffer
+            // when primary buffer has changed to update diagnostic positions.
+            _diagnosticAnalyzerService.Reanalyze(this.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(this.ContainedDocument.Id));
         }
 
         public override void Dispose()

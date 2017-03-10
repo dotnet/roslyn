@@ -3236,8 +3236,9 @@ class B : A
             // Verify anonymous types were generated. (There
             // shouldn't be any reuse of existing anonymous types
             // since the existing types were from metadata.)
-            Assert.True(testData.Methods.ContainsKey("<>f__AnonymousType0<<A>j__TPar, <B>j__TPar>..ctor(<A>j__TPar, <B>j__TPar)"));
-            Assert.True(testData.Methods.ContainsKey("<>f__AnonymousType1..ctor()"));
+            var methods = testData.GetMethodsByName();
+            Assert.True(methods.ContainsKey("<>f__AnonymousType0<<A>j__TPar, <B>j__TPar>..ctor(<A>j__TPar, <B>j__TPar)"));
+            Assert.True(methods.ContainsKey("<>f__AnonymousType1..ctor()"));
 
             // Verify evaluation method.
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
@@ -3683,7 +3684,7 @@ class C
                 assemblyName: assemblyName,
                 references: new MetadataReference[] { referenceN1, referenceN2, referenceD0, referenceD1 });
 
-            Assert.Equal(((ModuleMetadata)referenceN0.GetMetadata()).Name, ((ModuleMetadata)referenceN1.GetMetadata()).Name); // different netmodule, same name
+            Assert.Equal(((ModuleMetadata)referenceN0.GetMetadataNoCopy()).Name, ((ModuleMetadata)referenceN1.GetMetadataNoCopy()).Name); // different netmodule, same name
 
             var references = new[]
                 {
@@ -4347,8 +4348,7 @@ class C
                 expr: "throw new System.Exception()",
                 resultProperties: out resultProperties,
                 error: out error);
-
-            Assert.Equal("error CS1525: Invalid expression term 'throw'", error);
+            Assert.Equal("error CS8115: A throw expression is not allowed in this context.", error);
         }
 
         [WorkItem(1016555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016555")]

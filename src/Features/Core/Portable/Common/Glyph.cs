@@ -4,6 +4,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal enum Glyph
     {
+        None,
+
         Assembly,
 
         BasicFile,
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis
         EnumMember,
 
         Error,
+        StatusInformation,
 
         EventPublic,
         EventProtected,

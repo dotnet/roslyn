@@ -103,7 +103,7 @@ End Class
                         aliases,
                         errorMessage,
                         testData)
-                    Assert.Equal(testData.Methods.Count, 2)
+                    Assert.Equal(testData.Methods.Count, 1)
 
                     testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
@@ -395,8 +395,8 @@ End Class"
                 errorMessage:=errorMessage)
 
             If valid Then
-                Dim expectedNames = {"<>x.<>m0(C)", "<invalid-global-code>..ctor()"} ' Unnecessary <invalid-global-code> (DevDiv #1010243)
-                Dim actualNames = testData.Methods.Keys
+                Dim expectedNames = {"<>x.<>m0(C)"}
+                Dim actualNames = testData.GetMethodsByName().Keys
                 AssertEx.SetEqual(expectedNames, actualNames)
             Else
                 Assert.Equal(

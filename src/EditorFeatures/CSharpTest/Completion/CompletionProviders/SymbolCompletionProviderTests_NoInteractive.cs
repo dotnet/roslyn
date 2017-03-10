@@ -16,14 +16,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new SymbolCompletionProvider();
         }
 
-        protected override Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph)
+        protected override Task VerifyWorkerAsync(
+            string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
+            SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
+            int? glyph, int? matchPriority)
         {
-            return base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence, experimental, glyph);
+            return base.VerifyWorkerAsync(code, position,
+                expectedItemOrNull, expectedDescriptionOrNull,
+                SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence,
+                glyph, matchPriority);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -33,19 +39,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task IsTextualTriggerCharacterTest()
+        public void IsTextualTriggerCharacterTest()
         {
-            await TestCommonIsTextualTriggerCharacterAsync();
+            TestCommonIsTextualTriggerCharacter();
 
-            await VerifyTextualTriggerCharacterAsync("Abc $$X", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
-            await VerifyTextualTriggerCharacterAsync("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+            VerifyTextualTriggerCharacter("Abc $$X", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
+            VerifyTextualTriggerCharacter("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SendEnterThroughToEditorTest()
         {
-            await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: false, expected: false);
-            await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterOption: EnterKeyRule.Never, expected: false);
+            await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterOption: EnterKeyRule.AfterFullyTypedWord, expected: true);
+            await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

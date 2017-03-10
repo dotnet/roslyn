@@ -1,22 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitTyping
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType
 {
     public partial class UseExplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         #region "Fix all occurrences tests"
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocumentScope_PreferExplicitTypeEverywhere()
         {
-            var fixAllActionId = CSharpFeaturesResources.UseExplicitType;
+            var fixAllActionId = CSharpFeaturesResources.Use_explicit_type_instead_of_var;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -123,15 +123,15 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ExplicitTypingEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject_PreferExplicitTypeEverywhere()
         {
-            var fixAllActionId = CSharpFeaturesResources.UseExplicitType;
+            var fixAllActionId = CSharpFeaturesResources.Use_explicit_type_instead_of_var;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -238,15 +238,15 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ExplicitTypingEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_PreferExplicitTypeEverywhere()
         {
-            var fixAllActionId = CSharpFeaturesResources.UseExplicitType;
+            var fixAllActionId = CSharpFeaturesResources.Use_explicit_type_instead_of_var;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -353,15 +353,15 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ExplicitTypingEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocumentScope_PreferExplicitTypeExceptWhereApparent()
         {
-            var fixAllActionId = CSharpFeaturesResources.UseExplicitType;
+            var fixAllActionId = CSharpFeaturesResources.Use_explicit_type_instead_of_var;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -404,7 +404,7 @@ class Program
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ExplicitTypingExceptWhereApparent(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeExceptWhereApparent(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         #endregion

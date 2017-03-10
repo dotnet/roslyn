@@ -337,21 +337,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.MightContainExtensionMethods)
             {
-                var members = nameOpt == null
-                    ? this.GetMembersUnordered()
-                    : this.GetSimpleNonTypeMembers(nameOpt);
+                DoGetExtensionMethods(methods, nameOpt, arity, options);
+            }
+        }
 
-                foreach (var member in members)
+        internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+        {
+            var members = nameOpt == null
+                ? this.GetMembersUnordered()
+                : this.GetSimpleNonTypeMembers(nameOpt);
+
+            foreach (var member in members)
+            {
+                if (member.Kind == SymbolKind.Method)
                 {
-                    if (member.Kind == SymbolKind.Method)
+                    var method = (MethodSymbol)member;
+                    if (method.IsExtensionMethod &&
+                        ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
                     {
-                        var method = (MethodSymbol)member;
-                        if (method.IsExtensionMethod &&
-                            ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
-                        {
-                            Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
-                            methods.Add(method);
-                        }
+                        Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
+                        methods.Add(method);
                     }
                 }
             }
@@ -530,6 +535,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity);
 
         /// <summary>
+        /// Get all instance field and event members.
+        /// </summary>
+        /// <remarks>
+        /// For source symbols may be called while calculating
+        /// <see cref="NamespaceOrTypeSymbol.GetMembersUnordered"/>.
+        /// </remarks>
+        internal virtual IEnumerable<Symbol> GetInstanceFieldsAndEvents()
+        {
+            return GetMembersUnordered().Where(IsInstanceFieldOrEvent);
+        }
+
+        protected static Func<Symbol, bool> IsInstanceFieldOrEvent = symbol =>
+        {
+            if (!symbol.IsStatic)
+            {
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.Field:
+                    case SymbolKind.Event:
+                        return true;
+                }
+            }
+            return false;
+        };
+
+        /// <summary>
         /// Get this accessibility that was declared on this symbol. For symbols that do not have
         /// accessibility declared on them, returns NotApplicable.
         /// </summary>
@@ -605,17 +636,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Compares this type to another type.
         /// </summary>
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
-            if (ReferenceEquals(this, t2)) return true;
+            Debug.Assert(!this.IsTupleType);
+
+            if ((object)t2 == this) return true;
             if ((object)t2 == null) return false;
 
-            // if ignoring dynamic, then treat dynamic the same as the type 'object'
-            if (ignoreDynamic &&
-                t2.TypeKind == TypeKind.Dynamic &&
-                this.SpecialType == SpecialType.System_Object)
+            if ((comparison & TypeCompareKind.IgnoreDynamic) != 0)
             {
-                return true;
+                if (t2.TypeKind == TypeKind.Dynamic)
+                {
+                    // if ignoring dynamic, then treat dynamic the same as the type 'object'
+                    if (this.SpecialType == SpecialType.System_Object)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            if ((comparison & TypeCompareKind.IgnoreTupleNames) != 0)
+            {
+                // If ignoring tuple element names, compare underlying tuple types
+                if (t2.IsTupleType)
+                {
+                    t2 = t2.TupleUnderlyingType;
+                    if (this.Equals(t2, comparison)) return true;
+                }
             }
 
             NamedTypeSymbol other = t2 as NamedTypeSymbol;
@@ -626,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var otherOriginalDefinition = other.OriginalDefinition;
 
             if (((object)this == (object)thisOriginalDefinition || (object)other == (object)otherOriginalDefinition) &&
-                !ignoreCustomModifiersAndArraySizesAndLowerBounds)
+                (comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0)
             {
                 return false;
             }
@@ -641,16 +688,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // The checks above are supposed to handle the vast majority of cases.
-            // More complicated cases are handled in a special helper to make the common case scenario simple/fast
-            return EqualsComplicatedCases(other, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+            // More complicated cases are handled in a special helper to make the common case scenario simple/fast (fewer locals and smaller stack frame)
+            return EqualsComplicatedCases(other, comparison);
         }
 
         /// <summary>
         /// Helper for more complicated cases of Equals like when we have generic instantiations or types nested within them.
         /// </summary>
-        private bool EqualsComplicatedCases(NamedTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        private bool EqualsComplicatedCases(NamedTypeSymbol other, TypeCompareKind comparison)
         {
-            if ((object)this.ContainingType != null && !this.ContainingType.Equals(other.ContainingType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+            if ((object)this.ContainingType != null &&
+                !this.ContainingType.Equals(other.ContainingType, comparison))
             {
                 return false;
             }
@@ -668,8 +716,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if (((thisIsNotConstructed || otherIsNotConstructed) && 
-                 !ignoreCustomModifiersAndArraySizesAndLowerBounds) || 
+            if (((thisIsNotConstructed || otherIsNotConstructed) &&
+                 (comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0) ||
                 this.IsUnboundGenericType != other.IsUnboundGenericType)
             {
                 return false;
@@ -686,13 +734,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var typeArgument = typeArguments[i];
                 var otherTypeArgument = otherTypeArguments[i];
-                if (!typeArgument.TypeSymbol.Equals(otherTypeArgument.TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+                if (!typeArgument.TypeSymbol.Equals(otherTypeArgument.TypeSymbol, comparison))
                 {
                     return false;
-            }
+                }
 
-                if (!ignoreCustomModifiersAndArraySizesAndLowerBounds && !typeArgument.CustomModifiers.SequenceEqual(otherTypeArgument.CustomModifiers))
-            {
+                if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0 && !typeArgument.CustomModifiers.SequenceEqual(otherTypeArgument.CustomModifiers))
+                {
                     return false;
                 }
             }
@@ -966,7 +1014,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (DeriveUseSiteDiagnosticFromType(ref result, arg))
                 {
                     return true;
-                    }
                 }
 
             return false;
@@ -1046,6 +1093,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         #endregion
+
+        /// <summary>
+        /// True if the type itself is excluded from code covarage instrumentation.
+        /// True for source types marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        /// </summary>
+        internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
 
         /// <summary>
         /// True if this symbol has a special name (metadata flag SpecialName is set).
@@ -1186,6 +1239,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>True if this is an interface type.</returns>
         internal abstract bool IsInterface { get; }
 
+        /// <summary>
+        /// Verify if the given type can be used to back a tuple type 
+        /// and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
+        /// </summary>
+        /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
+        /// <returns></returns>
+        public sealed override bool IsTupleCompatible(out int tupleCardinality)
+        {
+            if (IsTupleType)
+            {
+                tupleCardinality = 0;
+                return false;
+            }
+
+            // Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
+            if (!IsUnboundGenericType &&
+                ContainingSymbol?.Kind == SymbolKind.Namespace &&
+                ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true &&
+                Name == TupleTypeSymbol.TupleTypeName &&
+                ContainingNamespace.Name == MetadataHelpers.SystemString)
+            {
+                int arity = Arity;
+
+                if (arity > 0 && arity < TupleTypeSymbol.RestPosition)
+                {
+                    tupleCardinality = arity;
+                    return true;
+                }
+                else if (arity == TupleTypeSymbol.RestPosition && !IsDefinition)
+                {
+                    // Skip through "Rest" extensions
+                    TypeSymbol typeToCheck = this;
+                    int levelsOfNesting = 0;
+
+                    do
+                    {
+                        levelsOfNesting++;
+                        typeToCheck = ((NamedTypeSymbol)typeToCheck).TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1];
+                    }
+                    while (typeToCheck.OriginalDefinition == this.OriginalDefinition && !typeToCheck.IsDefinition);
+
+                    if (typeToCheck.IsTupleType)
+                    {
+                        var underlying = typeToCheck.TupleUnderlyingType;
+                        if (underlying.Arity == TupleTypeSymbol.RestPosition && underlying.OriginalDefinition != this.OriginalDefinition)
+                        {
+                            tupleCardinality = 0;
+                            return false;
+                        }
+
+                        tupleCardinality = (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting + typeToCheck.TupleElementTypes.Length;
+                        return true;
+                    }
+
+                    arity = (typeToCheck as NamedTypeSymbol)?.Arity ?? 0;
+
+                    if (arity > 0 && arity < TupleTypeSymbol.RestPosition && typeToCheck.IsTupleCompatible(out tupleCardinality))
+                    {
+                        Debug.Assert(tupleCardinality < TupleTypeSymbol.RestPosition);
+                        tupleCardinality += (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting;
+                        return true;
+                    }
+                }
+            }
+
+            tupleCardinality = 0;
+            return false;
+        }
+
         #region INamedTypeSymbol Members
 
         int INamedTypeSymbol.Arity
@@ -1295,6 +1417,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
         }
+
+        /// <summary>
+        /// Returns fields that represent tuple elements for types that are tuples.
+        ///
+        /// If this type is not a tuple, then returns default.
+        /// </summary>
+        ImmutableArray<IFieldSymbol> INamedTypeSymbol.TupleElements => StaticCast<IFieldSymbol>.From(this.TupleElements);
+
+        /// <summary>
+        /// If this is a tuple type symbol, returns the symbol for its underlying type.
+        /// Otherwise, returns null.
+        /// </summary>
+        INamedTypeSymbol INamedTypeSymbol.TupleUnderlyingType => this.TupleUnderlyingType;
+
+        bool INamedTypeSymbol.IsComImport => IsComImport;
 
         #endregion
 

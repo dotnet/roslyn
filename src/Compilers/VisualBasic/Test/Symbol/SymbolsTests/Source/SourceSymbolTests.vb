@@ -606,5 +606,85 @@ BC31060: event 'E' implicitly defines 'add_E', which conflicts with a member of 
             Assert.Equal("Add_E", members(3).MetadataName)
         End Sub
 
+        ''' <summary>
+        ''' Symbol location order should be preserved when trees
+        ''' are replaced in the compilation.
+        ''' </summary>
+        <WorkItem(11015, "https://github.com/dotnet/roslyn/issues/11015")>
+        <Fact>
+        Public Sub PreserveLocationOrderOnReplaceSyntaxTree()
+            Dim source0 = Parse(
+"Namespace N
+    Partial Class C
+    End Class
+End Namespace
+Namespace N0
+    Class C0
+    End Class
+End Namespace")
+            Dim source1 = Parse(
+"Namespace N
+    Partial Class C
+    End Class
+End Namespace
+Namespace N1
+    Class C1
+    End Class
+End Namespace")
+            Dim source2 = Parse(
+"Namespace N
+    Structure S
+    End Structure
+End Namespace")
+            Dim source3 = Parse(
+"Namespace N
+    Partial Class C
+    End Class
+End Namespace
+Namespace N3
+    Class C3
+    End Class
+End Namespace")
+            Dim comp0 = CompilationUtils.CreateCompilationWithMscorlib({source0, source1, source2, source3}, options:=TestOptions.ReleaseDll)
+            comp0.AssertTheseDiagnostics()
+            Assert.Equal({source0, source1, source2, source3}, comp0.SyntaxTrees)
+
+            Dim locations = comp0.GlobalNamespace.Locations
+            Assert.Equal({"MyTemplateLocation", "SourceLocation", "SourceLocation", "SourceLocation", "SourceLocation", "MetadataLocation"}, locations.Select(Function(l) l.GetType().Name))
+
+            ' Location order of partial class should match SyntaxTrees order.
+            locations = comp0.GetMember(Of NamedTypeSymbol)("N.C").Locations
+            Assert.Equal({source0, source1, source3}, locations.Select(Function(l) l.SourceTree))
+
+            ' AddSyntaxTrees will add to the end.
+            Dim source4 = Parse(
+"Namespace N
+    Partial Class C
+    End Class
+End Namespace
+Namespace N4
+    Class C4
+    End Class
+End Namespace")
+            Dim comp1 = comp0.AddSyntaxTrees(source4)
+            locations = comp1.GetMember(Of NamedTypeSymbol)("N.C").Locations
+            Assert.Equal({source0, source1, source3, source4}, locations.Select(Function(l) l.SourceTree))
+
+            ' ReplaceSyntaxTree should preserve location order.
+            Dim comp2 = comp0.ReplaceSyntaxTree(source1, source4)
+            locations = comp2.GetMember(Of NamedTypeSymbol)("N.C").Locations
+            Assert.Equal({source0, source4, source3}, locations.Select(Function(l) l.SourceTree))
+
+            ' NamespaceNames and TypeNames do not match SyntaxTrees order.
+            ' This is expected.
+            Assert.Equal({"", "N3", "N0", "N", "", "N4", "N"}, comp2.Declarations.NamespaceNames.ToArray())
+            Assert.Equal({"C3", "C0", "S", "C", "C4", "C"}, comp2.Declarations.TypeNames.ToArray())
+
+            ' RemoveSyntaxTrees should preserve order of remaining trees.
+            Dim comp3 = comp2.RemoveSyntaxTrees(source0)
+            locations = comp3.GetMember(Of NamedTypeSymbol)("N.C").Locations
+            Assert.Equal({source4, source3}, locations.Select(Function(l) l.SourceTree))
+        End Sub
+
     End Class
 End Namespace

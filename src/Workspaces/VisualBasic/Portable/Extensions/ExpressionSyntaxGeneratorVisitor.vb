@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Sub
 
         Public Overrides Function DefaultVisit(symbol As ISymbol) As ExpressionSyntax
-            Return symbol.Accept(New TypeSyntaxGeneratorVisitor(_addGlobal))
+            Return symbol.Accept(TypeSyntaxGeneratorVisitor.Create(_addGlobal))
         End Function
 
         Private Function AddInformationTo(Of TExpressionSyntax As ExpressionSyntax)(expression As TExpressionSyntax, symbol As ISymbol) As TExpressionSyntax
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Public Overrides Function VisitNamedType(symbol As INamedTypeSymbol) As ExpressionSyntax
-            Dim typeSyntax = New TypeSyntaxGeneratorVisitor(_addGlobal).CreateSimpleTypeSyntax(symbol)
+            Dim typeSyntax = TypeSyntaxGeneratorVisitor.Create(_addGlobal).CreateSimpleTypeSyntax(symbol)
             If Not (TypeOf typeSyntax Is SimpleNameSyntax) Then
                 Return typeSyntax
             End If

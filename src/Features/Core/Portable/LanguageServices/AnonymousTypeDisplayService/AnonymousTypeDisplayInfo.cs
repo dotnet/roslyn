@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 var part = result[i];
                 var type = part.Symbol as INamedTypeSymbol;
-                string name;
-                if (type != null && anonymousTypeToName.TryGetValue(type, out name) && part.ToString() != name)
+                if (type != null && anonymousTypeToName.TryGetValue(type, out var name) && part.ToString() != name)
                 {
                     result = result == parts ? new List<SymbolDisplayPart>(parts) : result;
                     result[i] = new SymbolDisplayPart(part.Kind, part.Symbol, name);

@@ -1,15 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -33,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     for (int index = 0; index < fieldsCount; index++)
                     {
                         PropertySymbol property = properties[index];
-                        paramsArr[index] = new SynthesizedParameterSymbol(this, property.Type.TypeSymbol, index, RefKind.None, property.Name);
+                        paramsArr[index] = SynthesizedParameterSymbol.Create(this, property.Type.TypeSymbol, index, RefKind.None, property.Name);
                     }
                     _parameters = paramsArr.AsImmutableOrNull();
                 }

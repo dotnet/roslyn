@@ -258,5 +258,42 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.False(
                 PathUtilities.ContainsPathComponent(@"c:\Package\temp", "packages", ignoreCase: false));
         }
+
+        [Fact]
+        public void IsSameDirectoryOrChildOfHandlesDifferentSlashes()
+        {
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\", @"C:"));
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\", @"C:\"));
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:", @"C:"));
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:", @"C:\"));
+
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:"));
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\"));
+
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:"));
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\"));
+
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\ABCD"));
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\ABCD\"));
+
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\ABCD"));
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\ABCD\"));
+
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\ABCD\EFGH"));
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH", @"C:\ABCD\EFGH\"));
+
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\ABCD\EFGH"));
+            Assert.Equal(true, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCD\EFGH\", @"C:\ABCD\EFGH\"));
+        }
+
+        [Fact]
+        public void IsSameDirectoryOrChildOfNegativeTests()
+        {
+            Assert.Equal(false, PathUtilities.IsSameDirectoryOrChildOf(@"C:\", @"C:\ABCD"));
+            Assert.Equal(false, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABC", @"C:\ABCD"));
+            Assert.Equal(false, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCDE", @"C:\ABCD"));
+
+            Assert.Equal(false, PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\B\C", @"C:\A\B\C\D"));
+        }
     }
 }

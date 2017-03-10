@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 {
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         private const string SolutionCrawler = nameof(SolutionCrawler);
 
         [Fact]
-        public void RegisterService()
+        public async Task RegisterService()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
@@ -34,6 +35,42 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
                 // register and unregister workspace to the service
                 registrationService.Register(workspace);
                 registrationService.Unregister(workspace);
+
+                // make sure we wait for all waiter. the test wrongly assumed there won't be
+                // any pending async event which is implementation detail when creating workspace
+                // and changing options.
+                await WaitWaiterAsync(workspace.ExportProvider);
+            }
+        }
+
+        [Fact]
+        public async Task DynamicallyAddAnalyzer()
+        {
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            {
+                // create solution and wait for it to settle
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+                workspace.OnSolutionAdded(solution);
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                // create solution crawler and add new analyzer provider dynamically
+                var service = new SolutionCrawlerRegistrationService(
+                    SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
+                    GetListeners(workspace.ExportProvider));
+
+                service.Register(workspace);
+
+                var provider = new AnalyzerProvider(new Analyzer());
+                service.AddAnalyzerProvider(provider, Metadata.Crawler);
+
+                // wait for everything to settle
+                await WaitAsync(service, workspace);
+
+                service.Unregister(workspace);
+
+                // check whether everything ran as expected
+                Assert.Equal(10, provider.Analyzer.SyntaxDocumentIds.Count);
+                Assert.Equal(10, provider.Analyzer.DocumentIds.Count);
             }
         }
 
@@ -65,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
 
                 var worker = await ExecuteOperation(workspace, w => w.OnSolutionAdded(solution));
                 Assert.Equal(10, worker.SyntaxDocumentIds.Count);
@@ -77,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -91,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -105,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -119,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solutionInfo = GetInitialSolutionInfo(workspace);
+                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -139,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -162,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -179,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solutionInfo = GetInitialSolutionInfo(workspace);
+                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -198,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solutionInfo = GetInitialSolutionInfo(workspace);
+                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -215,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solutionInfo = GetInitialSolutionInfo(workspace);
+                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -228,11 +265,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [Fact]
+        public async Task Test_NeedsReanalysisOnOptionChanged()
+        {
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            {
+                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+                workspace.OnSolutionAdded(solutionInfo);
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                var worker = await ExecuteOperation(workspace, w => w.Options = w.Options.WithChangedOption(Analyzer.TestOption, false));
+
+                Assert.Equal(10, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(10, worker.DocumentIds.Count);
+                Assert.Equal(2, worker.ProjectIds.Count);
+            }
+        }
+
+        [Fact]
         public async Task Project_Reload()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -247,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -265,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -284,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -300,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -333,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -350,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -378,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -408,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -442,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -683,25 +737,24 @@ class C
         End Set
     End Property
 End Class";
-
-            int position;
-            string code;
-            MarkupTestFile.GetPosition(markup, out code, out position);
+            MarkupTestFile.GetPosition(markup, out var code, out int position);
 
             var root = Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseCompilationUnit(code);
             var property = root.FindToken(position).Parent.FirstAncestorOrSelf<Microsoft.CodeAnalysis.VisualBasic.Syntax.PropertyBlockSyntax>();
-            var memberId = (new Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsService()).GetMethodLevelMemberId(root, property);
+            var memberId = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsService.Instance.GetMethodLevelMemberId(root, property);
 
             Assert.Equal(0, memberId);
         }
 
         [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
-        public async Task SemanticChange_Propagation()
+        public async Task SemanticChange_Propagation_Transitive()
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
+                workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, false);
+
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -712,13 +765,28 @@ End Class";
 
                 Assert.Equal(1, worker.SyntaxDocumentIds.Count);
                 Assert.Equal(4, worker.DocumentIds.Count);
+            }
+        }
 
-#if false
-                Assert.True(1 == worker.SyntaxDocumentIds.Count,
-                    string.Format("Expected 1 SyntaxDocumentIds, Got {0}\n\n{1}", worker.SyntaxDocumentIds.Count, GetListenerTrace(workspace.ExportProvider)));
-                Assert.True(4 == worker.DocumentIds.Count, 
-                    string.Format("Expected 4 DocumentIds, Got {0}\n\n{1}", worker.DocumentIds.Count, GetListenerTrace(workspace.ExportProvider)));
-#endif
+        [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
+        public async Task SemanticChange_Propagation_Direct()
+        {
+            var solution = GetInitialSolutionInfoWithP2P();
+
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            {
+                workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, true);
+
+                workspace.OnSolutionAdded(solution);
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                var id = solution.Projects[0].Id;
+                var info = DocumentInfo.Create(DocumentId.CreateNewId(id), "D6");
+
+                var worker = await ExecuteOperation(workspace, w => w.OnDocumentAdded(info));
+
+                Assert.Equal(1, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(3, worker.DocumentIds.Count);
             }
         }
 
@@ -771,8 +839,8 @@ End Class";
 
         private async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
-            using (var workspace = await TestWorkspace.CreateAsync(
-                SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: code))
+            using (var workspace = TestWorkspace.Create(
+                SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: code, exportProvider: EditorServicesUtil.ExportProvider))
             {
                 SetOptions(workspace);
 
@@ -880,7 +948,7 @@ End Class";
             return solution;
         }
 
-        private static SolutionInfo GetInitialSolutionInfo(TestWorkspace workspace)
+        private static SolutionInfo GetInitialSolutionInfo_2Projects_10Documents(TestWorkspace workspace)
         {
             var projectId1 = ProjectId.CreateNewId();
             var projectId2 = ProjectId.CreateNewId();
@@ -938,15 +1006,13 @@ End Class";
 
         private static void SetOptions(Workspace workspace)
         {
-            var optionService = workspace.Services.GetService<IOptionService>();
-
             // override default timespan to make test run faster
-            optionService.SetOptions(optionService.GetOptions().WithChangedOption(InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS, 0)
-                                                               .WithChangedOption(InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS, 0)
-                                                               .WithChangedOption(InternalSolutionCrawlerOptions.PreviewBackOffTimeSpanInMS, 0)
-                                                               .WithChangedOption(InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS, 0)
-                                                               .WithChangedOption(InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS, 0)
-                                                               .WithChangedOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS, 100));
+            workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS, 0)
+                                                 .WithChangedOption(InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS, 0)
+                                                 .WithChangedOption(InternalSolutionCrawlerOptions.PreviewBackOffTimeSpanInMS, 0)
+                                                 .WithChangedOption(InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS, 0)
+                                                 .WithChangedOption(InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS, 0)
+                                                 .WithChangedOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS, 100);
         }
 
         private class WorkCoordinatorWorkspace : TestWorkspace
@@ -955,7 +1021,7 @@ End Class";
             private readonly IAsynchronousOperationWaiter _solutionCrawlerWaiter;
 
             public WorkCoordinatorWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
-                : base(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), workspaceKind, disablePartialSolutions)
+                : base(EditorServicesUtil.CreateExportProvider(), workspaceKind, disablePartialSolutions)
             {
                 _workspaceWaiter = GetListeners(ExportProvider).First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
                 _solutionCrawlerWaiter = GetListeners(ExportProvider).First(l => l.Metadata.FeatureName == FeatureAttribute.SolutionCrawler).Value as IAsynchronousOperationWaiter;
@@ -977,23 +1043,23 @@ End Class";
 
         private class AnalyzerProvider : IIncrementalAnalyzerProvider
         {
-            private readonly Analyzer _analyzer;
+            public readonly Analyzer Analyzer;
 
             public AnalyzerProvider(Analyzer analyzer)
             {
-                _analyzer = analyzer;
+                Analyzer = analyzer;
             }
 
             public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
             {
-                return _analyzer;
+                return Analyzer;
             }
         }
 
         internal class Metadata : IncrementalAnalyzerProviderMetadata
         {
             public Metadata(params string[] workspaceKinds)
-                : base(new Dictionary<string, object> { { "WorkspaceKinds", workspaceKinds }, { "HighPriorityForActiveFile", false } })
+                : base(new Dictionary<string, object> { { "WorkspaceKinds", workspaceKinds }, { "HighPriorityForActiveFile", false }, { "Name", "TestAnalyzer" } })
             {
             }
 
@@ -1002,6 +1068,8 @@ End Class";
 
         private class Analyzer : IIncrementalAnalyzer
         {
+            public static readonly Option<bool> TestOption = new Option<bool>("TestOptions", "TestOption", defaultValue: true);
+
             private readonly bool _waitForCancellation;
             private readonly bool _blockedRun;
 
@@ -1024,13 +1092,13 @@ End Class";
                 this.RunningEvent = new ManualResetEventSlim(initialState: false);
             }
 
-            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.ProjectIds.Add(project.Id);
                 return SpecializedTasks.EmptyTask;
             }
 
-            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (bodyOpt == null)
                 {
@@ -1040,7 +1108,7 @@ End Class";
                 return SpecializedTasks.EmptyTask;
             }
 
-            public Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.SyntaxDocumentIds.Add(document.Id);
                 Process(document.Id, cancellationToken);
@@ -1076,6 +1144,11 @@ End Class";
                 }
             }
 
+            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
+            {
+                return e.Option == TestOption;
+            }
+
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
@@ -1095,11 +1168,6 @@ End Class";
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
-            }
-
-            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                return false;
             }
             #endregion
         }

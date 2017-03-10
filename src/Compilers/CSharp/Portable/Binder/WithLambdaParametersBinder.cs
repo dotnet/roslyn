@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
+        private static bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
             if (parameter.Locations[0] == newLocation)
             {
@@ -131,8 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
             {
-                // CS0412: 'X': a parameter or local variable cannot have the same name as a method type parameter
-                diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
+                // Error: A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
                 return true;
             }
 
@@ -158,6 +158,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

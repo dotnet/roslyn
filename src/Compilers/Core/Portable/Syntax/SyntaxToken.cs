@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxToken);
             }
 
-            return Node.Navigator.GetNextToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return SyntaxNavigator.Instance.GetNextToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxToken);
             }
 
-            return Node.Navigator.GetNextToken(this, predicate, stepInto);
+            return SyntaxNavigator.Instance.GetNextToken(this, predicate, stepInto);
         }
 
         /// <summary>
@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxToken);
             }
 
-            return Node.Navigator.GetPreviousToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return SyntaxNavigator.Instance.GetPreviousToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis
         /// included in the search.</param>
         internal SyntaxToken GetPreviousToken(Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto = null)
         {
-            return Node.Navigator.GetPreviousToken(this, predicate, stepInto);
+            return SyntaxNavigator.Instance.GetPreviousToken(this, predicate, stepInto);
         }
 
         /// <summary>

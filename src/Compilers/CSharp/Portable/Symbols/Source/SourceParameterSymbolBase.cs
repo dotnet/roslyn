@@ -79,18 +79,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.Type.TypeSymbol.ContainsDynamic())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type.TypeSymbol, this.Type.CustomModifiers.Length, this.RefKind));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type.TypeSymbol, this.Type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
-        }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
-        {
-            get
+            if (Type.ContainsTupleNames())
             {
-                return 0;
+                AddSynthesizedAttribute(ref attributes,
+                    compilation.SynthesizeTupleNamesAttribute(Type));
             }
         }
 
-        internal abstract ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ushort countOfCustomModifiersPrecedingByRef, bool newIsParams);
+        internal abstract ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams);
     }
 }

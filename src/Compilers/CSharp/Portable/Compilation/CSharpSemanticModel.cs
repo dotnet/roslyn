@@ -96,7 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto default;
 
                 case SyntaxKind.OmittedTypeArgument:
-                    // There are just placeholders and are not separately meaningful.
+                case SyntaxKind.RefExpression:
+                case SyntaxKind.RefType:
+                    // These are just placeholders and are not separately meaningful.
                     return false;
 
                 default:
@@ -212,11 +214,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new TypeofBinder(expression, binder);
             }
 
-            // May be binding an expression in a context that doesn't have a LocalScopeBinder in the chain.
-            return new LocalScopeBinder(binder);
+            return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
         }
 
-        private Binder GetSpeculativeBinderForAttribute(int position)
+        private Binder GetSpeculativeBinderForAttribute(int position, AttributeSyntax attribute)
         {
             position = CheckAndAdjustPositionForSpeculativeAttribute(position);
 
@@ -226,8 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // May be binding an expression in a context that doesn't have a LocalScopeBinder in the chain.
-            return new LocalScopeBinder(binder);
+            return new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).GetBinder(attribute);
         }
 
         private static BoundExpression GetSpeculativelyBoundExpressionHelper(Binder binder, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, DiagnosticBag diagnostics)
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(attribute));
             }
 
-            binder = this.GetSpeculativeBinderForAttribute(position);
+            binder = this.GetSpeculativeBinderForAttribute(position, attribute);
             if (binder == null)
             {
                 return null;
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnostics = DiagnosticBag.GetInstance();
             AliasSymbol aliasOpt; // not needed.
             NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).TypeSymbol;
-            var boundNode = binder.BindAttribute(attribute, attributeType, diagnostics);
+            var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, diagnostics);
             diagnostics.Free();
 
             return boundNode;
@@ -496,11 +496,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract SymbolInfo GetSymbolInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Gets the symbol information for the property of a sub-property pattern.
-        /// </summary>
-        public abstract SymbolInfo GetSymbolInfo(SubPropertyPatternSyntax node, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
         /// 
         /// An AliasSymbol will never be returned by this method. What the alias refers to will be
@@ -524,10 +519,72 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Named arguments handled in special way.
                 return this.GetNamedArgumentSymbolInfo((IdentifierNameSyntax)expression, cancellationToken);
             }
-            else
+            else if (SyntaxFacts.IsDeclarationExpressionType(expression, out DeclarationExpressionSyntax parent))
             {
-                return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);
+                switch (parent.Designation.Kind())
+                {
+                    case SyntaxKind.SingleVariableDesignation:
+                        return GetSymbolInfoFromSymbolOrNone(TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken));
+
+                    case SyntaxKind.DiscardDesignation:
+                        return GetSymbolInfoFromSymbolOrNone(GetTypeInfoWorker(parent, cancellationToken).Type);
+
+                    case SyntaxKind.ParenthesizedVariableDesignation:
+                        if (((TypeSyntax)expression).IsVar)
+                        {
+                            return SymbolInfo.None;
+                        }
+                        break;
+                }
             }
+            else if (expression is DeclarationExpressionSyntax declaration)
+            {
+                if (declaration.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
+                {
+                    return SymbolInfo.None;
+                }
+
+                var symbol = GetDeclaredSymbol((SingleVariableDesignationSyntax)declaration.Designation, cancellationToken);
+                if ((object)symbol == null)
+                {
+                    return SymbolInfo.None;
+                }
+                return new SymbolInfo(symbol);
+            }
+
+            return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);
+        }
+
+        private static SymbolInfo GetSymbolInfoFromSymbolOrNone(ITypeSymbol type)
+        {
+            if (type?.Kind != SymbolKind.ErrorType)
+            {
+                return new SymbolInfo(type);
+            }
+
+            return SymbolInfo.None;
+        }
+
+        /// <summary>
+        /// Given a variable designation (typically in the left-hand-side of a deconstruction declaration statement),
+        /// figure out its type by looking at the declared symbol of the corresponding variable.
+        /// </summary>
+        private ITypeSymbol TypeFromVariable(SingleVariableDesignationSyntax variableDesignation, CancellationToken cancellationToken)
+        {
+            var variable = GetDeclaredSymbol(variableDesignation, cancellationToken);
+
+            if (variable != null)
+            {
+                switch (variable.Kind)
+                {
+                    case SymbolKind.Local:
+                        return ((ILocalSymbol)variable).Type;
+                    case SymbolKind.Field:
+                        return ((IFieldSymbol)variable).Type;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -725,6 +782,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (binder != null)
             {
                 var diagnostics = DiagnosticBag.GetInstance();
+
+                if (constructorInitializer.ArgumentList != null)
+                {
+                    binder = new ExecutableCodeBinder(constructorInitializer.ArgumentList, binder.ContainingMemberOrLambda, binder);
+                }
+
                 var bnode = memberModel.Bind(binder, constructorInitializer, diagnostics);
                 var binfo = memberModel.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bnode, bnode, boundNodeForSyntacticParent: null, binderOpt: binder);
                 diagnostics.Free();
@@ -786,9 +849,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(expression);
 
-            return CanGetSemanticInfo(expression)
-                ? GetTypeInfoWorker(expression, cancellationToken)
-                : CSharpTypeInfo.None;
+            if (!CanGetSemanticInfo(expression))
+            {
+                return CSharpTypeInfo.None;
+            }
+            else if (SyntaxFacts.IsDeclarationExpressionType(expression, out DeclarationExpressionSyntax parent))
+            {
+                switch (parent.Designation.Kind())
+                {
+                    case SyntaxKind.SingleVariableDesignation:
+                        var declarationType = (TypeSymbol)TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken);
+                        return new CSharpTypeInfo(declarationType, declarationType, Conversion.Identity);
+
+                    case SyntaxKind.DiscardDesignation:
+                        declarationType = GetTypeInfoWorker(parent, cancellationToken).Type;
+                        return new CSharpTypeInfo(declarationType, declarationType, Conversion.Identity);
+
+                    case SyntaxKind.ParenthesizedVariableDesignation:
+                        if (((TypeSyntax)expression).IsVar)
+                        {
+                            return CSharpTypeInfo.None;
+                        }
+                        break;
+                }
+            }
+
+            return GetTypeInfoWorker(expression, cancellationToken);
         }
 
         /// <summary>
@@ -872,7 +958,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public Conversion GetSpeculativeConversion(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
-            var csnode = (CSharpSyntaxNode)expression;
             var info = this.GetSpeculativeTypeInfoWorker(position, expression, bindingOption);
             return info.ImplicitConversion;
         }
@@ -1031,9 +1116,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the MemberSemanticModel that contains the node.
         /// </summary>
-        internal abstract MemberSemanticModel GetMemberModel(CSharpSyntaxNode node);
+        internal abstract MemberSemanticModel GetMemberModel(SyntaxNode node);
 
-        internal bool IsInTree(CSharpSyntaxNode node)
+        internal bool IsInTree(SyntaxNode node)
         {
             return node.SyntaxTree == this.SyntaxTree;
         }
@@ -1112,12 +1197,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A convenience method that determines a position from a node.  If the node is missing,
         /// then its position will be adjusted using CheckAndAdjustPosition.
         /// </summary>
-        protected int GetAdjustedNodePosition(CSharpSyntaxNode node)
+        protected int GetAdjustedNodePosition(SyntaxNode node)
         {
             Debug.Assert(IsInTree(node));
 
             var fullSpan = this.Root.FullSpan;
             var position = node.SpanStart;
+            if (node is StatementSyntax)
+            {
+                // skip zero-width tokens to get the postion, but never get past the end of the node
+                int betterPosition = node.GetFirstToken(includeZeroWidth: false).SpanStart;
+                if (betterPosition < node.Span.End)
+                {
+                    position = betterPosition;
+                }
+            }
 
             if (fullSpan.IsEmpty)
             {
@@ -1733,7 +1827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var s in symbols)
                     {
                         AddUnwrappingErrorTypes(builder, s);
-                        }
+                    }
 
                     symbols = builder.ToImmutableAndFree();
                 }
@@ -1817,9 +1911,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             type = ((BoundLocal)boundExpr).LocalSymbol.Type.TypeSymbol;
                         }
                     }
+
+                    if (boundExpr.Kind == BoundKind.ConvertedTupleLiteral)
+                    {
+                        // The bound tree always fully binds tuple literals. From the language point of
+                        // view, however, converted tuple literals represent tuple conversions
+                        // from tuple literal expressions which may or may not have types
+                        type = ((BoundConvertedTupleLiteral)boundExpr).NaturalTypeOpt;
+                    }
                 }
 
-                if (highestBoundExpr != null && highestBoundExpr.Kind == BoundKind.Lambda) // the enclosing conversion is explicit
+                if (highestBoundExpr?.Kind == BoundKind.Lambda) // the enclosing conversion is explicit
                 {
                     var lambda = (BoundLambda)highestBoundExpr;
                     convertedType = lambda.Type;
@@ -1829,6 +1931,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Type and ConvertedType are the same, but the conversion isn't Identity.
                     type = null;
                     conversion = new Conversion(ConversionKind.AnonymousFunction, lambda.Symbol, false);
+                }
+                else if ((highestBoundExpr as BoundConversion)?.Conversion.IsTupleLiteralConversion == true)
+                {
+                    var tupleLiteralConversion = (BoundConversion)highestBoundExpr;
+                    var convertedTuple = (BoundConvertedTupleLiteral)tupleLiteralConversion.Operand;
+                    type = convertedTuple.NaturalTypeOpt;
+                    convertedType = tupleLiteralConversion.Type;
+                    conversion = tupleLiteralConversion.Conversion;
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
@@ -1854,7 +1964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion = binder.Conversions.ClassifyConversionFromExpression(boundExpr, convertedType, ref useSiteDiagnostics);
                     }
                 }
-                else if ((boundNodeForSyntacticParent != null) && (boundNodeForSyntacticParent.Kind == BoundKind.DelegateCreationExpression))
+                else if (boundNodeForSyntacticParent?.Kind == BoundKind.DelegateCreationExpression)
                 {
                     // A delegate creation expression takes the place of a method group or anonymous function conversion.
                     var delegateCreation = (BoundDelegateCreationExpression)boundNodeForSyntacticParent;
@@ -2331,7 +2441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckModelAndSyntaxNodeToSpeculate(attribute);
 
-            var binder = GetSpeculativeBinderForAttribute(position);
+            var binder = GetSpeculativeBinderForAttribute(position, attribute);
             if (binder == null)
             {
                 speculativeModel = null;
@@ -2403,6 +2513,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var cdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
+
+            if (expression.Kind() == SyntaxKind.DeclarationExpression)
+            {
+                // Conversion from a declaration is unspecified.
+                return Conversion.NoConversion;
+            }
 
             if (isExplicitInSource)
             {
@@ -2477,7 +2593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bnode != null && !destination.IsErrorType())
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    return binder.Conversions.ClassifyConversionForCast(bnode, destination, ref useSiteDiagnostics);
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, ref useSiteDiagnostics, forCast: true);
                 }
             }
 
@@ -2594,6 +2710,59 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        // Anonymous types and Tuple expressions are an interesting case here because they declare their own types
+        //
+        // In both cases there is no distinct syntax that creates the type and the syntax that describes the type is the literal itself.
+        // Surely - if you need to modify the anonymous type or a type of a tuple literal, you would be modifying these expressions.
+        //
+        // As a result we support GetDeclaredSymbol on the whole AnonymousObjectCreationExpressionSyntax/TupleExpressionSyntax.
+        // The implementation returns the type of the expression.
+        //
+        // In addition to that GetDeclaredSymbol works on the AnonymousObjectMemberDeclaratorSyntax/ArgumentSyntax
+        // The implementation returns the property/field symbol that is declared by the corresponding syntax.
+        //
+        // Example:
+        //              GetDeclaredSymbol => Type: (int Alice, int Bob) 
+        //             _____ |__________
+        //            [                 ]
+        // var tuple = (Alice: 1, Bob: 2);
+        //                        [     ]
+        //                           \GetDeclaredSymbol => Field: (int Alice, int Bob).Bob
+        //
+        // A special note must be made about the locations of the corresponding symbols - they refer to the actual syntax
+        // of the literal or the anonymous type creation expression
+        // 
+        // This way IDEs can unambiguously implement such services as "Go to definition"
+        //
+        // I.E. GetSymbolInfo for "Bob" in "tuple.Bob" should point to the same field as returned by GetDeclaredSymbol when applied to 
+        // the ArgumentSyntax "Bob: 2", since that is where the field was declared, where renames should be applied and so on.
+        //                 
+        //
+        // In comparison to anonymous types, tuples have one special behavior. 
+        // It is permitted for tuple literals to not have a natural type as long as there is a target type which determines the types of the fields.
+        // As, such for the purpose of GetDeclaredSymbol, the type symbol that is returned for tuple literals has target-typed fields, 
+        // but yet with the original names.
+        //
+        //                               GetDeclaredSymbol => Type: (string Alice, short Bob) 
+        //                         ________ |__________
+        //                         [                   ]
+        // (string, short) tuple = (Alice: null, Bob: 2);
+        //                         [           ]
+        //                              \GetDeclaredSymbol => Field: (string Alice, short Bob).Alice
+        //
+        // In partiucular, the location of the field declaration is "Alice: null" and not the "string"
+        //                 the location of the type is "(Alice: null, Bob: 2)" and not the "(string, short)"
+        //
+        // The reason for this behavior is that, even though there might not be other references to "Alice" field in the code, 
+        // the name "Alice" itself evidently refers to something named "Alice" and should still work with
+        // all the related APIs and services such as "Find all References", "Go to definition", "symbolic rename" etc... 
+        // 
+        //                         GetSymbolInfo => Field: (string Alice, short Bob).Alice 
+        //                         __ |__
+        //                         [     ]
+        // (string, short) tuple = (Alice: null, Bob: 2);
+        //
+
         /// <summary>
         /// Given a syntax node of anonymous object creation initializer, get the anonymous object property symbol.
         /// </summary>
@@ -2609,6 +2778,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The symbol that was declared.</returns>
         public abstract INamedTypeSymbol GetDeclaredSymbol(AnonymousObjectCreationExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Given a syntax node of a tuple expression, get the tuple type symbol.
+        /// </summary>
+        /// <param name="declaratorSyntax">The tuple expression node.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract INamedTypeSymbol GetDeclaredSymbol(TupleExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Given a syntax node of an argument expression, get the declared symbol.
+        /// </summary>
+        /// <param name="declaratorSyntax">The argument syntax node.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        /// <remarks>
+        /// Generally ArgumentSyntax nodes do not declare symbols, except when used as aarguments of a tuple literal.
+        /// Example:  var x = (Alice: 1, Bob: 2);
+        ///           ArgumentSyntax "Alice: 1" declares a tuple element field "(int Alice, int Bob).Alice"
+        /// </remarks>
+        public abstract ISymbol GetDeclaredSymbol(ArgumentSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Given a syntax node that declares a property or member accessor, get the corresponding
@@ -2636,20 +2826,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ISymbol GetDeclaredSymbol(VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Given a declaration pattern syntax, get the corresponding symbol.
+        /// Given a variable designation syntax, get the corresponding symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The symbol that was declared.</returns>
-        public abstract ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Given a let statement syntax, get the corresponding symbol if the statement uses [let &lt;identifier&gt; = ...] form.
-        /// </summary>
-        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The symbol that was declared.</returns>
-        public abstract ISymbol GetDeclaredSymbol(LetStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract ISymbol GetDeclaredSymbol(SingleVariableDesignationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Given a labeled statement syntax, get the corresponding label symbol.
@@ -2764,8 +2946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            foreachBinder = foreachBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
-            LocalSymbol local = foreachBinder.Locals.FirstOrDefault();
+            LocalSymbol local = foreachBinder.GetDeclaredLocalsForScope(forEachStatement).FirstOrDefault();
             return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable)
                 ? local
                 : null;
@@ -2795,8 +2976,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            catchBinder = enclosingBinder.GetBinder(catchClause).WithAdditionalFlags(GetSemanticModelBinderFlags());
-            LocalSymbol local = catchBinder.Locals.FirstOrDefault();
+            catchBinder = enclosingBinder.GetBinder(catchClause);
+            LocalSymbol local = catchBinder.GetDeclaredLocalsForScope(catchClause).FirstOrDefault();
             return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.CatchVariable)
                 ? local
                 : null;
@@ -3391,7 +3572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor = null;
 
             // Check if boundNode.Syntax is the type-name child of an Attribute.
-            CSharpSyntaxNode parentSyntax = boundNodeForSyntacticParent.Syntax;
+            SyntaxNode parentSyntax = boundNodeForSyntacticParent.Syntax;
             if (parentSyntax != null &&
                 parentSyntax == boundNode.Syntax.Parent &&
                 parentSyntax.Kind() == SyntaxKind.Attribute && ((AttributeSyntax)parentSyntax).Name == boundNode.Syntax)
@@ -3896,7 +4077,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (argumentName.Length == 0)
                 return SymbolInfo.None;    // missing name.
 
-            CSharpSyntaxNode containingInvocation = identifierNameSyntax.Parent.Parent.Parent.Parent;
+            // argument could be an argument of a tuple expression
+            // var x = (Identifier: 1, AnotherIdentifier: 2);
+            var parent3 = identifierNameSyntax.Parent.Parent.Parent;        
+            if (parent3.IsKind(SyntaxKind.TupleExpression))
+            {
+                var tupleArgument = (ArgumentSyntax)identifierNameSyntax.Parent.Parent;
+                var tupleElement = GetDeclaredSymbol(tupleArgument, cancellationToken);
+                return (object)tupleElement == null ? SymbolInfo.None : new SymbolInfo(tupleElement, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
+            }
+
+            CSharpSyntaxNode containingInvocation = parent3.Parent;
             SymbolInfo containingInvocationInfo = GetSymbolInfoWorker(containingInvocation, SymbolInfoOptions.PreferConstructorsToType | SymbolInfoOptions.ResolveAliases, cancellationToken);
 
 
@@ -4205,6 +4396,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node);
 
         /// <summary>
+        /// Gets for each statement info.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public abstract ForEachStatementInfo GetForEachStatementInfo(CommonForEachStatementSyntax node);
+
+        /// <summary>
         /// Gets await expression info.
         /// </summary>
         /// <param name="node">The node.</param>
@@ -4358,12 +4555,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.GetSymbolInfo(orderingSyntax, cancellationToken);
             }
 
-            var subPropertyPattern = node as SubPropertyPatternSyntax;
-            if (subPropertyPattern != null)
-            {
-                return this.GetSymbolInfo(subPropertyPattern, cancellationToken);
-            }
-
             return SymbolInfo.None;
         }
 
@@ -4455,7 +4646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return default(SymbolInfo);
+                return SymbolInfo.None;
             }
         }
 
@@ -4463,7 +4654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return expression is ExpressionSyntax
                 ? GetSpeculativeTypeInfo(position, (ExpressionSyntax)expression, bindingOption)
-                : default(TypeInfo);
+                : CSharpTypeInfo.None;
         }
 
         protected sealed override IAliasSymbol GetSpeculativeAliasInfoCore(int position, SyntaxNode nameSyntax, SpeculativeBindingOption bindingOption)
@@ -4542,12 +4733,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((AnonymousObjectCreationExpressionSyntax)node, cancellationToken);
                 case SyntaxKind.AnonymousObjectMemberDeclarator:
                     return this.GetDeclaredSymbol((AnonymousObjectMemberDeclaratorSyntax)node, cancellationToken);
+                case SyntaxKind.TupleExpression:
+                    return this.GetDeclaredSymbol((TupleExpressionSyntax)node, cancellationToken);
+                case SyntaxKind.Argument:
+                    return this.GetDeclaredSymbol((ArgumentSyntax)node, cancellationToken);
                 case SyntaxKind.VariableDeclarator:
                     return this.GetDeclaredSymbol((VariableDeclaratorSyntax)node, cancellationToken);
-                case SyntaxKind.DeclarationPattern:
-                    return this.GetDeclaredSymbol((DeclarationPatternSyntax)node, cancellationToken);
-                case SyntaxKind.LetStatement:
-                    return this.GetDeclaredSymbol((LetStatementSyntax)node, cancellationToken);
+                case SyntaxKind.SingleVariableDesignation:
+                    return this.GetDeclaredSymbol((SingleVariableDesignationSyntax)node, cancellationToken);
+                case SyntaxKind.TupleElement:
+                    return this.GetDeclaredSymbol((TupleElementSyntax)node, cancellationToken);
                 case SyntaxKind.NamespaceDeclaration:
                     return this.GetDeclaredSymbol((NamespaceDeclarationSyntax)node, cancellationToken);
                 case SyntaxKind.Parameter:
@@ -4570,6 +4765,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((JoinIntoClauseSyntax)node, cancellationToken);
                 case SyntaxKind.QueryContinuation:
                     return this.GetDeclaredSymbol((QueryContinuationSyntax)node, cancellationToken);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Given a tuple element syntax, get the corresponding symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a tuple element.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public ISymbol GetDeclaredSymbol(TupleElementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declarationSyntax);
+
+            var tupleTypeSyntax = declarationSyntax.Parent as TupleTypeSyntax;
+            if (tupleTypeSyntax != null)
+            {
+                return (GetSymbolInfo(tupleTypeSyntax).Symbol as TupleTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(declarationSyntax));
             }
 
             return null;

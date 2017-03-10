@@ -1,17 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{FE2CBEA6-D121-4FAA-AA8B-FC9900BF8C83}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -54,10 +52,6 @@
       <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
       <Name>InteractiveFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
-      <Name>InteractiveWindow</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
@@ -71,25 +65,24 @@
       <Name>EditorFeatures</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
-    <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Completion\CompletionProviders\CSharpReplCommandCompletionProvider.cs" />
     <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.cs" />
-    <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\FileSystem\ReferenceDirectiveCompletionProvider.cs" />
     <Compile Include="CSharpInteractiveEditorResources.Designer.cs">
       <DependentUpon>CSharpInteractiveEditorResources.resx</DependentUpon>
@@ -101,27 +94,6 @@
     <Compile Include="Interactive\CSharpSendToInteractiveSubmissionProvider.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -141,7 +113,5 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.Text;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             return new SmartTokenFormatter(optionSet, formattingRules, (CompilationUnitSyntax)root);
         }
 
-        protected override bool UseSmartTokenFormatter(SyntaxNode root, ITextSnapshotLine line, IEnumerable<IFormattingRule> formattingRules, OptionSet options, CancellationToken cancellationToken)
+        protected override bool UseSmartTokenFormatter(SyntaxNode root, TextLine line, IEnumerable<IFormattingRule> formattingRules, OptionSet options, CancellationToken cancellationToken)
         {
             return CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, (CompilationUnitSyntax)root, line, options, cancellationToken);
         }

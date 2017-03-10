@@ -89,8 +89,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
-            return ConstructedFrom.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
-                   GetUnificationUseSiteDiagnosticRecursive(ref result, _typeArguments, owner, ref checkedTypes);
+            if (ConstructedFrom.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
+                GetUnificationUseSiteDiagnosticRecursive(ref result, _typeArguments, owner, ref checkedTypes))
+            {
+                return true;
+            }
+
+            if (_hasTypeArgumentsCustomModifiers)
+            {
+                for (int i = 0; i < this.Arity; i++)
+                {
+                    if (GetUnificationUseSiteDiagnosticRecursive(ref result, this.GetTypeArgumentCustomModifiers(i), owner, ref checkedTypes))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

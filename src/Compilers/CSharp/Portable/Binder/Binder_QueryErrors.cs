@@ -6,6 +6,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -18,14 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is a clone of the Dev10 logic for reporting query errors.
         /// </summary>
         internal void ReportQueryLookupFailed(
-            CSharpSyntaxNode queryClause,
+            SyntaxNode queryClause,
             BoundExpression instanceArgument,
             string name,
             ImmutableArray<Symbol> symbols,
             DiagnosticBag diagnostics)
         {
             FromClauseSyntax fromClause = null;
-            for (CSharpSyntaxNode node = queryClause; ; node = node.Parent)
+            for (SyntaxNode node = queryClause; ; node = node.Parent)
             {
                 var e = node as QueryExpressionSyntax;
                 if (e != null)
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // CS1979: Query expressions over source type 'dynamic' or with a join sequence of type 'dynamic' are not allowed
                 diagnostics.Add(
-                    new DiagnosticInfoWithSymbols(ErrorCode.ERR_BadDynamicQuery, SpecializedCollections.EmptyObjects, symbols),
+                    new DiagnosticInfoWithSymbols(ErrorCode.ERR_BadDynamicQuery, Array.Empty<object>(), symbols),
                     new SourceLocation(queryClause));
             }
             else if (ImplementsStandardQueryInterface(instanceArgument.Type, name, ref useSiteDiagnostics))

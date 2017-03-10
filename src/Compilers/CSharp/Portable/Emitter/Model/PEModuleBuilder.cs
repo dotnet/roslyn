@@ -11,18 +11,17 @@ using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal abstract class PEModuleBuilder : PEModuleBuilder<CSharpCompilation, SourceModuleSymbol, AssemblySymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, CSharpSyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState>
+    internal abstract class PEModuleBuilder : PEModuleBuilder<CSharpCompilation, SourceModuleSymbol, AssemblySymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, SyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState>
     {
         // TODO: Need to estimate amount of elements for this map and pass that value to the constructor. 
         protected readonly ConcurrentDictionary<Symbol, Cci.IModuleReference> AssemblyOrModuleSymbolToModuleRefMap = new ConcurrentDictionary<Symbol, Cci.IModuleReference>();
         private readonly ConcurrentDictionary<Symbol, object> _genericInstanceMap = new ConcurrentDictionary<Symbol, object>();
-        private readonly ConcurrentSet<ErrorTypeSymbol> _reportedErrorTypesMap = new ConcurrentSet<ErrorTypeSymbol>();
+        private readonly ConcurrentSet<TypeSymbol> _reportedErrorTypesMap = new ConcurrentSet<TypeSymbol>();
 
         private readonly NoPia.EmbeddedTypesManager _embeddedTypesManagerOpt;
         public override NoPia.EmbeddedTypesManager EmbeddedTypesManagerOpt
@@ -34,18 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         // See Assembly.MetadataName.
         private readonly string _metadataName;
 
-        private ImmutableArray<NamedTypeSymbol> _lazyExportedTypes;
+        private ImmutableArray<Cci.ExportedType> _lazyExportedTypes;
 
         /// <summary>
         /// The compiler-generated implementation type for each fixed-size buffer.
         /// </summary>
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
-
-        // These fields will only be set when running tests.  They allow realized IL for a given method to be looked up by method display name.
-        private ConcurrentDictionary<string, CompilationTestData.MethodData> _testData;
-
-        private SymbolDisplayFormat _testDataKeyFormat;
-        private SymbolDisplayFormat _testDataOperatorKeyFormat;
 
         internal PEModuleBuilder(
             SourceModuleSymbol sourceModule,
@@ -75,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal override string Name
+        public override string Name
         {
             get { return _metadataName; }
         }
@@ -90,17 +83,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(attributeConstructor);
         }
 
-        internal sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes()
+        public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes()
         {
             return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(this.CompilationState, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
         }
 
-        internal sealed override IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes()
+        public sealed override IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes()
         {
             return SourceModule.ContainingSourceAssembly.GetSecurityAttributes();
         }
 
-        internal sealed override IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes()
+        public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes()
         {
             return SourceModule.GetCustomAttributesToEmit(this.CompilationState);
         }
@@ -110,18 +103,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return SourceModule.ContainingSourceAssembly.CorLibrary; }
         }
 
-        protected sealed override bool GenerateVisualBasicStylePdb => false;
+        public sealed override bool GenerateVisualBasicStylePdb => false;
 
         // C# doesn't emit linked assembly names into PDBs.
-        protected sealed override IEnumerable<string> LinkedAssembliesDebugInfo => SpecializedCollections.EmptyEnumerable<string>();
+        public sealed override IEnumerable<string> LinkedAssembliesDebugInfo => SpecializedCollections.EmptyEnumerable<string>();
 
         // C# currently doesn't emit compilation level imports (TODO: scripting).
-        protected override ImmutableArray<Cci.UsedNamespaceOrType> GetImports() => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
+        public sealed override ImmutableArray<Cci.UsedNamespaceOrType> GetImports() => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
 
         // C# doesn't allow to define default namespace for compilation.
-        protected override string DefaultNamespace => null;
+        public sealed override string DefaultNamespace => null;
 
-        protected override IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics)
+        protected sealed override IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics)
         {
             ImmutableArray<ModuleSymbol> modules = SourceModule.ContainingAssembly.Modules;
 
@@ -185,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        protected override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
+        public sealed override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
         {
             var result = new MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation>();
 
@@ -295,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             FileLinePositionSpan span = location.GetLineSpan();
 
-            Cci.DebugSourceDocument doc = TryGetDebugDocument(span.Path, basePath: location.SourceTree.FilePath);
+            Cci.DebugSourceDocument doc = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: location.SourceTree.FilePath);
 
             if (doc != null)
             {
@@ -338,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         internal virtual NamedTypeSymbol DynamicOperationContextType => null;
 
-        internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod)
+        internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
             return null;
         }
@@ -362,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return false;
         }
 
-        internal override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
+        internal sealed override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
         {
             if (EmitOptions.EmitMetadataOnly)
             {
@@ -414,143 +407,160 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        private void GetExportedTypes(NamespaceOrTypeSymbol sym, ArrayBuilder<NamedTypeSymbol> builder)
+        private static void GetExportedTypes(NamespaceOrTypeSymbol symbol, int parentIndex, ArrayBuilder<Cci.ExportedType> builder)
         {
-            if (sym.Kind == SymbolKind.NamedType)
+            int index;
+            if (symbol.Kind == SymbolKind.NamedType)
             {
-                if (sym.DeclaredAccessibility == Accessibility.Public)
-                {
-                    Debug.Assert(sym.IsDefinition);
-                    builder.Add((NamedTypeSymbol)sym);
-                }
-                else
+                if (symbol.DeclaredAccessibility != Accessibility.Public)
                 {
                     return;
                 }
+
+                Debug.Assert(symbol.IsDefinition);
+                index = builder.Count;
+                builder.Add(new Cci.ExportedType((Cci.ITypeReference)symbol, parentIndex, isForwarder: false));
+            }
+            else
+            {
+                index = -1;
             }
 
-            foreach (var t in sym.GetMembers())
+            foreach (var member in symbol.GetMembers())
             {
-                NamespaceOrTypeSymbol nortsym = t as NamespaceOrTypeSymbol;
-
-                if ((object)nortsym != null)
+                var namespaceOrType = member as NamespaceOrTypeSymbol;
+                if ((object)namespaceOrType != null)
                 {
-                    GetExportedTypes(nortsym, builder);
+                    GetExportedTypes(namespaceOrType, index, builder);
                 }
             }
         }
 
-        public override IEnumerable<Cci.ITypeReference> GetExportedTypes(EmitContext context)
+        public sealed override ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics)
         {
             Debug.Assert(HaveDeterminedTopLevelTypes);
 
             if (_lazyExportedTypes.IsDefault)
             {
-                SourceAssemblySymbol sourceAssembly = SourceModule.ContainingSourceAssembly;
-                var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-
-                if (!OutputKind.IsNetModule())
-                {
-                    var modules = sourceAssembly.Modules;
-                    for (int i = 1; i < modules.Length; i++) //NOTE: skipping modules[0]
-                    {
-                        GetExportedTypes(modules[i].GlobalNamespace, builder);
-                    }
-                }
-
-                HashSet<NamedTypeSymbol> seenTopLevelForwardedTypes = new HashSet<NamedTypeSymbol>();
-                GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetSourceDecodedWellKnownAttributeData(), builder);
-
-                if (!OutputKind.IsNetModule())
-                {
-                    GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetNetModuleDecodedWellKnownAttributeData(), builder);
-                }
-
-                Debug.Assert(_lazyExportedTypes.IsDefault);
-
-                _lazyExportedTypes = builder.ToImmutableAndFree();
+                _lazyExportedTypes = CalculateExportedTypes();
 
                 if (_lazyExportedTypes.Length > 0)
                 {
-                    var exportedNamesMap = new Dictionary<string, NamedTypeSymbol>();
-
-                    // Report name collisions.
-                    foreach (var exportedType in _lazyExportedTypes)
-                    {
-                        Debug.Assert(exportedType.IsDefinition);
-
-                        if (exportedType.IsTopLevelType())
-                        {
-                            string fullEmittedName = MetadataHelpers.BuildQualifiedName(
-                                ((Cci.INamespaceTypeReference)exportedType).NamespaceName,
-                                Cci.MetadataWriter.GetMangledName(exportedType));
-
-                            // First check against types declared in the primary module
-                            if (ContainsTopLevelType(fullEmittedName))
-                            {
-                                if (exportedType.ContainingAssembly == sourceAssembly)
-                                {
-                                    context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                        ErrorCode.ERR_ExportedTypeConflictsWithDeclaration, exportedType, exportedType.ContainingModule), NoLocation.Singleton));
-                                }
-                                else
-                                {
-                                    context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                        ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration, exportedType), NoLocation.Singleton));
-                                }
-
-                                continue;
-                            }
-
-                            NamedTypeSymbol contender;
-
-                            // Now check against other exported types
-                            if (exportedNamesMap.TryGetValue(fullEmittedName, out contender))
-                            {
-                                if (exportedType.ContainingAssembly == sourceAssembly)
-                                {
-                                    // all exported types precede forwarded types, therefore contender cannot be a forwarded type.
-                                    Debug.Assert(contender.ContainingAssembly == sourceAssembly);
-
-                                    context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                        ErrorCode.ERR_ExportedTypesConflict, exportedType, exportedType.ContainingModule, contender, contender.ContainingModule), NoLocation.Singleton));
-                                }
-                                else
-                                {
-                                    if (contender.ContainingAssembly == sourceAssembly)
-                                    {
-                                        // Forwarded type conflicts with exported type
-                                        context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                            ErrorCode.ERR_ForwardedTypeConflictsWithExportedType, exportedType, exportedType.ContainingAssembly, contender, contender.ContainingModule), NoLocation.Singleton));
-                                    }
-                                    else
-                                    {
-                                        // Forwarded type conflicts with another forwarded type
-                                        context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                            ErrorCode.ERR_ForwardedTypesConflict, exportedType, exportedType.ContainingAssembly, contender, contender.ContainingAssembly), NoLocation.Singleton));
-                                    }
-                                }
-
-                                continue;
-                            }
-
-                            exportedNamesMap.Add(fullEmittedName, exportedType);
-                        }
-                    }
+                    ReportExportedTypeNameCollisions(_lazyExportedTypes, diagnostics);
                 }
             }
 
             return _lazyExportedTypes;
         }
 
+        /// <summary>
+        /// Builds an array of public type symbols defined in netmodules included in the compilation
+        /// and type forwarders defined in this compilation or any included netmodule (in this order).
+        /// </summary>
+        private ImmutableArray<Cci.ExportedType> CalculateExportedTypes()
+        {
+            SourceAssemblySymbol sourceAssembly = SourceModule.ContainingSourceAssembly;
+            var builder = ArrayBuilder<Cci.ExportedType>.GetInstance();
+
+            if (!OutputKind.IsNetModule())
+            {
+                var modules = sourceAssembly.Modules;
+                for (int i = 1; i < modules.Length; i++) //NOTE: skipping modules[0]
+                {
+                    GetExportedTypes(modules[i].GlobalNamespace, -1, builder);
+                }
+            }
+
+            var seenTopLevelForwardedTypes = new HashSet<NamedTypeSymbol>();
+            GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetSourceDecodedWellKnownAttributeData(), builder);
+
+            if (!OutputKind.IsNetModule())
+            {
+                GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetNetModuleDecodedWellKnownAttributeData(), builder);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        private void ReportExportedTypeNameCollisions(ImmutableArray<Cci.ExportedType> exportedTypes, DiagnosticBag diagnostics)
+        {
+            var sourceAssembly = SourceModule.ContainingSourceAssembly;
+            var exportedNamesMap = new Dictionary<string, NamedTypeSymbol>(StringOrdinalComparer.Instance);
+
+            foreach (var exportedType in exportedTypes)
+            {
+                var type = (NamedTypeSymbol)exportedType.Type;
+
+                Debug.Assert(type.IsDefinition);
+
+                if (!type.IsTopLevelType())
+                {
+                    continue;
+                }
+
+                string fullEmittedName = MetadataHelpers.BuildQualifiedName(
+                    ((Cci.INamespaceTypeReference)type).NamespaceName,
+                    Cci.MetadataWriter.GetMangledName(type));
+
+                // First check against types declared in the primary module
+                if (ContainsTopLevelType(fullEmittedName))
+                {
+                    if ((object)type.ContainingAssembly == sourceAssembly)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ExportedTypeConflictsWithDeclaration, NoLocation.Singleton, type, type.ContainingModule);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration, NoLocation.Singleton, type);
+                    }
+
+                    continue;
+                }
+
+                NamedTypeSymbol contender;
+
+                // Now check against other exported types
+                if (exportedNamesMap.TryGetValue(fullEmittedName, out contender))
+                {
+                    if ((object)type.ContainingAssembly == sourceAssembly)
+                    {
+                        // all exported types precede forwarded types, therefore contender cannot be a forwarded type.
+                        Debug.Assert(contender.ContainingAssembly == sourceAssembly);
+
+                        diagnostics.Add(ErrorCode.ERR_ExportedTypesConflict, NoLocation.Singleton, type, type.ContainingModule, contender, contender.ContainingModule);
+                    }
+                    else if ((object)contender.ContainingAssembly == sourceAssembly)
+                    {
+                        // Forwarded type conflicts with exported type
+                        diagnostics.Add(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType, NoLocation.Singleton, type, type.ContainingAssembly, contender, contender.ContainingModule);
+                    }
+                    else
+                    {
+                        // Forwarded type conflicts with another forwarded type
+                        diagnostics.Add(ErrorCode.ERR_ForwardedTypesConflict, NoLocation.Singleton, type, type.ContainingAssembly, contender, contender.ContainingAssembly);
+                    }
+
+                    continue;
+                }
+
+                exportedNamesMap.Add(fullEmittedName, type);
+            }
+        }
+
         private static void GetForwardedTypes(
             HashSet<NamedTypeSymbol> seenTopLevelTypes,
             CommonAssemblyWellKnownAttributeData<NamedTypeSymbol> wellKnownAttributeData,
-            ArrayBuilder<NamedTypeSymbol> builder)
+            ArrayBuilder<Cci.ExportedType> builder)
         {
-            if (wellKnownAttributeData != null && wellKnownAttributeData.ForwardedTypes != null)
+            if (wellKnownAttributeData?.ForwardedTypes?.Count > 0)
             {
-                foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
+                // (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
+                var stack = ArrayBuilder<(NamedTypeSymbol type, int parentIndex)>.GetInstance();
+
+                // Hashset enumeration is not guaranteed to be deterministic. Emitting in the order of fully qualified names.
+                var orderedForwardedTypes = wellKnownAttributeData.ForwardedTypes.OrderBy(t => t.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
+
+                foreach (NamedTypeSymbol forwardedType in orderedForwardedTypes)
                 {
                     NamedTypeSymbol originalDefinition = forwardedType.OriginalDefinition;
                     Debug.Assert((object)originalDefinition.ContainingType == null, "How did a nested type get forwarded?");
@@ -561,34 +571,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     // Return all nested types.
                     // Note the order: depth first, children in reverse order (to match dev10, not a requirement).
-                    Stack<NamedTypeSymbol> stack = new Stack<NamedTypeSymbol>();
-                    stack.Push(originalDefinition);
+                    Debug.Assert(stack.Count == 0);
+                    stack.Push((originalDefinition, -1));
 
                     while (stack.Count > 0)
                     {
-                        NamedTypeSymbol current = stack.Pop();
+                        var (type, parentIndex) = stack.Pop();
 
                         // In general, we don't want private types to appear in the ExportedTypes table.
                         // BREAK: dev11 emits these types.  The problem was discovered in dev10, but failed
                         // to meet the bar Bug: Dev10/258038 and was left as-is.
-                        if (current.DeclaredAccessibility == Accessibility.Private)
+                        if (type.DeclaredAccessibility == Accessibility.Private)
                         {
-                            // NOTE: this will also exclude nested types of curr.
+                            // NOTE: this will also exclude nested types of type
                             continue;
                         }
 
                         // NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
 
-                        builder.Add(current);
+                        int index = builder.Count;
+                        builder.Add(new Cci.ExportedType(type, parentIndex, isForwarder: true));
 
                         // Iterate backwards so they get popped in forward order.
-                        ImmutableArray<NamedTypeSymbol> nested = current.GetTypeMembers(); // Ordered.
+                        ImmutableArray<NamedTypeSymbol> nested = type.GetTypeMembers(); // Ordered.
                         for (int i = nested.Length - 1; i >= 0; i--)
                         {
-                            stack.Push(nested[i]);
+                            stack.Push((nested[i], index));
                         }
                     }
                 }
+
+                stack.Free();
             }
         }
 
@@ -603,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal sealed override Cci.INamedTypeReference GetSpecialType(SpecialType specialType, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        private NamedTypeSymbol GetUntranslatedSpecialType(SpecialType specialType, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
 
@@ -617,13 +630,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                syntaxNodeOpt != null ? syntaxNodeOpt.Location : NoLocation.Singleton);
             }
 
-            return Translate(typeSymbol,
+            return typeSymbol;
+        }
+
+        internal sealed override Cci.INamedTypeReference GetSpecialType(SpecialType specialType, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            return Translate(GetUntranslatedSpecialType(specialType, syntaxNodeOpt, diagnostics),
                              diagnostics: diagnostics,
                              syntaxNodeOpt: syntaxNodeOpt,
                              needDeclaration: true);
         }
 
-        internal sealed override Cci.INamedTypeReference GetSystemType(CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        internal sealed override Cci.INamedTypeReference GetSystemType(SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
             NamedTypeSymbol systemTypeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Type);
 
@@ -643,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle);
         }
 
-        protected sealed override bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType)
+        public sealed override bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType)
         {
             var namedType = typeRef as NamedTypeSymbol;
             if ((object)namedType != null)
@@ -755,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal Cci.INamedTypeReference Translate(
             NamedTypeSymbol namedTypeSymbol,
-            CSharpSyntaxNode syntaxNodeOpt,
+            SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
             bool fromImplements = false,
             bool needDeclaration = false)
@@ -766,7 +784,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // Anonymous type being translated
             if (namedTypeSymbol.IsAnonymousType)
             {
+                Debug.Assert(!needDeclaration);
                 namedTypeSymbol = AnonymousTypeManager.TranslateAnonymousTypeSymbol(namedTypeSymbol);
+            }
+            else if (namedTypeSymbol.IsTupleType)
+            {
+                Debug.Assert(!needDeclaration);
+                namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType;
+                CheckTupleUnderlyingType(namedTypeSymbol, syntaxNodeOpt, diagnostics);
             }
 
             // Substitute error types with a special singleton object.
@@ -867,6 +892,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return namedTypeSymbol;
         }
 
+        private void CheckTupleUnderlyingType(NamedTypeSymbol namedTypeSymbol, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            // check that underlying type of a ValueTuple is indeed a value type (or error)
+            // this should never happen, in theory,
+            // but if it does happen we should make it a failure.
+            // NOTE: declaredBase could be null for interfaces
+            var declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
+            if ((object)declaredBase != null && declaredBase.SpecialType == SpecialType.System_ValueType)
+            {
+                return;
+            }
+
+            // Try to decrease noise by not complaining about the same type over and over again.
+            if (!_reportedErrorTypesMap.Add(namedTypeSymbol))
+            {
+                return;
+            }
+
+            var location = syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location;
+            if ((object)declaredBase != null)
+            {
+                var diagnosticInfo = declaredBase.GetUseSiteDiagnostic();
+                if (diagnosticInfo != null && diagnosticInfo.Severity == DiagnosticSeverity.Error)
+                {
+                    diagnostics.Add(diagnosticInfo, location);
+                    return;
+                }
+            }
+
+            diagnostics.Add(
+                new CSDiagnostic(
+                    new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, namedTypeSymbol.MetadataName),
+                    location));
+        }
+
         public static bool IsGenericType(NamedTypeSymbol toCheck)
         {
             while ((object)toCheck != null)
@@ -892,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal sealed override Cci.ITypeReference Translate(
             TypeSymbol typeSymbol,
-            CSharpSyntaxNode syntaxNodeOpt,
+            SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
@@ -921,11 +981,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal Cci.IFieldReference Translate(
             FieldSymbol fieldSymbol,
-            CSharpSyntaxNode syntaxNodeOpt,
+            SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
             bool needDeclaration = false)
         {
             Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
+            Debug.Assert(!fieldSymbol.IsTupleField, "tuple fields should be rewritten to underlying by now");
 
             if (!fieldSymbol.IsDefinition)
             {
@@ -1033,14 +1094,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal override Cci.IMethodReference Translate(MethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
+        internal sealed override Cci.IMethodReference Translate(MethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
         {
             return Translate(symbol, null, diagnostics, null, needDeclaration);
         }
 
         internal Cci.IMethodReference Translate(
             MethodSymbol methodSymbol,
-            CSharpSyntaxNode syntaxNodeOpt,
+            SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
             BoundArgListOperator optArgList = null,
             bool needDeclaration = false)
@@ -1072,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private Cci.IMethodReference Translate(
             MethodSymbol methodSymbol,
-            CSharpSyntaxNode syntaxNodeOpt,
+            SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
             bool needDeclaration)
         {
@@ -1080,13 +1141,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Cci.IMethodReference methodRef;
             NamedTypeSymbol container = methodSymbol.ContainingType;
 
-            Debug.Assert(methodSymbol.IsDefinitionOrDistinct());
-
             // Method of anonymous type being translated
             if (container.IsAnonymousType)
             {
+                Debug.Assert(!needDeclaration);
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
             }
+            else if (methodSymbol.IsTupleMethod)
+            {
+                Debug.Assert(!needDeclaration);
+                Debug.Assert(container.IsTupleType);
+                container = container.TupleUnderlyingType;
+                methodSymbol = methodSymbol.TupleUnderlyingMethod;
+            }
+
+            Debug.Assert(!container.IsTupleType);
+            Debug.Assert(methodSymbol.IsDefinitionOrDistinct());
 
             if (!methodSymbol.IsDefinition)
             {
@@ -1253,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal Cci.ITypeReference Translate(
             DynamicTypeSymbol symbol,
-            CSharpSyntaxNode syntaxNodeOpt,
+            SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
             // Translate the dynamic type to System.Object special type to avoid duplicate entries in TypeRef table. 
@@ -1308,129 +1378,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
-        #region Test Hooks
-
-        internal bool SaveTestData
+        protected override Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
-            get
-            {
-                return _testData != null;
-            }
+            return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics));
         }
-
-        internal void SetMethodTestData(MethodSymbol methodSymbol, ILBuilder builder)
-        {
-            if (_testData == null)
-            {
-                throw new InvalidOperationException(CSharpResources.MustCallSetMethodTestData);
-            }
-
-            // If this ever throws "ArgumentException: An item with the same key has already been added.", then
-            // the ilBuilderMapKeyFormat will need to be updated to provide a unique key (see SetMethodTestData).
-            _testData.Add(
-                GetMethodKey(methodSymbol),
-                new CompilationTestData.MethodData(builder, methodSymbol));
-        }
-
-        private string GetMethodKey(MethodSymbol methodSymbol)
-        {
-            // It is possible for two methods to have the same symbol display string.  For example,
-            //
-            //   extern alias A;
-            //   extern alias B;
-            //   
-            //   class C : A::I, B::I
-            //   {
-            //       void A::I.M() { }
-            //       void B::I.M() { }
-            //   }
-            //
-            // Note that symbol display does not incorporate the extern aliases, since they are specific to
-            // declaration context.
-            //
-            // We compensate by prepending the alias qualifier to unique-ify the method key.
-            string aliasQualifierOpt = null;
-            if (methodSymbol.IsExplicitInterfaceImplementation)
-            {
-                Symbol symbol = methodSymbol.AssociatedSymbol ?? methodSymbol;
-                Debug.Assert(symbol.DeclaringSyntaxReferences.Length < 2, "Can't have a partial explicit interface implementation");
-                SyntaxReference reference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
-                if (reference != null)
-                {
-                    var syntax = reference.GetSyntax();
-                    switch (syntax.Kind())
-                    {
-                        case SyntaxKind.MethodDeclaration:
-                            MethodDeclarationSyntax methodDecl = (MethodDeclarationSyntax)syntax;
-                            aliasQualifierOpt = methodDecl.ExplicitInterfaceSpecifier.Name.GetAliasQualifierOpt();
-                            break;
-                        case SyntaxKind.IndexerDeclaration:
-                        case SyntaxKind.PropertyDeclaration:
-                        case SyntaxKind.EventDeclaration:
-                            BasePropertyDeclarationSyntax propertyDecl = (BasePropertyDeclarationSyntax)syntax;
-                            aliasQualifierOpt = propertyDecl.ExplicitInterfaceSpecifier.Name.GetAliasQualifierOpt();
-                            break;
-                        case SyntaxKind.EventFieldDeclaration: // Field-like events are never explicit interface implementations
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
-                    }
-                }
-            }
-
-            string result = methodSymbol.ToDisplayString(methodSymbol.IsOperator() ? _testDataOperatorKeyFormat : _testDataKeyFormat);
-
-            if (aliasQualifierOpt != null)
-            {
-                // Not using the colon-colon syntax since it won't be in the right place anyway.
-                result = aliasQualifierOpt + "$$" + result;
-            }
-
-            return result;
-        }
-
-        internal void SetMethodTestData(ConcurrentDictionary<string, CompilationTestData.MethodData> methods)
-        {
-            _testData = methods;
-            _testDataKeyFormat = new SymbolDisplayFormat(
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames,
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
-                memberOptions:
-                    SymbolDisplayMemberOptions.IncludeParameters |
-                    SymbolDisplayMemberOptions.IncludeContainingType |
-                    SymbolDisplayMemberOptions.IncludeExplicitInterface,
-                parameterOptions:
-                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                    SymbolDisplayParameterOptions.IncludeExtensionThis |
-                    SymbolDisplayParameterOptions.IncludeType,
-                // Not showing the name is important because we visit parameters to display their
-                // types.  If we visited their types directly, we wouldn't get ref/out/params.
-                miscellaneousOptions:
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
-                    SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
-                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
-            // most methods don't need return type to disambiguate signatures, however,
-            // it is necessary to disambiguate user defined operators:
-            //   int op_Implicit(Type)
-            //   float op_Implicit(Type)
-            //   ... etc ...
-            _testDataOperatorKeyFormat = new SymbolDisplayFormat(
-                _testDataKeyFormat.CompilerInternalOptions,
-                _testDataKeyFormat.GlobalNamespaceStyle,
-                _testDataKeyFormat.TypeQualificationStyle,
-                _testDataKeyFormat.GenericsOptions,
-                _testDataKeyFormat.MemberOptions | SymbolDisplayMemberOptions.IncludeType,
-                _testDataKeyFormat.ParameterOptions,
-                _testDataKeyFormat.DelegateStyle,
-                _testDataKeyFormat.ExtensionMethodStyle,
-                _testDataKeyFormat.PropertyStyle,
-                _testDataKeyFormat.LocalOptions,
-                _testDataKeyFormat.KindOptions,
-                _testDataKeyFormat.MiscellaneousOptions);
-        }
-
-        #endregion
     }
 }

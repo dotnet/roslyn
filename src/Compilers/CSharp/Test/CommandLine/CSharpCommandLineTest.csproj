@@ -1,25 +1,31 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <Platform Condition="'$(Platform)' == ''">x86</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{50D26304-0961-4A51-ABF6-6CAD1A56D203}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.CommandLine.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <PlatformTarget>x86</PlatformTarget>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
+      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
+      <Name>TestUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj">
       <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
       <Name>CSharpCompilerTestUtilities.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
+      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f9}</Project>
+      <Name>CSharpCompilerTestUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\csc\csc.csproj">
       <Project>{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}</Project>
@@ -41,29 +47,21 @@
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj">
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
+      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
+      <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
-    <NoWarn>1591</NoWarn>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <OutputPath>bin\Release\</OutputPath>
-    <Optimize>true</Optimize>
-    <NoWarn>1591</NoWarn>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -98,8 +96,5 @@
       <LastGenOutput>CommandLineTestResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

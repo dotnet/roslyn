@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,6 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -45,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 PopulateInitialData(workspace, diagnosticService);
             }
 
-            public override string DisplayName => ServicesVSResources.DiagnosticsTableSourceName;
+            public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => _identifier;
             public override object GetItemKey(object data) => ((UpdatedEventArgs)data).Id;
@@ -111,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return true;
                 }
 
-                var documents = args.Solution.GetRelatedDocumentIds(args.DocumentId);
+                var documents = GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
                 return key.DocumentIds == documents;
             }
 
@@ -123,14 +122,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return GetItemKey(data);
                 }
 
-                var argumentKey = args.Id as DiagnosticIncrementalAnalyzer.ArgumentKey;
-                if (argumentKey == null)
+                var liveArgsId = args.Id as LiveDiagnosticUpdateArgsId;
+                if (liveArgsId == null)
                 {
                     return GetItemKey(data);
                 }
 
-                var documents = args.Solution.GetRelatedDocumentIds(args.DocumentId);
-                return new AggregatedKey(documents, argumentKey.Analyzer, argumentKey.StateType);
+                var documents = GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
+                return new AggregatedKey(documents, liveArgsId.Analyzer, liveArgsId.Kind);
             }
 
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
@@ -179,7 +178,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return false;
                 }
 
-                return diagnostic?.Severity != DiagnosticSeverity.Hidden;
+                switch (diagnostic.Severity)
+                {
+                    case DiagnosticSeverity.Info:
+                    case DiagnosticSeverity.Warning:
+                    case DiagnosticSeverity.Error:
+                        return true;
+                    case DiagnosticSeverity.Hidden:
+                    default:
+                        return false;
+                }
             }
 
             private static IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)
@@ -326,7 +334,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = item.ProjectGuids;
                             return ((Guid[])content).Length > 0;
                         case SuppressionStateColumnDefinition.ColumnName:
-                            content = data.IsSuppressed ? ServicesVSResources.SuppressionStateSuppressed : ServicesVSResources.SuppressionStateActive;
+                            content = data.IsSuppressed ? ServicesVSResources.Suppressed : ServicesVSResources.Active;
                             return true;
                         default:
                             content = null;
@@ -358,8 +366,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 private ErrorRank GetErrorRank(DiagnosticData item)
                 {
-                    string value;
-                    if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out value))
+                    if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out var value))
                     {
                         return ErrorRank.Other;
                     }

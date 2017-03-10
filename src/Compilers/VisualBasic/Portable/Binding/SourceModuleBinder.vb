@@ -36,13 +36,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AccessCheck.CheckSymbolAccessibility(sym, _sourceModule.ContainingSourceAssembly, useSiteDiagnostics, basesBeingResolved))  ' accessThroughType doesn't matter at assembly level.
         End Function
 
-        Public Overrides Function GetErrorSymbol(name As String,
-                                                 errorInfo As DiagnosticInfo,
-                                                 candidateSymbols As ImmutableArray(Of Symbol),
-                                                 resultKind As LookupResultKind) As ErrorTypeSymbol
-            Return New ExtendedErrorTypeSymbol(errorInfo, name, 0, candidateSymbols, resultKind)
-        End Function
-
         Public Overrides ReadOnly Property OptionStrict As OptionStrict
             Get
                 Return _sourceModule.Options.OptionStrict

@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly string _languageName;
 
         private readonly Option<bool> _fullSolutionAnalysis;
-        private readonly PerLanguageOption<bool> _closedFileDiagnostics;
+        private readonly PerLanguageOption<bool?> _closedFileDiagnostics;
 
         public FullSolutionAnalysisOptionBinding(IOptionService optionService, string languageName)
         {
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             get
             {
-                return _optionService.GetOption(_closedFileDiagnostics, _languageName) &&
+                return ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_optionService.GetOptions(), _languageName) &&
                        _optionService.GetOption(_fullSolutionAnalysis);
             }
 

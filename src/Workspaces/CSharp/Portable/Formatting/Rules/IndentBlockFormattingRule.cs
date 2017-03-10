@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -154,13 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                 return;
             }
-
-            var propertyPattern = node as PropertyPatternSyntax;
-            if (propertyPattern?.PatternList != null)
-            {
-                SetAlignmentBlockOperation(list, propertyPattern.Type.GetFirstToken(), propertyPattern.PatternList.OpenBraceToken, propertyPattern.PatternList.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
-                return;
-            }
         }
 
         private void SetAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode baseNode, SyntaxNode body)
@@ -211,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddIndentBlockOperation(list, bracePair.Item1.GetNextToken(includeZeroWidth: true), bracePair.Item2.GetPreviousToken(includeZeroWidth: true));
         }
 
-        private void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, Roslyn.Utilities.ValueTuple<SyntaxToken, SyntaxToken> bracePair)
+        private void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, ValueTuple<SyntaxToken, SyntaxToken> bracePair)
         {
             var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
             SetAlignmentBlockOperation(list, bracePair.Item1, bracePair.Item1.GetNextToken(includeZeroWidth: true), bracePair.Item2, option);
@@ -252,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var foreachStatement = node as ForEachStatementSyntax;
+            var foreachStatement = node as CommonForEachStatementSyntax;
             if (foreachStatement != null && foreachStatement.Statement != null && !(foreachStatement.Statement is BlockSyntax))
             {
                 AddEmbeddedStatementsIndentationOperation(list, foreachStatement.Statement);
@@ -263,6 +257,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (usingStatement != null && usingStatement.Statement != null && !(usingStatement.Statement is BlockSyntax || usingStatement.Statement is UsingStatementSyntax))
             {
                 AddEmbeddedStatementsIndentationOperation(list, usingStatement.Statement);
+                return;
+            }
+
+            var fixedStatement = node as FixedStatementSyntax;
+            if (fixedStatement != null && fixedStatement.Statement != null && !(fixedStatement.Statement is BlockSyntax || fixedStatement.Statement is FixedStatementSyntax))
+            {
+                AddEmbeddedStatementsIndentationOperation(list, fixedStatement.Statement);
                 return;
             }
 

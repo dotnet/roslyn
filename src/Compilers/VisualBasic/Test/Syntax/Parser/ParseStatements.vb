@@ -375,12 +375,10 @@ Module M
   End Sub
 End Module
         ]]>,
-            <errors>
-                <error id="30205" message="End of statement expected." start="40" end="56"/>
-                <error id="30205" message="End of statement expected." start="57" end="58"/>
-                <error id="36005" message="'ElseIf' must be preceded by a matching 'If' or 'ElseIf'."/>
-                <error id="30205" message="End of statement expected." start="93" end="99"/>
-            </errors>)
+            Diagnostic(ERRID.ERR_ExpectedEOS, "ElseIf True Then").WithLocation(4, 18),
+            Diagnostic(ERRID.ERR_ExpectedEOS, "x").WithLocation(4, 35),
+            Diagnostic(ERRID.ERR_ExpectedEOS, "elseIf").WithLocation(5, 24)
+            )
     End Sub
 
     <WorkItem(539204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539204")>
@@ -422,8 +420,7 @@ Module M
 End Module
         ]]>,
         <errors>
-            <error id="30086" message="'Else' must be preceded by a matching 'If' or 'ElseIf'." start="84" end="88"/>
-            <error id="30205" message="End of statement expected."/>
+            <error id="30205" message="End of statement expected." start="84" end="88"/>
             <error id="36005" message="'ElseIf' must be preceded by a matching 'If' or 'ElseIf'." start="152" end="176"/>
         </errors>)
     End Sub
@@ -2616,10 +2613,7 @@ End Module]]>,
                     End If
                 End Sub
             End Module
-        ]]>,
-        <errors>
-            <error id="30198"/>
-        </errors>)
+        ]]>)
     End Sub
 
     <WorkItem(884863, "DevDiv/Personal")>
@@ -6288,14 +6282,12 @@ End Module
         ParseAndVerify(<![CDATA[
 Module M
     Sub M()
-        If True Then 5 Else 5
+        If True Then 5 Else 6
     End Sub
 End Module
 ]]>,
-            <errors>
-                <error id="30035" message="Syntax error."/>
-                <error id="30035" message="Syntax error."/>
-            </errors>)
+            Diagnostic(ERRID.ERR_Syntax, "5").WithLocation(4, 22)
+            )
     End Sub
 
     <WorkItem(608214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608214")>
@@ -6879,9 +6871,8 @@ Module M
     End Sub
 End Module
 ]]>,
-            <errors>
-                <error id="30086" message="'Else' must be preceded by a matching 'If' or 'ElseIf'."/>
-            </errors>)
+            Diagnostic(ERRID.ERR_ExpectedEOS, "Else").WithLocation(4, 60))
+
         ParseAndVerify(<![CDATA[
 Module M
     Dim x = Sub() If True Then Else Dim y = Sub() If False Then Else Else
@@ -8141,9 +8132,7 @@ Class C
     Dim x = Sub() If True Then Else Implements I
 End Class
 ]]>,
-            <errors>
-                <error id="30205"/>
-            </errors>)
+            Diagnostic(ERRID.ERR_InvInsideProc, "Implements I").WithLocation(3, 37))
         ParseAndVerify(<![CDATA[
 Class C
     Dim x = Sub()
@@ -8284,9 +8273,7 @@ Class C
     Dim x = Sub() If True Then Else <A> Property P
 End Class
 ]]>,
-            <errors>
-                <error id="30201"/>
-            </errors>)
+            Diagnostic(ERRID.ERR_InvInsideEndsProc, "<A> Property P").WithLocation(3, 37))
         ParseAndVerify(<![CDATA[
 Class C
     Dim x = Sub()
@@ -8417,5 +8404,722 @@ End Module
 ]]>,
     Diagnostic(ERRID.ERR_LineContWithCommentOrNoPrecSpace, "_").WithLocation(6, 1)
 )
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_01()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Test1(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then r = "null" System.Console.WriteLine(1)
+
+        If val Is Nothing Then r = Function() "null" System.Console.WriteLine(2)
+
+        If val Is Nothing Then r = "+" Else r = "-" System.Console.WriteLine(3)
+
+        If val Is Nothing Then r = "+" Else r = Function() "-" System.Console.WriteLine(4)
+
+        If val Is Nothing Then : System.Console.WriteLine(5)
+    End Sub
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30205: End of statement expected.
+        If val Is Nothing Then r = "null" System.Console.WriteLine(1)
+                                          ~~~~~~
+BC30205: End of statement expected.
+        If val Is Nothing Then r = Function() "null" System.Console.WriteLine(2)
+                                                     ~~~~~~
+BC30205: End of statement expected.
+        If val Is Nothing Then r = "+" Else r = "-" System.Console.WriteLine(3)
+                                                    ~~~~~~
+BC30205: End of statement expected.
+        If val Is Nothing Then r = "+" Else r = Function() "-" System.Console.WriteLine(4)
+                                                               ~~~~~~
+BC30081: 'If' must end with a matching 'End If'.
+        If val Is Nothing Then : System.Console.WriteLine(5)
+        ~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_02()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Test2(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then r = "+" Else : System.Console.WriteLine(6)
+
+        r = Sub() If val Is Nothing Then r = "null" System.Console.WriteLine(7)
+
+        r = Sub() If val Is Nothing Then r = "+" Else r = "-" System.Console.WriteLine(8)
+
+        r = Sub() If val Is Nothing Then r = "null" : System.Console.WriteLine(9)
+
+        r = Sub() If val Is Nothing Then r = "+" Else r = "-" : System.Console.WriteLine(10)
+
+        If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(11)
+
+        If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(12) Else
+
+        If val Is Nothing Then r = Function() "+" Else r = "-" System.Console.WriteLine(13)
+
+        If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(14) Else
+    End Sub
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30205: End of statement expected.
+        r = Sub() If val Is Nothing Then r = "null" System.Console.WriteLine(7)
+                                                    ~~~~~~
+BC30205: End of statement expected.
+        r = Sub() If val Is Nothing Then r = "+" Else r = "-" System.Console.WriteLine(8)
+                                                              ~~~~~~
+BC30205: End of statement expected.
+        If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(12) Else
+                                                                                                             ~~~~
+BC30205: End of statement expected.
+        If val Is Nothing Then r = Function() "+" Else r = "-" System.Console.WriteLine(13)
+                                                               ~~~~~~
+BC30205: End of statement expected.
+        If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(14) Else
+                                                                                                                       ~~~~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_03()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Test3(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(15) Else
+        End If
+    End Sub
+
+    Sub Test4(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(16) Else
+        End If
+    End Sub
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30205: End of statement expected.
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(15) Else
+                                                                                                                 ~~~~
+BC30205: End of statement expected.
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(16) Else
+                                                                                                                           ~~~~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_04()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Test5(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(17) : Else
+        End If
+
+        If val Is Nothing Then
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(18) : Else
+        End If
+
+        If val Is Nothing Then
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(19) 
+        Else
+        End If
+
+        If val Is Nothing Then
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(20) 
+        Else
+        End If
+    End Sub
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(17) : Else
+                                                                                                                   ~~~~
+BC36918: Single-line statement lambdas must include exactly one statement.
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(18) : Else
+                                                                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(18) : Else
+                                                                                                                             ~~~~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_05()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Test3(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then
+        ElseIf val Is Nothing Then
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(15) Else
+        End If
+    End Sub
+
+    Sub Test4(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then
+        ElseIf val Is Nothing Then
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(16) Else
+        End If
+    End Sub
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30205: End of statement expected.
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(15) Else
+                                                                                                                 ~~~~
+BC30205: End of statement expected.
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(16) Else
+                                                                                                                           ~~~~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_06()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Test3(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then
+        Else
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(15) Else
+        End If
+    End Sub
+
+    Sub Test4(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then
+        Else
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(16) Else
+        End If
+    End Sub
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30205: End of statement expected.
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(15) Else
+                                                                                                                 ~~~~
+BC30205: End of statement expected.
+            If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(16) Else
+                                                                                                                           ~~~~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_07()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Test1(val As Object)
+        Dim r As Object
+
+        r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(1) Else
+    End Sub
+
+    Sub Test2(val As Object)
+        Dim r As Object
+
+        r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(2) Else
+    End Sub
+
+    Sub Test3(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then
+            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(3) Else
+        End If
+    End Sub
+
+    Sub Test4(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then
+            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(4) Else
+        End If
+    End Sub
+
+    Sub Test5(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then
+            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(5) : Else
+        End If
+    End Sub
+
+    Sub Test6(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then
+            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(6) : Else
+        End If
+    End Sub
+
+    Sub Test7(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then
+            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(7)  
+        Else
+        End If
+    End Sub
+
+    Sub Test8(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then
+            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(8) 
+        Else
+        End If
+    End Sub
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30205: End of statement expected.
+        r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(1) Else
+                                                                                                                      ~~~~
+BC30205: End of statement expected.
+        r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(2) Else
+                                                                                                                                ~~~~
+BC30205: End of statement expected.
+            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(3) Else
+                                                                                                                          ~~~~
+BC30205: End of statement expected.
+            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(4) Else
+                                                                                                                                    ~~~~
+BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
+            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(5) : Else
+                                                                                                                            ~~~~
+BC36918: Single-line statement lambdas must include exactly one statement.
+            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(6) : Else
+                                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
+            r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(6) : Else
+                                                                                                                                      ~~~~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_08()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Test1(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else System.Console.WriteLine(1) Else System.Console.WriteLine(1)
+
+        If val Is Nothing Then r = Sub() If val Is Nothing Then If val Is Nothing Then r = "+" Else r = "-" Else r = Sub() System.Console.WriteLine(2) Else System.Console.WriteLine(2)
+
+        If val Is Nothing Then r = Sub() r = "-" Else System.Console.WriteLine(3)
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_09()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Test1(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then r = Sub() System.Console.WriteLine(1) ,
+
+        If val Is Nothing Then r = Sub() If val Is Nothing Then System.Console.WriteLine(2) ,
+
+        If val Is Nothing Then r = Sub() If val Is Nothing Then r = "+" Else System.Console.WriteLine(3) ,
+
+        r = Sub() If val Is Nothing Then r = "+" Else System.Console.WriteLine(4) ,
+
+        r = Sub() r = Sub()
+                          If val Is Nothing Then r = "+" Else System.Console.WriteLine(5) ,
+                      End Sub
+
+        r = Function() Function()
+                           If val Is Nothing Then r = "+" Else System.Console.WriteLine(6) ,
+                           return 0
+                       End Function
+
+        r = Sub() r = Sub()
+                          If val Is Nothing Then System.Console.WriteLine(7) ,
+                      End Sub
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30205: End of statement expected.
+        If val Is Nothing Then r = Sub() System.Console.WriteLine(1) ,
+                                                                     ~
+BC30205: End of statement expected.
+        If val Is Nothing Then r = Sub() If val Is Nothing Then System.Console.WriteLine(2) ,
+                                                                                            ~
+BC30205: End of statement expected.
+        If val Is Nothing Then r = Sub() If val Is Nothing Then r = "+" Else System.Console.WriteLine(3) ,
+                                                                                                         ~
+BC30205: End of statement expected.
+        r = Sub() If val Is Nothing Then r = "+" Else System.Console.WriteLine(4) ,
+                                                                                  ~
+BC30205: End of statement expected.
+                          If val Is Nothing Then r = "+" Else System.Console.WriteLine(5) ,
+                                                                                          ~
+BC30205: End of statement expected.
+                           If val Is Nothing Then r = "+" Else System.Console.WriteLine(6) ,
+                                                                                           ~
+BC30205: End of statement expected.
+                          If val Is Nothing Then System.Console.WriteLine(7) ,
+                                                                             ~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_10()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Test1(val As Object)
+        Dim r As Object
+
+        If val Is Nothing Then r = Sub() System.Console.WriteLine(1) System.Console.WriteLine(1)
+
+        If val Is Nothing Then r = Sub() If val Is Nothing Then System.Console.WriteLine(2) System.Console.WriteLine(2)
+
+        If val Is Nothing Then r = Sub() If val Is Nothing Then r = "+" Else System.Console.WriteLine(3) System.Console.WriteLine(3)
+
+        r = Sub() If val Is Nothing Then r = "+" Else System.Console.WriteLine(4) System.Console.WriteLine(4)
+
+        r = Sub() r = Sub()
+                          If val Is Nothing Then r = "+" Else System.Console.WriteLine(5) System.Console.WriteLine(5)
+                      End Sub
+
+        r = Function() Function()
+                           If val Is Nothing Then r = "+" Else System.Console.WriteLine(6) System.Console.WriteLine(6)
+                           return 0
+                       End Function
+
+        r = Sub() r = Sub()
+                          If val Is Nothing Then System.Console.WriteLine(7) System.Console.WriteLine(7)
+                      End Sub
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30205: End of statement expected.
+        If val Is Nothing Then r = Sub() System.Console.WriteLine(1) System.Console.WriteLine(1)
+                                                                     ~~~~~~
+BC30205: End of statement expected.
+        If val Is Nothing Then r = Sub() If val Is Nothing Then System.Console.WriteLine(2) System.Console.WriteLine(2)
+                                                                                            ~~~~~~
+BC30205: End of statement expected.
+        If val Is Nothing Then r = Sub() If val Is Nothing Then r = "+" Else System.Console.WriteLine(3) System.Console.WriteLine(3)
+                                                                                                         ~~~~~~
+BC30205: End of statement expected.
+        r = Sub() If val Is Nothing Then r = "+" Else System.Console.WriteLine(4) System.Console.WriteLine(4)
+                                                                                  ~~~~~~
+BC30205: End of statement expected.
+                          If val Is Nothing Then r = "+" Else System.Console.WriteLine(5) System.Console.WriteLine(5)
+                                                                                          ~~~~~~
+BC30205: End of statement expected.
+                           If val Is Nothing Then r = "+" Else System.Console.WriteLine(6) System.Console.WriteLine(6)
+                                                                                           ~~~~~~
+BC30205: End of statement expected.
+                          If val Is Nothing Then System.Console.WriteLine(7) System.Console.WriteLine(7)
+                                                                             ~~~~~~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_11()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Test1(val As Object)
+        Dim r As Object
+
+        r = Function() Sub() If val Is Nothing Then r = "+" Else System.Console.WriteLine(1) Else System.Console.WriteLine(1)
+
+        If val Is Nothing Then r = Function() Sub() If val Is Nothing Then r = "-" Else System.Console.WriteLine(2) Else System.Console.WriteLine(2)
+
+        If val Is Nothing Then If val Is Nothing Then If val Is Nothing Then If val Is Nothing Then r = "3" Else Else Else Else System.Console.WriteLine(3)
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30205: End of statement expected.
+        r = Function() Sub() If val Is Nothing Then r = "+" Else System.Console.WriteLine(1) Else System.Console.WriteLine(1)
+                                                                                             ~~~~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_12()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+	Dim d = Test1()()
+        d(Nothing)
+        d(d)
+
+        Test2(Nothing)
+        Test2(d)
+
+        d = test3()
+        d(Nothing)
+        d(d)
+    End Sub
+
+    Function Test1() As System.Func(Of System.Action(Of Object))
+        Dim r As System.Func(Of System.Action(Of Object))
+
+        r = Function() Sub(val As Object)
+                           If val Is Nothing Then System.Console.WriteLine("Then") Else Equals ("Else")
+                       End Sub
+
+        return r
+    End Function
+
+    Sub Equals(x as String)
+	System.Console.WriteLine(x)
+    End Sub
+
+    Sub Test2(val As Object)
+        If val Is Nothing Then System.Console.WriteLine("Then 2") Else Equals ("Else 2")
+    End Sub
+
+    Function Test3() As System.Action(Of Object)
+        Dim r As System.Action(Of Object)
+
+        r = Sub(val As Object) If val Is Nothing Then System.Console.WriteLine("Then 3") Else Equals ("Else 3")
+
+        return r
+    End Function
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+</expected>)
+
+        CompileAndVerify(compilation, expectedOutput:=
+"Then
+Else
+Then 2
+Else 2
+Then 3
+Else 3")
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_13()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Test1()
+        Dim d1 = Function(val1) If val1 Is Nothing Then Return 1, b1 = 0
+
+        Dim d2 = Function(val2) If (val2 Is Nothing) Then Return 2, b2 = 0
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30199: '(' expected.
+        Dim d1 = Function(val1) If val1 Is Nothing Then Return 1, b1 = 0
+                                   ~
+BC33104: 'If' operator requires either two or three operands.
+        Dim d2 = Function(val2) If (val2 Is Nothing) Then Return 2, b2 = 0
+                                                   ~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_14()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim d1 = Function(val1) If val1 Is Nothing Then Return 1 Else Return 2, b1 = 3
+
+        Dim d2 = Function(val2) If (val2 Is Nothing) Then Return 3 Else Return 4, b2 = 5
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30199: '(' expected.
+        Dim d1 = Function(val1) If val1 Is Nothing Then Return 1 Else Return 2, b1 = 3
+                                   ~
+BC33104: 'If' operator requires either two or three operands.
+        Dim d2 = Function(val2) If (val2 Is Nothing) Then Return 3 Else Return 4, b2 = 5
+                                                   ~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_15()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Function Test1(val1) As System.Func(Of Object)
+        If val1 Is Nothing Then Return Function(val2) If val2 Is Nothing Then Return 1 Else Return 2 Else Return Nothing
+    End Function
+
+    Function Test2(val1) As System.Func(Of Object)
+        If val1 Is Nothing Then Return Function(val2) If (val2 Is Nothing) Then Return 1 Else Return 2 Else Return Nothing
+    End Function
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30199: '(' expected.
+        If val1 Is Nothing Then Return Function(val2) If val2 Is Nothing Then Return 1 Else Return 2 Else Return Nothing
+                                                         ~
+BC42105: Function 'Test1' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+    End Function
+    ~~~~~~~~~~~~
+BC33104: 'If' operator requires either two or three operands.
+        If val1 Is Nothing Then Return Function(val2) If (val2 Is Nothing) Then Return 1 Else Return 2 Else Return Nothing
+                                                                         ~
+BC42105: Function 'Test2' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+    End Function
+    ~~~~~~~~~~~~
+</expected>)
     End Sub
 End Class

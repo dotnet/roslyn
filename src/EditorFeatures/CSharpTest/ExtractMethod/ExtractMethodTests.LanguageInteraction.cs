@@ -838,8 +838,7 @@ class Program
 
 ";
 
-                var patterns = MessageID.IDS_FeaturePatternMatching.RequiredFeature();
-                await ExpectExtractMethodToFailAsync(code, features: new[] { patterns });
+                await ExpectExtractMethodToFailAsync(code);
             }
 
             #endregion

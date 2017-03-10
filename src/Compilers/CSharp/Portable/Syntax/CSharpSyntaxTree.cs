@@ -125,11 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual bool SupportsLocations
-        {
-            get { return this.HasCompilationUnitRoot; }
-        }
-
         #region Preprocessor Symbols
         private bool _hasDirectives;
         private InternalSyntax.DirectiveStack _directives;
@@ -386,11 +381,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (text == null)
             {
                 throw new ArgumentNullException(nameof(text));
-            }
-
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
             }
 
             options = options ?? CSharpParseOptions.Default;

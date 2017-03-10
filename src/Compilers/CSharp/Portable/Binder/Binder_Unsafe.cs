@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <returns>True if a diagnostic was reported, or would have been reported if not for
         /// the suppress flag.</returns>
-        private bool ReportUnsafeIfNotAllowed(CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        private bool ReportUnsafeIfNotAllowed(SyntaxNode node, DiagnosticBag diagnostics)
         {
             return ReportUnsafeIfNotAllowed(node, null, diagnostics);
         }
 
         /// <returns>True if a diagnostic was reported, or would have been reported if not for
         /// the suppress flag.</returns>
-        private bool ReportUnsafeIfNotAllowed(CSharpSyntaxNode node, TypeSymbol sizeOfTypeOpt, DiagnosticBag diagnostics)
+        private bool ReportUnsafeIfNotAllowed(SyntaxNode node, TypeSymbol sizeOfTypeOpt, DiagnosticBag diagnostics)
         {
             Debug.Assert((node.Kind() == SyntaxKind.SizeOfExpression) == ((object)sizeOfTypeOpt != null), "Should have a type for (only) sizeof expressions.");
             return ReportUnsafeIfNotAllowed(node.Location, sizeOfTypeOpt, diagnostics);

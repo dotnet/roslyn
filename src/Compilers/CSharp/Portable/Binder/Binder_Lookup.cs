@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the type is from a winmd and implements any of the special WinRT collection
                 // projections then we may need to add underlying interface members. 
                 NamedTypeSymbol namedType = currentType as NamedTypeSymbol;
-                if ((object)namedType != null && namedType.ShouldAddWinRTMembers)
+                if (namedType?.ShouldAddWinRTMembers == true)
                 {
                     AddWinRTMembers(result, namedType, name, arity, options, originalBinder, diagnose, ref useSiteDiagnostics);
                 }

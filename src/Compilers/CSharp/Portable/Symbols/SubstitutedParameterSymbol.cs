@@ -2,8 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ParameterSymbol OriginalDefinition
         {
-            get { return underlyingParameter.OriginalDefinition; }
+            get { return _underlyingParameter.OriginalDefinition; }
         }
 
         public override Symbol ContainingSymbol
@@ -53,15 +51,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return type;
                 }
 
-                type = ((TypeMap)mapOrType).SubstituteType(this.underlyingParameter.Type);
-                _mapOrType = type;
+                TypeSymbolWithAnnotations substituted = ((TypeMap)mapOrType).SubstituteTypeWithTupleUnification(this._underlyingParameter.Type);
+
+                type = substituted.Type;
+
+                if (substituted.CustomModifiers.IsEmpty && 
+                    this._underlyingParameter.CustomModifiers.IsEmpty &&
+                    this._underlyingParameter.RefCustomModifiers.IsEmpty)
+                {
+                    _mapOrType = type;
+                }
+
                 return type;
             }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            return underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+            get
+            {
+                var map = _mapOrType as TypeMap;
+                return map != null ? map.SubstituteCustomModifiers(this._underlyingParameter.RefCustomModifiers) : this._underlyingParameter.RefCustomModifiers;
+            }
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            if ((object)this == obj)
+            {
+                return true;
+            }
+
+            // Equality of ordinal and containing symbol is a correct
+            // implementation for all ParameterSymbols, but we don't 
+            // define it on the base type because most can simply use
+            // ReferenceEquals.
+
+            var other = obj as SubstitutedParameterSymbol;
+            return (object)other != null &&
+                this.Ordinal == other.Ordinal &&
+                this.ContainingSymbol.Equals(other.ContainingSymbol);
+        }
+
+        public sealed override int GetHashCode()
+        {
+            return Roslyn.Utilities.Hash.Combine(ContainingSymbol, _underlyingParameter.Ordinal);
         }
     }
 }

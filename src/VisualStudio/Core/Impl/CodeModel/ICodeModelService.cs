@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -145,10 +146,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         SyntaxNode SetAccess(SyntaxNode node, EnvDTE.vsCMAccess access);
         EnvDTE.vsCMElement GetElementKind(SyntaxNode node);
 
+        bool IsExpressionBodiedProperty(SyntaxNode node);
         bool IsAccessorNode(SyntaxNode node);
         MethodKind GetAccessorKind(SyntaxNode node);
 
         bool TryGetAccessorNode(SyntaxNode parentNode, MethodKind kind, out SyntaxNode accessorNode);
+        bool TryGetAutoPropertyExpressionBody(SyntaxNode parentNode, out SyntaxNode expressionBody);
         bool TryGetParameterNode(SyntaxNode parentNode, string name, out SyntaxNode parameterNode);
         bool TryGetImportNode(SyntaxNode parentNode, string dottedName, out SyntaxNode importNode);
         bool TryGetOptionNode(SyntaxNode parentNode, string name, int ordinal, out SyntaxNode optionNode);
@@ -198,6 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         EnvDTE80.vsCMParameterKind GetParameterKind(SyntaxNode node);
         SyntaxNode SetParameterKind(SyntaxNode node, EnvDTE80.vsCMParameterKind kind);
         IEnumerable<SyntaxNode> GetParameterNodes(SyntaxNode parent);
+        EnvDTE80.vsCMParameterKind UpdateParameterKind(EnvDTE80.vsCMParameterKind parameterKind, PARAMETER_PASSING_MODE passingMode);
 
         EnvDTE.vsCMFunction ValidateFunctionKind(SyntaxNode containerNode, EnvDTE.vsCMFunction kind, string name);
 

@@ -14,17 +14,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
             MethodDeclarationSyntax syntax,
             CancellationToken cancellationToken)
         {
-            return syntax.Update(syntax.AttributeLists,
-                ModifiersOrganizer.Organize(syntax.Modifiers),
-                syntax.RefKeyword,
-                syntax.ReturnType,
-                syntax.ExplicitInterfaceSpecifier,
-                syntax.Identifier,
-                syntax.TypeParameterList,
-                syntax.ParameterList,
-                syntax.ConstraintClauses,
-                syntax.Body,
-                syntax.SemicolonToken);
+            return syntax.Update(
+                attributeLists: syntax.AttributeLists,
+                modifiers: ModifiersOrganizer.Organize(syntax.Modifiers),
+                returnType: syntax.ReturnType,
+                explicitInterfaceSpecifier: syntax.ExplicitInterfaceSpecifier,
+                identifier: syntax.Identifier,
+                typeParameterList: syntax.TypeParameterList,
+                parameterList: syntax.ParameterList,
+                constraintClauses: syntax.ConstraintClauses,
+                body: syntax.Body,
+                expressionBody: syntax.ExpressionBody,
+                semicolonToken: syntax.SemicolonToken);
         }
     }
 }

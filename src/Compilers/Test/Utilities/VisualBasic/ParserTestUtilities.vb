@@ -100,7 +100,7 @@ Friend Module ParserTestUtilities
     End Function
 
     Public Function Parse(source As String, fileName As String, Optional options As VisualBasicParseOptions = Nothing) As SyntaxTree
-        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source), options:=If(options, VisualBasicParseOptions.Default), path:=fileName)
+        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source, Encoding.UTF8), options:=If(options, VisualBasicParseOptions.Default), path:=fileName)
         Dim root = tree.GetRoot()
         ' Verify FullText
         Assert.Equal(source, root.ToFullString)

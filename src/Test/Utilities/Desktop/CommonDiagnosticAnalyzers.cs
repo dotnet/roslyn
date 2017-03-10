@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -66,14 +67,22 @@ namespace Microsoft.CodeAnalysis
 
             private static string GetExpectedPropertiesMapText()
             {
-                var expectedText = "";
+                var expectedText = @"
+            ""customProperties"": {";
 
                 foreach (var kvp in s_properties.OrderBy(kvp => kvp.Key))
                 {
-                    expectedText += ",";
+                    if (!expectedText.EndsWith("{"))
+                    {
+                        expectedText += ",";
+                    }
+
                     expectedText += string.Format(@"
-            ""customProperties.{0}"": ""{1}""", kvp.Key, kvp.Value);
+              ""{0}"": ""{1}""", kvp.Key, kvp.Value);
                 }
+
+                expectedText += @"
+            }";
 
                 return expectedText;
             }
@@ -83,75 +92,78 @@ namespace Microsoft.CodeAnalysis
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
-                var filePath = GetEscapedUriForPath(tree.FilePath);
+                var filePath = GetUriForPath(tree.FilePath);
 
                 return @"
       ""results"": [
         {
           ""ruleId"": """ + Descriptor1.Id + @""",
-          ""kind"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""level"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""message"": """ + Descriptor1.MessageFormat + @""",
           ""locations"": [
             {
-              ""analysisTarget"": [
-                {
-                  ""uri"": """ + filePath + @""",
-                  ""region"": {
-                    ""startLine"": " + (expectedLineSpan.StartLinePosition.Line + 1) + @",
-                    ""startColumn"": " + (expectedLineSpan.StartLinePosition.Character + 1) + @",
-                    ""endLine"": " + (expectedLineSpan.EndLinePosition.Line + 1) + @",
-                    ""endColumn"": " + (expectedLineSpan.EndLinePosition.Character + 1) + @"
-                  }
+              ""resultFile"": {
+                ""uri"": """ + filePath + @""",
+                ""region"": {
+                  ""startLine"": " + (expectedLineSpan.StartLinePosition.Line + 1) + @",
+                  ""startColumn"": " + (expectedLineSpan.StartLinePosition.Character + 1) + @",
+                  ""endLine"": " + (expectedLineSpan.EndLinePosition.Line + 1) + @",
+                  ""endColumn"": " + (expectedLineSpan.EndLinePosition.Character + 1) + @"
                 }
-              ]
+              }
             }
           ],
-          ""shortMessage"": """ + Descriptor1.MessageFormat + @""",
-          ""fullMessage"": """ + Descriptor1.Description + @""",
-          ""isSuppressedInSource"": false,
-          ""tags"": [
-            " + String.Join("," + Environment.NewLine + "            ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
-          ],
           ""properties"": {
-            ""severity"": """ + Descriptor1.DefaultSeverity + @""",
-            ""warningLevel"": ""1"",
-            ""defaultSeverity"": """ + Descriptor1.DefaultSeverity + @""",
-            ""title"": """ + Descriptor1.Title + @""",
-            ""category"": """ + Descriptor1.Category + @""",
-            ""helpLink"": """ + Descriptor1.HelpLinkUri + @""",
-            ""isEnabledByDefault"": """ + Descriptor1.IsEnabledByDefault + @"""" +
-            GetExpectedPropertiesMapText() + @"
+            ""warningLevel"": 1," + GetExpectedPropertiesMapText() + @"
           }
         },
         {
           ""ruleId"": """ + Descriptor2.Id + @""",
-          ""kind"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
-          ""locations"": [
-          ],
-          ""shortMessage"": """ + Descriptor2.MessageFormat + @""",
-          ""fullMessage"": """ + Descriptor2.Description + @""",
-          ""isSuppressedInSource"": false,
-          ""tags"": [
-            " + String.Join("," + Environment.NewLine + "            ", Descriptor2.CustomTags.Select(s => $"\"{s}\"")) + @"
-          ],
-          ""properties"": {
-            ""severity"": """ + Descriptor2.DefaultSeverity + @""",
-            ""defaultSeverity"": """ + Descriptor2.DefaultSeverity + @""",
-            ""title"": """ + Descriptor2.Title + @""",
-            ""category"": """ + Descriptor2.Category + @""",
-            ""helpLink"": """ + Descriptor2.HelpLinkUri + @""",
-            ""isEnabledByDefault"": """ + Descriptor2.IsEnabledByDefault + @"""" +
-            GetExpectedPropertiesMapText() + @"
+          ""level"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""message"": """ + Descriptor2.MessageFormat + @""",
+          ""properties"": {" +
+             GetExpectedPropertiesMapText() + @"
           }
         }
-      ]
+      ],
+      ""rules"": {
+        """ + Descriptor1.Id + @""": {
+          ""id"": """ + Descriptor1.Id + @""",
+          ""shortDescription"": """ + Descriptor1.Title + @""",
+          ""fullDescription"": """ + Descriptor1.Description + @""",
+          ""defaultLevel"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""helpUri"": """ + Descriptor1.HelpLinkUri + @""",
+          ""properties"": {
+            ""category"": """ + Descriptor1.Category + @""",
+            ""isEnabledByDefault"": " + (Descriptor2.IsEnabledByDefault ? "true" : "false") + @",
+            ""tags"": [
+              " + String.Join("," + Environment.NewLine + "              ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
+            ]
+          }
+        },
+        """ + Descriptor2.Id + @""": {
+          ""id"": """ + Descriptor2.Id + @""",
+          ""shortDescription"": """ + Descriptor2.Title + @""",
+          ""fullDescription"": """ + Descriptor2.Description + @""",
+          ""defaultLevel"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""helpUri"": """ + Descriptor2.HelpLinkUri + @""",
+          ""properties"": {
+            ""category"": """ + Descriptor2.Category + @""",
+            ""isEnabledByDefault"": " + (Descriptor2.IsEnabledByDefault ? "true" : "false") + @",
+            ""tags"": [
+              " + String.Join("," + Environment.NewLine + "              ", Descriptor2.CustomTags.Select(s => $"\"{s}\"")) + @"
+            ]
+          }
+        }
+      }
     }
   ]
 }";
             }
 
-            public static string GetEscapedUriForPath(string path)
+            public static string GetUriForPath(string path)
             {
-                return new Uri(path, UriKind.RelativeOrAbsolute).ToString().Replace("/", "\\/");
+                return new Uri(path, UriKind.RelativeOrAbsolute).ToString();
             }
         }
 
@@ -373,6 +385,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithDisabledRules : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+                "ID1",
+                "Title1",
+                "Message1",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: false);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(_ => { }, SymbolKind.NamedType);
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class EnsureNoMergedNamespaceSymbolAnalyzer : DiagnosticAnalyzer
         {
             public const string DiagnosticId = nameof(DiagnosticId);
@@ -488,6 +518,52 @@ namespace Microsoft.CodeAnalysis
 
                 context.RegisterSyntaxTreeAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.SyntaxTree));
                 context.RegisterCompilationAction(cc => ReportDiagnostic(cc.ReportDiagnostic, ActionKind.Compilation));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithAsyncMethodRegistration : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title1",
+                "Message1",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationAction(AsyncAction);
+            }
+
+            private async void AsyncAction(CompilationAnalysisContext context)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
+                await Task.FromResult(true);
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithAsyncLambdaRegistration : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title1",
+                "Message1",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationAction(async (compilationContext) =>
+                {
+                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
+                    await Task.FromResult(true);
+                });
             }
         }
 
@@ -844,6 +920,40 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class GeneratedCodeAnalyzer2 : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+                "GeneratedCodeAnalyzer2Warning",
+                "Title",
+                "GeneratedCodeAnalyzer2Message for '{0}'; Total types analyzed: '{1}'",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+            public override void Initialize(AnalysisContext context)
+            {
+                // Analyze but don't report diagnostics on generated code.
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+
+                context.RegisterCompilationStartAction(compilationStartContext =>
+                {
+                    var namedTypes = new HashSet<ISymbol>();
+                    compilationStartContext.RegisterSymbolAction(symbolContext => namedTypes.Add(symbolContext.Symbol), SymbolKind.NamedType);
+
+                    compilationStartContext.RegisterCompilationEndAction(compilationEndContext =>
+                    {
+                        foreach (var namedType in namedTypes)
+                        {
+                            var diagnostic = Diagnostic.Create(Rule, namedType.Locations[0], namedType.Name, namedTypes.Count);
+                            compilationEndContext.ReportDiagnostic(diagnostic);
+                        }
+                    });
+                });
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public class SharedStateAnalyzer : DiagnosticAnalyzer
         {
             private readonly SyntaxTreeValueProvider<bool> _treeValueProvider;
@@ -973,6 +1083,30 @@ namespace Microsoft.CodeAnalysis
                     var diagnostic = Diagnostic.Create(NumberOfUniqueTextFileDescriptor, Location.None, _textCallbackSet.Count);
                     endContext.ReportDiagnostic(diagnostic);
                 });
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class AnalyzerForParameters : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor ParameterDescriptor = new DiagnosticDescriptor(
+                "Parameter_ID",
+                "Parameter_Title",
+                "Parameter_Message",
+                "Parameter_Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(ParameterDescriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(SymbolAction, SymbolKind.Parameter);
+            }
+
+            private void SymbolAction(SymbolAnalysisContext context)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(ParameterDescriptor, context.Symbol.Locations[0]));
             }
         }
     }

@@ -3110,6 +3110,24 @@ End Class
                     result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
                 End Using
             End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(10469, "https://github.com/dotnet/roslyn/issues/10469")>
+            Public Sub RenameTypeToCurrent()
+                Using result = RenameEngineResult.Create(_outputHelper,
+                        <Workspace>
+                            <Project Language="Visual Basic" CommonReferences="true">
+                                <Document>
+Class {|current:$$C|}
+End Class
+                                </Document>
+                            </Project>
+                        </Workspace>, renameTo:="Current")
+
+                    result.AssertLabeledSpansAre("current", type:=RelatedLocationType.NoConflict)
+                End Using
+            End Sub
         End Class
     End Class
 End Namespace

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         protected abstract Task<Document> ConvertDocCommentsToRegularComments(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken);
 
-        protected abstract IEnumerable<AbstractReducer> GetReducers();
+        protected abstract ImmutableArray<AbstractReducer> GetReducers();
 
         private static INamespaceOrTypeSymbol CreateCodeGenerationSymbol(Document document, ISymbol symbol)
         {

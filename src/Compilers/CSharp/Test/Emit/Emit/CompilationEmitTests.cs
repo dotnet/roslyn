@@ -519,10 +519,10 @@ public class Test
     {
         switch (val)
         {
-            case (int)int.MinValue: 
-            case (int)int.MinValue + 1: 
-            case (int)short.MinValue: 
-            case (int)short.MinValue + 1: 
+            case (int)int.MinValue:
+            case (int)int.MinValue + 1:
+            case (int)short.MinValue:
+            case (int)short.MinValue + 1:
             case (int)sbyte.MinValue: return 0;
             case (int)-1: return -1;
             case (int)0: return 0;
@@ -531,7 +531,7 @@ public class Test
             case (int)0xFE: return 0;
             case (int)0xFF: return 0;
             case (int)0x7FFE: return 0;
-            case (int)0xFFFE: 
+            case (int)0xFFFE:
             case (int)0x7FFFFFFF: return 0;
             default: return null;
         }
@@ -1796,7 +1796,7 @@ public sealed class ContentType
             var result = compilation.Emit(new MemoryStream(), options: new EmitOptions(outputNameOverride: "x\0x"));
             result.Diagnostics.Verify(
                 // error CS2041: Invalid output name: Name contains invalid characters.
-                Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameContainsInvalidCharacter));
+                Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameContainsInvalidCharacter).WithLocation(1, 1));
 
             Assert.False(result.Success);
         }
@@ -2559,6 +2559,7 @@ public interface ITestPlatform
             var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
+
             var imageRef = refCompilation.EmitToImageReference();
 
             string useSource = @"
@@ -2698,16 +2699,17 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
 
             var output = new BrokenStream();
+
+            output.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
             var result = compilation.Emit(output);
             result.Diagnostics.Verify(
                 // error CS8104: An error occurred while writing the Portable Executable file.
                 Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(output.ThrownException.ToString()).WithLocation(1, 1));
-
+          
+            // Stream.Position is not called:
             output.BreakHow = BrokenStream.BreakHowType.ThrowOnSetPosition;
             result = compilation.Emit(output);
-            result.Diagnostics.Verify(    
-                // error CS8104: An error occurred while writing the Portable Executable file.
-                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(output.ThrownException.ToString()).WithLocation(1, 1));
+            result.Diagnostics.Verify();
 
             // disposed stream is not writable
             var outReal = new MemoryStream();
@@ -2994,6 +2996,36 @@ public class X
             broken.BreakHow = BrokenStream.BreakHowType.CancelOnWrite;
 
             Assert.Throws<OperationCanceledException>(() => compilation.Emit(broken));
+        }
+
+        [Fact]
+        [WorkItem(11691, "https://github.com/dotnet/roslyn/issues/11691")]
+        public void ObsoleteAttributeOverride()
+        {
+            string source = @"
+using System;
+public abstract class BaseClass<T>
+{
+    public abstract int Method(T input);
+}
+
+public class DerivingClass<T> : BaseClass<T>
+{
+    [Obsolete(""Deprecated"")]
+    public override void Method(T input)
+    {
+        throw new NotImplementedException();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(
+                // (11,26): warning CS0809: Obsolete member 'DerivingClass<T>.Method(T)' overrides non-obsolete member 'BaseClass<T>.Method(T)'
+                //     public override void Method(T input)
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "Method").WithArguments("DerivingClass<T>.Method(T)", "BaseClass<T>.Method(T)").WithLocation(11, 26),
+                // (11,26): error CS0508: 'DerivingClass<T>.Method(T)': return type must be 'int' to match overridden member 'BaseClass<T>.Method(T)'
+                //     public override void Method(T input)
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "Method").WithArguments("DerivingClass<T>.Method(T)", "BaseClass<T>.Method(T)", "int").WithLocation(11, 26));
         }
     }
 }

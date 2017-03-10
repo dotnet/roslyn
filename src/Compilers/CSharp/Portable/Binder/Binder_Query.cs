@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(LambdaUtilities.IsQueryPairLambda(node));
 
-            LambdaBodyFactory bodyFactory = (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag d) =>
+            LambdaBodyFactory bodyFactory = (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag d) =>
             {
                 var x1Expression = new BoundParameter(node, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
                 var x2Expression = new BoundParameter(node, lambdaSymbol.Parameters[1]) { WasCompilerGenerated = true };
@@ -558,31 +558,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // are accessed as TRID.Item1 (or members of that), and y is accessed
             // as TRID.Item2, where TRID is the compiler-generated identifier used
             // to represent the transparent identifier in the result.
-            LambdaBodyFactory bodyFactory = (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag d) =>
+            LambdaBodyFactory bodyFactory = (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag d) =>
             {
                 var xExpression = new BoundParameter(let, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
 
-                lambdaBodyBinder = lambdaBodyBinder.WithPatternVariablesIfAny(let.Expression);
+                lambdaBodyBinder = lambdaBodyBinder.GetBinder(let.Expression);
+                Debug.Assert(lambdaBodyBinder != null);
 
                 var yExpression = lambdaBodyBinder.BindValue(let.Expression, d, BindValueKind.RValue);
                 SourceLocation errorLocation = new SourceLocation(let.SyntaxTree, new TextSpan(let.Identifier.SpanStart, let.Expression.Span.End - let.Identifier.SpanStart));
                 if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())
                 {
-                    MessageID id = MessageID.IDS_NULL;
-                    if (yExpression.Kind == BoundKind.UnboundLambda)
-                    {
-                        id = ((UnboundLambda)yExpression).MessageID;
-                    }
-                    else if (yExpression.Kind == BoundKind.MethodGroup)
-                    {
-                        id = MessageID.IDS_MethodGroup;
-                    }
-                    else
-                    {
-                        Debug.Assert(yExpression.IsLiteralNull(), "How did we successfully bind an expression without a type?");
-                    }
-
-                    Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, id.Localize());
+                    Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, yExpression.Display);
                     yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(yExpression), CreateErrorType());
                 }
                 else if (!yExpression.HasAnyErrors && yExpression.Type.SpecialType == SpecialType.System_Void)
@@ -595,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // The bound block represents a closure scope for transparent identifiers captured in the let clause.
                 // Such closures shall be associated with the lambda body expression.
-                return lambdaBodyBinder.CreateBlockFromExpression(let.Expression, lambdaBodyBinder.Locals, RefKind.None, construction, null, d);
+                return lambdaBodyBinder.CreateLambdaBlockForQueryClause(let.Expression, construction, d);
             };
 
             var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x), let.Expression, bodyFactory);
@@ -605,6 +592,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             state.allRangeVariables[y].Add(let.Identifier.ValueText);
             var invocation = MakeQueryInvocation(let, state.fromExpression, "Select", lambda, diagnostics);
             state.fromExpression = MakeQueryClause(let, invocation, y, invocation);
+        }
+
+        private BoundBlock CreateLambdaBlockForQueryClause(ExpressionSyntax expression, BoundExpression result, DiagnosticBag diagnostics)
+        {
+            var locals = this.GetDeclaredLocalsForScope(expression);
+            if (locals.Any())
+            {
+                diagnostics.Add(ErrorCode.ERR_ExpressionVariableInQueryClause, locals[0].Locations[0]);
+            }
+
+            return this.CreateBlockFromExpression(expression, locals, RefKind.None, result, expression, diagnostics);
         }
 
         private BoundQueryClause MakeQueryClause(
@@ -659,23 +657,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private UnboundLambda MakeQueryUnboundLambda(RangeVariableMap qvm, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax expression)
         {
-            return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, parameters, (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
+            return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, parameters, (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
-                lambdaBodyBinder = lambdaBodyBinder.WithPatternVariablesIfAny(expression);
-                return lambdaBodyBinder.BindLambdaExpressionAsBlock(RefKind.None, expression, diagnostics);
+                lambdaBodyBinder = lambdaBodyBinder.GetBinder(expression);
+                Debug.Assert(lambdaSymbol != null);
+                BoundExpression boundExpression = lambdaBodyBinder.BindValue(expression, diagnostics, BindValueKind.RValue);
+                return lambdaBodyBinder.CreateLambdaBlockForQueryClause(expression, boundExpression, diagnostics);
             }));
         }
 
         private UnboundLambda MakeQueryUnboundLambdaWithCast(RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression, TypeSyntax castTypeSyntax, TypeSymbolWithAnnotations castType)
         {
-            return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, ImmutableArray.Create(parameter), (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
+            return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, ImmutableArray.Create(parameter), (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
+                lambdaBodyBinder = lambdaBodyBinder.GetBinder(expression);
+                Debug.Assert(lambdaBodyBinder != null);
                 BoundExpression boundExpression = lambdaBodyBinder.BindValue(expression, diagnostics, BindValueKind.RValue);
 
                 // We transform the expression from "expr" to "expr.Cast<castTypeOpt>()".
                 boundExpression = lambdaBodyBinder.MakeQueryInvocation(expression, boundExpression, "Cast", castTypeSyntax, castType, diagnostics);
 
-                return lambdaBodyBinder.CreateBlockFromExpression(expression, lambdaBodyBinder.Locals, RefKind.None, boundExpression, expression, diagnostics);
+                return lambdaBodyBinder.CreateLambdaBlockForQueryClause(expression, boundExpression, diagnostics);
             }));
         }
 
@@ -721,6 +723,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (ultimateReceiver.IsLiteralNull())
                 {
                     diagnostics.Add(ErrorCode.ERR_NullNotValid, node.Location);
+                }
+                else if (ultimateReceiver.Kind == BoundKind.NamespaceExpression)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadSKunknown, ultimateReceiver.Syntax.Location, ultimateReceiver.Syntax, MessageID.IDS_SK_NAMESPACE.Localize());
                 }
                 else if (ultimateReceiver.Kind == BoundKind.Lambda || ultimateReceiver.Kind == BoundKind.UnboundLambda)
                 {

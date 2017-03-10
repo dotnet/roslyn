@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsMultiLineStatementContext Then
-                Return {New RecommendedKeyword("Do", VBFeaturesResources.DoKeywordToolTip),
-                        New RecommendedKeyword("Do Until", VBFeaturesResources.DoUntilKeywordToolTip),
-                        New RecommendedKeyword("Do While", VBFeaturesResources.DoWhileKeywordToolTip)}
+                Return {New RecommendedKeyword("Do", VBFeaturesResources.Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_or_until_the_condition_becomes_true_Do_Loop_While_Until_condition),
+                        New RecommendedKeyword("Do Until", VBFeaturesResources.Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Until_condition_Loop),
+                        New RecommendedKeyword("Do While", VBFeaturesResources.Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_While_condition_Loop)}
             End If
 
             ' Are we after Exit or Continue?
@@ -31,9 +31,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                Not context.IsInStatementBlockOfKind(SyntaxKind.FinallyBlock) Then
 
                 If targetToken.IsKind(SyntaxKind.ExitKeyword) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Do", VBFeaturesResources.ExitDoKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Do", VBFeaturesResources.Exits_a_Do_loop_and_transfers_execution_immediately_to_the_statement_following_the_Loop_statement))
                 Else
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Do", VBFeaturesResources.ContinueDoKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Do", VBFeaturesResources.Transfers_execution_immediately_to_the_next_iteration_of_the_Do_loop))
                 End If
             End If
 

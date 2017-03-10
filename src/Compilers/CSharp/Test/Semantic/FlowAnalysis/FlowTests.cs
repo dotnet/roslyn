@@ -487,30 +487,31 @@ public class DATest : DATestBase {
 " + suffix;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (96,86): warning CS0162: Unreachable code detected
+                // (121,86): warning CS0162: Unreachable code detected
                 //         if (f) { int a; switch (val) { default: goto case 0; case 0: goto default; } F(a); } // Unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "F"),
-                // (51,33): error CS0165: Use of unassigned local variable 'a'
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "F").WithLocation(121, 86),
+                // (76,33): error CS0165: Use of unassigned local variable 'a'
                 //         if (f) { int a; switch (a) { case 0: No(); break; } } // Error
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
-                // (52,50): error CS0165: Use of unassigned local variable 'a'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(76, 33),
+                // (77,50): error CS0165: Use of unassigned local variable 'a'
                 //         if (f) { int a; switch (val) { case 0: F(a); break; } } // Error
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
-                // (53,75): error CS0165: Use of unassigned local variable 'a'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(77, 50),
+                // (78,75): error CS0165: Use of unassigned local variable 'a'
                 //         if (f) { int a; switch (val) { case 0: G(out a); break; case 1: F(a); break; } } // Error
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
-                // (58,64): error CS0165: Use of unassigned local variable 'a'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(78, 75),
+                // (83,64): error CS0165: Use of unassigned local variable 'a'
                 //         if (f) { int a; switch (f || G(out a)) { case false: F(a); break; case true: No(); break; } } // Error
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
-                // (61,88): error CS0165: Use of unassigned local variable 'a'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(83, 64),
+                // (86,88): error CS0165: Use of unassigned local variable 'a'
                 //         if (f) { int a; switch (f && G(out a)) { case false: No(); break; case true: F(a); break; } } // Error
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
-                // (64,99): error CS0165: Use of unassigned local variable 'a'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(86, 88),
+                // (89,99): error CS0165: Use of unassigned local variable 'a'
                 //         if (f) { int a; switch (f) { case false: G(out a); break; case true: G(out a); break; } F(a); } // Error - BUG? The cases are exhaustive.
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
-                // (93,15): error CS0165: Use of unassigned local variable 'a'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(89, 99),
+                // (118,15): error CS0165: Use of unassigned local variable 'a'
                 //             F(a); // Error - BUG? The cases are exhaustive.
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(118, 15)
+                );
         }
 
         [Fact]
@@ -1518,15 +1519,13 @@ class C
 " + suffix;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (53,15): error CS1643: Not all code paths return a value in anonymous method of type 'DI'
+                // (78,15): error CS1643: Not all code paths return a value in anonymous method of type 'DI'
                 //         ((DI)(delegate { if (x == 1) return 1; Console.WriteLine("Bug"); }))();
-                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, @"delegate { if (x == 1) return 1; Console.WriteLine(""Bug""); }").WithArguments("anonymous method", "DI"),
-
-                // CONSIDER: dev10 doesn't report this warning, but it seems reasonable.
-
-                // (53,9): warning CS0162: Unreachable code detected
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "DI").WithLocation(78, 15),
+                // (78,9): warning CS0162: Unreachable code detected
                 //         ((DI)(delegate { if (x == 1) return 1; Console.WriteLine("Bug"); }))();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "("));
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "(").WithLocation(78, 9)
+                );
         }
 
         [WorkItem(648107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648107")]
@@ -2231,7 +2230,7 @@ class C
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
     // (17,34): error CS0165: Use of unassigned local variable 'o'
     //         System.Console.WriteLine(o);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(17, 34)
@@ -2261,7 +2260,7 @@ class C
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
     // (17,34): error CS0165: Use of unassigned local variable 'o'
     //         System.Console.WriteLine(o);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(17, 34)
@@ -2294,7 +2293,7 @@ class C
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2323,8 +2322,34 @@ class C
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
     );
+        }
+
+        [Fact, WorkItem(14651, "https://github.com/dotnet/roslyn/issues/14651")]
+        public void IrrefutablePattern_1()
+        {
+            var source =
+@"using System;
+class C
+{
+    void TestFunc(int i)
+    {
+        int x;
+        if (i is int j)
+        {
+            Console.WriteLine(""matched"");
+        }
+        else
+        {
+            x = x + 1; // reachable, and x is definitely assigned here
+        }
+
+        Console.WriteLine(j);
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
     }
 }

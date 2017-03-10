@@ -57,10 +57,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             var node = LookupNode();
             var parentElement = (AbstractCodeElement)this.Parent;
 
-            var nodesBuilder = ImmutableArray.CreateBuilder<SyntaxNode>();
+            var nodesBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
             nodesBuilder.AddRange(CodeModelService.GetLogicalSupportedMemberNodes(node));
 
-            return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement, nodesBuilder.ToImmutable());
+            return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement, 
+                nodesBuilder.ToImmutableAndFree());
         }
 
         protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)

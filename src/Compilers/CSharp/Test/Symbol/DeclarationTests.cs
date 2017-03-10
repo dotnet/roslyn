@@ -116,18 +116,16 @@ namespace NA
             Assert.Equal(0, d2.Children.Length);
 
             var table = DeclarationTable.Empty;
-            Assert.Empty(table.AllRootNamespacesUnordered());
-
-            var mr = table.MergedRoot;
+            var mr = table.CalculateMergedRoot(null);
             Assert.NotNull(mr);
+            Assert.True(mr.Declarations.IsEmpty);
             Assert.True(table.TypeNames.IsEmpty());
 
             table = table.AddRootDeclaration(Lazy(decl1));
+            mr = table.CalculateMergedRoot(null);
 
-            Assert.Equal(decl1, table.AllRootNamespacesUnordered().Single());
+            Assert.Equal(mr.Declarations, new[] { decl1 });
             Assert.True(table.TypeNames.OrderBy(s => s).SequenceEqual(new[] { "C", "D" }));
-
-            mr = table.MergedRoot;
 
             Assert.Equal(DeclarationKind.Namespace, mr.Kind);
             Assert.Equal(string.Empty, mr.Name);
@@ -156,12 +154,11 @@ namespace NA
             Assert.Equal("D", d.Name);
 
             table = table.AddRootDeclaration(Lazy(decl2));
+            mr = table.CalculateMergedRoot(null);
 
             Assert.True(table.TypeNames.Distinct().OrderBy(s => s).SequenceEqual(new[] { "C", "D" }));
 
-            Assert.Equal(2, table.AllRootNamespacesUnordered().Intersect(new[] { decl1, decl2 }).Count());
-
-            mr = table.MergedRoot;
+            Assert.Equal(mr.Declarations, new[] { decl1, decl2 });
 
             Assert.Equal(DeclarationKind.Namespace, mr.Kind);
             Assert.Equal(string.Empty, mr.Name);

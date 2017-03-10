@@ -13,11 +13,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Overrides Function GetComment(codeElement As EnvDTE.CodeNamespace) As String
-            Throw New NotImplementedException()
+            Return codeElement.Comment
+        End Function
+
+        Protected Overrides Function GetCommentSetter(codeElement As EnvDTE.CodeNamespace) As Action(Of String)
+            Return Sub(value) codeElement.Comment = value
         End Function
 
         Protected Overrides Function GetDocComment(codeElement As EnvDTE.CodeNamespace) As String
-            Throw New NotImplementedException()
+            Return codeElement.DocComment
+        End Function
+
+        Protected Overrides Function GetDocCommentSetter(codeElement As EnvDTE.CodeNamespace) As Action(Of String)
+            Return Sub(value) codeElement.DocComment = value
         End Function
 
         Protected Overrides Function GetFullName(codeElement As EnvDTE.CodeNamespace) As String

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTag
         {
             this.Border = new Pen(Brushes.LightGreen, thickness: 0.5);
             this.BackgroundColor = Colors.LightGreen;
-            this.DisplayName = EditorFeaturesResources.FontAndColors_InlineRename;
+            this.DisplayName = EditorFeaturesResources.Inline_Rename;
             this.ZOrder = 5;
         }
     }

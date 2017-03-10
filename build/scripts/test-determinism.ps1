@@ -8,11 +8,7 @@ $ErrorActionPreference="Stop"
 
 # List of binary names that should be skipped because they have a known issue that
 # makes them non-deterministic.  
-$script:skipList = @(
-
-    # https://github.com/dotnet/roslyn/issues/8739
-    "Microsoft.VisualStudio.ProjectSystem.Managed.dll"
-)
+$script:skipList = @()
 
 # Holds the determinism data checked on every build.
 $script:dataMap = @{}

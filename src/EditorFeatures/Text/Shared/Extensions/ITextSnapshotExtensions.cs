@@ -9,14 +9,10 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
     internal static partial class ITextSnapshotExtensions
     {
         public static SnapshotPoint GetPoint(this ITextSnapshot snapshot, int position)
-        {
-            return new SnapshotPoint(snapshot, position);
-        }
+            => new SnapshotPoint(snapshot, position);
 
         public static SnapshotPoint GetPoint(this ITextSnapshot snapshot, int lineNumber, int columnIndex)
-        {
-            return new SnapshotPoint(snapshot, snapshot.GetPosition(lineNumber, columnIndex));
-        }
+            => new SnapshotPoint(snapshot, snapshot.GetPosition(lineNumber, columnIndex));
 
         /// <summary>
         /// Convert a <see cref="LinePositionSpan"/> to <see cref="TextSpan"/>.
@@ -29,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         }
 
         public static int GetPosition(this ITextSnapshot snapshot, int lineNumber, int columnIndex)
-        {
-            return TryGetPosition(snapshot, lineNumber, columnIndex).Value;
-        }
+            => TryGetPosition(snapshot, lineNumber, columnIndex).Value;
 
         public static int? TryGetPosition(this ITextSnapshot snapshot, int lineNumber, int columnIndex)
         {
@@ -71,19 +65,13 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         }
 
         public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, int start, int length)
-        {
-            return new SnapshotSpan(snapshot, new Span(start, length));
-        }
+            => new SnapshotSpan(snapshot, new Span(start, length));
 
         public static SnapshotSpan GetSpanFromBounds(this ITextSnapshot snapshot, int start, int end)
-        {
-            return new SnapshotSpan(snapshot, Span.FromBounds(start, end));
-        }
+            => new SnapshotSpan(snapshot, Span.FromBounds(start, end));
 
         public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, Span span)
-        {
-            return new SnapshotSpan(snapshot, span);
-        }
+            => new SnapshotSpan(snapshot, span);
 
         public static ITagSpan<TTag> GetTagSpan<TTag>(this ITextSnapshot snapshot, Span span, TTag tag)
             where TTag : ITag
@@ -148,12 +136,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
             return lineText.Substring(0, linePosition.Value - line.Start);
         }
 
-        /// <summary>
-        /// Get the character at the given position.
-        /// </summary>
-        public static char CharAt(this ITextSnapshot snapshot, int position)
-        {
-            return snapshot.GetText(position, 1)[0];
-        }
+        public static bool AreOnSameLine(this ITextSnapshot snapshot, int x1, int x2)
+            => snapshot.GetLineNumberFromPosition(x1) == snapshot.GetLineNumberFromPosition(x2);
     }
 }

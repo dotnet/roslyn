@@ -15,7 +15,11 @@ Imports Xunit
 
 Friend Module CompilationUtils
 
-    Public Function CreateCompilation(trees As IEnumerable(Of SyntaxTree),
+    Private Function ParseSources(sources As IEnumerable(Of String), parseOptions As VisualBasicParseOptions) As IEnumerable(Of SyntaxTree)
+        Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
+    End Function
+
+    Public Function CreateCompilation(sourceTrees As IEnumerable(Of SyntaxTree),
                                       Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                       Optional options As VisualBasicCompilationOptions = Nothing,
                                       Optional assemblyName As String = Nothing) As VisualBasicCompilation
@@ -30,47 +34,69 @@ Friend Module CompilationUtils
 
         Return VisualBasicCompilation.Create(
                 If(assemblyName, GetUniqueName()),
-                trees,
+                sourceTrees,
                 references,
                 options)
     End Function
 
-    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of String),
+    Public Function CreateCompilation(sources As IEnumerable(Of String),
+                                      Optional references As IEnumerable(Of MetadataReference) = Nothing,
+                                      Optional options As VisualBasicCompilationOptions = Nothing,
+                                      Optional assemblyName As String = Nothing,
+                                      Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
+
+        Return CreateCompilation(ParseSources(sources, parseOptions), references, options, assemblyName)
+    End Function
+
+    Public Function CreateCompilation(source As String,
+                                      Optional references As IEnumerable(Of MetadataReference) = Nothing,
+                                      Optional options As VisualBasicCompilationOptions = Nothing,
+                                      Optional assemblyName As String = Nothing,
+                                      Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
+
+        Return CreateCompilation({source}, references, options, assemblyName, parseOptions)
+    End Function
+
+    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of SyntaxTree),
+                                                  Optional references As IEnumerable(Of MetadataReference) = Nothing,
+                                                  Optional options As VisualBasicCompilationOptions = Nothing,
+                                                  Optional assemblyName As String = Nothing) As VisualBasicCompilation
+
+        Dim metadataReferences = If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references))
+        assemblyName = If(assemblyName, GetUniqueName())
+
+#If Test_IOperation_Interface Then
+        Dim compilationForOperationWalking = VisualBasicCompilation.Create(assemblyName, sourceTrees, metadataReferences, options)
+        WalkOperationTrees(compilationForOperationWalking)
+#End If
+
+        Return VisualBasicCompilation.Create(assemblyName, sourceTrees, metadataReferences, options)
+    End Function
+
+    Public Function CreateCompilationWithMscorlib(sources As IEnumerable(Of String),
                                                   Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                                   Optional options As VisualBasicCompilationOptions = Nothing,
                                                   Optional assemblyName As String = Nothing,
                                                   Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
-        Dim syntaxTrees = sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
-        Dim metadataReferences = If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references))
-
-#If Test_IOperation_Interface Then
-        Dim compilationForOperationWalking = VisualBasicCompilation.Create(If(assemblyName, "TestOperation"), syntaxTrees, metadataReferences, options)
-        WalkOperationTrees(compilationForOperationWalking)
-#End If
-
-        Return VisualBasicCompilation.Create(If(assemblyName, "Test"), syntaxTrees, metadataReferences, options)
+        Return CreateCompilationWithMscorlib(ParseSources(sources, parseOptions), references, options, assemblyName)
     End Function
 
-    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of SyntaxTree),
+    Public Function CreateCompilationWithMscorlib(source As String,
                                                   Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                  Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+                                                  Optional options As VisualBasicCompilationOptions = Nothing,
+                                                  Optional assemblyName As String = Nothing,
+                                                  Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
-        Dim metadataReferences = If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references))
-
-#If Test_IOperation_Interface Then
-        Dim compilationForOperationWalking = VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, metadataReferences, options)
-        WalkOperationTrees(compilationForOperationWalking)
-#End If
-
-        Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, metadataReferences, options)
+        Return CreateCompilationWithMscorlib({source}, references, options, assemblyName, parseOptions)
     End Function
 
     Public Function CreateCompilationWithMscorlib45(sourceTrees As IEnumerable(Of SyntaxTree),
                                                     Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                    Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+                                                    Optional options As VisualBasicCompilationOptions = Nothing,
+                                                    Optional assemblyName As String = Nothing) As VisualBasicCompilation
         Dim additionalRefs = {MscorlibRef_v4_0_30316_17626}
-        Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
+        Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
     End Function
 
     Public Function CreateCompilationWithMscorlib45AndVBRuntime(sourceTrees As IEnumerable(Of SyntaxTree),
@@ -105,17 +131,15 @@ Friend Module CompilationUtils
     Public Function CreateCompilationWithMscorlib(sources As XElement,
                                                   Optional options As VisualBasicCompilationOptions = Nothing,
                                                   Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                  Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
                                                   Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Return CreateCompilationWithReferences(sources, If(references IsNot Nothing, {MscorlibRef}.Concat(references), {MscorlibRef}), options, spans, parseOptions:=parseOptions)
+        Return CreateCompilationWithReferences(sources, If(references IsNot Nothing, {MscorlibRef}.Concat(references), {MscorlibRef}), options, parseOptions:=parseOptions)
     End Function
 
     Public Function CreateCompilationWithMscorlibAndReferences(sources As XElement,
                                                                references As IEnumerable(Of MetadataReference),
                                                                Optional options As VisualBasicCompilationOptions = Nothing,
-                                                               Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
                                                                Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Return CreateCompilationWithReferences(sources, {MscorlibRef}.Concat(references), options, spans, parseOptions:=parseOptions)
+        Return CreateCompilationWithReferences(sources, {MscorlibRef}.Concat(references), options, parseOptions:=parseOptions)
     End Function
 
     ''' <summary>
@@ -221,23 +245,29 @@ Friend Module CompilationUtils
     Public Function CreateCompilationWithReferences(sources As XElement,
                                                     references As IEnumerable(Of MetadataReference),
                                                     Optional options As VisualBasicCompilationOptions = Nothing,
-                                                    Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
                                                     Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Dim assemblyName As String = sources.@name
-        If assemblyName Is Nothing Then
-            assemblyName = GetUniqueName()
+        Dim assemblyName As String = Nothing
+        Dim sourceTrees = ParseSouceXml(sources, parseOptions, assemblyName)
+        Return CreateCompilationWithReferences(sourceTrees, references, options, assemblyName)
+    End Function
+
+    Public Function ParseSouceXml(sources As XElement,
+                                  parseOptions As VisualBasicParseOptions,
+                                  Optional ByRef assemblyName As String = Nothing,
+                                  Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing) As IEnumerable(Of SyntaxTree)
+
+        If sources.@name IsNot Nothing Then
+            assemblyName = sources.@name
         End If
 
         Dim sourcesTreesAndSpans = From f In sources.<file> Select CreateParseTreeAndSpans(f, parseOptions)
-        Dim sourceTrees = From t In sourcesTreesAndSpans Select t.Item1
-        spans = From t In sourcesTreesAndSpans Select t.Item2
-
-        Return CreateCompilationWithReferences(sourceTrees, references, options, assemblyName)
+        spans = From t In sourcesTreesAndSpans Select s = t.spans
+        Return From t In sourcesTreesAndSpans Select t.tree
     End Function
 
     Public Function ToSourceTrees(compilationSources As XElement, Optional parseOptions As VisualBasicParseOptions = Nothing) As IEnumerable(Of SyntaxTree)
         Dim sourcesTreesAndSpans = From f In compilationSources.<file> Select CreateParseTreeAndSpans(f, parseOptions)
-        Return From t In sourcesTreesAndSpans Select t.Item1
+        Return From t In sourcesTreesAndSpans Select t.tree
     End Function
 
     Public Function CreateCompilationWithReferences(sourceTree As SyntaxTree,
@@ -276,10 +306,9 @@ Friend Module CompilationUtils
     ''' &lt;/compilation&gt;
     ''' </param>
     Public Function CreateCompilationWithoutReferences(sources As XElement,
-                                                           Optional options As VisualBasicCompilationOptions = Nothing,
-                                                           Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
-                                                           Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Return CreateCompilationWithReferences(sources, DirectCast({}, IEnumerable(Of MetadataReference)), options, spans, parseOptions)
+                                                       Optional options As VisualBasicCompilationOptions = Nothing,
+                                                       Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
+        Return CreateCompilationWithReferences(sources, DirectCast({}, IEnumerable(Of MetadataReference)), options, parseOptions)
     End Function
 
     Public Function CreateCompilation(
@@ -355,10 +384,11 @@ Friend Module CompilationUtils
                                                         Optional includeSystemCore As Boolean = False,
                                                         Optional appendDefaultHeader As Boolean = True,
                                                         Optional parseOptions As VisualBasicParseOptions = Nothing,
+                                                        Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing,
                                                         <Out> Optional ByRef ilReference As MetadataReference = Nothing,
                                                         <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing
     ) As VisualBasicCompilation
-        Dim references As New List(Of MetadataReference)
+        Dim references = If(additionalReferences IsNot Nothing, New List(Of MetadataReference)(additionalReferences), New List(Of MetadataReference))
         If includeVbRuntime Then
             references.Add(MsvbRef)
         End If
@@ -367,13 +397,13 @@ Friend Module CompilationUtils
         End If
 
         If ilSource Is Nothing Then
-            Return CreateCompilationWithMscorlibAndReferences(sources, references, options, spans, parseOptions)
+            Return CreateCompilationWithMscorlibAndReferences(sources, references, options, parseOptions)
         End If
 
         ilReference = CreateReferenceFromIlCode(ilSource, appendDefaultHeader, ilImage)
         references.Add(ilReference)
 
-        Return CreateCompilationWithMscorlibAndReferences(sources, references, options, spans, parseOptions)
+        Return CreateCompilationWithMscorlibAndReferences(sources, references, options, parseOptions)
     End Function
 
     Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True, <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing) As MetadataReference
@@ -614,16 +644,14 @@ Friend Module CompilationUtils
     ''' source
     ''' &lt;/file&gt;
     ''' </param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Public Function CreateParseTreeAndSpans(programElement As XElement, Optional parseOptions As VisualBasicParseOptions = Nothing) As Tuple(Of SyntaxTree, IList(Of TextSpan))
+    Public Function CreateParseTreeAndSpans(programElement As XElement, Optional parseOptions As VisualBasicParseOptions = Nothing) As (tree As SyntaxTree, spans As IList(Of TextSpan))
         Dim codeWithMarker As String = FilterString(programElement.Value)
         Dim codeWithoutMarker As String = Nothing
-        Dim spans As IList(Of TextSpan) = Nothing
+        Dim spans As ImmutableArray(Of TextSpan) = Nothing
         MarkupTestFile.GetSpans(codeWithMarker, codeWithoutMarker, spans)
 
         Dim text = SourceText.From(codeWithoutMarker, Encoding.UTF8)
-        Return New Tuple(Of SyntaxTree, IList(Of TextSpan))(VisualBasicSyntaxTree.ParseText(text, parseOptions, If(programElement.@name, "")), spans)
+        Return (VisualBasicSyntaxTree.ParseText(text, parseOptions, If(programElement.@name, "")), spans)
     End Function
 
     ' Find a node inside a tree.
@@ -1199,10 +1227,14 @@ Friend Module CompilationUtils
     End Sub
 
     <Extension>
-    Friend Function GetSynthesizedAttributes(symbol As ISymbol) As ImmutableArray(Of SynthesizedAttributeData)
+    Friend Function GetSynthesizedAttributes(symbol As ISymbol, Optional forReturnType As Boolean = False) As ImmutableArray(Of SynthesizedAttributeData)
         Dim attributes As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
-        Dim context = New ModuleCompilationState()
-        DirectCast(symbol, Symbol).AddSynthesizedAttributes(context, attributes)
+        If Not forReturnType Then
+            Dim context = New ModuleCompilationState()
+            DirectCast(symbol, Symbol).AddSynthesizedAttributes(context, attributes)
+        Else
+            DirectCast(symbol, MethodSymbol).AddSynthesizedReturnTypeAttributes(attributes)
+        End If
         Return If(attributes IsNot Nothing, attributes.ToImmutableAndFree(), ImmutableArray.Create(Of SynthesizedAttributeData)())
     End Function
 

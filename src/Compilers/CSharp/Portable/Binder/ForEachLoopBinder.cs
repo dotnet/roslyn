@@ -22,16 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const string CurrentPropertyName = WellKnownMemberNames.CurrentPropertyName;
         private const string MoveNextMethodName = WellKnownMemberNames.MoveNextMethodName;
 
-        private readonly ForEachStatementSyntax _syntax;
+        private readonly CommonForEachStatementSyntax _syntax;
         private SourceLocalSymbol IterationVariable
         {
             get
             {
-                return (SourceLocalSymbol)this.Locals[0];
+                return (_syntax.Kind() == SyntaxKind.ForEachStatement) ? (SourceLocalSymbol)this.Locals[0] : null;
             }
         }
 
-        public ForEachLoopBinder(Binder enclosing, ForEachStatementSyntax syntax)
+        public ForEachLoopBinder(Binder enclosing, CommonForEachStatementSyntax syntax)
             : base(enclosing)
         {
             Debug.Assert(syntax != null);
@@ -40,14 +40,109 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var iterationVariable = SourceLocalSymbol.MakeForeachLocal(
-                (MethodSymbol)this.ContainingMemberOrLambda,
-                this,
-                _syntax.Type,
-                _syntax.Identifier,
-                _syntax.Expression);
+            switch (_syntax.Kind())
+            {
+                case SyntaxKind.ForEachVariableStatement:
+                    {
+                        var syntax = (ForEachVariableStatementSyntax)_syntax;
+                        var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                        CollectLocalsFromDeconstruction(
+                            syntax.Variable,
+                            LocalDeclarationKind.ForEachIterationVariable,
+                            locals,
+                            syntax);
+                        return locals.ToImmutableAndFree();
+                    }
+                case SyntaxKind.ForEachStatement:
+                    {
+                        var syntax = (ForEachStatementSyntax)_syntax;
+                        var iterationVariable = SourceLocalSymbol.MakeForeachLocal(
+                            (MethodSymbol)this.ContainingMemberOrLambda,
+                            this,
+                            syntax.Type,
+                            syntax.Identifier,
+                            syntax.Expression);
+                        return ImmutableArray.Create<LocalSymbol>(iterationVariable);
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(_syntax.Kind());
+            }
+        }
 
-            return ImmutableArray.Create<LocalSymbol>(iterationVariable);
+        internal void CollectLocalsFromDeconstruction(
+            ExpressionSyntax declaration,
+            LocalDeclarationKind kind,
+            ArrayBuilder<LocalSymbol> locals,
+            SyntaxNode deconstructionStatement,
+            Binder enclosingBinderOpt = null)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.TupleExpression:
+                    {
+                        var tuple = (TupleExpressionSyntax)declaration;
+                        foreach (var arg in tuple.Arguments)
+                        {
+                            CollectLocalsFromDeconstruction(arg.Expression, kind, locals, deconstructionStatement, enclosingBinderOpt);
+                        }
+                        break;
+                    }
+                case SyntaxKind.DeclarationExpression:
+                    {
+                        var declarationExpression = (DeclarationExpressionSyntax)declaration;
+                        CollectLocalsFromDeconstruction(
+                            declarationExpression.Designation, declarationExpression.Type,
+                            kind, locals, deconstructionStatement, enclosingBinderOpt);
+
+                        break;
+                    }
+                case SyntaxKind.IdentifierName:
+                    break;
+                default:
+                    // In broken code, we can have an arbitrary expression here. Collect its expression variables.
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, declaration);
+                    break;
+            }
+        }
+
+        internal void CollectLocalsFromDeconstruction(
+            VariableDesignationSyntax designation,
+            TypeSyntax closestTypeSyntax,
+            LocalDeclarationKind kind,
+            ArrayBuilder<LocalSymbol> locals,
+            SyntaxNode deconstructionStatement,
+            Binder enclosingBinderOpt)
+        {
+            switch (designation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    {
+                        var single = (SingleVariableDesignationSyntax)designation;
+                        SourceLocalSymbol localSymbol = SourceLocalSymbol.MakeDeconstructionLocal(
+                                                                    this.ContainingMemberOrLambda,
+                                                                    this,
+                                                                    enclosingBinderOpt ?? this,
+                                                                    closestTypeSyntax,
+                                                                    single.Identifier,
+                                                                    kind,
+                                                                    deconstructionStatement);
+                        locals.Add(localSymbol);
+                        break;
+                    }
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    {
+                        var tuple = (ParenthesizedVariableDesignationSyntax)designation;
+                        foreach (var d in tuple.Variables)
+                        {
+                            CollectLocalsFromDeconstruction(d, closestTypeSyntax, kind, locals, deconstructionStatement, enclosingBinderOpt);
+                        }
+                        break;
+                    }
+                case SyntaxKind.DiscardDesignation:
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
+            }
         }
 
         /// <summary>
@@ -59,9 +154,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        /// <summary>
+        /// Like BindForEachParts, but only bind the deconstruction part of the foreach, for purpose of inferring the types of the declared locals.
+        /// </summary>
+        internal override BoundStatement BindForEachDeconstruction(DiagnosticBag diagnostics, Binder originalBinder)
+        {
+            // Use the right binder to avoid seeing iteration variable
+            BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindValue(_syntax.Expression, diagnostics, BindValueKind.RValue);
+
+            ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
+            TypeSymbol inferredType;
+            bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
+
+            ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
+            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, inferredType ?? CreateErrorType("var"));
+            DeclarationExpressionSyntax declaration = null;
+            ExpressionSyntax expression = null;
+            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
+                                                        variables,
+                                                        variables,
+                                                        right: _syntax.Expression,
+                                                        diagnostics: diagnostics,
+                                                        rightPlaceholder: valuePlaceholder,
+                                                        declaration: ref declaration,
+                                                        expression: ref expression);
+
+            return new BoundExpressionStatement(_syntax, deconstruction);
+        }
+
         private BoundForEachStatement BindForEachPartsWorker(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            BoundExpression collectionExpr = this.Next.BindValue(_syntax.Expression, diagnostics, BindValueKind.RValue); //bind with next to avoid seeing iteration variable
+            // Use the right binder to avoid seeing iteration variable
+            BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindValue(_syntax.Expression, diagnostics, BindValueKind.RValue);
 
             ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
             TypeSymbol inferredType;
@@ -73,37 +197,97 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)builder.MoveNextMethod == null ||
                 (object)builder.CurrentPropertyGetter == null;
 
-            // Check for local variable conflicts in the *enclosing* binder; obviously the *current*
-            // binder has a local that matches!
-            var hasNameConflicts = this.ValidateDeclarationNameConflictsInScope(IterationVariable, diagnostics);
-
-            // If the type in syntax is "var", then the type should be set explicitly so that the
-            // Type property doesn't fail.
-
-            TypeSyntax typeSyntax = _syntax.Type;
-
-            bool isVar;
-            AliasSymbol alias;
-            TypeSymbolWithAnnotations declType = BindType(typeSyntax, diagnostics, out isVar, out alias);
-
             TypeSymbolWithAnnotations iterationVariableType;
-            if (isVar)
+            BoundTypeExpression boundIterationVariableType;
+            bool hasNameConflicts = false;
+            BoundForEachDeconstructStep deconstructStep = null;
+            switch (_syntax.Kind())
             {
-                iterationVariableType = TypeSymbolWithAnnotations.Create(inferredType ?? CreateErrorType("var"));
-            }
-            else
-            {
-                Debug.Assert((object)declType != null);
-                iterationVariableType = declType;
-            }
+                case SyntaxKind.ForEachStatement:
+                    {
+                        var node = (ForEachStatementSyntax)_syntax;
+                        // Check for local variable conflicts in the *enclosing* binder; obviously the *current*
+                        // binder has a local that matches!
+                        hasNameConflicts = originalBinder.ValidateDeclarationNameConflictsInScope(IterationVariable, diagnostics);
 
+                        // If the type in syntax is "var", then the type should be set explicitly so that the
+                        // Type property doesn't fail.
+                        TypeSyntax typeSyntax = node.Type;
 
-            BoundTypeExpression boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType.TypeSymbol);
-            this.IterationVariable.SetTypeSymbol(iterationVariableType);
+                        bool isVar;
+                        AliasSymbol alias;
+                        TypeSymbolWithAnnotations declType = BindType(typeSyntax, diagnostics, out isVar, out alias);
+
+                        if (isVar)
+                        {
+                            iterationVariableType = TypeSymbolWithAnnotations.Create(inferredType ?? CreateErrorType("var"));
+                        }
+                        else
+                        {
+                            Debug.Assert((object)declType != null);
+                            iterationVariableType = declType;
+                        }
+
+                        boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
+                        this.IterationVariable.SetType(iterationVariableType);
+                        break;
+                    }
+                case SyntaxKind.ForEachVariableStatement:
+                    {
+                        var node = (ForEachVariableStatementSyntax)_syntax;
+                        iterationVariableType = inferredType ?? CreateErrorType("var");
+
+                        var variables = node.Variable;
+                        if (variables.IsDeconstructionLeft())
+                        {
+                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
+                            DeclarationExpressionSyntax declaration = null;
+                            ExpressionSyntax expression = null;
+                            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
+                                                                                    variables,
+                                                                                    variables,
+                                                                                    right: _syntax.Expression,
+                                                                                    diagnostics: diagnostics,
+                                                                                    rightPlaceholder: valuePlaceholder,
+                                                                                    declaration: ref declaration,
+                                                                                    expression: ref expression);
+
+                            if (expression != null)
+                            {
+                                // error: must declare foreach loop iteration variables.
+                                Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                                hasErrors = true;
+                            }
+
+                            deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder);
+                        }
+                        else if (!node.HasErrors)
+                        {
+                            // error: must declare foreach loop iteration variables.
+                            Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                            hasErrors = true;
+                        }
+
+                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType.TypeSymbol);
+                        break;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(_syntax.Kind());
+            }
 
             BoundStatement body = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
 
-            hasErrors = hasErrors || iterationVariableType.TypeSymbol.IsErrorType();
+            // NOTE: in error cases, binder may collect all kind of variables, not just formally declared iteration variables.
+            //       As a matter of error recovery, we will treat such variables the same as the iteration variables.
+            //       I.E. - they will be considered declared and assigned in each iteration step. 
+            ImmutableArray<LocalSymbol> iterationVariables = this.Locals;
+
+            Debug.Assert(hasErrors || 
+                _syntax.HasErrors || 
+                iterationVariables.All(local => local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable),
+                "Should not have iteration variables that are not ForEachIterationVariable in valid code");
+
+            hasErrors = hasErrors || boundIterationVariableType.HasErrors || iterationVariableType.IsErrorType();
 
             // Skip the conversion checks and array/enumerator differentiation if we know we have an error (except local name conflicts).
             if (hasErrors)
@@ -113,8 +297,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     null, // can't be sure that it's complete
                     default(Conversion),
                     boundIterationVariableType,
-                    this.IterationVariable,
+                    iterationVariables,
                     collectionExpr,
+                    deconstructStep,
                     body,
                     CheckOverflowAtRuntime,
                     this.BreakLabel,
@@ -134,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // but it turns out that these are equivalent (when both are available).
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion elementConversion = this.Conversions.ClassifyConversionForCast(inferredType, iterationVariableType.TypeSymbol, ref useSiteDiagnostics);
+            Conversion elementConversion = this.Conversions.ClassifyConversionFromType(inferredType, iterationVariableType.TypeSymbol, ref useSiteDiagnostics, forCast: true);
 
             if (!elementConversion.IsValid)
             {
@@ -159,9 +344,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the type X of expression is dynamic then there is an implicit conversion from >>expression<< (not the type of the expression) 
             // to the System.Collections.IEnumerable interface (§6.1.8). 
             builder.CollectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteDiagnostics);
-            builder.CurrentConversion = this.Conversions.ClassifyConversion(builder.CurrentPropertyGetter.ReturnType.TypeSymbol, builder.ElementType, ref useSiteDiagnostics);
+            builder.CurrentConversion = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType.TypeSymbol, builder.ElementType, ref useSiteDiagnostics);
 
-            builder.EnumeratorConversion = this.Conversions.ClassifyConversion(builder.GetEnumeratorMethod.ReturnType.TypeSymbol, GetSpecialType(SpecialType.System_Object, diagnostics, _syntax), ref useSiteDiagnostics);
+            builder.EnumeratorConversion = this.Conversions.ClassifyConversionFromType(builder.GetEnumeratorMethod.ReturnType.TypeSymbol, GetSpecialType(SpecialType.System_Object, diagnostics, _syntax), ref useSiteDiagnostics);
 
             diagnostics.Add(_syntax.ForEachKeyword.GetLocation(), useSiteDiagnostics);
 
@@ -204,8 +389,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Build(this.Flags),
                 elementConversion,
                 boundIterationVariableType,
-                this.IterationVariable,
+                iterationVariables,
                 convertedCollectionExpression,
+                deconstructStep,
                 body,
                 CheckOverflowAtRuntime,
                 this.BreakLabel,
@@ -215,8 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal TypeSymbol InferCollectionElementType(DiagnosticBag diagnostics, ExpressionSyntax collectionSyntax)
         {
-            // Bind with next to avoid seeing iteration variable
-            BoundExpression collectionExpr = this.Next.BindValue(collectionSyntax, diagnostics, BindValueKind.RValue);
+            // Use the right binder to avoid seeing iteration variable
+            BoundExpression collectionExpr = this.GetBinder(collectionSyntax).BindValue(collectionSyntax, diagnostics, BindValueKind.RValue);
 
             ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
             TypeSymbol inferredType;
@@ -263,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This behavior is not spec'd, but it's what Dev10 does.
             if ((object)collectionExprType != null && collectionExprType.IsNullableType())
             {
-                CSharpSyntaxNode exprSyntax = collectionExpr.Syntax;
+                SyntaxNode exprSyntax = collectionExpr.Syntax;
 
                 MethodSymbol nullableValueGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value, diagnostics, exprSyntax);
                 if ((object)nullableValueGetter != null)
@@ -343,26 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The spec specifically lists the collection, enumerator, and element types for arrays and dynamic.
             if (collectionExprType.Kind == SymbolKind.ArrayType || collectionExprType.Kind == SymbolKind.DynamicType)
             {
-                // NOTE: for arrays, we won't actually use any of these members - they're just for the API.
-                builder.CollectionType = GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, _syntax);
-                builder.ElementType =
-                    collectionExprType.IsDynamic() ?
-                    (_syntax.Type.IsVar ? (TypeSymbol)DynamicTypeSymbol.Instance : GetSpecialType(SpecialType.System_Object, diagnostics, _syntax)) :
-                    ((ArrayTypeSymbol)collectionExprType).ElementType.TypeSymbol;
-
-                // CONSIDER: 
-                // For arrays none of these members will actually be emitted, so it seems strange to prevent compilation if they can't be found.
-                // skip this work in the batch case? (If so, also special case string, which won't use the pattern methods.)
-                builder.GetEnumeratorMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator, diagnostics, _syntax);
-                builder.CurrentPropertyGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__get_Current, diagnostics, _syntax);
-                builder.MoveNextMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext, diagnostics, _syntax);
-
-                Debug.Assert((object)builder.GetEnumeratorMethod == null ||
-                    builder.GetEnumeratorMethod.ReturnType.TypeSymbol == this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator));
-
-                // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
-                builder.NeedsDisposeMethod = true;
-
+                builder = GetDefaultEnumeratorInfo(builder, diagnostics, collectionExprType);
                 return true;
             }
 
@@ -385,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var useSiteDiagnosticBag = DiagnosticBag.GetInstance();
                     TypeSymbol enumeratorType = builder.GetEnumeratorMethod.ReturnType.TypeSymbol;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    if (!enumeratorType.IsSealed || this.Conversions.ClassifyImplicitConversion(enumeratorType, this.Compilation.GetSpecialType(SpecialType.System_IDisposable), ref useSiteDiagnostics).IsImplicit)
+                    if (!enumeratorType.IsSealed || this.Conversions.ClassifyImplicitConversionFromType(enumeratorType, this.Compilation.GetSpecialType(SpecialType.System_IDisposable), ref useSiteDiagnostics).IsImplicit)
                     {
                         builder.NeedsDisposeMethod = true;
                         diagnostics.AddRange(useSiteDiagnosticBag);
@@ -462,12 +629,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            // COMPAT:
+            // In some rare cases, like MicroFramework, System.String does not implement foreach pattern.
+            // For compat reasons we must still treat System.String as valid to use in a foreach
+            // Similarly to the cases with array and dynamic, we will default to IEnumerable for binding purposes.
+            // Lowering will not use iterator info with strings, so it is ok.
+            if (collectionExprType.SpecialType == SpecialType.System_String)
+            {
+                builder = GetDefaultEnumeratorInfo(builder, diagnostics, collectionExprType);
+                return true;
+            }
 
             if (!string.IsNullOrEmpty(collectionExprType.Name) || !collectionExpr.HasErrors)
             {
                 diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, _syntax.Expression.Location, collectionExprType.ToDisplayString(), GetEnumeratorMethodName);
             }
             return false;
+        }
+
+        private ForEachEnumeratorInfo.Builder GetDefaultEnumeratorInfo(ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics, TypeSymbol collectionExprType)
+        {
+            // NOTE: for arrays, we won't actually use any of these members - they're just for the API.
+            builder.CollectionType = GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, _syntax);
+
+            if (collectionExprType.IsDynamic())
+            {
+                builder.ElementType = ((_syntax as ForEachStatementSyntax)?.Type.IsVar == true) ?
+                    (TypeSymbol)DynamicTypeSymbol.Instance :
+                    GetSpecialType(SpecialType.System_Object, diagnostics, _syntax);
+            }
+            else
+            {
+                builder.ElementType = collectionExprType.SpecialType == SpecialType.System_String ?
+                    GetSpecialType(SpecialType.System_Char, diagnostics, _syntax) :
+                    ((ArrayTypeSymbol)collectionExprType).ElementType.TypeSymbol;
+            }
+
+            // CONSIDER: 
+            // For arrays and string none of these members will actually be emitted, so it seems strange to prevent compilation if they can't be found.
+            // skip this work in the batch case?
+            builder.GetEnumeratorMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator, diagnostics, _syntax);
+            builder.CurrentPropertyGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__get_Current, diagnostics, _syntax);
+            builder.MoveNextMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext, diagnostics, _syntax);
+
+            Debug.Assert((object)builder.GetEnumeratorMethod == null ||
+                builder.GetEnumeratorMethod.ReturnType == this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator));
+
+            // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
+            builder.NeedsDisposeMethod = true;
+            return builder;
         }
 
         /// <summary>
@@ -792,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var implementedNonGeneric = this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
                 if ((object)implementedNonGeneric != null)
                 {
-                    var conversion = this.Conversions.ClassifyImplicitConversion(type, implementedNonGeneric, ref useSiteDiagnostics);
+                    var conversion = this.Conversions.ClassifyImplicitConversionFromType(type, implementedNonGeneric, ref useSiteDiagnostics);
                     if (conversion.IsImplicit)
                     {
                         implementedIEnumerable = implementedNonGeneric;
@@ -872,6 +1082,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (!warningsOnly)
             {
                 diagnostics.Add(ErrorCode.ERR_NoSuchMember, _syntax.Expression.Location, patternType, memberName);
+            }
+        }
+
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
+        {
+            if (_syntax == scopeDesignator)
+            {
+                return this.Locals;
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                return _syntax;
             }
         }
     }

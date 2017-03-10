@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -119,7 +120,7 @@ class C
     // (17,18): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
     //         int q2 = delegate { return 1; };
     Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate { return 1; }").WithArguments("anonymous method", "int").WithLocation(17, 18),
-    // (18,24): error CS1593: Delegate 'System.Func<int>' does not take 1 arguments
+    // (18,24): error CS1593: Delegate 'Func<int>' does not take 1 arguments
     //         Func<int> q3 = x3=>1;
     Diagnostic(ErrorCode.ERR_BadDelArgCount, "x3=>1").WithArguments("System.Func<int>", "1").WithLocation(18, 24),
     // (19,37): error CS0234: The type or namespace name 'Itn23' does not exist in the namespace 'System' (are you missing an assembly reference?)
@@ -128,7 +129,7 @@ class C
     // (20,35): error CS0234: The type or namespace name 'Duobel' does not exist in the namespace 'System' (are you missing an assembly reference?)
     //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
     Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Duobel").WithArguments("Duobel", "System").WithLocation(20, 35),
-    // (20,27): error CS1593: Delegate 'System.Func<double>' does not take 1 arguments
+    // (20,27): error CS1593: Delegate 'Func<double>' does not take 1 arguments
     //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
     Diagnostic(ErrorCode.ERR_BadDelArgCount, "(System.Duobel x5)=>1").WithArguments("System.Func<double>", "1").WithLocation(20, 27),
     // (21,17): error CS1661: Cannot convert lambda expression to delegate type 'C.D1' because the parameter types do not match the delegate parameter types
@@ -167,9 +168,9 @@ class C
     // (56,42): warning CS0162: Unreachable code detected
     //         Func<int> q13 = ()=>{ if (false) return 1; };
     Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(56, 42),
-    // (56,25): error CS1643: Not all code paths return a value in lambda expression of type 'System.Func<int>'
+    // (56,27): error CS1643: Not all code paths return a value in lambda expression of type 'Func<int>'
     //         Func<int> q13 = ()=>{ if (false) return 1; };
-    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "()=>{ if (false) return 1; }").WithArguments("lambda expression", "System.Func<int>").WithLocation(56, 25),
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<int>").WithLocation(56, 27),
     // (58,29): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
     //         Func<int> q14 = ()=>123.456;
     Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "123.456").WithArguments("double", "int").WithLocation(58, 29),
@@ -194,10 +195,10 @@ class C
     // (68,45): error CS1670: params is not valid in this context
     //         Action<int, double[]> q18 = (int x, params double[] s)=>{};
     Diagnostic(ErrorCode.ERR_IllegalParams, "params double[] s").WithLocation(68, 45),
-    // (70,34): error CS1593: Delegate 'System.Action' does not take 1 arguments
+    // (70,34): error CS1593: Delegate 'Action' does not take 1 arguments
     //         object q19 = new Action( (int x)=>{} );
     Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int x)=>{}").WithArguments("System.Action", "1").WithLocation(70, 34),
-    // (72,9): warning CS0436: The type 'System.Linq.Expressions.Expression<T>' in '' conflicts with the imported type 'System.Linq.Expressions.Expression<TDelegate>' in 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+    // (72,9): warning CS0436: The type 'Expression<T>' in '' conflicts with the imported type 'Expression<TDelegate>' in 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
     //         Expression<int> ex1 = ()=>1;  
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Expression<int>").WithArguments("", "System.Linq.Expressions.Expression<T>", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Linq.Expressions.Expression<TDelegate>").WithLocation(72, 9),
     // (72,31): error CS0835: Cannot convert lambda to an expression tree whose type argument 'int' is not a delegate type
@@ -554,19 +555,19 @@ class Program
     // (7,39): error CS1662: Cannot convert anonymous method to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
     //         ((Func<int>)delegate { return ""; })();
     Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, @"""""").WithArguments("anonymous method").WithLocation(7, 39),
-    // (8,21): error CS1643: Not all code paths return a value in anonymous method of type 'System.Func<int>'
+    // (8,21): error CS1643: Not all code paths return a value in anonymous method of type 'Func<int>'
     //         ((Func<int>)delegate { })();
-    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate { }").WithArguments("anonymous method", "System.Func<int>").WithLocation(8, 21),
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "System.Func<int>").WithLocation(8, 21),
     // (9,32): error CS0020: Division by constant zero
     //         ((Func<int>)delegate { 1 / 0; })();
     Diagnostic(ErrorCode.ERR_IntDivByZero, "1 / 0").WithLocation(9, 32),
     // (9,32): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         ((Func<int>)delegate { 1 / 0; })();
     Diagnostic(ErrorCode.ERR_IllegalStatement, "1 / 0").WithLocation(9, 32),
-    // (9,21): error CS1643: Not all code paths return a value in anonymous method of type 'System.Func<int>'
+    // (9,21): error CS1643: Not all code paths return a value in anonymous method of type 'Func<int>'
     //         ((Func<int>)delegate { 1 / 0; })();
-    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate { 1 / 0; }").WithArguments("anonymous method", "System.Func<int>").WithLocation(9, 21)
-        );
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "System.Func<int>").WithLocation(9, 21)
+            );
         }
 
         [WorkItem(540181, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540181")]
@@ -1119,7 +1120,7 @@ class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
         }
 
 
@@ -1141,7 +1142,7 @@ class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1169,7 +1170,7 @@ class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1192,14 +1193,14 @@ class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (11,22): error CS8083: By-reference returns may only be used in by-reference returning methods.
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (11,22): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         ME(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(11, 22),
-                // (12,20): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (12,20): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         ME(() => { return ref i; });
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(12, 20),
-                // (13,23): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (13,23): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         ME(delegate { return ref i; });
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(13, 23));
         }
@@ -1222,14 +1223,14 @@ class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (9,33): error CS8083: By-reference returns may only be used in by-reference returning methods.
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (9,33): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         var e = new E(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(9, 33),
-                // (10,27): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (10,27): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         e = new E(() => { return ref i; });
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(10, 27),
-                // (11,30): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (11,30): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         e = new E(delegate { return ref i; });
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(11, 30));
         }
@@ -1267,11 +1268,11 @@ class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (18,13): error CS8084: By-value returns may only be used in by-value returning methods.
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (18,13): error CS8150: By-value returns may only be used in by-value returning methods.
                 //             return i;
                 Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(18, 13),
-                // (23,17): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (23,17): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //                 return ref i;
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(23, 17));
         }
@@ -1638,8 +1639,8 @@ namespace RoslynAsyncDelegate
 
             var lambdaParameters = ((MethodSymbol)(model.GetSymbolInfo(node1)).Symbol).Parameters;
 
-            Assert.Equal("System.Object <sender>", lambdaParameters[0].ToTestDisplayString());
-            Assert.Equal("System.EventArgs <e>", lambdaParameters[1].ToTestDisplayString());
+            Assert.Equal("System.Object <p0>", lambdaParameters[0].ToTestDisplayString());
+            Assert.Equal("System.EventArgs <p1>", lambdaParameters[1].ToTestDisplayString());
 
             CompileAndVerify(compilation);
         }
@@ -1737,6 +1738,790 @@ class C { C() { Unbound2.Select(x => Unbound1); } }";
     Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound1").WithArguments("Unbound1").WithLocation(2, 38)
                 );
         }
+
+        [Fact]
+        [WorkItem(4480, "https://github.com/dotnet/roslyn/issues/4480")]
+        public void TestLambdaWithError06()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        // completion should work even in a syntactically invalid lambda
+        var handler = new MyDelegateType((s, e) => { e. });
     }
 }
 
+public delegate void MyDelegateType(
+    object sender,
+    MyArgumentType e
+);
+
+public class MyArgumentType
+{
+    public int SomePublicMember;
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source)
+                .VerifyDiagnostics(
+                //         var handler = new MyDelegateType((s, e) => { e. });
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "}").WithLocation(6, 57),
+                // (6,57): error CS1002: ; expected
+                //         var handler = new MyDelegateType((s, e) => { e. });
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 57)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var eReference = lambda.Body.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+            Assert.Equal("e", eReference.ToString());
+            var typeInfo = sm.GetTypeInfo(eReference);
+            Assert.Equal("MyArgumentType", typeInfo.Type.Name);
+            Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+            Assert.NotEmpty(typeInfo.Type.GetMembers("SomePublicMember"));
+        }
+
+        [Fact]
+        [WorkItem(11053, "https://github.com/dotnet/roslyn/issues/11053")]
+        [WorkItem(11358, "https://github.com/dotnet/roslyn/issues/11358")]
+        public void TestLambdaWithError07()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+
+public static class Program
+{
+    public static void Main()
+    {
+        var parameter = new List<string>();
+        var result = parameter.FirstOrDefault(x => x. );
+    }
+}
+
+public static class Enumerable
+{
+    public static TSource FirstOrDefault<TSource>(this IEnumerable<TSource> source, TSource defaultValue)
+    {
+        return default(TSource);
+    }
+
+    public static TSource FirstOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, TSource defaultValue)
+    {
+        return default(TSource);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+                // (9,55): error CS1001: Identifier expected
+                //         var result = parameter.FirstOrDefault(x => x. );
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(9, 55)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var eReference = lambda.Body.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+            Assert.Equal("x", eReference.ToString());
+            var typeInfo = sm.GetTypeInfo(eReference);
+            Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+            Assert.Equal("String", typeInfo.Type.Name);
+            Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+        }
+
+        [Fact]
+        [WorkItem(11053, "https://github.com/dotnet/roslyn/issues/11053")]
+        [WorkItem(11358, "https://github.com/dotnet/roslyn/issues/11358")]
+        public void TestLambdaWithError08()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+
+public static class Program
+{
+    public static void Main()
+    {
+        var parameter = new List<string>();
+        var result = parameter.FirstOrDefault(x => x. );
+    }
+}
+
+public static class Enumerable
+{
+    public static TSource FirstOrDefault<TSource>(this IEnumerable<TSource> source, params TSource[] defaultValue)
+    {
+        return default(TSource);
+    }
+
+    public static TSource FirstOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, params TSource[] defaultValue)
+    {
+        return default(TSource);
+}
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+                // (9,55): error CS1001: Identifier expected
+                //         var result = parameter.FirstOrDefault(x => x. );
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(9, 55)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var eReference = lambda.Body.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+            Assert.Equal("x", eReference.ToString());
+            var typeInfo = sm.GetTypeInfo(eReference);
+            Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+            Assert.Equal("String", typeInfo.Type.Name);
+            Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+        }
+
+        [Fact]
+        [WorkItem(11053, "https://github.com/dotnet/roslyn/issues/11053")]
+        [WorkItem(11358, "https://github.com/dotnet/roslyn/issues/11358")]
+        public void TestLambdaWithError09()
+        {
+            var source =
+@"using System;
+
+public static class Program
+{
+    public static void Main()
+    {
+        var parameter = new MyList<string>();
+        var result = parameter.FirstOrDefault(x => x. );
+    }
+}
+
+public class MyList<TSource>
+{
+    public TSource FirstOrDefault(TSource defaultValue)
+    {
+        return default(TSource);
+    }
+
+    public TSource FirstOrDefault(Func<TSource, bool> predicate, TSource defaultValue)
+    {
+        return default(TSource);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+                // (8,55): error CS1001: Identifier expected
+                //         var result = parameter.FirstOrDefault(x => x. );
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(8, 55)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var eReference = lambda.Body.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+            Assert.Equal("x", eReference.ToString());
+            var typeInfo = sm.GetTypeInfo(eReference);
+            Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+            Assert.Equal("String", typeInfo.Type.Name);
+            Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+        }
+
+        [Fact]
+        [WorkItem(11053, "https://github.com/dotnet/roslyn/issues/11053")]
+        [WorkItem(11358, "https://github.com/dotnet/roslyn/issues/11358")]
+        public void TestLambdaWithError10()
+        {
+            var source =
+@"using System;
+
+public static class Program
+{
+    public static void Main()
+    {
+        var parameter = new MyList<string>();
+        var result = parameter.FirstOrDefault(x => x. );
+    }
+}
+
+public class MyList<TSource>
+{
+    public TSource FirstOrDefault(params TSource[] defaultValue)
+    {
+        return default(TSource);
+    }
+
+    public TSource FirstOrDefault(Func<TSource, bool> predicate, params TSource[] defaultValue)
+    {
+        return default(TSource);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+                // (8,55): error CS1001: Identifier expected
+                //         var result = parameter.FirstOrDefault(x => x. );
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(8, 55)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var eReference = lambda.Body.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+            Assert.Equal("x", eReference.ToString());
+            var typeInfo = sm.GetTypeInfo(eReference);
+            Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+            Assert.Equal("String", typeInfo.Type.Name);
+            Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+        }
+
+        [Fact]
+        [WorkItem(557, "https://github.com/dotnet/roslyn/issues/557")]
+        public void TestLambdaWithError11()
+        {
+            var source =
+@"using System.Linq;
+
+public static class Program
+{
+    public static void Main()
+    {
+        var x = new {
+            X = """".Select(c => c.
+            Y = 0,
+        };
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var eReference = lambda.Body.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+            Assert.Equal("c", eReference.ToString());
+            var typeInfo = sm.GetTypeInfo(eReference);
+            Assert.Equal(TypeKind.Struct, typeInfo.Type.TypeKind);
+            Assert.Equal("Char", typeInfo.Type.Name);
+            Assert.NotEmpty(typeInfo.Type.GetMembers("IsHighSurrogate")); // check it is the char we know and love
+        }
+
+        [Fact]
+        [WorkItem(5498, "https://github.com/dotnet/roslyn/issues/5498")]
+        public void TestLambdaWithError12()
+        {
+            var source =
+@"using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z = args.Select(a => a.
+        var foo = 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var eReference = lambda.Body.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+            Assert.Equal("a", eReference.ToString());
+            var typeInfo = sm.GetTypeInfo(eReference);
+            Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+            Assert.Equal("String", typeInfo.Type.Name);
+            Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+        }
+
+        [WorkItem(5498, "https://github.com/dotnet/roslyn/issues/5498")]
+        [WorkItem(11358, "https://github.com/dotnet/roslyn/issues/11358")]
+        [Fact]
+        public void TestLambdaWithError13()
+        {
+            // These tests ensure we attempt to perform type inference and bind a lambda expression
+            // argument even when there are too many or too few arguments to an invocation, in the
+            // case when there is more than one method in the method group.
+            // See https://github.com/dotnet/roslyn/issues/11901 for the case of one method in the group
+            var source =
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Thing<string> t = null;
+        t.X1(x => x, 1); // too many args
+        t.X2(x => x);    // too few args
+        t.M2(string.Empty, x => x, 1); // too many args
+        t.M3(string.Empty, x => x); // too few args
+    }
+}
+public class Thing<T>
+{
+    public void M2<T>(T x, Func<T, T> func) {}
+    public void M3<T>(T x, Func<T, T> func, T y) {}
+
+    // Ensure we have more than one method in the method group
+    public void M2() {}
+    public void M3() {}
+}
+public static class XThing
+{
+    public static Thing<T> X1<T>(this Thing<T> self, Func<T, T> func) => null;
+    public static Thing<T> X2<T>(this Thing<T> self, Func<T, T> func, int i) => null;
+
+    // Ensure we have more than one method in the method group
+    public static void X1(this object self) {}
+    public static void X2(this object self) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
+
+        [Fact]
+        [WorkItem(11901, "https://github.com/dotnet/roslyn/issues/11901")]
+        public void TestLambdaWithError15()
+        {
+            // These tests ensure we attempt to perform type inference and bind a lambda expression
+            // argument even when there are too many or too few arguments to an invocation, in the
+            // case when there is exactly one method in the method group.
+            var source =
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Thing<string> t = null;
+        t.X1(x => x, 1); // too many args
+        t.X2(x => x);    // too few args
+        t.M2(string.Empty, x => x, 1); // too many args
+        t.M3(string.Empty, x => x); // too few args
+    }
+}
+public class Thing<T>
+{
+    public void M2<T>(T x, Func<T, T> func) {}
+    public void M3<T>(T x, Func<T, T> func, T y) {}
+}
+public static class XThing
+{
+    public static Thing<T> X1<T>(this Thing<T> self, Func<T, T> func) => null;
+    public static Thing<T> X2<T>(this Thing<T> self, Func<T, T> func, int i) => null;
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
+
+        [Fact]
+        [WorkItem(11901, "https://github.com/dotnet/roslyn/issues/11901")]
+        public void TestLambdaWithError16()
+        {
+            // These tests ensure we use the substituted method to bind a lambda expression
+            // argument even when there are too many or too few arguments to an invocation, in the
+            // case when there is exactly one method in the method group.
+            var source =
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Thing<string> t = null;
+        t.X1<string>(x => x, 1); // too many args
+        t.X2<string>(x => x);    // too few args
+        t.M2<string>(string.Empty, x => x, 1); // too many args
+        t.M3<string>(string.Empty, x => x); // too few args
+    }
+}
+public class Thing<T>
+{
+    public void M2<T>(T x, Func<T, T> func) {}
+    public void M3<T>(T x, Func<T, T> func, T y) {}
+}
+public static class XThing
+{
+    public static Thing<T> X1<T>(this Thing<T> self, Func<T, T> func) => null;
+    public static Thing<T> X2<T>(this Thing<T> self, Func<T, T> func, int i) => null;
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
+
+        [Fact]
+        [WorkItem(12063, "https://github.com/dotnet/roslyn/issues/12063")]
+        public void TestLambdaWithError17()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Ma(action: (x, y) => x.ToString(), t: string.Empty);
+        Mb(action: (x, y) => x.ToString(), t: string.Empty);
+    }
+    static void Ma<T>(T t, Action<T, T, int> action) { }
+    static void Mb<T>(T t, Action<T, T, int> action) { }
+    static void Mb() { }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
+
+        [Fact]
+        [WorkItem(12063, "https://github.com/dotnet/roslyn/issues/12063")]
+        public void TestLambdaWithError18()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Ma(string.Empty, (x, y) => x.ToString());
+        Mb(string.Empty, (x, y) => x.ToString());
+    }
+    static void Ma<T>(T t, Action<T, T, int> action) { }
+    static void Mb<T>(T t, Action<T, T, int> action) { }
+    static void Mb() { }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
+
+        [Fact]
+        [WorkItem(12063, "https://github.com/dotnet/roslyn/issues/12063")]
+        public void TestLambdaWithError19()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Ma(string.Empty, (x, y) => x.ToString());
+        Mb(string.Empty, (x, y) => x.ToString());
+        Mc(string.Empty, (x, y) => x.ToString());
+    }
+    static void Ma<T>(T t, Expression<Action<T, T, int>> action) { }
+    static void Mb<T>(T t, Expression<Action<T, T, int>> action) { }
+    static void Mb<T>(T t, Action<T, T, int> action) { }
+    static void Mc<T>(T t, Expression<Action<T, T, int>> action) { }
+    static void Mc() { }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
+
+        // See MaxParameterListsForErrorRecovery.
+        [Fact]
+        public void BuildArgumentsForErrorRecovery_ManyOverloads()
+        {
+            BuildArgumentsForErrorRecovery_ManyOverloads_Internal(Binder.MaxParameterListsForErrorRecovery - 1, tooMany: false);
+            BuildArgumentsForErrorRecovery_ManyOverloads_Internal(Binder.MaxParameterListsForErrorRecovery, tooMany: true);
+        }
+
+        private void BuildArgumentsForErrorRecovery_ManyOverloads_Internal(int n, bool tooMany)
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine("using System;");
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"class C{i} {{ }}");
+            }
+            builder.Append(
+@"class A { }
+class B { }
+class C
+{
+    void M()
+    {
+        F(1, (t, a, b, c) => { });
+        var o = this[(a, b, c) => { }];
+    }
+");
+            // Too few parameters.
+            AppendLines(builder, n, i => $"    void F<T>(T t, Action<T, A, C{i}> a) {{ }}");
+            AppendLines(builder, n, i => $"    object this[Action<A, C{i}> a] => {i}");
+            // Type inference failure.
+            AppendLines(builder, n, i => $"    void F<T, U>(T t, Action<T, U, C{i}> a) where U : T {{ }}");
+            // Too many parameters.
+            AppendLines(builder, n, i => $"    void F<T>(T t, Action<T, A, B, C, C{i}> a) {{ }}");
+            AppendLines(builder, n, i => $"    object this[Action<A, B, C, C{i}> a] => {i}");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToArray();
+
+            // F(1, (t, a, b, c) => { });
+            var lambda = lambdas[0];
+            var parameters = lambda.ParameterList.Parameters;
+            var parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
+            Assert.False(parameter.Type.IsErrorType());
+            Assert.Equal("System.Int32 t", parameter.ToTestDisplayString());
+            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[1]);
+            Assert.False(parameter.Type.IsErrorType());
+            Assert.Equal("A a", parameter.ToTestDisplayString());
+            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[3]);
+            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
+
+            // var o = this[(a, b, c) => { }];
+            lambda = lambdas[1];
+            parameters = lambda.ParameterList.Parameters;
+            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
+            Assert.False(parameter.Type.IsErrorType());
+            Assert.Equal("A a", parameter.ToTestDisplayString());
+            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[2]);
+            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
+        }
+
+        private static void AppendLines(StringBuilder builder, int n, Func<int, string> getLine)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine(getLine(i));
+            }
+        }
+
+        [Fact]
+        [WorkItem(13797, "https://github.com/dotnet/roslyn/issues/13797")]
+        public void DelegateAsAction()
+        {
+            var source = @"
+using System;
+
+public static class C
+{
+    public static void M() => Dispatch(delegate { });
+
+    public static T Dispatch<T>(Func<T> func) => default(T);
+
+    public static void Dispatch(Action func) { }
+}";
+            var comp = CreateCompilationWithMscorlib(source);
+            CompileAndVerify(comp);
+        }
+
+        [Fact, WorkItem(278481, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481")]
+        public void LambdaReturningNull_1()
+        {
+            var src = @"
+public static class ExtensionMethods
+{
+    public static System.Linq.IQueryable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Linq.IQueryable<TOuter> outerValues,
+        System.Linq.IQueryable<TInner> innerValues,
+        System.Linq.Expressions.Expression<System.Func<TOuter, TKey>> outerKeySelector,
+        System.Linq.Expressions.Expression<System.Func<TInner, TKey>> innerKeySelector,
+        System.Linq.Expressions.Expression<System.Func<TOuter, TInner, TResult>> fullResultSelector,
+        System.Linq.Expressions.Expression<System.Func<TOuter, TResult>> partialResultSelector,
+        System.Collections.Generic.IEqualityComparer<TKey> comparer)
+    { return null; }
+
+    public static System.Linq.IQueryable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Linq.IQueryable<TOuter> outerValues, 
+        System.Linq.IQueryable<TInner> innerValues, 
+        System.Linq.Expressions.Expression<System.Func<TOuter, TKey>> outerKeySelector, 
+        System.Linq.Expressions.Expression<System.Func<TInner, TKey>> innerKeySelector, 
+        System.Linq.Expressions.Expression<System.Func<TOuter, TInner, TResult>> fullResultSelector, 
+        System.Linq.Expressions.Expression<System.Func<TOuter, TResult>> partialResultSelector)
+    {
+        System.Console.WriteLine(""1""); 
+        return null; 
+    }
+
+    public static System.Collections.Generic.IEnumerable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Collections.Generic.IEnumerable<TOuter> outerValues, 
+        System.Linq.IQueryable<TInner> innerValues, 
+        System.Func<TOuter, TKey> outerKeySelector, 
+        System.Func<TInner, TKey> innerKeySelector, 
+        System.Func<TOuter, TInner, TResult> fullResultSelector, 
+        System.Func<TOuter, TResult> partialResultSelector)
+    {
+        System.Console.WriteLine(""2""); 
+        return null; 
+    }
+
+    public static System.Collections.Generic.IEnumerable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Collections.Generic.IEnumerable<TOuter> outerQueryable,
+        System.Collections.Generic.IEnumerable<TInner> innerQueryable,
+        System.Func<TOuter, TKey> outerKeySelector,
+        System.Func<TInner, TKey> innerKeySelector,
+        System.Func<TOuter, TInner, TResult> resultSelector)
+    { return null; }
+}
+
+partial class C
+{
+    public static void Main()
+    {
+        System.Linq.IQueryable<A> outerValue = null;
+        System.Linq.IQueryable<B> innerValues = null;
+
+        outerValue.LeftOuterJoin(innerValues,
+                    co => co.id,
+                    coa => coa.id,
+                    (co, coa) => null,
+                    co => co);
+    }
+}
+
+class A
+{
+    public int id=2;
+}
+
+class B
+{
+    public int id = 2;
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "1");
+        }
+
+        [Fact, WorkItem(296550, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=296550")]
+        public void LambdaReturningNull_2()
+        {
+            var src = @"
+class Test1<T>
+    {
+        public void M1(System.Func<T> x) {}
+        public void M1<S>(System.Func<S> x) {}
+        public void M2<S>(System.Func<S> x) {}
+        public void M2(System.Func<T> x) {}
+    }
+
+    class Test2 : Test1<System.>
+    {
+        void Main()
+        {
+            M1(()=> null);
+            M2(()=> null);
+        }
+    }
+";
+            var comp = CreateCompilationWithMscorlib(src, options: TestOptions.DebugDll);
+
+            comp.VerifyDiagnostics(
+                // (10,32): error CS1001: Identifier expected
+                //     class Test2 : Test1<System.>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(10, 32)
+                );
+        }
+
+        [Fact]
+        public void ThrowExpression_Lambda()
+        {
+            var src = @"using System;
+class C
+{
+    public static void Main()
+    {
+        Action a = () => throw new Exception(""1"");
+        try
+        {
+            a();
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+        Func<int, int> b = x => throw new Exception(""2"");
+        try
+        {
+            b(0);
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+        b = (int x) => throw new Exception(""3"");
+        try
+        {
+            b(0);
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+        b = (x) => throw new Exception(""4"");
+        try
+        {
+            b(0);
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "1234");
+        }
+    }
+}

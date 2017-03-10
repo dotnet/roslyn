@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
 
             context.RegisterCodeFix(
                 New MyCodeAction(
-                    VBFeaturesResources.RemoveUnnecessaryCast,
+                    VBFeaturesResources.Remove_Unnecessary_Cast,
                     Function(c) RemoveUnnecessaryCastAsync(document, node, c)),
                 context.Diagnostics)
         End Function

@@ -1,13 +1,8 @@
 {
-    "dependencies": {
-        "Microsoft.Composition": "1.0.27",
-        "System.Collections.Immutable": "1.1.37",
-        "System.Reflection.Metadata": "1.2.0"
-    },
-    "frameworks": {
-      "net452": {}
-    },
-    "runtimes": {
-      "win7": { }
-    }
+  "dependencies": { 
+      "Microsoft.VisualStudio.QualityTools.UnitTestFramework": "10.0.0.0-alpha"
+  },
+  "frameworks": {
+    "net46": {}
+  }
 }

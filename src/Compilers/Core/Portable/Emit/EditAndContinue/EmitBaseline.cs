@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
@@ -59,15 +61,24 @@ namespace Microsoft.CodeAnalysis.Emit
         internal sealed class MetadataSymbols
         {
             public readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypes;
+
+            /// <summary>
+            /// A map of the assembly identities of the baseline compilation to the identities of the original metadata AssemblyRefs.
+            /// Only includes identities that differ between these two.
+            /// </summary>
+            public readonly ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> AssemblyReferenceIdentityMap;
+
             public readonly object MetadataDecoder;
 
-            public MetadataSymbols(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypes, object metadataDecoder)
+            public MetadataSymbols(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypes, object metadataDecoder, ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap)
             {
                 Debug.Assert(anonymousTypes != null);
                 Debug.Assert(metadataDecoder != null);
+                Debug.Assert(assemblyReferenceIdentityMap != null);
 
                 this.AnonymousTypes = anonymousTypes;
                 this.MetadataDecoder = metadataDecoder;
+                this.AssemblyReferenceIdentityMap = assemblyReferenceIdentityMap;
             }
         }
 
@@ -78,6 +89,8 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <param name="module">The metadata of the module before editing.</param>
         /// <param name="debugInformationProvider">
         /// A function that for a method handle returns Edit and Continue debug information emitted by the compiler into the PDB.
+        /// The function shall throw <see cref="System.IO.InvalidDataException"/> if the debug information can't be read for the specified method.
+        /// This exception is caught and converted to an emit diagnostic. Other exceptions are passed through.
         /// </param>
         /// <returns>An <see cref="EmitBaseline"/> for the module.</returns>
         /// <remarks>
@@ -96,6 +109,12 @@ namespace Microsoft.CodeAnalysis.Emit
         /// The slot ordering thus no longer matches the syntax ordering. It is therefore necessary to pass <see cref="EmitDifferenceResult.Baseline"/>
         /// to the next generation (rather than e.g. create new <see cref="EmitBaseline"/>s from scratch based on metadata produced by subsequent compilations).
         /// </remarks>
+        /// <exception cref="ArgumentException"><paramref name="module"/> is not a PE image.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="module"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="debugInformationProvider"/> is null.</exception>
+        /// <exception cref="IOException">Error reading module metadata.</exception>
+        /// <exception cref="BadImageFormatException">Module metadata is invalid.</exception>
+        /// <exception cref="ObjectDisposedException">Module has been disposed.</exception>
         public static EmitBaseline CreateInitialBaseline(ModuleMetadata module, Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
         {
             if (module == null)
@@ -113,8 +132,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 throw new ArgumentNullException(nameof(debugInformationProvider));
             }
 
+            // module has IL as checked above and hence a PE reader:
+            Debug.Assert(module.Module.PEReaderOpt != null);
+
             var reader = module.MetadataReader;
             var moduleVersionId = module.GetModuleVersionId();
+            var hasPortablePdb = module.Module.PEReaderOpt.ReadDebugDirectory().Any(entry => entry.IsPortableCodeView);
 
             return new EmitBaseline(
                 null,
@@ -124,6 +147,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 moduleVersionId: moduleVersionId,
                 ordinal: 0,
                 encId: default(Guid),
+                hasPortablePdb: hasPortablePdb,
                 typesAdded: new Dictionary<Cci.ITypeDefinition, int>(),
                 eventsAdded: new Dictionary<Cci.IEventDefinition, int>(),
                 fieldsAdded: new Dictionary<Cci.IFieldDefinition, int>(),
@@ -159,6 +183,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly Compilation Compilation;
         internal readonly CommonPEModuleBuilder PEModuleBuilder;
         internal readonly Guid ModuleVersionId;
+        internal readonly bool HasPortablePdb;
 
         /// <summary>
         /// Metadata generation ordinal. Zero for
@@ -194,8 +219,9 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<int, AddedOrChangedMethodInfo> AddedOrChangedMethods;
 
         /// <summary>
-        /// Local variable names for methods from metadata,
-        /// indexed by method row.
+        /// Reads EnC debug information of a method from the initial baseline PDB.
+        /// The function shall throw <see cref="System.IO.InvalidDataException"/> if the debug information can't be read for the specified method.
+        /// This exception is caught and converted to an emit diagnostic. Other exceptions are passed through.
         /// </summary>
         internal readonly Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> DebugInformationProvider;
 
@@ -214,6 +240,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Guid moduleVersionId,
             int ordinal,
             Guid encId,
+            bool hasPortablePdb,
             IReadOnlyDictionary<Cci.ITypeDefinition, int> typesAdded,
             IReadOnlyDictionary<Cci.IEventDefinition, int> eventsAdded,
             IReadOnlyDictionary<Cci.IFieldDefinition, int> fieldsAdded,
@@ -269,6 +296,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.ModuleVersionId = moduleVersionId;
             this.Ordinal = ordinal;
             this.EncId = encId;
+            this.HasPortablePdb = hasPortablePdb;
 
             this.TypesAdded = typesAdded;
             this.EventsAdded = eventsAdded;
@@ -321,13 +349,14 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(_anonymousTypeMap == null || anonymousTypeMap.Count >= _anonymousTypeMap.Count);
 
             return new EmitBaseline(
-                this.InitialBaseline,
-                this.OriginalMetadata,
+                InitialBaseline,
+                OriginalMetadata,
                 compilation,
                 moduleBuilder,
-                this.ModuleVersionId,
+                ModuleVersionId,
                 ordinal,
                 encId,
+                HasPortablePdb,
                 typesAdded,
                 eventsAdded,
                 fieldsAdded,
@@ -345,9 +374,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 synthesizedMembers: synthesizedMembers,
                 methodsAddedOrChanged: addedOrChangedMethods,
                 debugInformationProvider: debugInformationProvider,
-                typeToEventMap: this.TypeToEventMap,
-                typeToPropertyMap: this.TypeToPropertyMap,
-                methodImpls: this.MethodImpls);
+                typeToEventMap: TypeToEventMap,
+                typeToPropertyMap: TypeToPropertyMap,
+                methodImpls: MethodImpls);
         }
 
         internal IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypeMap

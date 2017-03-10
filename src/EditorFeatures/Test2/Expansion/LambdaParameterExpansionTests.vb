@@ -64,7 +64,7 @@ class C
 {
     void M()
     {
-        Action<int> a = (System.Int32 x) => { };
+        Action<int> a = (global::System.Int32 x) => { };
     }
 }
 ]]></code>
@@ -97,7 +97,7 @@ class C
 {
     void M()
     {
-        Action<int> a = (System.Int32 x) => { };
+        Action<int> a = (global::System.Int32 x) => { };
     }
 }
 ]]></code>
@@ -130,7 +130,7 @@ class C
 {
     void M()
     {
-        Action<int, int> a = (System.Int32 x, System.Int32 y) => { };
+        Action<int, int> a = (global::System.Int32 x, global::System.Int32 y) => { };
     }
 }
 ]]></code>
@@ -163,13 +163,12 @@ class C
 {
     void M()
     {
-        Action<int, int, int> a = (System.Int32 x, System.Int32 y, System.Int32 z) => { };
+        Action<int, int, int> a = (global::System.Int32 x, global::System.Int32 y, global::System.Int32 z) => { };
     }
 }
 ]]></code>
 
             Await TestAsync(input, expected, expandParameter:=True)
         End Function
-
     End Class
 End Namespace

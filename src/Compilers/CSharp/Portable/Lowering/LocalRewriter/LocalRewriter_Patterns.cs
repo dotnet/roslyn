@@ -3,10 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,50 +11,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
-            var expression = VisitExpression(node.Expression);
-            var result = TranslatePattern(expression, node.Pattern);
-            return result;
+            var loweredExpression = VisitExpression(node.Expression);
+            var loweredPattern = LowerPattern(node.Pattern);
+            return MakeIsPattern(loweredPattern, loweredExpression);
         }
 
         // Input must be used no more than once in the result. If it is needed repeatedly store its value in a temp and use the temp.
-        BoundExpression TranslatePattern(BoundExpression input, BoundPattern pattern)
+        BoundExpression MakeIsPattern(BoundPattern loweredPattern, BoundExpression loweredInput)
         {
-            var syntax = _factory.Syntax = pattern.Syntax;
-            switch (pattern.Kind)
+            var syntax = _factory.Syntax = loweredPattern.Syntax;
+            switch (loweredPattern.Kind)
             {
                 case BoundKind.DeclarationPattern:
                     {
-                        var declPattern = (BoundDeclarationPattern)pattern;
-                        Debug.Assert(declPattern.IsVar || declPattern.LocalSymbol.Type.TypeSymbol == declPattern.DeclaredType.Type);
-                        if (declPattern.IsVar)
-                        {
-                            Debug.Assert(input.Type == declPattern.LocalSymbol.Type.TypeSymbol);
-                            var assignment = _factory.AssignmentExpression(_factory.Local(declPattern.LocalSymbol), input);
-                            var result = _factory.Literal(true);
-                            return _factory.Sequence(assignment, result);
-                        }
-
-                        return DeclPattern(syntax, input, declPattern.LocalSymbol);
-                    }
-
-                case BoundKind.PropertyPattern:
-                    {
-                        var pat = (BoundPropertyPattern)pattern;
-                        var temp = _factory.SynthesizedLocal(pat.Type);
-                        var matched = DeclPattern(syntax, input, temp);
-                        input = _factory.Local(temp);
-                        for (int i = 0; i < pat.Subpatterns.Length; i++)
-                        {
-                            var subProperty = pat.Subpatterns[i].Property;
-                            var subPattern = pat.Subpatterns[i].Pattern;
-                            var subExpression =
-                                subProperty.Kind == SymbolKind.Field
-                                    ? (BoundExpression)_factory.Field(input, (FieldSymbol)subProperty)
-                                    : _factory.Call(input, ((PropertySymbol)subProperty).GetMethod);
-                            var partialMatch = this.TranslatePattern(subExpression, subPattern);
-                            matched = _factory.LogicalAnd(matched, partialMatch);
-                        }
-                        return _factory.Sequence(temp, matched);
+                        var declPattern = (BoundDeclarationPattern)loweredPattern;
+                        return MakeIsDeclarationPattern(declPattern, loweredInput);
                     }
 
                 case BoundKind.WildcardPattern:
@@ -65,32 +33,122 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ConstantPattern:
                     {
-                        var constantPattern = (BoundConstantPattern)pattern;
-                        return CompareWithConstant(input, constantPattern.Value);
+                        var constantPattern = (BoundConstantPattern)loweredPattern;
+                        return MakeIsConstantPattern(constantPattern, loweredInput);
                     }
 
-                case BoundKind.RecursivePattern:
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(loweredPattern.Kind);
+            }
+        }
+
+        BoundPattern LowerPattern(BoundPattern pattern)
+        {
+            switch (pattern.Kind)
+            {
+                case BoundKind.DeclarationPattern:
+                    {
+                        var declPattern = (BoundDeclarationPattern)pattern;
+                        return declPattern.Update(declPattern.Variable, VisitExpression(declPattern.VariableAccess), declPattern.DeclaredType, declPattern.IsVar);
+                    }
+                case BoundKind.ConstantPattern:
+                    {
+                        var constantPattern = (BoundConstantPattern)pattern;
+                        return constantPattern.Update(VisitExpression(constantPattern.Value), constantPattern.ConstantValue);
+                    }
+                default:
+                    return pattern;
+            }
+        }
+
+        private BoundExpression MakeIsConstantPattern(BoundConstantPattern loweredPattern, BoundExpression loweredInput)
+        {
+            return CompareWithConstant(loweredInput, loweredPattern.Value);
+        }
+
+        private BoundExpression MakeIsDeclarationPattern(BoundDeclarationPattern loweredPattern, BoundExpression loweredInput)
+        {
+            Debug.Assert(((object)loweredPattern.Variable == null && loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression) ||
+                         loweredPattern.Variable.GetTypeOrReturnType() == loweredPattern.DeclaredType.Type);
+
+            if (loweredPattern.IsVar)
+            {
+                var result = _factory.Literal(true);
+
+                if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression)
+                {
+                    return result;
+                }
+
+                Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type == loweredPattern.Variable.GetTypeOrReturnType());
+
+                var assignment = _factory.AssignmentExpression(loweredPattern.VariableAccess, loweredInput);
+                return _factory.MakeSequence(assignment, result);
+            }
+
+            if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression)
+            {
+                LocalSymbol temp;
+                BoundLocal discard = _factory.MakeTempForDiscard((BoundDiscardExpression)loweredPattern.VariableAccess, out temp);
+
+                return _factory.Sequence(ImmutableArray.Create(temp),
+                         sideEffects: ImmutableArray<BoundExpression>.Empty,
+                         result: MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, discard, requiresNullTest: true));
+            }
+
+            return MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, loweredPattern.VariableAccess, requiresNullTest: true);
+        }
+
+        /// <summary>
+        /// Produce a 'logical and' operation that is clearly irrefutable (<see cref="IsIrrefutablePatternTest(BoundExpression)"/>) when it can be.
+        /// </summary>
+        BoundExpression LogicalAndForPatterns(BoundExpression left, BoundExpression right)
+        {
+            return IsIrrefutablePatternTest(left) ? _factory.MakeSequence(left, right) : _factory.LogicalAnd(left, right);
+        }
+
+        /// <summary>
+        /// Is the test, produced as a result of a pattern-matching operation, always true?
+        /// Knowing that enables us to construct slightly more efficient code.
+        /// </summary>
+        private bool IsIrrefutablePatternTest(BoundExpression test)
+        {
+            while (true)
+            {
+                switch (test.Kind)
+                {
+                    case BoundKind.Literal:
+                        {
+                            var value = ((BoundLiteral)test).ConstantValue;
+                            return value.IsBoolean && value.BooleanValue;
+                        }
+                    case BoundKind.Sequence:
+                        test = ((BoundSequence)test).Value;
+                        continue;
+                    default:
+                        return false;
+                }
             }
         }
 
         private BoundExpression CompareWithConstant(BoundExpression input, BoundExpression boundConstant)
         {
-            // We currently use "exact" type semantics.
-            // TODO: We need to change this to be sensitive to conversions
-            // among integral types, so that the same value of different integral types are considered matching.
             return _factory.StaticCall(
                 _factory.SpecialType(SpecialType.System_Object),
                 "Equals",
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), input),
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), boundConstant)
+                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), boundConstant),
+                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), input)
                 );
         }
 
-        BoundExpression DeclPattern(CSharpSyntaxNode syntax, BoundExpression input, LocalSymbol target)
+        BoundExpression MakeIsDeclarationPattern(SyntaxNode syntax, BoundExpression loweredInput, BoundExpression loweredTarget, bool requiresNullTest)
         {
-            var type = target.Type.TypeSymbol;
+            var type = loweredTarget.Type.TypeSymbol;
+
+            // The type here is not a Nullable<T> instance type, as that would have led to the semantic error:
+            // ERR_PatternNullableType: It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.
+            Debug.Assert(!type.IsNullableType());
+
             // a pattern match of the form "expression is Type identifier" is equivalent to
             // an invocation of one of these helpers:
             if (type.IsReferenceType)
@@ -100,25 +158,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     t = e as T;
                 //     return t != null;
                 // }
-                var assignment = _factory.AssignmentExpression(_factory.Local(target), _factory.As(input, type));
-                var result = _factory.ObjectNotEqual(_factory.Local(target), _factory.Null(type));
-                return _factory.Sequence(assignment, result);
-            }
-            else if (type.IsNullableType())
-            {
-                // This is a semantic error in the binder, so we should not get here.
-                // Not sure what the semantics should be, as (null is Nullable<int>) is false.
-
-                // bool Is<T>(object e, out T? t) where T : struct
-                // {
-                //     t = e as T?;
-                //     return e == null || t.HasValue;
-                // }
-                throw new NotImplementedException();
+                if (loweredInput.Type == type)
+                {
+                    // CONSIDER: this can be done whenever input.Type is a subtype of type for improved code
+                    var assignment = _factory.AssignmentExpression(loweredTarget, loweredInput);
+                    return requiresNullTest
+                        ? _factory.ObjectNotEqual(assignment, _factory.Null(type))
+                        : _factory.MakeSequence(assignment, _factory.Literal(true));
+                }
+                else
+                {
+                    return _factory.ObjectNotEqual(
+                        _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
+                        _factory.Null(type));
+                }
             }
             else if (type.IsValueType)
             {
-                // TODO: only assign t when returning true (avoid returning a new default value)
+                // It is possible that the input value is already of the correct type, in which case the pattern
+                // is irrefutable, and we can just do the assignment and return true.
+                if (loweredInput.Type == type)
+                {
+                    return _factory.MakeSequence(
+                        _factory.AssignmentExpression(loweredTarget, loweredInput),
+                        _factory.Literal(true));
+                }
+
+                // It may be possible to improve this code by only assigning t when returning
+                // true (avoid returning a new default value)
                 // bool Is<T>(object e, out T t) where T : struct // non-Nullable value type
                 // {
                 //     T? tmp = e as T?;
@@ -127,14 +194,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // }
                 var tmpType = _factory.SpecialType(SpecialType.System_Nullable_T).Construct(type);
                 var tmp = _factory.SynthesizedLocal(tmpType, syntax);
-                var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(input, tmpType));
-                var value = _factory.Call(_factory.Local(tmp), GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                var asg2 = _factory.AssignmentExpression(_factory.Local(target), value);
+                var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), tmpType == loweredInput.Type ? loweredInput : _factory.As(loweredInput, tmpType));
+                var value = _factory.Call(
+                    _factory.Local(tmp),
+                    UnsafeGetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                var asg2 = _factory.AssignmentExpression(loweredTarget, value);
                 var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
-                return _factory.Sequence(tmp, asg1, asg2, result);
+                return _factory.MakeSequence(tmp, asg1, asg2, result);
             }
-            else
+            else // type parameter
             {
+                Debug.Assert(type.IsTypeParameter());
                 // bool Is<T>(this object i, out T o)
                 // {
                 //     // inefficient because it performs the type test twice.
@@ -142,60 +212,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     if (s) o = (T)i;
                 //     return s;
                 // }
-                return _factory.Conditional(_factory.Is(input, type),
-                    _factory.Sequence(_factory.AssignmentExpression(_factory.Local(target), _factory.Convert(type, input)), _factory.Literal(true)),
+                return _factory.Conditional(_factory.Is(loweredInput, type),
+                    _factory.MakeSequence(_factory.AssignmentExpression(
+                        loweredTarget,
+                        _factory.Convert(type, loweredInput)),
+                        _factory.Literal(true)),
                     _factory.Literal(false),
                     _factory.SpecialType(SpecialType.System_Boolean));
             }
-        }
-
-        public override BoundNode VisitMatchExpression(BoundMatchExpression node)
-        {
-            // TODO: find a better way to preserve the scope of pattern variables in a match.
-
-            // we translate a match expression into a sequence of conditionals.
-            // However, because we have no way to express the proper scope of the pattern
-            // variables, we lump them all together at the top.
-            var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-            BoundAssignmentOperator initialStore;
-            var left = VisitExpression(node.Left);
-            var temp =_factory.StoreToTemp(left, out initialStore);
-            locals.Add(temp.LocalSymbol);
-            int n = node.Cases.Length;
-            BoundExpression result = _factory.ThrowNullExpression(node.Type);
-            for (int i = n-1; i >= 0; i--)
-            {
-                var c = node.Cases[i];
-                locals.AddRange(c.Locals);
-                var condition = TranslatePattern(temp, c.Pattern);
-                if (c.Guard != null) condition = _factory.LogicalAnd(condition, VisitExpression(c.Guard));
-                var consequence = VisitExpression(c.Expression);
-                _factory.Syntax = c.Syntax;
-                result = _factory.Conditional(condition, consequence, result, node.Type);
-            }
-
-            return _factory.Sequence(locals.ToImmutableAndFree(), initialStore, result);
-        }
-
-        public override BoundNode VisitLetStatement(BoundLetStatement node)
-        {
-            BoundAssignmentOperator initialStore;
-            _factory.Syntax = node.Expression.Syntax;
-            var temp = _factory.StoreToTemp(VisitExpression(node.Expression), out initialStore);
-            _factory.Syntax = node.Pattern.Syntax;
-            var pattern = TranslatePattern(temp, node.Pattern);
-            _factory.Syntax = node.Expression.Syntax;
-            var condition = _factory.Sequence(ImmutableArray.Create(temp.LocalSymbol), initialStore, pattern);
-            if (node.Guard != null)
-            {
-                _factory.Syntax = node.Guard.Syntax;
-                condition = _factory.LogicalAnd(condition, VisitExpression(node.Guard));
-            }
-            _factory.Syntax = node.Syntax;
-            BoundStatement result = (node.Else == null)
-                ? _factory.ExpressionStatement(condition)
-                : _factory.If(_factory.Not(condition), VisitStatement(node.Else));
-            return result;
         }
     }
 }

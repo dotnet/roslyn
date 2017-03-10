@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakePropertyAccess(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenReceiverOpt,
             PropertySymbol propertySymbol,
             LookupResultKind resultKind,
@@ -63,13 +63,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakePropertyGetAccess(CSharpSyntaxNode syntax, BoundExpression rewrittenReceiver, PropertySymbol property, BoundPropertyAccess oldNodeOpt)
+        private BoundExpression MakePropertyGetAccess(SyntaxNode syntax, BoundExpression rewrittenReceiver, PropertySymbol property, BoundPropertyAccess oldNodeOpt)
         {
             return MakePropertyGetAccess(syntax, rewrittenReceiver, property, ImmutableArray<BoundExpression>.Empty, null, oldNodeOpt);
         }
 
         private BoundExpression MakePropertyGetAccess(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenReceiver,
             PropertySymbol property,
             ImmutableArray<BoundExpression> rewrittenArguments,

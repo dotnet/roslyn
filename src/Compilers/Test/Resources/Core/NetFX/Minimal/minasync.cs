@@ -14,9 +14,9 @@ namespace System.Threading.Tasks
         public Awaiter GetAwaiter() => null;
     }
 
-    public class Task<T> : IAsyncResult, IDisposable
+    public class Task<T> : Task, IAsyncResult, IDisposable
     {
-        public Awaiter<T> GetAwaiter() => null;
+        public new Awaiter<T> GetAwaiter() => null;
     }
 
     public class Awaiter : INotifyCompletion

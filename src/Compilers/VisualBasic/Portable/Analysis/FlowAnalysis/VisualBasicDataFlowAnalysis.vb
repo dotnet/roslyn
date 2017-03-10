@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me._succeeded = Not Me._context.Failed
                     Dim result = If(Me._context.Failed, ImmutableArray(Of ISymbol).Empty,
                                     Sort(DataFlowsInWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, UnassignedVariables, _succeeded, _invalidRegionDetected)))
-                    ImmutableInterlocked.InterlockedCompareExchange(_dataFlowsIn, result.ToImmutableArray(), Nothing)
+                    ImmutableInterlocked.InterlockedCompareExchange(_dataFlowsIn, result, Nothing)
                 End If
                 Return _dataFlowsIn
             End Get

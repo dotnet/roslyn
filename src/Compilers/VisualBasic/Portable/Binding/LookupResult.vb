@@ -728,7 +728,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MergeAmbiguous(other, s_ambiguousInTypeError)
         End Sub
 
-        Private Function AreEquivalentEnumConstants(symbol1 As Symbol, symbol2 As Symbol) As Boolean
+        Private Shared Function AreEquivalentEnumConstants(symbol1 As Symbol, symbol2 As Symbol) As Boolean
             Debug.Assert(symbol1.ContainingType = symbol2.ContainingType)
             If symbol1.Kind <> SymbolKind.Field OrElse symbol2.Kind <> SymbolKind.Field OrElse symbol1.ContainingType.TypeKind <> TypeKind.Enum Then
                 Return False
@@ -876,7 +876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SymbolLocation.FromSourceModule
             End If
 
-            If (options And LookupOptions.IgnoreCorLibraryDuplicatedTypes) <> 0 Then
+            If sourceModule.DeclaringCompilation.Options.IgnoreCorLibraryDuplicatedTypes Then
                 ' Ignore duplicate types from the cor library if necessary.
                 ' (Specifically the framework assemblies loaded at runtime in
                 ' the EE may contain types also available from mscorlib.dll.)

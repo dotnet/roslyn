@@ -1,10 +1,11 @@
-﻿{
+{
   "dependencies": {
-    "xunit": "2.1.0",
-    "xunit.runner.console": "2.1.0"
+    "xunit": "2.2.0-beta4-build3444",
+    "xunit.runner.console": "2.2.0-beta4-build3444",
+    "xunit.runner.visualstudio": "2.2.0-beta4-build1194"
   },
   "frameworks": {
-    "net45": {}
+    "net46": { }
   },
   "runtimes": {
     "win7": { }

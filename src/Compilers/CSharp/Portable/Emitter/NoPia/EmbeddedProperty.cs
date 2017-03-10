@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
         }
 
-        protected override Cci.CallingConvention CallingConvention
+        protected override Cci.ISignature UnderlyingPropertySignature
         {
             get
             {
-                return UnderlyingProperty.CallingConvention;
+                return (Cci.ISignature)UnderlyingProperty;
             }
         }
 

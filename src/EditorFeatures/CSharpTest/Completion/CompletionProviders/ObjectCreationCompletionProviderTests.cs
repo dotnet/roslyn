@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new ObjectCreationCompletionProvider();
         }
@@ -121,13 +121,13 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task IsTextualTriggerCharacterTest()
+        public void IsTextualTriggerCharacterTest()
         {
-            await VerifyTextualTriggerCharacterAsync("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
-            await VerifyTextualTriggerCharacterAsync("Abc $$X", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
-            await VerifyTextualTriggerCharacterAsync("Abc $$@", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
-            await VerifyTextualTriggerCharacterAsync("Abc$$@", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
-            await VerifyTextualTriggerCharacterAsync("Abc$$.", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+            VerifyTextualTriggerCharacter("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
+            VerifyTextualTriggerCharacter("Abc $$X", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
+            VerifyTextualTriggerCharacter("Abc $$@", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+            VerifyTextualTriggerCharacter("Abc$$@", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+            VerifyTextualTriggerCharacter("Abc$$.", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -143,8 +143,9 @@ class Program
     }
 }";
 
-            await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterEnabled: false, expected: false);
-            await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterOption: EnterKeyRule.Never, expected: false);
+            await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterOption: EnterKeyRule.AfterFullyTypedWord, expected: true);
+            await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
         }
 
         [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
@@ -435,6 +436,70 @@ class C
 }
 ";
             await VerifyItemExistsAsync(markup, "object");
+        }
+
+        [WorkItem(15804, "https://github.com/dotnet/roslyn/issues/15804")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BeforeAttributeParsedAsImplicitArray()
+        {
+            var markup =
+@"class Program
+{
+    Program p = new $$ 
+
+    [STAThread]
+    static void Main() { }
+}
+";
+            await VerifyItemExistsAsync(markup, "Program");
+		}
+		
+        [WorkItem(14084, "https://github.com/dotnet/roslyn/issues/14084")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InMethodCallBeforeAssignment1()
+        {
+            var markup =
+@"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            object o;
+            string s;
+
+            Test(new $$
+            o = s;
+        }
+        static void Test(TimeSpan t, TimeSpan t2) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "TimeSpan");
+        }
+
+        [WorkItem(14084, "https://github.com/dotnet/roslyn/issues/14084")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InMethodCallBeforeAssignment2()
+        {
+            var markup =
+@"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            object o;
+            string s;
+
+            Test(new TimeSpan(), new $$
+            o = s;
+        }
+        static void Test(TimeSpan t, TimeSpan t2) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "TimeSpan");
         }
     }
 }

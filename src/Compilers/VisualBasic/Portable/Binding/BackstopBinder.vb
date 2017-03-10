@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
+        Public Overrides Function GetBinder(node As SyntaxNode) As Binder
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -79,13 +79,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw ExceptionUtilities.Unreachable
             End Get
         End Property
-
-        Public Overrides Function GetErrorSymbol(name As String,
-                                                 errorInfo As DiagnosticInfo,
-                                                 candidateSymbols As ImmutableArray(Of Symbol),
-                                                 resultKind As LookupResultKind) As ErrorTypeSymbol
-            Throw ExceptionUtilities.Unreachable
-        End Function
 
         Public Overrides Function GetSyntaxReference(node As VisualBasicSyntaxNode) As SyntaxReference
             Throw ExceptionUtilities.Unreachable

@@ -1,13 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
   <PropertyGroup>
-    <!-- Explicitly set the language before anything else is imported. That way VSL.Settings.targets sees the right value
+    <!-- Explicitly set the language before anything else is imported. That way Settings.props sees the right value
          even in WPF's build of a temporary project, where it won't be able to determine it based on the file extension. -->
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -59,8 +58,8 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{5DEFADBD-44EB-47A2-A53E-F1282CC9E4E9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CSharp</RootNamespace>
@@ -68,96 +67,22 @@
     <!-- This project includes the VS SDK targets so we can produce a .pkgdef, but should not produce a .vsix or anything related to it -->
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
-    <UseCodebase>true</UseCodebase>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="microsoft.msxml, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Editor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.GraphModel, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.ImageCatalog, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.14.0, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.TextManager.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.TextManager.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Utilities, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Design" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
@@ -208,6 +133,9 @@
     <Compile Include="Options\NamingStylesOptionPage.cs" />
     <Compile Include="Options\AdvancedOptionPageStrings.cs" />
     <Compile Include="Options\IntelliSenseOptionPageStrings.cs" />
+    <Compile Include="Telemetry\CompilationErrorDetailDiscoverer.cs" />
+    <Compile Include="Telemetry\CompilationErrorDetails.cs" />
+    <Compile Include="Telemetry\CSharpCompilationErrorTelemetryIncrementalAnalyzer.cs" />
     <Compile Include="Venus\CSharpAdditionalFormattingRuleLanguageService.cs" />
     <Compile Include="CSharpPackage.cs" />
     <Compile Include="CSharpVSResources.Designer.cs">
@@ -215,7 +143,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpVSResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="DesignerAttribute\CSharpDesignerAttributeIncrementalAnalyzerProvider.cs" />
     <Compile Include="EventCompletion\HACK_EventHookupDismissalOnBufferChangePreventerService.cs" />
     <Compile Include="LanguageService\CSharpCodePageEditorFactory.cs" />
     <Compile Include="LanguageService\CSharpDebuggerIntelliSenseContext.cs" />
@@ -230,8 +157,6 @@
       <DependentUpon>AdvancedOptionPageControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Options\AutomationObject.cs" />
-    <Compile Include="Options\CSharpLanguageSettingsSerializer.cs" />
-    <Compile Include="Options\CSharpSettingsManagerOptionSerializer.cs" />
     <Compile Include="Options\Formatting\IndentationViewModel.cs" />
     <Compile Include="Options\Formatting\FormattingIndentationOptionPage.cs" />
     <Compile Include="Options\Formatting\NewLinesViewModel.cs" />
@@ -302,8 +227,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>
   <ItemGroup>
@@ -327,6 +254,6 @@
     <Content Include="CSharpPackageRegistration.pkgdef" />
   </ItemGroup>
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\build\Targets\Imports.targets" />
   </ImportGroup>
 </Project>

@@ -2,6 +2,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {

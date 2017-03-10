@@ -117,151 +117,151 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="NamespaceCannotBeAdded" xml:space="preserve">
+  <data name="Namespace_can_not_be_added_in_this_destination" xml:space="preserve">
     <value>Namespace can not be added in this destination.</value>
   </data>
-  <data name="CannotMakeExplicit" xml:space="preserve">
+  <data name="Only_attributes_expressions_or_statements_can_be_made_explicit" xml:space="preserve">
     <value>Only attributes, expressions or statements can be made explicit</value>
   </data>
-  <data name="Event1" xml:space="preserve">
+  <data name="event_" xml:space="preserve">
     <value>&lt;event&gt;</value>
   </data>
-  <data name="Handler" xml:space="preserve">
+  <data name="handler" xml:space="preserve">
     <value>&lt;handler&gt;</value>
   </data>
-  <data name="ExpressionToConvert" xml:space="preserve">
+  <data name="The_expression_to_be_evaluated_and_converted" xml:space="preserve">
     <value>The expression to be evaluated and converted.</value>
   </data>
-  <data name="NameOfTypeToConvert" xml:space="preserve">
+  <data name="The_name_of_the_data_type_to_which_the_value_of_expression_will_be_converted" xml:space="preserve">
     <value>The name of the data type to which the value of expression will be converted.</value>
   </data>
-  <data name="Expression1" xml:space="preserve">
+  <data name="expression" xml:space="preserve">
     <value>&lt;expression&gt;</value>
   </data>
-  <data name="Typename" xml:space="preserve">
+  <data name="typeName" xml:space="preserve">
     <value>&lt;typeName&gt;</value>
   </data>
-  <data name="AssociatesAnEvent" xml:space="preserve">
+  <data name="Associates_an_event_with_an_event_handler_delegate_or_lambda_expression_at_run_time" xml:space="preserve">
     <value>Associates an event with an event handler, delegate or lambda expression at run time.</value>
   </data>
-  <data name="EventToAssociate" xml:space="preserve">
+  <data name="The_event_to_associate_an_event_handler_delegate_or_lambda_expression_with" xml:space="preserve">
     <value>The event to associate an event handler, delegate or lambda expression with.</value>
   </data>
-  <data name="EventHandlerToAssociate" xml:space="preserve">
+  <data name="The_event_handler_to_associate_with_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate_lambdaExpression" xml:space="preserve">
     <value>The event handler to associate with the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; }.</value>
   </data>
-  <data name="ExpressionEvalReturns" xml:space="preserve">
+  <data name="If_expression_evaluates_to_a_reference_or_Nullable_value_that_is_not_Nothing_the_function_returns_that_value_Otherwise_it_calculates_and_returns_expressionIfNothing" xml:space="preserve">
     <value>If &lt;expression&gt; evaluates to a reference or Nullable value that is not Nothing, the function returns that value. Otherwise, it calculates and returns &lt;expressionIfNothing&gt;.</value>
   </data>
-  <data name="ReturnedIfINotNothing" xml:space="preserve">
+  <data name="Returned_if_it_evaluates_to_a_reference_or_nullable_type_that_is_not_Nothing" xml:space="preserve">
     <value>Returned if it evaluates to a reference or nullable type that is not Nothing.</value>
   </data>
-  <data name="ReturnedIfNothing" xml:space="preserve">
+  <data name="Evaluated_and_returned_if_expression_evaluates_to_Nothing" xml:space="preserve">
     <value>Evaluated and returned if &lt;expression&gt; evaluates to Nothing.</value>
   </data>
-  <data name="ExpressionIfNothing" xml:space="preserve">
+  <data name="expressionIfNothing" xml:space="preserve">
     <value>&lt;expressionIfNothing&gt;</value>
   </data>
-  <data name="ReturnsConvertResult" xml:space="preserve">
+  <data name="Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type" xml:space="preserve">
     <value>Returns the result of explicitly converting an expression to a specified data type.</value>
   </data>
-  <data name="IntroducesTypeConversion" xml:space="preserve">
+  <data name="Introduces_a_type_conversion_operation_similar_to_CType_The_difference_is_that_CType_succeeds_as_long_as_there_is_a_valid_conversion_whereas_DirectCast_requires_that_one_type_inherit_from_or_implement_the_other_type" xml:space="preserve">
     <value>Introduces a type conversion operation similar to CType. The difference is that CType succeeds as long as there is a valid conversion, whereas DirectCast requires that one type inherit from or implement the other type.</value>
   </data>
-  <data name="TypeToReturnObjectFor" xml:space="preserve">
+  <data name="The_type_name_to_return_a_System_Type_object_for" xml:space="preserve">
     <value>The type name to return a System.Type object for.</value>
   </data>
-  <data name="ReturnsSystemTypeObject" xml:space="preserve">
+  <data name="Returns_a_System_Type_object_for_the_specified_type_name" xml:space="preserve">
     <value>Returns a System.Type object for the specified type name.</value>
   </data>
-  <data name="XMLNSToReturnObjectFor" xml:space="preserve">
+  <data name="The_XML_namespace_prefix_to_return_a_System_Xml_Linq_XNamespace_object_for_If_this_is_omitted_the_object_for_the_default_XML_namespace_is_returned" xml:space="preserve">
     <value>The XML namespace prefix to return a System.Xml.Linq.XNamespace object for. If this is omitted, the object for the default XML namespace is returned.</value>
   </data>
-  <data name="XmlNamespacePrefix" xml:space="preserve">
+  <data name="xmlNamespacePrefix" xml:space="preserve">
     <value>&lt;xmlNamespacePrefix&gt;</value>
   </data>
-  <data name="ReturnsXNamespaceObject" xml:space="preserve">
+  <data name="Returns_the_System_Xml_Linq_XNamespace_object_corresponding_to_the_specified_XML_namespace_prefix" xml:space="preserve">
     <value>Returns the System.Xml.Linq.XNamespace object corresponding to the specified XML namespace prefix.</value>
   </data>
-  <data name="ReplacesChars" xml:space="preserve">
+  <data name="Replaces_a_specified_number_of_characters_in_a_String_variable_with_characters_from_another_string" xml:space="preserve">
     <value>Replaces a specified number of characters in a String variable with characters from another string.</value>
   </data>
-  <data name="NameOfStringVariable" xml:space="preserve">
+  <data name="The_name_of_the_string_variable_to_modify" xml:space="preserve">
     <value>The name of the string variable to modify.</value>
   </data>
-  <data name="OneBasedStartPos" xml:space="preserve">
+  <data name="The_one_based_character_position_in_the_string_where_the_replacement_of_text_begins" xml:space="preserve">
     <value>The one-based character position in the string where the replacement of text begins.</value>
   </data>
-  <data name="NumberOfCharsToReplace" xml:space="preserve">
+  <data name="The_number_of_characters_to_replace_If_omitted_the_length_of_stringExpression_is_used" xml:space="preserve">
     <value>The number of characters to replace. If omitted, the length of &lt;stringExpression&gt; is used.</value>
   </data>
-  <data name="StringName" xml:space="preserve">
+  <data name="stringName" xml:space="preserve">
     <value>&lt;stringName&gt;</value>
   </data>
-  <data name="StartIndex" xml:space="preserve">
+  <data name="startIndex" xml:space="preserve">
     <value>&lt;startIndex&gt;</value>
   </data>
-  <data name="Length" xml:space="preserve">
+  <data name="length" xml:space="preserve">
     <value>&lt;length&gt;</value>
   </data>
-  <data name="StringExpression" xml:space="preserve">
+  <data name="stringExpression" xml:space="preserve">
     <value>&lt;stringExpression&gt;</value>
   </data>
-  <data name="ConvertsToDataType" xml:space="preserve">
+  <data name="Converts_an_expression_to_the_0_data_type" xml:space="preserve">
     <value>Converts an expression to the {0} data type.</value>
   </data>
-  <data name="RemovesEventAssociation" xml:space="preserve">
+  <data name="Removes_the_association_between_an_event_and_an_event_handler_or_delegate_at_run_time" xml:space="preserve">
     <value>Removes the association between an event and an event handler or delegate at run time.</value>
   </data>
-  <data name="EventToDisassociate" xml:space="preserve">
+  <data name="The_event_to_disassociate_an_event_handler_or_delegate_from" xml:space="preserve">
     <value>The event to disassociate an event handler or delegate from.</value>
   </data>
-  <data name="EventHandlerToDisassociate" xml:space="preserve">
+  <data name="The_event_handler_to_disassociate_from_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate" xml:space="preserve">
     <value>The event handler to disassociate from the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; }.</value>
   </data>
-  <data name="IfConditionReturnsResults" xml:space="preserve">
+  <data name="If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse" xml:space="preserve">
     <value>If &lt;condition&gt; returns True, the function calculates and returns &lt;expressionIfTrue&gt;. Otherwise, it returns &lt;expressionIfFalse&gt;.</value>
   </data>
-  <data name="ExpressionToEvaluate" xml:space="preserve">
+  <data name="The_expression_to_evaluate" xml:space="preserve">
     <value>The expression to evaluate.</value>
   </data>
-  <data name="EvaluatedAndReturnedIfTrue" xml:space="preserve">
+  <data name="Evaluated_and_returned_if_condition_evaluates_to_True" xml:space="preserve">
     <value>Evaluated and returned if &lt;condition&gt; evaluates to True.</value>
   </data>
-  <data name="EvaluatedAndReturnedIfFalse" xml:space="preserve">
+  <data name="Evaluated_and_returned_if_condition_evaluates_to_False" xml:space="preserve">
     <value>Evaluated and returned if &lt;condition&gt; evaluates to False.</value>
   </data>
-  <data name="Condition" xml:space="preserve">
+  <data name="condition" xml:space="preserve">
     <value>&lt;condition&gt;</value>
   </data>
-  <data name="ExpressionIfTrue" xml:space="preserve">
+  <data name="expressionIfTrue" xml:space="preserve">
     <value>&lt;expressionIfTrue&gt;</value>
   </data>
-  <data name="ExpressionIfFalse" xml:space="preserve">
+  <data name="expressionIfFalse" xml:space="preserve">
     <value>&lt;expressionIfFalse&gt;</value>
   </data>
-  <data name="IntroducesSafeTypeConversion" xml:space="preserve">
+  <data name="Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for" xml:space="preserve">
     <value>Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for.</value>
   </data>
-  <data name="NodeDoesNotDescendFromRoot" xml:space="preserve">
+  <data name="Node_does_not_descend_from_root" xml:space="preserve">
     <value>Node does not descend from root.</value>
   </data>
-  <data name="NodeNotInParentsChildList" xml:space="preserve">
+  <data name="Node_not_in_parent_s_child_list" xml:space="preserve">
     <value>Node not in parent's child list</value>
   </data>
-  <data name="TriviaIsNotAssociatedWithToken" xml:space="preserve">
+  <data name="Trivia_is_not_associated_with_token" xml:space="preserve">
     <value>Trivia is not associated with token</value>
   </data>
-  <data name="TypeOrMember" xml:space="preserve">
+  <data name="typeOrMember" xml:space="preserve">
     <value>&lt;typeOrMember&gt;</value>
   </data>
-  <data name="TypeOrMemberNameToReturn" xml:space="preserve">
+  <data name="The_type_of_member_to_return_the_name_of" xml:space="preserve">
     <value>The type of member to return the name of.</value>
   </data>
-  <data name="NameOfDocumentation" xml:space="preserve">
+  <data name="Produces_a_string_for_the_name_of_the_specified_type_or_member" xml:space="preserve">
     <value>Produces a string for the name of the specified type or member.</value>
   </data>
-  <data name="Result" xml:space="preserve">
+  <data name="result" xml:space="preserve">
     <value>&lt;result&gt;</value>
   </data>
 </root>

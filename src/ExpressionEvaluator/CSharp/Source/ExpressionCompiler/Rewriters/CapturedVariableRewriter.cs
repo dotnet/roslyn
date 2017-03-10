@@ -70,27 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {
-            if ((node.Flags & BoundMethodGroupFlags.HasImplicitReceiver) == BoundMethodGroupFlags.HasImplicitReceiver &&
-                (object)_targetMethodThisParameter == null)
-            {
-                // This can happen in static contexts.
-                // NOTE: LocalRewriter has already been run, so the receiver has already been replaced with an
-                // appropriate type expression, if this is a static context.
-                // NOTE: Don't go through VisitThisReference, because it'll produce a diagnostic.
-                return node.Update(
-                    node.TypeArgumentsOpt,
-                    node.Name,
-                    node.Methods,
-                    node.LookupSymbolOpt,
-                    node.LookupError,
-                    node.Flags,
-                    receiverOpt: null,
-                    resultKind: node.ResultKind);
-            }
-            else
-            {
-                return base.VisitMethodGroup(node);
-            }
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode VisitThisReference(BoundThisReference node)
@@ -113,21 +93,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new BoundConversion(
                 syntax,
                 rewrittenParameter,
-                conversion.Kind,
-                conversion.ResultKind,
+                conversion,
                 isBaseConversion: true,
-                symbolOpt: conversion.Method,
                 @checked: false,
                 explicitCastInCode: false,
-                isExtensionMethod: conversion.IsExtensionMethod,
-                isArrayIndex: conversion.IsArrayIndex,
                 constantValueOpt: null,
                 type: baseType,
                 hasErrors: !conversion.IsValid)
             { WasCompilerGenerated = true };
         }
 
-        private BoundExpression RewriteParameter(CSharpSyntaxNode syntax, ParameterSymbol symbol, BoundExpression node)
+        private BoundExpression RewriteParameter(SyntaxNode syntax, ParameterSymbol symbol, BoundExpression node)
         {
             // This can happen in error scenarios (e.g. user binds "this" in a lambda in a static method).
             if ((object)symbol == null)
@@ -159,12 +135,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var result = variable.ToBoundExpression(syntax);
             Debug.Assert(node.Kind == BoundKind.BaseReference
-                ? result.Type.BaseType.Equals(node.Type, ignoreDynamic: true)
-                : result.Type.Equals(node.Type, ignoreDynamic: true));
+                ? result.Type.BaseType.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames)
+                : result.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
             return result;
         }
 
-        private void ReportMissingThis(BoundKind boundKind, CSharpSyntaxNode syntax)
+        private void ReportMissingThis(BoundKind boundKind, SyntaxNode syntax)
         {
             Debug.Assert(boundKind == BoundKind.ThisReference || boundKind == BoundKind.BaseReference);
             var errorCode = boundKind == BoundKind.BaseReference

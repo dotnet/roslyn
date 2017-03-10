@@ -1,18 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <DeployToSamplesSubfolder>false</DeployToSamplesSubfolder>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>4.0</OldToolsVersion>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -39,18 +31,16 @@
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <ScrubbedSamplePath>CSharp\APISampleUnitTests</ScrubbedSamplePath>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{CFF49CC1-85B5-49F7-B14B-A6EBF2592DD2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>APISampleUnitTestsCS</RootNamespace>
-    <AssemblyName>APISampleUnitTestsCS</AssemblyName>
+    <AssemblyName>APISampleUnitTestsCS.UnitTests</AssemblyName>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -66,8 +56,5 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

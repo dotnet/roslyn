@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
         }
@@ -168,11 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return new HashSet<string>();
-        }
-
-        protected override TextSpan GetTextChangeSpan(SourceText text, int position)
-        {
-            return CompletionUtilities.GetTextChangeSpan(text, position);
         }
 
         protected override bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)

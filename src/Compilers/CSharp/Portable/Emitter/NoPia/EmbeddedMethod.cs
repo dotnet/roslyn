@@ -185,14 +185,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
         }
 
-        protected override Cci.CallingConvention CallingConvention
-        {
-            get
-            {
-                return UnderlyingMethod.CallingConvention;
-            }
-        }
-
         protected override Cci.ISignature UnderlyingMethodSignature
         {
             get

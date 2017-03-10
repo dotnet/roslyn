@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 _waitIndicator = waitIndicator;
             }
 
-            public IContentType ContentType
-            {
-                get { return _subjectBuffer.ContentType; }
-            }
+            public IContentType ContentType => _subjectBuffer.ContentType;
 
             public TextExtent GetExtentOfWord(SnapshotPoint currentPosition)
             {
@@ -49,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var result = default(TextExtent);
                     _waitIndicator.Wait(
-                        title: EditorFeaturesResources.TextNavigation,
-                        message: EditorFeaturesResources.FindingWordExtent,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        message: EditorFeaturesResources.Finding_word_extent,
                         allowCancel: true,
                         action: waitContext =>
                     {
@@ -85,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 var document = GetDocument(position, cancellationToken);
                 if (document != null)
                 {
-                    var root = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetRoot(cancellationToken);
+                    var root = document.GetSyntaxRootSynchronously(cancellationToken);
                     var trivia = root.FindTrivia(position, findInsideTrivia: true);
 
                     if (trivia != default(SyntaxTrivia))
@@ -122,8 +119,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var span = default(SnapshotSpan);
                     var result = _waitIndicator.Wait(
-                        title: EditorFeaturesResources.TextNavigation,
-                        message: EditorFeaturesResources.FindingEnclosingSpan,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        message: EditorFeaturesResources.Finding_enclosing_span,
                         allowCancel: true,
                         action: waitContext =>
                     {
@@ -153,8 +150,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var span = default(SnapshotSpan);
                     var result = _waitIndicator.Wait(
-                        title: EditorFeaturesResources.TextNavigation,
-                        message: EditorFeaturesResources.FindingEnclosingSpan,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        message: EditorFeaturesResources.Finding_enclosing_span,
                         allowCancel: true,
                         action: waitContext =>
                     {
@@ -188,8 +185,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var span = default(SnapshotSpan);
                     var result = _waitIndicator.Wait(
-                        title: EditorFeaturesResources.TextNavigation,
-                        message: EditorFeaturesResources.FindingSpanOfNextSibling,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        message: EditorFeaturesResources.Finding_span_of_next_sibling,
                         allowCancel: true,
                         action: waitContext =>
                     {
@@ -239,8 +236,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var span = default(SnapshotSpan);
                     var result = _waitIndicator.Wait(
-                        title: EditorFeaturesResources.TextNavigation,
-                        message: EditorFeaturesResources.FindingSpanOfPreviousSibling,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        message: EditorFeaturesResources.Finding_span_of_previous_sibling,
                         allowCancel: true,
                         action: waitContext =>
                     {
@@ -301,8 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
             /// </summary>
             private SyntaxNodeOrToken? FindLeafNode(SnapshotSpan span, CancellationToken cancellationToken)
             {
-                SyntaxToken token;
-                if (!TryFindLeafToken(span.Start, out token, cancellationToken))
+                if (!TryFindLeafToken(span.Start, out var token, cancellationToken))
                 {
                     return null;
                 }
@@ -321,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
             /// </summary>
             private bool TryFindLeafToken(SnapshotPoint point, out SyntaxToken token, CancellationToken cancellationToken)
             {
-                var syntaxTree = GetDocument(point, cancellationToken).GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var syntaxTree = GetDocument(point, cancellationToken).GetSyntaxTreeSynchronously(cancellationToken);
                 if (syntaxTree != null)
                 {
                     token = syntaxTree.GetRoot(cancellationToken).FindToken(point, true);

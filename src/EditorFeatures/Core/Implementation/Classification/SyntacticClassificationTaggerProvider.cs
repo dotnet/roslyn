@@ -40,13 +40,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            if (!buffer.GetOption(InternalFeatureOnOffOptions.SyntacticColorizer))
+            if (!buffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.SyntacticColorizer))
             {
                 return null;
             }
 
-            TagComputer tagComputer;
-            if (!_tagComputers.TryGetValue(buffer, out tagComputer))
+            if (!_tagComputers.TryGetValue(buffer, out var tagComputer))
             {
                 var asyncListener = new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.Classification);
                 tagComputer = new TagComputer(buffer, _notificationService, asyncListener, _typeMap, this);

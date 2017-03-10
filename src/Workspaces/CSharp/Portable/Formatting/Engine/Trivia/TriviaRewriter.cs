@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (node == null || !_spans.IntersectsWith(node.FullSpan))
+            if (node == null || !_spans.HasIntervalThatIntersectsWith(node.FullSpan))
             {
                 return node;
             }
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (!_spans.IntersectsWith(token.FullSpan))
+            if (!_spans.HasIntervalThatIntersectsWith(token.FullSpan))
             {
                 return token;
             }

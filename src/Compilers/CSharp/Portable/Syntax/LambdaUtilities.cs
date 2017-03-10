@@ -353,8 +353,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if the specified node can represent a closure scope -- that is a scope of a captured variable.
-        /// Doesn't validate whether or not the node actually declares any captured variable.
+        /// Returns true if the specified node is of a kind that could represent a closure scope -- that
+        /// is, a scope of a captured variable.
+        /// Doesn't check whether or not the node actually declares any captured variable.
         /// </summary>
         internal static bool IsClosureScope(SyntaxNode node)
         {
@@ -366,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CatchClause:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
                 case SyntaxKind.UsingStatement:
 
                 // ctor parameter captured by a lambda in a ctor initializer
@@ -375,11 +377,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // With the introduction of pattern-matching, many nodes now contain top-level
                 // expressions that may introduce pattern variables.
                 case SyntaxKind.EqualsValueClause:
-                case SyntaxKind.CatchFilterClause:
                     return true;
 
                 // Due to pattern-matching, any statement that contains an expression may introduce a scope.
-                case SyntaxKind.CheckedStatement:
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.FixedStatement:
@@ -392,6 +392,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ThrowStatement:
                 case SyntaxKind.WhileStatement:
                 case SyntaxKind.YieldReturnStatement:
+                    return true;
+
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                    // With dynamic analysis instrumentation, a type declaration can be the syntax associated
+                    // with the analysis payload local of a synthesized constructor.
+                    // If the synthesized constructor includes an initializer with a lambda,
+                    // that lambda needs a closure that captures the analysis payload of the constructor.
                     return true;
 
                 default:

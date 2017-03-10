@@ -211,6 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 TypeSymbol type = (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out isVolatile, out customModifiers);
                 ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(customModifiers);
                 type = DynamicTypeDecoder.TransformType(type, customModifiersArray.Length, _handle, moduleSymbol);
+
+                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol);
                 _lazyIsVolatile = isVolatile;
 
                 TypeSymbol fixedElementType;
@@ -402,7 +404,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         break;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(_flags & FieldAttributes.FieldAccessMask);
+                        access = Accessibility.Private;
+                        break;
                 }
 
                 return access;

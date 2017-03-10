@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
         private readonly string _name;
         private readonly bool _isAutoPropertyAccessor;
+        private readonly bool _isExpressionBodied;
 
         public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
             NamedTypeSymbol containingType,
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _property.IsExpressionBodied;
+                return _isExpressionBodied;
             }
         }
 
@@ -147,6 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
             _name = name;
             _isAutoPropertyAccessor = false;
+            _isExpressionBodied = true;
 
             // The modifiers for the accessor are the same as the modifiers for the property,
             // minus the indexer bit
@@ -190,13 +192,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AccessorDeclarationSyntax syntax,
             MethodKind methodKind,
             bool isAutoPropertyAccessor,
-            DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Body?.GetReference(), location)
+            DiagnosticBag diagnostics)
+            : base(containingType,
+                   syntax.GetReference(),
+                   ((SyntaxNode)syntax.Body ?? syntax.ExpressionBody)?.GetReference(),
+                   location)
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
             _name = name;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
+            Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
+            var hasBody = syntax.Body != null;
+            var hasExpressionBody = syntax.ExpressionBody != null;
+            _isExpressionBodied = !hasBody && hasExpressionBody;
 
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax, location, diagnostics, out modifierErrors);
@@ -215,8 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            var bodyOpt = syntax.Body;
-            if (bodyOpt != null)
+            if (hasBody || hasExpressionBody)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
@@ -243,6 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _name = overriddenMethod.Name;
                 }
             }
+
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
@@ -256,7 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(_explicitInterfaceImplementations.Length == 1);
                 MethodSymbol implementedMethod = _explicitInterfaceImplementations[0];
-                CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, out _lazyParameters, alsoCopyParamsModifier: false);
+                CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, 
+                                                              out _lazyParameters, alsoCopyParamsModifier: false);
             }
             else if (this.IsOverride)
             {
@@ -265,15 +277,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol overriddenMethod = this.OverriddenMethod;
                 if ((object)overriddenMethod != null)
                 {
-                    CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, out _lazyParameters, alsoCopyParamsModifier: true);
+                    CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, 
+                                                                  out _lazyParameters, alsoCopyParamsModifier: true);
                 }
             }
             else if (_lazyReturnType.SpecialType != SpecialType.System_Void)
             {
                 PropertySymbol associatedProperty = _property;
                 var type = associatedProperty.Type;
-                _lazyReturnType = _lazyReturnType.Update(CustomModifierUtils.CopyTypeCustomModifiers(type.TypeSymbol, _lazyReturnType.TypeSymbol, RefKind.None, this.ContainingAssembly),
-                                                         type.CustomModifiers);
+                _lazyReturnType = _lazyReturnType.Update(
+                    CustomModifierUtils.CopyTypeCustomModifiers(type.TypeSymbol, _lazyReturnType.TypeSymbol, this.ContainingAssembly),
+                    type.CustomModifiers);
             }
         }
 
@@ -362,6 +376,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
             var binderFactory = compilation.GetBinderFactory(syntax.SyntaxTree);
             return binderFactory.GetBinder(syntax);
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                LazyMethodChecks();
+                return _lazyCustomModifiers.RefCustomModifiers;
+            }
         }
 
         /// <summary>

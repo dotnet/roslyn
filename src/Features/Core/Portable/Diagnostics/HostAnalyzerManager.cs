@@ -161,14 +161,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
         {
             var options = project.CompilationOptions;
-            if (options == null || analyzer.IsCompilerAnalyzer())
+            if (options == null || IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
             {
                 return false;
             }
 
+            // don't capture project
+            var projectId = project.Id;
+
             // Skip telemetry logging for supported diagnostics, as that can cause an infinite loop.
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diagnostic) =>
-                    AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, _hostDiagnosticUpdateSource, project.Id);
+                    AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, _hostDiagnosticUpdateSource, projectId);
 
             return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException);
         }
@@ -233,11 +236,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)
         {
             var map = GetHostDiagnosticAnalyzersPerReference(language);
-
-            HashSet<string> idMap;
-            DiagnosticAnalyzer compilerAnalyzer;
-            if (_compilerDiagnosticAnalyzerMap.TryGetValue(language, out compilerAnalyzer) &&
-                _compilerDiagnosticAnalyzerDescriptorMap.TryGetValue(compilerAnalyzer, out idMap) &&
+            if (_compilerDiagnosticAnalyzerMap.TryGetValue(language, out var compilerAnalyzer) &&
+                _compilerDiagnosticAnalyzerDescriptorMap.TryGetValue(compilerAnalyzer, out var idMap) &&
                 idMap.Contains(diagnostic.Id))
             {
                 return true;
@@ -252,9 +252,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzer GetCompilerDiagnosticAnalyzer(string language)
         {
             var map = GetHostDiagnosticAnalyzersPerReference(language);
-
-            DiagnosticAnalyzer compilerAnalyzer;
-            if (_compilerDiagnosticAnalyzerMap.TryGetValue(language, out compilerAnalyzer))
+            if (_compilerDiagnosticAnalyzerMap.TryGetValue(language, out var compilerAnalyzer))
             {
                 return compilerAnalyzer;
             }
@@ -268,9 +266,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer)
         {
             var map = GetHostDiagnosticAnalyzersPerReference(language);
-
-            DiagnosticAnalyzer compilerAnalyzer;
-            return _compilerDiagnosticAnalyzerMap.TryGetValue(language, out compilerAnalyzer) && compilerAnalyzer == analyzer;
+            return _compilerDiagnosticAnalyzerMap.TryGetValue(language, out var compilerAnalyzer) && compilerAnalyzer == analyzer;
         }
 
         /// <summary>
@@ -279,9 +275,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public string GetDiagnosticAnalyzerPackageName(string language, DiagnosticAnalyzer analyzer)
         {
             var map = GetHostDiagnosticAnalyzersPerReference(language);
-
-            string name;
-            if (_hostDiagnosticAnalyzerPackageNameMap.TryGetValue(analyzer, out name))
+            if (_hostDiagnosticAnalyzerPackageNameMap.TryGetValue(analyzer, out var name))
             {
                 return name;
             }
@@ -358,8 +352,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            string name;
-            if (!nameMap.TryGetValue(fileReference.FullPath, out name))
+            if (!nameMap.TryGetValue(fileReference.FullPath, out var name))
             {
                 return;
             }

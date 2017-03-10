@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Friend Partial Class NamedTypeSymbol
+    Partial Friend Class NamedTypeSymbol
         Implements ITypeReference
         Implements ITypeDefinition
         Implements INamedTypeReference
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property ITypeReferenceIsEnum As Boolean Implements ITypeReference.IsEnum
             Get
                 Debug.Assert(Not Me.IsAnonymousType)
-                Return Me.TypeKind = TYPEKIND.Enum
+                Return Me.TypeKind = TypeKind.Enum
             End Get
         End Property
 
@@ -42,14 +42,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return AsTypeDefinitionImpl(moduleBeingBuilt)
         End Function
 
-        Private Function ITypeReferenceTypeCode(context As EmitContext) As Cci.PrimitiveTypeCode Implements ITypeReference.TypeCode
-            Debug.Assert(Not Me.IsAnonymousType)
-            Debug.Assert(Me.IsDefinitionOrDistinct())
-            If Me.IsDefinition Then
-                Return Me.PrimitiveTypeCode
-            End If
-            Return Cci.PrimitiveTypeCode.NotPrimitive
-        End Function
+        Private ReadOnly Property ITypeReferenceTypeCode As Cci.PrimitiveTypeCode Implements ITypeReference.TypeCode
+            Get
+                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Me.IsDefinitionOrDistinct())
+                If Me.IsDefinition Then
+                    Return Me.PrimitiveTypeCode
+                End If
+                Return Cci.PrimitiveTypeCode.NotPrimitive
+            End Get
+        End Property
 
         Private ReadOnly Property ITypeReferenceTypeDef As TypeDefinitionHandle Implements ITypeReference.TypeDef
             Get
@@ -392,16 +394,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private Iterator Function ITypeDefinitionInterfaces(context As EmitContext) As IEnumerable(Of ITypeReference) Implements ITypeDefinition.Interfaces
+        Private Iterator Function ITypeDefinitionInterfaces(context As EmitContext) _
+            As IEnumerable(Of Cci.TypeReferenceWithAttributes) Implements ITypeDefinition.Interfaces
             Debug.Assert(Not Me.IsAnonymousType)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsTypeDefinition(context) IsNot Nothing)
 
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             For Each [interface] In GetInterfacesToEmit()
-                Yield moduleBeingBuilt.Translate([interface],
-                                                 syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
-                                                 diagnostics:=context.Diagnostics,
-                                                 fromImplements:=True)
+                Dim typeRef = moduleBeingBuilt.Translate([interface],
+                                                            syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                                            diagnostics:=context.Diagnostics,
+                                                            fromImplements:=True)
+
+                Yield [interface].GetTypeRefWithAttributes(Me.DeclaringCompilation, typeRef)
             Next
         End Function
 
@@ -854,19 +859,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsGenericTypeInstanceReference IsNot Nothing)
 
-            Dim modifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier)) = Nothing
-
-            If Me.HasTypeArgumentsCustomModifiers Then
-                modifiers = Me.TypeArgumentsCustomModifiers
-            End If
+            Dim hasModifiers = Me.HasTypeArgumentsCustomModifiers
 
             Dim builder = ArrayBuilder(Of ITypeReference).GetInstance()
             Dim arguments = Me.TypeArgumentsNoUseSiteDiagnostics
             For i As Integer = 0 To arguments.Length - 1
                 Dim arg = moduleBeingBuilt.Translate(arguments(i), syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
 
-                If Not modifiers.IsDefault AndAlso Not modifiers(i).IsDefaultOrEmpty Then
-                    arg = New Cci.ModifiedTypeReference(arg, modifiers(i).As(Of Cci.ICustomModifier))
+                If hasModifiers Then
+                    Dim modifiers = Me.GetTypeArgumentCustomModifiers(i)
+                    If Not modifiers.IsDefaultOrEmpty Then
+                        arg = New Cci.ModifiedTypeReference(arg, modifiers.As(Of Cci.ICustomModifier))
+                    End If
                 End If
 
                 builder.Add(arg)
@@ -875,27 +879,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return builder.ToImmutableAndFree
         End Function
 
-        Private ReadOnly Property IGenericTypeInstanceReferenceGenericType As INamedTypeReference Implements IGenericTypeInstanceReference.GenericType
+        Private Function IGenericTypeInstanceReferenceGetGenericType(context As EmitContext) As INamedTypeReference Implements IGenericTypeInstanceReference.GetGenericType
+            Debug.Assert((DirectCast(Me, ITypeReference)).AsGenericTypeInstanceReference IsNot Nothing)
+            Return GenericTypeImpl(context)
+        End Function
+
+        Private ReadOnly Property GenericTypeImpl(context As EmitContext) As INamedTypeReference
             Get
-                Debug.Assert((DirectCast(Me, ITypeReference)).AsGenericTypeInstanceReference IsNot Nothing)
-                Return GenericTypeImpl
+                Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
+                Return moduleBeingBuilt.Translate(Me.OriginalDefinition, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                                  diagnostics:=context.Diagnostics, needDeclaration:=True)
             End Get
         End Property
 
-        Private ReadOnly Property GenericTypeImpl As INamedTypeReference
-            Get
-                Return Me.OriginalDefinition
-            End Get
-        End Property
+        Private Function ISpecializedNestedTypeReferenceGetUnspecializedVersion(context As EmitContext) As INestedTypeReference Implements ISpecializedNestedTypeReference.GetUnspecializedVersion
+            Debug.Assert((DirectCast(Me, ITypeReference)).AsSpecializedNestedTypeReference IsNot Nothing)
 
-        Private ReadOnly Property ISpecializedNestedTypeReferenceUnspecializedVersion As INestedTypeReference Implements ISpecializedNestedTypeReference.UnspecializedVersion
-            Get
-                Debug.Assert((DirectCast(Me, ITypeReference)).AsSpecializedNestedTypeReference IsNot Nothing)
-
-                Dim result = GenericTypeImpl.AsNestedTypeReference
-                Debug.Assert(result IsNot Nothing)
-                Return result
-            End Get
-        End Property
+            Dim result = GenericTypeImpl(context).AsNestedTypeReference
+            Debug.Assert(result IsNot Nothing)
+            Return result
+        End Function
     End Class
 End Namespace

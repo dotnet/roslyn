@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class SyntaxBinderTests : CompilingTestBase
+    public partial class UserDefinedConversionTests : CompilingTestBase
     {
         #region "Source"
         private readonly string _userDefinedConversionTestTemplate = @"

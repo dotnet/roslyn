@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
-Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
@@ -37,6 +36,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return VisualBasic.MessageProvider.Instance
             End Get
         End Property
+
+        Protected Overrides Function GetLambdaSyntaxFacts() As LambdaSyntaxFacts
+            Return VisualBasicLambdaSyntaxFacts.Instance
+        End Function
 
         Friend Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Return Me.mapToPrevious.TryGetAnonymousTypeName(template, name, index)

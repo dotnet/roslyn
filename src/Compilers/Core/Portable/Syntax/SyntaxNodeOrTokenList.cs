@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Enumerator for lists of SyntaxNodeOrToken structs.
         /// </summary>
-        [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
+        [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
         public struct Enumerator : IEnumerator<SyntaxNodeOrToken>
         {
             private SyntaxNodeOrTokenList _list;

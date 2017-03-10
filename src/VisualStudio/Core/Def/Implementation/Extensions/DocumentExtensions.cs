@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 
             foreach (var line in text.Lines)
             {
-                var trivia = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetRoot(cancellationToken).FindTrivia(line.Start);
+                var trivia = document.GetSyntaxRootSynchronously(cancellationToken).FindTrivia(line.Start);
 
                 // We should only see structured trivia here
                 if (trivia.HasStructure)
@@ -32,8 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
                     var directive = trivia.GetStructure();
                     if (syntaxFacts.IsDirective(directive))
                     {
-                        ExternalSourceInfo info;
-                        if (syntaxFacts.TryGetExternalSourceInfo(directive, out info))
+                        if (syntaxFacts.TryGetExternalSourceInfo(directive, out var info))
                         {
                             // Is this start of a line directive? if so, then add this new entry
                             if (info.StartLine.HasValue)

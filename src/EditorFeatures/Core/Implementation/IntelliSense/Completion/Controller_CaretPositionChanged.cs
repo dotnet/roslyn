@@ -25,13 +25,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // caret isn't within the bounds of the items, then we dismiss completion.
             var caretPoint = this.GetCaretPointInViewBuffer();
             var model = sessionOpt.Computation.InitialUnfilteredModel;
-            if (model == null ||
-                this.IsCaretOutsideAllItemBounds(model, caretPoint))
+            if (model == null)
             {
-                // Completions hadn't even been computed yet or the caret is out of bounds.  
-                // Just cancel everything we're doing.
-                this.StopModelComputation();
+                // Completions hadn't even been computed yet. Just cancel everything we're doing
+                // and move to the Inactive state.
+                this.DismissSessionIfActive();
+                return;
             }
+
+            // We're currently computing items. We'll need to make sure that the caret point
+            // hasn't moved outside all of the items.  If so, we'd want to dismiss completions.
+            // Just refilter the list, asking it to make sure that the caret is still within
+            // bounds.
+            sessionOpt.FilterModel(CompletionFilterReason.CaretPositionChanged, filterState: null);
         }
 
         internal bool IsCaretOutsideAllItemBounds(Model model, SnapshotPoint caretPoint)
@@ -58,11 +64,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Dictionary<TextSpan, ViewTextSpan> textSpanToViewSpan)
         {
             // Easy first check.  See if the caret point is before the start of the item.
-            ViewTextSpan filterSpanInViewBuffer;
-            if (!textSpanToViewSpan.TryGetValue(item.FilterSpan, out filterSpanInViewBuffer))
+            if (!textSpanToViewSpan.TryGetValue(item.Span, out var filterSpanInViewBuffer))
             {
-                filterSpanInViewBuffer = model.GetSubjectBufferFilterSpanInViewBuffer(item.FilterSpan);
-                textSpanToViewSpan[item.FilterSpan] = filterSpanInViewBuffer;
+                filterSpanInViewBuffer = model.GetViewBufferSpan(item.Span);
+                textSpanToViewSpan[item.Span] = filterSpanInViewBuffer;
             }
 
             if (caretPoint < filterSpanInViewBuffer.TextSpan.Start)
@@ -72,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var textSnapshot = caretPoint.Snapshot;
 
-            var currentText = model.GetCurrentTextInSnapshot(item.FilterSpan, textSnapshot, textSpanToText);
+            var currentText = model.GetCurrentTextInSnapshot(item.Span, textSnapshot, textSpanToText);
             var currentTextSpan = new TextSpan(filterSpanInViewBuffer.TextSpan.Start, currentText.Length);
 
             return !currentTextSpan.IntersectsWith(caretPoint);

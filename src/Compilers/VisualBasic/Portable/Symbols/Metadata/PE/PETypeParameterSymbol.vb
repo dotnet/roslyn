@@ -165,16 +165,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             Dim moduleSymbol = containingType.ContainingPEModule
-            Dim constraints() As EntityHandle
+            Dim metadataReader = moduleSymbol.Module.MetadataReader
+            Dim constraints As GenericParameterConstraintHandleCollection
 
             Try
-                constraints = moduleSymbol.Module.GetGenericParamConstraintsOrThrow(_handle)
+                constraints = metadataReader.GetGenericParameter(_handle).GetConstraints()
             Catch mrEx As BadImageFormatException
                 constraints = Nothing
                 Interlocked.CompareExchange(_lazyBoundsErrorInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me), ErrorFactory.EmptyErrorInfo)
             End Try
 
-            If constraints IsNot Nothing AndAlso constraints.Length > 0 Then
+            If constraints.Count > 0 Then
                 Dim tokenDecoder As MetadataDecoder
                 If containingMethod IsNot Nothing Then
                     tokenDecoder = New MetadataDecoder(moduleSymbol, containingMethod)
@@ -182,14 +183,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     tokenDecoder = New MetadataDecoder(moduleSymbol, containingType)
                 End If
 
-                For Each constraint In constraints
-                    Dim typeSymbol As typeSymbol = tokenDecoder.GetTypeOfToken(constraint)
+                For Each constraintHandle In constraints
+                    Dim constraint = metadataReader.GetGenericParameterConstraint(constraintHandle)
+                    Dim constraintTypeHandle = constraint.Type
+                    Dim typeSymbol As TypeSymbol = tokenDecoder.GetTypeOfToken(constraintTypeHandle)
 
                     ' Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
                     If ((_flags And GenericParameterAttributes.NotNullableValueTypeConstraint) <> 0) AndAlso
                         (typeSymbol.SpecialType = Microsoft.CodeAnalysis.SpecialType.System_ValueType) Then
                         Continue For
                     End If
+
+                    typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol,
+                                                                               constraintHandle,
+                                                                               moduleSymbol)
 
                     constraintsBuilder.Add(New TypeParameterConstraint(typeSymbol, Nothing))
                 Next

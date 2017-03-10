@@ -43,10 +43,32 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitToken(Microsoft.Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitToken(Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics, bool encodeAsRawToken = false)
         {
             uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
+            // Setting the high bit indicates that the token value is to be interpreted literally rather than as a handle.
+            if (encodeAsRawToken)
+            {
+                token |= Cci.MetadataWriter.LiteralMethodDefinitionToken;
+            }
             this.GetCurrentWriter().WriteUInt32(token);
+        }
+
+        internal void EmitGreatestMethodToken()
+        {
+            // A magic value indicates that the token value is to be the literal value of the greatest method defnition token.
+            this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.LiteralGreatestMethodDefinitionToken);
+        }
+
+        internal void EmitModuleVersionIdStringToken()
+        {
+            // A magic value indicates that the token value is to refer to a string constant for the spelling of the current module's MVID.
+            this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.ModuleVersionIdStringToken);
+        }
+
+        internal void EmitSourceDocumentIndexToken(Cci.DebugSourceDocument document)
+        {
+            this.GetCurrentWriter().WriteUInt32((module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF) | Cci.MetadataWriter.SourceDocumentIndex);
         }
 
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
@@ -127,10 +149,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitBranch(ILOpCode code, object label, ILOpCode revOpCode = ILOpCode.Nop)
         {
-            bool validOpCode = (code == ILOpCode.Nop) || code.IsBranchToLabel();
+            bool validOpCode = (code == ILOpCode.Nop) || code.IsBranch();
 
             Debug.Assert(validOpCode);
-            Debug.Assert(revOpCode == ILOpCode.Nop || revOpCode.IsBranchToLabel());
+            Debug.Assert(revOpCode == ILOpCode.Nop || revOpCode.IsBranch());
             Debug.Assert(!code.HasVariableStackBehavior());
 
             _emitState.AdjustStack(code.NetStackBehavior());
@@ -705,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteInt64(int64);
         }
 
-        private static void WriteOpCode(Cci.BlobBuilder writer, ILOpCode code)
+        private static void WriteOpCode(BlobBuilder writer, ILOpCode code)
         {
             var size = code.Size();
             if (size == 1)
@@ -725,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private Cci.BlobBuilder GetCurrentWriter()
+        private BlobBuilder GetCurrentWriter()
         {
             return this.GetCurrentBlock().Writer;
         }

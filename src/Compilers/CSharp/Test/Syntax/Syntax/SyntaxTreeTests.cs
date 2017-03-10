@@ -2,6 +2,7 @@
 
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -90,6 +91,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(newTree.FilePath, "new.cs");
             Assert.Equal(oldTree.ToString(), newTree.ToString());
+        }
+
+        [Fact, WorkItem(12638, "https://github.com/dotnet/roslyn/issues/12638")]
+        public void WithFilePath_Null()
+        {
+            SyntaxTree oldTree = new CSharpSyntaxTree.DummySyntaxTree();
+            Assert.Equal(string.Empty, oldTree.WithFilePath(null).FilePath);
+            oldTree = SyntaxFactory.ParseSyntaxTree("", path: "old.cs");
+            Assert.Equal(string.Empty, oldTree.WithFilePath(null).FilePath);
+            Assert.Equal(string.Empty, SyntaxFactory.ParseSyntaxTree("", path: null).FilePath);
+            Assert.Equal(string.Empty, CSharpSyntaxTree.Create((CSharpSyntaxNode)oldTree.GetRoot(), path: null).FilePath);
         }
     }
 }

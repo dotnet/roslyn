@@ -1,12 +1,18 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Collections.ObjectModel
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend Module SymbolExtensions
+        <Extension>
+        Friend Function GetCustomTypeInfoPayload(method As MethodSymbol) As ReadOnlyCollection(Of Byte)
+            Return method.DeclaringCompilation.GetCustomTypeInfoPayload(method.ReturnType)
+        End Function
+
         <Extension>
         Public Function IsContainingSymbolOfAllTypeParameters(containingSymbol As Symbol, type As TypeSymbol) As Boolean
             Return type.VisitType(s_hasInvalidTypeParameterFunc, containingSymbol) Is Nothing

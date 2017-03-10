@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -21,14 +21,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
     [ExportLanguageService(typeof(ISimplificationService), LanguageNames.CSharp), Shared]
     internal partial class CSharpSimplificationService : AbstractSimplificationService<ExpressionSyntax, StatementSyntax, CrefSyntax>
     {
-        protected override IEnumerable<AbstractReducer> GetReducers()
+        // 1. the cast simplifier should run earlier then everything else to minimize the type expressions
+        // 2. Extension method reducer may insert parentheses.  So run it before the parentheses remover.
+        private static readonly ImmutableArray<AbstractReducer> s_reducers =
+            ImmutableArray.Create<AbstractReducer>(
+                new CSharpCastReducer(),
+                new CSharpNameReducer(),
+                new CSharpExtensionMethodReducer(),
+                new CSharpParenthesesReducer(),
+                new CSharpEscapingReducer(),
+                new CSharpMiscellaneousReducer());
+
+        public CSharpSimplificationService() : base(s_reducers)
         {
-            yield return new CSharpCastReducer();
-            yield return new CSharpNameReducer(); // the cast simplifier should run earlier to minimize the type expressions
-            yield return new CSharpParenthesesReducer();
-            yield return new CSharpExtensionMethodReducer();
-            yield return new CSharpEscapingReducer();
-            yield return new CSharpMiscellaneousReducer();
         }
 
         public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool> expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
@@ -51,9 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
                 else
                 {
-                    throw new ArgumentException(
-                        CSharpWorkspaceResources.OnlyAttributesConstructorI,
-                        paramName: "node");
+                    throw new ArgumentException(CSharpWorkspaceResources.Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit, nameof(node));
                 }
             }
         }
@@ -65,8 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var rewriter = new Expander(semanticModel, expandInsideNode, false, cancellationToken);
 
                 var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent, semanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
-                SyntaxToken rewrittenTokenWithElasticTrivia;
-                if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out rewrittenTokenWithElasticTrivia))
+                if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out var rewrittenTokenWithElasticTrivia))
                 {
                     return rewrittenTokenWithElasticTrivia;
                 }
@@ -116,9 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             var firstRewrittenToken = rewrittenNode.GetFirstToken(true, false, true, true);
             var firstOriginalToken = originalNode.GetFirstToken(true, false, true, true);
-
-            SyntaxToken rewrittenTokenWithLeadingElasticTrivia;
-            if (TryAddLeadingElasticTriviaIfNecessary(firstRewrittenToken, firstOriginalToken, out rewrittenTokenWithLeadingElasticTrivia))
+            if (TryAddLeadingElasticTriviaIfNecessary(firstRewrittenToken, firstOriginalToken, out var rewrittenTokenWithLeadingElasticTrivia))
             {
                 return rewrittenNode.ReplaceToken(firstRewrittenToken, rewrittenTokenWithLeadingElasticTrivia);
             }

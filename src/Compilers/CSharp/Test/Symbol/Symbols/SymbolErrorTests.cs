@@ -921,7 +921,10 @@ class M
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (6,22): error CS0068: 'I.d': event in interface cannot have initializer
                 //     event MyDelegate d = new MyDelegate(M.f);   // CS0068
-                Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "d").WithArguments("I.d"));
+                Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "d").WithArguments("I.d").WithLocation(6, 22),
+                // (6,22): warning CS0067: The event 'I.d' is never used
+                //     event MyDelegate d = new MyDelegate(M.f);   // CS0068
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d").WithArguments("I.d").WithLocation(6, 22));
         }
 
         [Fact]
@@ -979,7 +982,10 @@ abstract class Test
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (6,29): error CS0074: 'Test.e': abstract event cannot have initializer
                 //     public abstract event D e = null;   // CS0074
-                Diagnostic(ErrorCode.ERR_AbstractEventInitializer, "e").WithArguments("Test.e"));
+                Diagnostic(ErrorCode.ERR_AbstractEventInitializer, "e").WithArguments("Test.e").WithLocation(6, 29),
+                // (6,29): warning CS0414: The field 'Test.e' is assigned but its value is never used
+                //     public abstract event D e = null;   // CS0074
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "e").WithArguments("Test.e").WithLocation(6, 29));
         }
 
         [Fact]
@@ -1033,25 +1039,96 @@ class C
   }
 }";
             // Triage decision was made to have this be a parse error as the grammar specifies it as such.
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            // TODO: vsadov, the error recovery would be much nicer here if we consumed "int", bu tneed to consider other cases.
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (5,11): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int"),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '>' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '(' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int").WithLocation(5, 11),
                 // (5,14): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">"),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(5, 14),
                 // (5,14): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">"),
-                // (5,9): error CS0161: 'NS.C.F<>(int)': not all code paths return a value
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(5, 14),
+                // (5,15): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int)"));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
+                // (5,16): error CS8124: Tuple must contain at least two elements.
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 16),
+                // (5,18): error CS1001: Identifier expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(5, 18),
+                // (5,18): error CS1026: ) expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(5, 18),
+                // (5,15): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(5, 15),
+                // (5,9): error CS0161: 'C.F<>(int, (?, ?))': not all code paths return a value
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int, (?, ?))").WithLocation(5, 9)
+    );
+        }
+
+        /// <summary>
+        /// Currently parser error 1001, 1003.  Is that good enough?
+        /// </summary>
+        [Fact()]
+        public void CS0081ERR_TypeParamMustBeIdentifier01WithCSharp6()
+        {
+            var text = @"namespace NS
+{
+  class C
+  {
+    int F<int>() { }  // CS0081
+  }
+}";
+            // Triage decision was made to have this be a parse error as the grammar specifies it as such.
+            CreateCompilationWithMscorlib(Parse(text, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6))).VerifyDiagnostics(
+                // (5,11): error CS1001: Identifier expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
+                // (5,11): error CS1003: Syntax error, '>' expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int").WithLocation(5, 11),
+                // (5,11): error CS1003: Syntax error, '(' expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int").WithLocation(5, 11),
+                // (5,14): error CS1001: Identifier expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(5, 14),
+                // (5,14): error CS1003: Syntax error, ',' expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(5, 14),
+                // (5,15): error CS1003: Syntax error, ',' expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
+                // (5,15): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(5, 15),
+                // (5,16): error CS8124: Tuple must contain at least two elements.
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 16),
+                // (5,18): error CS1001: Identifier expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(5, 18),
+                // (5,18): error CS1026: ) expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(5, 18),
+                // (5,15): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(5, 15),
+                // (5,9): error CS0161: 'C.F<>(int, (?, ?))': not all code paths return a value
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int, (?, ?))").WithLocation(5, 9)
+                );
         }
 
         [Fact]
@@ -1688,6 +1765,7 @@ struct Foo
     public virtual int this[int x] { get { return 1;} set {;} }
     // use long for to prevent signature clash
     public abstract int this[long x] { get; set; }
+    public sealed override string ToString() => null;
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
@@ -1714,7 +1792,10 @@ struct Foo
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar5").WithArguments("abstract").WithLocation(8, 47),
                 // (9,46): error CS0106: The modifier 'virtual' is not valid for this item
                 //     public virtual event System.EventHandler Bar6;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar6").WithArguments("virtual").WithLocation(9, 46));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar6").WithArguments("virtual").WithLocation(9, 46),
+                // (15,35): error CS0106: The modifier 'sealed' is not valid for this item
+                //      public sealed override string ToString() => null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "ToString").WithArguments("sealed").WithLocation(15, 35));
         }
 
         [Fact]
@@ -1916,7 +1997,9 @@ abstract class B : A
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 7, Column = 51 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 8, Column = 47 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 9, Column = 50 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 9, Column = 50 },
+                new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedEvent, Line = 7, Column = 51, IsWarning = true },
+                new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedEvent, Line = 8, Column = 47, IsWarning = true });
         }
 
         [Fact]
@@ -1994,16 +2077,19 @@ class B : A
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (9,51): error CS0113: A member 'B.Q' marked as override cannot be marked as new or virtual
                 //     internal virtual override event System.Action Q;
-                Diagnostic(ErrorCode.ERR_OverrideNotNew, "Q").WithArguments("B.Q"),
+                Diagnostic(ErrorCode.ERR_OverrideNotNew, "Q").WithArguments("B.Q").WithLocation(9, 51),
                 // (8,48): error CS0113: A member 'B.P' marked as override cannot be marked as new or virtual
                 //     protected new override event System.Action P;
-                Diagnostic(ErrorCode.ERR_OverrideNotNew, "P").WithArguments("B.P"),
+                Diagnostic(ErrorCode.ERR_OverrideNotNew, "P").WithArguments("B.P").WithLocation(8, 48),
                 // (8,48): warning CS0067: The event 'B.P' is never used
                 //     protected new override event System.Action P;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P").WithArguments("B.P"),
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P").WithArguments("B.P").WithLocation(8, 48),
                 // (9,51): warning CS0067: The event 'B.Q' is never used
                 //     internal virtual override event System.Action Q;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Q").WithArguments("B.Q"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Q").WithArguments("B.Q").WithLocation(9, 51),
+                // (4,42): warning CS0067: The event 'A.Q' is never used
+                //     internal virtual event System.Action Q;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Q").WithArguments("A.Q").WithLocation(4, 42));
         }
 
         [Fact]
@@ -8860,16 +8946,18 @@ namespace NS
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (31,32): error CS0533: 'NS.A3.foo' hides inherited abstract member 'NS.B3.foo()'
+                // (31,32): error CS0533: 'A3.foo' hides inherited abstract member 'B3.foo()'
                 //         new protected double[] foo;  // CS0533
-                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("NS.A3.foo", "NS.B3.foo()"),
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("NS.A3.foo", "NS.B3.foo()").WithLocation(31, 32),
                 // (9,24): error CS0533: 'A1.foo' hides inherited abstract member 'B1.foo'
                 //     new protected enum foo { } // CS0533
-                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("A1.foo", "B1.foo"),
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("A1.foo", "B1.foo").WithLocation(9, 24),
                 // (18,36): error CS0533: 'A1.A2.foo' hides inherited abstract member 'A1.B2.foo()'
                 //         new public delegate object foo(); // CS0533
-                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("A1.A2.foo", "A1.B2.foo()")
-                );
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("A1.A2.foo", "A1.B2.foo()").WithLocation(18, 36),
+                // (31,32): warning CS0649: Field 'A3.foo' is never assigned to, and will always have its default value null
+                //         new protected double[] foo;  // CS0533
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "foo").WithArguments("NS.A3.foo", "null").WithLocation(31, 32));
         }
 
         [WorkItem(540464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540464")]
@@ -10248,9 +10336,12 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
     // (13,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
     //         int i = 7;           // CS8036
     Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "i").WithArguments("x.cly").WithLocation(13, 13),
-    // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
+    // (12,13): warning CS0169: The field 'cly.a' is never used
+    //         clx a = new clx();   // CS8036
+    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
+    // (13,13): warning CS0169: The field 'cly.i' is never used
     //         int i = 7;           // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+    Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
     // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
     //         static int s = 2;    // no error
     Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20)
@@ -17309,8 +17400,9 @@ public class B : A
     Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "B").WithArguments("B.B()").WithLocation(8, 17)
                                 );
 
-            Assert.True(verifier.TestData.Methods.Keys.Any(n => n.StartsWith("A..ctor", StringComparison.Ordinal)));
-            Assert.False(verifier.TestData.Methods.Keys.Any(n => n.StartsWith("B..ctor", StringComparison.Ordinal))); // Haven't tried to emit it
+            var methods = verifier.TestData.GetMethodsByName().Keys;
+            Assert.True(methods.Any(n => n.StartsWith("A..ctor", StringComparison.Ordinal)));
+            Assert.False(methods.Any(n => n.StartsWith("B..ctor", StringComparison.Ordinal))); // Haven't tried to emit it
         }
 
         [WorkItem(1084682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084682"), WorkItem(1036359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036359"), WorkItem(386, "CodePlex")]
@@ -19320,6 +19412,574 @@ internal abstract event System.EventHandler E;";
                 // internal abstract event System.EventHandler E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }
-    }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void MultipleForwardsOfATypeToDifferentAssembliesWithoutUsingItShouldNotReportAnError()
+        {
+            var forwardingIL = @"
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )
+  .ver 4:0:0:0
 }
 
+.assembly Forwarding
+{
+}
+
+.module Forwarding.dll
+
+.assembly extern Destination1
+{
+}
+.assembly extern Destination2
+{
+}
+
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination1
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination2
+}
+
+.class public auto ansi beforefieldinit TestSpace.ExistingReference
+       extends [mscorlib]System.Object
+{
+  .field public static literal string Value = ""TEST VALUE""
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+        {
+            // Code size       8 (0x8)
+            .maxstack  8
+            IL_0000:  ldarg.0
+            IL_0001:  call instance void[mscorlib] System.Object::.ctor()
+            IL_0006:  nop
+            IL_0007:  ret
+        }
+}";
+            var ilReference = CompileIL(forwardingIL, appendDefaultHeader: false);
+
+            var code = @"
+using TestSpace;
+namespace UserSpace
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            System.Console.WriteLine(ExistingReference.Value);
+        }
+    }
+}";
+
+            CompileAndVerify(
+                source: code,
+                additionalRefs: new MetadataReference[] { ilReference },
+                expectedOutput: "TEST VALUE");
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void MultipleForwardsOfFullyQualifiedTypeToDifferentAssembliesWhileReferencingItShouldErrorOut()
+        {
+            var userCode = @"
+namespace ForwardingNamespace
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            new Destination.TestClass();
+        }
+    }
+}";
+            var forwardingIL = @"
+.assembly extern Destination1
+{
+    .ver 1:0:0:0
+}
+.assembly extern Destination2
+{
+    .ver 1:0:0:0
+}
+.assembly Forwarder
+{
+    .ver 1:0:0:0
+}
+.module ForwarderModule.dll
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination1
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination2
+}";
+            var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
+
+            compilation.VerifyDiagnostics(
+                // (8,29): error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             new Destination.TestClass();
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("ForwarderModule.dll", "Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination.TestClass", "Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 29),
+                // (8,29): error CS0234: The type or namespace name 'TestClass' does not exist in the namespace 'Destination' (are you missing an assembly reference?)
+                //             new Destination.TestClass();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestClass").WithArguments("TestClass", "Destination").WithLocation(8, 29));
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void MultipleForwardsToManyAssembliesShouldJustReportTheFirstTwo()
+        {
+            var userCode = @"
+namespace ForwardingNamespace
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            new Destination.TestClass();
+        }
+    }
+}";
+
+            var forwardingIL = @"
+.assembly Forwarder { }
+.module ForwarderModule.dll
+.assembly extern Destination1 { }
+.assembly extern Destination2 { }
+.assembly extern Destination3 { }
+.assembly extern Destination4 { }
+.assembly extern Destination5 { }
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination1
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination2
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination3
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination4
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination5
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination1
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination2
+}";
+
+            var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
+
+            compilation.VerifyDiagnostics(
+                // (8,29): error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             new Destination.TestClass();
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination.TestClass", "Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 29),
+                // (8,29): error CS0234: The type or namespace name 'TestClass' does not exist in the namespace 'Destination' (are you missing an assembly reference?)
+                //             new Destination.TestClass();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestClass").WithArguments("TestClass", "Destination").WithLocation(8, 29));
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void RequiredExternalTypesForAMethodSignatureWillReportErrorsIfForwardedToMultipleAssemblies()
+        {
+            // The scenario is that assembly A is calling a method from assembly B. This method has a parameter of a type that lives
+            // in assembly C. If A is compiled against B and C, it should compile successfully.
+            // Now if assembly C is replaced with assembly C2, that forwards the type to both D1 and D2, it should fail with the appropriate error.
+
+            var codeC = @"
+namespace C
+{
+    public class ClassC {}
+}";
+            var referenceC = CreateCompilationWithMscorlib(codeC, assemblyName: "C").EmitToImageReference();
+
+            var codeB = @"
+using C;
+
+namespace B
+{
+    public static class ClassB
+    {
+        public static void MethodB(ClassC obj)
+        {
+            System.Console.WriteLine(obj.GetHashCode());
+        }
+    }
+}";
+            var referenceB = CreateCompilationWithMscorlib(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
+
+            var codeA = @"
+using B;
+
+namespace A
+{
+    public class ClassA
+    {
+        public void MethodA()
+        {
+            ClassB.MethodB(null);
+        }
+    }
+}";
+
+            CreateCompilationWithMscorlib(codeA, references: new MetadataReference[] { referenceB, referenceC }, assemblyName: "A").VerifyDiagnostics(); // No Errors
+
+            var codeC2 = @"
+.assembly C { }
+.module CModule.dll
+.assembly extern D1 { }
+.assembly extern D2 { }
+.class extern forwarder C.ClassC
+{
+	.assembly extern D1
+}
+.class extern forwarder C.ClassC
+{
+	.assembly extern D2
+}";
+
+            var referenceC2 = CompileIL(codeC2, appendDefaultHeader: false);
+
+            CreateCompilationWithMscorlib(codeA, references: new MetadataReference[] { referenceB, referenceC2 }, assemblyName: "A").VerifyDiagnostics(
+                // (10,13): error CS8206: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             ClassB.MethodB(null);
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("CModule.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void MultipleTypeForwardersToTheSameAssemblyShouldNotResultInMultipleForwardError()
+        {
+            var codeC = @"
+namespace C
+{
+    public class ClassC {}
+}";
+            var referenceC = CreateCompilationWithMscorlib(codeC, assemblyName: "C").EmitToImageReference();
+
+            var codeB = @"
+using C;
+
+namespace B
+{
+    public static class ClassB
+    {
+        public static string MethodB(ClassC obj)
+        {
+            return ""obj is "" + (obj == null ? ""null"" : obj.ToString());
+        }
+    }
+}";
+            var referenceB = CreateCompilationWithMscorlib(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
+
+            var codeA = @"
+using B;
+
+namespace A
+{
+    public class ClassA
+    {
+        public static void Main()
+        {
+            System.Console.WriteLine(ClassB.MethodB(null));
+        }
+    }
+}";
+
+            CompileAndVerify(
+                source: codeA,
+                additionalRefs: new MetadataReference[] { referenceB, referenceC },
+                expectedOutput: "obj is null");
+
+            var codeC2 = @"
+.assembly C
+{
+	.ver 0:0:0:0
+}
+.assembly extern D { }
+.class extern forwarder C.ClassC
+{
+	.assembly extern D
+}
+.class extern forwarder C.ClassC
+{
+	.assembly extern D
+}";
+
+            var referenceC2 = CompileIL(codeC2, appendDefaultHeader: false);
+
+            CreateCompilationWithMscorlib(codeA, references: new MetadataReference[] { referenceB, referenceC2 }).VerifyDiagnostics(
+                // (10,38): error CS0012: The type 'ClassC' is defined in an assembly that is not referenced. You must add a reference to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             System.Console.WriteLine(ClassB.MethodB(null));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "ClassB.MethodB").WithArguments("C.ClassC", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 38));
+
+            var codeD = @"
+namespace C
+{
+    public class ClassC { }
+}";
+            var referenceD = CreateCompilationWithMscorlib(codeD, assemblyName: "D").EmitToImageReference();
+
+            CompileAndVerify(
+                source: codeA,
+                additionalRefs: new MetadataReference[] { referenceB, referenceC2, referenceD },
+                expectedOutput: "obj is null");
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void CompilingModuleWithMultipleForwardersToDifferentAssembliesShouldErrorOut()
+        {
+            var ilSource = @"
+.module ForwarderModule.dll
+.assembly extern D1 { }
+.assembly extern D2 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D1
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D2
+}";
+
+            var ilModule = GetILModuleReference(ilSource, appendDefaultHeader: false);
+            CreateCompilationWithMscorlib(string.Empty, references: new MetadataReference[] { ilModule }, assemblyName: "Forwarder").VerifyDiagnostics(
+                // error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies).WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void CompilingModuleWithMultipleForwardersToTheSameAssemblyShouldNotProduceMultipleForwardingErrors()
+        {
+            var ilSource = @"
+.assembly extern D { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D
+}";
+
+            var ilModule = GetILModuleReference(ilSource, appendDefaultHeader: false);
+            CreateCompilationWithMscorlib(string.Empty, references: new MetadataReference[] { ilModule }).VerifyDiagnostics(
+                // error CS0012: The type 'TestType' is defined in an assembly that is not referenced. You must add a reference to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("Testspace.TestType", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+            var dCode = @"
+namespace Testspace
+{
+    public class TestType { }
+}";
+            var dReference = CreateCompilationWithMscorlib(dCode, assemblyName: "D").EmitToImageReference();
+
+            // Now compilation succeeds
+            CreateCompilationWithMscorlib(string.Empty, references: new MetadataReference[] { ilModule, dReference }).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void LookingUpATypeForwardedTwiceInASourceCompilationReferenceShouldFail()
+        {
+            // This test specifically tests that SourceAssembly symbols also produce this error (by using a CompilationReference instead of the usual PEAssembly symbol)
+
+            var ilSource = @"
+.module ForwarderModule.dll
+.assembly extern D1 { }
+.assembly extern D2 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D1
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D2
+}";
+
+            var ilModuleReference = GetILModuleReference(ilSource, appendDefaultHeader: false);
+            var forwarderCompilation = CreateCompilation(
+                source: string.Empty,
+                references: new MetadataReference[] { ilModuleReference },
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName: "Forwarder");
+
+            var csSource = @"
+namespace UserSpace
+{
+    public class UserClass
+    {
+        public static void Main()
+        {
+            var obj = new Testspace.TestType();
+        }
+    }
+}";
+
+            var userCompilation = CreateCompilationWithMscorlib(
+                text: csSource,
+                references: new MetadataReference[] { forwarderCompilation.ToMetadataReference() },
+                assemblyName: "UserAssembly");
+
+            userCompilation.VerifyDiagnostics(
+                // (8,37): error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             var obj = new Testspace.TestType();
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestType").WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 37),
+                // (8,37): error CS0234: The type or namespace name 'TestType' does not exist in the namespace 'Testspace' (are you missing an assembly reference?)
+                //             var obj = new Testspace.TestType();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType").WithArguments("TestType", "Testspace").WithLocation(8, 37));
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void ForwardingErrorsInLaterModulesAlwaysOverwriteOnesInEarlierModules()
+        {
+            var module1IL = @"
+.module module1IL.dll
+.assembly extern D1 { }
+.assembly extern D2 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D1
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D2
+}";
+
+            var module1Reference = GetILModuleReference(module1IL, appendDefaultHeader: false);
+
+            var module2IL = @"
+.module module12L.dll
+.assembly extern D3 { }
+.assembly extern D4 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D3
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D4
+}";
+
+            var module2Reference = GetILModuleReference(module2IL, appendDefaultHeader: false);
+
+            var forwarderCompilation = CreateCompilation(
+                source: string.Empty,
+                references: new MetadataReference[] { module1Reference, module2Reference },
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName: "Forwarder");
+
+            var csSource = @"
+namespace UserSpace
+{
+    public class UserClass
+    {
+        public static void Main()
+        {
+            var obj = new Testspace.TestType();
+        }
+    }
+}";
+
+            var userCompilation = CreateCompilationWithMscorlib(
+                text: csSource,
+                references: new MetadataReference[] { forwarderCompilation.ToMetadataReference() },
+                assemblyName: "UserAssembly");
+
+            userCompilation.VerifyDiagnostics(
+                // (8,37): error CS8206: Module 'module12L.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             var obj = new Testspace.TestType();
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestType").WithArguments("module12L.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (8,37): error CS0234: The type or namespace name 'TestType' does not exist in the namespace 'Testspace' (are you missing an assembly reference?)
+                //             var obj = new Testspace.TestType();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType").WithArguments("TestType", "Testspace"));
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void MultipleForwardsThatChainResultinTheSameAssemblyShouldStillProduceAnError()
+        {
+            // The scenario is that assembly A is calling a method from assembly B. This method has a parameter of a type that lives
+            // in assembly C. Now if assembly C is replaced with assembly C2, that forwards the type to both D and E, and D fowards it to E,
+            // it should fail with the appropriate error.
+
+            var codeC = @"
+namespace C
+{
+    public class ClassC {}
+}";
+            var referenceC = CreateCompilationWithMscorlib(codeC, assemblyName: "C").EmitToImageReference();
+
+            var codeB = @"
+using C;
+
+namespace B
+{
+    public static class ClassB
+    {
+        public static void MethodB(ClassC obj)
+        {
+            System.Console.WriteLine(obj.GetHashCode());
+        }
+    }
+}";
+            var referenceB = CreateCompilationWithMscorlib(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
+            
+            var codeC2 = @"
+.assembly C { }
+.module C.dll
+.assembly extern D { }
+.assembly extern E { }
+.class extern forwarder C.ClassC
+{
+	.assembly extern D
+}
+.class extern forwarder C.ClassC
+{
+	.assembly extern E
+}";
+
+            var referenceC2 = CompileIL(codeC2, appendDefaultHeader: false);
+
+            var codeD = @"
+.assembly D { }
+.assembly extern E { }
+.class extern forwarder C.ClassC
+{
+	.assembly extern E
+}";
+
+            var referenceD = CompileIL(codeD, appendDefaultHeader: false);
+            var referenceE = CreateCompilationWithMscorlib(codeC, assemblyName: "E").EmitToImageReference();
+
+            var codeA = @"
+using B;
+using C;
+
+namespace A
+{
+    public class ClassA
+    {
+        public void MethodA(ClassC obj)
+        {
+            ClassB.MethodB(obj);
+        }
+    }
+}";
+
+            CreateCompilationWithMscorlib(codeA, references: new MetadataReference[] { referenceB, referenceC2, referenceD, referenceE }, assemblyName: "A").VerifyDiagnostics(
+                // (11,13): error CS8206: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             ClassB.MethodB(obj);
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("C.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(11, 13));
+        }
+    }
+}

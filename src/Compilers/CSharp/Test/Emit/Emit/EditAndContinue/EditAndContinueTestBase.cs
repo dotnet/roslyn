@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -239,6 +240,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 parentTableIndex,
                 MetadataTokens.GetRowNumber(row.ConstructorToken),
                 constructorTableIndex);
+        }
+
+        internal static void SaveImages(string outputDirectory, CompilationVerifier baseline, params CompilationDifference[] diffs)
+        {
+            bool IsPortablePdb(ImmutableArray<byte> image) => image[0] == 'B' && image[1] == 'S' && image[2] == 'J' && image[3] == 'B';
+
+            string baseName = baseline.Compilation.AssemblyName;
+            string extSuffix = IsPortablePdb(baseline.EmittedAssemblyPdb) ? "x" : "";
+
+            Directory.CreateDirectory(outputDirectory);
+
+            File.WriteAllBytes(Path.Combine(outputDirectory, baseName + ".dll" + extSuffix), baseline.EmittedAssemblyData.ToArray());
+            File.WriteAllBytes(Path.Combine(outputDirectory, baseName + ".pdb" + extSuffix), baseline.EmittedAssemblyPdb.ToArray());
+
+            for (int i = 0; i < diffs.Length; i++)
+            {
+                File.WriteAllBytes(Path.Combine(outputDirectory, $"{baseName}.{i + 1}.metadata{extSuffix}"), diffs[i].MetadataDelta.ToArray());
+                File.WriteAllBytes(Path.Combine(outputDirectory, $"{baseName}.{i + 1}.pdb{extSuffix}"), diffs[i].PdbDelta.ToArray());
+            }
         }
     }
 

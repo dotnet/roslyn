@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
@@ -24,34 +22,49 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
-        protected IIntervalIntrospector<T> Introspector
+        protected IIntervalIntrospector<T> Introspector => _introspector;
+
+        /// <summary>
+        /// Warning.  Mutates the tree in place.
+        /// </summary>
+        /// <param name="value"></param>
+        public void AddIntervalInPlace(T value)
         {
-            get { return _introspector; }
+            var newNode = new Node(value);
+            this.root = Insert(root, newNode, Introspector);
         }
 
-        public IEnumerable<T> GetOverlappingIntervals(int start, int length)
-        {
-            return GetOverlappingIntervals(start, length, _introspector);
-        }
+        public ImmutableArray<T> GetIntervalsThatOverlapWith(int start, int length)
+            => GetIntervalsThatOverlapWith(start, length, _introspector);
 
-        public IEnumerable<T> GetIntersectingIntervals(int start, int length)
-        {
-            return GetIntersectingIntervals(start, length, _introspector);
-        }
+        public ImmutableArray<T> GetIntervalsThatIntersectWith(int start, int length)
+            => GetIntervalsThatIntersectWith(start, length, _introspector);
 
-        public IEnumerable<T> GetContainingIntervals(int start, int length)
-        {
-            return GetContainingIntervals(start, length, _introspector);
-        }
+        public ImmutableArray<T> GetIntervalsThatContain(int start, int length)
+            => GetIntervalsThatContain(start, length, _introspector);
 
-        public bool IntersectsWith(int position)
-        {
-            return GetIntersectingIntervals(position, 0).Any();
-        }
+        public void FillWithIntervalsThatOverlapWith(int start, int length, ArrayBuilder<T> builder)
+            => FillWithIntervalsThatOverlapWith(start, length, builder, _introspector);
+
+        public void FillWithIntervalsThatIntersectWith(int start, int length, ArrayBuilder<T> builder)
+            => FillWithIntervalsThatIntersectWith(start, length, builder, _introspector);
+
+        public void FillWithIntervalsThatContain(int start, int length, ArrayBuilder<T> builder)
+            => FillWithIntervalsThatContain(start, length, builder, _introspector);
+
+        public bool HasIntervalThatIntersectsWith(int position)
+            => HasIntervalThatIntersectsWith(position, _introspector);
+
+        public bool HasIntervalThatOverlapsWith(int start, int length)
+            => HasIntervalThatOverlapsWith(start, length, _introspector);
+
+        public bool HasIntervalThatIntersectsWith(int start, int length)
+            => HasIntervalThatIntersectsWith(start, length, _introspector);
+
+        public bool HasIntervalThatContains(int start, int length)
+            => HasIntervalThatContains(start, length, _introspector);
 
         protected int MaxEndValue(Node node)
-        {
-            return GetEnd(node.MaxEndNode.Value, _introspector);
-        }
+            => GetEnd(node.MaxEndNode.Value, _introspector);
     }
 }

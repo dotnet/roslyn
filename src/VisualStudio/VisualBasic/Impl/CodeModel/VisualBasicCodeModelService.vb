@@ -18,6 +18,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extenders
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXml
@@ -1047,6 +1048,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return GetExternalSymbolFullName(symbol)
         End Function
 
+        Public Overrides Function IsExpressionBodiedProperty(node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Public Overrides Function TryGetAutoPropertyExpressionBody(parentNode As SyntaxNode, ByRef accessorNode As SyntaxNode) As Boolean
+            Return False
+        End Function
+
         Public Overrides Function IsAccessorNode(node As SyntaxNode) As Boolean
             Select Case node.Kind
                 Case SyntaxKind.GetAccessorBlock,
@@ -2000,7 +2009,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 newModifierList.Add(SyntaxFactory.Token(SyntaxKind.OptionalKeyword))
             End If
 
-            If (kind And EnvDTE80.vsCMParameterKind.vsCMParameterKindRef) <> 0 Then
+
+            If (kind And EnvDTE80.vsCMParameterKind.vsCMParameterKindIn) <> 0 AndAlso parameter.Modifiers.Any(SyntaxKind.ByValKeyword) Then
+                ' Ensure that we keep ByVal if it was already present.
+                newModifierList.Add(SyntaxFactory.Token(SyntaxKind.ByValKeyword))
+            ElseIf (kind And EnvDTE80.vsCMParameterKind.vsCMParameterKindRef) <> 0 Then
                 newModifierList.Add(SyntaxFactory.Token(SyntaxKind.ByRefKeyword))
             End If
 
@@ -2025,6 +2038,27 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End Select
 
             Return False
+        End Function
+
+        Public Overrides Function UpdateParameterKind(parameterKind As EnvDTE80.vsCMParameterKind, passingMode As PARAMETER_PASSING_MODE) As EnvDTE80.vsCMParameterKind
+            Dim updatedParameterKind = parameterKind
+
+            Select Case passingMode
+                Case PARAMETER_PASSING_MODE.cmParameterTypeIn
+                    updatedParameterKind = updatedParameterKind Or EnvDTE80.vsCMParameterKind.vsCMParameterKindIn
+                    updatedParameterKind = updatedParameterKind And Not EnvDTE80.vsCMParameterKind.vsCMParameterKindRef
+                    updatedParameterKind = updatedParameterKind And Not EnvDTE80.vsCMParameterKind.vsCMParameterKindOut
+
+                Case PARAMETER_PASSING_MODE.cmParameterTypeInOut
+                    updatedParameterKind = updatedParameterKind And Not EnvDTE80.vsCMParameterKind.vsCMParameterKindIn
+                    updatedParameterKind = updatedParameterKind Or EnvDTE80.vsCMParameterKind.vsCMParameterKindRef
+                    updatedParameterKind = updatedParameterKind And Not EnvDTE80.vsCMParameterKind.vsCMParameterKindOut
+
+                Case PARAMETER_PASSING_MODE.cmParameterTypeOut
+                    Throw Exceptions.ThrowEInvalidArg()
+            End Select
+
+            Return updatedParameterKind
         End Function
 
         Public Overrides Function ValidateFunctionKind(containerNode As SyntaxNode, kind As EnvDTE.vsCMFunction, name As String) As EnvDTE.vsCMFunction
@@ -2153,7 +2187,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 If trivia.Kind = SyntaxKind.CommentTrivia Then
                     firstCommentFound = True
                     commentList.Add(trivia)
-                ElseIf Not firstCommentFound AndAlso trivia.IsWhitespace() Then
+                ElseIf Not firstCommentFound AndAlso trivia.IsWhitespaceOrEndOfLine() Then
                     Continue For
                 ElseIf firstCommentFound AndAlso trivia.Kind = SyntaxKind.EndOfLineTrivia AndAlso nextTrivia.Kind = SyntaxKind.CommentTrivia Then
                     Continue For

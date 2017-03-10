@@ -17,8 +17,13 @@ To build the toolset do the following:
 - If necessary, make modifications to the dependencies in the 
  `build/MSBuildToolset/project.json` file to bring in anything new.
 - Run the `build/MSBuildToolset/build-toolset.ps1` file.
-- In the `build/MSBuildToolset/bin/Debug/dnxcore50` directory:
-    - Rename and bzip the `osx.10.10-x64/publish` directory as roslyn.mac.`<version number>`
-    - Rename and bzip the `ubuntu.14.04-x65/publish` directory as roslyn.linux.`<version number>`
-- Upload the file to the Azure in the dotnetci storage account in the roslyn container.  
+- The script produces two zip files in bin\Debug\netcoreapp1.0 subdirectory:
+    - Rename `osx.10.10-x64.zip` to roslyn.mac.`<version number>.zip`
+    - Rename `ubuntu.14.04-x64.zip` to roslyn.linux.`<version number>.zip`
+- Upload the files to the Azure in the dotnetci storage account in the roslyn container:
+
+```
+azcopy /Pattern:*.zip /Source:build\MSBuildToolset\bin\Debug\netcoreapp1.0 /Dest:https://dotnetci.blob.core.windows.net/roslyn /DestKey:<<key>>
+```
+
 - Send a PR to change [Makefile](https://github.com/dotnet/roslyn/blob/master/Makefile) to use the new toolset.  

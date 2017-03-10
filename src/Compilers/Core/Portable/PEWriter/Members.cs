@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
@@ -23,47 +25,47 @@ namespace Microsoft.Cci
         /// C/C++ style calling convention for unmanaged methods. The call stack is cleaned up by the caller, 
         /// which makes this convention suitable for calling methods that accept extra arguments.
         /// </summary>
-        C = 1,
+        C = SignatureCallingConvention.CDecl,
 
         /// <summary>
         /// The convention for calling managed methods with a fixed number of arguments.
         /// </summary>
-        Default = 0,
+        Default = SignatureCallingConvention.Default,
 
         /// <summary>
         /// The convention for calling managed methods that accept extra arguments.
         /// </summary>
-        ExtraArguments = 5,
+        ExtraArguments = SignatureCallingConvention.VarArgs,
 
         /// <summary>
         /// Arguments are passed in registers when possible. This calling convention is not yet supported.
         /// </summary>
-        FastCall = 4,
+        FastCall = SignatureCallingConvention.FastCall,
 
         /// <summary>
         /// Win32 API calling convention for calling unmanaged methods via PlatformInvoke. The call stack is cleaned up by the callee.
         /// </summary>
-        Standard = 2,
+        Standard = SignatureCallingConvention.StdCall,
 
         /// <summary>
         /// C++ member unmanaged method (non-vararg) calling convention. The callee cleans the stack and the this pointer is pushed on the stack last.
         /// </summary>
-        ThisCall = 3,
+        ThisCall = SignatureCallingConvention.ThisCall,
 
         /// <summary>
         /// The convention for calling a generic method.
         /// </summary>
-        Generic = 0x10,
+        Generic = SignatureAttributes.Generic,
 
         /// <summary>
         /// The convention for calling an instance method with an implicit this parameter (the method does not have an explicit parameter definition for this).
         /// </summary>
-        HasThis = 0x20,
+        HasThis = SignatureAttributes.Instance,
 
         /// <summary>
         /// The convention for calling an instance method that explicitly declares its first parameter to correspond to the this instance.
         /// </summary>
-        ExplicitThis = 0x40
+        ExplicitThis = SignatureAttributes.ExplicitThis
     }
 
     /// <summary>
@@ -118,7 +120,7 @@ namespace Microsoft.Cci
         /// The compile time value of the field. This value should be used directly in IL, rather than a reference to the field.
         /// If the field does not have a valid compile time value, Dummy.Constant is returned.
         /// </summary>
-        IMetadataConstant GetCompileTimeValue(EmitContext context);
+        MetadataConstant GetCompileTimeValue(EmitContext context);
 
         /// <summary>
         /// Mapped field data, or null if the field is not mapped.
@@ -184,7 +186,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Offset of the field.
         /// </summary>
-        uint Offset
+        int Offset
         {
             get;
             // ^ requires this.ContainingTypeDefinition.Layout == LayoutKind.Explicit;
@@ -228,7 +230,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The compile time value of the definition, if it is a local constant.
         /// </summary>
-        IMetadataConstant CompileTimeValue
+        MetadataConstant CompileTimeValue
         {
             get;
         }
@@ -256,27 +258,28 @@ namespace Microsoft.Cci
         LocalSlotConstraints Constraints { get; }
 
         /// <summary>
-        /// True if the local variable is of type Dynamic.
-        /// </summary>
-        bool IsDynamic { get; }
-
-        /// <summary>
         /// Each local has an attributes field in the PDB.  To match the native compiler,
-        /// we emit "1" for locals that should definitely not bind in the debugger and "0"
+        /// we emit <see cref="LocalVariableAttributes.DebuggerHidden"/> for locals that should 
+        /// definitely not bind in the debugger and <see cref="LocalVariableAttributes.None"/>
         /// for all other locals.
         /// </summary>
         /// <remarks>
-        /// A value of "1" is a sufficient, but not a necessary, condition for hiding the
-        /// local in the debugger.  Locals with value "0" may also be hidden.
+        /// A value of <see cref="LocalVariableAttributes.DebuggerHidden"/> is a sufficient, but not a necessary, condition for hiding the
+        /// local in the debugger.  Locals with value <see cref="LocalVariableAttributes.None"/> may also be hidden.
         /// 
         /// Hidden locals must still be emitted because they participate in evaluation.
         /// </remarks>
-        uint PdbAttributes { get; }
+        LocalVariableAttributes PdbAttributes { get; }
 
         /// <summary>
-        /// Should return the synthesized dynamic attributes of the local definition if any. Else null.
+        /// The synthesized dynamic attributes of the local definition if any, or empty.
         /// </summary>
         ImmutableArray<TypedConstant> DynamicTransformFlags { get; }
+
+        /// <summary>
+        /// The tuple element names of the local definition if any, or empty.
+        /// </summary>
+        ImmutableArray<TypedConstant> TupleElementNames { get; }
 
         /// <summary>
         /// The type of the local.
@@ -472,6 +475,8 @@ namespace Microsoft.Cci
 
         ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
         ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
+
+        DynamicAnalysisMethodBodyData DynamicAnalysisData { get; }
     }
 
     /// <summary>
@@ -650,7 +655,7 @@ namespace Microsoft.Cci
         /// A compile time constant value that should be supplied as the corresponding argument value by callers that do not explicitly specify an argument value for this parameter.
         /// Null if the parameter doesn't have default value.
         /// </summary>
-        IMetadataConstant GetDefaultValue(EmitContext context);
+        MetadataConstant GetDefaultValue(EmitContext context);
 
         /// <summary>
         /// True if the parameter has a default value that should be supplied as the argument value by a caller for which the argument value has not been explicitly specified.
@@ -714,7 +719,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A compile time constant value that provides the default value for the property. (Who uses this and why?)
         /// </summary>
-        IMetadataConstant DefaultValue
+        MetadataConstant DefaultValue
         {
             get;
             // ^ requires this.HasDefaultValue;
@@ -773,9 +778,17 @@ namespace Microsoft.Cci
         ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context);
 
         /// <summary>
-        /// Returns the list of custom modifiers, if any, associated with the returned value. Evaluate this property only if ReturnValueIsModified is true.
+        /// Returns the list of custom modifiers, if any, associated with the return type. 
         /// </summary>
         ImmutableArray<ICustomModifier> ReturnValueCustomModifiers
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Returns the list of custom modifiers, if any, associated with the ref modifier. 
+        /// </summary>
+        ImmutableArray<ICustomModifier> RefCustomModifiers
         {
             get;
         }
@@ -954,16 +967,6 @@ namespace Microsoft.Cci
         /// The name of the method.
         /// </summary>
         new string Name { get; }
-    }
-
-    internal enum EncFuncCode
-    {
-        Default = 0,
-        AddMethod = 1,
-        AddField = 2,
-        AddParameter = 3,
-        AddProperty = 4,
-        AddEvent = 5
     }
 
     internal static class Extensions

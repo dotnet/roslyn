@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                     {
+                        if (type.IsTupleType)
+                        {
+                            return type.TupleUnderlyingType.CustomModifierCount();
+                        }
+
                         bool isDefinition = type.IsDefinition;
 
                         if (!isDefinition)
@@ -105,6 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                     {
+                        if (type.IsTupleType)
+                        {
+                            return type.TupleUnderlyingType.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds);
+                        }
+
                         bool isDefinition = type.IsDefinition;
 
                         if (!isDefinition)
@@ -166,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     // Enums and delegates know their own base types
                     // intrinsically (and do not include interface lists)
-                    // so there is not the possibility of a cycle.
+                    // so there is no possibility of a cycle.
                     return type.BaseTypeNoUseSiteDiagnostics;
             }
         }

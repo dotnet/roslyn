@@ -56,6 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type.TypeSymbol, this.Type.CustomModifiers.Length));
             }
+
+            if (Type.ContainsTupleNames() &&
+                compilation.HasTupleNamesAttributes &&
+                compilation.CanEmitSpecialType(SpecialType.System_String))
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    compilation.SynthesizeTupleNamesAttribute(Type));
+            }
         }
 
         internal abstract override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);

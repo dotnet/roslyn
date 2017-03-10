@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Prep
                 Dim innermostKind = context.SyntaxTree.GetInnermostIfPreprocessorKind(context.Position, cancellationToken)
 
                 If innermostKind.HasValue AndAlso innermostKind.Value <> SyntaxKind.ElseDirectiveTrivia Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#ElseIf", VBFeaturesResources.ElseIfCCKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#ElseIf", VBFeaturesResources.Introduces_a_condition_in_an_SharpIf_statement_that_is_tested_if_the_previous_conditional_test_evaluates_to_False))
                 End If
             End If
 

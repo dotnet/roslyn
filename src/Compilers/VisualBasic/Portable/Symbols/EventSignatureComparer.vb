@@ -26,7 +26,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared ReadOnly ExplicitEventImplementationComparer As EventSignatureComparer =
             New EventSignatureComparer(considerName:=False,
                                         considerType:=False,
-                                        considerCustomModifiers:=False)
+                                        considerCustomModifiers:=False,
+                                        considerTupleNames:=False)
+
+        Public Shared ReadOnly ExplicitEventImplementationWithTupleNamesComparer As EventSignatureComparer =
+            New EventSignatureComparer(considerName:=False,
+                                        considerType:=False,
+                                        considerCustomModifiers:=False,
+                                        considerTupleNames:=True)
 
         ''' <summary>
         ''' This instance is used to check whether one event overrides another, according to the VB definition.
@@ -34,7 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared ReadOnly OverrideSignatureComparer As EventSignatureComparer =
             New EventSignatureComparer(considerName:=True,
                                         considerType:=False,
-                                        considerCustomModifiers:=False)
+                                        considerCustomModifiers:=False,
+                                        considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is intended to reflect the definition of signature equality used by the runtime (ECMA 335 Section 8.6.1.6).
@@ -43,7 +51,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared ReadOnly RuntimeEventSignatureComparer As EventSignatureComparer =
             New EventSignatureComparer(considerName:=True,
                                         considerType:=True,
-                                        considerCustomModifiers:=True)
+                                        considerCustomModifiers:=True,
+                                        considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to compare potential WinRT fake events in type projection.
@@ -58,7 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared ReadOnly WinRTConflictComparer As EventSignatureComparer =
             New EventSignatureComparer(considerName:=True,
                                        considerType:=False,
-                                       considerCustomModifiers:=False)
+                                       considerCustomModifiers:=False,
+                                       considerTupleNames:=False)
 
 
         ' Compare the event name (no explicit part)
@@ -70,13 +80,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Consider custom modifiers on/in parameters and return types (if return is considered).
         Private ReadOnly _considerCustomModifiers As Boolean
 
+        ' Consider tuple names in parameters and return types (if return is considered).
+        Private ReadOnly _considerTupleNames As Boolean
+
         Private Sub New(considerName As Boolean,
                         considerType As Boolean,
-                        considerCustomModifiers As Boolean)
+                        considerCustomModifiers As Boolean,
+                        considerTupleNames As Boolean)
 
             Me._considerName = considerName
             Me._considerType = considerType
             Me._considerCustomModifiers = considerCustomModifiers
+            Me._considerTupleNames = considerTupleNames
         End Sub
 
 #Region "IEqualityComparer(Of EventSymbol) Members"
@@ -97,7 +112,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If _considerType Then
-                If Not HaveSameTypes(event1, event2, _considerCustomModifiers) Then
+                Dim comparison As TypeCompareKind = MethodSignatureComparer.MakeTypeCompareKind(_considerCustomModifiers, _considerTupleNames)
+                If Not event1.Type.IsSameType(event2.Type, comparison) Then
                     Return False
                 End If
             End If
@@ -108,7 +124,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                       event2.DelegateParameters,
                                                                       Nothing,
                                                                       considerByRef:=True,
-                                                                      considerCustomModifiers:=_considerCustomModifiers) Then
+                                                                      considerCustomModifiers:=_considerCustomModifiers,
+                                                                      considerTupleNames:=_considerTupleNames) Then
                     Return False
                 End If
             End If
@@ -135,16 +152,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return _hash
         End Function
 #End Region
-
-        Private Shared Function HaveSameTypes(event1 As EventSymbol, event2 As EventSymbol, considerCustomModifiers As Boolean) As Boolean
-            Dim type1 = event1.Type
-            Dim type2 = event2.Type
-
-            Return If(considerCustomModifiers,
-                      type1 = type2,
-                      type1.IsSameTypeIgnoringCustomModifiers(type2))
-
-        End Function
 
     End Class
 

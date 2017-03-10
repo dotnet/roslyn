@@ -47,10 +47,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(fields As ImmutableArray(Of AnonymousTypeField), _location As Location, _isImplicitlyDeclared As Boolean)
+        Public Sub New(fields As ImmutableArray(Of AnonymousTypeField), location As Location, isImplicitlyDeclared As Boolean)
             Me.Fields = fields
-            Me.Location = _location
-            Me.IsImplicitlyDeclared = _isImplicitlyDeclared
+            Me.Location = location
+            Me.IsImplicitlyDeclared = isImplicitlyDeclared
             Me.Key = ComputeKey(fields, Function(f) f.Name, Function(f) f.IsKey)
         End Sub
 

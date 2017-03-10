@@ -2,6 +2,7 @@
 
 using System;
 using System.Globalization;
+using System.IO;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -71,8 +72,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Diagnostic CreateDiagnostic(int code, Location location)
         {
-            return CreateDiagnostic(code, location, SpecializedCollections.EmptyObjects);
+            return CreateDiagnostic(code, location, Array.Empty<object>());
         }
+
+        /// <summary>
+        /// Create a simple language specific diagnostic with no location for given info.
+        /// </summary>
+        public abstract Diagnostic CreateDiagnostic(DiagnosticInfo info);
 
         /// <summary>
         /// Create a simple language specific diagnostic for given error code.
@@ -86,9 +92,9 @@ namespace Microsoft.CodeAnalysis
         public abstract string GetMessagePrefix(string id, DiagnosticSeverity severity, bool isWarningAsError, CultureInfo culture);
 
         /// <summary>
-        /// convert given symbol to string representation based on given error code
+        /// Convert given symbol to string representation.
         /// </summary>
-        public abstract string ConvertSymbolToString(int errorCode, ISymbol symbol);
+        public abstract string GetErrorDisplayString(ISymbol symbol);
 
         /// <summary>
         /// Given an error code (like 1234) return the identifier (CS1234 or BC1234).
@@ -162,6 +168,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_InvalidFileAlignment { get; }
         public abstract int ERR_InvalidSubsystemVersion { get; }
         public abstract int ERR_InvalidOutputName { get; }
+        public abstract int ERR_InvalidInstrumentationKind { get; }
 
         // reference manager:
         public abstract int ERR_MetadataFileNotAssembly { get; }
@@ -180,6 +187,7 @@ namespace Microsoft.CodeAnalysis
         // signing:
         public abstract int ERR_PublicKeyFileFailure { get; }
         public abstract int ERR_PublicKeyContainerFailure { get; }
+        public abstract int ERR_OptionMustBeAbsolutePath { get; }
 
         // resources:
         public abstract int ERR_CantReadResource { get; }
@@ -196,6 +204,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_PermissionSetAttributeFileReadError { get; }
 
         // PDB writing:
+        public abstract int ERR_EncodinglessSyntaxTree { get; }
         public abstract int WRN_PdbUsingNameTooLong { get; }
         public abstract int WRN_PdbLocalNameTooLong { get; }
         public abstract int ERR_PdbWritingFailed { get; }
@@ -206,6 +215,19 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_TooManyUserStrings { get; }
         public abstract int ERR_PeWritingFailure { get; }
         public abstract int ERR_ModuleEmitFailure { get; }
+        public abstract int ERR_EncUpdateFailedMissingAttribute { get; }
+
+        /// <summary>
+        /// Takes an exception produced while writing to a file stream and produces a diagnostic.
+        /// </summary>
+        public void ReportStreamWriteException(Exception e, string filePath, TextWriter consoleOutput)
+        {
+            if (consoleOutput != null)
+            {
+                var diagnostic = new DiagnosticInfo(this, ERR_OutputWriteFailed, filePath, e.Message);
+                consoleOutput.WriteLine(diagnostic.ToString(consoleOutput.FormatProvider));
+            }
+        }
 
         public abstract void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute);
         public abstract void ReportInvalidNamedArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex, ITypeSymbol attributeClass, string parameterName);
@@ -216,5 +238,7 @@ namespace Microsoft.CodeAnalysis
 
         public abstract void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName);
         public abstract void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName1, string parameterName2);
+
+        public abstract int ERR_BadAssemblyName { get; }
     }
 }

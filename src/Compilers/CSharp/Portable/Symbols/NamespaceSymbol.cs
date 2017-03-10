@@ -12,6 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract partial class NamespaceSymbol : NamespaceOrTypeSymbol, INamespaceSymbol
     {
+        // PERF: initialization of the following fields will allocate, so we make them lazy
+        private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensionMethods;
+        private string _lazyQualifiedName;
+        
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
         // Do not make any changes to the public interface without making the corresponding change
@@ -311,6 +315,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        private ImmutableArray<NamedTypeSymbol> TypesMightContainExtensionMethods
+        {
+            get
+            {
+                var typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
+                if (typesWithExtensionMethods.IsDefault)
+                {
+                    this._lazyTypesMightContainExtensionMethods = this.GetTypeMembersUnordered().WhereAsArray(t => t.MightContainExtensionMethods);
+                    typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
+                }
+
+                return typesWithExtensionMethods;
+            }
+        }
+
+
         /// <summary>
         /// Add all extension methods in this namespace to the given list. If name or arity
         /// or both are provided, only those extension methods that match are included.
@@ -332,10 +352,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var types = this.GetTypeMembersUnordered();
-            foreach (var type in types)
+            var typesWithExtensionMethods = this.TypesMightContainExtensionMethods;
+
+            foreach (var type in typesWithExtensionMethods)
             {
-                type.GetExtensionMethods(methods, nameOpt, arity, options);
+                type.DoGetExtensionMethods(methods, nameOpt, arity, options);
             }
         }
 
@@ -374,6 +395,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return StaticCast<INamespaceSymbol>.From(this.ConstituentNamespaces);
+            }
+        }
+
+        internal string QualifiedName
+        {
+            get
+            {
+                return _lazyQualifiedName ??
+                    (_lazyQualifiedName = this.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat));
             }
         }
 

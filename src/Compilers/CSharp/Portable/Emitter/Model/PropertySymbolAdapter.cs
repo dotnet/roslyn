@@ -2,6 +2,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IMetadataConstant Cci.IPropertyDefinition.DefaultValue
+        MetadataConstant Cci.IPropertyDefinition.DefaultValue
         {
             get
             {
@@ -130,11 +132,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region ISignature Members
 
+        [Conditional("DEBUG")]
+        private void CheckDefinitionInvariantAllowEmbedded()
+        {
+            // can't be generic instantiation
+            Debug.Assert(this.IsDefinition);
+
+            // must be declared in the module we are building
+            Debug.Assert(this.ContainingModule is SourceModuleSymbol || this.ContainingAssembly.IsLinked);
+        }
+
         Cci.CallingConvention Cci.ISignature.CallingConvention
         {
             get
             {
-                CheckDefinitionInvariant();
+                CheckDefinitionInvariantAllowEmbedded();
                 return this.CallingConvention;
             }
         }
@@ -158,8 +170,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                CheckDefinitionInvariant();
+                CheckDefinitionInvariantAllowEmbedded();
                 return this.Type.CustomModifiers.As<Cci.ICustomModifier>();
+            }
+        }
+
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+        {
+            get
+            {
+                CheckDefinitionInvariantAllowEmbedded();
+                return this.RefCustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -167,14 +188,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                CheckDefinitionInvariant();
+                CheckDefinitionInvariantAllowEmbedded();
                 return this.RefKind == RefKind.Ref;
             }
         }
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            CheckDefinitionInvariant();
+            CheckDefinitionInvariantAllowEmbedded();
             return ((PEModuleBuilder)context.Module).Translate(this.Type.TypeSymbol,
                                                       syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                       diagnostics: context.Diagnostics);

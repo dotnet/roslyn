@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class SyntaxBinderTests : CompilingTestBase
+    public partial class NullableConversionTests : CompilingTestBase
     {
         [Fact, WorkItem(544450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544450")]
         public void TestBug12780()

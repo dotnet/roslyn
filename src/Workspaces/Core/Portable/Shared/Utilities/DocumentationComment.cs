@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Xml;
 using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
 
@@ -248,8 +247,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         public string GetParameterText(string parameterName)
         {
-            string text;
-            _parameterTexts.TryGetValue(parameterName, out text);
+            _parameterTexts.TryGetValue(parameterName, out var text);
             return text;
         }
 
@@ -258,8 +256,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         public string GetTypeParameterText(string typeParameterName)
         {
-            string text;
-            _typeParameterTexts.TryGetValue(typeParameterName, out text);
+            _typeParameterTexts.TryGetValue(typeParameterName, out var text);
             return text;
         }
 
@@ -268,8 +265,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         public ImmutableArray<string> GetExceptionTexts(string exceptionName)
         {
-            ImmutableArray<string> texts;
-            _exceptionTexts.TryGetValue(exceptionName, out texts);
+            _exceptionTexts.TryGetValue(exceptionName, out var texts);
 
             if (texts.IsDefault)
             {

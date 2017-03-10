@@ -12,10 +12,11 @@ using RunTests.Cache;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using System.Collections.Immutable;
+using Newtonsoft.Json;
 
 namespace RunTests
 {
-    internal sealed class Program
+    internal sealed partial class Program
     {
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
@@ -42,7 +43,7 @@ namespace RunTests
         private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
         {
             if (!CheckAssemblyList(options))
-            { 
+            {
                 return ExitFailure;
             }
 
@@ -52,15 +53,14 @@ namespace RunTests
             var assemblyInfoList = GetAssemblyList(options);
 
             Console.WriteLine($"Data Storage: {testExecutor.DataStorage.Name}");
-            Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} chunks");
+            Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} partitions");
 
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
             Console.WriteLine($"Test execution time: {elapsed}");
 
-            Logger.Finish(Path.GetDirectoryName(options.Assemblies.FirstOrDefault() ?? ""));
-
+            WriteLogFile(options);
             DisplayResults(options.Display, result.TestResults);
 
             if (CanUseWebStorage())
@@ -78,8 +78,27 @@ namespace RunTests
             return ExitSuccess;
         }
 
+        private static void WriteLogFile(Options options)
+        {
+            var fileName = Path.Combine(Path.GetDirectoryName(options.Assemblies.First()), "runtests.log");
+            using (var writer = new StreamWriter(fileName, append: false))
+            {
+                Logger.WriteTo(writer);
+            }
+
+            // This is deliberately being checked in on a temporary basis.  Need to see how this data behaves in the commit
+            // queue and the easiest way is to dump to the console.  Once the commit queue behavior is verified this will
+            // be deleted.
+            if (Constants.IsJenkinsRun)
+            {
+                Logger.WriteTo(Console.Out);
+            }
+
+            Logger.Clear();
+        }
+
         /// <summary>
-        /// Quick sanity check to look over the set of assemblies to make sure they are valid and something was 
+        /// Quick sanity check to look over the set of assemblies to make sure they are valid and something was
         /// specified.
         /// </summary>
         private static bool CheckAssemblyList(Options options)
@@ -117,7 +136,7 @@ namespace RunTests
             {
                 var name = Path.GetFileName(assemblyPath);
 
-                // As a starting point we will just schedule the items we know to be a performance 
+                // As a starting point we will just schedule the items we know to be a performance
                 // bottleneck.  Can adjust as we get real data.
                 if (name == "Roslyn.Compilers.CSharp.Emit.UnitTests.dll" ||
                     name == "Roslyn.Services.Editor.UnitTests.dll" ||
@@ -169,9 +188,9 @@ namespace RunTests
         {
             // The web caching layer is still being worked on.  For now want to limit it to Roslyn developers
             // and Jenkins runs by default until we work on this a bit more.  Anyone reading this who wants
-            // to try it out should feel free to opt into this. 
-            return 
-                StringComparer.OrdinalIgnoreCase.Equals("REDMOND", Environment.UserDomainName) || 
+            // to try it out should feel free to opt into this.
+            return
+                StringComparer.OrdinalIgnoreCase.Equals("REDMOND", Environment.UserDomainName) ||
                 Constants.IsJenkinsRun;
         }
 
@@ -182,7 +201,8 @@ namespace RunTests
                 trait: options.Trait,
                 noTrait: options.NoTrait,
                 useHtml: options.UseHtml,
-                test64: options.Test64);
+                test64: options.Test64,
+                testVsi: options.TestVsi);
             var processTestExecutor = new ProcessTestExecutor(testExecutionOptions);
             if (!options.UseCachedResults)
             {
@@ -191,7 +211,7 @@ namespace RunTests
 
             // The web caching layer is still being worked on.  For now want to limit it to Roslyn developers
             // and Jenkins runs by default until we work on this a bit more.  Anyone reading this who wants
-            // to try it out should feel free to opt into this. 
+            // to try it out should feel free to opt into this.
             IDataStorage dataStorage = new LocalDataStorage();
             if (CanUseWebStorage())
             {
@@ -211,25 +231,25 @@ namespace RunTests
             return list.OrderByDescending((assemblyName) => new FileInfo(assemblyName).Length);
         }
 
-        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan elapsed, RunAllResult result, int chunkCount, CancellationToken cancellationToken)
+        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan elapsed, RunAllResult result, int partitionCount, CancellationToken cancellationToken)
         {
-            var obj = new JObject();
-            obj["Cache"] = dataStorage.Name;
-            obj["ElapsedSeconds"] = (int)elapsed.TotalSeconds;
-            obj["IsJenkins"] = Constants.IsJenkinsRun;
-            obj["Is32Bit"] = !options.Test64;
-            obj["AssemblyCount"] = options.Assemblies.Count;
-            obj["CacheCount"] = result.CacheCount;
-            obj["ChunkCount"] = chunkCount;
-            obj["Succeeded"] = result.Succeeded;
+            var testRunData = new TestRunData()
+            {
+                Cache = dataStorage.Name,
+                ElapsedSeconds = (int)elapsed.TotalSeconds,
+                JenkinsUrl = Constants.JenkinsUrl,
+                IsJenkins = Constants.IsJenkinsRun,
+                Is32Bit = !options.Test64,
+                AssemblyCount = options.Assemblies.Count,
+                ChunkCount = partitionCount,
+                CacheCount = result.CacheCount,
+                Succeeded = result.Succeeded,
+                HasErrors = Logger.HasErrors
+            };
 
-            // During the transition from ellapsed to elapsed the client needs to provide both 
-            // spellings for the server.
-            obj["EllapsedSeconds"] = (int)elapsed.TotalSeconds;
-
-            var request = new RestRequest("api/testrun", Method.POST);
+            var request = new RestRequest("api/testData/run", Method.POST);
             request.RequestFormat = DataFormat.Json;
-            request.AddParameter("text/json", obj.ToString(), ParameterType.RequestBody);
+            request.AddParameter("text/json", JsonConvert.SerializeObject(testRunData), ParameterType.RequestBody);
 
             try
             {

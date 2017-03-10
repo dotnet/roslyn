@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly TouchedFileLogger _loggerOpt;
 
-            public LoggingStrongNameProvider(ImmutableArray<string> keyFileSearchPaths, TouchedFileLogger logger)
-                : base(keyFileSearchPaths)
+            public LoggingStrongNameProvider(ImmutableArray<string> keyFileSearchPaths, TouchedFileLogger logger, string tempPath)
+                : base(keyFileSearchPaths, tempPath)
             {
                 _loggerOpt = logger;
             }

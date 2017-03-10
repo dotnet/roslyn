@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -20,19 +21,24 @@ namespace Microsoft.CodeAnalysis.Options
         public string Name { get; }
 
         /// <summary>
-        /// The type of the option value.
-        /// </summary>
-        public Type Type
-        {
-            get { return typeof(T); }
-        }
-
-        /// <summary>
         /// The default value of the option.
         /// </summary>
         public T DefaultValue { get; }
 
-        public Option(string feature, string name, T defaultValue = default(T))
+        /// <summary>
+        /// The type of the option value.
+        /// </summary>
+        public Type Type => typeof(T);
+
+        public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
+
+        public Option(string feature, string name)
+            : this(feature, name, default(T))
+        {
+            // This constructor forwards to the next one; it exists to maintain source-level compatibility with older callers.
+        }
+
+        public Option(string feature, string name, T defaultValue)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
@@ -49,20 +55,15 @@ namespace Microsoft.CodeAnalysis.Options
             this.DefaultValue = defaultValue;
         }
 
-        Type IOption.Type
+        public Option(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+            : this(feature, name, defaultValue)
         {
-            get { return typeof(T); }
+            StorageLocations = storageLocations.ToImmutableArray();
         }
 
-        object IOption.DefaultValue
-        {
-            get { return this.DefaultValue; }
-        }
+        object IOption.DefaultValue => this.DefaultValue;
 
-        bool IOption.IsPerLanguage
-        {
-            get { return false; }
-        }
+        bool IOption.IsPerLanguage => false;
 
         public override string ToString()
         {

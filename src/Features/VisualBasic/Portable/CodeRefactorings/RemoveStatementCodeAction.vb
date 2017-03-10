@@ -3,7 +3,6 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
-Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeActions
     Friend Class RemoveStatementCodeAction

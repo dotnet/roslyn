@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new ReferenceDirectiveCompletionProvider();
         }
@@ -29,16 +29,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             return actualItem.Equals(expectedItem, StringComparison.OrdinalIgnoreCase);
         }
 
-        protected override Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph)
+        protected override Task VerifyWorkerAsync(
+            string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
+            SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
+            int? glyph, int? matchPriority)
         {
-            return BaseVerifyWorkerAsync(code,
-                position,
-                expectedItemOrNull,
-                expectedDescriptionOrNull,
-                sourceCodeKind,
-                usePreviousCharAsTrigger,
-                checkForAbsence,
-                glyph);
+            return BaseVerifyWorkerAsync(
+                code, position,
+                expectedItemOrNull, expectedDescriptionOrNull,
+                sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
+                glyph, matchPriority);
         }
 
         private async Task VerifyItemsExistInScriptAndInteractiveAsync(string code, params string[] expected)
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task IsTextualTriggerCharacterTest()
+        public void IsTextualTriggerCharacterTest()
         {
             var validMarkupList = new[]
             {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 
             foreach (var markup in validMarkupList)
             {
-                await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
             }
 
             var invalidMarkupList = new[]
@@ -80,15 +80,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 
             foreach (var markup in invalidMarkupList)
             {
-                await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
             }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SendEnterThroughToEditorTest()
         {
-            await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", sendThroughEnterEnabled: false, expected: false);
-            await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", sendThroughEnterEnabled: true, expected: false);
+            await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", sendThroughEnterOption: EnterKeyRule.Never, expected: false);
+            await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", sendThroughEnterOption: EnterKeyRule.AfterFullyTypedWord, expected: false);
+            await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", sendThroughEnterOption: EnterKeyRule.Always, expected: false); // note: GAC completion helper uses its own EnterKeyRule
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

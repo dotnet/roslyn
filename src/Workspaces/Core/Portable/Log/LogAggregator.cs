@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -72,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public int GetCount(object key)
         {
-            Counter counter;
-            if (_map.TryGetValue(key, out counter))
+            if (_map.TryGetValue(key, out var counter))
             {
                 return counter.GetCount();
             }

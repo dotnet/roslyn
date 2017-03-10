@@ -39,20 +39,15 @@ namespace Microsoft.CodeAnalysis
                 if ((warningLevel == 0 && severity != DiagnosticSeverity.Error) ||
                     (warningLevel != 0 && severity == DiagnosticSeverity.Error))
                 {
-                    throw new ArgumentException(nameof(warningLevel));
+                    throw new ArgumentException($"{nameof(warningLevel)} ({warningLevel}) and {nameof(severity)} ({severity}) are not compatible.", nameof(warningLevel));
                 }
 
-                if (descriptor == null)
-                {
-                    throw new ArgumentNullException(nameof(descriptor));
-                }
-
-                _descriptor = descriptor;
+                _descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
                 _severity = severity;
                 _warningLevel = warningLevel;
                 _location = location ?? Location.None;
                 _additionalLocations = additionalLocations?.ToImmutableArray() ?? SpecializedCollections.EmptyReadOnlyList<Location>();
-                _messageArgs = messageArgs ?? SpecializedCollections.EmptyArray<object>();
+                _messageArgs = messageArgs ?? Array.Empty<object>();
                 _properties = properties ?? ImmutableDictionary<string, string>.Empty;
                 _isSuppressed = isSuppressed;
             }

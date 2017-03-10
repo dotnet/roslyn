@@ -1,17 +1,17 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.GenerateMember
-Imports System.Composition
+Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateMethod), [Shared]>
-    <ExtensionOrder(After:=PredefinedCodeFixProviderNames.GenerateEvent)>
+    <ExtensionOrder(Before:=PredefinedCodeFixProviderNames.PopulateSwitch, After:=PredefinedCodeFixProviderNames.GenerateEvent)>
     Friend Class GenerateParameterizedMemberCodeFixProvider
         Inherits AbstractGenerateMemberCodeFixProvider
 
@@ -37,12 +37,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
             End Get
         End Property
 
-        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction))
+        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
             Dim service = document.GetLanguageService(Of IGenerateParameterizedMemberService)()
             Return service.GenerateMethodAsync(document, node, cancellationToken)
         End Function
 
-        Protected Overrides Function IsCandidate(node As SyntaxNode, diagnostic As Diagnostic) As Boolean
+        Protected Overrides Function IsCandidate(node As SyntaxNode, token As SyntaxToken, diagnostic As Diagnostic) As Boolean
+            ' If we have a diagnostic on "a.b.c" in something like a.b.c(...), then don't try to 
+            ' perform fixes on 'a' or 'a.b'.
+            Dim diagnosticSpan = diagnostic.Location.SourceSpan
+            If node.Span.Start = diagnosticSpan.Start AndAlso node.Span.End < diagnosticSpan.End Then
+                Return False
+            End If
+
             Return TypeOf node Is QualifiedNameSyntax OrElse
                 TypeOf node Is SimpleNameSyntax OrElse
                 TypeOf node Is MemberAccessExpressionSyntax OrElse

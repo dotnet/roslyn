@@ -30,6 +30,7 @@
         <InterfaceGroup Priority="Low">
           <Filter>
             <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
+            <RuntimeId RequiredValue="DkmRuntimeId.ClrNativeCompilation"/>
           </Filter>
           <Interface Name="IDkmLanguageFrameDecoder"/>
         </InterfaceGroup>
@@ -40,6 +41,7 @@
         <InterfaceGroup Priority="Low">
           <Filter>
             <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
+            <RuntimeId RequiredValue="DkmRuntimeId.ClrNativeCompilation"/>
           </Filter>
           <Interface Name="IDkmLanguageInstructionDecoder"/>
         </InterfaceGroup>

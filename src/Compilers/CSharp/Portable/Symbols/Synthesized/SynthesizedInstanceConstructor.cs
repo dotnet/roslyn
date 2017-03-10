@@ -150,6 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return TypeSymbolWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void)); }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
         public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }

@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -12,22 +13,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SignatureOnlyParameterSymbol : ParameterSymbol
     {
         private readonly TypeSymbolWithAnnotations _type;
+        private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly bool _isParams;
         private readonly RefKind _refKind;
 
         public SignatureOnlyParameterSymbol(
             TypeSymbolWithAnnotations type,
+            ImmutableArray<CustomModifier> refCustomModifiers,
             bool isParams,
             RefKind refKind)
         {
-            Debug.Assert((object)type != null);
+            Debug.Assert(type != null);
+            Debug.Assert(!customModifiers.IsDefault);
+            Debug.Assert(!refCustomModifiers.IsDefault);
 
             _type = type;
+            _refCustomModifiers = refCustomModifiers;
             _isParams = isParams;
             _refKind = refKind;
         }
 
         public override TypeSymbolWithAnnotations Type { get { return _type; } }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
         public override bool IsParams { get { return _isParams; } }
 
@@ -64,8 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsCallerMemberName { get { throw ExceptionUtilities.Unreachable; } }
 
-        internal sealed override ushort CountOfCustomModifiersPrecedingByRef { get { return 0; } }
-
         public override Symbol ContainingSymbol { get { throw ExceptionUtilities.Unreachable; } }
 
         public override ImmutableArray<Location> Locations { get { throw ExceptionUtilities.Unreachable; } }
@@ -89,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)other != null &&
                 _type.TypeSymbol == other._type.TypeSymbol &&
                 _type.CustomModifiers.Equals(other._type.CustomModifiers) &&
+                _refCustomModifiers.SequenceEqual(other._refCustomModifiers) &&
                 _isParams == other._isParams &&
                 _refKind == other._refKind;
         }

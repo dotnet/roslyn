@@ -138,6 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case RefValueExpression:
                         return ((RefValueExpressionSyntax)parent).Type == node;
 
+                    case RefType:
+                        return ((RefTypeSyntax)parent).Type == node;
+
                     case Parameter:
                         return ((ParameterSyntax)parent).Type == node;
 
@@ -186,6 +189,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case DeclarationPattern:
                         return ((DeclarationPatternSyntax)parent).Type == node;
+
+                    case TupleElement:
+                        return ((TupleElementSyntax)parent).Type == node;
+
+                    case DeclarationExpression:
+                        return ((DeclarationExpressionSyntax)parent).Type == node;
+
+                    case IncompleteMember:
+                        return ((IncompleteMemberSyntax)parent).Type == node;
                 }
             }
 
@@ -236,27 +248,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Invocation, ObjectCreation, ObjectInitializer, or ElementAccess.
 
             if (!node.IsKind(IdentifierName))
+            { 
                 return false;
+            }
 
             var parent1 = node.Parent;
             if (parent1 == null || !parent1.IsKind(NameColon))
+            {
                 return false;
+            }
 
             var parent2 = parent1.Parent;
             if (parent2 == null || !(parent2.IsKind(Argument) || parent2.IsKind(AttributeArgument)))
+            {
                 return false;
+            }
 
             var parent3 = parent2.Parent;
-            if (parent3 == null || !(parent3 is BaseArgumentListSyntax || parent3.IsKind(AttributeArgumentList)))
+            if (parent3 == null)
+            {
                 return false;
+            }
+
+            if (parent3.IsKind(SyntaxKind.TupleExpression))
+            {
+                return true;
+            }
+
+            if (!(parent3 is BaseArgumentListSyntax || parent3.IsKind(AttributeArgumentList)))
+            {
+                return false;
+            }
 
             var parent4 = parent3.Parent;
             if (parent4 == null)
+            {
                 return false;
+            }
 
             switch (parent4.Kind())
             {
                 case InvocationExpression:
+                case TupleExpression:
                 case ObjectCreationExpression:
                 case ObjectInitializerExpression:
                 case ElementAccessExpression:
@@ -312,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool IsStatementExpression(CSharpSyntaxNode syntax)
+        internal static bool IsStatementExpression(SyntaxNode syntax)
         {
             // The grammar gives:
             //
@@ -375,6 +408,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsLambdaBody(SyntaxNode node)
         {
             return LambdaUtilities.IsLambdaBody(node);
+        }
+
+        internal static bool IsVar(this Syntax.InternalSyntax.SyntaxToken node)
+        {
+            return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
+        }
+
+        internal static bool IsVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
+        {
+            return node.IsVar() || IsPredefinedType(node.Kind);
+        }
+
+        internal static bool IsDeclarationExpressionType(SyntaxNode node, out DeclarationExpressionSyntax parent)
+        {
+            parent = node.Parent as DeclarationExpressionSyntax;
+            return node == parent?.Type;
         }
     }
 }
