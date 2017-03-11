@@ -175,9 +175,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return CompareExpressions(((PostfixUnaryExpressionSyntax)oldExpression).Operand, ((PostfixUnaryExpressionSyntax)newExpression).Operand);
                 }
 
-                if (oldExpression is BinaryExpressionSyntax)
+                if (oldExpression is BinaryExpressionSyntax oldBinaryExpression)
                 {
-                    var oldBinaryExpression = (BinaryExpressionSyntax)oldExpression;
                     var newBinaryExpression = (BinaryExpressionSyntax)newExpression;
 
                     return CompareExpressions(oldBinaryExpression.Left, newBinaryExpression.Left)
