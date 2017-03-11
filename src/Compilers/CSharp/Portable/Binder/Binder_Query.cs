@@ -724,6 +724,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_NullNotValid, node.Location);
                 }
+                else if (ultimateReceiver.IsLiteralDefault())
+                {
+                    diagnostics.Add(ErrorCode.ERR_DefaultNotValid, node.Location);
+                }
                 else if (ultimateReceiver.Kind == BoundKind.NamespaceExpression)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadSKunknown, ultimateReceiver.Syntax.Location, ultimateReceiver.Syntax, MessageID.IDS_SK_NAMESPACE.Localize());

@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
-                case BoundKind.DefaultOperator:
+                case BoundKind.DefaultLiteral:
                     return expr;
 
                 default:
