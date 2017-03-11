@@ -500,9 +500,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
-            if (currentOriginalNode is TTypeSyntax)
+            if (currentOriginalNode is TTypeSyntax originalType)
             {
-                var originalType = (TTypeSyntax)currentOriginalNode;
                 var newType = (TTypeSyntax)currentReplacedNode;
                 return ReplacementBreaksTypeResolution(originalType, newType);
             }
