@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis
             private static IEnumerable<IParameterSymbol> Resolve(
                 SymbolKeyReader reader, ISymbol container, string metadataName)
             {
-                if (container is IMethodSymbol)
+                if (container is IMethodSymbol method)
                 {
-                    return ((IMethodSymbol)container).Parameters.Where(
+                    return method.Parameters.Where(
                         p => SymbolKey.Equals(reader.Compilation, p.MetadataName, metadataName));
                 }
-                else if (container is IPropertySymbol)
+                else if (container is IPropertySymbol property)
                 {
-                    return ((IPropertySymbol)container).Parameters.Where(
+                    return property.Parameters.Where(
                         p => SymbolKey.Equals(reader.Compilation, p.MetadataName, metadataName));
                 }
                 else if (container is IEventSymbol eventSymbol)
