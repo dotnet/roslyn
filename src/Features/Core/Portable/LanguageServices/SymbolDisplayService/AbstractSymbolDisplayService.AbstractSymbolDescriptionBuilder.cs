@@ -240,13 +240,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 {
                     AddDescriptionForRangeVariable((IRangeVariableSymbol)symbol);
                 }
-                else if (symbol is ITypeParameterSymbol)
+                else if (symbol is ITypeParameterSymbol typeParameter)
                 {
-                    AddDescriptionForTypeParameter((ITypeParameterSymbol)symbol);
+                    AddDescriptionForTypeParameter(typeParameter);
                 }
-                else if (symbol is IAliasSymbol)
+                else if (symbol is IAliasSymbol alias)
                 {
-                    await AddDescriptionPartAsync(((IAliasSymbol)symbol).Target).ConfigureAwait(false);
+                    await AddDescriptionPartAsync(alias.Target).ConfigureAwait(false);
                 }
                 else
                 {
