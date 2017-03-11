@@ -652,9 +652,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 realPosition = 0;
             }
-            else if (position is int)
+            else if (position is int i)
             {
-                realPosition = (int)position;
+                realPosition = i;
 
                 // -1 means "add to the end". We'll null for that.
                 if (realPosition == -1)
