@@ -2142,6 +2142,7 @@
           "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
           "System.Collections.Immutable": "1.3.1",
           "System.Reflection.Metadata": "1.4.2",
+          "System.ValueTuple": "4.3.0",
           "System.Xml.ReaderWriter": "4.3.0"
         }
       },
@@ -2191,6 +2192,7 @@
           "CodeAnalysis": "1.0.0",
           "EditorFeatures": "1.0.0",
           "Features": "1.0.0",
+          "Microsoft.VisualStudio.Telemetry": "15.0.26201-alpha",
           "Newtonsoft.Json": "8.0.3",
           "RemoteWorkspaces": "1.0.0",
           "StreamJsonRpc": "1.0.2-rc",
@@ -4491,6 +4493,7 @@
           "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
           "System.Collections.Immutable": "1.3.1",
           "System.Reflection.Metadata": "1.4.2",
+          "System.ValueTuple": "4.3.0",
           "System.Xml.ReaderWriter": "4.3.0"
         }
       },
@@ -4540,6 +4543,7 @@
           "CodeAnalysis": "1.0.0",
           "EditorFeatures": "1.0.0",
           "Features": "1.0.0",
+          "Microsoft.VisualStudio.Telemetry": "15.0.26201-alpha",
           "Newtonsoft.Json": "8.0.3",
           "RemoteWorkspaces": "1.0.0",
           "StreamJsonRpc": "1.0.2-rc",
