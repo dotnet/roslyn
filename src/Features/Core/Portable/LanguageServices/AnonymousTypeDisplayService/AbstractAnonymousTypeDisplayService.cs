@@ -103,9 +103,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         return index1 - index2;
                     }).ToList();
             }
-            else if (symbol is IPropertySymbol)
+            else if (symbol is IPropertySymbol property)
             {
-                var property = (IPropertySymbol)symbol;
                 return transitiveAnonymousTypeReferences.OrderBy(
                     (n1, n2) =>
                     {
