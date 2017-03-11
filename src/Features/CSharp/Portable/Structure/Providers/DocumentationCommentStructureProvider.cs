@@ -42,29 +42,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 sb.Append(" <summary>");
                 foreach (var node in summaryElement.ChildNodes())
                 {
-                    if (node is XmlTextSyntax)
+                    if (node is XmlTextSyntax xmlText)
                     {
-                        var textTokens = ((XmlTextSyntax)node).TextTokens;
+                        var textTokens = xmlText.TextTokens;
                         AppendTextTokens(sb, textTokens);
                     }
-                    else if (node is XmlEmptyElementSyntax)
+                    else if (node is XmlEmptyElementSyntax xmlEmpty)
                     {
-                        var e = (XmlEmptyElementSyntax)node;
-                        foreach (var attribute in e.Attributes)
+                        foreach (var attribute in xmlEmpty.Attributes)
                         {
-                            if (attribute is XmlCrefAttributeSyntax)
+                            if (attribute is XmlCrefAttributeSyntax xmlCref)
                             {
                                 sb.Append(" ");
-                                sb.Append(((XmlCrefAttributeSyntax)attribute).Cref.ToString());
+                                sb.Append(xmlCref.Cref.ToString());
                             }
-                            else if (attribute is XmlNameAttributeSyntax)
+                            else if (attribute is XmlNameAttributeSyntax xmlName)
                             {
                                 sb.Append(" ");
-                                sb.Append(((XmlNameAttributeSyntax)attribute).Identifier.Identifier.Text);
+                                sb.Append(xmlName.Identifier.Identifier.Text);
                             }
-                            else if (attribute is XmlTextAttributeSyntax)
+                            else if (attribute is XmlTextAttributeSyntax xmlText)
                             {
-                                AppendTextTokens(sb, ((XmlTextAttributeSyntax)attribute).TextTokens);
+                                AppendTextTokens(sb, xmlText.TextTokens);
                             }
                             else
                             {
