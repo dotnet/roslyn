@@ -193,9 +193,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         && CompareExpressions(oldAssignmentExpression.Right, newAssignmentExpression.Right);
                 }
 
-                if (oldExpression is MemberAccessExpressionSyntax)
+                if (oldExpression is MemberAccessExpressionSyntax oldMemberAccessExpression)
                 {
-                    var oldMemberAccessExpression = (MemberAccessExpressionSyntax)oldExpression;
                     var newMemberAccessExpression = (MemberAccessExpressionSyntax)newExpression;
 
                     return CompareExpressions(oldMemberAccessExpression.Expression, newMemberAccessExpression.Expression)
