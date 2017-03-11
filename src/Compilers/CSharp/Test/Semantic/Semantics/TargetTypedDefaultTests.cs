@@ -779,9 +779,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,30): error CS9001: Use of default is not valid in this context
+                // (6,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
                 //         System.Console.Write(default is long);
-                Diagnostic(ErrorCode.ERR_DefaultNotValid, "default is long").WithArguments("long").WithLocation(6, 30)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is long").WithArguments("is", "default").WithLocation(6, 30)
                 );
         }
 
