@@ -223,14 +223,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var parameter = parameterAndProjectId.Symbol;
             var ordinal = parameter.Ordinal;
             var containingSymbol = parameter.ContainingSymbol;
-            if (containingSymbol is IMethodSymbol)
+            if (containingSymbol is IMethodSymbol containingMethod)
             {
-                var containingMethod = (IMethodSymbol)containingSymbol;
-                if (containingMethod.AssociatedSymbol is IPropertySymbol)
+                if (containingMethod.AssociatedSymbol is IPropertySymbol property)
                 {
-                    var property = (IPropertySymbol)containingMethod.AssociatedSymbol;
                     AddParameterAtIndex(
-                        parameterAndProjectId, results, 
+                        parameterAndProjectId, results,
                         ordinal, property.Parameters);
                 }
             }
