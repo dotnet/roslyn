@@ -178,9 +178,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return GetTagsForProperty((IPropertySymbol)symbol, trivia);
             }
 
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol namedType)
             {
-                return GetTagsForType((INamedTypeSymbol)symbol, trivia);
+                return GetTagsForType(namedType, trivia);
             }
 
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();
