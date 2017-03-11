@@ -477,9 +477,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 return !ImplicitConversionsAreCompatible(originalExpression, newExpression);
             }
-            else if (currentOriginalNode is TForEachStatementSyntax)
+            else if (currentOriginalNode is TForEachStatementSyntax originalForEachStatement)
             {
-                var originalForEachStatement = (TForEachStatementSyntax)currentOriginalNode;
                 var newForEachStatement = (TForEachStatementSyntax)currentReplacedNode;
                 return ReplacementBreaksForEachStatement(originalForEachStatement, newForEachStatement);
             }
