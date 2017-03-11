@@ -250,9 +250,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     return CompareTypeDeclarations(oldMember, newMember, newNodeParent, eventQueue);
                 }
-                else if (oldMember is BaseMethodDeclarationSyntax)
+                else if (oldMember is BaseMethodDeclarationSyntax baseMethod)
                 {
-                    return CompareMethodDeclarations((BaseMethodDeclarationSyntax)oldMember, (BaseMethodDeclarationSyntax)newMember, newNodeParent, eventQueue);
+                    return CompareMethodDeclarations(baseMethod, (BaseMethodDeclarationSyntax)newMember, newNodeParent, eventQueue);
                 }
                 else if (oldMember is BaseFieldDeclarationSyntax baseField)
                 {
