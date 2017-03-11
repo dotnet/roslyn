@@ -204,21 +204,21 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 {
                     AddDescriptionForDynamicType();
                 }
-                else if (symbol is IFieldSymbol)
+                else if (symbol is IFieldSymbol field)
                 {
-                    await AddDescriptionForFieldAsync((IFieldSymbol)symbol).ConfigureAwait(false);
+                    await AddDescriptionForFieldAsync(field).ConfigureAwait(false);
                 }
-                else if (symbol is ILocalSymbol)
+                else if (symbol is ILocalSymbol local)
                 {
-                    await AddDescriptionForLocalAsync((ILocalSymbol)symbol).ConfigureAwait(false);
+                    await AddDescriptionForLocalAsync(local).ConfigureAwait(false);
                 }
-                else if (symbol is IMethodSymbol)
+                else if (symbol is IMethodSymbol method)
                 {
-                    AddDescriptionForMethod((IMethodSymbol)symbol);
+                    AddDescriptionForMethod(method);
                 }
-                else if (symbol is ILabelSymbol)
+                else if (symbol is ILabelSymbol label)
                 {
-                    AddDescriptionForLabel((ILabelSymbol)symbol);
+                    AddDescriptionForLabel(label);
                 }
                 else if (symbol is INamedTypeSymbol namedType)
                 {
