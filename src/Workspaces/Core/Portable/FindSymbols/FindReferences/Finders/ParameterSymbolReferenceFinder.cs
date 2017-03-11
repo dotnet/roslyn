@@ -234,9 +234,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         ordinal, property.Parameters);
                 }
             }
-            else if (containingSymbol is IPropertySymbol)
+            else if (containingSymbol is IPropertySymbol containingProperty)
             {
-                var containingProperty = (IPropertySymbol)containingSymbol;
                 if (containingProperty.GetMethod != null && ordinal < containingProperty.GetMethod.Parameters.Length)
                 {
                     results.Add(parameterAndProjectId.WithSymbol(containingProperty.GetMethod.Parameters[ordinal]));
