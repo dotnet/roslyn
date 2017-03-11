@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                 {
                     var syntax = await syntaxRef.GetSyntaxAsync(this.CancellationToken).ConfigureAwait(false);
-                    if (syntax is T)
+                    if (syntax is T tSyntax)
                     {
-                        return (T)syntax;
+                        return tSyntax;
                     }
                 }
 
