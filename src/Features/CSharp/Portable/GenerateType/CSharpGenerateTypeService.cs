@@ -677,10 +677,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
         private void GetNamespaceContainers(NameSyntax name, List<string> namespaceContainers)
         {
-            if (name is QualifiedNameSyntax)
+            if (name is QualifiedNameSyntax qualifiedName)
             {
-                GetNamespaceContainers(((QualifiedNameSyntax)name).Left, namespaceContainers);
-                namespaceContainers.Add(((QualifiedNameSyntax)name).Right.Identifier.ValueText);
+                GetNamespaceContainers(qualifiedName.Left, namespaceContainers);
+                namespaceContainers.Add(qualifiedName.Right.Identifier.ValueText);
             }
             else
             {
