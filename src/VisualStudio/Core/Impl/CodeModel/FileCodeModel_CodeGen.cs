@@ -104,10 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (itemOrArray != null && itemOrArray != DBNull.Value && itemOrArray != Type.Missing)
             {
-                if (itemOrArray is Array)
+                if (itemOrArray is Array realArray)
                 {
-                    var realArray = (Array)itemOrArray;
-
                     if (realArray.Rank != 1)
                     {
                         throw Exceptions.ThrowEInvalidArg();
