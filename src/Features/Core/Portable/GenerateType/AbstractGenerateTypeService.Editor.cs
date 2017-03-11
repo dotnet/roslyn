@@ -599,9 +599,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 if (symbol != null && !symbol.IsStatic && parameterType.Language == symbol.Language)
                 {
-                    if (symbol is IFieldSymbol)
+                    if (symbol is IFieldSymbol field)
                     {
-                        var field = (IFieldSymbol)symbol;
                         return
                             !field.IsReadOnly &&
                             _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, field.Type);
