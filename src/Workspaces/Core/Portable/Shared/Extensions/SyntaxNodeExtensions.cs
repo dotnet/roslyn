@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var current = node.Parent;
             while (current != null)
             {
-                if (current is TNode)
+                if (current is TNode tNode)
                 {
-                    yield return (TNode)current;
+                    yield return tNode;
                 }
 
                 current = current is IStructuredTriviaSyntax
