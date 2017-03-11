@@ -236,9 +236,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 {
                     AddDescriptionForProperty((IPropertySymbol)symbol);
                 }
-                else if (symbol is IRangeVariableSymbol)
+                else if (symbol is IRangeVariableSymbol rangeVariable)
                 {
-                    AddDescriptionForRangeVariable((IRangeVariableSymbol)symbol);
+                    AddDescriptionForRangeVariable(rangeVariable);
                 }
                 else if (symbol is ITypeParameterSymbol typeParameter)
                 {
