@@ -30,17 +30,17 @@ public class C
 
     ```VB
 Public Class C
-    Public Shared Function Method(x As (Integer, String)) As (code As Integer, message As String)
-        Return x
-    End Function
+        Public Shared Function Method(x As (Integer, String)) As (code As Integer, message As String)
+                Return x
+        End Function
 
-    Public Shared Sub Main()
-        Dim x = (42, "hello")
-        System.Console.Write(C.Method(x).message)
+        Public Shared Sub Main()
+                Dim x = (42, "hello")
+                System.Console.Write(C.Method(x).message)
         
-        Dim pair2 = (code:=43, message:="world")
-        System.Console.Write(pair2.message)
-    End Sub
+                Dim pair2 = (code:=43, message:="world")
+                System.Console.Write(pair2.message)
+        End Sub
 End Class
     ```
 
