@@ -220,13 +220,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 {
                     AddDescriptionForLabel((ILabelSymbol)symbol);
                 }
-                else if (symbol is INamedTypeSymbol)
+                else if (symbol is INamedTypeSymbol namedType)
                 {
-                    await AddDescriptionForNamedTypeAsync((INamedTypeSymbol)symbol).ConfigureAwait(false);
+                    await AddDescriptionForNamedTypeAsync(namedType).ConfigureAwait(false);
                 }
-                else if (symbol is INamespaceSymbol)
+                else if (symbol is INamespaceSymbol namespaceSymbol)
                 {
-                    AddDescriptionForNamespace((INamespaceSymbol)symbol);
+                    AddDescriptionForNamespace(namespaceSymbol);
                 }
                 else if (symbol is IParameterSymbol parameter)
                 {
