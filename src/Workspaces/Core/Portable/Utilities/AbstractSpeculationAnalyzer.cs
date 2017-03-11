@@ -506,9 +506,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 var newType = (TTypeSyntax)currentReplacedNode;
                 return ReplacementBreaksTypeResolution(originalType, newType);
             }
-            else if (currentOriginalNode is TExpressionSyntax)
+            else if (currentOriginalNode is TExpressionSyntax originalExpression)
             {
-                var originalExpression = (TExpressionSyntax)currentOriginalNode;
                 var newExpression = (TExpressionSyntax)currentReplacedNode;
                 if (!ImplicitConversionsAreCompatible(originalExpression, newExpression) ||
                     ReplacementIntroducesErrorType(originalExpression, newExpression))
