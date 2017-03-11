@@ -833,9 +833,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 root = modifiedRoot;
             }
 
-            if (root is CompilationUnitSyntax)
+            if (root is CompilationUnitSyntax compilationRoot)
             {
-                var compilationRoot = (CompilationUnitSyntax)root;
                 var usingDirective = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(includeUsingsOrImports));
 
                 // Check if the usings is already present
