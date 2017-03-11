@@ -141,9 +141,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                if (oldExpression is TypeSyntax)
+                if (oldExpression is TypeSyntax typeSyntax)
                 {
-                    return CompareTypes((TypeSyntax)oldExpression, (TypeSyntax)newExpression);
+                    return CompareTypes(typeSyntax, (TypeSyntax)newExpression);
                 }
 
                 if (oldExpression is LiteralExpressionSyntax)
@@ -151,9 +151,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return StringComparer.Ordinal.Equals(oldExpression.ToString(), newExpression.ToString());
                 }
 
-                if (oldExpression is CastExpressionSyntax)
+                if (oldExpression is CastExpressionSyntax oldCast)
                 {
-                    var oldCast = (CastExpressionSyntax)oldExpression;
                     var newCast = (CastExpressionSyntax)newExpression;
 
                     return CompareTypes(oldCast.Type, newCast.Type)
