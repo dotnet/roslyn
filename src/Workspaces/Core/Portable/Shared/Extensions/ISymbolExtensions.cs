@@ -137,9 +137,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol GetContainingTypeOrThis(this ISymbol symbol)
         {
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol namedType)
             {
-                return (INamedTypeSymbol)symbol;
+                return namedType;
             }
 
             return symbol.ContainingType;

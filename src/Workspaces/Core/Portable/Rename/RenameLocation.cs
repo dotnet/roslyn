@@ -50,14 +50,8 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public override bool Equals(object obj)
         {
-            if (obj is RenameLocation)
-            {
-                return Equals((RenameLocation)obj);
-            }
-            else
-            {
-                return false;
-            }
+            return obj is RenameLocation loc &&
+                   Equals(loc);
         }
 
         public override int GetHashCode()
