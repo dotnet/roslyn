@@ -228,13 +228,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 {
                     AddDescriptionForNamespace((INamespaceSymbol)symbol);
                 }
-                else if (symbol is IParameterSymbol)
+                else if (symbol is IParameterSymbol parameter)
                 {
-                    await AddDescriptionForParameterAsync((IParameterSymbol)symbol).ConfigureAwait(false);
+                    await AddDescriptionForParameterAsync(parameter).ConfigureAwait(false);
                 }
-                else if (symbol is IPropertySymbol)
+                else if (symbol is IPropertySymbol property)
                 {
-                    AddDescriptionForProperty((IPropertySymbol)symbol);
+                    AddDescriptionForProperty(property);
                 }
                 else if (symbol is IRangeVariableSymbol rangeVariable)
                 {
