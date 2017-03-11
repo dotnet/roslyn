@@ -606,9 +606,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                             !field.IsReadOnly &&
                             _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, field.Type);
                     }
-                    else if (symbol is IPropertySymbol)
+                    else if (symbol is IPropertySymbol property)
                     {
-                        var property = (IPropertySymbol)symbol;
                         return
                             property.Parameters.Length == 0 &&
                             property.SetMethod != null &&
