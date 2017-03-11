@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                                 sb.Append(" ");
                                 sb.Append(xmlName.Identifier.Identifier.Text);
                             }
-                            else if (attribute is XmlTextAttributeSyntax xmlText)
+                            else if (attribute is XmlTextAttributeSyntax xmlTextAttribute)
                             {
-                                AppendTextTokens(sb, xmlText.TextTokens);
+                                AppendTextTokens(sb, xmlTextAttribute.TextTokens);
                             }
                             else
                             {
