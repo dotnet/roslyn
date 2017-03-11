@@ -5,6 +5,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     internal static class PredefinedCodeRefactoringProviderNames
     {
         public const string AddConstructorParametersFromMembers = "Add Parameters From Members Code Action Provider";
+        public const string AddDefine = "Add Define Code Action Provider";
         public const string ChangeSignature = "Change Signature Code Action Provider";
         public const string EncapsulateField = "Encapsulate Field";
         public const string ExtractInterface = "Extract Interface Code Action Provider";

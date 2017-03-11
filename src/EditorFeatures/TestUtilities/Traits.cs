@@ -31,6 +31,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
+            public const string CodeActionsAddDefine = "CodeActions.AddDefine";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";
             public const string CodeActionsAddParameter = "CodeActions.AddParameter";
