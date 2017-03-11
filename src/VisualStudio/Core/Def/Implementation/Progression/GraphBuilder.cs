@@ -483,9 +483,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 node[Properties.IsAnonymous] = true;
             }
-            else if (symbol is IMethodSymbol)
+            else if (symbol is IMethodSymbol methodSymbol)
             {
-                UpdateMethodPropertiesForNode((IMethodSymbol)symbol, node);
+                UpdateMethodPropertiesForNode(methodSymbol, node);
             }
         }
 
