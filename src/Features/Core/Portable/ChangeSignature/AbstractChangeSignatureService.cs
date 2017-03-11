@@ -117,9 +117,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 symbol = (symbol as IEventSymbol).Type;
             }
 
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol typeSymbol)
             {
-                var typeSymbol = symbol as INamedTypeSymbol;
                 if (typeSymbol.IsDelegateType() && typeSymbol.DelegateInvokeMethod != null)
                 {
                     symbol = typeSymbol.DelegateInvokeMethod;
