@@ -1155,9 +1155,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 return (long)value;
             }
 
-            if (value is int)
+            if (value is int i)
             {
-                return (int)value;
+                return i;
             }
 
             return 0;
