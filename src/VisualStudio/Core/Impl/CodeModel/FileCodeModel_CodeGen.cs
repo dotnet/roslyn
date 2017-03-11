@@ -104,10 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (itemOrArray != null && itemOrArray != DBNull.Value && itemOrArray != Type.Missing)
             {
-                if (itemOrArray is Array)
+                if (itemOrArray is Array realArray)
                 {
-                    var realArray = (Array)itemOrArray;
-
                     if (realArray.Rank != 1)
                     {
                         throw Exceptions.ThrowEInvalidArg();
@@ -652,9 +650,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 realPosition = 0;
             }
-            else if (position is int)
+            else if (position is int i)
             {
-                realPosition = (int)position;
+                realPosition = i;
 
                 // -1 means "add to the end". We'll null for that.
                 if (realPosition == -1)

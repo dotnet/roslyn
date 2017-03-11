@@ -21,9 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
         private static void WriteNode(SimpleTreeNode node, StringBuilder sb)
         {
             sb.Append(node.Text);
-            if (node is SimpleGroupNode)
+            if (node is SimpleGroupNode group)
             {
-                SimpleGroupNode group = (SimpleGroupNode)node;
                 sb.Append('(');
                 for (int i = 0; i < group.Count; i++)
                 {

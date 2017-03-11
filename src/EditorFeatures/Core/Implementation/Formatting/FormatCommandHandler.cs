@@ -135,9 +135,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     return;
                 }
             }
-            else if (args is TypeCharCommandArgs)
+            else if (args is TypeCharCommandArgs typeCharArgs)
             {
-                var typedChar = ((TypeCharCommandArgs)args).TypedChar;
+                var typedChar = typeCharArgs.TypedChar;
                 if (!service.SupportsFormattingOnTypedCharacter(document, typedChar) ||
                     !TryFormat(textView, document, service, typedChar, caretPositionMarker, formatOnReturn: false, cancellationToken: cancellationToken))
                 {
