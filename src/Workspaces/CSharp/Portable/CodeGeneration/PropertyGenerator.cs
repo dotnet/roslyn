@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool TryGetExpressionBody(
-            AccessorListSyntax accessorList, ParseOptions options,
+            AccessorListSyntax accessorList, ParseOptions options, ExpressionBodyPreference preference,
             out ArrowExpressionClauseSyntax arrowExpression, out SyntaxToken semicolonToken)
         {
             if (accessorList.Accessors.Count == 1)
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var accessor = accessorList.Accessors[0];
                 if (accessor.IsKind(SyntaxKind.GetAccessorDeclaration))
                 {
-                    return TryGetExpressionBody(accessor, options, out arrowExpression, out semicolonToken);
+                    return TryGetExpressionBody(accessor, options, preference, out arrowExpression, out semicolonToken);
                 }
             }
 
@@ -167,18 +168,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (declaration.ExpressionBody == null)
             {
-                var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
-                if (preferExpressionBody)
+                var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
+                if (declaration.Initializer == null)
                 {
-                    if (declaration.Initializer == null)
+                    if (TryGetExpressionBody(declaration.AccessorList, options,
+                            expressionBodyPreference, out var expressionBody, out var semicolonToken))
                     {
-                        if (TryGetExpressionBody(declaration.AccessorList, options,
-                                out var expressionBody, out var semicolonToken))
-                        {
-                            declaration = declaration.WithAccessorList(null)
-                                                     .WithExpressionBody(expressionBody)
-                                                     .WithSemicolonToken(semicolonToken);
-                        }
+                        declaration = declaration.WithAccessorList(null)
+                                                 .WithExpressionBody(expressionBody)
+                                                 .WithSemicolonToken(semicolonToken);
                     }
                 }
             }
@@ -191,16 +189,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (declaration.ExpressionBody == null)
             {
-                var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers).Value;
-                if (preferExpressionBody)
+                var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers).Value;
+                if (TryGetExpressionBody(declaration.AccessorList,
+                        options, expressionBodyPreference, out var expressionBody, out var semicolonToken))
                 {
-                    if (TryGetExpressionBody(declaration.AccessorList, 
-                            options, out var expressionBody, out var semicolonToken))
-                    {
-                        declaration = declaration.WithAccessorList(null)
-                                                 .WithExpressionBody(expressionBody)
-                                                 .WithSemicolonToken(semicolonToken);
-                    }
+                    declaration = declaration.WithAccessorList(null)
+                                             .WithExpressionBody(expressionBody)
+                                             .WithSemicolonToken(semicolonToken);
                 }
             }
 
@@ -212,16 +207,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (declaration.ExpressionBody == null)
             {
-                var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
-                if (preferExpressionBody)
+                var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+                if (declaration.Body.TryConvertToExpressionBody(
+                        options, expressionBodyPreference, out var expressionBody, out var semicolonToken))
                 {
-                    if (declaration.Body.TryConvertToExpressionBody(
-                            options, out var expressionBody, out var semicolonToken))
-                    {
-                        declaration = declaration.WithBody(null)
-                                                 .WithExpressionBody(expressionBody)
-                                                 .WithSemicolonToken(semicolonToken);
-                    }
+                    declaration = declaration.WithBody(null)
+                                             .WithExpressionBody(expressionBody)
+                                             .WithSemicolonToken(semicolonToken);
                 }
             }
 
@@ -229,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool TryGetExpressionBody(
-            AccessorDeclarationSyntax accessor, ParseOptions options,
+            AccessorDeclarationSyntax accessor, ParseOptions options, ExpressionBodyPreference preference,
             out ArrowExpressionClauseSyntax arrowExpression, out SyntaxToken semicolonToken)
         {
             // If the accessor has an expression body already, then use that as the expression body
@@ -242,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             return accessor.Body.TryConvertToExpressionBody(
-                options, out arrowExpression, out semicolonToken);
+                options, preference, out arrowExpression, out semicolonToken);
         }
 
         private static AccessorListSyntax GenerateAccessorList(

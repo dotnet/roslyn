@@ -168,8 +168,8 @@ class foo
 ";
             await TestInRegularAndScriptAsync(text, expected, 
                 options: OptionsSet(
-                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
-                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -206,7 +206,7 @@ class foo
 }
 ";
             await TestInRegularAndScriptAsync(text, expected,
-                options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
+                options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]

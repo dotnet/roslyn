@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -10,16 +13,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static bool TryConvertToExpressionBody(
             this BlockSyntax block, ParseOptions options,
+            ExpressionBodyPreference preference,
             out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
-            if ((options as CSharpParseOptions)?.LanguageVersion >= LanguageVersion.CSharp7)
+            if (preference != ExpressionBodyPreference.Never &&
+                (options as CSharpParseOptions)?.LanguageVersion >= LanguageVersion.CSharp7)
             {
                 if (block != null && block.Statements.Count == 1)
                 {
                     var firstStatement = block.Statements[0];
 
-                    if (TryGetExpression(firstStatement, out var expression, out semicolonToken))
+                    if (TryGetExpression(firstStatement, out var expression, out semicolonToken) &&
+                        MatchesPreference(expression, preference))
                     {
                         arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
 
@@ -27,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         // comments or directives).  Preserve them on the semicolon when we
                         // convert to an expression body.
                         semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
-                            block.CloseBraceToken.LeadingTrivia.Where(t =>!t.IsWhitespaceOrEndOfLine()));
+                            block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
                         return true;
                     }
                 }
@@ -36,6 +42,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             arrowExpression = null;
             semicolonToken = default(SyntaxToken);
             return false;
+        }
+
+        private static bool MatchesPreference(
+            ExpressionSyntax expression, ExpressionBodyPreference preference)
+        {
+            if (preference == ExpressionBodyPreference.WhenPossible)
+            {
+                return true;
+            }
+
+            var text = expression.ToString();
+            return text.GetNumberOfLineBreaks() > 0;
         }
 
         private static bool TryGetExpression(

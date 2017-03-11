@@ -1179,7 +1179,7 @@ class [|T|] : A
 class T : A
 {
     public override void M(int x) => throw new System.NotImplementedException();
-}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1203,7 +1203,7 @@ class [|T|] : A
 class T : A
 {
     public override int M => throw new System.NotImplementedException();
-}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.TrueWithNoneEnforcement));
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1234,8 +1234,8 @@ class T : A
         }
     }
 }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1271,8 +1271,8 @@ class T : A
         }
     }
 }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1296,7 +1296,7 @@ class [|T|] : A
 class T : A
 {
     public override int this[int i] => throw new System.NotImplementedException();
-}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.TrueWithNoneEnforcement));
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1327,8 +1327,8 @@ class T : A
         }
     }
 }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1364,8 +1364,8 @@ class T : A
         }
     }
 }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1393,8 +1393,8 @@ class T : A
         get => throw new System.NotImplementedException();
         }
     }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, false, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, true, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1421,7 +1421,7 @@ class T : A
     {
         set => throw new System.NotImplementedException();
         }
-    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
+    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1449,7 +1449,7 @@ class T : A
         get => throw new System.NotImplementedException();
         set => throw new System.NotImplementedException();
         }
-    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
+    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
