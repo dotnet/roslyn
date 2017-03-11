@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -239,6 +240,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             char[] newLineChars = Environment.NewLine.ToCharArray();
             string actual = actualOperationTree.Trim(newLineChars);
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
+            expectedOperationTree = Regex.Replace(expectedOperationTree, "([^\r])\n", "$1" + Environment.NewLine);
             AssertEx.AreEqual(expectedOperationTree, actual);
         }
 
