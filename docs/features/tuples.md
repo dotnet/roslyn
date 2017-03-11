@@ -2,7 +2,7 @@
 Quickstart guide for tuples (C# 7.0 and Visual Basic 15)
 ------------------------------------
 1. Install VS2017
-2. Start a C# project
+2. Start a C# or VB project
 3. Add a reference to the `System.ValueTuple` package from NuGet
 ![Install the ValueTuple package](img/install-valuetuple.png)
 4. Use tuples in C#:
