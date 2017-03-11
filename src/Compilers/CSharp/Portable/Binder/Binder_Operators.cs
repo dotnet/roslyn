@@ -2672,12 +2672,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            if (operand.Kind == BoundKind.DefaultLiteral && operand.ConstantValue == null)
-            {
-                Error(diagnostics, ErrorCode.ERR_DefaultNotValid, node, targetType);
-                return new BoundIsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
-            }
-
             if (operand.ConstantValue == ConstantValue.Null ||
                 operand.Kind == BoundKind.MethodGroup ||
                 operand.Type.SpecialType == SpecialType.System_Void)

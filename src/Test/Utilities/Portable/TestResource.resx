@@ -181,7 +181,8 @@ namespace My
         private const int global = int.MinValue - 1;
 
         static A() 
-        { 
+        {
+            int x = default;
         }
 
         [method: Obsolete]
