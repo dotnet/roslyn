@@ -236,6 +236,7 @@
     <Compile Include="Extensions\ContextQuery\IsPossibleDeconstructionDesignationTests.cs" />
     <Compile Include="Extensions\ContextQuery\PossibleTupleContextTests.cs" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersTests.cs" />
+    <Compile Include="GenerateOverrides\GenerateOverridesTests.cs" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.cs" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />

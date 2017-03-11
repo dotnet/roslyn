@@ -198,8 +198,8 @@
   <data name="Generate_field_assigning_constructor_0_1" xml:space="preserve">
     <value>Generate field assigning constructor '{0}({1})'</value>
   </data>
-  <data name="Generate_Both" xml:space="preserve">
-    <value>Generate Both</value>
+  <data name="Generate_Equals_and_GetHashCode" xml:space="preserve">
+    <value>Generate 'Equals(object) and GetHashCode()'</value>
   </data>
   <data name="Generate_Equals_object" xml:space="preserve">
     <value>Generate 'Equals(object)'</value>
@@ -1204,5 +1204,11 @@ This version used in: {2}</value>
   </data>
   <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
     <value>Changes to expression trees may result in behavior changes at runtime</value>
+  </data>
+  <data name="Generate_overrides" xml:space="preserve">
+    <value>Generate overrides...</value>
+  </data>
+  <data name="Pick_members_to_override" xml:space="preserve">
+    <value>Pick members to override</value>
   </data>
 </root>

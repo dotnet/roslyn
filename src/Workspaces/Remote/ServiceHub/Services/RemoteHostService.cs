@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Storage;
 using Microsoft.CodeAnalysis.Remote.Telemetry;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             // set roslyn loggers
-            VSTelemetryLogger.SetTelemetrySession(session);
+            WatsonReporter.SetTelemetrySession(session);
 
             RoslynLogger.SetLogger(AggregateLogger.Create(new VSTelemetryLogger(session), RoslynLogger.GetLogger()));
 

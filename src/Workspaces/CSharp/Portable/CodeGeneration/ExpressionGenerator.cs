@@ -123,9 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static string DetermineSuffix(ITypeSymbol type, object value)
         {
-            if (value is float)
+            if (value is float f)
             {
-                var f = (float)value;
                 var stringValue = ((IFormattable)value).ToString("R", CultureInfo.InvariantCulture);
 
                 var isNotSingle = !IsSpecialType(type, SpecialType.System_Single);
@@ -159,9 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return "UL";
             }
 
-            if (value is decimal)
+            if (value is decimal d)
             {
-                var d = (decimal)value;
                 var scale = d.GetScale();
 
                 var isNotDecimal = !IsSpecialType(type, SpecialType.System_Decimal);

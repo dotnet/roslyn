@@ -1,11 +1,11 @@
 
-Quickstart guide for tuples (C# 7.0)
+Quickstart guide for tuples (C# 7.0 and Visual Basic 15)
 ------------------------------------
-1. Install dev15 preview 4
-2. Start a C# project
-3. Add a reference to the `System.ValueTuple` package from NuGet (pre-release)
+1. Install VS2017
+2. Start a C# or VB project
+3. Add a reference to the `System.ValueTuple` package from NuGet
 ![Install the ValueTuple package](img/install-valuetuple.png)
-4. Use tuples:
+4. Use tuples in C#:
 
     ```C#
 public class C
@@ -18,14 +18,36 @@ public class C
         public static void Main()
         {
                 var pair1 = (42, "hello");
-                Console.Write(Method(pair1).message);
+                System.Console.Write(Method(pair1).message);
         
                 var pair2 = (code: 43, message: "world");
-                Console.Write(pair2.message);
+                System.Console.Write(pair2.message);
         }
 }
     ```
-5. Use deconstructions: see the [deconstruction page](deconstruction.md)
+    
+5. Or use tuples in VB:
+
+    ```VB
+Public Class C
+        Public Shared Function Method(x As (Integer, String)) As (code As Integer, message As String)
+                Return x
+        End Function
+
+        Public Shared Sub Main()
+                Dim x = (42, "hello")
+                System.Console.Write(C.Method(x).message)
+        
+                Dim pair2 = (code:=43, message:="world")
+                System.Console.Write(pair2.message)
+        End Sub
+End Class
+    ```
+
+6. Use deconstructions (C# only): see the [deconstruction page](deconstruction.md)
+
+Without the `System.ValueTuple` package from NuGet, the compiler will produce an error:
+``error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported``
 
 Design
 ------

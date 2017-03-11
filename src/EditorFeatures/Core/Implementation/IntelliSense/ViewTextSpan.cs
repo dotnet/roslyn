@@ -100,9 +100,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                         yield return result;
                     }
                 }
-                else if (source is IProjectionSnapshot)
+                else if (source is IProjectionSnapshot sourceProjection)
                 {
-                    var sourceProjection = source as IProjectionSnapshot;
                     foreach (var span in MapUpToSnapshotRecursive(start, sourceProjection))
                     {
                         foreach (var result in target.MapFromSourceSnapshot(new SnapshotSpan(source, span)))

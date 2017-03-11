@@ -137,9 +137,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol GetContainingTypeOrThis(this ISymbol symbol)
         {
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol namedType)
             {
-                return (INamedTypeSymbol)symbol;
+                return namedType;
             }
 
             return symbol.ContainingType;
@@ -786,13 +786,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             // Check for both constructor signatures. The constructor that takes a TypeLib*Flags reports an int argument.
                             var argumentValue = attribute.ConstructorArguments.First().Value;
 
-                            if (argumentValue is int)
+                            if (argumentValue is int i)
                             {
-                                actualFlags = (int)argumentValue;
+                                actualFlags = i;
                             }
-                            else if (argumentValue is short)
+                            else if (argumentValue is short sh)
                             {
-                                actualFlags = (short)argumentValue;
+                                actualFlags = sh;
                             }
                             else
                             {

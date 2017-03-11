@@ -29,6 +29,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="CommitHashAttribute.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerExecutionContext.cs" />
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="InternalUtilities\GeneratedCodeUtilities.cs" />

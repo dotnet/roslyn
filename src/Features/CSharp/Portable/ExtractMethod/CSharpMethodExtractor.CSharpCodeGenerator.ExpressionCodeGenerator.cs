@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         return (name != null && name.Length > 0) ? MakeMethodName("Get", name) : methodName;
                     }
 
-                    if (expression is MemberAccessExpressionSyntax)
+                    if (expression is MemberAccessExpressionSyntax memberAccess)
                     {
-                        expression = ((MemberAccessExpressionSyntax)expression).Name;
+                        expression = memberAccess.Name;
                     }
 
                     if (expression is NameSyntax)

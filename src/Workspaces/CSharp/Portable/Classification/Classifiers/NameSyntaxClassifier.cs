@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             if (symbol != null)
             {
                 // Use .Equals since we can't rely on object identity for constructed types.
-                if (symbol is ITypeSymbol)
+                if (symbol is ITypeSymbol typeSymbol)
                 {
-                    var classification = GetClassificationForType((ITypeSymbol)symbol);
+                    var classification = GetClassificationForType(typeSymbol);
                     if (classification != null)
                     {
                         var token = name.GetNameToken();
@@ -288,9 +288,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         private bool IsSymbolCalledVar(ISymbol symbol)
         {
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol namedType)
             {
-                return ((INamedTypeSymbol)symbol).Arity == 0 && symbol.Name == "var";
+                return namedType.Arity == 0 && symbol.Name == "var";
             }
 
             return symbol != null && symbol.Name == "var";
