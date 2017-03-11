@@ -89,9 +89,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             IList<INamedTypeSymbol> transitiveAnonymousTypeReferences,
             ISymbol symbol)
         {
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol method)
             {
-                var method = (IMethodSymbol)symbol;
                 return transitiveAnonymousTypeReferences.OrderBy(
                     (n1, n2) =>
                     {
