@@ -483,15 +483,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 var newForEachStatement = (TForEachStatementSyntax)currentReplacedNode;
                 return ReplacementBreaksForEachStatement(originalForEachStatement, newForEachStatement);
             }
-            else if (currentOriginalNode is TAttributeSyntax)
+            else if (currentOriginalNode is TAttributeSyntax originalAttribute)
             {
-                var originalAttribute = (TAttributeSyntax)currentOriginalNode;
                 var newAttribute = (TAttributeSyntax)currentReplacedNode;
                 return ReplacementBreaksAttribute(originalAttribute, newAttribute);
             }
-            else if (currentOriginalNode is TThrowStatementSyntax)
+            else if (currentOriginalNode is TThrowStatementSyntax originalThrowStatement)
             {
-                var originalThrowStatement = (TThrowStatementSyntax)currentOriginalNode;
                 var newThrowStatement = (TThrowStatementSyntax)currentReplacedNode;
                 return ReplacementBreaksThrowStatement(originalThrowStatement, newThrowStatement);
             }
