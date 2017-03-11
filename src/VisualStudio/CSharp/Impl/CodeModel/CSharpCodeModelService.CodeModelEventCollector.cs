@@ -165,14 +165,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return CompareExpressions(((PrefixUnaryExpressionSyntax)oldExpression).Operand, ((PrefixUnaryExpressionSyntax)newExpression).Operand);
                 }
 
-                if (oldExpression is AwaitExpressionSyntax)
+                if (oldExpression is AwaitExpressionSyntax awaitExpression)
                 {
-                    return CompareExpressions(((AwaitExpressionSyntax)oldExpression).Expression, ((AwaitExpressionSyntax)newExpression).Expression);
+                    return CompareExpressions(awaitExpression.Expression, ((AwaitExpressionSyntax)newExpression).Expression);
                 }
 
-                if (oldExpression is PostfixUnaryExpressionSyntax)
+                if (oldExpression is PostfixUnaryExpressionSyntax postfixUnary)
                 {
-                    return CompareExpressions(((PostfixUnaryExpressionSyntax)oldExpression).Operand, ((PostfixUnaryExpressionSyntax)newExpression).Operand);
+                    return CompareExpressions(postfixUnary.Operand, ((PostfixUnaryExpressionSyntax)newExpression).Operand);
                 }
 
                 if (oldExpression is BinaryExpressionSyntax oldBinaryExpression)
