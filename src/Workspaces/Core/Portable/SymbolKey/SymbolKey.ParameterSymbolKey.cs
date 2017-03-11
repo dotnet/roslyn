@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
                     return ((IPropertySymbol)container).Parameters.Where(
                         p => SymbolKey.Equals(reader.Compilation, p.MetadataName, metadataName));
                 }
-                else if (container is IEventSymbol)
+                else if (container is IEventSymbol eventSymbol)
                 {
                     // Parameters can be owned by events in VB.  i.e. it's legal in VB to have:
                     //
@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis
                     // So, in this case, to resolve the parameter, we go have to map the event,
                     // then find the delegate it returns, then find the parameter in the delegate's
                     // 'Invoke' method.
-                    var eventSymbol = (IEventSymbol)container;
                     var delegateInvoke = (eventSymbol.Type as INamedTypeSymbol)?.DelegateInvokeMethod;
 
                     if (delegateInvoke != null)
