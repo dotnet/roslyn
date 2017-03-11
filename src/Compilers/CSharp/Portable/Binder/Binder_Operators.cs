@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (left.Kind == BoundKind.EventAccess && !CheckEventValueKind((BoundEventAccess)left, BindValueKind.Assignment, diagnostics))
+            if (left.Kind == BoundKind.EventAccess && !CheckEventValueKind((BoundEventAccess)left, BindValueKind.Assignable, diagnostics))
             {
                 // If we're in a place where the event can be assigned, then continue so that we give errors
                 // about the types and operator not lining up.  Otherwise, just report that the event can't
@@ -2437,7 +2437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (kind)
             {
                 case SyntaxKind.SimpleAssignmentExpression:
-                    return BindValueKind.Assignment;
+                    return BindValueKind.Assignable;
                 case SyntaxKind.AddAssignmentExpression:
                 case SyntaxKind.AndAssignmentExpression:
                 case SyntaxKind.DivideAssignmentExpression:

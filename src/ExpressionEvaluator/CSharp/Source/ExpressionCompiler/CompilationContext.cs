@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // Presumably, this is done to avoid producing a confusing error message about the
             // field not being an lvalue.
             var diagnostics = DiagnosticBag.GetInstance();
-            var result = binder.CheckValueKind(expression.Syntax, expression, Binder.BindValueKind.Assignment, checkingReceiver: false, diagnostics: diagnostics) &&
+            var result = binder.CheckValueKind(expression.Syntax, expression, Binder.BindValueKind.Assignable, checkingReceiver: false, diagnostics: diagnostics) &&
                 !diagnostics.HasAnyErrors();
             diagnostics.Free();
             return result;

@@ -13,15 +13,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        private const int ValueKindInsignificantBits = 3;
-        private const BindValueKind ValueKindSignificantBitsMask = unchecked((BindValueKind)~7);
+        // Some value kinds are semantically the same and the only distinction is how errors are reported
+        // for those purposes we reserve lowest 2 bits
+        private const int ValueKindInsignificantBits = 2;
+        private const BindValueKind ValueKindSignificantBitsMask = unchecked((BindValueKind)~((1 << ValueKindInsignificantBits)-1));
 
         /// <summary>
-        /// Expression requirements.
+        /// Expression capabilities and requirements.
         /// </summary>
         [Flags]
         internal enum BindValueKind : byte
         {
+            ///////////////////
+            // All expressions can be classified according to the following 4 capabilities:
+            //
+
             /// <summary>
             /// Expression can be an RHS of an assignment operation.
             /// </summary>
@@ -36,26 +42,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// Expression can be the LHS of a simple assignment operation.
+            /// Example: 
+            ///   property with a setter
             /// </summary>
-            Assignment = 2 << ValueKindInsignificantBits,
+            Assignable = 2 << ValueKindInsignificantBits,
 
             /// <summary>
-            /// Expression represents a location. 
+            /// Expression represents a location. Often referred as a "variable"
             /// Examples:
-            ///  array index, local variable, parameter, field
+            ///  local variable, parameter, field
             /// </summary>
             RefersToLocation = 4 << ValueKindInsignificantBits,
 
             /// <summary>
-            /// Expression does not refer to data in the local frame
+            /// Expression is free from references to the local frame.
+            /// 
             /// As long as there are no types that can embed references, 
-            /// only byref variables can have this bit.
+            /// this bit is meaningful only to byref variables.
             /// </summary>
             ReturnableReference = 8 << ValueKindInsignificantBits,
 
-            // ====================================
-            // ====================================
-            
+            ///////////////////
+            // The rest are just combinations of the above.
+            //
+
             /// <summary>
             /// Expression is the RHS of an assignment operation
             /// and may be a method group.
@@ -64,14 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             RValueOrMethodGroup = RValue + 1,
 
             /// <summary>
-            /// Expression can be the LHS of a compound assignment
+            /// Expression can be an LHS of a compound assignment
             /// operation (such as +=).
             /// </summary>
-            CompoundAssignment = RValue | Assignment,
+            CompoundAssignment = RValue | Assignable,
 
             /// <summary>
-            /// Expression can be the operand of an increment
-            /// or decrement operation.
+            /// Expression can be the operand of an increment or decrement operation.
             /// Same as CompoundAssignment, the distinction is really just for error reporting.
             /// </summary>
             IncrementDecrement = CompoundAssignment + 1,
@@ -79,17 +88,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Expression is passed as a ref or out parameter or assigned to a byref variable.
             /// </summary>
-            RefOrOut = RefersToLocation | RValue | Assignment,
+            RefOrOut = RefersToLocation | RValue | Assignable,
 
             /// <summary>
             /// Expression can be the operand of an address-of operation (&amp;).
-            /// Same as RefOrOut. The difference is just dor error reporting.
+            /// Same as RefOrOut. The difference is just for error reporting.
             /// </summary>
             AddressOf = RefOrOut + 1,
 
             /// <summary>
             /// Expression is the receiver of a fixed buffer field access
-            /// Same as RefOrOut. The difference is just dor error reporting.
+            /// Same as RefOrOut. The difference is just for error reporting.
             /// </summary>
             FixedReceiver = RefOrOut + 2,
 
@@ -101,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Expression is returned by an ordinary r/w reference.
             /// </summary>
-            RefReturn = RefersToLocation | ReturnableReference | RValue | Assignment,
+            RefReturn = RefersToLocation | ReturnableReference | RValue | Assignable,
         }
 
         private static bool RequiresRValueOnly(BindValueKind kind)
@@ -111,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool RequiresAssignmentOnly(BindValueKind kind)
         {
-            return (kind & ValueKindSignificantBitsMask) == BindValueKind.Assignment;
+            return (kind & ValueKindSignificantBitsMask) == BindValueKind.Assignable;
         }
 
         private static bool RequiresVariable(BindValueKind kind)
@@ -131,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool RequiresAssignableVariable(BindValueKind kind)
         {
-            return (kind & BindValueKind.Assignment) != 0;
+            return (kind & BindValueKind.Assignable) != 0;
         }
 
         private static bool RequiresRefOrOut(BindValueKind kind)
@@ -164,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expr;
 
                 case BoundKind.DiscardExpression:
-                    Debug.Assert(valueKind == BindValueKind.Assignment || valueKind == BindValueKind.RefOrOut);
+                    Debug.Assert(valueKind == BindValueKind.Assignable || valueKind == BindValueKind.RefOrOut);
                     return expr;
             }
 
@@ -279,8 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // constants/literals are strictly RValues
-            //TODO: VS how void even gets here?
-            //      do we need to handle constants ?
+            // void is not even an RValue
             if ((expr.ConstantValue != null) || (expr.Type.GetSpecialTypeSafe() == SpecialType.System_Void))
             {
                 Error(diagnostics, GetStandardLvalueError(valueKind), node);
@@ -301,15 +309,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Lambda:
                 case BoundKind.UnboundLambda:
-                    // lambdas can only be used as RValues, nothing else
+                    // lambdas can only be used as RValues
                     Error(diagnostics, GetStandardLvalueError(valueKind), node);
                     return false;
 
                 case BoundKind.MethodGroup:
-                    // method groups 
+                    // method groups can only be used as RValues
                     var methodGroup = (BoundMethodGroup)expr;
                     Error(diagnostics, GetMethodGroupLvalueError(valueKind), node, methodGroup.Name, MessageID.IDS_MethodGroup.Localize());
                     return false;
+
+                case BoundKind.RangeVariable:
+                    // range variables can only be used as RValues
+                    var queryref = (BoundRangeVariable)expr;
+                    Error(diagnostics, GetRangeLvalueError(valueKind), node, queryref.RangeVariableSymbol.Name);
+                    return false;
+
+                case BoundKind.Conversion:
+                    var conversion = (BoundConversion)expr;
+                    // conversions are strict RValues, but unboxing has a specific error
+                    if (conversion.ConversionKind == ConversionKind.Unboxing)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_UnboxNotLValue, node);
+                        return false;
+                    }
+                    break;
 
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerIndirectionOperator:
@@ -320,7 +344,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.RefValueOperator:
                     // The undocumented __refvalue(tr, T) expression results in a variable of type T.
                     // it is a readwrite variable, but could refer to local data
-                    return RequiresReturnableReference(valueKind);
+                    if (!RequiresReturnableReference(valueKind))
+                    {
+                        return true;
+                    }
+                    break;
 
                 case BoundKind.Parameter:
                     var parameter = (BoundParameter)expr;
@@ -328,128 +356,57 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Local:
                     var local = (BoundLocal)expr;
-                    return CheckLocalValueKind(node, expr, valueKind, checkingReceiver, diagnostics, local);
-            }
-            
-            // SPEC: when this is used in a primary-expression within an instance constructor of a struct, 
-            // SPEC: it is classified as a variable. 
+                    return CheckLocalValueKind(node, local, valueKind, checkingReceiver, diagnostics);
 
-            // SPEC: When this is used in a primary-expression within an instance method or instance accessor
-            // SPEC: of a struct, it is classified as a variable. 
+                case BoundKind.ThisReference:
+                    var thisref = (BoundThisReference)expr;
 
-            var thisref = expr as BoundThisReference;
-            if (thisref != null)
-            {
-                // We will already have given an error for "this" used outside of a constructor, 
-                // instance method, or instance accessor. Assume that "this" is a variable if it is in a struct.
-                if (!thisref.Type.IsValueType || RequiresReturnableReference(valueKind))
-                {
-                    // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
-                    Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);
-                    return false;
-                }
-                return true;
-            }
+                    // We will already have given an error for "this" used outside of a constructor, 
+                    // instance method, or instance accessor. Assume that "this" is a variable if it is in a struct.
 
-            var queryref = expr as BoundRangeVariable;
-            if (queryref != null)
-            {
-                Error(diagnostics, GetRangeLvalueError(valueKind), node, queryref.RangeVariableSymbol.Name);
-                return false;
-            }
+                    // SPEC: when this is used in a primary-expression within an instance constructor of a struct, 
+                    // SPEC: it is classified as a variable. 
 
-            // A field is a variable unless 
-            // (1) it is readonly and we are not in a constructor or field initializer
-            // (2) the receiver of the field is of value type and is not a variable or object creation expression.
-            // For example, if you have a class C with readonly field f of type S, and
-            // S has a mutable field x, then c.f.x is not a variable because c.f is not
-            // writable.
-
-            var fieldAccess = expr as BoundFieldAccess;
-            if (fieldAccess != null)
-            {
-                // NOTE: only the expression part of a field initializer is bound, not the assignment.
-                // As a result, it is okay to see that fields are not variables unless they are in
-                // constructors.
-
-                var fieldSymbol = fieldAccess.FieldSymbol;
-                var fieldIsStatic = fieldSymbol.IsStatic;
-
-                if (RequiresAssignableVariable(valueKind))
-                {
-                    if (fieldSymbol.IsReadOnly)
+                    // SPEC: When this is used in a primary-expression within an instance method or instance accessor
+                    // SPEC: of a struct, it is classified as a variable. 
+                    if (!thisref.Type.IsValueType || RequiresReturnableReference(valueKind))
                     {
-                        var canModifyReadonly = false;
-
-                        Symbol containing = this.ContainingMemberOrLambda;
-                        if ((object)containing != null &&
-                            fieldIsStatic == containing.IsStatic &&
-                            (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) &&
-                            (Compilation.FeatureStrictEnabled
-                                ? fieldSymbol.ContainingType == containing.ContainingType
-                                // We duplicate a bug in the native compiler for compatibility in non-strict mode
-                                : fieldSymbol.ContainingType.OriginalDefinition == containing.ContainingType.OriginalDefinition))
-                        {
-                            if (containing.Kind == SymbolKind.Method)
-                            {
-                                MethodSymbol containingMethod = (MethodSymbol)containing;
-                                MethodKind desiredMethodKind = fieldIsStatic ? MethodKind.StaticConstructor : MethodKind.Constructor;
-                                canModifyReadonly = containingMethod.MethodKind == desiredMethodKind;
-                            }
-                            else if (containing.Kind == SymbolKind.Field)
-                            {
-                                canModifyReadonly = true;
-                            }
-                        }
-
-                        if (!canModifyReadonly)
-                        {
-                            ReportReadOnlyFieldError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
-                        }
-                    }
-
-                    if (fieldSymbol.IsFixed)
-                    {
-                        Error(diagnostics, GetStandardLvalueError(valueKind), node);
+                        // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
+                        Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);
                         return false;
                     }
-                }
+                    return true;
 
-                if (fieldSymbol.ContainingType.IsValueType &&
-                    !fieldIsStatic &&
-                    !CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics))
-                {
-                    return false;
-                }
+                case BoundKind.Call:
+                    var call = (BoundCall)expr;
+                    return CheckCallValueKind(call, node, valueKind, checkingReceiver, diagnostics);
 
-                return true;
+                case BoundKind.FieldAccess:
+                    var fieldAccess = (BoundFieldAccess)expr;
+                    return CheckFieldValueKind(node, fieldAccess, valueKind, checkingReceiver, diagnostics);
             }
 
-            var call = expr as BoundCall;
-            if (call != null)
-            {
-                return CheckCallValueKind(call, node, valueKind, checkingReceiver, diagnostics);
-            }
-
-            var assign = expr as BoundAssignmentOperator;
-            if (assign != null && assign.RefKind != RefKind.None)
-            {
-                return true;
-            }
-
-            // At this point we should have covered all the possible cases for variables.
-
-            if ((expr as BoundConversion)?.ConversionKind == ConversionKind.Unboxing)
-            {
-                Error(diagnostics, ErrorCode.ERR_UnboxNotLValue, node);
-                return false;
-            }
-
+            // At this point we should have covered all the possible cases for anything that is not a strict RValue.
             Error(diagnostics, GetStandardLvalueError(valueKind), node);
             return false;
         }
 
-        private bool CheckLocalValueKind(SyntaxNode node, BoundExpression expr, BindValueKind valueKind, bool checkingReceiver, DiagnosticBag diagnostics, BoundLocal local)
+        private static bool CheckNotNamespaceOrType(BoundExpression expr, DiagnosticBag diagnostics)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.NamespaceExpression:
+                    Error(diagnostics, ErrorCode.ERR_BadSKknown, expr.Syntax, ((BoundNamespaceExpression)expr).NamespaceSymbol, MessageID.IDS_SK_NAMESPACE.Localize(), MessageID.IDS_SK_VARIABLE.Localize());
+                    return false;
+                case BoundKind.TypeExpression:
+                    Error(diagnostics, ErrorCode.ERR_BadSKunknown, expr.Syntax, expr.Type, MessageID.IDS_SK_TYPE.Localize());
+                    return false;
+                default:
+                    return true;
+            }
+        }
+
+        private bool CheckLocalValueKind(SyntaxNode node, BoundLocal local, BindValueKind valueKind, bool checkingReceiver, DiagnosticBag diagnostics)
         {
             // Local constants are never variables. Local variables are sometimes
             // not to be treated as variables, if they are fixed, declared in a using, 
@@ -462,13 +419,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (checkingReceiver)
                     {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnLocal2, expr.Syntax, localSymbol);
+                        Error(diagnostics, ErrorCode.ERR_RefReturnLocal2, local.Syntax, localSymbol);
                     }
                     else
                     {
                         Error(diagnostics, ErrorCode.ERR_RefReturnLocal, node, localSymbol);
                     }
-
                     return false;
                 }
 
@@ -476,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (checkingReceiver)
                     {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnNonreturnableLocal2, expr.Syntax, localSymbol);
+                        Error(diagnostics, ErrorCode.ERR_RefReturnNonreturnableLocal2, local.Syntax, localSymbol);
                     }
                     else
                     {
@@ -501,55 +457,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
-        }
-
-        private static void ReportReadonlyLocalError(SyntaxNode node, LocalSymbol local, BindValueKind kind, bool checkingReceiver, DiagnosticBag diagnostics)
-        {
-            Debug.Assert((object)local != null);
-            Debug.Assert(kind != BindValueKind.RValue);
-
-
-            MessageID cause;
-            if (local.IsForEach)
-            {
-                cause = MessageID.IDS_FOREACHLOCAL;
-            }
-            else if (local.IsUsing)
-            {
-                cause = MessageID.IDS_USINGLOCAL;
-            }
-            else if (local.IsFixed)
-            {
-                cause = MessageID.IDS_FIXEDLOCAL;
-            }
-            else
-            {
-                Error(diagnostics, GetStandardLvalueError(kind), node);
-                return;
-            }
-
-            if (kind == BindValueKind.AddressOf)
-            {
-                Error(diagnostics, ErrorCode.ERR_AddrOnReadOnlyLocal, node);
-                return;
-            }
-
-            ErrorCode[] ReadOnlyLocalErrors =
-            {
-                ErrorCode.ERR_RefReadonlyLocalCause,
-                // impossible since readonly locals are never byref, but would be a reasonable error otherwise
-                ErrorCode.ERR_RefReadonlyLocalCause,
-                ErrorCode.ERR_AssgReadonlyLocalCause,
-
-                ErrorCode.ERR_RefReadonlyLocal2Cause,
-                // impossible since readonly locals are never byref, but would be a reasonable error otherwise
-                ErrorCode.ERR_RefReadonlyLocal2Cause,
-                ErrorCode.ERR_AssgReadonlyLocal2Cause
-            };
-
-            int index = (checkingReceiver ? 3 : 0) + (RequiresRefOrOut(kind) ? 0 : (kind == BindValueKind.RefReturn ? 1 : 2));
-
-            Error(diagnostics, ReadOnlyLocalErrors[index], node, local, cause.Localize());
         }
 
         private bool CheckParameterValueKind(SyntaxNode node, BoundParameter parameter, BindValueKind valueKind, bool checkingReceiver, DiagnosticBag diagnostics)
@@ -591,19 +498,138 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-
-        private static bool CheckNotNamespaceOrType(BoundExpression expr, DiagnosticBag diagnostics)
+        private bool CheckFieldValueKind(SyntaxNode node, BoundFieldAccess fieldAccess, BindValueKind valueKind, bool checkingReceiver, DiagnosticBag diagnostics)
         {
-            switch (expr.Kind)
+            var fieldSymbol = fieldAccess.FieldSymbol;
+            var fieldIsStatic = fieldSymbol.IsStatic;
+
+            if (RequiresAssignableVariable(valueKind))
             {
-                case BoundKind.NamespaceExpression:
-                    Error(diagnostics, ErrorCode.ERR_BadSKknown, expr.Syntax, ((BoundNamespaceExpression)expr).NamespaceSymbol, MessageID.IDS_SK_NAMESPACE.Localize(), MessageID.IDS_SK_VARIABLE.Localize());
+                // A field is writeable unless 
+                // (1) it is readonly and we are not in a constructor or field initializer
+                // (2) the receiver of the field is of value type and is not a variable or object creation expression.
+                // For example, if you have a class C with readonly field f of type S, and
+                // S has a mutable field x, then c.f.x is not a variable because c.f is not
+                // writable.
+
+                if (fieldSymbol.IsReadOnly)
+                {
+                    var canModifyReadonly = false;
+
+                    Symbol containing = this.ContainingMemberOrLambda;
+                    if ((object)containing != null &&
+                        fieldIsStatic == containing.IsStatic &&
+                        (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) &&
+                        (Compilation.FeatureStrictEnabled
+                            ? fieldSymbol.ContainingType == containing.ContainingType
+                            // We duplicate a bug in the native compiler for compatibility in non-strict mode
+                            : fieldSymbol.ContainingType.OriginalDefinition == containing.ContainingType.OriginalDefinition))
+                    {
+                        if (containing.Kind == SymbolKind.Method)
+                        {
+                            MethodSymbol containingMethod = (MethodSymbol)containing;
+                            MethodKind desiredMethodKind = fieldIsStatic ? MethodKind.StaticConstructor : MethodKind.Constructor;
+                            canModifyReadonly = containingMethod.MethodKind == desiredMethodKind;
+                        }
+                        else if (containing.Kind == SymbolKind.Field)
+                        {
+                            canModifyReadonly = true;
+                        }
+                    }
+
+                    if (!canModifyReadonly)
+                    {
+                        ReportReadOnlyFieldError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
+                    }
+                }
+
+                if (fieldSymbol.IsFixed)
+                {
+                    Error(diagnostics, GetStandardLvalueError(valueKind), node);
                     return false;
-                case BoundKind.TypeExpression:
-                    Error(diagnostics, ErrorCode.ERR_BadSKunknown, expr.Syntax, expr.Type, MessageID.IDS_SK_TYPE.Localize());
+                }
+            }
+
+            // r/w fields that are static or belong to reference types are writeable and returnable
+            if (fieldIsStatic || fieldSymbol.ContainingType.IsReferenceType)
+            {
+                return true;
+            }
+
+            // for other fields defer to the receiver.
+            return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
+        }
+
+        private bool CheckEventValueKind(BoundEventAccess boundEvent, BindValueKind valueKind, DiagnosticBag diagnostics)
+        {
+            // Compound assignment (actually "event assignment") is allowed "everywhere", subject to the restrictions of
+            // accessibility, use site errors, and receiver variable-ness (for structs).
+            // Other operations are allowed only for field-like events and only where the backing field is accessible
+            // (i.e. in the declaring type) - subject to use site errors and receiver variable-ness.
+
+            BoundExpression receiver = boundEvent.ReceiverOpt;
+            SyntaxNode eventSyntax = GetEventName(boundEvent); //does not include receiver
+            EventSymbol eventSymbol = boundEvent.EventSymbol;
+
+            if (valueKind == BindValueKind.CompoundAssignment)
+            {
+                // NOTE: accessibility has already been checked by lookup.
+                // NOTE: availability of well-known members is checked in BindEventAssignment because
+                // we don't have the context to determine whether addition or subtraction is being performed.
+
+                if (receiver?.Kind == BoundKind.BaseReference && eventSymbol.IsAbstract)
+                {
+                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, boundEvent.Syntax, eventSymbol);
                     return false;
-                default:
-                    return true;
+                }
+                else if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
+                {
+                    // NOTE: BindEventAssignment checks use site errors on the specific accessor 
+                    // (since we don't know which is being used).
+                    return false;
+                }
+
+                Debug.Assert(!RequiresVariableReceiver(receiver, eventSymbol));
+                return true;
+            }
+            else
+            {
+                if (!boundEvent.IsUsableAsField)
+                {
+                    // Dev10 reports this in addition to ERR_BadAccess, but we won't even reach this point if the event isn't accessible (caught by lookup).
+                    Error(diagnostics, GetBadEventUsageDiagnosticInfo(eventSymbol), eventSyntax);
+                    return false;
+                }
+                else if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
+                {
+                    if (RequiresReturnableReference(valueKind) && !CheckIsValidReceiverForVariable(eventSyntax, receiver, valueKind, diagnostics))
+                    {
+                        return false;
+                    }
+                    else if (!CheckIsValidReceiverForVariable(eventSyntax, receiver, BindValueKind.Assignable, diagnostics))
+                    {
+                        return false;
+                    }
+                }
+                else if (RequiresVariable(valueKind))
+                {
+                    if (eventSymbol.IsWindowsRuntimeEvent && valueKind != BindValueKind.Assignable)
+                    {
+                        // NOTE: Dev11 reports ERR_RefProperty, as if this were a property access (since that's how it will be lowered).
+                        // Roslyn reports a new, more specific, error code.
+                        ErrorCode errorCode = valueKind == BindValueKind.RefOrOut ? ErrorCode.ERR_WinRtEventPassedByRef : GetStandardLvalueError(valueKind);
+                        Error(diagnostics, errorCode, eventSyntax, eventSymbol);
+
+                        return false;
+                    }
+                    else if (RequiresVariableReceiver(receiver, eventSymbol.AssociatedField) && // NOTE: using field, not event
+                        !CheckIsValidReceiverForVariable(eventSyntax, receiver, BindValueKind.Assignable, diagnostics))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
         }
 
@@ -668,13 +694,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (RequiresReturnableReference(valueKind))
             {
                 return CheckArgumentsReturnable(
-                    callSyntax, 
+                    callSyntax,
                     methodSymbol,
                     methodSymbol.Parameters,
-                    call.Arguments, 
-                    call.ArgumentRefKindsOpt, 
-                    call.ArgsToParamsOpt, 
-                    checkingReceiver, 
+                    call.Arguments,
+                    call.ArgumentRefKindsOpt,
+                    call.ArgsToParamsOpt,
+                    checkingReceiver,
                     diagnostics);
             }
 
@@ -695,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)propertySymbol != null);
             Debug.Assert(propertySyntax != null);
 
-            if ((RequiresReferenceToLocation(valueKind) || checkingReceiver) && 
+            if ((RequiresReferenceToLocation(valueKind) || checkingReceiver) &&
                 propertySymbol.RefKind == RefKind.None)
             {
                 if (checkingReceiver)
@@ -768,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, node, receiver?.Kind == BoundKind.BaseReference);
 
-                    if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, BindValueKind.Assignment, diagnostics))
+                    if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, BindValueKind.Assignable, diagnostics))
                     {
                         return false;
                     }
@@ -869,112 +895,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        //TODO: VS what with this?
-
-        //var eventAccess = expr as BoundEventAccess;
-        //if (eventAccess != null)
-        //{
-        //    EventSymbol eventSymbol = eventAccess.EventSymbol;
-        //    if (!eventAccess.IsUsableAsField)
-        //    {
-        //        Error(diagnostics, GetBadEventUsageDiagnosticInfo(eventSymbol), node);
-        //        return false;
-        //    }
-        //    else if (eventSymbol.IsWindowsRuntimeEvent)
-        //    {
-        //        switch (valueKind)
-        //        {
-        //            case BindValueKind.RValue:
-        //            case BindValueKind.RValueOrMethodGroup:
-        //                Debug.Assert(false, "Why call CheckIsVariable if you want an RValue?");
-        //                goto case BindValueKind.Assignment;
-        //            case BindValueKind.Assignment:
-        //            case BindValueKind.CompoundAssignment:
-        //                return true;
-        //        }
-
-        //        // NOTE: Dev11 reports ERR_RefProperty, as if this were a property access (since that's how it will be lowered).
-        //        // Roslyn reports a new, more specific, error code.
-        //        Error(diagnostics, valueKind == BindValueKind.RefOrOut ? ErrorCode.ERR_WinRtEventPassedByRef : GetStandardLvalueError(valueKind), node, eventSymbol);
-        //        return false;
-        //    }
-        //    else
-        //    {
-        //        return true;
-        //    }
-        //}
-
-        private bool CheckEventValueKind(BoundEventAccess boundEvent, BindValueKind valueKind, DiagnosticBag diagnostics)
+        private static void ReportReadonlyLocalError(SyntaxNode node, LocalSymbol local, BindValueKind kind, bool checkingReceiver, DiagnosticBag diagnostics)
         {
-            // Compound assignment (actually "event assignment") is allowed "everywhere", subject to the restrictions of
-            // accessibility, use site errors, and receiver variable-ness (for structs).
-            // Other operations are allowed only for field-like events and only where the backing field is accessible
-            // (i.e. in the declaring type) - subject to use site errors and receiver variable-ness.
+            Debug.Assert((object)local != null);
+            Debug.Assert(kind != BindValueKind.RValue);
 
-            BoundExpression receiver = boundEvent.ReceiverOpt;
-            SyntaxNode eventSyntax = GetEventName(boundEvent); //does not include receiver
-            EventSymbol eventSymbol = boundEvent.EventSymbol;
-
-            if (valueKind == BindValueKind.CompoundAssignment)
+            MessageID cause;
+            if (local.IsForEach)
             {
-                // NOTE: accessibility has already been checked by lookup.
-                // NOTE: availability of well-known members is checked in BindEventAssignment because
-                // we don't have the context to determine whether addition or subtraction is being performed.
-
-                if (receiver?.Kind == BoundKind.BaseReference && eventSymbol.IsAbstract)
-                {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, boundEvent.Syntax, eventSymbol);
-                    return false;
-                }
-                else if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
-                {
-                    // NOTE: BindEventAssignment checks use site errors on the specific accessor 
-                    // (since we don't know which is being used).
-                    return false;
-                }
-
-                Debug.Assert(!RequiresVariableReceiver(receiver, eventSymbol));
-                return true;
+                cause = MessageID.IDS_FOREACHLOCAL;
+            }
+            else if (local.IsUsing)
+            {
+                cause = MessageID.IDS_USINGLOCAL;
+            }
+            else if (local.IsFixed)
+            {
+                cause = MessageID.IDS_FIXEDLOCAL;
             }
             else
             {
-                if (!boundEvent.IsUsableAsField)
-                {
-                    // Dev10 reports this in addition to ERR_BadAccess, but we won't even reach this point if the event isn't accessible (caught by lookup).
-                    Error(diagnostics, GetBadEventUsageDiagnosticInfo(eventSymbol), eventSyntax);
-                    return false;
-                }
-                else if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
-                {
-                    if (RequiresReturnableReference(valueKind) && !CheckIsValidReceiverForVariable(eventSyntax, receiver, valueKind, diagnostics))
-                    {
-                        return false;
-                    }
-                    else if (!CheckIsValidReceiverForVariable(eventSyntax, receiver, BindValueKind.Assignment, diagnostics))
-                    {
-                        return false;
-                    }
-                }
-                else if (RequiresVariable(valueKind))
-                {
-                    if (eventSymbol.IsWindowsRuntimeEvent && valueKind != BindValueKind.Assignment)
-                    {
-                        // NOTE: Dev11 reports ERR_RefProperty, as if this were a property access (since that's how it will be lowered).
-                        // Roslyn reports a new, more specific, error code.
-                        ErrorCode errorCode = valueKind == BindValueKind.RefOrOut ? ErrorCode.ERR_WinRtEventPassedByRef : GetStandardLvalueError(valueKind);
-                        Error(diagnostics, errorCode, eventSyntax, eventSymbol);
-
-                        return false;
-                    }
-                    else if (RequiresVariableReceiver(receiver, eventSymbol.AssociatedField) && // NOTE: using field, not event
-                        !CheckIsValidReceiverForVariable(eventSyntax, receiver, BindValueKind.Assignment, diagnostics))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                Error(diagnostics, GetStandardLvalueError(kind), node);
+                return;
             }
+
+            if (kind == BindValueKind.AddressOf)
+            {
+                Error(diagnostics, ErrorCode.ERR_AddrOnReadOnlyLocal, node);
+                return;
+            }
+
+            ErrorCode[] ReadOnlyLocalErrors =
+            {
+                ErrorCode.ERR_RefReadonlyLocalCause,
+                // impossible since readonly locals are never byref, but would be a reasonable error otherwise
+                ErrorCode.ERR_RefReadonlyLocalCause,
+                ErrorCode.ERR_AssgReadonlyLocalCause,
+
+                ErrorCode.ERR_RefReadonlyLocal2Cause,
+                // impossible since readonly locals are never byref, but would be a reasonable error otherwise
+                ErrorCode.ERR_RefReadonlyLocal2Cause,
+                ErrorCode.ERR_AssgReadonlyLocal2Cause
+            };
+
+            int index = (checkingReceiver ? 3 : 0) + (RequiresRefOrOut(kind) ? 0 : (kind == BindValueKind.RefReturn ? 1 : 2));
+
+            Error(diagnostics, ReadOnlyLocalErrors[index], node, local, cause.Localize());
         }
 
         static private ErrorCode GetThisLvalueError(BindValueKind kind)
@@ -984,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
                 case BindValueKind.CompoundAssignment:
-                case BindValueKind.Assignment:
+                case BindValueKind.Assignable:
                     return ErrorCode.ERR_AssgReadonlyLocal;
                 case BindValueKind.RefOrOut:
                     return ErrorCode.ERR_RefReadonlyLocal;
@@ -1002,7 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (kind)
             {
-                case BindValueKind.Assignment:
+                case BindValueKind.Assignable:
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.IncrementDecrement:
                     return ErrorCode.ERR_QueryRangeVariableReadOnly;
@@ -1020,25 +986,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ErrorCode GetMethodGroupLvalueError(BindValueKind valueKind)
         {
-            ErrorCode errorCode;
-            switch (valueKind)
+            if (valueKind == BindValueKind.AddressOf)
             {
-                case BindValueKind.RefOrOut:
-                    return ErrorCode.ERR_RefLvalueExpected;
-
-                case BindValueKind.RefReturn:
-                    errorCode = ErrorCode.ERR_RefReadonlyLocalCause;
-                    break;
-                case BindValueKind.AddressOf:
-                    errorCode = ErrorCode.ERR_InvalidAddrOp;
-                    break;
-                default:
-                    // Cannot assign to 'W' because it is a 'method group'
-                    errorCode = ErrorCode.ERR_AssgReadonlyLocalCause;
-                    break;
+                return ErrorCode.ERR_InvalidAddrOp;
             }
 
-            return errorCode;
+            if (RequiresReferenceToLocation(valueKind))
+            {
+                return ErrorCode.ERR_RefReadonlyLocalCause;
+            }
+
+            // Cannot assign to 'W' because it is a 'method group'
+            return ErrorCode.ERR_AssgReadonlyLocalCause;
         }
 
         static private ErrorCode GetStandardLvalueError(BindValueKind kind)
@@ -1046,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (kind)
             {
                 case BindValueKind.CompoundAssignment:
-                case BindValueKind.Assignment:
+                case BindValueKind.Assignable:
                     return ErrorCode.ERR_AssgLvalueExpected;
 
                 case BindValueKind.RefOrOut:

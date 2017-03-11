@@ -1127,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDeconstruction(node, diagnostics);
             }
 
-            var op1 = BindValue(node.Left, diagnostics, BindValueKind.Assignment); // , BIND_MEMBERSET);
+            var op1 = BindValue(node.Left, diagnostics, BindValueKind.Assignable); // , BIND_MEMBERSET);
             var op2 = BindValue(node.Right, diagnostics, BindValueKind.RValue); // , BIND_RVALUEREQUIRED);
 
             if (op1.Kind == BoundKind.DiscardExpression)

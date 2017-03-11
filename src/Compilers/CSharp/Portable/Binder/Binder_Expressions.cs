@@ -3683,7 +3683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundKind boundMemberKind = boundMember.Kind;
             SyntaxKind rhsKind = namedAssignment.Right.Kind();
             bool isRhsNestedInitializer = rhsKind == SyntaxKind.ObjectInitializerExpression || rhsKind == SyntaxKind.CollectionInitializerExpression;
-            BindValueKind valueKind = isRhsNestedInitializer ? BindValueKind.RValue : BindValueKind.Assignment;
+            BindValueKind valueKind = isRhsNestedInitializer ? BindValueKind.RValue : BindValueKind.Assignable;
 
             ImmutableArray<BoundExpression> arguments = ImmutableArray<BoundExpression>.Empty;
             ImmutableArray<string> argumentNamesOpt = default(ImmutableArray<string>);
