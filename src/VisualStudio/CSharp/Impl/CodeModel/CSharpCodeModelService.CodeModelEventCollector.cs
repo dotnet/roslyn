@@ -160,9 +160,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         && CompareExpressions(oldCast.Expression, newCast.Expression);
                 }
 
-                if (oldExpression is PrefixUnaryExpressionSyntax)
+                if (oldExpression is PrefixUnaryExpressionSyntax prefixUnary)
                 {
-                    return CompareExpressions(((PrefixUnaryExpressionSyntax)oldExpression).Operand, ((PrefixUnaryExpressionSyntax)newExpression).Operand);
+                    return CompareExpressions(prefixUnary.Operand, ((PrefixUnaryExpressionSyntax)newExpression).Operand);
                 }
 
                 if (oldExpression is AwaitExpressionSyntax awaitExpression)
