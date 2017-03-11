@@ -807,26 +807,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
                             Else
-                                Select Case value.ToLowerInvariant()
-                                    Case "9", "9.0"
-                                        languageVersion = LanguageVersion.VisualBasic9
-                                    Case "10", "10.0"
-                                        languageVersion = LanguageVersion.VisualBasic10
-                                    Case "11", "11.0"
-                                        languageVersion = LanguageVersion.VisualBasic11
-                                    Case "12", "12.0"
-                                        languageVersion = LanguageVersion.VisualBasic12
-                                    Case "14", "14.0"
-                                        languageVersion = LanguageVersion.VisualBasic14
-                                    Case "15", "15.0"
-                                        languageVersion = LanguageVersion.VisualBasic15
-                                    Case "default"
-                                        languageVersion = LanguageVersion.Default
-                                    Case "latest"
-                                        languageVersion = LanguageVersion.Latest
-                                    Case Else
-                                        AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
-                                End Select
+                                If Not VisualBasicParseOptions.TryParseLanguageVersion(value, languageVersion) Then
+                                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
+                                End If
                             End If
 
                             Continue For

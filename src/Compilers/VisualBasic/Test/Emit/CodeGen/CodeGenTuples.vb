@@ -13587,6 +13587,7 @@ Imports System
 Public Class C
     Shared Sub Main()
         Dim x As (Integer, Integer) = (1, 1)
+        Else
     End Sub
 End Class
     </file>
@@ -13602,9 +13603,12 @@ BC36716: Visual Basic 14.0 does not support tuples.
 BC36716: Visual Basic 14.0 does not support tuples.
         Dim x As (Integer, Integer) = (1, 1)
                                       ~~~~~~
+BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
+        Else
+        ~~~~
 </errors>)
-
-            Assert.Equal("7", comp.GetRequiredLanguageVersion(comp.GetDiagnostics()(0)))
+            Dim x = comp.GetDiagnostics()
+            Assert.Equal("15", comp.GetRequiredLanguageVersion(comp.GetDiagnostics()(0)))
             Assert.Null(comp.GetRequiredLanguageVersion(comp.GetDiagnostics()(2)))
             Assert.Throws(Of ArgumentNullException)(Sub() comp.GetRequiredLanguageVersion(Nothing))
         End Sub

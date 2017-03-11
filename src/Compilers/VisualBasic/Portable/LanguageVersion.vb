@@ -56,9 +56,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
 
         End Function
+    End Module
 
+    Public Module LanguageVersionExtensions
+
+        ''' <summary>
+        ''' Map a language version (such as Default, Latest, Or VisualBasicN) to a specific version (VisualBasicN).
+        ''' </summary>
         <Extension>
-        Friend Function MapSpecifiedToEffectiveVersion(version As LanguageVersion) As LanguageVersion
+        Public Function MapSpecifiedToEffectiveVersion(version As LanguageVersion) As LanguageVersion
             Select Case version
                 Case LanguageVersion.Latest, LanguageVersion.Default
                     Return LanguageVersion.VisualBasic15
@@ -67,5 +73,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
+        ''' <summary>
+        ''' Displays the version number in the format understood on the command-line (/langver flag).
+        ''' For instance, "9", "15", "latest".
+        ''' </summary>
+        <Extension>
+        Public Function ToDisplayString(version As LanguageVersion) As String
+
+            Select Case version
+                Case LanguageVersion.VisualBasic9
+                    Return "9"
+                Case LanguageVersion.VisualBasic10
+                    Return "10"
+                Case LanguageVersion.VisualBasic11
+                    Return "11"
+                Case LanguageVersion.VisualBasic12
+                    Return "12"
+                Case LanguageVersion.VisualBasic14
+                    Return "14"
+                Case LanguageVersion.VisualBasic15
+                    Return "15"
+                Case LanguageVersion.Default
+                    Return "default"
+                Case LanguageVersion.Latest
+                    Return "latest"
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(version)
+            End Select
+        End Function
     End Module
+
+    ''' <summary>
+    ''' This type is attached to diagnostics for required language version and should only be used
+    ''' on such diagnostics, as they are recognized by <see cref="VisualBasicCompilation.GetRequiredLanguageVersion"/>.
+    ''' </summary>
+    Friend Class RequiredLanguageVersion
+        Implements IMessageSerializable
+
+        Friend ReadOnly Property Version As LanguageVersion
+
+        Friend Sub New(version As LanguageVersion)
+            Me.Version = version
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return Version.ToDisplayString()
+        End Function
+    End Class
 End Namespace

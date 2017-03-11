@@ -6,6 +6,9 @@
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Default = 0 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionExtensions
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionExtensions.MapSpecifiedToEffectiveVersion(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionExtensions.ToDisplayString(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> String
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.AsClause() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleAsClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.Identifier() -> Microsoft.CodeAnalysis.SyntaxToken
@@ -78,3 +81,4 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TupleType(ParamArray ele
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TupleType(elements As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleElementSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TupleType(openParenToken As Microsoft.CodeAnalysis.SyntaxToken, elements As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleElementSyntax), closeParenToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TypedTupleElement(type As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.TryParseLanguageVersion(version As String, ByRef result As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Boolean

@@ -1188,17 +1188,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
-        {
-            var parseOptionsService = project.LanguageServices.GetService<IParseOptionsService>();
-            if (parseOptionsService == null)
-            {
-                return false;
-            }
-            return CanApplyParseOptionChange(oldOptions, newOptions, parseOptionsService);
-        }
-
-        internal virtual bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, IParseOptionsService parseOptionsService)
+        protected virtual bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
             => false;
 
         /// <summary>

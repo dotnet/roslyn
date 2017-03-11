@@ -195,8 +195,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        internal override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, IParseOptionsService parseOptionsService)
+        protected override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
         {
+            var parseOptionsService = project.LanguageServices.GetService<IParseOptionsService>();
+            if (parseOptionsService == null)
+            {
+                return false;
+            }
+
             // Currently, only changes to the LanguageVersion of parse options are supported.
             var newLanguageVersion = parseOptionsService.GetLanguageVersion(newOptions);
             var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
@@ -319,7 +325,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     case LanguageNames.VisualBasic:
                         throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_parse_options);
                 }
-
             }
         }
 

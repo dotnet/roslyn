@@ -2927,13 +2927,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool found = false;
             var foundVersion = LanguageVersion.Default;
-            foreach (var argument in diagnostic.Arguments)
+            if (diagnostic.Arguments != null)
             {
-                if (argument is RequiredLanguageVersion versionDiagnostic)
+                foreach (var argument in diagnostic.Arguments)
                 {
-                    Debug.Assert(!found); // only one required language version in a given diagnostic
-                    found = true;
-                    foundVersion = versionDiagnostic.Version;
+                    if (argument is RequiredLanguageVersion versionDiagnostic)
+                    {
+                        Debug.Assert(!found); // only one required language version in a given diagnostic
+                        found = true;
+                        foundVersion = versionDiagnostic.Version;
+                    }
                 }
             }
 

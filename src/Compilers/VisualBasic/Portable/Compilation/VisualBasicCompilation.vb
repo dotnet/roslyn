@@ -2732,10 +2732,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function GetRequiredLanguageVersion(diagnostic As Diagnostic) As String
-            ' The driving scenario for this API (upgrading project based on language versions reported in diagnostics)
-            ' is not supported in VB at this point
-            ' See https://github.com/dotnet/roslyn/issues/17173
-            Return Nothing
+            If diagnostic Is Nothing Then
+                Throw New ArgumentNullException(NameOf(diagnostic))
+            End If
+
+            Dim found As Boolean = False
+            Dim foundVersion As LanguageVersion = LanguageVersion.Default
+            If diagnostic.Arguments IsNot Nothing Then
+                For Each argument In diagnostic.Arguments
+                    Dim versionDiagnostic As RequiredLanguageVersion = TryCast(argument, RequiredLanguageVersion)
+                    If versionDiagnostic IsNot Nothing Then
+                        Debug.Assert(Not found) ' only one required language version in a given diagnostic
+                        found = True
+                        foundVersion = versionDiagnostic.Version
+                    End If
+                Next
+            End If
+
+            Return If(found, foundVersion.ToDisplayString(), Nothing)
         End Function
 
 #End Region
