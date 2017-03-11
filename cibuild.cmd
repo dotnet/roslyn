@@ -49,6 +49,8 @@ if not "%BuildTimeLimit%" == "" (
     set RunProcessWatchdog=false
 )
 
+powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\test.ps1"
+
 REM Restore the NuGet packages
 call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
 call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :BuildFailed
