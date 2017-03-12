@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             // Find all the possible instance fields/properties.  If there are any, then
             // show a dialog to the user to select the ones they want.
-            var viableMembers = containingType.GetMembers().WhereAsArray(IsInstanceFieldOrProperty);
+            var viableMembers = containingType.GetMembers().WhereAsArray(IsViableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
             {
                 return;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 var info = await this.GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 if (info != null &&
-                    info.SelectedMembers.All(IsInstanceFieldOrProperty))
+                    info.SelectedMembers.All(IsViableInstanceFieldOrProperty))
                 {
                     if (info.ContainingType != null && info.ContainingType.TypeKind != TypeKind.Interface)
                     {
@@ -156,22 +156,30 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             bool withDialog)
         {
             var result = ArrayBuilder<CodeAction>.GetInstance();
-            if (!hasEquals)
+
+            if (!hasEquals && !hasGetHashCode)
+            {
+                // if we don't have either Equals or GetHashCode then offer:
+                //  "Generate Equals" and
+                //  "Generate Equals and GethashCode"
+                //
+                // Don't bother offering to just "Generate GetHashCode" as it's very unlikely 
+                // the user would need to bother just generating that member without also 
+                // generating 'Equals' as well.
+                result.Add(CreateCodeAction(document, textSpan, containingType, selectedMembers,
+                    generateEquals: true, generateGetHashCode: false, withDialog: withDialog));
+                result.Add(CreateCodeAction(document, textSpan, containingType, selectedMembers,
+                    generateEquals: true, generateGetHashCode: true, withDialog: withDialog));
+            }
+            else if (!hasEquals)
             {
                 result.Add(CreateCodeAction(document, textSpan, containingType, selectedMembers,
                     generateEquals: true, generateGetHashCode: false, withDialog: withDialog));
             }
-
-            if (!hasGetHashCode)
+            else if (!hasGetHashCode)
             {
                 result.Add(CreateCodeAction(document, textSpan, containingType, selectedMembers,
                     generateEquals: false, generateGetHashCode: true, withDialog: withDialog));
-            }
-
-            if (!hasEquals && !hasGetHashCode)
-            {
-                result.Add(CreateCodeAction(document, textSpan, containingType, selectedMembers,
-                    generateEquals: true, generateGetHashCode: true, withDialog: withDialog));
             }
 
             return result.ToImmutableAndFree();

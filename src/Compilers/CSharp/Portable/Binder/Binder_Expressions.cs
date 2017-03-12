@@ -742,8 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case SyntaxKind.DiscardDesignation:
                     {
-                        var discarded = (DiscardDesignationSyntax)node;
-                        return BindDiscardExpression(discarded, declType);
+                        return BindDiscardExpression(syntax, declType);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -764,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             default(ImmutableArray<string>),
                             Compilation,
                             shouldCheckConstraints: false);
-                        return new BoundTupleLiteral(node, default(ImmutableArray<string>), subExpressions, tupleType);
+                        return new BoundTupleLiteral(syntax, default(ImmutableArray<string>), subExpressions, tupleType);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());

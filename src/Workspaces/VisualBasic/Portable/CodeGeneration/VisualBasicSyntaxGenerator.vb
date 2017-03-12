@@ -607,6 +607,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 SyntaxFactory.WhileStatement(DirectCast(condition, ExpressionSyntax)),
                 GetStatementList(statements))
         End Function
+
+        Friend Overrides Function RefExpression(expression As SyntaxNode) As SyntaxNode
+            Return expression
+        End Function
+
 #End Region
 
 #Region "Declarations"
@@ -3956,7 +3961,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.NamedFieldInitializer(
                 DirectCast(identifier, IdentifierNameSyntax),
                 DirectCast(expression, ExpressionSyntax))
-
         End Function
 
         Friend Overrides Function IsRegularOrDocComment(trivia As SyntaxTrivia) As Boolean

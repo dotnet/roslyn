@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     {
         public static CodeGenerationAbstractNamedTypeSymbol ToCodeGenerationSymbol(this INamedTypeSymbol namedType)
         {
-            if (namedType is CodeGenerationAbstractNamedTypeSymbol)
+            if (namedType is CodeGenerationAbstractNamedTypeSymbol typeSymbol)
             {
-                return (CodeGenerationAbstractNamedTypeSymbol)namedType;
+                return typeSymbol;
             }
 
             return new CodeGenerationNamedTypeSymbol(

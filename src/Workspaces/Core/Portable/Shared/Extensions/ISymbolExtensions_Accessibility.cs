@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISymbol within,
             ITypeSymbol throughTypeOpt = null)
         {
-            if (within is IAssemblySymbol)
+            if (within is IAssemblySymbol assembly)
             {
-                return symbol.IsAccessibleWithin((IAssemblySymbol)within, throughTypeOpt);
+                return symbol.IsAccessibleWithin(assembly, throughTypeOpt);
             }
-            else if (within is INamedTypeSymbol)
+            else if (within is INamedTypeSymbol namedType)
             {
-                return symbol.IsAccessibleWithin((INamedTypeSymbol)within, throughTypeOpt);
+                return symbol.IsAccessibleWithin(namedType, throughTypeOpt);
             }
             else
             {

@@ -597,7 +597,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void CommitCore(IWaitContext waitContext, bool previewChanges)
         {
-            using (Logger.LogBlock(previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore, waitContext.CancellationToken))
+            var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
+            using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), waitContext.CancellationToken))
             {
                 _conflictResolutionTask.Wait(waitContext.CancellationToken);
                 waitContext.AllowCancel = false;

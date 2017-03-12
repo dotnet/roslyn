@@ -3,6 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Roslyn.Utilities;
@@ -57,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     foreach (var sourceSpan in definition.SourceSpans)
                     {
                         var entry = await CreateDocumentSpanEntryAsync(
-                            definitionBucket, sourceSpan, isDefinitionLocation: true).ConfigureAwait(false);
+                            definitionBucket, sourceSpan, HighlightSpanKind.Definition).ConfigureAwait(false);
                         entries.Add(entry);
                     }
                 }

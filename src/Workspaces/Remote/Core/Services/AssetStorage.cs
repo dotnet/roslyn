@@ -84,9 +84,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var value = asset.Value.Object;
-                if (value is T)
+                if (value is T tValue)
                 {
-                    yield return (T)value;
+                    yield return tValue;
                 }
             }
         }
