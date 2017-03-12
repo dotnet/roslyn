@@ -7,10 +7,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
+    internal interface ICodeStyleOption
+    {
+        XElement ToXElement();
+    }
+
     /// <summary>
-    /// Represents a code style option and an associated notification option.
+    /// Represents a code style option and an associated notification option.  Supports
+    /// being instantiated with T as a <see cref="bool"/> or an <code>enum type</code>.
     /// </summary>
-    public class CodeStyleOption<T> : IEquatable<CodeStyleOption<T>>
+    public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
         public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default(T), NotificationOption.None);
 
@@ -29,9 +35,33 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public XElement ToXElement() =>
             new XElement(nameof(CodeStyleOption<T>), // `nameof()` returns just "CodeStyleOption"
                 new XAttribute(nameof(SerializationVersion), SerializationVersion),
-                new XAttribute("Type", typeof(T).Name),
-                new XAttribute(nameof(Value), Value),
+                new XAttribute("Type", GetTypeNameForSerialization()),
+                new XAttribute(nameof(Value), GetValueForSerialization()),
                 new XAttribute(nameof(DiagnosticSeverity), Notification.Value));
+
+        private object GetValueForSerialization()
+        {
+            if (typeof(T) == typeof(bool))
+            {
+                return Value;
+            }
+            else
+            {
+                return (int)(object)Value;
+            }
+        }
+
+        private string GetTypeNameForSerialization()
+        {
+            if (typeof(T) == typeof(bool))
+            {
+                return nameof(Boolean);
+            }
+            else
+            {
+                return nameof(Int32);
+            }
+        }
 
         public static CodeStyleOption<T> FromXElement(XElement element)
         {
@@ -52,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
 
             var parser = GetParser(typeAttribute.Value);
-            var value = (T)parser(valueAttribute.Value);
+            var value = parser(valueAttribute.Value);
             var severity = (DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), severityAttribute.Value);
 
             NotificationOption notificationOption;
@@ -77,37 +107,39 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return new CodeStyleOption<T>(value, notificationOption);
         }
 
-        private static Func<string, object> GetParser(string type)
+        private static Func<string, T> GetParser(string type)
         {
             switch (type)
             {
                 case nameof(Boolean):
-                    return v => bool.Parse(v);
+                    return v => Convert(bool.Parse(v));
+                case nameof(Int32):
+                    return v => (T)(object)int.Parse(v);
                 default:
                     throw new ArgumentException(nameof(type));
             }
         }
 
-        public bool Equals(CodeStyleOption<T> other)
+        private static T Convert(bool b)
         {
-            return EqualityComparer<T>.Default.Equals(Value, other.Value) &&
-                   Notification == other.Notification;
-        }
-
-        public override bool Equals(object obj)
-        {
-            var codeStyle = obj as CodeStyleOption<T>;
-            if (codeStyle == null)
+            if (typeof(T) == typeof(bool))
             {
-                return false;
+                return (T)(object)b;
             }
 
-            return ((IEquatable<CodeStyleOption<T>>)this).Equals(codeStyle);
+            var enumValues = (T[])Enum.GetValues(typeof(T));
+            return b ? enumValues[0] : enumValues[1];
         }
 
+        public bool Equals(CodeStyleOption<T> other)
+            => EqualityComparer<T>.Default.Equals(Value, other.Value) &&
+               Notification == other.Notification;
+
+        public override bool Equals(object obj)
+            => obj is CodeStyleOption<T> option &&
+               Equals(option);
+
         public override int GetHashCode()
-        {
-            return Hash.Combine(Value.GetHashCode(), Notification.GetHashCode());
-        }
+            => Hash.Combine(Value.GetHashCode(), Notification.GetHashCode());
     }
 }

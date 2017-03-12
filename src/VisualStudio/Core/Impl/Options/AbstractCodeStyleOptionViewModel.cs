@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
@@ -24,8 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// </remarks>
     internal abstract class AbstractCodeStyleOptionViewModel : AbstractNotifyPropertyChanged
     {
-        private readonly string _truePreview;
-        private readonly string _falsePreview;
+        protected readonly ImmutableArray<string> Previews;
+
         protected AbstractOptionPreviewViewModel Info { get; }
         public IOption Option { get; }
 
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public List<NotificationOptionViewModel> NotificationPreferences { get; set; }
         public abstract bool NotificationsAvailable { get; }
 
-        public virtual string GetPreview() => SelectedPreference.IsChecked ? _truePreview : _falsePreview;
+        public virtual string GetPreview() => SelectedPreference.IsChecked ? Previews[0] : Previews[1];
         public virtual NotificationOptionViewModel SelectedNotificationPreference
         {
             get { return NotificationPreferences.First(); }
@@ -47,16 +48,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public AbstractCodeStyleOptionViewModel(
             IOption option,
             string description,
-            string truePreview,
-            string falsePreview,
+            string[] previews,
             AbstractOptionPreviewViewModel info,
             OptionSet options,
             string groupName,
             List<CodeStylePreference> preferences = null,
             List<NotificationOptionViewModel> notificationPreferences = null)
         {
-            _truePreview = truePreview;
-            _falsePreview = falsePreview;
+            Previews = ImmutableArray.Create(previews);
 
             Info = info;
             Option = option;
@@ -86,6 +85,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 new CodeStylePreference(ServicesVSResources.No, isChecked: false),
             };
         }
-
     }
 }

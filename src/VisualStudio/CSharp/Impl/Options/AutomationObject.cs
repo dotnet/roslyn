@@ -771,14 +771,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             return option.Value ? 1 : 0;
         }
 
-        private string GetXmlOption(Option<CodeStyleOption<bool>> option)
+        private string GetXmlOption<T>(Option<CodeStyleOption<T>> option)
         {
             return _workspace.Options.GetOption(option).ToXElement().ToString();
         }
 
         private void SetBooleanOption(PerLanguageOption<bool?> key, int value)
         {
-            bool? boolValue = (value < 0) ? (bool?)null : (value > 0);
+            var boolValue = (value < 0) ? (bool?)null : (value > 0);
             _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.CSharp, boolValue);
         }
 
@@ -787,7 +787,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             return _workspace.Options.GetOption(option, LanguageNames.CSharp).ToXElement().ToString();
         }
 
-        private void SetXmlOption(Option<CodeStyleOption<bool>> option, string value)
+        private void SetXmlOption<T>(Option<CodeStyleOption<T>> option, string value)
         {
             var convertedValue = CodeStyleOption<bool>.FromXElement(XElement.Parse(value));
             _workspace.Options = _workspace.Options.WithChangedOption(option, convertedValue);

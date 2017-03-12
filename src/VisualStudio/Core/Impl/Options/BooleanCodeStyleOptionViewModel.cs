@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             string groupName, 
             List<CodeStylePreference> preferences = null, 
             List<NotificationOptionViewModel> notificationPreferences = null) 
-            : base(option, description, truePreview, falsePreview, info, options, groupName, preferences, notificationPreferences)
+            : base(option, description, new[] { truePreview, falsePreview }, info, options, groupName, preferences, notificationPreferences)
         {
             var booleanOption = (bool)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null));
             _selectedPreference = Preferences.Single(c => c.IsChecked == booleanOption);

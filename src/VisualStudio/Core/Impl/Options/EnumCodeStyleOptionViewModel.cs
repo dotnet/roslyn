@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
@@ -9,10 +11,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     /// <summary>
     /// This class represents the view model for a <see cref="CodeStyleOption{T}"/>
-    /// that binds to the codestyle options UI.
+    /// that binds to the codestyle options UI.  Note that the T here is expected to be an enum
+    /// type.  
+    /// 
+    /// Important.  The order of the previews and preferences provided should match the order
+    /// of enum members of T.  
     /// </summary>
-    internal class SimpleCodeStyleOptionViewModel : AbstractCodeStyleOptionViewModel
+    internal class EnumCodeStyleOptionViewModel<T> : AbstractCodeStyleOptionViewModel
+        where T : struct
     {
+        private static readonly ImmutableArray<T> s_enumValues =
+            ImmutableArray.Create((T[])Enum.GetValues(typeof(T)));
+
         private CodeStylePreference _selectedPreference;
         public override CodeStylePreference SelectedPreference
         {
@@ -20,11 +30,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 return _selectedPreference;
             }
+
             set
             {
                 if (SetProperty(ref _selectedPreference, value))
                 {
-                    Info.SetOptionAndUpdatePreview(new CodeStyleOption<bool>(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
+                    var index = Preferences.IndexOf(value);
+                    var enumValue = s_enumValues[index];
+
+                    Info.SetOptionAndUpdatePreview(
+                        new CodeStyleOption<T>(
+                            enumValue, _selectedNotificationPreference.Notification),
+                        Option, GetPreview());
                 }
             }
         }
@@ -41,27 +58,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 if (SetProperty(ref _selectedNotificationPreference, value))
                 {
-                    Info.SetOptionAndUpdatePreview(new CodeStyleOption<bool>(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
+                    var index = Preferences.IndexOf(SelectedPreference);
+                    var enumValue = s_enumValues[index];
+
+                    Info.SetOptionAndUpdatePreview(
+                        new CodeStyleOption<T>(
+                            enumValue, _selectedNotificationPreference.Notification),
+                        Option, GetPreview());
                 }
             }
         }
 
         public override bool NotificationsAvailable => true;
 
-        public SimpleCodeStyleOptionViewModel(
-            IOption option,
+        public override string GetPreview()
+        {
+            var index = Preferences.IndexOf(SelectedPreference);
+            return Previews[index];
+        }
+
+        public EnumCodeStyleOptionViewModel(
+            Option<CodeStyleOption<T>> option,
             string description,
-            string truePreview,
-            string falsePreview,
+            string[] previews,
             AbstractOptionPreviewViewModel info,
             OptionSet options,
             string groupName,
-            List<CodeStylePreference> preferences = null,
-            List<NotificationOptionViewModel> notificationPreferences = null)
-            : base(option, description, new[] { truePreview, falsePreview }, info, options, groupName, preferences, notificationPreferences)
+            List<CodeStylePreference> preferences)
+            : base(option, description, previews, info, options, groupName, preferences)
         {
-            var codeStyleOption = ((CodeStyleOption<bool>)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
-            _selectedPreference = Preferences.Single(c => c.IsChecked == codeStyleOption.Value);
+            var codeStyleOption = options.GetOption(option);
+
+            var enumIndex = s_enumValues.IndexOf(codeStyleOption.Value);
+            _selectedPreference = Preferences[enumIndex];
 
             var notificationViewModel = NotificationPreferences.Single(i => i.Notification.Value == codeStyleOption.Notification.Value);
             _selectedNotificationPreference = NotificationPreferences.Single(p => p.Notification.Value == notificationViewModel.Notification.Value);

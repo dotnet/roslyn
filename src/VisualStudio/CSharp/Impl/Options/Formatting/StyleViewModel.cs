@@ -671,10 +671,17 @@ class List<T>
                 new CodeStylePreference(CSharpVSResources.Prefer_explicit_type, isChecked: false),
             };
 
-            var codeBlockPreferences = new List<CodeStylePreference>
+            //var codeBlockPreferences = new List<CodeStylePreference>
+            //{
+            //    new CodeStylePreference(CSharpVSResources.Prefer_expression_body, isChecked: true),
+            //    new CodeStylePreference(CSharpVSResources.Prefer_block_body, isChecked: false),
+            //};
+
+            var expressionBodyPreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference(CSharpVSResources.Prefer_expression_body, isChecked: true),
-                new CodeStylePreference(CSharpVSResources.Prefer_block_body, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.Never, isChecked: true),
+                new CodeStylePreference(CSharpVSResources.When_possible, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.When_on_single_line, isChecked: false),
             };
 
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, CSharpVSResources.Qualify_field_access_with_this, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
@@ -692,12 +699,6 @@ class List<T>
 
             // Code block
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferBraces, ServicesVSResources.Prefer_braces, s_preferBraces, s_preferBraces, this, optionSet, codeBlockPreferencesGroupTitle));
-            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, ServicesVSResources.For_methods, s_preferExpressionBodyForMethods, s_preferBlockBodyForMethods, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));
-            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, ServicesVSResources.For_constructors, s_preferExpressionBodyForConstructors, s_preferBlockBodyForConstructors, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));
-            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, ServicesVSResources.For_operators, s_preferExpressionBodyForOperators, s_preferBlockBodyForOperators, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));
-            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ServicesVSResources.For_properties, s_preferExpressionBodyForProperties, s_preferBlockBodyForProperties, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));
-            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ServicesVSResources.For_indexers, s_preferExpressionBodyForIndexers, s_preferBlockBodyForIndexers, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));
-            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ServicesVSResources.For_accessors, s_preferExpressionBodyForAccessors, s_preferBlockBodyForAccessors, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));
 
             // Expression preferences
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, this, optionSet, expressionPreferencesGroupTitle));
@@ -705,6 +706,8 @@ class List<T>
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, CSharpVSResources.Prefer_pattern_matching_over_is_with_cast_check, s_preferPatternMatchingOverIsWithCastCheck, s_preferPatternMatchingOverIsWithCastCheck, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, s_preferPatternMatchingOverAsWithNullCheck, s_preferPatternMatchingOverAsWithNullCheck, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, this, optionSet, expressionPreferencesGroupTitle));
+
+            AddExpressionBodyOptions(optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences);
 
             // Variable preferences
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferInlinedVariableDeclaration, ServicesVSResources.Prefer_inlined_variable_declaration, s_preferInlinedVariableDeclaration, s_preferInlinedVariableDeclaration, this, optionSet, variablePreferencesGroupTitle));
@@ -714,6 +717,45 @@ class List<T>
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferConditionalDelegateCall, CSharpVSResources.Prefer_conditional_delegate_call, s_preferConditionalDelegateCall, s_preferConditionalDelegateCall, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionSet, nullCheckingGroupTitle));
+        }
+
+        private void AddExpressionBodyOptions(OptionSet optionSet, string expressionPreferencesGroupTitle, List<CodeStylePreference> expressionBodyPreferences)
+        {
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
+                CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
+                ServicesVSResources.Use_expression_body_for_methods,
+                new[] { s_preferBlockBodyForMethods, s_preferExpressionBodyForMethods, s_preferExpressionBodyForMethods },
+                this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
+                CSharpCodeStyleOptions.PreferExpressionBodiedConstructors,
+                ServicesVSResources.Use_expression_body_for_constructors,
+                new[] { s_preferBlockBodyForConstructors, s_preferExpressionBodyForConstructors, s_preferExpressionBodyForConstructors },
+                this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
+                CSharpCodeStyleOptions.PreferExpressionBodiedOperators,
+                ServicesVSResources.Use_expression_body_for_operators,
+                new[] { s_preferBlockBodyForOperators, s_preferExpressionBodyForOperators, s_preferExpressionBodyForOperators },
+                this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
+                CSharpCodeStyleOptions.PreferExpressionBodiedProperties,
+                ServicesVSResources.Use_expression_body_for_properties,
+                new[] { s_preferBlockBodyForProperties, s_preferExpressionBodyForProperties, s_preferExpressionBodyForProperties },
+                this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
+                CSharpCodeStyleOptions.PreferExpressionBodiedIndexers,
+                ServicesVSResources.Use_expression_body_for_indexers,
+                new[] { s_preferBlockBodyForIndexers, s_preferExpressionBodyForIndexers, s_preferExpressionBodyForIndexers },
+                this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
+                CSharpCodeStyleOptions.PreferExpressionBodiedAccessors,
+                ServicesVSResources.For_accessors,
+                new[] { s_preferBlockBodyForAccessors, s_preferExpressionBodyForAccessors, s_preferExpressionBodyForAccessors },
+                this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
         }
     }
 }

@@ -6,13 +6,6 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 {
-    internal enum ExpressionBodyPreference
-    {
-        Never,
-        WhenPossible,
-        WhenOnSingleLine,
-    }
-
     internal static class CSharpCodeStyleOptions
     {
         public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeForIntrinsicTypes = new Option<CodeStyleOption<bool>>(

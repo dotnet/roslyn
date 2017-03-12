@@ -750,26 +750,26 @@ Additional information: {1}</value>
   <data name="Prefer_inlined_variable_declaration" xml:space="preserve">
     <value>Prefer inlined variable declaration</value>
   </data>
-  <data name="For_methods" xml:space="preserve">
-    <value>For methods</value>
+  <data name="Use_expression_body_for_methods" xml:space="preserve">
+    <value>Use expression body for methods</value>
   </data>
   <data name="Code_block_preferences_colon" xml:space="preserve">
     <value>Code block preferences:</value>
   </data>
-  <data name="For_accessors" xml:space="preserve">
-    <value>For accessors</value>
+  <data name="Use_expression_body_for_accessors" xml:space="preserve">
+    <value>Use expression body for accessors</value>
   </data>
-  <data name="For_constructors" xml:space="preserve">
-    <value>For constructors</value>
+  <data name="Use_expression_body_for_constructors" xml:space="preserve">
+    <value>Use expression body for constructors</value>
   </data>
-  <data name="For_indexers" xml:space="preserve">
-    <value>For indexers</value>
+  <data name="Use_expression_body_for_indexers" xml:space="preserve">
+    <value>Use expression body for indexers</value>
   </data>
-  <data name="For_operators" xml:space="preserve">
-    <value>For operators</value>
+  <data name="Use_expression_body_for_operators" xml:space="preserve">
+    <value>Use expression body for operators</value>
   </data>
-  <data name="For_properties" xml:space="preserve">
-    <value>For properties</value>
+  <data name="Use_expression_body_for_properties" xml:space="preserve">
+    <value>Use expression body for properties</value>
   </data>
   <data name="Some_naming_rules_are_incomplete_Please_complete_or_remove_them" xml:space="preserve">
     <value>Some naming rules are incomplete. Please complete or remove them.</value>

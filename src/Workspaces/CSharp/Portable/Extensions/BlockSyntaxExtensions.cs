@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var text = expression.ToString();
-            return text.GetNumberOfLineBreaks() > 0;
+            return text.GetNumberOfLineBreaks() == 0;
         }
 
         private static bool TryGetExpression(
