@@ -27,15 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 this.PresenterSession.FilterStateChanged += OnPresenterSessionCompletionItemFilterStateChanged;
             }
 
-            private ITextBuffer SubjectBuffer
-            {
-                get
-                {
-                    AssertIsForeground();
-                    return this.Controller.SubjectBuffer;
-                }
-            }
-
             internal void UpdateModelTrackingSpan(SnapshotPoint initialPosition)
             {
                 AssertIsForeground();

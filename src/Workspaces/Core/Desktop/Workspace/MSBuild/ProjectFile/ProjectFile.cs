@@ -378,16 +378,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        protected ulong ReadPropertyULong(MSB.Execution.ProjectInstance executedProject, string propertyName)
-        {
-            return ConvertToULong(ReadPropertyString(executedProject, propertyName));
-        }
-
-        protected ulong ReadPropertyULong(MSB.Execution.ProjectInstance executedProject, string executedPropertyName, string evaluatedPropertyName)
-        {
-            return ConvertToULong(this.ReadPropertyString(executedProject, executedPropertyName, evaluatedPropertyName));
-        }
-
         private static ulong ConvertToULong(string value)
         {
             if (value == null)
@@ -399,18 +389,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 ulong.TryParse(value, out var result);
                 return result;
             }
-        }
-
-        protected TEnum? ReadPropertyEnum<TEnum>(MSB.Execution.ProjectInstance executedProject, string propertyName)
-            where TEnum : struct
-        {
-            return ConvertToEnum<TEnum>(ReadPropertyString(executedProject, propertyName));
-        }
-
-        protected TEnum? ReadPropertyEnum<TEnum>(MSB.Execution.ProjectInstance executedProject, string executedPropertyName, string evaluatedPropertyName)
-            where TEnum : struct
-        {
-            return ConvertToEnum<TEnum>(ReadPropertyString(executedProject, executedPropertyName, evaluatedPropertyName));
         }
 
         private static TEnum? ConvertToEnum<TEnum>(string value)
@@ -503,11 +481,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 return result;
             }
-        }
-
-        protected string GetReferenceFilePath(ProjectItemInstance projectItem)
-        {
-            return GetAbsolutePath(projectItem.EvaluatedInclude);
         }
 
         public void AddDocument(string filePath, string logicalPath = null)

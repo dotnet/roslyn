@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             private class ModelComputer : ForegroundThreadAffinitizedObject
             {
-                private static readonly Func<string, List<CompletionItem>> s_createList = _ => new List<CompletionItem>();
-
                 private readonly Session _session;
                 private readonly CompletionService _completionService;
                 private readonly OptionSet _options;

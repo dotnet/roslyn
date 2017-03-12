@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Esent
         private const int VersionStorePageSize = 4 * 4 * 1024;
 
         // JET parameter consts
-        private const int JET_paramIOPriority = 152;
         private const int JET_paramCheckpointIOMax = 135;
         private const int JET_paramVerPageSize = 128;
         private const int JET_paramDisablePerfmon = 107;

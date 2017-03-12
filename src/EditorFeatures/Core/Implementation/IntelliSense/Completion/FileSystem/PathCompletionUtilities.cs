@@ -20,26 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
                 CommonCompletionUtilities.IsStartingNewWord(text, characterPosition, char.IsLetter, char.IsLetterOrDigit);
         }
 
-        internal static bool IsFilterCharacter(CompletionItem item, char ch, string textTypedSoFar)
-        {
-            // If the user types something that matches what is in the completion list, then just
-            // count it as a filter character.
-
-            // For example, if they type "Program " and "Program Files" is in the list, the <space>
-            // should be counted as a filter character and not a commit character.
-            return item.DisplayText.StartsWith(textTypedSoFar, StringComparison.OrdinalIgnoreCase);
-        }
-
-        internal static bool IsCommitcharacter(CompletionItem item, char ch, string textTypedSoFar)
-        {
-            return ch == '"' || ch == '\\' || ch == ',';
-        }
-
-        internal static bool SendEnterThroughToEditor(CompletionItem item, string textTypedSoFar)
-        {
-            return false;
-        }
-
         internal static string GetPathThroughLastSlash(string quotedPath, int quotedPathStart, int position)
         {
             Contract.ThrowIfTrue(quotedPath[0] != '"');

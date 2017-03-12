@@ -230,16 +230,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxTokenWithValueAndTrivia<T>(kind, text, value, leading, trailing);
         }
 
-        internal static SyntaxToken StringLiteral(string text)
-        {
-            return new SyntaxTokenWithValue<string>(SyntaxKind.StringLiteralToken, text, text);
-        }
-
-        internal static SyntaxToken StringLiteral(CSharpSyntaxNode leading, string text, CSharpSyntaxNode trailing)
-        {
-            return new SyntaxTokenWithValueAndTrivia<string>(SyntaxKind.StringLiteralToken, text, text, leading, trailing);
-        }
-
         public virtual SyntaxKind ContextualKind
         {
             get

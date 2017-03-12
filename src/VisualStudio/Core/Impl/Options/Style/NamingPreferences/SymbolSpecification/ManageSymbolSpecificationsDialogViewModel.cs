@@ -34,16 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 notificationService)));
         }
 
-        internal void AddSymbolSpecification(INamingStylesInfoDialogViewModel symbolSpecification)
-        {
-            
-        }
-
-        internal void RemoveSymbolSpecification(INamingStylesInfoDialogViewModel symbolSpecification)
-        {
-            Items.Remove(symbolSpecification);
-        }
-
         public void AddItem()
         {
             var viewModel = new SymbolSpecificationViewModel(LanguageName, canBeDeleted: true, notificationService: _notificationService);

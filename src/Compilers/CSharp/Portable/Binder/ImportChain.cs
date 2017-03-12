@@ -23,11 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParentOpt = parentOpt;
         }
 
-        private string GetDebuggerDisplay()
-        {
-            return $"{Imports.GetDebuggerDisplay()} ^ {ParentOpt?.GetHashCode() ?? 0}";
-        }
-
         ImmutableArray<Cci.UsedNamespaceOrType> Cci.IImportScope.GetUsedNamespaces()
         {
             // The imports should have been translated during code gen.

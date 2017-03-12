@@ -1767,34 +1767,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        /// <summary>
-        /// Returns True if enclosingTypeParametersInsideOut contains a symbol with the same name as the candidateSymbol
-        /// thereby saying that there exists a symbol which hides the candidate Symbol
-        /// </summary>
-        private static bool HidingTypeParameterSymbolExists(ISymbol candidateSymbol, List<ISymbol> enclosingTypeParametersInsideOut)
-        {
-            foreach (var enclosingTypeParameter in enclosingTypeParametersInsideOut)
-            {
-                ISymbol newCandidateSymbol = candidateSymbol;
-                if (candidateSymbol.IsKind(SymbolKind.ArrayType))
-                {
-                    newCandidateSymbol = ((IArrayTypeSymbol)candidateSymbol).ElementType;
-                }
-
-                if (newCandidateSymbol.MetadataName == enclosingTypeParameter.MetadataName)
-                {
-                    if (SymbolEquivalenceComparer.Instance.Equals(newCandidateSymbol.GetOriginalUnreducedDefinition(), enclosingTypeParameter.GetOriginalUnreducedDefinition()))
-                    {
-                        return false;
-                    }
-
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private static bool CanReplaceWithReducedName(
             this MemberAccessExpressionSyntax memberAccess,
             ExpressionSyntax reducedName,

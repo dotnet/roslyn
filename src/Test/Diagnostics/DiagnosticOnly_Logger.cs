@@ -40,19 +40,6 @@ namespace Roslyn.Hosting.Diagnostics
         }
 
         /// <summary>
-        /// let one such as ETA to set logger for the service layer
-        /// </summary>
-        internal static void SetLogger(IGlobalOptionService optionsService, string loggerName)
-        {
-            if (loggerName == null)
-            {
-                ResetLogger();
-            }
-
-            Logger.SetLogger(GetLogger(optionsService, loggerName));
-        }
-
-        /// <summary>
         /// get string representation of functionId
         /// </summary>
         public static string GetFunctionId(int functionId)
@@ -88,19 +75,6 @@ namespace Roslyn.Hosting.Diagnostics
         private static FunctionId GetFunctionId(string functionId)
         {
             return (FunctionId)Enum.Parse(typeof(FunctionId), functionId);
-        }
-
-        private static ILogger GetLogger(IGlobalOptionService optionsService, string loggerName)
-        {
-            switch (loggerName)
-            {
-                case "EtwLogger":
-                    return new EtwLogger(optionsService);
-                case "TraceLogger":
-                    return new TraceLogger(Logger.GetLoggingChecker(optionsService));
-                default:
-                    return EmptyLogger.Instance;
-            }
         }
     }
 }

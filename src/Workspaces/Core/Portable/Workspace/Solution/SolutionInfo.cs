@@ -73,11 +73,6 @@ namespace Microsoft.CodeAnalysis
             return With(attributes: new SolutionAttributes(Attributes.Id, version, Attributes.FilePath));
         }
 
-        internal SolutionInfo WithFilePath(string filePath)
-        {
-            return With(attributes: new SolutionAttributes(Attributes.Id, Attributes.Version, filePath));
-        }
-
         internal SolutionInfo WithProjects(IEnumerable<ProjectInfo> projects)
         {
             return With(projects: projects);

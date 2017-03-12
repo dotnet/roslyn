@@ -119,15 +119,6 @@ namespace Roslyn.Test.PdbUtilities
                 _offset += 2;
             }
 
-            internal void ReadInt8(out sbyte value)
-            {
-                unchecked
-                {
-                    value = (sbyte)_buffer[_offset];
-                }
-                _offset += 1;
-            }
-
             internal void ReadInt32(out int value)
             {
                 unchecked
@@ -138,22 +129,6 @@ namespace Roslyn.Test.PdbUtilities
                                         (_buffer[_offset + 3] << 24));
                 }
                 _offset += 4;
-            }
-
-            internal void ReadInt64(out long value)
-            {
-                unchecked
-                {
-                    value = (long)(((ulong)_buffer[_offset + 0] & 0xFF) |
-                                       ((ulong)_buffer[_offset + 1] << 8) |
-                                       ((ulong)_buffer[_offset + 2] << 16) |
-                                       ((ulong)_buffer[_offset + 3] << 24) |
-                                       ((ulong)_buffer[_offset + 4] << 32) |
-                                       ((ulong)_buffer[_offset + 5] << 40) |
-                                       ((ulong)_buffer[_offset + 6] << 48) |
-                                       ((ulong)_buffer[_offset + 7] << 56));
-                }
-                _offset += 8;
             }
 
             internal void ReadUInt16(out ushort value)
@@ -187,22 +162,6 @@ namespace Roslyn.Test.PdbUtilities
                 _offset += 4;
             }
 
-            internal void ReadUInt64(out ulong value)
-            {
-                unchecked
-                {
-                    value = (ulong)(((ulong)_buffer[_offset + 0] & 0xFF) |
-                                       ((ulong)_buffer[_offset + 1] << 8) |
-                                       ((ulong)_buffer[_offset + 2] << 16) |
-                                       ((ulong)_buffer[_offset + 3] << 24) |
-                                       ((ulong)_buffer[_offset + 4] << 32) |
-                                       ((ulong)_buffer[_offset + 5] << 40) |
-                                       ((ulong)_buffer[_offset + 6] << 48) |
-                                       ((ulong)_buffer[_offset + 7] << 56));
-                }
-                _offset += 8;
-            }
-
             internal void ReadInt32(int[] values)
             {
                 for (int i = 0; i < values.Length; i++)
@@ -225,35 +184,6 @@ namespace Roslyn.Test.PdbUtilities
                 {
                     bytes[i] = _buffer[_offset++];
                 }
-            }
-
-            internal float ReadFloat()
-            {
-                float result = BitConverter.ToSingle(_buffer, _offset);
-                _offset += 4;
-                return result;
-            }
-
-            internal double ReadDouble()
-            {
-                double result = BitConverter.ToDouble(_buffer, _offset);
-                _offset += 8;
-                return result;
-            }
-
-            internal decimal ReadDecimal()
-            {
-                int[] bits = new int[4];
-                this.ReadInt32(bits);
-                return new decimal(bits);
-            }
-
-            internal void ReadBString(out string value)
-            {
-                ushort len;
-                this.ReadUInt16(out len);
-                value = Encoding.UTF8.GetString(_buffer, _offset, len);
-                _offset += len;
             }
 
             internal void ReadCString(out string value)
@@ -944,11 +874,6 @@ namespace Roslyn.Test.PdbUtilities
                     left -= todo;
                     page++;
                 }
-            }
-
-            internal int Length
-            {
-                get { return contentSize; }
             }
 
             internal readonly int contentSize;

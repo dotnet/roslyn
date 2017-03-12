@@ -130,20 +130,6 @@ End Module")
             return vars;
         }
 
-        private static void Kill(Process process)
-        {
-            try
-            {
-                process.Kill();
-                process.WaitForExit();
-            }
-            catch (Exception)
-            {
-                // Happens when process is killed before the Kill command is executed.  That's fine.  We
-                // just want to make sure the process is gone.
-            }
-        }
-
         private static void CheckForBadShared(string arguments)
         {
             bool hasShared;

@@ -47,8 +47,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal SyntaxNode Node => _node;
 
-        internal int Position => _node?.Position ?? 0;
-
         internal SyntaxNode Parent => _node?.Parent;
 
         /// <summary>
@@ -358,11 +356,13 @@ namespace Microsoft.CodeAnalysis
             throw new ArgumentOutOfRangeException(nameof(nodeOrTokenInList));
         }
 
+#if DEBUG
         // for debugging
         private SyntaxNodeOrToken[] Nodes
         {
             get { return this.ToArray(); }
         }
+#endif
 
         /// <summary>
         /// Gets the enumerator.

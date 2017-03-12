@@ -138,9 +138,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void SendKeys(params object[] keys)
             => Editor.SendKeys(keys);
 
-        protected KeyPress KeyPress(VirtualKey virtualKey, ShiftState shiftState)
-            => new KeyPress(virtualKey, shiftState);
-
         protected KeyPress Ctrl(VirtualKey virtualKey)
             => new KeyPress(virtualKey, ShiftState.Ctrl);
 
@@ -306,12 +303,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var currentItem = Editor.GetCurrentCompletionItem();
             Assert.Equal(expectedItem, currentItem);
-        }
-
-        protected void VerifyCurrentSignature(Signature expectedSignature)
-        {
-            var currentSignature = Editor.GetCurrentSignature();
-            Assert.Equal(expectedSignature, currentSignature);
         }
 
         protected void VerifyCurrentSignature(string content)

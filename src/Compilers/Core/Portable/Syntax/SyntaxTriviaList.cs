@@ -370,8 +370,10 @@ namespace Microsoft.CodeAnalysis
             throw new ArgumentOutOfRangeException(nameof(triviaInList));
         }
 
+#if DEBUG
         // for debugging
         private SyntaxTrivia[] Nodes => this.ToArray();
+#endif
 
         IEnumerator<SyntaxTrivia> IEnumerable<SyntaxTrivia>.GetEnumerator()
         {

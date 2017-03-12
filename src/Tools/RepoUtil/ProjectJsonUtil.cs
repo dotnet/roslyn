@@ -12,14 +12,6 @@ namespace RepoUtil
 {
     internal static class ProjectJsonUtil
     {
-        /// <summary>
-        /// Does the specified project.json file need to be tracked by our repo util? 
-        /// </summary>
-        internal static bool NeedsTracking(string filePath)
-        {
-            return GetDependencies(filePath).Length > 0;
-        }
-
         internal static ImmutableArray<NuGetPackage> GetDependencies(string filePath)
         {
             // Need to track any file that has dependencies
@@ -106,27 +98,6 @@ namespace RepoUtil
             }
 
             return new NuGetPackage(name, version);
-        }
-
-        internal static bool VerifyTracked(string sourcesPath, IEnumerable<FileName> fileNames)
-        {
-            var set = new HashSet<FileName>(fileNames);
-            var allGood = true;
-
-            foreach (var file in Directory.EnumerateFiles(sourcesPath, "project.json", SearchOption.AllDirectories))
-            {
-                var relativeName = file.Substring(sourcesPath.Length + 1);
-                var fileName = new FileName(sourcesPath, relativeName);
-                if (set.Contains(fileName) || !NeedsTracking(file))
-                {
-                    continue;
-                }
-
-                Console.WriteLine($"Need to track {fileName}");
-                allGood = false;
-            }
-
-            return allGood;
         }
 
         internal static IEnumerable<string> GetProjectJsonFiles(string sourcesPath)

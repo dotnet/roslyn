@@ -112,24 +112,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             }
         }
 
-        private void OnListViewPreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Space && e.KeyboardDevice.Modifiers == ModifierKeys.None)
-            {
-                ToggleCheckSelection();
-                e.Handled = true;
-            }
-        }
-
-        private void OnListViewDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-            {
-                ToggleCheckSelection();
-                e.Handled = true;
-            }
-        }
-
         private void ToggleCheckSelection()
         {
             var selectedItems = Members.SelectedItems.OfType<ExtractInterfaceDialogViewModel.MemberSymbolViewModel>().ToArray();

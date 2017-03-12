@@ -514,10 +514,5 @@ namespace Microsoft.CodeAnalysis
         {
             return this.Solution.RemoveAdditionalDocument(documentId).GetProject(this.Id);
         }
-
-        private string GetDebuggerDisplay()
-        {
-            return this.Name;
-        }
     }
 }

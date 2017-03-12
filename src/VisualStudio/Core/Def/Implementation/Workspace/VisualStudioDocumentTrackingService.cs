@@ -169,28 +169,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private string GetDebuggerDisplay()
-        {
-            var snapshot = _visibleFrames;
-
-            StringBuilder sb = new StringBuilder();
-            sb.Append("Visible frames: ");
-            if (snapshot.IsEmpty)
-            {
-                sb.Append("{empty}");
-            }
-            else
-            {
-                foreach (var frame in snapshot)
-                {
-                    sb.Append(frame.GetDebuggerDisplay());
-                    sb.Append(' ');
-                }
-            }
-
-            return sb.ToString();
-        }
-
         /// <summary>
         /// Listens to frame notifications for a visible frame. When the frame becomes invisible or closes,
         /// then it automatically disconnects.

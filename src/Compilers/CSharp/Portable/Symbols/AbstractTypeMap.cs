@@ -301,24 +301,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result != null ? result.AsImmutableOrNull() : original;
         }
 
-        internal ImmutableArray<TypeWithModifiers> SubstituteTypes(ImmutableArray<TypeSymbol> original)
-        {
-            if (original.IsDefault)
-            {
-                return default(ImmutableArray<TypeWithModifiers>);
-            }
-
-            var result = ArrayBuilder<TypeWithModifiers>.GetInstance(original.Length);
-
-            foreach (TypeSymbol t in original)
-            {
-                result.Add(SubstituteType(t));
-            }
-
-            return result.ToImmutableAndFree();
-        }
-
-
         /// <summary>
         /// Substitute types, and return the results without duplicates, preserving the original order.
         /// </summary>

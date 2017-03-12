@@ -171,11 +171,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.NamespacesOrTypesOnly | LookupOptions.LabelsOnly)) == 0;
         }
 
-        internal static bool CanConsiderTypes(this LookupOptions options)
-        {
-            return (options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.MustBeInvocableIfMember | LookupOptions.MustBeInstance | LookupOptions.LabelsOnly)) == 0;
-        }
-
         internal static bool CanConsiderNamespaces(this LookupOptions options)
         {
             return (options & (LookupOptions.MustNotBeNamespace | LookupOptions.MustBeInvocableIfMember | LookupOptions.MustBeInstance | LookupOptions.LabelsOnly)) == 0;

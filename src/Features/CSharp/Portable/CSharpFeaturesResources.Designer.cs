@@ -126,15 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Autoselect disabled due to possible tuple type element creation..
-        /// </summary>
-        internal static string Autoselect_disabled_due_to_possible_tuple_type_element_creation {
-            get {
-                return ResourceManager.GetString("Autoselect_disabled_due_to_possible_tuple_type_element_creation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to potential implicit array creation..
         /// </summary>
         internal static string Autoselect_disabled_due_to_potential_implicit_array_creation {
@@ -203,15 +194,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Can_t_determine_valid_range_of_statements_to_extract {
             get {
                 return ResourceManager.GetString("Can_t_determine_valid_range_of_statements_to_extract", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cast is redundant.
-        /// </summary>
-        internal static string Cast_is_redundant {
-            get {
-                return ResourceManager.GetString("Cast_is_redundant", resourceCulture);
             }
         }
         
@@ -338,15 +320,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above {
             get {
                 return ResourceManager.GetString("Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;element name&gt; : .
-        /// </summary>
-        internal static string element_name {
-            get {
-                return ResourceManager.GetString("element_name", resourceCulture);
             }
         }
         
@@ -657,15 +630,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Name can be simplified.
-        /// </summary>
-        internal static string Name_can_be_simplified {
-            get {
-                return ResourceManager.GetString("Name_can_be_simplified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;namespace name&gt;.
         /// </summary>
         internal static string namespace_name {
@@ -716,15 +680,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string orderby_clause {
             get {
                 return ResourceManager.GetString("orderby_clause", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Organize Usings.
-        /// </summary>
-        internal static string Organize_Usings {
-            get {
-                return ResourceManager.GetString("Organize_Usings", resourceCulture);
             }
         }
         

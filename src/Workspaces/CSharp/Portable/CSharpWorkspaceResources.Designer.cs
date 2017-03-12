@@ -80,15 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Implement Interface.
-        /// </summary>
-        internal static string Implement_Interface {
-            get {
-                return ResourceManager.GetString("Implement_Interface", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Namespace can not be added in this destination..
         /// </summary>
         internal static string Namespace_can_not_be_added_in_this_destination {

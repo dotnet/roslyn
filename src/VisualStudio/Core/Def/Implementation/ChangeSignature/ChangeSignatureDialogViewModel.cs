@@ -337,13 +337,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             return _disabledParameters.Contains(parameterViewModel.ParameterSymbol);
         }
 
-        private IList<ParameterViewModel> GetSelectedGroup()
-        {
-            var index = SelectedIndex;
-            index = _thisParameter == null ? index : index - 1;
-            return index < _parameterGroup1.Count ? _parameterGroup1 : index < _parameterGroup1.Count + _parameterGroup2.Count ? _parameterGroup2 : SpecializedCollections.EmptyList<ParameterViewModel>();
-        }
-
         public bool IsOkButtonEnabled
         {
             get

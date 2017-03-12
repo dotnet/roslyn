@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         //        in compilation cache in certain host (VS), semantic model comes and goes more frequently which will release cache more often.
         private static readonly ConditionalWeakTable<Compilation, TreeMap> s_treeAliasMap = new ConditionalWeakTable<Compilation, TreeMap>();
         private static readonly ConditionalWeakTable<Compilation, TreeMap>.CreateValueCallback s_createTreeMap = c => new TreeMap();
-        private static readonly Func<ISymbol, string> s_symbolToName = s => s.Name;
 
         public static bool TryGetAliasSymbol(SemanticModel semanticModel, int namespaceId, INamespaceOrTypeSymbol targetSymbol, out IAliasSymbol aliasSymbol)
         {

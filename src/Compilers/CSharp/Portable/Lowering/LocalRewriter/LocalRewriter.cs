@@ -287,13 +287,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
-        private static BoundStatement BadStatement(BoundNode node)
-        {
-            return (node == null)
-                ? new BoundBadStatement(null, default(ImmutableArray<BoundNode>), true)
-                : new BoundBadStatement(node.Syntax, ImmutableArray.Create<BoundNode>(node), true);
-        }
-
         private static BoundExpression BadExpression(BoundExpression node)
         {
             return BadExpression(node.Syntax, node.Type, ImmutableArray.Create<BoundNode>(node));

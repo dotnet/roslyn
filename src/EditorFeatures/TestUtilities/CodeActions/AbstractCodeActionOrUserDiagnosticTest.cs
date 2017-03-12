@@ -571,9 +571,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected static (OptionKey, object) SingleOption(PerLanguageOption<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle, string language)
             => (new OptionKey(option, language), codeStyle);
 
-        protected IDictionary<OptionKey, object> Option(Option<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
-            => OptionsSet(SingleOption(option, enabled, notification));
-
         protected IDictionary<OptionKey, object> Option(Option<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle)
             => OptionsSet(SingleOption(option, codeStyle));
 

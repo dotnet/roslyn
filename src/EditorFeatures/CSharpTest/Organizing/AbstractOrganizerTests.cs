@@ -18,12 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckResultAsync(initial, final, Options.Script);
         }
 
-        protected async Task CheckAsync(string initial, string final, bool specialCaseSystem)
-        {
-            await CheckResultAsync(initial, final, specialCaseSystem);
-            await CheckResultAsync(initial, final, specialCaseSystem, Options.Script);
-        }
-
         protected async Task CheckResultAsync(string initial, string final, bool specialCaseSystem, CSharpParseOptions options = null)
         {
             using (var workspace = TestWorkspace.CreateCSharp(initial))

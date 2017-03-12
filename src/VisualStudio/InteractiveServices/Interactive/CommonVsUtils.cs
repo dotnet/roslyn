@@ -31,19 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
         }
 
-        internal static string GetFilePath(ITextBuffer textBuffer)
-        {
-            ITextDocument textDocument;
-            if (textBuffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out textDocument))
-            {
-                return textDocument.FilePath;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         /// <summary>
         /// Gets the current IWpfTextView that is the active document.
         /// </summary>

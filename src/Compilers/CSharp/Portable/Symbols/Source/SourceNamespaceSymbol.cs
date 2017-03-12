@@ -60,18 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal IEnumerable<Imports> GetBoundImportsMerged()
-        {
-            var compilation = this.DeclaringCompilation;
-            foreach (var declaration in _mergedDeclaration.Declarations)
-            {
-                if (declaration.HasUsings || declaration.HasExternAliases)
-                {
-                    yield return compilation.GetImports(declaration);
-                }
-            }
-        }
-
         public override string Name
         {
             get

@@ -93,13 +93,6 @@ namespace Microsoft.CodeAnalysis
             return SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyKeys);
         }
 
-        private static readonly Func<string, string> s_removeAssemblyKeys = (string data) =>
-        {
-            var reader = new RemoveAssemblySymbolKeysReader();
-            reader.Initialize(data);
-            return reader.RemoveAssemblySymbolKeys();
-        };
-
         public static SymbolKeyResolution Resolve(
             string symbolKey, Compilation compilation,
             bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default(CancellationToken))

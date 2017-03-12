@@ -669,23 +669,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return 0;
         }
 
-        private static SyntaxTokenList GetModifiers(VariableDeclarationSyntax declaration)
-        {
-            BaseFieldDeclarationSyntax fieldDeclaration;
-            LocalDeclarationStatementSyntax localDeclaration;
-            if ((fieldDeclaration = declaration.Parent as BaseFieldDeclarationSyntax) != null)
-            {
-                return fieldDeclaration.Modifiers;
-            }
-
-            if ((localDeclaration = declaration.Parent as LocalDeclarationStatementSyntax) != null)
-            {
-                return localDeclaration.Modifiers;
-            }
-
-            return default(SyntaxTokenList);
-        }
-
         private static TextSpan CreateSpanForCatchClause(CatchClauseSyntax catchClause, int position)
         {
             if (catchClause.Filter != null)

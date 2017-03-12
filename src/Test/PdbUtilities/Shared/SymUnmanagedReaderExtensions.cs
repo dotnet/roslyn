@@ -34,26 +34,6 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        internal static ImmutableArray<string> GetLocalVariableSlots(this ISymUnmanagedMethod method)
-        {
-            var builder = ImmutableArray.CreateBuilder<string>();
-            ISymUnmanagedScope rootScope = method.GetRootScope();
-
-            ForEachLocalVariableRecursive(rootScope, offset: -1, isScopeEndInclusive: false, action: local =>
-            {
-                int slot = local.GetSlot();
-                while (builder.Count <= slot)
-                {
-                    builder.Add(null);
-                }
-
-                var name = local.GetName();
-                builder[slot] = name;
-            });
-
-            return builder.ToImmutable();
-        }
-
         private static void ForEachLocalVariableRecursive(
             ISymUnmanagedScope scope,
             int offset,

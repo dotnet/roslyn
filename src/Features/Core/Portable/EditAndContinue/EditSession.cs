@@ -108,8 +108,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> BaseActiveStatements => _baseActiveStatements;
 
-        private Solution CurrentSolution => _baseSolution.Workspace.CurrentSolution;
-
         public bool StoppedAtException => _stoppedAtException;
 
         public IReadOnlyDictionary<ProjectId, ProjectReadOnlyReason> Projects => _projects;

@@ -158,23 +158,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return ImmutableArray<Diagnostic>.Empty;
         }
-
-        private new string GetDebuggerDisplay()
-        {
-            var builder = new StringBuilder();
-            builder.Append((_kind == SynthesizedLocalKind.UserDefined) ? "<temp>" : _kind.ToString());
-            builder.Append(' ');
-            builder.Append(_type.ToDisplayString(SymbolDisplayFormat.TestFormat));
-
-#if DEBUG
-            builder.Append(" @");
-            builder.Append(_createdAtFilePath);
-            builder.Append('(');
-            builder.Append(_createdAtLineNumber);
-            builder.Append(')');
-#endif
-
-            return builder.ToString();
-        }
     }
 }

@@ -551,16 +551,13 @@ namespace Microsoft.CodeAnalysis
             return new SeparatedSyntaxList<TNode>(nodesWithSeps.Replace(separatorToken, newSeparator));
         }
 
+#if DEBUG
         // for debugging
         private TNode[] Nodes
         {
             get { return this.ToArray(); }
         }
-
-        private SyntaxNodeOrToken[] NodesWithSeparators
-        {
-            get { return _list.ToArray(); }
-        }
+#endif
 
         public Enumerator GetEnumerator()
         {

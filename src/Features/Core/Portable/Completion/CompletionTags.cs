@@ -51,6 +51,5 @@ namespace Microsoft.CodeAnalysis.Completion
         public const string Snippet = WellKnownTags.Snippet;
         public const string Error = WellKnownTags.Error;
         public const string Warning = WellKnownTags.Warning;
-        internal const string StatusInformation = WellKnownTags.StatusInformation;
     }
 }

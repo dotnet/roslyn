@@ -67,14 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 i++;
             }
         }
-
-        internal static void BasicNameVerification(ExpressionSyntax nameTree, string name)
-        {
-            // Verification of the change
-            Assert.IsType(typeof(IdentifierNameSyntax), nameTree);
-            var genericName = nameTree as IdentifierNameSyntax;
-            Assert.Equal(genericName.ToString(), name);
-        }
         #endregion
     }
 }

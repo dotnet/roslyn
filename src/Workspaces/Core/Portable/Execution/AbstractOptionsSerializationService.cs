@@ -290,30 +290,6 @@ namespace Microsoft.CodeAnalysis.Execution
             return options.WithChangedOption(option, language, value);
         }
 
-        protected void WriteOptionTo(OptionSet options, Option<NamingStylePreferences> option, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var value = options.GetOption(option);
-            writer.WriteString(value.CreateXElement().ToString());
-        }
-
-        protected OptionSet ReadOptionFrom(OptionSet options, Option<NamingStylePreferences> option, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var xmlText = reader.ReadString();
-            try
-            {
-                var value = NamingStylePreferences.FromXElement(XElement.Parse(xmlText));
-                return options.WithChangedOption(option, value);
-            }
-            catch (System.Exception)
-            {
-                return options;
-            }
-        }
-
         private void WriteOptionTo(OptionSet options, string language, PerLanguageOption<NamingStylePreferences> option, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

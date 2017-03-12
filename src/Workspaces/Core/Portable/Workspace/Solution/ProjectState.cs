@@ -224,11 +224,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static AnalyzerOptions CreateAnalyzerOptions(ImmutableDictionary<DocumentId, TextDocumentState> additionalDocStates)
-        {
-            return new AnalyzerOptions(additionalDocStates.Values.Select(d => new AdditionalTextDocument(d)).ToImmutableArray<AdditionalText>());
-        }
-
         public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken)
         {
             return _lazyLatestDocumentVersion.GetValueAsync(cancellationToken);

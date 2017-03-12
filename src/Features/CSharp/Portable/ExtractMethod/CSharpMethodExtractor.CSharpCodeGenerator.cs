@@ -496,31 +496,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return identifier;
             }
 
-            private static SyntaxToken GetIdentifierTokenAndTrivia(SyntaxToken identifier, TypeSyntax typeSyntax)
-            {
-                if (typeSyntax != null)
-                {
-                    var identifierLeadingTrivia = new SyntaxTriviaList();
-                    var identifierTrailingTrivia = new SyntaxTriviaList();
-                    if (typeSyntax.HasLeadingTrivia)
-                    {
-                        identifierLeadingTrivia = identifierLeadingTrivia.AddRange(typeSyntax.GetLeadingTrivia());
-                    }
-
-                    if (typeSyntax.HasTrailingTrivia)
-                    {
-                        identifierLeadingTrivia = identifierLeadingTrivia.AddRange(typeSyntax.GetTrailingTrivia());
-                    }
-
-                    identifierLeadingTrivia = identifierLeadingTrivia.AddRange(identifier.LeadingTrivia);
-                    identifierTrailingTrivia = identifierTrailingTrivia.AddRange(identifier.TrailingTrivia);
-                    identifier = identifier.WithLeadingTrivia(identifierLeadingTrivia)
-                                           .WithTrailingTrivia(identifierTrailingTrivia);
-                }
-
-                return identifier;
-            }
-
             private async Task<IEnumerable<StatementSyntax>> SplitOrMoveDeclarationIntoMethodDefinitionAsync(
                 IEnumerable<StatementSyntax> statements,
                 CancellationToken cancellationToken)

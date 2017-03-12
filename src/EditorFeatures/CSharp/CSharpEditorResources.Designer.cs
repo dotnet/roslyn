@@ -68,14 +68,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
                 return ResourceManager.GetString("Press_TAB_to_insert", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Smart Indenting.
-        /// </summary>
-        internal static string Smart_Indenting {
-            get {
-                return ResourceManager.GetString("Smart_Indenting", resourceCulture);
-            }
-        }
     }
 }

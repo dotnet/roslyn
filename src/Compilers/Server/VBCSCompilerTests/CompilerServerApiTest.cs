@@ -27,21 +27,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             utf8output: false,
             output: string.Empty);
 
-        private const string HelloWorldSourceText = @"
-using System;
-class Hello
-{
-    static void Main()
-    {
-        Console.WriteLine(""Hello, world.""); 
-    }
-}";
-
-        private static Task TaskFromException(Exception e)
-        {
-            return TaskFromException<bool>(e);
-        }
-
         private static Task<T> TaskFromException<T>(Exception e)
         {
             var source = new TaskCompletionSource<T>();
@@ -94,29 +79,6 @@ class Hello
                 BuildProtocolConstants.ProtocolVersion,
                 RequestLanguage.CSharpCompile,
                 builder.ToImmutable());
-        }
-
-        /// <summary>
-        /// Run a C# compilation against the given source text using the provided named pipe name.
-        /// </summary>
-        private async Task<BuildResponse> RunCSharpCompile(string pipeName, string sourceText, TimeSpan? keepAlive = null)
-        {
-            using (var namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut))
-            {
-                var buildRequest = await CreateBuildRequest(sourceText, keepAlive).ConfigureAwait(false);
-                namedPipe.Connect(Timeout.Infinite);
-                await buildRequest.WriteAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
-                return await BuildResponse.ReadAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
-            }
-        }
-
-        private static Mock<IClientConnectionHost> CreateNopClientConnectionHost()
-        {
-            var host = new Mock<IClientConnectionHost>();
-            host
-                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
-                .Returns(new TaskCompletionSource<IClientConnection>().Task);
-            return host;
         }
 
         private static Task<T> FromException<T>(Exception ex)

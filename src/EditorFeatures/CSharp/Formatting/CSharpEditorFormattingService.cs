@@ -341,17 +341,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             }
         }
 
-        private bool IsInvalidToken(char typedChar, SyntaxToken token)
-        {
-            string text = null;
-            if (IsInvalidToken(token, ref text))
-            {
-                return true;
-            }
-
-            return text[0] != typedChar;
-        }
-
         private bool IsInvalidToken(SyntaxToken token, ref string text)
         {
             if (IsInvalidTokenKind(token))

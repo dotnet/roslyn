@@ -40,11 +40,6 @@ namespace Microsoft.CodeAnalysis
             Node = token;
         }
 
-        private string GetDebuggerDisplay()
-        {
-            return GetType().Name + " " + (Node != null ? Node.KindText : "None") + " " + ToString();
-        }
-
         /// <summary>
         /// An integer representing the language specific kind of this token.
         /// </summary>
@@ -191,11 +186,6 @@ namespace Microsoft.CodeAnalysis
         /// Full width of the leading trivia of this token.
         /// </summary>
         internal int LeadingWidth => Node?.GetLeadingTriviaWidth() ?? 0;
-
-        /// <summary>
-        /// Full width of the trailing trivia of this token.
-        /// </summary>
-        internal int TrailingWidth => Node?.GetTrailingTriviaWidth() ?? 0;
 
         /// <summary>
         /// Determines whether this token or any of its descendant trivia have any diagnostics on them. 

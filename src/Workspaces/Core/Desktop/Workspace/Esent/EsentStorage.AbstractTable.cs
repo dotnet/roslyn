@@ -73,18 +73,6 @@ namespace Microsoft.CodeAnalysis.Esent
                 };
             }
 
-            protected JET_INDEXCREATE CreateIndex(string name, string indexKey)
-            {
-                return new JET_INDEXCREATE
-                {
-                    szIndexName = name,
-                    szKey = indexKey,
-                    cbKey = indexKey.Length,
-                    grbit = CreateIndexGrbit.IndexDisallowNull,
-                    ulDensity = 80
-                };
-            }
-
             protected JET_INDEXCREATE CreateUniqueTextIndex(string name, string indexKey)
             {
                 return new JET_INDEXCREATE

@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis.Extensions
             _disabledProviders.Remove(provider);
         }
 
-        protected void IgnoreProvider(object provider)
-        {
-            _ignoredProviders.Add(provider);
-        }
-
         public bool IsIgnored(object provider)
         {
             return _ignoredProviders.Contains(provider);

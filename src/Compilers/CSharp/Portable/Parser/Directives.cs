@@ -62,14 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        // Can't be private as it's called by DirectiveStack in its GetDebuggerDisplay()
-        internal string GetDebuggerDisplay()
-        {
-            var writer = new System.IO.StringWriter(System.Globalization.CultureInfo.InvariantCulture);
-            _node.WriteTo(writer, false, false);
-            return writer.ToString();
-        }
-
         internal string GetIdentifier()
         {
             switch (_node.Kind)
@@ -346,22 +338,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return current;
-        }
-
-        private string GetDebuggerDisplay()
-        {
-            var sb = new StringBuilder();
-            for (var current = _directives; current != null && current.Any(); current = current.Tail)
-            {
-                if (sb.Length > 0)
-                {
-                    sb.Insert(0, " | ");
-                }
-
-                sb.Insert(0, current.Head.GetDebuggerDisplay());
-            }
-
-            return sb.ToString();
         }
 
         public bool IncrementallyEquivalent(DirectiveStack other)

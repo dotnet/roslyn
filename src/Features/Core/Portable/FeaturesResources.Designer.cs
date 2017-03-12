@@ -357,24 +357,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to All lowercase.
-        /// </summary>
-        internal static string All_lowercase {
-            get {
-                return ResourceManager.GetString("All_lowercase", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to All uppercase.
-        /// </summary>
-        internal static string All_uppercase {
-            get {
-                return ResourceManager.GetString("All_uppercase", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session..
         /// </summary>
         internal static string An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session {
@@ -418,24 +400,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Anonymous_Types_colon {
             get {
                 return ResourceManager.GetString("Anonymous_Types_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Argument cannot be empty..
-        /// </summary>
-        internal static string Argument_cannot_be_empty {
-            get {
-                return ResourceManager.GetString("Argument_cannot_be_empty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Argument cannot have a null element..
-        /// </summary>
-        internal static string Argument_cannot_have_a_null_element {
-            get {
-                return ResourceManager.GetString("Argument_cannot_have_a_null_element", resourceCulture);
             }
         }
         
@@ -1036,24 +1000,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to create a remote process for interactive code execution..
-        /// </summary>
-        internal static string Failed_to_create_a_remote_process_for_interactive_code_execution {
-            get {
-                return ResourceManager.GetString("Failed_to_create_a_remote_process_for_interactive_code_execution", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to initialize remote interactive process..
-        /// </summary>
-        internal static string Failed_to_initialize_remote_interactive_process {
-            get {
-                return ResourceManager.GetString("Failed_to_initialize_remote_interactive_process", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to launch &apos;{0}&apos; process (exit code: {1}) with output: .
         /// </summary>
         internal static string Failed_to_launch_0_process_exit_code_colon_1_with_output_colon {
@@ -1095,15 +1041,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Find_and_install_latest_version_of_0 {
             get {
                 return ResourceManager.GetString("Find_and_install_latest_version_of_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to First word capitalized.
-        /// </summary>
-        internal static string First_word_capitalized {
-            get {
-                return ResourceManager.GetString("First_word_capitalized", resourceCulture);
             }
         }
         
@@ -1387,15 +1324,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to generating source for symbols of this type is not supported.
-        /// </summary>
-        internal static string generating_source_for_symbols_of_this_type_is_not_supported {
-            get {
-                return ResourceManager.GetString("generating_source_for_symbols_of_this_type_is_not_supported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to generic overload.
         /// </summary>
         internal static string generic_overload {
@@ -1563,15 +1491,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Install_with_package_manager {
             get {
                 return ResourceManager.GetString("Install_with_package_manager", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Interactive Host not initialized..
-        /// </summary>
-        internal static string Interactive_Host_not_initialized {
-            get {
-                return ResourceManager.GetString("Interactive_Host_not_initialized", resourceCulture);
             }
         }
         
@@ -1747,15 +1666,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Locals.
-        /// </summary>
-        internal static string Locals {
-            get {
-                return ResourceManager.GetString("Locals", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Locals and parameters.
         /// </summary>
         internal static string Locals_and_parameters {
@@ -1770,24 +1680,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string location_unknown {
             get {
                 return ResourceManager.GetString("location_unknown", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Make containing scope async.
-        /// </summary>
-        internal static string Make_containing_scope_async {
-            get {
-                return ResourceManager.GetString("Make_containing_scope_async", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Make containing scope async (return Task).
-        /// </summary>
-        internal static string Make_containing_scope_async_return_Task {
-            get {
-                return ResourceManager.GetString("Make_containing_scope_async_return_Task", resourceCulture);
             }
         }
         
@@ -1903,16 +1795,6 @@ namespace Microsoft.CodeAnalysis {
             get {
                 return ResourceManager.GetString("Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_pre" +
                         "vent_the_debug_session_from_continuing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying an active &apos;{0}&apos; which contains &apos;On Error&apos; or &apos;Resume&apos; statements will prevent the debug session from continuing..
-        /// </summary>
-        internal static string Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing {
-            get {
-                return ResourceManager.GetString("Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_t" +
-                        "he_debug_session_from_continuing", resourceCulture);
             }
         }
         
@@ -2158,15 +2040,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pascal Case.
-        /// </summary>
-        internal static string Pascal_Case {
-            get {
-                return ResourceManager.GetString("Pascal_Case", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;Pending&gt;.
         /// </summary>
         internal static string Pending {
@@ -2280,15 +2153,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string range_variable {
             get {
                 return ResourceManager.GetString("range_variable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Re-triage {0}(currently &apos;{1}&apos;).
-        /// </summary>
-        internal static string Re_triage_0_currently_1 {
-            get {
-                return ResourceManager.GetString("Re_triage_0_currently_1", resourceCulture);
             }
         }
         
@@ -2476,29 +2340,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reported diagnostic with ID &apos;{0}&apos; is not supported by the analyzer..
-        /// </summary>
-        internal static string Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer {
-            get {
-                return ResourceManager.GetString("Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Represents an object whose operations will be resolved at runtime..
         /// </summary>
         internal static string Represents_an_object_whose_operations_will_be_resolved_at_runtime {
             get {
                 return ResourceManager.GetString("Represents_an_object_whose_operations_will_be_resolved_at_runtime", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Requested assembly already loaded from &apos;{0}&apos;..
-        /// </summary>
-        internal static string Requested_assembly_already_loaded_from_0 {
-            get {
-                return ResourceManager.GetString("Requested_assembly_already_loaded_from_0", resourceCulture);
             }
         }
         

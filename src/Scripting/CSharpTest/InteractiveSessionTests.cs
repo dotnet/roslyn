@@ -1446,7 +1446,6 @@ new List<ArgumentException>()
 
         public class M<T>
         {
-            private int F() => 3;
             public T G() => default(T);
         }
 

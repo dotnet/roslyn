@@ -45,19 +45,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ((n > ReturnValuePrefixLength) && int.TryParse(name.Substring(ReturnValuePrefixLength), NumberStyles.None, CultureInfo.InvariantCulture, out index));
         }
 
-        internal static DkmClrCompilationResultFlags GetLocalResultFlags(this Alias alias)
-        {
-            switch (alias.Kind)
-            {
-                case DkmClrAliasKind.Exception:
-                case DkmClrAliasKind.StowedException:
-                case DkmClrAliasKind.ReturnValue:
-                    return DkmClrCompilationResultFlags.ReadOnlyResult;
-                default:
-                    return DkmClrCompilationResultFlags.None;
-            }
-        }
-
         internal static bool IsReturnValueWithoutIndex(this Alias alias)
         {
             Debug.Assert(alias.Kind != DkmClrAliasKind.ReturnValue ||

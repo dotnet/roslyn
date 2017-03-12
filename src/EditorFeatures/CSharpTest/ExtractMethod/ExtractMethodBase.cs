@@ -59,18 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             }
         }
 
-        protected async Task NotSupported_ExtractMethodAsync(string codeWithMarker)
-        {
-            using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker))
-            {
-                Assert.NotNull(await Record.ExceptionAsync(async () =>
-                {
-                    var testDocument = workspace.Documents.Single();
-                    var tree = await ExtractMethodAsync(workspace, testDocument);
-                }));
-            }
-        }
-
         protected async Task TestExtractMethodAsync(
             string codeWithMarker,
             string expected,

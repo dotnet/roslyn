@@ -70,15 +70,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid characters in assembly name.
-        /// </summary>
-        internal static string Invalid_characters_in_assembly_name {
-            get {
-                return ResourceManager.GetString("Invalid_characters_in_assembly_name", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Msbuild failed when processing the file &apos;{0}&apos;.
         /// </summary>
         internal static string Msbuild_failed_when_processing_the_file_0 {

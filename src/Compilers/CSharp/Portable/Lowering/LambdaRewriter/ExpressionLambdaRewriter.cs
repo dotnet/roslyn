@@ -91,8 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly NamedTypeSymbol _IEnumerableType;
 
-        private DiagnosticBag Diagnostics { get { return _bound.Diagnostics; } }
-
         private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, SyntaxNode node, int recursionDepth, DiagnosticBag diagnostics)
         {
             _bound = new SyntheticBoundNodeFactory(null, compilationState.Type, node, compilationState, diagnostics);

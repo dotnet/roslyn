@@ -56,11 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Resources.Add(typeof(RadioButton), radioButtonStyle);
         }
 
-        protected void AddBinding(BindingExpressionBase bindingExpression)
-        {
-            _bindingExpressions.Add(bindingExpression);
-        }
-
         protected void BindToOption(CheckBox checkbox, Option<bool> optionKey)
         {
             var binding = new Binding()

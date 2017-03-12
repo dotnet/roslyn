@@ -52,11 +52,6 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 return new SyntaxTreeInfo(path, this.Options, this.TextSource, this.Encoding, this.Length);
             }
-
-            internal SyntaxTreeInfo WithOptionsAndLength(ParseOptions options, int length)
-            {
-                return new SyntaxTreeInfo(this.FilePath, options, this.TextSource, this.Encoding, length);
-            }
         }
 
         internal sealed class RecoverableSyntaxRoot<TRoot> : RecoverableWeakValueSource<TRoot>

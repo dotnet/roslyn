@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AssemblyAttributeTests : CSharpTestBase
     {
-        private readonly string _netModuleName = GetUniqueName() + ".netmodule";
-
         [Fact]
         public void VersionAttribute()
         {

@@ -66,7 +66,5 @@ namespace Microsoft.CodeAnalysis.Scripting
                 _field.SetValue(_instance, value);
             }
         }
-
-        private string GetDebuggerDisplay() => $"{Name}: {Value ?? "<null>"}";
     }
 }

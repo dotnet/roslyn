@@ -311,12 +311,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             itemID = (uint)VSConstants.VSITEMID.Nil;
             return false;
         }
-
-        private IVsRunningDocumentTable GetRunningDocumentTable()
-        {
-            var runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable>();
-            Debug.Assert(runningDocumentTable != null);
-            return runningDocumentTable;
-        }
     }
 }

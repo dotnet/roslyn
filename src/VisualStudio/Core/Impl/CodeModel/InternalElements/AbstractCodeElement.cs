@@ -39,11 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return FileCodeModel.GetSyntaxTree();
         }
 
-        protected Document GetDocument()
-        {
-            return FileCodeModel.GetDocument();
-        }
-
         protected SemanticModel GetSemanticModel()
         {
             return FileCodeModel.GetSemanticModel();

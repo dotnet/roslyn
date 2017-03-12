@@ -409,8 +409,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                private static readonly char[] s_preprocessorSymbolSeparators = new char[] { ';', ',' };
-
                 public bool SetFeatures(string features)
                 {
                     foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(features))

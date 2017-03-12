@@ -221,16 +221,6 @@ namespace RunTests
             return new CachingTestExecutor(testExecutionOptions, processTestExecutor, dataStorage);
         }
 
-        /// <summary>
-        /// Order the assembly list so that the largest assemblies come first.  This
-        /// is not ideal as the largest assembly does not necessarily take the most time.
-        /// </summary>
-        /// <param name="list"></param>
-        private static IOrderedEnumerable<string> OrderAssemblyList(IEnumerable<string> list)
-        {
-            return list.OrderByDescending((assemblyName) => new FileInfo(assemblyName).Length);
-        }
-
         private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan elapsed, RunAllResult result, int partitionCount, CancellationToken cancellationToken)
         {
             var testRunData = new TestRunData()

@@ -167,11 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return CompileAndGetModelAndMultipleStatements(program, (model, stmt) => model.AnalyzeDataFlow(stmt), treeindex, which);
         }
 
-        protected IEnumerable<DataFlowAnalysis> CompileAndAnalyzeDataFlowMultipleExpressions(string program, int treeindex = 0, int which = -1)
-        {
-            return CompileAndGetModelAndMultipleExpressions(program, (model, expression) => model.AnalyzeDataFlow(expression), treeindex, which);
-        }
-
         protected Tuple<IEnumerable<ControlFlowAnalysis>, IEnumerable<DataFlowAnalysis>> CompileAndAnalyzeControlAndDataFlowMultipleStatements(string program, int treeindex = 0, int which = -1)
         {
             return Tuple.Create(CompileAndAnalyzeMultipleControlFlowStatements(program, treeindex, which), CompileAndAnalyzeMultipleDataFlowStatements(program, treeindex, which));

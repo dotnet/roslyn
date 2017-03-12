@@ -119,10 +119,5 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return 0;
         }
-
-        private string GetDebuggerDisplay()
-        {
-            return string.Format("{0}: {1}", this.Document.Name, this.Location);
-        }
     }
 }

@@ -32,16 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private HashSet<Symbol> _variablesDeclared = new HashSet<Symbol>();
 
-        private void Analyze()
-        {
-            // only one pass needed.
-            regionPlace = RegionPlace.Before;
-            bool badRegion = false;
-            SetState(ReachableState());
-            Scan(ref badRegion);
-            if (badRegion) _variablesDeclared.Clear();
-        }
-
         internal VariablesDeclaredWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
             : base(compilation, member, node, firstInRegion, lastInRegion)
         {

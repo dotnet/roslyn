@@ -67,8 +67,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 Identity = identity;
                 Location = location;
             }
-
-            private string GetDebuggerDisplay() => Identity + " @ " + Location;
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
@@ -88,7 +86,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
 
             public bool IsDefault => Assembly == null;
-            private string GetDebuggerDisplay() => IsDefault ? "uninitialized" : Identity.GetDisplayName() + (LocationOpt != null ? " @ " + LocationOpt : "");
         }
 
         public InteractiveAssemblyLoader(MetadataShadowCopyProvider shadowCopyProvider = null)

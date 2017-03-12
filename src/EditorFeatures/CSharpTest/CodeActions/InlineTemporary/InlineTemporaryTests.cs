@@ -28,16 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 }";
         }
 
-        private SyntaxNode GetNodeToFix(dynamic initialRoot, int declaratorIndex)
-        {
-            return initialRoot.Members[0].Members[0].Body.Statements[0].Declaration.Variables[declaratorIndex];
-        }
-
-        private SyntaxNode GetFixedNode(dynamic fixedRoot)
-        {
-            return fixedRoot.Members[0].Members[0].BodyOpt;
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotWithNoInitializer1()
         {

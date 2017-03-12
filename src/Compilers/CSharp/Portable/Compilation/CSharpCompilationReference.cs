@@ -46,10 +46,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new CSharpCompilationReference(Compilation, properties);
         }
-
-        private string GetDebuggerDisplay()
-        {
-            return CSharpResources.CompilationC + this.Compilation.AssemblyName;
-        }
     }
 }

@@ -271,47 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return newNode;
             }
 
-            private bool IsExpandWithinMultiLineLambda(SyntaxNode node)
-            {
-                if (node == null)
-                {
-                    return false;
-                }
-
-                if (_conflictLocations.Contains(node.Span))
-                {
-                    return true;
-                }
-
-                if (node.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression))
-                {
-                    var parent = (ParenthesizedLambdaExpressionSyntax)node;
-                    if (ReferenceEquals(parent.ParameterList, node))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-
-                if (node.IsParentKind(SyntaxKind.SimpleLambdaExpression))
-                {
-                    var parent = (SimpleLambdaExpressionSyntax)node;
-                    if (ReferenceEquals(parent.Parameter, node))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
             private async Task<SyntaxToken> RenameAndAnnotateAsync(SyntaxToken token, SyntaxToken newToken, bool isRenameLocation, bool isOldText)
             {
                 try

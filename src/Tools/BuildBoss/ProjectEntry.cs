@@ -18,7 +18,6 @@ namespace BuildBoss
         internal Guid TypeGuid { get; }
 
         internal bool IsFolder => TypeGuid == ProjectEntryUtil.FolderProjectType;
-        internal ProjectFileType ProjectType => ProjectEntryUtil.GetProjectFileType(RelativeFilePath);
 
         internal ProjectEntry(
             string relativeFilePath,

@@ -6,8 +6,6 @@ namespace Microsoft.CodeAnalysis
     {
         private static class DynamicTypeSymbolKey
         {
-            private static readonly object instance = new object();
-
             public static void Create(SymbolKeyWriter visitor)
             {
             }

@@ -243,21 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return false;
         }
 
-        private TypeSyntax GetDeclarationType(
-            TypeSyntax type, bool useVarWhenDeclaringLocals, bool useImplicitTypeForIntrinsicTypes)
-        {
-            if (useVarWhenDeclaringLocals)
-            {
-                if (useImplicitTypeForIntrinsicTypes ||
-                    !TypeStyleHelper.IsPredefinedType(type))
-                {
-                    return SyntaxFactory.IdentifierName("var");
-                }
-            }
-
-            return type;
-        }
-
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 

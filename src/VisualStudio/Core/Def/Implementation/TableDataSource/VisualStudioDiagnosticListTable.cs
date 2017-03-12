@@ -27,8 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly LiveTableDataSource _liveTableSource;
         private readonly BuildTableDataSource _buildTableSource;
 
-        private const string TypeScriptLanguageName = "TypeScript";
-
         [ImportingConstructor]
         public VisualStudioDiagnosticListTable(
             SVsServiceProvider serviceProvider,

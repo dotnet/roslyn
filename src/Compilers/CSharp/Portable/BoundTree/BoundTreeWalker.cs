@@ -62,8 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _recursionDepth = recursionDepth;
         }
 
-        protected int RecursionDepth => _recursionDepth;
-
         public override BoundNode Visit(BoundNode node)
         {
             var expression = node as BoundExpression;

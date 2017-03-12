@@ -371,8 +371,10 @@ namespace Microsoft.CodeAnalysis
             throw new ArgumentOutOfRangeException(nameof(tokenInList));
         }
 
+#if DEBUG
         // for debugging
         private SyntaxToken[] Nodes => this.ToArray();
+#endif
 
         /// <summary>
         /// Returns an enumerator for the tokens in the <see cref="SyntaxTokenList"/>

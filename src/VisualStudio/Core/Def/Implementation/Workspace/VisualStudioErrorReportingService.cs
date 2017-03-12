@@ -15,9 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal partial class VisualStudioErrorReportingService : IErrorReportingService
     {
-        private readonly static InfoBarButton s_enableItem = new InfoBarButton(ServicesVSResources.Enable);
-        private readonly static InfoBarButton s_enableAndIgnoreItem = new InfoBarButton(ServicesVSResources.Enable_and_ignore_future_errors);
-
         private readonly IServiceProvider _serviceProvider;
         private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;

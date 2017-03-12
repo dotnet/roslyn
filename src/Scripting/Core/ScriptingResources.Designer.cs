@@ -98,33 +98,6 @@ namespace Microsoft.CodeAnalysis.Scripting {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t assign &apos;{0}&apos; to &apos;{1}&apos;..
-        /// </summary>
-        internal static string CantAssignTo {
-            get {
-                return ResourceManager.GetString("CantAssignTo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Display name or path cannot be empty..
-        /// </summary>
-        internal static string DisplayNameOrPathCannotBe {
-            get {
-                return ResourceManager.GetString("DisplayNameOrPathCannotBe", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Expected an assembly reference..
-        /// </summary>
-        internal static string ExpectedAnAssemblyReference {
-            get {
-                return ResourceManager.GetString("ExpectedAnAssemblyReference", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The globals of type &apos;{0}&apos; is not assignable to &apos;{1}&apos;.
         /// </summary>
         internal static string GlobalsNotAssignable {
@@ -192,15 +165,6 @@ namespace Microsoft.CodeAnalysis.Scripting {
         internal static string PlusAdditionalError {
             get {
                 return ResourceManager.GetString("PlusAdditionalError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to + additional {0} errors.
-        /// </summary>
-        internal static string PlusAdditionalErrors {
-            get {
-                return ResourceManager.GetString("PlusAdditionalErrors", resourceCulture);
             }
         }
         

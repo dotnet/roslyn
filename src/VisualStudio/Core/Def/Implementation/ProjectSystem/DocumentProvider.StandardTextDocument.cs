@@ -248,11 +248,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return _textUndoHistoryRegistry.GetHistory(GetOpenTextBuffer());
             }
 
-            private string GetDebuggerDisplay()
-            {
-                return this.Name;
-            }
-
             public uint GetItemId()
             {
                 AssertIsForeground();

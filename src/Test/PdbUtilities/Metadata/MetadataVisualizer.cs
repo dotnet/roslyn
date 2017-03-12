@@ -612,31 +612,6 @@ namespace Roslyn.Test.MetadataUtilities
             return string.Join(", ", handles.Select(h => Token(() => h, displayTable)));
         }
 
-        private string FormatAwaits(BlobHandle handle)
-        {
-            var sb = new StringBuilder();
-            var blobReader = _reader.GetBlobReader(handle);
-
-            while (blobReader.RemainingBytes > 0)
-            {
-                if (blobReader.Offset > 0)
-                {
-                    sb.Append(", ");
-                }
-
-                int value;
-                sb.Append("(");
-                sb.Append(blobReader.TryReadCompressedInteger(out value) ? value.ToString() : "?");
-                sb.Append(", ");
-                sb.Append(blobReader.TryReadCompressedInteger(out value) ? value.ToString() : "?");
-                sb.Append(", ");
-                sb.Append(blobReader.TryReadCompressedInteger(out value) ? Token(() => MetadataTokens.MethodDefinitionHandle(value)) : "?");
-                sb.Append(')');
-            }
-
-            return sb.ToString();
-        }
-
         private string FormatImports(ImportScope scope)
         {
             if (scope.ImportsBlob.IsNil)

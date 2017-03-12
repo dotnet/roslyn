@@ -99,10 +99,5 @@ namespace RepoUtil
             var content = JArray.FromObject(versions.ToArray());
             return new JProperty(packageName, content);
         }
-
-        private static string GetKey(NuGetPackage nugetRef)
-        {
-            return $"{nugetRef.Name}:{nugetRef.Version}";
-        }
     }
 }

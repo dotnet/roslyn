@@ -28,11 +28,6 @@ namespace Roslyn.Utilities
             get { return this.Name == null; }
         }
 
-        private string GetDebuggerDisplay()
-        {
-            return string.Format("{{{0} = {1}}}", this.Name, this.Value);
-        }
-
         internal static EnumField FindValue(ArrayBuilder<EnumField> sortedFields, ulong value)
         {
             int start = 0;

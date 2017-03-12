@@ -41,6 +41,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
         internal const string SpecialIndexerName = "$Item$";
         internal const string SpecialConstructorName = ".ctor";
         internal const string SpecialDestructorName = "Finalize";
-        internal const string SpecialStaticConstructorName = ".cctor";
     }
 }

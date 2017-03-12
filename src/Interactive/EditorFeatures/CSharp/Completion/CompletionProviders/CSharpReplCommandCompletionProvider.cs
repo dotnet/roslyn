@@ -29,26 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
 
         // TODO (tomat): REPL commands should have their own providers:
         private static readonly Regex s_referenceRegex = new Regex(@"\s*#\s*r\s+", RegexOptions.Compiled);
-        private static readonly Regex s_loadCommandRegex = new Regex(@"#load\s+", RegexOptions.Compiled);
-
-        private bool IsReplCommandLocation(SnapshotPoint characterPoint)
-        {
-            // TODO(cyrusn): We don't need to do this textually.  We could just defer this to
-            // IsTriggerCharacter and just check the syntax tree.
-            var line = characterPoint.GetContainingLine();
-            var text = characterPoint.Snapshot.GetText(line.Start.Position, characterPoint.Position - line.Start.Position);
-
-            // TODO (tomat): REPL commands should have their own handlers:
-            if (characterPoint.Snapshot.ContentType.IsOfType(ContentTypeNames.CSharpContentType))
-            {
-                if (s_referenceRegex.IsMatch(text))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {

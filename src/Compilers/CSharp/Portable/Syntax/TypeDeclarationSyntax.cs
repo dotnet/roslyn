@@ -25,21 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public static partial class SyntaxFactory
     {
-        internal static SyntaxKind GetTypeDeclarationKeywordKind(DeclarationKind kind)
-        {
-            switch (kind)
-            {
-                case DeclarationKind.Class:
-                    return SyntaxKind.ClassKeyword;
-                case DeclarationKind.Struct:
-                    return SyntaxKind.StructKeyword;
-                case DeclarationKind.Interface:
-                    return SyntaxKind.InterfaceKeyword;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
-            }
-        }
-
         private static SyntaxKind GetTypeDeclarationKeywordKind(SyntaxKind kind)
         {
             switch (kind)

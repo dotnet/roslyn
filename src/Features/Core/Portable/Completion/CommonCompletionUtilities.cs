@@ -185,29 +185,6 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        internal static bool IsTextualTriggerString(SourceText text, int characterPosition, string value)
-        {
-            // The character position starts at the last character of 'value'.  So if 'value' has
-            // length 1, then we don't want to move, if it has length 2 we want to move back one,
-            // etc.
-            characterPosition = characterPosition - value.Length + 1;
-
-            for (int i = 0; i < value.Length; i++, characterPosition++)
-            {
-                if (characterPosition < 0 || characterPosition >= text.Length)
-                {
-                    return false;
-                }
-
-                if (text[characterPosition] != value[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         public static bool TryRemoveAttributeSuffix(ISymbol symbol, SyntaxContext context, out string name)
         {
             var isAttributeNameContext = context.IsAttributeNameContext;

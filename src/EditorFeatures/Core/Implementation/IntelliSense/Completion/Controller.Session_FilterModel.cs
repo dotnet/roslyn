@@ -489,19 +489,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return -index;
             }
 
-            private static bool IsAllDigits(string filterText)
-            {
-                for (int i = 0; i < filterText.Length; i++)
-                {
-                    if (filterText[i] < '0' || filterText[i] > '9')
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
             private bool IsHardSelection(
                 Model model,
                 CompletionItem bestFilterMatch,

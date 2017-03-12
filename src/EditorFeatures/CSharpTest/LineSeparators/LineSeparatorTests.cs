@@ -551,10 +551,5 @@ class Program
                 }
             }
         }
-
-        private static SyntaxToken GetOpenBrace(SyntaxTree syntaxTree, SyntaxToken token)
-        {
-            return token.Parent.ChildTokens().Where(n => n.Kind() == SyntaxKind.OpenBraceToken).Single();
-        }
     }
 }

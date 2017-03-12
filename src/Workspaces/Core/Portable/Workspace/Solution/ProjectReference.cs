@@ -69,10 +69,5 @@ namespace Microsoft.CodeAnalysis
         {
             return Hash.CombineValues(_aliases, Hash.Combine(_projectId, _embedInteropTypes.GetHashCode()));
         }
-
-        private string GetDebuggerDisplay()
-        {
-            return _projectId.ToString();
-        }
     }
 }

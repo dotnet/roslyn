@@ -363,39 +363,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return names.ToImmutableAndFree();
         }
 
-        internal static void VerifyIL(
-            this ImmutableArray<byte> assembly,
-            string qualifiedName,
-            string expectedIL,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
-        {
-            var parts = qualifiedName.Split('.');
-            if (parts.Length != 2)
-            {
-                throw new NotImplementedException();
-            }
-
-            using (var metadata = ModuleMetadata.CreateFromImage(assembly))
-            {
-                var module = metadata.Module;
-                var reader = module.MetadataReader;
-                var typeDef = reader.GetTypeDef(parts[0]);
-                var methodName = parts[1];
-                var methodHandle = reader.GetMethodDefHandle(typeDef, methodName);
-                var methodBody = module.GetMethodBodyOrThrow(methodHandle);
-
-                var pooled = PooledStringBuilder.GetInstance();
-                var builder = pooled.Builder;
-                var writer = new StringWriter(pooled.Builder);
-                var visualizer = new MetadataVisualizer(reader, writer);
-                visualizer.VisualizeMethodBody(methodBody, methodHandle, emitHeader: false);
-                var actualIL = pooled.ToStringAndFree();
-
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
-            }
-        }
-
         internal static ImmutableArray<MetadataReference> GetEmittedReferences(Compilation compilation, MetadataReader mdReader)
         {
             // Determine the set of references that were actually used
@@ -553,14 +520,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         internal const uint NoILOffset = 0xffffffff;
 
         internal static readonly MetadataReference IntrinsicAssemblyReference = GetIntrinsicAssemblyReference();
-
-        internal static ImmutableArray<MetadataReference> AddIntrinsicAssembly(this ImmutableArray<MetadataReference> references)
-        {
-            var builder = ArrayBuilder<MetadataReference>.GetInstance();
-            builder.AddRange(references);
-            builder.Add(IntrinsicAssemblyReference);
-            return builder.ToImmutableAndFree();
-        }
 
         private static MetadataReference GetIntrinsicAssemblyReference()
         {

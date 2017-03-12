@@ -29,7 +29,6 @@ namespace CSharpSyntaxGenerator
             _childMap = tree.Types.ToLookup(n => n.Base, n => n.Name);
         }
 
-        protected IDictionary<string, string> ParentMap { get { return _parentMap; } }
         protected ILookup<string, string> ChildMap { get { return _childMap; } }
         protected Tree Tree { get { return _tree; } }
 
@@ -110,11 +109,6 @@ namespace CSharpSyntaxGenerator
             return IsOverride(field) ? "override " : IsNew(field) ? "new " : "";
         }
 
-        protected static bool CanBeField(Field field)
-        {
-            return field.Type != "SyntaxToken" && !IsAnyList(field.Type) && !IsOverride(field) && !IsNew(field);
-        }
-
         protected static string GetFieldType(Field field, bool green)
         {
             if (IsAnyList(field.Type))
@@ -183,11 +177,6 @@ namespace CSharpSyntaxGenerator
             return false;
         }
 
-        protected static bool IsRoot(Node n)
-        {
-            return n.Root != null && string.Compare(n.Root, "true", true) == 0;
-        }
-
         protected bool IsNode(string typeName)
         {
             return _parentMap.ContainsKey(typeName);
@@ -214,11 +203,6 @@ namespace CSharpSyntaxGenerator
             return f.New != null && string.Compare(f.New, "true", true) == 0;
         }
 
-        protected static bool HasErrors(Node n)
-        {
-            return n.Errors == null || string.Compare(n.Errors, "true", true) == 0;
-        }
-
         protected static string CamelCase(string name)
         {
             if (char.IsUpper(name[0]))
@@ -233,21 +217,6 @@ namespace CSharpSyntaxGenerator
             if (IsKeyword(name))
             {
                 return "@" + name;
-            }
-            return name;
-        }
-
-        protected string StripNode(string name)
-        {
-            return (_tree.Root.EndsWith("Node", StringComparison.Ordinal)) ? _tree.Root.Substring(0, _tree.Root.Length - 4) : _tree.Root;
-        }
-
-        protected string StripRoot(string name)
-        {
-            var root = StripNode(_tree.Root);
-            if (name.EndsWith(root, StringComparison.Ordinal))
-            {
-                return name.Substring(0, name.Length - root.Length);
             }
             return name;
         }

@@ -31,17 +31,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return new TypeWithModifiers(typeParameter);
         }
-
-        private string GetDebuggerDisplay()
-        {
-            var result = new StringBuilder("[");
-            result.Append(this.GetType().Name);
-            foreach (var kv in Mapping)
-            {
-                result.Append(" ").Append(kv.Key).Append(":").Append(kv.Value.Type);
-            }
-
-            return result.Append("]").ToString();
-        }
     }
 }

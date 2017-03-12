@@ -77,11 +77,6 @@ StackTrace:
                 }
             }
 
-            internal void TestOnly_Dispose()
-            {
-                Dispose();
-            }
-
 #if DEBUG
             private Thread _thread;
             private string _stackTrace;

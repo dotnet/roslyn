@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _waitIndicator = waitIndicator;
         }
 
-        protected IContentTypeRegistryService ContentTypeRegistryService { get { return _contentTypeRegistryService; } }
-
         protected abstract IInteractiveWindow OpenInteractiveWindow(bool focus);
 
         protected abstract ISendToInteractiveSubmissionProvider SendToInteractiveSubmissionProvider { get; }

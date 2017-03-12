@@ -546,15 +546,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private BoundNode VisitSyntaxWithReceiver(SyntaxNode syntax, BoundNode receiver)
-            {
-                var previousSyntax = _syntaxWithReceiver;
-                _syntaxWithReceiver = syntax;
-                var result = Visit(receiver);
-                _syntaxWithReceiver = previousSyntax;
-                return result;
-            }
-
             public override BoundNode VisitMethodGroup(BoundMethodGroup node)
             {
                 throw ExceptionUtilities.Unreachable;

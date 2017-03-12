@@ -13,10 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 {
     public class CorTypes : CSharpTestBase
     {
-        private static readonly SymbolDisplayFormat s_languageNameFormat = new SymbolDisplayFormat(
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
-
         [Fact]
         public void MissingCorLib()
         {

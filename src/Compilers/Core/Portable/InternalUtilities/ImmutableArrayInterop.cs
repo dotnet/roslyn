@@ -15,14 +15,6 @@ namespace Roslyn.Utilities
             return union.MutableArray;
         }
 
-        internal static ImmutableArray<byte> DangerousCreateFromUnderlyingArray(ref byte[] array)
-        {
-            var union = new ByteArrayUnion();
-            union.MutableArray = array;
-            array = null;
-            return union.ImmutableArray;
-        }
-
         [StructLayout(LayoutKind.Explicit)]
         private struct ByteArrayUnion
         {

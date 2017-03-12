@@ -33,14 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilation = compilation;
         }
 
-        internal int Count
-        {
-            get
-            {
-                return _previousSubmissionFieldMap == null ? 0 : _previousSubmissionFieldMap.Count;
-            }
-        }
-
         internal IEnumerable<FieldSymbol> FieldSymbols
         {
             get

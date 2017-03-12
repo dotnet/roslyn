@@ -379,14 +379,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 variables.Free();
             }
-            private string GetDebuggerDisplay()
-            {
-                if (Single != null)
-                {
-                    return Single.GetDebuggerDisplay();
-                }
-                return $"Nested variables ({NestedVariables.Count})";
-            }
         }
 
         /// <summary>

@@ -103,11 +103,6 @@ namespace Microsoft.CodeAnalysis.Editor
                 LogAction(CodefixInfobar_LeaveDisabled, provider);
             }
 
-            private static void LogEnableAndIgnoreProvider(object provider)
-            {
-                LogAction(CodefixInfobar_EnableAndIgnoreFutureErrors, provider);
-            }
-
             private static void LogEnableProvider(object provider)
             {
                 LogAction(CodefixInfobar_Enable, provider);

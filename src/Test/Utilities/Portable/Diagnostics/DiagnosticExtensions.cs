@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis
 {
     public static class DiagnosticExtensions
     {
-        private const int EN_US = 1033;
-
         public static Action<Exception, DiagnosticAnalyzer, Diagnostic> FailFastOnAnalyzerException = (e, a, d) => FailFast.OnFatalException(e);
 
         /// <summary>

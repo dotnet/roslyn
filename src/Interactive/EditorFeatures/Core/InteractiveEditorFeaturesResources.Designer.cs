@@ -88,15 +88,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Print a list of referenced assemblies..
-        /// </summary>
-        internal static string Print_a_list_of_referenced_assemblies {
-            get {
-                return ResourceManager.GetString("Print_a_list_of_referenced_assemblies", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Reset the execution environment to the initial state, keep history..
         /// </summary>
         internal static string Reset_the_execution_environment_to_the_initial_state_keep_history {
@@ -139,16 +130,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string The_CurrentWindow_property_may_only_be_assigned_once {
             get {
                 return ResourceManager.GetString("The_CurrentWindow_property_may_only_be_assigned_once", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The references command is not supported in this Interactive Window implementation..
-        /// </summary>
-        internal static string The_references_command_is_not_supported_in_this_Interactive_Window_implementation {
-            get {
-                return ResourceManager.GetString("The_references_command_is_not_supported_in_this_Interactive_Window_implementation" +
-                        "", resourceCulture);
             }
         }
     }

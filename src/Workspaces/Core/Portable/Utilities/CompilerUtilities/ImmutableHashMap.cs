@@ -478,27 +478,6 @@ namespace Roslyn.Collections.Immutable
         }
 
         /// <summary>
-        /// Exchanges a key for the actual key instance found in this map.
-        /// </summary>
-        /// <param name="key">The key to search for.</param>
-        /// <param name="existingKey">Receives the equal key found in the map.</param>
-        /// <returns>A value indicating whether an equal and existing key was found in the map.</returns>
-        internal bool TryExchangeKey(TKey key, out TKey existingKey)
-        {
-            var vb = _root != null ? _root.Get(_keyComparer.GetHashCode(key), key, _keyComparer) : null;
-            if (vb != null)
-            {
-                existingKey = vb.Key;
-                return true;
-            }
-            else
-            {
-                existingKey = default(TKey);
-                return false;
-            }
-        }
-
-        /// <summary>
         /// Attempts to discover an <see cref="ImmutableHashMap&lt;TKey, TValue&gt;"/> instance beneath some enumerable sequence
         /// if one exists.
         /// </summary>

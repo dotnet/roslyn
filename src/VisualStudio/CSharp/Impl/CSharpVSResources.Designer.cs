@@ -1186,24 +1186,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type Inference preferences:.
-        /// </summary>
-        internal static string Type_Inference_preferences_colon {
-            get {
-                return ResourceManager.GetString("Type_Inference_preferences_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use &apos;var&apos; when generating locals.
-        /// </summary>
-        internal static string Use_var_when_generating_locals {
-            get {
-                return ResourceManager.GetString("Use_var_when_generating_locals", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Using Directives.
         /// </summary>
         internal static string Using_Directives {

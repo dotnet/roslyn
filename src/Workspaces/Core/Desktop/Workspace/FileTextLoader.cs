@@ -221,11 +221,6 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion;
         }
 
-        private string GetDebuggerDisplay()
-        {
-            return nameof(Path) + " = " + Path;
-        }
-
         private static void ValidateFileLength(Workspace workspace, string path)
         {
             // Validate file length is under our threshold. 

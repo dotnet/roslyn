@@ -27,7 +27,5 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             return new DkmClrCustomTypeInfo(payloadTypeId, payload);
         }
-
-        private string DebuggerDisplay => $"[{string.Join(", ", Payload.Select(b => $"0x{b:x2}"))}] from {PayloadTypeId}";
     }
 }

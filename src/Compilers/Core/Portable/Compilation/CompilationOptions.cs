@@ -231,22 +231,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public AssemblyIdentityComparer AssemblyIdentityComparer { get; protected set; }
 
-        /// <summary>
-        /// A set of strings designating experimental compiler features that are to be enabled.
-        /// </summary>
-        [Obsolete]
-        protected internal ImmutableArray<string> Features
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            protected set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         private readonly Lazy<ImmutableArray<Diagnostic>> _lazyErrors;
 
         // Expects correct arguments.

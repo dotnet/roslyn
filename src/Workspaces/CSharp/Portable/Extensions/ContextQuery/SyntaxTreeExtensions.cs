@@ -1722,17 +1722,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return !enclosingSymbol.IsStatic;
         }
 
-        private static bool IsInBlock(BlockSyntax bodyOpt, int position)
-        {
-            if (bodyOpt == null)
-            {
-                return false;
-            }
-
-            return bodyOpt.OpenBraceToken.Span.End <= position &&
-                (bodyOpt.CloseBraceToken.IsMissing || position <= bodyOpt.CloseBraceToken.SpanStart);
-        }
-
         public static bool IsPossibleCastTypeContext(
             this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {

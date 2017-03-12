@@ -139,11 +139,6 @@ namespace Microsoft.CodeAnalysis.Execution
                 return count1 < count2 ? checksums1 : checksums2;
             }
 
-            private static string CreateLogMessage<T>(T key, string kind)
-            {
-                return $"{kind} - {GetLogInfo(key) ?? "unknown"}";
-            }
-
             private static string GetLogInfo<T>(T key)
             {
                 var solutionState = key as SolutionState;

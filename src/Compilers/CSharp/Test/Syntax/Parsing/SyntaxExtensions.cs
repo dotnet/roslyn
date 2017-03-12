@@ -51,31 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return ((Syntax.InternalSyntax.CSharpSyntaxNode)token.Node).ErrorsOrWarnings(errorsOnly: true);
         }
 
-        internal static ImmutableArray<DiagnosticInfo> Warnings(this SyntaxToken token)
-        {
-            return ((Syntax.InternalSyntax.CSharpSyntaxNode)token.Node).ErrorsOrWarnings(errorsOnly: false);
-        }
-
         internal static ImmutableArray<DiagnosticInfo> ErrorsAndWarnings(this SyntaxToken token)
         {
             return ((Syntax.InternalSyntax.CSharpSyntaxNode)token.Node).ErrorsAndWarnings();
-        }
-        #endregion
-
-        # region SyntaxNodeOrTokenExtensions
-        internal static ImmutableArray<DiagnosticInfo> Errors(this SyntaxNodeOrToken nodeOrToken)
-        {
-            return nodeOrToken.UnderlyingNode.ErrorsOrWarnings(errorsOnly: true);
-        }
-
-        internal static ImmutableArray<DiagnosticInfo> Warnings(this SyntaxNodeOrToken nodeOrToken)
-        {
-            return nodeOrToken.UnderlyingNode.ErrorsOrWarnings(errorsOnly: false);
-        }
-
-        internal static ImmutableArray<DiagnosticInfo> ErrorsAndWarnings(this SyntaxNodeOrToken nodeOrToken)
-        {
-            return nodeOrToken.UnderlyingNode.ErrorsAndWarnings();
         }
         #endregion
 
@@ -83,11 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static ImmutableArray<DiagnosticInfo> Errors(this SyntaxTrivia trivia)
         {
             return ((InternalSyntax.CSharpSyntaxNode)trivia.UnderlyingNode).ErrorsOrWarnings(errorsOnly: true);
-        }
-
-        internal static ImmutableArray<DiagnosticInfo> Warnings(this SyntaxTrivia trivia)
-        {
-            return ((InternalSyntax.CSharpSyntaxNode)trivia.UnderlyingNode).ErrorsOrWarnings(errorsOnly: false);
         }
 
         internal static ImmutableArray<DiagnosticInfo> ErrorsAndWarnings(this SyntaxTrivia trivia)

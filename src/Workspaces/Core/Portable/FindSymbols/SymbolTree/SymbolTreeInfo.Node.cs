@@ -29,11 +29,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             public bool IsRoot => ParentIndex == RootNodeParentIndex;
-
-            private string GetDebuggerDisplay()
-            {
-                return Name + ", " + ParentIndex;
-            }
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
@@ -63,11 +58,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 Debug.Assert(node.NameSpan == this.NameSpan);
                 Debug.Assert(node.ParentIndex == this.ParentIndex);
-            }
-
-            private string GetDebuggerDisplay()
-            {
-                return NameSpan + ", " + ParentIndex;
             }
         }
     }

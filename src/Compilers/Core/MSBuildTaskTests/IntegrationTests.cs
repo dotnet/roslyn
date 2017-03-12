@@ -112,17 +112,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal(0, result.ExitCode);
         }
 
-        private void VerifyResultAndOutput(ProcessResult result, TempDirectory path, string expectedOutput)
-        {
-            using (var resultFile = GetResultFile(path, "hello.exe"))
-            {
-                VerifyResult(result);
-
-                var runningResult = RunCompilerOutput(resultFile);
-                Assert.Equal(expectedOutput, runningResult.Output);
-            }
-        }
-
         // A dictionary with name and contents of all the files we want to create for the SimpleMSBuild test.
         private Dictionary<string, string> SimpleMsBuildFiles => new Dictionary<string, string> {
 { "HelloSolution.sln",

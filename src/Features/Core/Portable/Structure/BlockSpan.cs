@@ -65,12 +65,6 @@ namespace Microsoft.CodeAnalysis.Structure
                 : $"{{Span={TextSpan}, BannerText=\"{BannerText}\", AutoCollapse={AutoCollapse}, IsDefaultCollapsed={IsDefaultCollapsed}}}";
         }
 
-        internal BlockSpan WithType(string type)
-            => With(type: type);
-
-        internal BlockSpan WithIsCollapsible(bool isCollapsible)
-            => With(isCollapsible: isCollapsible);
-
         internal BlockSpan With(
             Optional<bool> isCollapsible = default(Optional<bool>),
             Optional<TextSpan> textSpan = default(Optional<TextSpan>),

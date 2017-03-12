@@ -27,9 +27,6 @@ namespace Roslyn.Test.PdbUtilities
     /// </summary>
     public sealed class PdbToXmlConverter
     {
-        // For printing integers in a standard hex format.
-        private const string IntHexFormat = "0x{0:X}";
-
         private readonly MetadataReader _metadataReader;
         private readonly ISymUnmanagedReader3 _symReader;
         private readonly PdbToXmlOptions _options;

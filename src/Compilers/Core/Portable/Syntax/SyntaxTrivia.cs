@@ -36,11 +36,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public int RawKind => UnderlyingNode?.RawKind ?? 0;
 
-        private string GetDebuggerDisplay()
-        {
-            return GetType().Name + " " + (UnderlyingNode?.KindText ?? "None") + " " + ToString();
-        }
-
         /// <summary>
         /// The language name that this trivia is syntax of.
         /// </summary>

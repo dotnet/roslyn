@@ -161,20 +161,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             missingImports.AddRange(updatedResult);
         }
 
-        // TODO(cyrusn): Implement this.
-        //
-        // General algorithm.  See the set of types+arity imported by the current set of imports.
-        // Then see the types+arity of the namespace that's being added.  If there are any
-        // intersections then we may cause an ambiguity in the code.  To check if there will actually
-        // be an ambiguity, Look for SimpleNameNodes in the code that match the name+arity.  If we
-        // run into any, then just return that an ambiguity is possible. (Note: if this creates too
-        // many false positive, then we may want to do some binding of the node to see if there's
-        // actually an ambiguity).
-        protected virtual bool CouldCauseAmbiguity(ISet<INamespaceSymbol> currentImportedNamespaces, INamespaceSymbol namespaceToImport)
-        {
-            return false;
-        }
-
         protected static IEnumerable<INamespaceSymbol> GetContainingNamespacesAndThis(INamespaceSymbol namespaceSymbol)
         {
             while (namespaceSymbol != null && !namespaceSymbol.IsGlobalNamespace)

@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             OpenTypeVisitor.Visit(typeExpression, out _allowedMap, out _isTypeExpressionOpen);
         }
 
-        internal bool IsTypeExpressionOpen { get { return _isTypeExpressionOpen; } }
-
         protected override bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
         {
             bool allowed;

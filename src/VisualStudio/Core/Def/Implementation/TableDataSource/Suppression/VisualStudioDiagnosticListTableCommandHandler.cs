@@ -38,14 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private void AddSuppressionsCommandHandlers(IMenuCommandService menuCommandService)
-        {
-            AddCommand(menuCommandService, ID.RoslynCommands.AddSuppressions, delegate { }, OnAddSuppressionsStatus);
-            AddCommand(menuCommandService, ID.RoslynCommands.AddSuppressionsInSource, OnAddSuppressionsInSource, OnAddSuppressionsInSourceStatus);
-            AddCommand(menuCommandService, ID.RoslynCommands.AddSuppressionsInSuppressionFile, OnAddSuppressionsInSuppressionFile, OnAddSuppressionsInSuppressionFileStatus);
-            AddCommand(menuCommandService, ID.RoslynCommands.RemoveSuppressions, OnRemoveSuppressions, OnRemoveSuppressionsStatus);
-        }
-
         /// <summary>
         /// Add a command handler and status query handler for a menu item
         /// </summary>

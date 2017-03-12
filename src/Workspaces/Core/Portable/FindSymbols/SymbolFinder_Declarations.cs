@@ -201,11 +201,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return TranslateNamespaces(list.ToImmutableAndFree(), compilation);
         }
 
-        private static string GetMetadataReferenceFilePath(MetadataReference metadataReference)
-        {
-            return (metadataReference as PortableExecutableReference)?.FilePath;
-        }
-
         /// <summary>
         /// Makes certain all namespace symbols returned by API are from the compilation.
         /// </summary>

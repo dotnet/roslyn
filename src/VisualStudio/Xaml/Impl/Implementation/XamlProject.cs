@@ -34,10 +34,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             string name;
             return hierarchy.TryGetName(out name) ? name : null;
         }
-
-        private string GetDebuggerDisplay()
-        {
-            return $"{this.DisplayName}";
-        }
     }
 }

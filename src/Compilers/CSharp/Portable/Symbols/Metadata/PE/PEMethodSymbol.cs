@@ -795,24 +795,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 this.ParameterRefKinds.IsDefault && // No 'ref' or 'out'
                 !this.IsParams();
 
-        private bool IsValidUserDefinedOperatorIs()
-        {
-            foreach (var parameter in this.Parameters)
-            {
-                if (parameter.RefKind != ((parameter.Ordinal == 0) ? RefKind.None : RefKind.Out))
-                {
-                    return false;
-                }
-            }
-
-            return
-                (this.ReturnsVoid || this.ReturnType.SpecialType == SpecialType.System_Boolean) &&
-                !this.IsGenericMethod &&
-                !this.IsVararg &&
-                this.ParameterCount > 0 &&
-                !this.IsParams();
-        }
-
         private MethodKind ComputeMethodKind()
         {
             if (this.HasSpecialName)

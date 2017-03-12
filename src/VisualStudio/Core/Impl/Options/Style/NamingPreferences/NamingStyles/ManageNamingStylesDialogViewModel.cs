@@ -30,11 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 notificationService)));
         }
 
-        internal void RemoveNamingStyle(NamingStyleViewModel namingStyle)
-        {
-            Items.Remove(namingStyle);
-        }
-
         public void AddItem()
         {
             var style = new MutableNamingStyle();

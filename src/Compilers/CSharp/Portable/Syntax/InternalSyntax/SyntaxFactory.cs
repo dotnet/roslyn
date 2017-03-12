@@ -258,19 +258,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxList<TNode>(SyntaxList.List(node0, node1));
         }
 
-        internal static GreenNode ListNode(CSharpSyntaxNode node0, CSharpSyntaxNode node1)
-        {
-            return SyntaxList.List(node0, node1);
-        }
-
         public static SyntaxList<TNode> List<TNode>(TNode node0, TNode node1, TNode node2) where TNode : CSharpSyntaxNode
         {
             return new SyntaxList<TNode>(SyntaxList.List(node0, node1, node2));
-        }
-
-        internal static GreenNode ListNode(CSharpSyntaxNode node0, CSharpSyntaxNode node1, CSharpSyntaxNode node2)
-        {
-            return SyntaxList.List(node0, node1, node2);
         }
 
         public static SyntaxList<TNode> List<TNode>(params TNode[] nodes) where TNode : CSharpSyntaxNode
@@ -281,11 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return default(SyntaxList<TNode>);
-        }
-
-        internal static GreenNode ListNode(params ArrayElement<GreenNode>[] nodes)
-        {
-            return SyntaxList.List(nodes);
         }
 
         public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(TNode node) where TNode : CSharpSyntaxNode
@@ -311,28 +296,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return default(SeparatedSyntaxList<TNode>);
-        }
-
-        internal static IEnumerable<SyntaxTrivia> GetWellKnownTrivia()
-        {
-            yield return CarriageReturnLineFeed;
-            yield return LineFeed;
-            yield return CarriageReturn;
-            yield return Space;
-            yield return Tab;
-
-            yield return ElasticCarriageReturnLineFeed;
-            yield return ElasticLineFeed;
-            yield return ElasticCarriageReturn;
-            yield return ElasticSpace;
-            yield return ElasticTab;
-
-            yield return ElasticZeroSpace;
-        }
-
-        internal static IEnumerable<SyntaxToken> GetWellKnownTokens()
-        {
-            return SyntaxToken.GetWellKnownTokens();
         }
     }
 }

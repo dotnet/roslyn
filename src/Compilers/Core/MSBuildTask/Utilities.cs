@@ -71,12 +71,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     parameterValue);
             }
         }
-        /// <summary>
-        /// Returns true if the string can be successfully converted to a bool,
-        /// such as "on" or "yes"
-        /// </summary>
-        internal static bool CanConvertStringToBool(string parameterValue) =>
-            ValidBooleanTrue(parameterValue) || ValidBooleanFalse(parameterValue);
 
         /// <summary>
         /// Returns true if the string represents a valid MSBuild boolean true value,

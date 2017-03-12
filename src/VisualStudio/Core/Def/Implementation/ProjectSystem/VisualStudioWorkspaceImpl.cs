@@ -1227,27 +1227,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            private void UnsubscribeFromSharedHierarchyEvents(DocumentId documentId)
-            {
-                var hostDocument = _workspace.GetHostDocument(documentId);
-                var itemId = hostDocument.GetItemId();
-                if (itemId == (uint)VSConstants.VSITEMID.Nil)
-                {
-                    // the document has been removed from the solution
-                    return;
-                }
-
-                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hostDocument.Project.Hierarchy, itemId);
-                if (sharedHierarchy != null)
-                {
-                    if (_documentIdToHierarchyEventsCookieMap.TryGetValue(documentId, out var cookie))
-                    {
-                        var hr = sharedHierarchy.UnadviseHierarchyEvents(cookie);
-                        _documentIdToHierarchyEventsCookieMap.Remove(documentId);
-                    }
-                }
-            }
-
             private void RegisterPrimarySolutionForPersistentStorage(
                 SolutionId solutionId)
             {

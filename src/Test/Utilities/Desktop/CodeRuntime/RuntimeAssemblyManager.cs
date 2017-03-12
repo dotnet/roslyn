@@ -358,15 +358,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             }
         }
 
-        private SortedSet<string> GetFullyQualifiedTypeNames(string assemblyName)
-        {
-            var typeNames = new SortedSet<string>();
-            Assembly assembly = GetAssembly(assemblyName, true);
-            foreach (var typ in assembly.GetTypes())
-                typeNames.Add(typ.FullName);
-            return typeNames;
-        }
-
         public int Execute(string moduleName, int expectedOutputLength, out string output)
         {
             ImmutableArray<byte> bytes = GetModuleBytesByName(moduleName);

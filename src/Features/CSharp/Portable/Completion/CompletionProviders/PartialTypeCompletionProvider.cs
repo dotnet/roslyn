@@ -32,9 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static readonly SymbolDisplayFormat _symbolFormatWithoutGenerics =
-            _symbolFormatWithGenerics.WithGenericsOptions(SymbolDisplayGenericsOptions.None);
-
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             var ch = text[characterPosition];

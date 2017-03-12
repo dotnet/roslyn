@@ -35,13 +35,6 @@ namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Text = text;
                 KeywordKind = keywordKind;
             }
-
-            private string GetDebuggerDisplay()
-            {
-                return (Text == null) ?
-                    Kind.ToString() :
-                    $"{Kind}: \"{Text}\"";
-            }
         }
 
         private sealed class Scanner

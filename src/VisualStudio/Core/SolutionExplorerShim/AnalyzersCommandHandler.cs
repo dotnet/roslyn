@@ -309,11 +309,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private bool AnyDiagnosticsWithSeverity(ReportDiagnostic severity)
-        {
-            return _tracker.SelectedDiagnosticItems.Any(item => item.EffectiveSeverity == severity);
-        }
-
         private void UpdateSeverityMenuItemsEnabled()
         {
             bool configurable = !_tracker.SelectedDiagnosticItems.Any(item => item.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable));

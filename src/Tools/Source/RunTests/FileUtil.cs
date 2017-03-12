@@ -22,28 +22,6 @@ namespace RunTests
         }
 
         /// <summary>
-        /// Delete file if it exists and swallow any potential exceptions.  Returns true if the
-        /// file is actually deleted.
-        /// </summary>
-        internal static bool DeleteFile(string filePath)
-        {
-            try
-            {
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                    return true;
-                }
-            }
-            catch
-            {
-                // Ignore
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Delete directory if it exists and swallow any potential exceptions.  Returns true if the
         /// directory is actually deleted.
         /// </summary>

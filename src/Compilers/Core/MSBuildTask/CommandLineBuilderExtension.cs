@@ -57,28 +57,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-
-        /// <summary>
-        /// Set a switch if its value exists by choosing from the input choices
-        /// </summary>
-        internal void AppendByChoiceSwitch
-            (
-            string switchName,
-            PropertyDictionary bag,
-            string parameterName,
-            string choice1,
-            string choice2
-            )
-        {
-            object obj = bag[parameterName];
-            // If the switch isn't set, don't add it to the command line.
-            if (obj != null)
-            {
-                bool value = (bool)obj;
-                AppendSwitchUnquotedIfNotNull(switchName, (value ? choice1 : choice2));
-            }
-        }
-
         /// <summary>
         /// Set an integer switch only if its value exists.
         /// </summary>
@@ -106,16 +84,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             AppendSwitchUnquotedIfNotNull(switchName, alias + "=");
             AppendTextWithQuoting(parameter);
-        }
-
-        /// <summary>
-        /// Adds a nested switch, used by SGen.exe.  For example:
-        ///     /compiler:"/keyfile:\"c:\some folder\myfile.snk\""
-        /// </summary>
-        internal void AppendNestedSwitch(string outerSwitchName, string innerSwitchName, string parameter)
-        {
-            string quotedParameter = GetQuotedText(parameter);
-            AppendSwitchIfNotNull(outerSwitchName, innerSwitchName + quotedParameter);
         }
 
         /// <summary>
@@ -165,26 +133,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        /// <summary>
-        /// Returns true if the parameter is empty in spirits, 
-        /// even if it contains the separators and white space only
-        /// Split on the characters provided.
-        /// </summary>
-        internal static bool IsParameterEmpty(string parameter, params char[] splitOn)
-        {
-            if (parameter != null)
-            {
-                string[] splits = parameter.Split(splitOn, /* omitEmptyEntries */ StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 0; i < splits.Length; ++i)
-                {
-                    if (!String.IsNullOrEmpty(splits[i].Trim()))
-                    {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
         /// <summary>
         /// Designed to handle the /link and /embed switches:
         ///

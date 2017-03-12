@@ -265,11 +265,6 @@ var x = from c in ""foo"" select /*<bind>*/c/*</bind>*/";
 
         #region helpers
 
-        protected List<SyntaxNode> GetSyntaxNodeList(SyntaxTree syntaxTree)
-        {
-            return GetSyntaxNodeList(syntaxTree.GetCompilationUnitRoot(), null);
-        }
-
         protected List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
         {
             if (synList == null)
@@ -284,39 +279,6 @@ var x = from c in ""foo"" select /*<bind>*/c/*</bind>*/";
             }
 
             return synList;
-        }
-
-        protected SyntaxNode GetSyntaxNodeForBinding(List<SyntaxNode> synList)
-        {
-            foreach (var node in synList)
-            {
-                string exprFullText = node.ToFullString();
-                exprFullText = exprFullText.Trim();
-
-                if (exprFullText.StartsWith("/*<bind>*/", StringComparison.Ordinal))
-                {
-                    if (exprFullText.Contains("/*</bind>*/"))
-                        if (exprFullText.EndsWith("/*</bind>*/", StringComparison.Ordinal))
-                            return node;
-                        else
-                            continue;
-                    else
-                        return node;
-                }
-
-                if (exprFullText.EndsWith("/*</bind>*/", StringComparison.Ordinal))
-                {
-                    if (exprFullText.Contains("/*<bind>*/"))
-                        if (exprFullText.StartsWith("/*<bind>*/", StringComparison.Ordinal))
-                            return node;
-                        else
-                            continue;
-                    else
-                        return node;
-                }
-            }
-
-            return null;
         }
 
         private List<ExpressionSyntax> GetExprSyntaxList(SyntaxTree syntaxTree)

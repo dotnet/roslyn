@@ -550,22 +550,6 @@ namespace Roslyn.Utilities
             return matrix[sourceLength + 1, targetLength + 1];
         }
 
-        private static string ToString(int[,] matrix, int width, int height)
-        {
-            var sb = new StringBuilder();
-            for (var j = 0; j < height; j++)
-            {
-                for (var i = 0; i < width; i++)
-                {
-                    var v = matrix[i + 2, j + 2];
-                    sb.Append((v == Infinity ? "∞" : v.ToString()) + " ");
-                }
-                sb.AppendLine();
-            }
-
-            return sb.ToString().Trim();
-        }
-
         private static int GetValue(Dictionary<char, int> da, char c)
         {
             return da.TryGetValue(c, out var value) ? value : 0;
@@ -596,13 +580,6 @@ namespace Roslyn.Utilities
 
             Debug.Assert(min >= 0);
             return min;
-        }
-
-        private static void SetValue(int[,] matrix, int i, int j, int val)
-        {
-            // Matrix is -1 based, so we add 1 to both i and j to make it
-            // possible to index into the actual storage.
-            matrix[i + 1, j + 1] = val;
         }
     }
 

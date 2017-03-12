@@ -13,18 +13,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 {
     public abstract class AbstractQuickInfoSourceTests
     {
-        [System.Diagnostics.DebuggerStepThrough]
-        protected string ExpectedContent(params string[] expectedContent)
-        {
-            return expectedContent.Join("\r\n");
-        }
-
-        protected string FormatCodeWithDocComments(params string[] code)
-        {
-            var formattedCode = code.Join("\r\n");
-            return string.Concat(System.Environment.NewLine, formattedCode);
-        }
-
         protected async Task TestInMethodAndScriptAsync(string code, string expectedContent, string expectedDocumentationComment = null)
         {
             await TestInMethodAsync(code, expectedContent, expectedDocumentationComment);

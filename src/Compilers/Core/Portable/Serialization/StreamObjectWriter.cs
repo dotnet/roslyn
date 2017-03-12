@@ -731,11 +731,6 @@ namespace Roslyn.Utilities
             this.WriteKnownType(instance.GetType());
         }
 
-        private static Exception NoSerializationTypeException(string typeName)
-        {
-            return new InvalidOperationException(string.Format(Resources.The_type_0_is_not_understood_by_the_serialization_binder, typeName));
-        }
-
         private static Exception NoSerializationWriterException(string typeName)
         {
             return new InvalidOperationException(string.Format(Resources.Cannot_serialize_type_0, typeName));

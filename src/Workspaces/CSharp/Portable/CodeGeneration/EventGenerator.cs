@@ -53,21 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return FirstMethod(members);
         }
 
-        internal static CompilationUnitSyntax AddEventTo(
-            CompilationUnitSyntax destination,
-            IEventSymbol @event,
-            CodeGenerationOptions options,
-            IList<bool> availableIndices)
-        {
-            var declaration = GenerateEventDeclaration(@event, CodeGenerationDestination.CompilationUnit, options);
-
-            // Place the event depending on its shape.  Field style events go with fields, property
-            // style events go with properties.  If there 
-            var members = Insert(destination.Members, declaration, options, availableIndices,
-                after: list => AfterMember(list, declaration), before: list => BeforeMember(list, declaration));
-            return destination.WithMembers(members.ToSyntaxList());
-        }
-
         internal static TypeDeclarationSyntax AddEventTo(
             TypeDeclarationSyntax destination,
             IEventSymbol @event,

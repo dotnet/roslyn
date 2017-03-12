@@ -25,11 +25,6 @@ namespace Microsoft.CodeAnalysis.Esent
                     column1, column2 };
             }
 
-            protected string CreateProjectDocumentIndexKey()
-            {
-                return CreateIndexKey(ProjectColumnName, ProjectNameColumnName, DocumentColumnName);
-            }
-
             protected string CreateProjectDocumentIndexKey(string columnName)
             {
                 return CreateIndexKey(ProjectColumnName, ProjectNameColumnName, DocumentColumnName, columnName);
@@ -60,11 +55,6 @@ namespace Microsoft.CodeAnalysis.Esent
                     projectColumnCreate,
                     projectNameColumnCreate,
                     column1, column2 };
-            }
-
-            protected string CreateProjectIndexKey()
-            {
-                return CreateIndexKey(ProjectColumnName, ProjectNameColumnName);
             }
 
             protected string CreateProjectIndexKey(string columnName)

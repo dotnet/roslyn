@@ -61,15 +61,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; encountered an error and has been disabled..
-        /// </summary>
-        internal static string _0_encountered_an_error_and_has_been_disabled {
-            get {
-                return ResourceManager.GetString("_0_encountered_an_error_and_has_been_disabled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to {0} references.
         /// </summary>
         internal static string _0_references {
@@ -362,15 +353,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Choose a Symbol Specification and a Naming Style..
-        /// </summary>
-        internal static string Choose_a_Symbol_Specification_and_a_Naming_Style {
-            get {
-                return ResourceManager.GetString("Choose_a_Symbol_Specification_and_a_Naming_Style", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Close.
         /// </summary>
         internal static string Close {
@@ -605,29 +587,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enter a title for this Naming Rule..
-        /// </summary>
-        internal static string Enter_a_title_for_this_Naming_Rule {
-            get {
-                return ResourceManager.GetString("Enter_a_title_for_this_Naming_Rule", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enter a title for this Naming Style..
         /// </summary>
         internal static string Enter_a_title_for_this_Naming_Style {
             get {
                 return ResourceManager.GetString("Enter_a_title_for_this_Naming_Style", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Enter a title for this Symbol Specification..
-        /// </summary>
-        internal static string Enter_a_title_for_this_Symbol_Specification {
-            get {
-                return ResourceManager.GetString("Enter_a_title_for_this_Symbol_Specification", resourceCulture);
             }
         }
         
@@ -720,15 +684,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Extract_Interface {
             get {
                 return ResourceManager.GetString("Extract_Interface", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to create document in miscellaneous files project..
-        /// </summary>
-        internal static string Failed_to_create_document_in_miscellaneous_files_project {
-            get {
-                return ResourceManager.GetString("Failed_to_create_document_in_miscellaneous_files_project", resourceCulture);
             }
         }
         
@@ -969,24 +924,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inherited By.
-        /// </summary>
-        internal static string Inherited_By {
-            get {
-                return ResourceManager.GetString("Inherited_By", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Inherits.
-        /// </summary>
-        internal static string Inherits_ {
-            get {
-                return ResourceManager.GetString("Inherits_", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Install &apos;{0}&apos;.
         /// </summary>
         internal static string Install_0 {
@@ -1106,15 +1043,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Maximum number of documents are open..
-        /// </summary>
-        internal static string Maximum_number_of_documents_are_open {
-            get {
-                return ResourceManager.GetString("Maximum_number_of_documents_are_open", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Member of {0}.
         /// </summary>
         internal static string Member_of_0 {
@@ -1214,48 +1142,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Name:.
-        /// </summary>
-        internal static string Name_colon2 {
-            get {
-                return ResourceManager.GetString("Name_colon2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Naming Rule.
-        /// </summary>
-        internal static string Naming_Rule {
-            get {
-                return ResourceManager.GetString("Naming_Rule", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled..
-        /// </summary>
-        internal static string Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_and_how_incorrectly_named_symbols_should_be_handled {
-            get {
-                return ResourceManager.GetString("Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_a" +
-                        "nd_how_incorrectly_named_symbols_should_be_handled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Naming Style.
         /// </summary>
         internal static string Naming_Style {
             get {
                 return ResourceManager.GetString("Naming_Style", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Naming Style:.
-        /// </summary>
-        internal static string Naming_Style_colon {
-            get {
-                return ResourceManager.GetString("Naming_Style_colon", resourceCulture);
             }
         }
         
@@ -1427,15 +1318,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Parameters_colon2 {
             get {
                 return ResourceManager.GetString("Parameters_colon2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Parent Rule:.
-        /// </summary>
-        internal static string Parent_Rule_colon {
-            get {
-                return ResourceManager.GetString("Parent_Rule_colon", resourceCulture);
             }
         }
         
@@ -1842,29 +1724,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Severity:.
-        /// </summary>
-        internal static string Severity_colon {
-            get {
-                return ResourceManager.GetString("Severity_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Show guides for code level constructs.
         /// </summary>
         internal static string Show_guides_for_code_level_constructs {
             get {
                 return ResourceManager.GetString("Show_guides_for_code_level_constructs", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Show guides for comments and preprocessor regions.
-        /// </summary>
-        internal static string Show_guides_for_comments_and_preprocessor_regions {
-            get {
-                return ResourceManager.GetString("Show_guides_for_comments_and_preprocessor_regions", resourceCulture);
             }
         }
         
@@ -1986,15 +1850,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Symbol Specification:.
-        /// </summary>
-        internal static string Symbol_Specification_colon {
-            get {
-                return ResourceManager.GetString("Symbol_Specification_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Symbol Specification Title:.
         /// </summary>
         internal static string Symbol_Specification_Title_colon {
@@ -2028,16 +1883,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
             get {
                 return ResourceManager.GetString("The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Stu" +
                         "dio_is_restarted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule..
-        /// </summary>
-        internal static string The_first_matching_top_level_Naming_Rule_is_used_by_default_when_naming_a_symbol_while_any_special_cases_are_handled_by_a_matching_child_rule {
-            get {
-                return ResourceManager.GetString("The_first_matching_top_level_Naming_Rule_is_used_by_default_when_naming_a_symbol_" +
-                        "while_any_special_cases_are_handled_by_a_matching_child_rule", resourceCulture);
             }
         }
         

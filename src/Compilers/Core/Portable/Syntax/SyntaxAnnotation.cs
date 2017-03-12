@@ -64,11 +64,6 @@ namespace Microsoft.CodeAnalysis
             writer.WriteString(this.Data);
         }
 
-        private string GetDebuggerDisplay()
-        {
-            return string.Format("Annotation: Kind='{0}' Data='{1}'", this.Kind ?? "", this.Data ?? "");
-        }
-
         public bool Equals(SyntaxAnnotation other)
         {
             return (object)other != null && _id == other._id;

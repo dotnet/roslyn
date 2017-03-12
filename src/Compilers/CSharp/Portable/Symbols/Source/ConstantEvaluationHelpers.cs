@@ -23,16 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.Field = field;
                 this.StartsCycle = startsCycle;
             }
-
-            private string GetDebuggerDisplay()
-            {
-                var value = this.Field.ToString();
-                if (this.StartsCycle)
-                {
-                    value += " [cycle]";
-                }
-                return value;
-            }
         }
 
 

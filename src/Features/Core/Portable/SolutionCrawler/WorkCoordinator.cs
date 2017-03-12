@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         private partial class WorkCoordinator
         {
-            private const int MinimumDelayInMS = 50;
-
             private readonly Registration _registration;
 
             private readonly LogAggregator _logAggregator;

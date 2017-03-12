@@ -2053,38 +2053,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxEquivalence.AreEquivalent(oldList.Node, newList.Node, ignoreChildNode, topLevel: false);
         }
 
-        internal static TypeSyntax GetStandaloneType(TypeSyntax node)
-        {
-            if (node != null)
-            {
-                var parent = node.Parent as ExpressionSyntax;
-                if (parent != null && (node.Kind() == SyntaxKind.IdentifierName || node.Kind() == SyntaxKind.GenericName))
-                {
-                    switch (parent.Kind())
-                    {
-                        case SyntaxKind.QualifiedName:
-                            var qualifiedName = (QualifiedNameSyntax)parent;
-                            if (qualifiedName.Right == node)
-                            {
-                                return qualifiedName;
-                            }
-
-                            break;
-                        case SyntaxKind.AliasQualifiedName:
-                            var aliasQualifiedName = (AliasQualifiedNameSyntax)parent;
-                            if (aliasQualifiedName.Name == node)
-                            {
-                                return aliasQualifiedName;
-                            }
-
-                            break;
-                    }
-                }
-            }
-
-            return node;
-        }
-
         /// <summary>
         /// Gets the containing expression that is actually a language expression and not just typed
         /// as an ExpressionSyntax for convenience. For example, NameSyntax nodes on the right side

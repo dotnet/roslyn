@@ -118,11 +118,6 @@ namespace Microsoft.CodeAnalysis
             return this.With(attributes: Attributes.With(filePath: filePath));
         }
 
-        private string GetDebuggerDisplay()
-        {
-            return (FilePath == null) ? (nameof(Name) + " = " + Name) : (nameof(FilePath) + " = " + FilePath);
-        }
-
         /// <summary>
         /// type that contains information regarding this document itself but
         /// no tree information such as document info

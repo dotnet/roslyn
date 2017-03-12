@@ -35,11 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
         }
 
-        protected static SymbolDisplayPart NewLine()
-        {
-            return new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
-        }
-
         private static readonly IList<SymbolDisplayPart> _separatorParts = new List<SymbolDisplayPart>
             {
                 Punctuation(SyntaxKind.CommaToken),

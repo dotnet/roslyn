@@ -1144,22 +1144,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override Compilation SourceCompilation => Compilation;
             }
-
-            /// <summary>
-            /// For testing purposes only.
-            /// </summary>
-            internal static bool IsSourceAssemblySymbolCreated(CSharpCompilation compilation)
-            {
-                return (object)compilation._lazyAssemblySymbol != null;
-            }
-
-            /// <summary>
-            /// For testing purposes only.
-            /// </summary>
-            internal static bool IsReferenceManagerInitialized(CSharpCompilation compilation)
-            {
-                return compilation._referenceManager.IsBound;
-            }
         }
     }
 }

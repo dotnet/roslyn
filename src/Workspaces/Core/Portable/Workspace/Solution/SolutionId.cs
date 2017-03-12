@@ -49,11 +49,6 @@ namespace Microsoft.CodeAnalysis
 
         internal string DebugName => _debugName;
 
-        private string GetDebuggerDisplay()
-        {
-            return string.Format("({0}, #{1} - {2})", GetType().Name, this.Id, _debugName);
-        }
-
         public override bool Equals(object obj)
         {
             return this.Equals(obj as SolutionId);

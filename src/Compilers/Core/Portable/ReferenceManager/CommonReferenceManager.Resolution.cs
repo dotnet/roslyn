@@ -139,11 +139,6 @@ namespace Microsoft.CodeAnalysis
                     return _index - 1;
                 }
             }
-
-            private static string DisplayAliases(ImmutableArray<string> aliasesOpt, string name)
-            {
-                return aliasesOpt.IsDefault ? "" : $" {name} = '{string.Join("','", aliasesOpt)}'";
-            }
         }
 
         protected struct ReferencedAssemblyIdentity

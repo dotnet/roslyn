@@ -156,30 +156,6 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         }
 
         /// <summary>
-        /// return SuppressOperation for the node provided by the given formatting rules
-        /// </summary>
-        internal static IEnumerable<SuppressOperation> GetSuppressOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet)
-        {
-            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
-
-            var list = new List<SuppressOperation>();
-            chainedFormattingRules.AddSuppressOperations(list, node, lastToken);
-            return list;
-        }
-
-        /// <summary>
-        /// return AnchorIndentationOperation for the node provided by the given formatting rules
-        /// </summary>
-        internal static IEnumerable<AnchorIndentationOperation> GetAnchorIndentationOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet)
-        {
-            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
-
-            var list = new List<AnchorIndentationOperation>();
-            chainedFormattingRules.AddAnchorIndentationOperations(list, node, lastToken);
-            return list;
-        }
-
-        /// <summary>
         /// return IndentBlockOperation for the node provided by the given formatting rules
         /// </summary>
         internal static IEnumerable<IndentBlockOperation> GetIndentBlockOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet)
@@ -210,15 +186,6 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
             return chainedFormattingRules.GetAdjustNewLinesOperation(previousToken, currentToken);
-        }
-
-        /// <summary>
-        /// return AdjustSpacesOperation for the node provided by the given formatting rules
-        /// </summary>
-        internal static AdjustSpacesOperation GetAdjustSpacesOperation(IEnumerable<IFormattingRule> formattingRules, SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet)
-        {
-            var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
-            return chainedFormattingRules.GetAdjustSpacesOperation(previousToken, currentToken);
         }
     }
 }

@@ -33,31 +33,5 @@ namespace Microsoft.CodeAnalysis.Host
         {
             return _hasCachingService && root.FullSpan.Length >= this.MinimumLengthForRecoverableTree;
         }
-
-        protected static SyntaxNode RecoverNode(SyntaxTree tree, TextSpan textSpan, int kind)
-        {
-            var token = tree.GetRoot().FindToken(textSpan.Start, findInsideTrivia: true);
-            var node = token.Parent;
-
-            while (node != null)
-            {
-                if (node.Span == textSpan && node.RawKind == kind)
-                {
-                    return node;
-                }
-
-                var structuredTrivia = node as IStructuredTriviaSyntax;
-                if (structuredTrivia != null)
-                {
-                    node = structuredTrivia.ParentTrivia.Token.Parent;
-                }
-                else
-                {
-                    node = node.Parent;
-                }
-            }
-
-            throw ExceptionUtilities.Unreachable;
-        }
     }
 }

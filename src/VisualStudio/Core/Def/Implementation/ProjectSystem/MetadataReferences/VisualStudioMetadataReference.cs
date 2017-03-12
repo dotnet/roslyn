@@ -84,10 +84,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _currentSnapshot = new Snapshot(_provider, Properties, this.FilePath);
         }
-
-        private string GetDebuggerDisplay()
-        {
-            return Path.GetFileName(this.FilePath);
-        }
     }
 }

@@ -415,11 +415,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
         }
 
-        internal static bool IsVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
-        {
-            return node.IsVar() || IsPredefinedType(node.Kind);
-        }
-
         internal static bool IsDeclarationExpressionType(SyntaxNode node, out DeclarationExpressionSyntax parent)
         {
             parent = node.Parent as DeclarationExpressionSyntax;

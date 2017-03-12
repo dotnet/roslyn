@@ -137,27 +137,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
                 return result;
             }
-
-            private static IList<ClassificationSpan> GetClassificationSpans(
-                IEnumerable<TaggedText> parts,
-                ITextSnapshot textSnapshot,
-                ClassificationTypeMap typeMap)
-            {
-                var result = new List<ClassificationSpan>();
-
-                var index = 0;
-                foreach (var part in parts)
-                {
-                    var text = part.ToString();
-                    result.Add(new ClassificationSpan(
-                        new SnapshotSpan(textSnapshot, new Microsoft.VisualStudio.Text.Span(index, text.Length)),
-                        typeMap.GetClassificationType(ClassificationTags.GetClassificationTypeName(part.Tag))));
-
-                    index += text.Length;
-                }
-
-                return result;
-            }
         }
     }
 }

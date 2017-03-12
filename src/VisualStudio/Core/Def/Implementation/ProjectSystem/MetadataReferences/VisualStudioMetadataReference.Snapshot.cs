@@ -91,11 +91,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return new Snapshot(_provider, properties, this.FilePath);
             }
 
-            private string GetDebuggerDisplay()
-            {
-                return "Metadata File: " + FilePath;
-            }
-
             public IEnumerable<ITemporaryStreamStorage> GetStorages()
             {
                 return _provider.GetStorages(this.FilePath, _timestamp);

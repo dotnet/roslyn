@@ -16,10 +16,5 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features
             this.Document = document;
             this.TextSpan = textSpan;
         }
-
-        private string GetDebuggerDisplay()
-        {
-            return $"{Document.Name} [{TextSpan.Start}...{TextSpan.End}]";
-        }
     }
 }

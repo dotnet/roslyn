@@ -12,12 +12,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         private const string SystemCategory = "System";
 
-        /// <summary>The name of the array type.</summary>
-        internal const string ArrayTypeName = "System.Array"; // using instead of GetSpecialType to make more testable
-
-        /// <summary>The name of the Empty method on System.Array.</summary>
-        internal const string ArrayEmptyMethodName = "Empty";
-
         private static LocalizableString s_localizableTitle = "Empty Array";
         private static LocalizableString s_localizableMessage = "Empty array creation can be replaced with Array.Empty";
 

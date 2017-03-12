@@ -439,22 +439,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return expression.Constructor.IsDefaultValueTypeConstructor() && expression.InitializerExpressionOpt == null;
         }
 
-        internal static MethodSymbol FindContainingGenericMethod(Symbol symbol)
-        {
-            for (Symbol current = symbol; (object)current != null; current = current.ContainingSymbol)
-            {
-                if (current.Kind == SymbolKind.Method)
-                {
-                    MethodSymbol method = (MethodSymbol)current;
-                    if (method.MethodKind != MethodKind.AnonymousFunction)
-                    {
-                        return method.IsGenericMethod ? method : null;
-                    }
-                }
-            }
-            return null;
-        }
-
         private static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken outKeyword, out SyntaxToken refKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword)
         {
             var refKind = RefKind.None;

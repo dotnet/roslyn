@@ -72,11 +72,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal SyntaxNode Node
-        {
-            get { return _node; }
-        }
-
         private static int Occupancy(GreenNode green)
         {
             return green.IsList ? green.SlotCount : 1;
@@ -293,6 +288,7 @@ namespace Microsoft.CodeAnalysis
             return red;
         }
 
+#if DEBUG
         // for debugging
         private SyntaxNodeOrToken[] Nodes
         {
@@ -301,6 +297,7 @@ namespace Microsoft.CodeAnalysis
                 return this.ToArray();
             }
         }
+#endif
 
         public bool Any()
         {

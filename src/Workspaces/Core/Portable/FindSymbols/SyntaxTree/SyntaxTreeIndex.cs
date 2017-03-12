@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal sealed partial class SyntaxTreeIndex
     {
-        private readonly VersionStamp _version;
-
         private readonly LiteralInfo _literalInfo;
         private readonly IdentifierInfo _identifierInfo;
         private readonly ContextInfo _contextInfo;

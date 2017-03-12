@@ -92,14 +92,5 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 return null;
             }
         }
-
-        private static bool TryThirdPartyNavigation(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-        {
-            var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-
-            // Notify of navigation so third parties can intercept the navigation
-            return symbolNavigationService.TrySymbolNavigationNotify(symbol, solution, cancellationToken);
-        }
     }
 }

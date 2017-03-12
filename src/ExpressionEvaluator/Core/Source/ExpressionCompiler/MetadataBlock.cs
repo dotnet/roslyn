@@ -63,10 +63,5 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Hash.Combine(this.Pointer.GetHashCode(), this.Size),
                 Hash.Combine(this.ModuleVersionId.GetHashCode(), this.GenerationId.GetHashCode()));
         }
-
-        private string GetDebuggerDisplay()
-        {
-            return string.Format("MetadataBlock {{ Mvid = {{{0}}}, Address = {1}, Size = {2} }}", ModuleVersionId, Pointer, Size);
-        }
     }
 }

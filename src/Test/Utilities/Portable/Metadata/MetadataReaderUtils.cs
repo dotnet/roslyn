@@ -35,22 +35,6 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        internal static IEnumerable<GenericParameterHandle> GetGenericParameters(this MetadataReader reader)
-        {
-            for (int i = 1, n = reader.GetTableRowCount(TableIndex.GenericParam); i <= n; i++)
-            {
-                yield return MetadataTokens.GenericParameterHandle(i);
-            }
-        }
-
-        internal static IEnumerable<GenericParameterConstraintHandle> GetGenericParameterConstraints(this MetadataReader reader)
-        {
-            for (int i = 1, n = reader.GetTableRowCount(TableIndex.GenericParamConstraint); i <= n; i++)
-            {
-                yield return MetadataTokens.GenericParameterConstraintHandle(i);
-            }
-        }
-
         internal static IEnumerable<ModuleReferenceHandle> GetModuleReferences(this MetadataReader reader)
         {
             for (int i = 1, n = reader.GetTableRowCount(TableIndex.ModuleRef); i <= n; i++)

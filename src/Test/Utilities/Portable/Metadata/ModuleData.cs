@@ -92,10 +92,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return metadata.GetModuleVersionId();
             }
         }
-
-        private string GetDebuggerDisplay()
-        {
-            return FullName + " {" + Mvid + "}";
-        }
     }
 }

@@ -447,11 +447,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private string GetDebuggerDisplay()
-        {
-            return this.Name;
-        }
-
         private AsyncLazy<DocumentOptionSet> _cachedOptions;
 
         /// <summary>

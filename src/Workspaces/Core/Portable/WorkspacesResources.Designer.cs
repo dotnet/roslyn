@@ -251,15 +251,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Adding metadata references is not supported..
-        /// </summary>
-        internal static string Adding_metadata_references_is_not_supported {
-            get {
-                return ResourceManager.GetString("Adding_metadata_references_is_not_supported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Adding project reference from &apos;{0}&apos; to &apos;{1}&apos; will cause a circular reference..
         /// </summary>
         internal static string Adding_project_reference_from_0_to_1_will_cause_a_circular_reference {
@@ -323,15 +314,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async Method.
-        /// </summary>
-        internal static string Async_Method {
-            get {
-                return ResourceManager.GetString("Async_Method", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to At least one diagnostic must be supplied..
         /// </summary>
         internal static string At_least_one_diagnostic_must_be_supplied {
@@ -373,15 +355,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Can_t_resolve_metadata_reference_colon_0 {
             get {
                 return ResourceManager.GetString("Can_t_resolve_metadata_reference_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;..
-        /// </summary>
-        internal static string Cannot_deserialize_type_0 {
-            get {
-                return ResourceManager.GetString("Cannot_deserialize_type_0", resourceCulture);
             }
         }
         
@@ -477,15 +450,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Changing project properties is not supported..
-        /// </summary>
-        internal static string Changing_project_properties_is_not_supported {
-            get {
-                return ResourceManager.GetString("Changing_project_properties_is_not_supported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Class.
         /// </summary>
         internal static string Class {
@@ -518,15 +482,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Delegate {
             get {
                 return ResourceManager.GetString("Delegate", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Deserialization reader for &apos;{0}&apos; read incorrect number of values..
-        /// </summary>
-        internal static string Deserialization_reader_for_0_read_incorrect_number_of_values {
-            get {
-                return ResourceManager.GetString("Deserialization_reader_for_0_read_incorrect_number_of_values", resourceCulture);
             }
         }
         
@@ -581,15 +536,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Diagnostic_must_have_span_0 {
             get {
                 return ResourceManager.GetString("Diagnostic_must_have_span_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Documentation comment id must start with E, F, M, N, P or T.
-        /// </summary>
-        internal static string Documentation_comment_id_must_start_with_E_F_M_N_P_or_T {
-            get {
-                return ResourceManager.GetString("Documentation_comment_id_must_start_with_E_F_M_N_P_or_T", resourceCulture);
             }
         }
         
@@ -752,15 +698,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Interface {
             get {
                 return ResourceManager.GetString("Interface", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid CodePage value: {0}.
-        /// </summary>
-        internal static string Invalid_CodePage_value_colon_0 {
-            get {
-                return ResourceManager.GetString("Invalid_CodePage_value_colon_0", resourceCulture);
             }
         }
         
@@ -1099,15 +1036,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Removing metadata references is not supported..
-        /// </summary>
-        internal static string Removing_metadata_references_is_not_supported {
-            get {
-                return ResourceManager.GetString("Removing_metadata_references_is_not_supported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Removing project references is not supported..
         /// </summary>
         internal static string Removing_project_references_is_not_supported {
@@ -1150,15 +1078,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Solution_file_not_found_colon_0 {
             get {
                 return ResourceManager.GetString("Solution_file_not_found_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Specified path must be absolute..
-        /// </summary>
-        internal static string Specified_path_must_be_absolute {
-            get {
-                return ResourceManager.GetString("Specified_path_must_be_absolute", resourceCulture);
             }
         }
         
@@ -1361,15 +1280,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{0}&apos; is not understood by the serialization binder..
-        /// </summary>
-        internal static string The_type_0_is_not_understood_by_the_serialization_binder {
-            get {
-                return ResourceManager.GetString("The_type_0_is_not_understood_by_the_serialization_binder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to These non-leading words must begin with a lowercase letter: {0}.
         /// </summary>
         internal static string These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0 {
@@ -1393,15 +1303,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string These_words_cannot_contain_lower_case_characters_colon_0 {
             get {
                 return ResourceManager.GetString("These_words_cannot_contain_lower_case_characters_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These words cannot contain upper case characters: {0}.
-        /// </summary>
-        internal static string These_words_cannot_contain_upper_case_characters_colon_0 {
-            get {
-                return ResourceManager.GetString("These_words_cannot_contain_upper_case_characters_colon_0", resourceCulture);
             }
         }
         
@@ -1438,15 +1339,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Types {
             get {
                 return ResourceManager.GetString("Types", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unknown identifier..
-        /// </summary>
-        internal static string Unknown_identifier {
-            get {
-                return ResourceManager.GetString("Unknown_identifier", resourceCulture);
             }
         }
         

@@ -347,11 +347,13 @@ namespace Microsoft.CodeAnalysis
             return _node != null;
         }
 
+#if DEBUG
         // for debugging
         private TNode[] Nodes
         {
             get { return this.ToArray(); }
         }
+#endif
 
         /// <summary>
         /// Get's the enumerator for this list.

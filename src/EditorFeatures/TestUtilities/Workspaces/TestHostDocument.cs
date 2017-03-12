@@ -270,15 +270,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        private void Update(string newText)
-        {
-            using (var edit = this.GetTextBuffer().CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
-            {
-                edit.Replace(new Span(0, this.GetTextBuffer().CurrentSnapshot.Length), newText);
-                edit.Apply();
-            }
-        }
-
         internal void CloseTextView()
         {
             if (_textView != null && !_textView.IsClosed)

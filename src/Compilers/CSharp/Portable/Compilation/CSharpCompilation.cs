@@ -1319,13 +1319,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyHostObjectTypeSymbol;
         }
 
-        internal SynthesizedInteractiveInitializerMethod GetSubmissionInitializer()
-        {
-            return (IsSubmission && (object)ScriptClass != null) ?
-                ScriptClass.GetScriptInitializer() :
-                null;
-        }
-
         /// <summary>
         /// Gets the type within the compilation's assembly and all referenced assemblies (other than
         /// those that can only be referenced via an extern alias) using its canonical CLR metadata name.

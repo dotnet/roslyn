@@ -10,11 +10,6 @@ namespace RunTests
 {
     internal static class ConsoleUtil
     {
-        internal static void Write(ConsoleColor color, string format, params object[] args)
-        {
-            WithColor(color, () => Console.Write(format, args));
-        }
-
         internal static void WriteLine(ConsoleColor color, string format, params object[] args)
         {
             WithColor(color, () => Console.WriteLine(format, args));

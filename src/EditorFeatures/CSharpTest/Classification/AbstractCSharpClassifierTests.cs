@@ -156,14 +156,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         }
 
         protected Task TestInMethodAsync(
-            string methodName,
-            string code,
-            params Tuple<string, string>[] expected)
-        {
-            return TestInMethodAsync("C", methodName, code, expected);
-        }
-
-        protected Task TestInMethodAsync(
             string code,
             params Tuple<string, string>[] expected)
         {

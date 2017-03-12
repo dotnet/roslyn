@@ -78,9 +78,6 @@ namespace Microsoft.CodeAnalysis
         // bitmap for public ID characters - 1 bit per character 0x0 - 0x80; no character > 0x80 is a PUBLIC ID char
         private const string s_PublicIdBitmap = "\u2400\u0000\uffbb\uafff\uffff\u87ff\ufffe\u07ff";
 
-        // size of XmlCharType table
-        private const uint CharPropertiesSize = (uint)char.MaxValue + 1;
-
         // 8 results in the smaller combined size of the tables.
         // if anything changes (like we do not care about some of the char flags), try 
         // generating with other sizes as 8 might no longer be optimal.
@@ -991,18 +988,6 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        // TextChar = CharData - { 0xA, 0xD, '<', '&', ']' }
-        internal static bool IsTextChar(char ch)
-        {
-            return (charProperties(ch) & fText) != 0;
-        }
-
-        // AttrValueChar = CharData - { 0xA, 0xD, 0x9, '<', '>', '&', '\'', '"' }
-        internal static bool IsAttributeValueChar(char ch)
-        {
-            return (charProperties(ch) & fAttrValue) != 0;
-        }
-
         // XML 1.0 Fourth Edition definitions
         //
         public static bool IsLetter(char ch)
@@ -1054,113 +1039,6 @@ namespace Microsoft.CodeAnalysis
         internal static bool IsLowSurrogate(int ch)
         {
             return InRange(ch, SurLowStart, SurLowEnd);
-        }
-
-        internal static bool IsSurrogate(int ch)
-        {
-            return InRange(ch, SurHighStart, SurLowEnd);
-        }
-
-        internal static int CombineSurrogateChar(int lowChar, int highChar)
-        {
-            return (lowChar - SurLowStart) | ((highChar - SurHighStart) << 10) + 0x10000;
-        }
-
-        internal static void SplitSurrogateChar(int combinedChar, out char lowChar, out char highChar)
-        {
-            int v = combinedChar - 0x10000;
-            lowChar = (char)(SurLowStart + v % 1024);
-            highChar = (char)(SurHighStart + v / 1024);
-        }
-
-        internal static bool IsOnlyWhitespace(string str)
-        {
-            return IsOnlyWhitespaceWithPos(str) == -1;
-        }
-
-        // Character checking on strings
-        internal static int IsOnlyWhitespaceWithPos(string str)
-        {
-            if (str != null)
-            {
-                for (int i = 0; i < str.Length; i++)
-                {
-                    if ((charProperties(str[i]) & fWhitespace) == 0)
-                    {
-                        return i;
-                    }
-                }
-            }
-            return -1;
-        }
-
-        internal static int IsOnlyCharData(string str)
-        {
-            if (str != null)
-            {
-                for (int i = 0; i < str.Length; i++)
-                {
-                    if ((charProperties(str[i]) & fCharData) == 0)
-                    {
-                        if (i + 1 >= str.Length || !(XmlCharType.IsHighSurrogate(str[i]) && XmlCharType.IsLowSurrogate(str[i + 1])))
-                        {
-                            return i;
-                        }
-                        else
-                        {
-                            i++;
-                        }
-                    }
-                }
-            }
-            return -1;
-        }
-
-        static internal bool IsOnlyDigits(string str, int startPos, int len)
-        {
-            Debug.Assert(str != null);
-            Debug.Assert(startPos + len <= str.Length);
-            Debug.Assert(startPos <= str.Length);
-
-            for (int i = startPos; i < startPos + len; i++)
-            {
-                if (!IsDigit(str[i]))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        static internal bool IsOnlyDigits(char[] chars, int startPos, int len)
-        {
-            Debug.Assert(chars != null);
-            Debug.Assert(startPos + len <= chars.Length);
-            Debug.Assert(startPos <= chars.Length);
-
-            for (int i = startPos; i < startPos + len; i++)
-            {
-                if (!IsDigit(chars[i]))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        internal static int IsPublicId(string str)
-        {
-            if (str != null)
-            {
-                for (int i = 0; i < str.Length; i++)
-                {
-                    if (!IsPubidChar(str[i]))
-                    {
-                        return i;
-                    }
-                }
-            }
-            return -1;
         }
 
         // This method tests whether a value is in a given range with just one test; start and end should be constants

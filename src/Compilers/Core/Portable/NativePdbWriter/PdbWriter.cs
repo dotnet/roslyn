@@ -95,11 +95,6 @@ namespace Microsoft.Cci
             return _incrementalHash.GetHashAndReset();
         }
 
-        internal void Close()
-        {
-            _incrementalHash?.Dispose();
-        }
-
         internal enum PdbWriterOperation : byte
         {
             SetUserEntryPoint,

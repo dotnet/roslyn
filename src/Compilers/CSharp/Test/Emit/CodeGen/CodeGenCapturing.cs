@@ -64,9 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             public int CaptureNameIndex = 0;
         }
 
-        private static string MakeLocalFunc(int nameIndex, string captureExpression)
-            => $@"int Local_{nameIndex}() => {captureExpression};";
-
         private static string MakeCaptureExpression(IList<int> varsToCapture, CaptureContext ctx)
         {
             var varNames = new List<string>();

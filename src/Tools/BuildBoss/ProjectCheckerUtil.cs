@@ -19,7 +19,6 @@ namespace BuildBoss
         private readonly Dictionary<ProjectKey, ProjectData> _solutionMap;
 
         internal ProjectFileType ProjectType => _data.ProjectFileType;
-        internal string ProjectFilePath => _data.FilePath;
 
         internal ProjectCheckerUtil(ProjectData data, Dictionary<ProjectKey, ProjectData> solutionMap)
         {

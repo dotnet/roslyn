@@ -151,12 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return method.Construct(typeArgsForConstruct);
         }
 
-        internal static bool IsSynthesizedLambda(this MethodSymbol method)
-        {
-            Debug.Assert((object)method != null);
-            return method.IsImplicitlyDeclared && method.MethodKind == MethodKind.AnonymousFunction;
-        }
-
         /// <summary>
         /// The runtime considers a method to be a finalizer (i.e. a method that should be invoked
         /// by the garbage collector) if it (directly or indirectly) overrides System.Object.Finalize.
