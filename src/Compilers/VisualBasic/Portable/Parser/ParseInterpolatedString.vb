@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim node = SyntaxFactory.InterpolatedStringExpression(dollarSignDoubleQuoteToken,
                                                               _pool.ToListAndFree(contentBuilder),
                                                               doubleQuoteToken)
-            Return FeatureUtils.CheckFeatureAvailability(Feature.InterpolatedStrings, node, _scanner)
+            Return FeatureUtils.CheckFeatureAvailability(Feature.InterpolatedStrings, node, _scanner.Options)
         End Function
 
         Private Function ParseInterpolatedStringInterpolation() As InterpolationSyntax

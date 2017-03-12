@@ -2089,10 +2089,10 @@ FullWidthRepeat2:
             End If
 
             If UnderscoreUsed Then
-                result = FeatureUtils.CheckFeatureAvailability(result, Feature.DigitSeparators, Me.Options)
+                result = FeatureUtils.CheckFeatureAvailability(Feature.DigitSeparators, result, Options)
             End If
             If Base = LiteralBase.Binary Then
-                result = FeatureUtils.CheckFeatureAvailability(result, Feature.BinaryLiterals, Me.Options)
+                result = FeatureUtils.CheckFeatureAvailability(Feature.BinaryLiterals, result, Options)
             End If
 
             Return result
@@ -2444,7 +2444,7 @@ FullWidthRepeat2:
                 Dim result = MakeDateLiteralToken(precedingTrivia, DateTimeValue, Here)
 
                 If yearIsFirst Then
-                    result = FeatureUtils.CheckFeatureAvailability(Feature.YearFirstDateLiterals, result, Options.LanguageVersion)
+                    result = FeatureUtils.CheckFeatureAvailability(Feature.YearFirstDateLiterals, result, Options)
                 End If
 
                 Return result
@@ -2545,7 +2545,7 @@ baddate:
                     Dim result As SyntaxToken = SyntaxFactory.StringLiteralToken(spelling, GetScratchText(scratch), precedingTrivia.Node, followingTrivia.Node)
 
                     If haveNewLine Then
-                        result = FeatureUtils.CheckFeatureAvailability(Feature.MultilineStringLiterals, result, Options.LanguageVersion)
+                        result = FeatureUtils.CheckFeatureAvailability(Feature.MultilineStringLiterals, result, Options)
                     End If
 
                     Return result
@@ -2646,20 +2646,6 @@ baddate:
             Return (_isScanningForExpressionCompiler AndAlso c = "$"c) OrElse SyntaxFacts.IsIdentifierStartCharacter(c)
         End Function
 
-        <Obsolete("", True)>
-        Private Function CheckFeatureAvailability(token As SyntaxToken, feature As Feature) As SyntaxToken
-            Throw New NotSupportedException()
-        End Function
-
-        <Obsolete("", True)>
-        Friend Function CheckFeatureAvailability(feature As Feature) As Boolean
-            Throw New NotSupportedException()
-        End Function
-
-        <Obsolete("", True)>
-        Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
-            Throw New NotSupportedException()
-        End Function
     End Class
 
 End Namespace

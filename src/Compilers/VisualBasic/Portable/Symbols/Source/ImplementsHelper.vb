@@ -468,7 +468,7 @@ DoneWithErrorReporting:
 
                     errorReported = errorReported Or
                                     Not InternalSyntax.FeatureUtils.CheckFeatureAvailability(diagBag, implementedMemberSyntax.GetLocation(),
-                                        DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
+                                        DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options,
                                         InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite)
                 End If
             End If
