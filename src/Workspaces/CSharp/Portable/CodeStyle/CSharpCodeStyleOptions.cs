@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly CodeStyleOption<ExpressionBodyPreference> NeverWithNoneEnforcement =
             new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.None);
 
+        public static readonly CodeStyleOption<ExpressionBodyPreference> NeverWithSuggestionEnforcement =
+            new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.Suggestion);
+
         public static readonly CodeStyleOption<ExpressionBodyPreference> WhenPossibleWithNoneEnforcement =
             new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.None);
 
