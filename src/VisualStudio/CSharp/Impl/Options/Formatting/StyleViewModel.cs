@@ -753,7 +753,7 @@ class List<T>
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
                 CSharpCodeStyleOptions.PreferExpressionBodiedAccessors,
-                ServicesVSResources.For_accessors,
+                ServicesVSResources.Use_expression_body_for_accessors,
                 new[] { s_preferBlockBodyForAccessors, s_preferExpressionBodyForAccessors, s_preferExpressionBodyForAccessors },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
         }
