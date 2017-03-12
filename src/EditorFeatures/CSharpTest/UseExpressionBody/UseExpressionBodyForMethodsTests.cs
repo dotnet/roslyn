@@ -19,17 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new UseExpressionBodyForMethodsDiagnosticAnalyzer(), new UseExpressionBodyForMethodsCodeFixProvider());
 
-        private static readonly Dictionary<OptionKey, object> UseExpressionBody =
-            new Dictionary<OptionKey, object>
-            {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement }
-            };
+        private IDictionary<OptionKey, object> UseExpressionBody =>
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement);
 
-        private static readonly Dictionary<OptionKey, object> UseBlockBody =
-            new Dictionary<OptionKey, object>
-            {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithNoneEnforcement }
-            };
+        private IDictionary<OptionKey, object> UseBlockBody =>
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()
