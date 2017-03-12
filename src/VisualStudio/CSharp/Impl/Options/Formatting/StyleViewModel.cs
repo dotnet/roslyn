@@ -673,7 +673,7 @@ class List<T>
 
             var expressionBodyPreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference(CSharpVSResources.Never, isChecked: true),
+                new CodeStylePreference(CSharpVSResources.Never, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.When_possible, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.When_on_single_line, isChecked: false),
             };

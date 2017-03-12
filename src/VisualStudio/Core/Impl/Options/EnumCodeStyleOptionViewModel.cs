@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
@@ -87,6 +88,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             List<CodeStylePreference> preferences)
             : base(option, description, previews, info, options, groupName, preferences)
         {
+            Debug.Assert(preferences.Count == s_enumValues.Length);
+            Debug.Assert(previews.Length == s_enumValues.Length);
+
             var codeStyleOption = options.GetOption(option);
 
             var enumIndex = s_enumValues.IndexOf(codeStyleOption.Value);
