@@ -671,12 +671,6 @@ class List<T>
                 new CodeStylePreference(CSharpVSResources.Prefer_explicit_type, isChecked: false),
             };
 
-            //var codeBlockPreferences = new List<CodeStylePreference>
-            //{
-            //    new CodeStylePreference(CSharpVSResources.Prefer_expression_body, isChecked: true),
-            //    new CodeStylePreference(CSharpVSResources.Prefer_block_body, isChecked: false),
-            //};
-
             var expressionBodyPreferences = new List<CodeStylePreference>
             {
                 new CodeStylePreference(CSharpVSResources.Never, isChecked: true),
