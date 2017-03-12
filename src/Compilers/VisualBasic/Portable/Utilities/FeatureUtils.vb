@@ -35,10 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '''' </summary>
         Protected Friend Shared Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode, parseoptions As VisualBasicParseOptions) As TNode
             If CheckFeatureAvailability(parseoptions, feature) Then Return node
-            If feature <> Feature.InterpolatedStrings Then Return ReportFeatureUnavailable(feature, node, parseoptions.LanguageVersion)
-            ' Bug: It is too late in the release cycle to update localized strings.  As a short term measure we will output 
-            ' an unlocalized string and fix this to be localized in the next release.
-            Return Parser.ReportSyntaxError(node, ERRID.ERR_LanguageVersion, parseoptions.LanguageVersion.GetErrorName(), "interpolated strings")
+            Return ReportFeatureUnavailable(feature, node, parseoptions.LanguageVersion)
         End Function
 
         ''' <summary>Returns false and reports an error if the feature is un-available</summary>
