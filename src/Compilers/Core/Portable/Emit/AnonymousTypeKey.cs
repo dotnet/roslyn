@@ -81,20 +81,5 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             return Hash.Combine(this.IsDelegate.GetHashCode(), Hash.CombineValues(this.Fields));
         }
-
-        private string GetDebuggerDisplay()
-        {
-            var pooledBuilder = PooledStringBuilder.GetInstance();
-            var builder = pooledBuilder.Builder;
-            for (int i = 0; i < this.Fields.Length; i++)
-            {
-                if (i > 0)
-                {
-                    builder.Append("|");
-                }
-                builder.Append(this.Fields[i]);
-            }
-            return pooledBuilder.ToStringAndFree();
-        }
     }
 }

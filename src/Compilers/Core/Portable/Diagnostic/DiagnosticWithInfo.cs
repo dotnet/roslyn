@@ -164,26 +164,6 @@ namespace Microsoft.CodeAnalysis
                 this.AdditionalLocations.SequenceEqual(other.AdditionalLocations);
         }
 
-        private string GetDebuggerDisplay()
-        {
-            switch (_info.Severity)
-            {
-                case InternalDiagnosticSeverity.Unknown:
-                    // If we called ToString before the diagnostic was resolved,
-                    // we would risk infinite recursion (e.g. if we were still computing
-                    // member lists).
-                    return "Unresolved diagnostic at " + this.Location;
-
-                case InternalDiagnosticSeverity.Void:
-                    // If we called ToString on a void diagnostic, the MessageProvider
-                    // would complain about the code.
-                    return "Void diagnostic at " + this.Location;
-
-                default:
-                    return ToString();
-            }
-        }
-
         internal override Diagnostic WithLocation(Location location)
         {
             if (location == null)

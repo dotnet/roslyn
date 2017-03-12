@@ -49,18 +49,5 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             return Hash.Combine(this.Type, this.SlotInfo.GetHashCode());
         }
-
-        private string GetDebuggerDisplay()
-        {
-            if (this.IsUnused)
-            {
-                return "[invalid]";
-            }
-
-            return string.Format("[Id={0}, SynthesizedKind={1}, Type={2}]",
-                this.SlotInfo.Id,
-                this.SlotInfo.SynthesizedKind,
-                this.Type);
-        }
     }
 }

@@ -1403,16 +1403,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Finds a descendant trivia of this node whose span includes the supplied position.
-        /// </summary>
-        /// <param name="position">The character position of the trivia relative to the beginning of the file.</param>
-        /// <param name="findInsideTrivia">Whether to search inside structured trivia.</param>
-        protected virtual SyntaxTrivia FindTriviaCore(int position, bool findInsideTrivia)
-        {
-            return FindTrivia(position, findInsideTrivia);
-        }
-
-        /// <summary>
         /// Creates a new tree of nodes with the specified nodes, tokens or trivia replaced.
         /// </summary>
         protected internal abstract SyntaxNode ReplaceCore<TNode>(

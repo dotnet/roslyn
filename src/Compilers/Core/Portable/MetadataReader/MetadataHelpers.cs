@@ -105,14 +105,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private int Offset
-            {
-                get
-                {
-                    return _offset;
-                }
-            }
-
             private char Current
             {
                 get

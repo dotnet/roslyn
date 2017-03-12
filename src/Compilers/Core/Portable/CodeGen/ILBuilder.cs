@@ -1252,20 +1252,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _allocatedILMarkers[ilMarker].AbsoluteOffset;
         }
 
-        private string GetDebuggerDisplay()
-        {
-#if DEBUG
-            var visType = Type.GetType("Roslyn.Test.Utilities.ILBuilderVisualizer, Roslyn.Test.Utilities", false);
-            if (visType != null)
-            {
-                var method = visType.GetTypeInfo().GetDeclaredMethod("ILBuilderToString");
-                return (string)method.Invoke(null, new object[] { this, null, null });
-            }
-#endif
-
-            return "";
-        }
-
         private struct ILMarker
         {
             public int BlockOffset;

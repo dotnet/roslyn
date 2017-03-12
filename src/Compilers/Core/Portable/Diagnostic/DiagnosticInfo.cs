@@ -444,23 +444,6 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        private string GetDebuggerDisplay()
-        {
-            // There aren't message resources for our internal error codes, so make
-            // sure we don't call ToString for those.
-            switch (Code)
-            {
-                case InternalErrorCode.Unknown:
-                    return "Unresolved DiagnosticInfo";
-
-                case InternalErrorCode.Void:
-                    return "Void DiagnosticInfo";
-
-                default:
-                    return ToString();
-            }
-        }
-
         /// <summary>
         /// For a DiagnosticInfo that is lazily evaluated, this method evaluates it
         /// and returns a non-lazy DiagnosticInfo.

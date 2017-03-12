@@ -29,20 +29,5 @@ namespace Microsoft.CodeAnalysis.Emit
             Success = success;
             Diagnostics = diagnostics;
         }
-
-        protected virtual string GetDebuggerDisplay()
-        {
-            string result = "Success = " + (Success ? "true" : "false");
-            if (Diagnostics != null)
-            {
-                result += ", Diagnostics.Count = " + Diagnostics.Length;
-            }
-            else
-            {
-                result += ", Diagnostics = null";
-            }
-
-            return result;
-        }
     }
 }

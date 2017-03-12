@@ -33,14 +33,6 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Underlying string which is the source of this SourceText instance
-        /// </summary>
-        internal StringBuilder Builder
-        {
-            get { return _builder; }
-        }
-
-        /// <summary>
         /// The length of the text represented by <see cref="StringBuilderText"/>.
         /// </summary>
         public override int Length

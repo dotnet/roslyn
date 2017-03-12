@@ -194,11 +194,5 @@ namespace Microsoft.CodeAnalysis.Syntax
 
             return builder.ToList();
         }
-
-        internal void RemoveLast()
-        {
-            this.Count -= 1;
-            this._nodes[Count] = default(ArrayElement<GreenNode>);
-        }
     }
 }

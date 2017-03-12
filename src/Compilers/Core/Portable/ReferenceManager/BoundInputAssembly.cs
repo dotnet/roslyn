@@ -30,11 +30,6 @@ namespace Microsoft.CodeAnalysis
             /// is bound to.
             /// </remarks>
             internal AssemblyReferenceBinding[] ReferenceBinding;
-
-            private string GetDebuggerDisplay()
-            {
-                return AssemblySymbol == null ? "?" : AssemblySymbol.ToString();
-            }
         }
     }
 }

@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        // Dead code required to pass src\Workspaces\Core\Portable\PublicAPI.Shipped.txt(771,1,771,125)
         protected void CheckProjectDoesNotContainOpenDocuments(ProjectId projectId)
         {
             if (ProjectHasOpenDocuments(projectId))

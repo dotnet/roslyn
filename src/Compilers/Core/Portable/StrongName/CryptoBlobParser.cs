@@ -94,12 +94,6 @@ namespace Microsoft.CodeAnalysis
         // internal for testing
         internal unsafe static readonly int s_publicKeyHeaderSize = sizeof(SnPublicKeyBlob) - 1;
 
-        private static uint ToUInt32(ImmutableArray<byte> bytes, int offset)
-        {
-            Debug.Assert((bytes.Length - offset) > sizeof(int));
-            return (uint)(bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24));
-        }
-
         // From StrongNameInternal.cpp
         // Checks to see if a public key is a valid instance of a PublicKeyBlob as
         // defined in StongName.h

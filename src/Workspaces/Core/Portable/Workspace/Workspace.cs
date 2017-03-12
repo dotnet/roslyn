@@ -208,6 +208,7 @@ namespace Microsoft.CodeAnalysis
             return _taskQueue.ScheduleTask(action, taskName);
         }
 
+        // Dead code required to satisfy src\Workspaces\Core\Portable\PublicAPI.Shipped.txt(829,1,829,140)
         /// <summary>
         /// Execute a function as a background task, as part of a sequential queue of tasks.
         /// </summary>
@@ -1742,6 +1743,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        // Dead code required by src\Workspaces\Core\Portable\PublicAPI.Shipped.txt(765,1,765,133)
         /// <summary>
         /// Throws an exception if an additional document is already part of the current solution.
         /// </summary>

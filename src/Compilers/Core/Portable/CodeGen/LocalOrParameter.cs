@@ -25,10 +25,5 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             return new LocalOrParameter(null, parameterIndex);
         }
-
-        private string GetDebuggerDisplay()
-        {
-            return (Local != null) ? Local.GetDebuggerDisplay() : ParameterIndex.ToString();
-        }
     }
 }

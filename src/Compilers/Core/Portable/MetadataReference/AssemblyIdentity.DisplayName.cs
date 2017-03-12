@@ -131,11 +131,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private string GetDebuggerDisplay()
-        {
-            return GetDisplayName(fullKey: true);
-        }
-
         public static bool TryParseDisplayName(string displayName, out AssemblyIdentity identity)
         {
             if (displayName == null)

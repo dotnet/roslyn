@@ -74,25 +74,5 @@ namespace Microsoft.CodeAnalysis.Emit
                    Hash.Combine((int)this.Constraints,
                    Hash.Combine(isUnused, 0))));
         }
-
-        private string GetDebuggerDisplay()
-        {
-            if (this.IsDefault)
-            {
-                return "[default]";
-            }
-
-            if (this.isUnused)
-            {
-                return "[invalid]";
-            }
-
-            return string.Format("[Id={0}, SynthesizedKind={1}, Type={2}, Constraints={3}, Sig={4}]",
-                this.SlotInfo.Id,
-                this.SlotInfo.SynthesizedKind,
-                this.Type,
-                this.Constraints,
-                (this.Signature != null) ? BitConverter.ToString(this.Signature) : "null");
-        }
     }
 }

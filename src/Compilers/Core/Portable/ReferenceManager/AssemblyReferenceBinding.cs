@@ -98,11 +98,6 @@ namespace Microsoft.CodeAnalysis
                     return _referenceIdentity;
                 }
             }
-
-            private string GetDebuggerDisplay()
-            {
-                return IsBound ? ReferenceIdentity.GetDisplayName() + " -> #" + DefinitionIndex + (VersionDifference != 0 ? " VersionDiff=" + VersionDifference : "") : "unbound";
-            }
         }
     }
 }

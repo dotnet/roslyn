@@ -51,38 +51,5 @@ namespace Microsoft.CodeAnalysis
                 return _display ?? FilePath ?? (Properties.Kind == MetadataImageKind.Assembly ? CodeAnalysisResources.InMemoryAssembly : CodeAnalysisResources.InMemoryModule);
             }
         }
-
-        private string GetDebuggerDisplay()
-        {
-            var sb = new StringBuilder();
-            sb.Append(Properties.Kind == MetadataImageKind.Module ? "Module" : "Assembly");
-            if (!Properties.Aliases.IsEmpty)
-            {
-                sb.Append(" Aliases={");
-                sb.Append(string.Join(", ", Properties.Aliases));
-                sb.Append("}");
-            }
-
-            if (Properties.EmbedInteropTypes)
-            {
-                sb.Append(" Embed");
-            }
-
-            if (FilePath != null)
-            {
-                sb.Append(" Path='");
-                sb.Append(FilePath);
-                sb.Append("'");
-            }
-
-            if (_display != null)
-            {
-                sb.Append(" Display='");
-                sb.Append(_display);
-                sb.Append("'");
-            }
-
-            return sb.ToString();
-        }
     }
 }

@@ -24,10 +24,5 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.ILMarker = ilMarker;
             this.Span = span;
         }
-
-        private string GetDebuggerDisplay()
-        {
-            return string.Format("#{0}: {1}", ILMarker, Span == HiddenSequencePointSpan ? "hidden" : Span.ToString());
-        }
     }
 }

@@ -216,15 +216,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;..
-        /// </summary>
-        internal static string Cannot_deserialize_type_0 {
-            get {
-                return ResourceManager.GetString("Cannot_deserialize_type_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot serialize type &apos;{0}&apos;..
         /// </summary>
         internal static string Cannot_serialize_type_0 {
@@ -347,15 +338,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string CoffResourceMissingSection {
             get {
                 return ResourceManager.GetString("CoffResourceMissingSection", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Compilation options must not have errors..
-        /// </summary>
-        internal static string CompilationOptionsMustNotHaveErrors {
-            get {
-                return ResourceManager.GetString("CompilationOptionsMustNotHaveErrors", resourceCulture);
             }
         }
         
@@ -646,15 +628,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string InvalidAssemblyName {
             get {
                 return ResourceManager.GetString("InvalidAssemblyName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid characters in assembly culture name.
-        /// </summary>
-        internal static string InvalidCharactersInAssemblyCultureName {
-            get {
-                return ResourceManager.GetString("InvalidCharactersInAssemblyCultureName", resourceCulture);
             }
         }
         
@@ -997,24 +970,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Parameter {
             get {
                 return ResourceManager.GetString("Parameter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Path returned by {0}.ResolveMetadataFile must be absolute: &apos;{1}&apos;.
-        /// </summary>
-        internal static string PathReturnedByResolveMetadataFileMustBeAbsolute {
-            get {
-                return ResourceManager.GetString("PathReturnedByResolveMetadataFileMustBeAbsolute", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Path returned by {0}.ResolveStrongNameKeyFile must be absolute: &apos;{1}&apos;.
-        /// </summary>
-        internal static string PathReturnedByResolveStrongNameKeyFileMustBeAbsolute {
-            get {
-                return ResourceManager.GetString("PathReturnedByResolveStrongNameKeyFileMustBeAbsolute", resourceCulture);
             }
         }
         
@@ -1375,15 +1330,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string TupleUnderlyingTypeMustBeTupleCompatible {
             get {
                 return ResourceManager.GetString("TupleUnderlyingTypeMustBeTupleCompatible", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to type must be a subclass of SyntaxAnnotation..
-        /// </summary>
-        internal static string TypeMustBeASubclassOfSyntaxAnnotation {
-            get {
-                return ResourceManager.GetString("TypeMustBeASubclassOfSyntaxAnnotation", resourceCulture);
             }
         }
         

@@ -33,10 +33,5 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             return Hash.Combine(SyntaxOffset, ClosureId.GetHashCode());
         }
-
-        internal string GetDebuggerDisplay()
-        {
-            return $"({ClosureId.GetDebuggerDisplay()} @{SyntaxOffset})";
-        }
     }
 }

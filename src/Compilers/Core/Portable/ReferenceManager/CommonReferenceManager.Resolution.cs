@@ -140,11 +140,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private string GetDebuggerDisplay()
-            {
-                return IsSkipped ? "<skipped>" : $"{(_kind == MetadataImageKind.Assembly ? "A" : "M")}[{Index}]:{DisplayAliases(_aliasesOpt, "aliases")}{DisplayAliases(_recursiveAliasesOpt, "recursive-aliases")}";
-            }
-
             private static string DisplayAliases(ImmutableArray<string> aliasesOpt, string name)
             {
                 return aliasesOpt.IsDefault ? "" : $" {name} = '{string.Join("','", aliasesOpt)}'";

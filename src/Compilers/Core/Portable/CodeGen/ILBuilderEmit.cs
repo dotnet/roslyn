@@ -16,11 +16,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _emitState.AdjustStack(stackAdjustment);
         }
 
-        internal bool IsStackEmpty
-        {
-            get { return _emitState.CurStack == 0; }
-        }
-
         internal void EmitOpCode(ILOpCode code)
         {
             this.EmitOpCode(code, code.NetStackBehavior());

@@ -356,11 +356,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
-
-        private string GetDebuggerDisplay()
-        {
-            return "Count = " + (_lazyBag?.Count ?? 0);
-        }
         #endregion
     }
 }
