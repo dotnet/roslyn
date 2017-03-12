@@ -1680,6 +1680,44 @@ options: PreferExpressionBodiedAccessorsAndProperties);
 }", options: PreferExpressionBodiedProperties);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsSingleLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]GetFoo() { throw e; }
+}",
+@"class C
+{
+    int Foo => throw e;
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsNotSingleLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]GetFoo() { throw e +
+        e; }
+}",
+@"class C
+{
+    int Foo
+    {
+        get
+        {
+            throw e + 
+                e;
+        }
+    }
+}", options: OptionsSet(
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement)));
+        }
+
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup, 
             ParseOptions parseOptions = null, int index = 0, 

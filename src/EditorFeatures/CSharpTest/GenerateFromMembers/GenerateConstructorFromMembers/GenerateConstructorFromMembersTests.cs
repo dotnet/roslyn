@@ -58,7 +58,8 @@ class Z
 {
     int a;
 
-    public Z(int a) => this . a = a ; }",
+    public Z(int a) => this . a = a ;
+}",
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
