@@ -262,6 +262,7 @@
     <Compile Include="Implementation\Diagnostics\SuggestionAdornmentManagerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
     <Compile Include="FindUsages\AbstractFindUsagesService.ProgressAdapter.cs" />
+    <Compile Include="GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ClassificationTags.cs" />
@@ -288,7 +289,9 @@
     <Compile Include="Implementation\TodoComment\TodoItemsUpdatedArgs.cs" />
     <Compile Include="Host\ICallHierarchyPresenter.cs" />
     <Compile Include="Host\IPreviewPaneService.cs" />
+    <Compile Include="Host\INavigableItemsPresenter.cs" />
     <Compile Include="Host\IPreviewDialogService.cs" />
+    <Compile Include="Host\IDefinitionsAndReferencesPresenter.cs" />
     <Compile Include="Host\IWaitContext.cs" />
     <Compile Include="Host\IWaitIndicator.cs" />
     <Compile Include="IBraceMatchingService.cs" />
@@ -377,7 +380,9 @@
     <Compile Include="Implementation\EndConstructGeneration\IEndConstructGenerationService.cs" />
     <Compile Include="Implementation\ExtractInterface\AbstractExtractInterfaceCommandHandler.cs" />
     <Compile Include="Implementation\ExtractMethod\AbstractExtractMethodCommandHandler.cs" />
+    <Compile Include="FindReferences\AbstractFindReferencesService.cs" />
     <Compile Include="FindReferences\FindReferencesCommandHandler.cs" />
+    <Compile Include="FindReferences\IFindReferencesService.cs" />
     <Compile Include="Implementation\ForegroundNotification\ForegroundNotificationService.cs" />
     <Compile Include="Implementation\Formatting\FormatCommandHandler.cs" />
     <Compile Include="Implementation\Formatting\FormatCommandHandler.ReturnKey.cs" />
