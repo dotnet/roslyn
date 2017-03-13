@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     {
         internal partial class Session : Session<Controller, Model, ISignatureHelpPresenterSession>
         {
+            // When we issue compute tasks, provide them with a (monotonically increasing) id.  That
+            // way, when they run we can bail on computation if they've been superseded by another
+            // compute task.
+            private int _computeId;
+
             public Session(Controller controller, ISignatureHelpPresenterSession presenterSession)
                 : base(controller, new ModelComputation<Model>(controller, TaskScheduler.Default), presenterSession)
             {

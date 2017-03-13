@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -124,12 +125,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
         }
 
-        private Tuple<List<ISignatureHelpProvider>, List<ISignatureHelpProvider>> FilterProviders(IList<ISignatureHelpProvider> providers, char ch)
+        private (ImmutableArray<ISignatureHelpProvider> matched, ImmutableArray<ISignatureHelpProvider> unmatched) FilterProviders(
+            ImmutableArray<ISignatureHelpProvider> providers, char ch)
         {
             AssertIsForeground();
 
-            var matchedProviders = new List<ISignatureHelpProvider>();
-            var unmatchedProviders = new List<ISignatureHelpProvider>();
+            var matchedProviders = ArrayBuilder<ISignatureHelpProvider>.GetInstance();
+            var unmatchedProviders = ArrayBuilder<ISignatureHelpProvider>.GetInstance();
             foreach (var provider in providers)
             {
                 if (provider.IsTriggerCharacter(ch))
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 }
             }
 
-            return Tuple.Create(matchedProviders, unmatchedProviders);
+            return (matchedProviders.ToImmutableAndFree(), unmatchedProviders.ToImmutableAndFree());
         }
     }
 }

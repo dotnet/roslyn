@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,15 +23,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         internal partial class Session
         {
             public void ComputeModel(
-                IList<ISignatureHelpProvider> providers,
+                ImmutableArray<ISignatureHelpProvider> providers,
                 SignatureHelpTriggerInfo triggerInfo)
             {
-                ComputeModel(providers, SpecializedCollections.EmptyList<ISignatureHelpProvider>(), triggerInfo);
+                ComputeModel(providers, ImmutableArray<ISignatureHelpProvider>.Empty, triggerInfo);
             }
 
             public void ComputeModel(
-                IList<ISignatureHelpProvider> matchedProviders,
-                IList<ISignatureHelpProvider> unmatchedProviders,
+                ImmutableArray<ISignatureHelpProvider> matchedProviders,
+                ImmutableArray<ISignatureHelpProvider> unmatchedProviders,
                 SignatureHelpTriggerInfo triggerInfo)
             {
                 AssertIsForeground();
@@ -38,13 +39,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 var caretPosition = Controller.TextView.GetCaretPoint(Controller.SubjectBuffer).Value;
                 var disconnectedBufferGraph = new DisconnectedBufferGraph(Controller.SubjectBuffer, Controller.TextView.TextBuffer);
 
+                Interlocked.Increment(ref _computeId);
+                var localId = _computeId;
+
                 // If we've already computed a model, then just use that.  Otherwise, actually
                 // compute a new model and send that along.
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
-                    (model, cancellationToken) => ComputeModelInBackgroundAsync(model, matchedProviders, unmatchedProviders, caretPosition, disconnectedBufferGraph, triggerInfo, cancellationToken));
+                    (model, cancellationToken) => ComputeModelInBackgroundAsync(
+                        localId, model, matchedProviders, unmatchedProviders, caretPosition,
+                        disconnectedBufferGraph, triggerInfo, cancellationToken));
             }
 
             private async Task<Model> ComputeModelInBackgroundAsync(
+                int id,
                 Model currentModel,
                 IList<ISignatureHelpProvider> matchedProviders,
                 IList<ISignatureHelpProvider> unmatchedProviders,
@@ -68,24 +75,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                         if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand)
                         {
-                            if (currentModel == null ||
-                                (triggerInfo.TriggerCharacter.HasValue && !currentModel.Provider.IsRetriggerCharacter(triggerInfo.TriggerCharacter.Value)))
+                            if (currentModel == null)
+                            {
+                                return currentModel;
+                            }
+
+                            if (triggerInfo.TriggerCharacter.HasValue &&
+                                !currentModel.Provider.IsRetriggerCharacter(triggerInfo.TriggerCharacter.Value))
+                            {
+                                return currentModel;
+                            }
+
+                            // If there's another request in the queue to compute items, then just
+                            // bail out immediately.  No point in doing extra work that's just
+                            // going to be overridden by the next task.
+                            if (id != _computeId)
                             {
                                 return currentModel;
                             }
                         }
 
                         // first try to query the providers that can trigger on the specified character
-                        var result = await ComputeItemsAsync(matchedProviders, caretPosition, triggerInfo, document, cancellationToken).ConfigureAwait(false);
-                        var provider = result.Item1;
-                        var items = result.Item2;
+                        var (provider, items) = await ComputeItemsAsync(
+                            id, matchedProviders, caretPosition,
+                            triggerInfo, document, cancellationToken).ConfigureAwait(false);
 
                         if (provider == null)
                         {
                             // no match, so now query the other providers
-                            result = await ComputeItemsAsync(unmatchedProviders, caretPosition, triggerInfo, document, cancellationToken).ConfigureAwait(false);
-                            provider = result.Item1;
-                            items = result.Item2;
+                            (provider, items) = await ComputeItemsAsync(
+                                id, unmatchedProviders, caretPosition,
+                                triggerInfo, document, cancellationToken).ConfigureAwait(false);
 
                             if (provider == null)
                             {
@@ -167,7 +187,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return p1.ToString() == p2.ToString();
             }
 
-            private async Task<Tuple<ISignatureHelpProvider, SignatureHelpItems>> ComputeItemsAsync(
+            private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)> ComputeItemsAsync(
+                int id,
                 IList<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
                 SignatureHelpTriggerInfo triggerInfo,
@@ -183,6 +204,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // to the extension crashing.
                     foreach (var provider in providers)
                     {
+                        if (id != _computeId)
+                        {
+                            return (null, null);
+                        }
+
                         cancellationToken.ThrowIfCancellationRequested();
 
                         var currentItems = await provider.GetItemsAsync(document, caretPosition, triggerInfo, cancellationToken).ConfigureAwait(false);
@@ -204,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         }
                     }
 
-                    return Tuple.Create(bestProvider, bestItems);
+                    return (bestProvider, bestItems);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
