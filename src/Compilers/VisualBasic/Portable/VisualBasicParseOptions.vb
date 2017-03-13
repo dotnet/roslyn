@@ -304,6 +304,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function GetHashCode() As Integer
             Return Hash.Combine(MyBase.GetHashCodeHelper(), CInt(Me.SpecifiedLanguageVersion))
         End Function
-
     End Class
 End Namespace
