@@ -78,10 +78,10 @@ IParameterInitializer (Parameter: [ParamArray p2 As System.Int32() = Nothing]) (
         Public Sub ExpressionInitializers()
             Dim source = <![CDATA[
 Class C
-	Shared s1 As Integer = 1 + Foo()
-	Private i1 As Integer = 1 + Foo()
+	Shared s1 As Integer = 1 + F()
+	Private i1 As Integer = 1 + F()
 
-	Private Shared Function Foo() As Integer
+	Private Shared Function F() As Integer
 		Return 1
 	End Function
 End Class
@@ -97,14 +97,14 @@ End Class
 IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32)
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-    Right: IInvocationExpression (static Function C.Foo() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
+    Right: IInvocationExpression (static Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
 ]]>.Value)
 
             compilation.VerifyOperationTree(nodes(1), expectedOperationTree:=<![CDATA[
 IFieldInitializer (Field: C.i1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32)
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-    Right: IInvocationExpression (static Function C.Foo() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
+    Right: IInvocationExpression (static Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
 ]]>.Value)
         End Sub
 
@@ -151,26 +151,26 @@ IFieldInitializer (Field: C.i2 As System.Int32) (OperationKind.FieldInitializerA
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub MemberInitializer()
             Dim source = <![CDATA[
-Structure Bar
+Structure B
 	Public Field As Boolean
 End Structure
 
-Class Foo
+Class F
 	Public Field As Integer
 	Public Property Property1() As String
-	Public Property Property2() As Bar
+	Public Property Property2() As B
 End Class
 
 Class C
 	Public Sub M1()
-		Dim x1 = New Foo()
-		Dim x2 = New Foo() With { .Field = 2 }
-		Dim x3 = New Foo() With { .Property1 = "" }
-		Dim x4 = New Foo() With { .Property1 = "",  .Field = 2 }
-		Dim x5 = New Foo() With { .Property2 = New Bar() With { .Field = True } }
+		Dim x1 = New F()
+		Dim x2 = New F() With { .Field = 2 }
+		Dim x3 = New F() With { .Property1 = "" }
+		Dim x4 = New F() With { .Property1 = "",  .Field = 2 }
+		Dim x5 = New F() With { .Property2 = New B() With { .Field = True } }
 
-		Dim e1 = New Foo() With { .Property2 = 1 }
-		Dim e2 = New Foo() From { "" }
+		Dim e1 = New F() With { .Property2 = 1 }
+		Dim e2 = New F() From { "" }
 	End Sub
 End Class
 ]]>.Value
@@ -182,59 +182,59 @@ End Class
 
             compilation.VerifyOperationTree(nodes(0), expectedOperationTree:=<![CDATA[
 IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: x1 As Foo (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub Foo..ctor()) (OperationKind.ObjectCreationExpression, Type: Foo)
+  IVariableDeclaration: x1 As F (OperationKind.VariableDeclaration)
+    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
 ]]>.Value)
 
             compilation.VerifyOperationTree(nodes(1), expectedOperationTree:=<![CDATA[
 IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: x2 As Foo (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub Foo..ctor()) (OperationKind.ObjectCreationExpression, Type: Foo)
-        Member Initializers: IFieldInitializer (Field: Foo.Field As System.Int32) (OperationKind.FieldInitializerInCreation)
+  IVariableDeclaration: x2 As F (OperationKind.VariableDeclaration)
+    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
+        Member Initializers: IFieldInitializer (Field: F.Field As System.Int32) (OperationKind.FieldInitializerInCreation)
             ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
 ]]>.Value)
 
             compilation.VerifyOperationTree(nodes(2), expectedOperationTree:=<![CDATA[
 IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: x3 As Foo (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub Foo..ctor()) (OperationKind.ObjectCreationExpression, Type: Foo)
-        Member Initializers: IPropertyInitializer (Property: Property Foo.Property1 As System.String) (OperationKind.PropertyInitializerInCreation)
+  IVariableDeclaration: x3 As F (OperationKind.VariableDeclaration)
+    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
+        Member Initializers: IPropertyInitializer (Property: Property F.Property1 As System.String) (OperationKind.PropertyInitializerInCreation)
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
 ]]>.Value)
 
             compilation.VerifyOperationTree(nodes(3), expectedOperationTree:=<![CDATA[
 IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: x4 As Foo (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub Foo..ctor()) (OperationKind.ObjectCreationExpression, Type: Foo)
-        Member Initializers: IPropertyInitializer (Property: Property Foo.Property1 As System.String) (OperationKind.PropertyInitializerInCreation)
+  IVariableDeclaration: x4 As F (OperationKind.VariableDeclaration)
+    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
+        Member Initializers: IPropertyInitializer (Property: Property F.Property1 As System.String) (OperationKind.PropertyInitializerInCreation)
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
-          IFieldInitializer (Field: Foo.Field As System.Int32) (OperationKind.FieldInitializerInCreation)
+          IFieldInitializer (Field: F.Field As System.Int32) (OperationKind.FieldInitializerInCreation)
             ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
 ]]>.Value)
 
             compilation.VerifyOperationTree(nodes(4), expectedOperationTree:=<![CDATA[
 IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: x5 As Foo (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub Foo..ctor()) (OperationKind.ObjectCreationExpression, Type: Foo)
-        Member Initializers: IPropertyInitializer (Property: Property Foo.Property2 As Bar) (OperationKind.PropertyInitializerInCreation)
-            IObjectCreationExpression (Constructor: Sub Bar..ctor()) (OperationKind.ObjectCreationExpression, Type: Bar)
-              Member Initializers: IFieldInitializer (Field: Bar.Field As System.Boolean) (OperationKind.FieldInitializerInCreation)
+  IVariableDeclaration: x5 As F (OperationKind.VariableDeclaration)
+    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F)
+        Member Initializers: IPropertyInitializer (Property: Property F.Property2 As B) (OperationKind.PropertyInitializerInCreation)
+            IObjectCreationExpression (Constructor: Sub B..ctor()) (OperationKind.ObjectCreationExpression, Type: B)
+              Member Initializers: IFieldInitializer (Field: B.Field As System.Boolean) (OperationKind.FieldInitializerInCreation)
                   ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
 ]]>.Value)
 
             compilation.VerifyOperationTree(nodes(5), expectedOperationTree:=<![CDATA[
 IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: e1 As Foo (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IObjectCreationExpression (Constructor: Sub Foo..ctor()) (OperationKind.ObjectCreationExpression, Type: Foo, IsInvalid)
-        Member Initializers: IPropertyInitializer (Property: Property Foo.Property2 As Bar) (OperationKind.PropertyInitializerInCreation, IsInvalid)
-            IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: Bar, IsInvalid)
+  IVariableDeclaration: e1 As F (OperationKind.VariableDeclaration, IsInvalid)
+    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid)
+        Member Initializers: IPropertyInitializer (Property: Property F.Property2 As B) (OperationKind.PropertyInitializerInCreation, IsInvalid)
+            IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: B, IsInvalid)
               ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
 ]]>.Value)
 
             compilation.VerifyOperationTree(nodes(6), expectedOperationTree:=<![CDATA[
 IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: e2 As Foo (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IObjectCreationExpression (Constructor: Sub Foo..ctor()) (OperationKind.ObjectCreationExpression, Type: Foo, IsInvalid)
+  IVariableDeclaration: e2 As F (OperationKind.VariableDeclaration, IsInvalid)
+    Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid)
 ]]>.Value)
         End Sub
     End Class
