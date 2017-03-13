@@ -71,11 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add define pragma.
+        ///   Looks up a localized string similar to Add #define {0}.
         /// </summary>
-        internal static string Add_define_pragma {
+        internal static string Add_define_0 {
             get {
-                return ResourceManager.GetString("Add_define_pragma", resourceCulture);
+                return ResourceManager.GetString("Add_define_0", resourceCulture);
             }
         }
         

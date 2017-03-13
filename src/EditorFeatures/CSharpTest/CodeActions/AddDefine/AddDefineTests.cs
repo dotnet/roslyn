@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddDefine;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -35,12 +36,19 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDefine)]
-        public async Task OnlyEmptySelection()
+        public async Task NoneEmptySelection()
         {
-            await TestMissingInRegularAndScriptAsync(@"
+            await TestInRegularAndScriptAsync(@"
 class C
 {
 #if [|TEST|]
+#endif
+}",
+@"
+#define TEST
+class C
+{
+#if TEST
 #endif
 }");
         }
@@ -165,6 +173,52 @@ class C
 #endif
     }
 }", ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDefine)]
+        public async Task ElifPrgram()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    void M()
+    {
+#if IGNORE
+#elif [||]TEST
+        System.Console.WriteLine();
+#endif
+    }
+}", @"
+#define TEST
+class C
+{
+    void M()
+    {
+#if IGNORE
+#elif [||]TEST
+        System.Console.WriteLine();
+#endif
+    }
+}", ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDefine)]
+        public async Task AddDefineTitle()
+        {
+            await TestExactActionSetOfferedAsync(@"
+class C
+{
+    void M()
+    {
+#if IGNORE
+#elif [||]TEST
+        System.Console.WriteLine();
+#endif
+    }
+}",
+                new[] {
+                    string.Format(CSharpFeaturesResources.Add_define_0, "TEST")
+                });
         }
     }
 }

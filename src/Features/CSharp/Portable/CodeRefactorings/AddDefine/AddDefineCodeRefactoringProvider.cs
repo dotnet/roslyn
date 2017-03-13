@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddDefine
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddDefine), Shared]
-    internal partial class AddDefineCodeRefactoringProvider : CodeRefactoringProvider
+    internal class AddDefineCodeRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddDefine
             var textSpan = context.Span;
             var cancellationToken = context.CancellationToken;
 
-            if (!textSpan.IsEmpty ||
-                document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -34,41 +33,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddDefine
             }
 
             var structure = trivia.GetStructure();
-            if (structure.Kind() != SyntaxKind.IfDirectiveTrivia)
+            if (structure.Kind() != SyntaxKind.IfDirectiveTrivia &&
+                structure.Kind() != SyntaxKind.ElifDirectiveTrivia)
             {
                 return;
             }
 
-            var ifPragma = (IfDirectiveTriviaSyntax)structure;
-            if (ifPragma == null ||
-                ifPragma.ConditionValue ||
-                ifPragma.Condition.Kind() != SyntaxKind.IdentifierName)
+            var conditionalPragma = (ConditionalDirectiveTriviaSyntax)structure;
+            if (conditionalPragma.ConditionValue ||
+                conditionalPragma.Condition.Kind() != SyntaxKind.IdentifierName)
             {
                 return;
             }
 
+            var label = ((IdentifierNameSyntax)conditionalPragma.Condition).Identifier;
             context.RegisterRefactoring(
                 new AddDefineCodeAction(
-                    CSharpFeaturesResources.Add_define_pragma,
-                    (c) => AddDefineAsync(document, ifPragma, c)));
+                    string.Format(CSharpFeaturesResources.Add_define_0, label.ValueText),
+                    c => AddDefineAsync(document, label, c)));
         }
 
-        private async Task<Document> AddDefineAsync(Document document, IfDirectiveTriviaSyntax ifPragma,
+        private async Task<Document> AddDefineAsync(Document document, SyntaxToken identifier,
             CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = tree.GetRoot();
-            var firstUsing = root.ChildNodes().FirstOrDefault();
+            var root = tree.GetRoot(cancellationToken);
+            var firstNode = root.ChildNodes().FirstOrDefault();
 
             var define = SyntaxFactory.Trivia(SyntaxFactory.DefineDirectiveTrivia(
-                ((IdentifierNameSyntax)ifPragma.Condition).Identifier
-                    .WithLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " "))
-                    .WithTrailingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.EndOfLineTrivia, "\r\n")), false));
+                identifier
+                    .WithLeadingTrivia(SyntaxFactory.Whitespace(" "))
+                    .WithTrailingTrivia(SyntaxFactory.EndOfLine("\r\n")),
+                isActive: false));
             var newLeadingTrivia = new SyntaxTriviaList();
-            newLeadingTrivia = newLeadingTrivia.AddRange(firstUsing.GetLeadingTrivia());
+            newLeadingTrivia = newLeadingTrivia.AddRange(firstNode.GetLeadingTrivia());
             newLeadingTrivia = newLeadingTrivia.Add(define);
 
-            var result = root.ReplaceNode(firstUsing, firstUsing.WithLeadingTrivia(newLeadingTrivia));
+            var result = root.ReplaceNode(firstNode, firstNode.WithLeadingTrivia(newLeadingTrivia));
             return document.WithSyntaxRoot(result);
         }
 

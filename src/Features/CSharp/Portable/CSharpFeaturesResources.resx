@@ -126,8 +126,8 @@
   <data name="Invert_if_statement" xml:space="preserve">
     <value>Invert if statement</value>
   </data>
-  <data name="Add_define_pragma" xml:space="preserve">
-    <value>Add define pragma</value>
+  <data name="Add_define_0" xml:space="preserve">
+    <value>Add #define {0}</value>
   </data>
   <data name="Simplify_lambda_expression" xml:space="preserve">
     <value>Simplify lambda expression</value>
