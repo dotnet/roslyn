@@ -55,7 +55,6 @@
         "Exes\\vbccore\\vbc.exe",
         "Exes\\vbi\\vbi.exe",
         "Exes\\vbicore\\vbi.exe",
-        "Exes\\Pdb2Xml\\Microsoft.DiaSymReader.PortablePdb.dll",
         "Exes\\Pdb2Xml\\Pdb2Xml.exe",
         "Vsix\\CompilerExtension\\Roslyn.Compilers.Extension.dll",
         "Vsix\\Templates\\Roslyn.Templates.dll",

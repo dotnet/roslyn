@@ -477,21 +477,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 return !ImplicitConversionsAreCompatible(originalExpression, newExpression);
             }
-            else if (currentOriginalNode is TForEachStatementSyntax)
+            else if (currentOriginalNode is TForEachStatementSyntax originalForEachStatement)
             {
-                var originalForEachStatement = (TForEachStatementSyntax)currentOriginalNode;
                 var newForEachStatement = (TForEachStatementSyntax)currentReplacedNode;
                 return ReplacementBreaksForEachStatement(originalForEachStatement, newForEachStatement);
             }
-            else if (currentOriginalNode is TAttributeSyntax)
+            else if (currentOriginalNode is TAttributeSyntax originalAttribute)
             {
-                var originalAttribute = (TAttributeSyntax)currentOriginalNode;
                 var newAttribute = (TAttributeSyntax)currentReplacedNode;
                 return ReplacementBreaksAttribute(originalAttribute, newAttribute);
             }
-            else if (currentOriginalNode is TThrowStatementSyntax)
+            else if (currentOriginalNode is TThrowStatementSyntax originalThrowStatement)
             {
-                var originalThrowStatement = (TThrowStatementSyntax)currentOriginalNode;
                 var newThrowStatement = (TThrowStatementSyntax)currentReplacedNode;
                 return ReplacementBreaksThrowStatement(originalThrowStatement, newThrowStatement);
             }
@@ -500,15 +497,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
-            if (currentOriginalNode is TTypeSyntax)
+            if (currentOriginalNode is TTypeSyntax originalType)
             {
-                var originalType = (TTypeSyntax)currentOriginalNode;
                 var newType = (TTypeSyntax)currentReplacedNode;
                 return ReplacementBreaksTypeResolution(originalType, newType);
             }
-            else if (currentOriginalNode is TExpressionSyntax)
+            else if (currentOriginalNode is TExpressionSyntax originalExpression)
             {
-                var originalExpression = (TExpressionSyntax)currentOriginalNode;
                 var newExpression = (TExpressionSyntax)currentReplacedNode;
                 if (!ImplicitConversionsAreCompatible(originalExpression, newExpression) ||
                     ReplacementIntroducesErrorType(originalExpression, newExpression))

@@ -125,7 +125,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 => _memberNames = memberNames;
 
             public PickMembersResult PickMembers(string title, ImmutableArray<ISymbol> members)
-                => new PickMembersResult(_memberNames.SelectAsArray(n => members.Single(m => m.Name == n)));
+                => new PickMembersResult(_memberNames.IsDefault
+                    ? members
+                    : _memberNames.SelectAsArray(n => members.Single(m => m.Name == n)));
         }
 
         internal Task TestWithPickMembersDialogAsync(
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null,
             TestParameters parameters = default(TestParameters))
         {
-            var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrEmpty());
+            var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull());
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup,
                 index, ignoreTrivia, priority,

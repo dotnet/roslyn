@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--Generated file, do not directly edit.  Run "RepoUtil change" to regenerate-->
   <PropertyGroup>
-    <GitLinkVersion>2.3.0</GitLinkVersion>
+    <GitLinkVersion>3.0.0-unstable0085</GitLinkVersion>
     <ManagedEsentVersion>1.9.4</ManagedEsentVersion>
     <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
     <MicroBuildCoreSentinelVersion>1.0.0</MicroBuildCoreSentinelVersion>

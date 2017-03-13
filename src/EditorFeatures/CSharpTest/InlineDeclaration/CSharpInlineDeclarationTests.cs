@@ -1483,5 +1483,55 @@ class C
     }
 }");
         }
+
+        [WorkItem(17743, "https://github.com/dotnet/roslyn/issues/17743")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInLocalFunction()
+        {
+            // Note: this currently works, but it should be missing.  
+            // This test validates that we don't crash in this case though.
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Collections.Generic;
+
+class Demo
+{
+    static void Main()
+    {
+        F();
+        void F()
+        {
+            Action f = () =>
+            {
+                Dictionary<int, int> dict = null;
+                int [|x|] = 0;
+                dict?.TryGetValue(0, out x);
+                Console.WriteLine(x);
+            };
+        }
+    }
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Demo
+{
+    static void Main()
+    {
+        F();
+        void F()
+        {
+            Action f = () =>
+            {
+                Dictionary<int, int> dict = null;
+                dict?.TryGetValue(0, out int x);
+                Console.WriteLine(x);
+            };
+        }
+    }
+}");
+        }
     }
 }
