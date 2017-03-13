@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 var caretPosition = Controller.TextView.GetCaretPoint(Controller.SubjectBuffer).Value;
                 var disconnectedBufferGraph = new DisconnectedBufferGraph(Controller.SubjectBuffer, Controller.TextView.TextBuffer);
 
+                // If this is a retrigger command then update the retrigger-id.  This way
+                // any in-flight retrigger-updates will immediately bail out.
                 if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand)
                 {
                     Interlocked.Increment(ref _retriggerId);
@@ -200,6 +202,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // to the extension crashing.
                     foreach (var provider in providers)
                     {
+                        // If this is a retrigger command, and another retrigger command has already
+                        // been issued then we can bail out immediately.
                         if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand &&
                             id != _retriggerId)
                         {
