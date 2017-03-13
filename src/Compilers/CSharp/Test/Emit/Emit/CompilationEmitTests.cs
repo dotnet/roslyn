@@ -320,10 +320,10 @@ public class C
             string source = @"
 public class PublicClass
 {
-    public void PublicMethod() { }
-    private void PrivateMethod() { }
-    protected void ProtectedMethod() { }
-    internal void InternalMethod() { }
+    public void PublicMethod() { System.Console.Write(""Hello""); }
+    private void PrivateMethod() { System.Console.Write(""Hello""); }
+    protected void ProtectedMethod() { System.Console.Write(""Hello""); }
+    internal void InternalMethod() { System.Console.Write(""Hello""); }
 }
 ";
             CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
@@ -331,8 +331,8 @@ public class PublicClass
 
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
 
-            var verifier = CompileAndVerify(comp, emitOptions: emitRefOnly, verify: false); // PROTOTYPE(refout) PEVerify fails
-            Assert.True(verifier.TestData.Methods.IsEmpty); // no method bodies
+            var verifier = CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+            // PROTOTYPE(refout) Not sure best way to verify that method bodies are "throw null"
 
             var image = comp.EmitToImageReference(emitRefOnly);
             var comp2 = CreateCompilation("", references: new[] { MscorlibRef, image },

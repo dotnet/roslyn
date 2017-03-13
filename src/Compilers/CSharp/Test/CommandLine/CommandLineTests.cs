@@ -8862,29 +8862,81 @@ class C {
             dir.CreateDirectory("ref");
 
             var src = dir.CreateFile("a.cs");
-            src.WriteAllText(@"class C { public static void Main() { } }");
+            src.WriteAllText(@"
+class C
+{
+    /// <summary>Main method</summary>
+    public static void Main()
+    {
+        System.Console.Write(""Hello"");
+    }
+}");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "a.cs" });
+            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/out:a.exe", "/refout:ref/a.dll", "/doc:doc.xml", "/deterministic", "a.cs" });
 
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
 
+            var exe = Path.Combine(dir.Path, "a.exe");
+            Assert.True(File.Exists(exe));
+
+            VerifyPEMetadata(File.OpenRead(exe),
+                new[] { "TypeDef:<Module>", "TypeDef:C" },
+                new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
+                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
+                );
+
+            var doc = Path.Combine(dir.Path, "doc.xml");
+            Assert.True(File.Exists(doc));
+
+            using (var reader = new StreamReader(doc))
+            {
+                var content = reader.ReadToEnd();
+                var expectedDoc =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>a</name>
+    </assembly>
+    <members>
+        <member name=""M:C.Main"">
+            <summary>Main method</summary>
+        </member>
+    </members>
+</doc>";
+                Assert.Equal(expectedDoc, content.Trim());
+            }
+
+            var output = ProcessUtilities.RunAndGetOutput(exe, startFolder: dir.ToString());
+            Assert.Equal("Hello", output.Trim());
+
             var refDll = Path.Combine(dir.Path, "ref\\a.dll");
             Assert.True(File.Exists(refDll));
-            var refPeStream = File.OpenRead(refDll);
 
-            using (var refPeReader = new PEReader(refPeStream))
+            VerifyPEMetadata(File.OpenRead(refDll),
+                new[] { "TypeDef:<Module>", "TypeDef:C" },
+                new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
+                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
+                );
+
+            output = ProcessUtilities.RunAndGetOutput(refDll, startFolder: dir.ToString(), expectedRetCode: -532462766);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path);
+        }
+
+        private static void VerifyPEMetadata(FileStream peStream, string[] types, string[] methods, string[] attributes)
+        {
+            using (var refPeReader = new PEReader(peStream))
             {
                 var metadataReader = refPeReader.GetMetadataReader();
 
                 // The types and members that are included needs further refinement.
                 // See issue https://github.com/dotnet/roslyn/issues/17612
-                AssertEx.SetEqual(metadataReader.TypeDefinitions.Select(t => metadataReader.Dump(t)),
-                    new[] { "TypeDef:<Module>", "TypeDef:C" });
+                AssertEx.SetEqual(metadataReader.TypeDefinitions.Select(t => metadataReader.Dump(t)), types);
 
-                AssertEx.SetEqual(metadataReader.MethodDefinitions.Select(t => metadataReader.Dump(t)),
-                    new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" });
+                AssertEx.SetEqual(metadataReader.MethodDefinitions.Select(t => metadataReader.Dump(t)), methods);
 
                 // ReferenceAssemblyAttribute is missing.
                 // See issue https://github.com/dotnet/roslyn/issues/17612
@@ -8893,11 +8945,8 @@ class C {
                         .Select(c => metadataReader.GetMemberReference((MemberReferenceHandle)c).Parent)
                         .Select(p => metadataReader.GetTypeReference((TypeReferenceHandle)p).Name)
                         .Select(n => metadataReader.GetString(n)),
-                    new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" });
+                    attributes);
             }
-
-            // Clean up temp files
-            CleanupAllGeneratedFiles(dir.Path);
         }
 
         [Fact]
@@ -8918,7 +8967,9 @@ class C {
             Assert.False(File.Exists(dll));
 
             var refDll = Path.Combine(dir.Path, "ref\\a.dll");
-            Assert.False(File.Exists(refDll)); // PROTOTYPE Should we produce ref assemblies on method body errors?
+            Assert.False(File.Exists(refDll));
+
+            Assert.Equal("a.cs(1,39): error CS0103: The name 'error' does not exist in the current context", outWriter.ToString().Trim());
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);
@@ -8930,10 +8981,18 @@ class C {
             var dir = Temp.CreateDirectory();
 
             var src = dir.CreateFile("a.cs");
-            src.WriteAllText(@"class C { public static void Main() { error(); } }"); // semantic error in method body
+            src.WriteAllText(@"
+class C
+{
+    /// <summary>Main method</summary>
+    public static void Main()
+    {
+        error(); // semantic error in method body
+    }
+}");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "a.cs" });
+            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/doc:doc.xml", "a.cs" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
 
@@ -8942,6 +9001,27 @@ class C {
 
             var pdb = Path.Combine(dir.Path, "a.pdb");
             Assert.False(File.Exists(pdb));
+
+            var doc = Path.Combine(dir.Path, "doc.xml");
+            Assert.True(File.Exists(doc));
+
+            using (var reader = new StreamReader(doc))
+            {
+                var content = reader.ReadToEnd();
+                var expectedDoc =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>a</name>
+    </assembly>
+    <members>
+        <member name=""M:C.Main"">
+            <summary>Main method</summary>
+        </member>
+    </members>
+</doc>";
+                Assert.Equal(expectedDoc, content.Trim());
+            }
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);

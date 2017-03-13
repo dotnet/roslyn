@@ -70,6 +70,9 @@ namespace Microsoft.Cci
         // A map of method body before token translation to RVA. Used for deduplication of small bodies.
         private readonly Dictionary<ImmutableArray<byte>, int> _smallMethodBodies;
 
+        private ImmutableArray<byte> ThrowNullIL { get; } = ImmutableArray.Create((byte)ILOpCode.Ldnull, (byte)ILOpCode.Throw);
+        private const int ThrowNullMaxStack = 1;
+
         protected MetadataWriter(
             MetadataBuilder metadata,
             MetadataBuilder debugMetadataOpt,
@@ -2828,23 +2831,32 @@ namespace Microsoft.Cci
                 IMethodBody body;
                 StandaloneSignatureHandle localSignatureHandleOpt;
 
-                if (method.HasBody() && !metadataOnly)
+                if (method.HasBody())
                 {
-                    body = method.GetBody(Context);
-
-                    if (body != null)
+                    if (metadataOnly)
                     {
-                        localSignatureHandleOpt = this.SerializeLocalVariablesSignature(body);
-
-                        // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
-                        bodyOffset = SerializeMethodBody(encoder, body, localSignatureHandleOpt, ref mvidStringHandle, ref mvidStringFixup);
-
-                        nativePdbWriterOpt?.SerializeDebugInfo(body, localSignatureHandleOpt, customDebugInfoWriter);
+                        bodyOffset = SerializeThrowNullMethodBody(encoder, ref mvidStringHandle, ref mvidStringFixup);
+                        localSignatureHandleOpt = default(StandaloneSignatureHandle);
+                        body = null;
                     }
                     else
                     {
-                        bodyOffset = 0;
-                        localSignatureHandleOpt = default(StandaloneSignatureHandle);
+                        body = method.GetBody(Context);
+
+                        if (body != null)
+                        {
+                            localSignatureHandleOpt = this.SerializeLocalVariablesSignature(body);
+
+                            // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
+                            bodyOffset = SerializeMethodBody(encoder, body, localSignatureHandleOpt, ref mvidStringHandle, ref mvidStringFixup);
+
+                            nativePdbWriterOpt?.SerializeDebugInfo(body, localSignatureHandleOpt, customDebugInfoWriter);
+                        }
+                        else
+                        {
+                            bodyOffset = 0;
+                            localSignatureHandleOpt = default(StandaloneSignatureHandle);
+                        }
                     }
                 }
                 else
@@ -2868,6 +2880,36 @@ namespace Microsoft.Cci
             }
 
             return bodyOffsets;
+        }
+
+        private int SerializeThrowNullMethodBody(MethodBodyStreamEncoder encoder, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
+        {
+            var il = ThrowNullIL;
+
+            // Don't do small body method caching during deterministic builds until this issue is fixed
+            // https://github.com/dotnet/roslyn/issues/7595
+            int bodyOffset;
+            if (!_deterministic && _smallMethodBodies.TryGetValue(il, out bodyOffset))
+            {
+                return bodyOffset;
+            }
+
+            var encodedBody = encoder.AddMethodBody(
+                codeSize: il.Length,
+                maxStack: ThrowNullMaxStack,
+                exceptionRegionCount: 0,
+                hasSmallExceptionRegions: false);
+
+            // Don't do small body method caching during deterministic builds until this issue is fixed
+            // https://github.com/dotnet/roslyn/issues/7595
+            if (!_deterministic)
+            {
+                _smallMethodBodies.Add(il, encodedBody.Offset);
+            }
+
+            WriteInstructions(encodedBody.Instructions, il, ref mvidStringHandle, ref mvidStringFixup);
+
+            return encodedBody.Offset;
         }
 
         private int SerializeMethodBody(MethodBodyStreamEncoder encoder, IMethodBody methodBody, StandaloneSignatureHandle localSignatureHandleOpt, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
