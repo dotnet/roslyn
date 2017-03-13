@@ -209,6 +209,41 @@ System.Console.WriteLine(true);", globals: new ScriptTests());
             Assert.Null(state.Exception);
         }
 
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void TestRunStatementFollowedBySpace()
+        {
+            var state = CSharpScript.RunAsync(@"
+System.Console.WriteLine(true) ", globals: new ScriptTests());
+            Assert.Null(state.Exception);
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void TestRunStatementFollowedByNewLineNoSemicolon()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                var state = CSharpScript.RunAsync(@"
+System.Console.WriteLine(true)\n", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                ex.Diagnostics.Verify(
+                // (2,31): error CS1002: ; expected
+                // System.Console.WriteLine(true)\n
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, @"\").WithLocation(2, 31),
+                // (2,31): error CS1056: Unexpected character '\'
+                // System.Console.WriteLine(true)\n
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(2, 31));
+            }
+
+            Assert.True(exceptionThrown);
+        }
+
         [Fact]
         public async Task TestRunScriptWithGlobals()
         {
