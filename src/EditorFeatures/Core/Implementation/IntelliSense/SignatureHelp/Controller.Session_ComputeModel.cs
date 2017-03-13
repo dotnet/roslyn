@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             private async Task<Model> ComputeModelInBackgroundAsync(
                 int id,
                 Model currentModel,
-                IList<ISignatureHelpProvider> matchedProviders,
-                IList<ISignatureHelpProvider> unmatchedProviders,
+                ImmutableArray<ISignatureHelpProvider> matchedProviders,
+                ImmutableArray<ISignatureHelpProvider> unmatchedProviders,
                 SnapshotPoint caretPosition,
                 DisconnectedBufferGraph disconnectedBufferGraph,
                 SignatureHelpTriggerInfo triggerInfo,
@@ -95,32 +95,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                         // first try to query the providers that can trigger on the specified character
                         var providerAndItemsOpt = await ComputeItemsAsync(
-                            id, matchedProviders, caretPosition,
+                            id, matchedProviders, unmatchedProviders, caretPosition,
                             triggerInfo, document, cancellationToken).ConfigureAwait(false);
+
                         if (providerAndItemsOpt == null)
                         {
+                            // Another retrigger was enqueued while we were inflight.  Just 
+                            // stop all work and return the last computed model.  We'll compute
+                            // the correct model when we process the other retrigger task.
                             return currentModel;
                         }
 
                         var (provider, items) = providerAndItemsOpt.Value;
                         if (provider == null)
                         {
-                            // no match, so now query the other providers
-                            providerAndItemsOpt = await ComputeItemsAsync(
-                                id, unmatchedProviders, caretPosition,
-                                triggerInfo, document, cancellationToken).ConfigureAwait(false);
-
-                            if (providerAndItemsOpt == null)
-                            {
-                                return currentModel;
-                            }
-
-                            (provider, items) = providerAndItemsOpt.Value;
-                            if (provider == null)
-                            {
-                                // the other providers didn't produce items either, so we don't produce a model
-                                return null;
-                            }
+                            // No provider produced items. So we can't produce a model
+                            return null;
                         }
 
                         if (currentModel != null &&
@@ -187,14 +177,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
 
             private static bool DisplayPartsMatch(SignatureHelpItem i1, SignatureHelpItem i2)
-            {
-                return i1.GetAllParts().SequenceEqual(i2.GetAllParts(), CompareParts);
-            }
+                => i1.GetAllParts().SequenceEqual(i2.GetAllParts(), CompareParts);
 
             private static bool CompareParts(TaggedText p1, TaggedText p2)
-            {
-                return p1.ToString() == p2.ToString();
-            }
+                => p1.ToString() == p2.ToString();
 
             /// <summary>
             /// Returns <code>null</code> if our work was preempted and we want to return the 
@@ -202,7 +188,44 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             /// </summary>
             private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)?> ComputeItemsAsync(
                 int id,
-                IList<ISignatureHelpProvider> providers,
+                ImmutableArray<ISignatureHelpProvider> matchedProviders,
+                ImmutableArray<ISignatureHelpProvider> unmatchedProviders,
+                SnapshotPoint caretPosition,
+                SignatureHelpTriggerInfo triggerInfo,
+                Document document,
+                CancellationToken cancellationToken)
+            {
+                // First, check the matchedProviders list to see if can produce items.
+                var providersAndItemsOpt = await ComputeItemsAsync(
+                    id, matchedProviders, caretPosition, triggerInfo, 
+                    document, cancellationToken).ConfigureAwait(false);
+                if (providersAndItemsOpt == null)
+                {
+                    // Another task was enqueued while we were inflight.  Just 
+                    // stop all work and return the last computed model.  We'll compute
+                    // the correct model when we process the other retrigger task.
+                    return null;
+                }
+
+                var (providers, items) = providersAndItemsOpt.Value;
+                if (providers != null)
+                {
+                    // We found a provider that produced items.  We're done and can just
+                    // return those results.
+                    return providersAndItemsOpt;
+                }
+
+                // We weren't interrupted by other retrigger, and the matchedProviders list 
+                // didn't produce anything. Try the unmatchedProviders list to see if it has 
+                // anything to offer.
+                return await ComputeItemsAsync(
+                    id, unmatchedProviders, caretPosition, triggerInfo,
+                    document, cancellationToken).ConfigureAwait(false);
+            }
+
+            private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)?> ComputeItemsAsync(
+                int id,
+                ImmutableArray<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
                 SignatureHelpTriggerInfo triggerInfo,
                 Document document,
