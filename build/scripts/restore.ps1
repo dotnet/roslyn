@@ -1,4 +1,8 @@
-param ([switch]$clean = $false, [switch]$fast = $false)
+[CmdletBinding(PositionalBinding=$false)]
+param (
+    [switch]$clean = $false, 
+    [switch]$fast = $false,
+    [string]$msbuildDir = "")
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -7,27 +11,22 @@ function Run-Restore([string]$name, [string]$fileName) {
     Write-Host "Restoring $name"
     $nugetConfig = Join-Path $repoDir "nuget.config"
     $filePath = Join-Path $repoDir $fileName
-    $output = & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath
-    if (-not $?) { 
-        Write-Host $output
-        throw "Restore failed"
-    }
+    Exec { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath }
 }
 
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
-    & (Join-Path $PSScriptRoot "test.ps1")
 
     $nuget = Ensure-NuGet
-    $msbuildDir = Get-MSBuildDir
+    if ($msbuildDir -eq "") {
+        $msbuildDir = Get-MSBuildDir
+    }
+
     Write-Host "Restore using MSBuild at $msbuildDir"
 
     if ($clean) {
         Write-Host "Clearing the NuGet caches"
-        & $nuget locals all -clear
-        if (-not $?) {
-            throw "Clearing locals failed"
-        }
+        Exec { & $nuget locals all -clear }
     }
 
     if (-not $fast) { 

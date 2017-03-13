@@ -19,7 +19,8 @@ function Exec([scriptblock]$cmd, [string]$errorMessage = "Error executing comman
     } 
 }
 
-# Ensure that NuGet is installed 
+# Ensure that NuGet is installed and return the path to the 
+# executable to use.
 function Ensure-NuGet() {
     $nuget = Join-Path $repoDir "NuGet.exe"
     if (-not (Test-Path $nuget)) {
@@ -27,6 +28,14 @@ function Ensure-NuGet() {
     }
 
     return $nuget
+}
+
+# Ensure that MSBuild is installed and return the path to the
+# executable to use.
+function Ensure-MSBuild() {
+    $p = Get-MSBuildDir
+    $p = Join-Path $p "msbuild.exe"
+    return $p
 }
 
 function Create-Directory([string]$dir) {
@@ -67,7 +76,6 @@ function Get-PackagesDir {
 #
 #   1. MSBuild from an active VS command prompt
 #   2. MSBuild from a machine wide VS install
-#   3. MSBuild from Dev14 (legacy microbuild scenario)
 #
 # This function will return two values: the kind of MSBuild chosen and the MSBuild directory.
 function Get-MSBuildDirCore() {
@@ -124,4 +132,5 @@ function Get-VisualStudioDir() {
     $p = $j[0].installationPath
     return $p
 }
+
 
