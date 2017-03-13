@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
@@ -20,56 +19,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 {
     public class FindReferencesCommandHandlerTests
     {
-        private class MockFindUsagesContext : FindUsagesContext
-        {
-            public readonly List<DefinitionItem> Result = new List<DefinitionItem>();
-
-            public override Task OnDefinitionFoundAsync(DefinitionItem definition)
-            {
-                lock (Result)
-                {
-                    Result.Add(definition);
-                }
-
-                return SpecializedTasks.EmptyTask;
-            }
-        }
-
-        private class MockStreamingFindUsagesPresenter : IStreamingFindUsagesPresenter
-        {
-            private readonly FindUsagesContext _context;
-
-            public MockStreamingFindUsagesPresenter(FindUsagesContext context)
-            {
-                _context = context;
-            }
-
-            public FindUsagesContext StartSearch(string title, bool supportsReferences)
-                => _context;
-
-            public void ClearAll()
-            {
-            }
-        }
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
-        public async Task TestFindReferencesAsynchronousCall()
+        public void TestFindReferencesSynchronousCall()
         {
             using (var workspace = TestWorkspace.CreateCSharp("class C { C() { new C(); } }"))
             {
-                var context = new MockFindUsagesContext();
-                var presenter = new MockStreamingFindUsagesPresenter(context);
-
-                var waiter = new AsynchronousOperationListener();
-                var waiters =
-                    SpecializedCollections.SingletonEnumerable(
-                        new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                        () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.FindReferences } })));
+                var findReferencesPresenter = new MockDefinitionsAndReferencesPresenter();
 
                 var handler = new FindReferencesCommandHandler(
                     TestWaitIndicator.Default,
-                    SpecializedCollections.SingletonEnumerable(new Lazy<IStreamingFindUsagesPresenter>(() => presenter)),
-                    waiters);
+                    SpecializedCollections.SingletonEnumerable(findReferencesPresenter),
+                    SpecializedCollections.EmptyEnumerable<Lazy<IStreamingFindUsagesPresenter>>(),
+                    workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
 
                 var textView = workspace.Documents[0].GetTextView();
                 textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, 7));
@@ -77,17 +38,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     textView,
                     textView.TextBuffer), () => { });
 
-                await waiter.CreateWaitTask();
-                AssertResult(context.Result, "C.C()", "class C");
+                AssertResult(findReferencesPresenter.DefinitionsAndReferences, "C", ".ctor");
             }
         }
 
-        private void AssertResult(
-            List<DefinitionItem> result,
+        private bool AssertResult(
+            DefinitionsAndReferences definitionsAndReferences,
             params string[] definitions)
         {
-            Assert.Equal(result.Select(kvp => kvp.DisplayParts.JoinText()).OrderBy(a => a),
-                         definitions.OrderBy(a => a));
+            return definitionsAndReferences.Definitions.Select(r => r.DisplayParts.JoinText())
+                                                       .SetEquals(definitions);
         }
     }
 }

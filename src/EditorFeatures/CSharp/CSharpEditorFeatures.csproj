@@ -108,6 +108,7 @@
     <Compile Include="EventHookup\IHACK_EventHookupDismissalOnBufferChangePreventerService.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCommandHandler.cs" />
     <Compile Include="ExtractMethod\ExtractMethodCommandHandler.cs" />
+    <Compile Include="FindReferences\CSharpFindReferencesService.cs" />
     <Compile Include="FindUsages\CSharpFindUsagesService.cs" />
     <Compile Include="Formatting\CSharpEditorFormattingService.cs" />
     <Compile Include="Formatting\Indentation\CSharpIndentationService.cs" />

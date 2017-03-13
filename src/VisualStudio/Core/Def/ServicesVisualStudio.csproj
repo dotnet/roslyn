@@ -73,6 +73,7 @@
     <Compile Include="Implementation\LanguageService\AbstractPackage.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryService.cs" />
     <Compile Include="Implementation\Library\ClassView\AbstractSyncClassViewCommandHandler.cs" />
+    <Compile Include="Implementation\Library\FindResults\TreeItems\DefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\ILibraryService.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\ObjectBrowserTaskExtensions.cs" />
     <Compile Include="Implementation\Library\VsNavInfo\NavInfoNodeEnum.cs" />
@@ -378,12 +379,14 @@
     <Compile Include="Implementation\ExtractInterface\VisualStudioExtractInterfaceOptionsService.cs" />
     <Compile Include="Implementation\F1Help\AbstractHelpContextService.cs" />
     <Compile Include="Implementation\F1Help\IHelpContextService.cs" />
+    <Compile Include="Implementation\FindReferences\DefinitionsAndReferencesPresenter.cs" />
     <Compile Include="Implementation\GCManager.cs" />
     <Compile Include="Implementation\GenerateType\GenerateTypeDialog.xaml.cs">
       <DependentUpon>GenerateTypeDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Implementation\GenerateType\GenerateTypeDialogViewModel.cs" />
     <Compile Include="Implementation\GenerateType\VisualStudioGenerateTypeOptionsServiceFactory.cs" />
+    <Compile Include="Implementation\GoToDefinition\NavigableItemsPresenter.cs" />
     <Compile Include="Implementation\Interop\Feedback.cs" />
     <Compile Include="Implementation\LanguageService\HACK_AbstractCreateServicesOnUiThread.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractListItemFactory.cs" />
@@ -434,6 +437,13 @@
     <Compile Include="Implementation\Library\AbstractLibraryManager_IVsLibraryMgr.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryManager_IVsSimpleLibrary2.cs" />
     <Compile Include="Implementation\Library\AbstractObjectList.cs" />
+    <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractTreeItem.cs" />
+    <Compile Include="Implementation\Library\FindResults\LibraryManager.cs" />
+    <Compile Include="Implementation\Library\FindResults\LibraryManager_FindReferences.cs" />
+    <Compile Include="Implementation\Library\FindResults\LibraryManager_GoToDefinition.cs" />
+    <Compile Include="Implementation\Library\FindResults\NavInfo.cs" />
+    <Compile Include="Implementation\Library\FindResults\ObjectList.cs" />
+    <Compile Include="Implementation\Library\FindResults\TreeItems\SourceReferenceTreeItem.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractDescriptionBuilder.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractDescriptionBuilder.LinkFlags.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager.cs" />

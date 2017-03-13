@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -90,13 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var symbol = symbolAndProject?.symbol;
             var project = symbolAndProject?.project;
-            return await FindReferencesAsync(
-                context, symbol, project, cancellationToken).ConfigureAwait(false);
-        }
 
-        public static async Task<FindReferencesProgressAdapter> FindReferencesAsync(
-            IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
-        {
             context.SetSearchTitle(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol)));
 
