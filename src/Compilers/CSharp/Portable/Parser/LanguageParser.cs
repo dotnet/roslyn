@@ -6488,7 +6488,7 @@ tryAgain:
         public StatementSyntax ParseStatement()
         {
             return ParseWithStackGuard(
-                ParseStatementCore,
+                () => ParseStatementCore() ?? ParseExpressionStatement(),
                 () => SyntaxFactory.EmptyStatement(SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken)));
         }
 
