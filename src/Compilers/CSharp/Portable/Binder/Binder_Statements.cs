@@ -1531,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return returnable;
                 }
-                else if (conditional.IsByref)
+                else if (conditional.IsByRef)
                 {
                     return true;
                 }

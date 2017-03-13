@@ -408,8 +408,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var conditional = (BoundConditionalOperator)expression;
                         if (refKind != RefKind.None)
                         {
-                            Debug.Assert(conditional.IsByref);
-                            _F.Diagnostics.Add(ErrorCode.ERR_ByRefConditionalAndAwait, _F.Syntax.Location);
+                            Debug.Assert(conditional.IsByRef);
+                            _F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, _F.Syntax.Location);
                             refKind = RefKind.None; // Switch the RefKind to avoid asserting later in the pipeline
                         }
                         goto default;
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (consequenceBuilder == null && alternativeBuilder == null)
             {
-                return UpdateExpression(conditionBuilder, node.Update(node.IsByref, condition, consequence, alternative, node.ConstantValueOpt, node.Type));
+                return UpdateExpression(conditionBuilder, node.Update(node.IsByRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type));
             }
 
             if (conditionBuilder == null) conditionBuilder = new BoundSpillSequenceBuilder();

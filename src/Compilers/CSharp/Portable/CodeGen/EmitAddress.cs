@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expression;
-                    if (!conditional.IsByref)
+                    if (!conditional.IsByRef)
                     {
                         goto default;
                     }

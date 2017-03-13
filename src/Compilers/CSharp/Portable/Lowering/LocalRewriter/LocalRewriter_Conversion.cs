@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 MakeConversionNode(null, syntax, conditional.Alternative, conversion, @checked, explicitCastInCode: false, constantValueOpt: ConstantValue.NotAvailable, rewrittenType: type),
                                 ConstantValue.NotAvailable,
                                 type,
-                                false),
+                                isRef: false),
                             type);
                     }
                 }

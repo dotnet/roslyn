@@ -2260,9 +2260,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to &apos;await&apos; cannot be used in an expression containing a ref conditional operator.
         /// </summary>
-        internal static string ERR_ByRefConditionalAndAwait {
+        internal static string ERR_RefConditionalAndAwait {
             get {
-                return ResourceManager.GetString("ERR_ByRefConditionalAndAwait", resourceCulture);
+                return ResourceManager.GetString("ERR_RefConditionalAndAwait", resourceCulture);
             }
         }
         
@@ -7928,7 +7928,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Both or none of conditional operator expressions can be ref values.
+        ///   Looks up a localized string similar to Both conditional operator values must be ref values or neither may be a ref value.
         /// </summary>
         internal static string ERR_RefConditionalNeedsTwoRefs {
             get {

@@ -566,8 +566,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var conditional = (BoundConditionalOperator)expr;
                     if (isRef)
                     {
-                        Debug.Assert(conditional.IsByref);
-                        F.Diagnostics.Add(ErrorCode.ERR_ByRefConditionalAndAwait, F.Syntax.Location);
+                        Debug.Assert(conditional.IsByRef);
+                        F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, F.Syntax.Location);
                         isRef = false; // Switch to ByVal to avoid asserting later in the pipeline
                     }
                     goto default;

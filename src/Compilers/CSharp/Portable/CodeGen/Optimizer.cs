@@ -1002,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
 
                 case BoundKind.ConditionalOperator:
-                    Debug.Assert(((BoundConditionalOperator)lhs).IsByref, "only ref ternaries are assignable");
+                    Debug.Assert(((BoundConditionalOperator)lhs).IsByRef, "only ref ternaries are assignable");
                     return true;
 
                 case BoundKind.AssignmentOperator:
@@ -1243,23 +1243,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
             var origStack = StackDepth();
-            BoundExpression condition = (BoundExpression)this.VisitExpression(node.Condition, ExprContext.Value);
+            BoundExpression condition = this.VisitExpression(node.Condition, ExprContext.Value);
 
             var cookie = GetStackStateCookie();  // implicit goto here
 
-            var context = node.IsByref ? ExprContext.Address : ExprContext.Value;
+            var context = node.IsByRef ? ExprContext.Address : ExprContext.Value;
 
             SetStackDepth(origStack);  // consequence is evaluated with original stack
-            BoundExpression consequence = (BoundExpression)this.VisitExpression(node.Consequence, context);
+            BoundExpression consequence = this.VisitExpression(node.Consequence, context);
 
             EnsureStackState(cookie);   // implicit label here
 
             SetStackDepth(origStack);  // alternative is evaluated with original stack
-            BoundExpression alternative = (BoundExpression)this.VisitExpression(node.Alternative, context);
+            BoundExpression alternative = this.VisitExpression(node.Alternative, context);
 
             EnsureStackState(cookie);   // implicit label here
 
-            return node.Update(node.IsByref, condition, consequence, alternative, node.ConstantValueOpt, node.Type);
+            return node.Update(node.IsByRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type);
         }
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)

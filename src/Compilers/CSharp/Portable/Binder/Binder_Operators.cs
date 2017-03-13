@@ -3509,39 +3509,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type = bestType;
                     hasErrors = true;
                 }
-                else
+                else if (isRef)
                 {
-                    if (isRef)
+                    if (!Conversions.HasIdentityConversion(trueType, falseType))
                     {
-                        if (!Conversions.HasIdentityConversion(trueType, falseType))
-                        {
-                            diagnostics.Add(ErrorCode.ERR_RefConditionalDifferentTypes, falseExpr.Syntax.Location, trueType);
-                            type = CreateErrorType();
-                            hasErrors = true;
-                        }
-                        else
-                        {
-                            Debug.Assert(Conversions.HasIdentityConversion(trueType, bestType));
-                            Debug.Assert(Conversions.HasIdentityConversion(falseType, bestType));
-                            type = bestType;
-                        }
+                        diagnostics.Add(ErrorCode.ERR_RefConditionalDifferentTypes, falseExpr.Syntax.Location, trueType);
+                        type = CreateErrorType();
+                        hasErrors = true;
                     }
                     else
                     {
-                        trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
-                        falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
+                        Debug.Assert(Conversions.HasIdentityConversion(trueType, bestType));
+                        Debug.Assert(Conversions.HasIdentityConversion(falseType, bestType));
+                        type = bestType;
+                    }
+                }
+                else
+                {
+                    trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
+                    falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
 
-                        if (trueExpr.HasAnyErrors || falseExpr.HasAnyErrors)
-                        {
-                            // If one of the conversions went wrong (e.g. return type of method group being converted
-                            // didn't match), then we don't want to use bestType because it's not accurate.
-                            type = CreateErrorType();
-                            hasErrors = true;
-                        }
-                        else
-                        {
-                            type = bestType;
-                        }
+                    if (trueExpr.HasAnyErrors || falseExpr.HasAnyErrors)
+                    {
+                        // If one of the conversions went wrong (e.g. return type of method group being converted
+                        // didn't match), then we don't want to use bestType because it's not accurate.
+                        type = CreateErrorType();
+                        hasErrors = true;
+                    }
+                    else
+                    {
+                        type = bestType;
                     }
                 }
             }

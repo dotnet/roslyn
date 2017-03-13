@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 MakeUnaryOperator(operatorKind, syntax, method, conditional.Alternative, type),
                                 ConstantValue.NotAvailable,
                                 type,
-                                false),
+                                isRef: false),
                             type);
                     }
                 }
@@ -808,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression alternative = new BoundDefaultOperator(syntax, null, operand.Type);
 
             // x.HasValue ? new decimal?(op_Inc(x.GetValueOrDefault())) : default(decimal?)
-            return RewriteConditionalOperator(syntax, condition, consequence, alternative, ConstantValue.NotAvailable, operand.Type, false);
+            return RewriteConditionalOperator(syntax, condition, consequence, alternative, ConstantValue.NotAvailable, operand.Type, isRef: false);
         }
 
         /// <summary>

@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 MakeBinaryOperator(syntax, kind, conditional.Alternative, right, type, method),
                                 ConstantValue.NotAvailable,
                                 type,
-                                false),
+                                isRef: false),
                             type);
                     }
                 }

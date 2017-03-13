@@ -104,7 +104,7 @@ class C
         }
 
         [Fact]
-        public void TestRefConditionalOperatoAsValue()
+        public void TestRefConditionalOperatorAsValue()
         {
             var source = @"
 class C
@@ -378,7 +378,110 @@ class C
 ");
         }
 
-        // elvis target reg and generic
+        [Fact]
+        public void TestRefConditionalOperatorElvis()
+        {
+            var source = @"
+
+class Program
+{
+    interface IDisposable1
+    {
+        void Dispose();
+    }
+
+    class C1 : IDisposable1
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    struct S1 : IDisposable1
+    {
+        private bool disposed;
+
+        public void Dispose()
+        {
+            System.Console.WriteLine(disposed);
+            disposed = true;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        C1 c = new C1();
+        Test(ref c, ref c);
+
+        S1 s = new S1();
+        Test(ref s, ref s);
+    }
+
+    static void Test<T>(ref T x, ref T y) where T : IDisposable1
+    {
+        bool b = true;
+        (b? ref x: ref y)?.Dispose();
+        (!b? ref x: ref y)?.Dispose();
+    }
+}";
+            var comp = CompileAndVerify(source, expectedOutput: @"False
+True
+False
+True");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Program.Test<T>(ref T, ref T)", @"
+{
+  // Code size      106 (0x6a)
+  .maxstack  3
+  .locals init (T V_0)
+  IL_0000:  ldc.i4.1
+  IL_0001:  dup
+  IL_0002:  brtrue.s   IL_0007
+  IL_0004:  ldarg.1
+  IL_0005:  br.s       IL_0008
+  IL_0007:  ldarg.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  initobj    ""T""
+  IL_0010:  ldloc.0
+  IL_0011:  box        ""T""
+  IL_0016:  brtrue.s   IL_002b
+  IL_0018:  ldobj      ""T""
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  ldloc.0
+  IL_0021:  box        ""T""
+  IL_0026:  brtrue.s   IL_002b
+  IL_0028:  pop
+  IL_0029:  br.s       IL_0036
+  IL_002b:  constrained. ""T""
+  IL_0031:  callvirt   ""void Program.IDisposable1.Dispose()""
+  IL_0036:  brfalse.s  IL_003b
+  IL_0038:  ldarg.1
+  IL_0039:  br.s       IL_003c
+  IL_003b:  ldarg.0
+  IL_003c:  ldloca.s   V_0
+  IL_003e:  initobj    ""T""
+  IL_0044:  ldloc.0
+  IL_0045:  box        ""T""
+  IL_004a:  brtrue.s   IL_005e
+  IL_004c:  ldobj      ""T""
+  IL_0051:  stloc.0
+  IL_0052:  ldloca.s   V_0
+  IL_0054:  ldloc.0
+  IL_0055:  box        ""T""
+  IL_005a:  brtrue.s   IL_005e
+  IL_005c:  pop
+  IL_005d:  ret
+  IL_005e:  constrained. ""T""
+  IL_0064:  callvirt   ""void Program.IDisposable1.Dispose()""
+  IL_0069:  ret
+}
+");
+        }
 
         [Fact]
         public void TestRefConditionalAsyncIncrement()
@@ -421,7 +524,7 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (16,10): error CS8208: 'await' cannot be used in an expression containing a ref conditional operator
                 //         (b? ref val1: ref val2) += await One();
-                Diagnostic(ErrorCode.ERR_ByRefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10)
+                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10)
                 );
         }
 
@@ -466,12 +569,12 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (16,35): error CS8208: 'await' cannot be used in an expression containing a ref conditional operator
                 //         (b? ref val1: ref val2) = await One();
-                Diagnostic(ErrorCode.ERR_ByRefConditionalAndAwait, "await One()").WithLocation(16, 35)
+                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "await One()").WithLocation(16, 35)
                );
         }
 
         [Fact]
-        public void TestRefConditionaOneRef()
+        public void TestRefConditionalOneRef()
         {
             var source = @"
 class C
@@ -491,17 +594,17 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (8,43): error CS8302: Both or none of conditional operator expressions can be ref values
+                // (8,43): error CS8302: Both conditional operator values must be ref values or neither may be a ref value
                 //         System.Console.Write(b? val1: ref val2);
                 Diagnostic(ErrorCode.ERR_RefConditionalNeedsTwoRefs, "val2").WithLocation(8, 43),
-                // (9,37): error CS8302: Both or none of conditional operator expressions can be ref values
+                // (9,37): error CS8302: Both conditional operator values must be ref values or neither may be a ref value
                 //         System.Console.Write(b? ref val1: val2);
                 Diagnostic(ErrorCode.ERR_RefConditionalNeedsTwoRefs, "val1").WithLocation(9, 37)
                );
         }
 
         [Fact]
-        public void TestRefConditionaRValue()
+        public void TestRefConditionalRValue()
         {
             var source = @"
 class C
@@ -597,7 +700,7 @@ class C
         }
 
         [Fact]
-        public void TestRefConditionlaUnsafeToReturn3()
+        public void TestRefConditionlalUnsafeToReturn3()
         {
             var source = @"
 class C
@@ -679,7 +782,7 @@ class C
         }
 
         [Fact]
-        public void TestRefConditionlaDifferentTypes1()
+        public void TestRefConditionlalDifferentTypes1()
         {
             var source = @"
 class C
@@ -705,7 +808,7 @@ class C
         }
 
         [Fact]
-        public void TestRefConditionlaDifferentTypes2()
+        public void TestRefConditionlalDifferentTypes2()
         {
             var source = @"
 class C
@@ -730,7 +833,7 @@ class C
         }
 
         [Fact]
-        public void TestRefConditionlaDifferentTypes3()
+        public void TestRefConditionlalDifferentTypes3()
         {
             var source = @"
 class C
@@ -768,7 +871,7 @@ class C
         }
 
         [Fact]
-        public void TestRefConditionlaDifferentTypes4()
+        public void TestRefConditionlalDifferentTypes4()
         {
             var source = @"
 class C
