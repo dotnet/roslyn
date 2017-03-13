@@ -107,6 +107,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
     {
         bool b = true;
         System.Console.WriteLine(
+
             [|b != true|]
                 ? b = true : b = false);
     }
@@ -117,6 +118,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
     {
         bool b = true;
         System.Console.WriteLine(
+
             {|Rename:NewMethod|}(b)
                 ? b = true : b = false);
     }
