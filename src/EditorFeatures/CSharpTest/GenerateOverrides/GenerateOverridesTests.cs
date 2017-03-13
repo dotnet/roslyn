@@ -49,5 +49,52 @@ class C
 }
 ", new[] { "Equals", "GetHashCode", "ToString" });
         }
+
+        [WorkItem(17698, "https://github.com/dotnet/roslyn/issues/17698")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        public async Task TestRefReturns()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+
+class Base
+{
+    public virtual ref int X() => throw new NotImplementedException();
+
+    public virtual ref int Y => throw new NotImplementedException();
+
+    public virtual ref int this[int i] => throw new NotImplementedException();
+}
+
+class Derived : Base
+{
+     [||]
+}",
+@"
+using System;
+
+class Base
+{
+    public virtual ref int X() => throw new NotImplementedException();
+
+    public virtual ref int Y => throw new NotImplementedException();
+
+    public virtual ref int this[int i] => throw new NotImplementedException();
+}
+
+class Derived : Base
+{
+    public override ref int this[int i] => ref base[i];
+
+    public override ref int Y => ref base.Y;
+
+    public override ref int X()
+    {
+        return ref base.X();
+    }
+}
+", new[] { "X", "Y", "this[]" });
+        }
     }
 }

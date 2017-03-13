@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol fieldType = field.GetFieldType(this.FieldsBeingBound);
                 Debug.Assert(declType == fieldType);
-                return new BoundFieldAccess(designation,
+                return new BoundFieldAccess(syntax,
                                             receiver,
                                             field,
                                             constantValueOpt: null,

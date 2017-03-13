@@ -152,37 +152,34 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     // the values.
                     //
                     //      this.a == other.a
-                    var expression = factory.ValueEqualsExpression(thisSymbol, otherSymbol);
-                    expressions.Add(expression);
+                    expressions.Add(factory.ValueEqualsExpression(thisSymbol, otherSymbol));
+                    continue;
                 }
-                else if (memberType?.IsValueType == true &&
-                         ImplementsIEquatable(memberType, iequatableType))
+
+                var valueIEquatable = memberType?.IsValueType == true && ImplementsIEquatable(memberType, iequatableType);
+                if (valueIEquatable || memberType?.IsTupleType == true)
                 {
-                    // If it's a value type and implements IEquatable<T>, then just call directly
-                    // into .Equals.  This keeps the code simple and avoids an unnecessary null
-                    // check
+                    // If it's a value type and implements IEquatable<T>, Or if it's a tuple, then 
+                    // just call directly into .Equals. This keeps the code simple and avoids an 
+                    // unnecessary null check.
                     //
                     //      this.a.Equals(other.a)
-                    var expression = factory.InvocationExpression(
+                    expressions.Add(factory.InvocationExpression(
                         factory.MemberAccessExpression(thisSymbol, nameof(object.Equals)),
-                        otherSymbol);
-                    expressions.Add(expression);
+                        otherSymbol));
+                    continue;
                 }
-                else
-                {
-                    // Otherwise call EqualityComparer<SType>.Default.Equals(this.a, other.a).
-                    // This will do the appropriate null checks as well as calling directly
-                    // into IEquatable<T>.Equals implementations if avaliable.
-                    var expression =
-                        factory.InvocationExpression(
-                            factory.MemberAccessExpression(
-                                GetDefaultEqualityComparer(factory, compilation, member),
-                                factory.IdentifierName(EqualsName)),
-                            thisSymbol,
-                            otherSymbol);
 
-                    expressions.Add(expression);
-                }
+                // Otherwise call EqualityComparer<SType>.Default.Equals(this.a, other.a).
+                // This will do the appropriate null checks as well as calling directly
+                // into IEquatable<T>.Equals implementations if available.
+
+                expressions.Add(factory.InvocationExpression(
+                        factory.MemberAccessExpression(
+                            GetDefaultEqualityComparer(factory, compilation, member),
+                            factory.IdentifierName(EqualsName)),
+                        thisSymbol,
+                        otherSymbol));
             }
 
             // Now combine all the comparison expressions together into one final statement like:

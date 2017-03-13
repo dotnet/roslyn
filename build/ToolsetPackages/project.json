@@ -17,7 +17,7 @@
     "RoslynTools.Microsoft.LocateVS": "0.2.4-beta",
     "RoslynTools.Microsoft.SignTool": "0.3.0-beta",
     "RoslynTools.Microsoft.VSIXExpInstaller": "0.2.4-beta",
-    "GitLink": "2.3.0"
+    "GitLink": "3.0.0-unstable0085"
   },
   "frameworks": {
     "net461": {}

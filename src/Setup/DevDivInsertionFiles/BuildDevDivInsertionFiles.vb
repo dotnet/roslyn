@@ -832,6 +832,7 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\VBCSCompiler\VBCSCompiler.exe.config")
         add("Exes\InteractiveHost\InteractiveHost.exe.config")
         add("Exes\csi\csi.rsp")
+        add("Exes\Pdb2Xml\Microsoft.DiaSymReader.PortablePdb.dll")
         add("Vsix\Roslyn.Deployment.Full.Next\remoteSymbolSearchUpdateEngine.servicehub.service.json")
         add("Vsix\Roslyn.Deployment.Full.Next\snapshotService.servicehub.service.json")
         add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")

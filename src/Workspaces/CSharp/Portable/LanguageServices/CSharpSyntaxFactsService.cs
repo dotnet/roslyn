@@ -1012,17 +1012,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private string GetTypeName(TypeSyntax type)
         {
-            if (type is SimpleNameSyntax)
+            if (type is SimpleNameSyntax simpleName)
             {
-                return GetSimpleTypeName((SimpleNameSyntax)type);
+                return GetSimpleTypeName(simpleName);
             }
-            else if (type is QualifiedNameSyntax)
+            else if (type is QualifiedNameSyntax qualifiedName)
             {
-                return GetSimpleTypeName(((QualifiedNameSyntax)type).Right);
+                return GetSimpleTypeName(qualifiedName.Right);
             }
-            else if (type is AliasQualifiedNameSyntax)
+            else if (type is AliasQualifiedNameSyntax aliasName)
             {
-                return GetSimpleTypeName(((AliasQualifiedNameSyntax)type).Name);
+                return GetSimpleTypeName(aliasName.Name);
             }
 
             return null;
@@ -1516,9 +1516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var structure = triviaTok.GetStructure();
-                        if (structure is BranchingDirectiveTriviaSyntax)
+                        if (structure is BranchingDirectiveTriviaSyntax branch)
                         {
-                            var branch = (BranchingDirectiveTriviaSyntax)structure;
                             return !branch.IsActive || !branch.BranchTaken ? TextSpan.FromBounds(branch.FullSpan.Start, position) : default(TextSpan);
                         }
                     }

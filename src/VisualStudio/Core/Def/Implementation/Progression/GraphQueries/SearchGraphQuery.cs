@@ -50,9 +50,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        if (symbol is INamedTypeSymbol)
+                        if (symbol is INamedTypeSymbol namedType)
                         {
-                            await AddLinkedNodeForType(project, (INamedTypeSymbol)symbol, graphBuilder, symbol.DeclaringSyntaxReferences.Select(d => d.SyntaxTree)).ConfigureAwait(false);
+                            await AddLinkedNodeForType(project, namedType, graphBuilder, symbol.DeclaringSyntaxReferences.Select(d => d.SyntaxTree)).ConfigureAwait(false);
                         }
                         else
                         {
