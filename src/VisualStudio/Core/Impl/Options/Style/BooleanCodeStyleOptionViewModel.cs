@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// This class represents the view model for a <see cref="CodeStyleOption{T}"/>
     /// that binds to the codestyle options UI.
     /// </summary>
-    internal class SimpleCodeStyleOptionViewModel : AbstractCodeStyleOptionViewModel
+    internal class BooleanCodeStyleOptionViewModel : AbstractCodeStyleOptionViewModel
     {
         private CodeStylePreference _selectedPreference;
         public override CodeStylePreference SelectedPreference
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public override bool NotificationsAvailable => true;
 
-        public SimpleCodeStyleOptionViewModel(
+        public BooleanCodeStyleOptionViewModel(
             IOption option,
             string description,
             string truePreview,
@@ -69,5 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             NotifyPropertyChanged(nameof(SelectedPreference));
             NotifyPropertyChanged(nameof(SelectedNotificationPreference));
         }
+
+        public override string GetPreview() 
+            => SelectedPreference.IsChecked ? Previews[0] : Previews[1];
     }
 }

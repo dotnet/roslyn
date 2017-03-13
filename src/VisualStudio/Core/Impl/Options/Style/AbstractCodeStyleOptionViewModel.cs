@@ -33,12 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public string Description { get; set; }
         public double DescriptionMargin { get; set; }
         public string GroupName { get; set; }
-        public abstract CodeStylePreference SelectedPreference { get; set; }
         public List<CodeStylePreference> Preferences { get; set; }
         public List<NotificationOptionViewModel> NotificationPreferences { get; set; }
-        public abstract bool NotificationsAvailable { get; }
 
-        public virtual string GetPreview() => SelectedPreference.IsChecked ? Previews[0] : Previews[1];
+        public abstract CodeStylePreference SelectedPreference { get; set; }
+        public abstract bool NotificationsAvailable { get; }
+        public abstract string GetPreview();
+
         public virtual NotificationOptionViewModel SelectedNotificationPreference
         {
             get { return NotificationPreferences.First(); }

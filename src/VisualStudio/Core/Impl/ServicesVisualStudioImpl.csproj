@@ -207,13 +207,12 @@
     <Compile Include="CodeModel\RootCodeModel.cs" />
     <Compile Include="CodeModel\SyntaxNodeKey.cs" />
     <Compile Include="CodeModel\TextManagerAdapter.cs" />
-    <Compile Include="Options\AbstractCodeStyleOptionViewModel.cs" />
-    <Compile Include="Options\BooleanCodeStyleOptionViewModel.cs" />
-    <Compile Include="Options\CodeStylePreference.cs" />
+    <Compile Include="Options\Style\AbstractCodeStyleOptionViewModel.cs" />
+    <Compile Include="Options\Style\BooleanCodeStyleOptionViewModel.cs" />
+    <Compile Include="Options\Style\CodeStylePreference.cs" />
     <Compile Include="Options\ColumnToTabStopConverter.cs" />
     <Compile Include="Options\Converters\MarginConverter.cs" />
-    <Compile Include="Options\EnumCodeStyleOptionViewModel.cs" />
-    <Compile Include="Options\SimpleCodeStyleOptionViewModel.cs" />
+    <Compile Include="Options\Style\EnumCodeStyleOptionViewModel.cs" />
     <Compile Include="Options\AbstractCheckBoxViewModel.cs" />
     <Compile Include="Options\CheckBoxWithComboViewModel.cs" />
     <Compile Include="Options\GridOptionPreviewControl.xaml.cs">
