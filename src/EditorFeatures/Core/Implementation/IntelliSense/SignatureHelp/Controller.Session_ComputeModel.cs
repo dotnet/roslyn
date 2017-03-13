@@ -26,12 +26,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 ImmutableArray<ISignatureHelpProvider> providers,
                 SignatureHelpTriggerInfo triggerInfo)
             {
-                ComputeModel(providers, ImmutableArray<ISignatureHelpProvider>.Empty, triggerInfo);
+                ComputeModel(ImmutableArray.Create(providers), triggerInfo);
             }
 
             public void ComputeModel(
-                ImmutableArray<ISignatureHelpProvider> matchedProviders,
-                ImmutableArray<ISignatureHelpProvider> unmatchedProviders,
+                ImmutableArray<ImmutableArray<ISignatureHelpProvider>> providers,
                 SignatureHelpTriggerInfo triggerInfo)
             {
                 AssertIsForeground();
@@ -52,15 +51,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 // compute a new model and send that along.
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
                     (model, cancellationToken) => ComputeModelInBackgroundAsync(
-                        localId, model, matchedProviders, unmatchedProviders, caretPosition,
+                        localId, model, providers, caretPosition,
                         disconnectedBufferGraph, triggerInfo, cancellationToken));
             }
 
             private async Task<Model> ComputeModelInBackgroundAsync(
                 int id,
                 Model currentModel,
-                ImmutableArray<ISignatureHelpProvider> matchedProviders,
-                ImmutableArray<ISignatureHelpProvider> unmatchedProviders,
+                ImmutableArray<ImmutableArray<ISignatureHelpProvider>> providers,
                 SnapshotPoint caretPosition,
                 DisconnectedBufferGraph disconnectedBufferGraph,
                 SignatureHelpTriggerInfo triggerInfo,
@@ -95,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                         // first try to query the providers that can trigger on the specified character
                         var providerAndItemsOpt = await ComputeItemsAsync(
-                            id, matchedProviders, unmatchedProviders, caretPosition,
+                            id, providers, caretPosition,
                             triggerInfo, document, cancellationToken).ConfigureAwait(false);
 
                         if (providerAndItemsOpt == null)
@@ -188,41 +186,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             /// </summary>
             private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)?> ComputeItemsAsync(
                 int id,
-                ImmutableArray<ISignatureHelpProvider> matchedProviders,
-                ImmutableArray<ISignatureHelpProvider> unmatchedProviders,
+                ImmutableArray<ImmutableArray<ISignatureHelpProvider>> providers,
                 SnapshotPoint caretPosition,
                 SignatureHelpTriggerInfo triggerInfo,
                 Document document,
                 CancellationToken cancellationToken)
             {
-                // First, check the matchedProviders list to see if can produce items.
-                var providersAndItemsOpt = await ComputeItemsAsync(
-                    id, matchedProviders, caretPosition, triggerInfo, 
-                    document, cancellationToken).ConfigureAwait(false);
-                if (providersAndItemsOpt == null)
+                foreach (var providerList in providers)
                 {
-                    // Another task was enqueued while we were inflight.  Just 
-                    // stop all work and return the last computed model.  We'll compute
-                    // the correct model when we process the other retrigger task.
-                    return null;
+                    var providersAndItemsOpt = await ComputeItemsAsync(
+                        id, providerList, caretPosition, triggerInfo,
+                        document, cancellationToken).ConfigureAwait(false);
+                    if (providersAndItemsOpt == null)
+                    {
+                        // Another task was enqueued while we were inflight.  Just 
+                        // stop all work and return the last computed model.  We'll compute
+                        // the correct model when we process the other retrigger task.
+                        return null;
+                    }
+
+                    if (providersAndItemsOpt.Value.provider != null)
+                    {
+                        // We found a provider that produced items.  We're done and can just
+                        // return those results.
+                        return providersAndItemsOpt;
+                    }
                 }
 
-                var (providers, items) = providersAndItemsOpt.Value;
-                if (providers != null)
-                {
-                    // We found a provider that produced items.  We're done and can just
-                    // return those results.
-                    return providersAndItemsOpt;
-                }
-
-                // We weren't interrupted by other retrigger, and the matchedProviders list 
-                // didn't produce anything. Try the unmatchedProviders list to see if it has 
-                // anything to offer.
-                return await ComputeItemsAsync(
-                    id, unmatchedProviders, caretPosition, triggerInfo,
-                    document, cancellationToken).ConfigureAwait(false);
+                // Didn't find any provider that could produce items.
+                return (null, null);
             }
 
+            /// <summary>
+            /// Returns <code>null</code> if our work was preempted and we want to return the 
+            /// previous model we've computed.
+            /// </summary>
             private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)?> ComputeItemsAsync(
                 int id,
                 ImmutableArray<ISignatureHelpProvider> providers,

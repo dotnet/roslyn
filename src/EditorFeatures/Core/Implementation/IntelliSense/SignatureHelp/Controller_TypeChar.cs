@@ -111,7 +111,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // it was in a string like: Foo(bar, "(
                     //
                     // Or it can trigger a new list. Ask the computation to compute again.
-                    sessionOpt.ComputeModel(textuallyTriggeredProviders, untriggeredProviders, triggerInfo);
+                    sessionOpt.ComputeModel(
+                        ImmutableArray.Create(textuallyTriggeredProviders, untriggeredProviders), triggerInfo);
                     computed = true;
                 }
 
