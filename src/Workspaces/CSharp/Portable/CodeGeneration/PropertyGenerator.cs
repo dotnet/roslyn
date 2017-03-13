@@ -148,7 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             AccessorListSyntax accessorList, ParseOptions options, ExpressionBodyPreference preference,
             out ArrowExpressionClauseSyntax arrowExpression, out SyntaxToken semicolonToken)
         {
-            if (accessorList.Accessors.Count == 1)
+            if (preference != ExpressionBodyPreference.Never &&
+                accessorList.Accessors.Count == 1)
             {
                 var accessor = accessorList.Accessors[0];
                 if (accessor.IsKind(SyntaxKind.GetAccessorDeclaration))
