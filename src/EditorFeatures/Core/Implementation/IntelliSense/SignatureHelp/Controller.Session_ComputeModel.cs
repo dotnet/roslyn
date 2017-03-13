@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                 // If this is a retrigger command then update the retrigger-id.  This way
                 // any in-flight retrigger-updates will immediately bail out.
-                if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand)
+                if (IsNonTypeCharRetrigger(triggerInfo))
                 {
                     Interlocked.Increment(ref _retriggerId);
                 }
@@ -47,6 +47,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         localId, model, providers, caretPosition,
                         disconnectedBufferGraph, triggerInfo, cancellationToken));
             }
+
+            private static bool IsNonTypeCharRetrigger(SignatureHelpTriggerInfo triggerInfo)
+                => triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand &&
+                   triggerInfo.TriggerCharacter == null;
 
             private async Task<Model> ComputeModelInBackgroundAsync(
                 int id,
@@ -196,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     {
                         // If this is a retrigger command, and another retrigger command has already
                         // been issued then we can bail out immediately.
-                        if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand &&
+                        if (IsNonTypeCharRetrigger(triggerInfo) &&
                             id != _retriggerId)
                         {
                             return null;
