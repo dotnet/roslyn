@@ -6,14 +6,43 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class StatementParsingTests
+    public class StatementParsingTests : ParsingTests
     {
+        public StatementParsingTests(ITestOutputHelper output) : base(output) { }
+
         private StatementSyntax ParseStatement(string text, int offset = 0, ParseOptions options = null)
         {
             return SyntaxFactory.ParseStatement(text, offset, options);
+        }
+
+        [Fact]
+        [WorkItem(17458, "https://github.com/dotnet/roslyn/issues/17458")]
+        public void ParsePrivate()
+        {
+            UsingStatement("private",
+                // (1,1): error CS1073: Unexpected token 'private'
+                // private
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("private").WithLocation(1, 1),
+                // (1,1): error CS1525: Invalid expression term 'private'
+                // private
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "private").WithArguments("private").WithLocation(1, 1),
+                // (1,1): error CS1002: ; expected
+                // private
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "private").WithLocation(1, 1)
+                );
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
         [Fact]
