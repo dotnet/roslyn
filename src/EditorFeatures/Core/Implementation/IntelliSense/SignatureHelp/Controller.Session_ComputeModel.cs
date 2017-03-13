@@ -94,17 +94,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         }
 
                         // first try to query the providers that can trigger on the specified character
-                        var (provider, items) = await ComputeItemsAsync(
+                        var providerAndItemsOpt = await ComputeItemsAsync(
                             id, matchedProviders, caretPosition,
                             triggerInfo, document, cancellationToken).ConfigureAwait(false);
+                        if (providerAndItemsOpt == null)
+                        {
+                            return currentModel;
+                        }
 
+                        var (provider, items) = providerAndItemsOpt.Value;
                         if (provider == null)
                         {
                             // no match, so now query the other providers
-                            (provider, items) = await ComputeItemsAsync(
+                            providerAndItemsOpt = await ComputeItemsAsync(
                                 id, unmatchedProviders, caretPosition,
                                 triggerInfo, document, cancellationToken).ConfigureAwait(false);
 
+                            if (providerAndItemsOpt == null)
+                            {
+                                return currentModel;
+                            }
+
+                            (provider, items) = providerAndItemsOpt.Value;
                             if (provider == null)
                             {
                                 // the other providers didn't produce items either, so we don't produce a model
@@ -185,7 +196,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return p1.ToString() == p2.ToString();
             }
 
-            private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)> ComputeItemsAsync(
+            /// <summary>
+            /// Returns <code>null</code> if our work was preempted and we want to return the 
+            /// previous model we've computed.
+            /// </summary>
+            private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)?> ComputeItemsAsync(
                 int id,
                 IList<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
@@ -207,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand &&
                             id != _retriggerId)
                         {
-                            return (null, null);
+                            return null;
                         }
 
                         cancellationToken.ThrowIfCancellationRequested();
