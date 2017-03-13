@@ -66,11 +66,13 @@ IFieldInitializer (Field: C.i1 As System.Int32) (OperationKind.FieldInitializerA
 
             compilation.VerifyOperationTree(nodes(2), expectedOperationTree:=<![CDATA[
 IFieldInitializer (Field: C.i2 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
-  ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)]]>.Value)
+  ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
+]]>.Value)
 
             compilation.VerifyOperationTree(nodes(3), expectedOperationTree:=<![CDATA[
 IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializerAtDeclaration)
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)]]>.Value)
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+]]>.Value)
 
             compilation.VerifyOperationTree(nodes(4), expectedOperationTree:=<![CDATA[
 IParameterInitializer (Parameter: [p1 As System.Int32 = 0]) (OperationKind.ParameterInitializerAtDeclaration)
@@ -81,6 +83,26 @@ IParameterInitializer (Parameter: [p1 As System.Int32 = 0]) (OperationKind.Param
 IParameterInitializer (Parameter: [ParamArray p2 As System.Int32() = Nothing]) (OperationKind.ParameterInitializerAtDeclaration)
   IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null)
     ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null)
+]]>.Value)
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/17813"), WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        Public Sub MultipleFieldInitializers()
+            Dim source = <![CDATA[
+Class C
+	Dim x, y As New Object
+End Class
+]]>.Value
+            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, parseOptions:=TestOptions.Regular)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of AsNewClauseSyntax)().Single()
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=<![CDATA[
+IFieldInitializer (2 initialized fields) (OperationKind.FieldInitializerAtDeclaration)
+  Field_1: C.x As System.Object
+  Field_2: C.y As System.Object
+  IObjectCreationExpression (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object)
 ]]>.Value)
         End Sub
 
