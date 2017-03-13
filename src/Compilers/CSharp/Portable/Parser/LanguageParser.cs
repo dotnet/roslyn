@@ -4025,7 +4025,14 @@ tryAgain:
         {
             while (IsParameterModifier(this.CurrentToken.Kind))
             {
-                modifiers.Add(this.EatToken());
+                var modifier = this.EatToken();
+
+                if (modifier.Kind == SyntaxKind.ThisKeyword)
+                {
+                    modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExtensionMethod);
+                }
+
+                modifiers.Add(modifier);
             }
         }
 
