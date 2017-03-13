@@ -1592,8 +1592,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((interpolatedString as InterpolatedStringExpressionSyntax)?.Contents).Value;
         }
 
-        public bool IsStringLiteral(SyntaxToken token)
+        public override bool IsStringLiteral(SyntaxToken token)
             => token.IsKind(SyntaxKind.StringLiteralToken);
+
+        public override bool IsInterpolatedStringTextToken(SyntaxToken token)
+            => token.IsKind(SyntaxKind.InterpolatedStringTextToken);
 
         public bool IsStringLiteralExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.StringLiteralExpression;
@@ -1833,10 +1836,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetNextExecutableStatement(SyntaxNode statement)
             => ((StatementSyntax)statement).GetNextStatement();
 
-        public bool IsWhitespaceTrivia(SyntaxTrivia trivia)
+        public override bool IsWhitespaceTrivia(SyntaxTrivia trivia)
             => trivia.IsWhitespace();
 
-        public bool IsEndOfLineTrivia(SyntaxTrivia trivia)
+        public override bool IsEndOfLineTrivia(SyntaxTrivia trivia)
             => trivia.IsEndOfLine();
 
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
