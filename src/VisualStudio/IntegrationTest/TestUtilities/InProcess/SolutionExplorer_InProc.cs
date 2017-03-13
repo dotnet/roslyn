@@ -59,6 +59,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             };
         }
 
+        public void AddMetadataReference(string assemblyName, string projectName)
+        {
+            var referenceAssemblyFullPath = System.Reflection.Assembly.Load(assemblyName).Location;
+            var project = GetProject(projectName);
+            ((VSProject)project.Object).References.Add(referenceAssemblyFullPath);
+        }
+
+        public void RemoveMetadataReference(string assemblyName, string projectName)
+        {
+            var project = GetProject(projectName);
+            if (project.Object is VSProject vsproject)
+            {
+                var reference = vsproject.References.Cast<Reference>().Where(x => x.Name == assemblyName).First();
+                reference.Remove();
+            }
+        }
+
         public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
 
         public string SolutionFileFullPath
@@ -169,6 +186,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var project = GetProject(projectName);
             var projectToReference = GetProject(projectToReferenceName);
             ((VSProject)project.Object).References.AddProject(projectToReference);
+        }
+
+        public void RemoveProjectReference(string projectReferenceName, string projectName)
+        {
+            var project = GetProject(projectName);
+            var vsproject = (VSProject)project.Object;
+            var reference = vsproject.References.Find(projectReferenceName);
+            reference.Remove();
         }
 
         public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)

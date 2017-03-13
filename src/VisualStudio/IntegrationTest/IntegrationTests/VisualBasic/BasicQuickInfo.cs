@@ -27,8 +27,7 @@ Class Program
     End Sub
 End Class");
             InvokeQuickInfo();
-            Assert.Equal("Class\u200e System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.",
-                Editor.GetQuickInfo());
+            VerifyQuickInfo("Class\u200e System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -44,8 +43,8 @@ Class العربية123
     End Sub
 End Class");
             InvokeQuickInfo();
-            Assert.Equal(@"Class" + '\u200e' + @" TestProj.العربية123
-This is an XML doc comment defined in code.", Editor.GetQuickInfo());
+            VerifyQuickInfo(@"Class" + '\u200e' + @" TestProj.العربية123
+This is an XML doc comment defined in code.");
         }
     }
 }

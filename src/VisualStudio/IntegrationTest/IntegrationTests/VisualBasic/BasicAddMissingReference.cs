@@ -141,7 +141,7 @@ End Module";
         [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
         public void VerifyAvailableCodeActions()
         {
-            OpenFile(ConsoleProjectName, "Module1.vb");
+            OpenFile("Module1.vb", ConsoleProjectName);
             PlaceCaret("y.foo", charsOffset: 1);
             InvokeCodeActionList();
             VerifyCodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
@@ -159,7 +159,7 @@ End Module";
         [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
         public void InvokeSomeFixesInVisualBasicThenVerifyReferences()
         {
-            OpenFile(ConsoleProjectName, "Module1.vb");
+            OpenFile("Module1.vb", ConsoleProjectName);
             PlaceCaret("y.foo", charsOffset: 1);
             InvokeCodeActionList();
             VerifyCodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);

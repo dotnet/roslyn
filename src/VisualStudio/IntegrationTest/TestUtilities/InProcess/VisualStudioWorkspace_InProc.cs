@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -22,6 +24,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             _visualStudioWorkspace = GetComponentModelService<VisualStudioWorkspace>();
         }
+
+        public void SetOptionInfer(bool value)
+            => InvokeOnUIThread(() => {
+                var convertedValue = value ? 1 : 0;
+                var project = GetDTE().Solution.Projects.Item(1);
+                project.Properties.Item("OptionInfer").Value = convertedValue;
+            });
 
         public static VisualStudioWorkspace_InProc Create()
             => new VisualStudioWorkspace_InProc();
@@ -45,6 +54,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
                     FeatureOnOffOptions.PrettyListing, languageName, value);
             });
+
+        public void EnableQuickInfo(bool value)
+            => InvokeOnUIThread(() => {
+                _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
+                    InternalFeatureOnOffOptions.QuickInfo, value);
+            });
+
+        public void SetPerLanguageOption(string optionName, string feature, string language, string value)
+        {
+            var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
+            var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
+            if (option == null)
+            {
+                throw new Exception($"Failed to find option with feature name '{feature}' and option name '{optionName}'");
+            }
+            var result = TypeDescriptor.GetConverter(option.Type).ConvertFromString(value);
+            var optionKey = string.IsNullOrWhiteSpace(language)
+                ? new OptionKey(option)
+                : new OptionKey(option, language);
+            optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, result));
+        }
 
         private static TestingOnly_WaitingService GetWaitingService()
             => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;

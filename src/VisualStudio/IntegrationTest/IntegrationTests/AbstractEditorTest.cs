@@ -77,20 +77,41 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
-        protected void AddFile(string fileName, string contents = null, bool open = false)
-            => VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, fileName, contents, open);
+        protected void CreateSolution(string solutionName, bool saveExistingSolutionIfExists = false)
+            => VisualStudio.Instance.SolutionExplorer.CreateSolution(solutionName, saveExistingSolutionIfExists);
 
-        protected void OpenFile(string projectName, string fileName)
-            => VisualStudio.Instance.SolutionExplorer.OpenFile(projectName, fileName);
+        protected void CloseSolution(bool saveFirst = false)
+            => VisualStudio.Instance.SolutionExplorer.CloseSolution(saveFirst);
 
-        protected void OpenFileWithDesigner(string projectName, string fileName)
-            => VisualStudio.Instance.SolutionExplorer.OpenFileWithDesigner(projectName, fileName);
+        protected void AddProject(string projectTemplate, string projectName = null, string languageName = null)
+            => VisualStudio.Instance.SolutionExplorer.AddProject(projectName ?? ProjectName, projectTemplate, languageName ?? LanguageName);
 
-        protected void CloseFile(string projectName, string fileName, bool saveFile = true)
-            => VisualStudio.Instance.SolutionExplorer.CloseFile(projectName, fileName, saveFile);
+        protected void AddFile(string fileName, string projectName = null, string contents = null, bool open = false)
+            => VisualStudio.Instance.SolutionExplorer.AddFile(projectName ?? ProjectName, fileName, contents, open);
 
-        protected void SaveFile(string projectName, string fileName)
-            => VisualStudio.Instance.SolutionExplorer.SaveFile(projectName, fileName);
+        protected void AddMetadataReference(string referenceName, string projectName = null)
+            => VisualStudio.Instance.SolutionExplorer.AddMetadataReference(referenceName, projectName ?? ProjectName);
+
+        protected void RemoveMetadataReference(string referenceName, string projectName = null)
+            => VisualStudio.Instance.SolutionExplorer.RemoveMetadataReference(referenceName, projectName ?? ProjectName);
+
+        protected void AddProjectReference(string fromProjectName, string toProjectName)
+            => VisualStudio.Instance.SolutionExplorer.AddProjectReference(fromProjectName, toProjectName);
+
+        protected void RemoveProjectReference(string projectReferenceName, string projectName = null)
+            => VisualStudio.Instance.SolutionExplorer.RemoveProjectReference(projectReferenceName, projectName ?? ProjectName);
+
+        protected void OpenFile(string fileName, string projectName = null)
+            => VisualStudio.Instance.SolutionExplorer.OpenFile(projectName ?? ProjectName, fileName);
+
+        protected void OpenFileWithDesigner(string fileName, string projectName = null)
+            => VisualStudio.Instance.SolutionExplorer.OpenFileWithDesigner(projectName ?? ProjectName, fileName);
+
+        protected void CloseFile(string fileName, string projectName = null, bool saveFile = true)
+            => VisualStudio.Instance.SolutionExplorer.CloseFile(projectName ?? ProjectName, fileName, saveFile);
+
+        protected void SaveFile(string fileName, string projectName = null)
+            => VisualStudio.Instance.SolutionExplorer.SaveFile(projectName ?? ProjectName, fileName);
 
         protected void AddWinFormButton(string buttonName)
             => VisualStudio.Instance.Editor.AddWinFormButton(buttonName);
@@ -132,10 +153,52 @@ namespace Roslyn.VisualStudio.IntegrationTests
             => Editor.SendKeys(keys);
 
         protected void DisableSuggestionMode()
-            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
+        {
+            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
 
         protected void EnableSuggestionMode()
-            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
+        {
+            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
+
+        protected void EnableQuickInfo()
+        {
+            VisualStudioWorkspaceOutOfProc.EnableQuickInfo(true);
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
+
+        protected void DisableQuickInfo()
+        {
+            VisualStudioWorkspaceOutOfProc.EnableQuickInfo(false);
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
+
+        protected void EnableOptionInfer()
+        {
+            VisualStudioWorkspaceOutOfProc.SetOptionInfer(true);
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
+
+        protected void DisableOptionInfer()
+        {
+            VisualStudioWorkspaceOutOfProc.SetOptionInfer(false);
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
+
+        protected void EnablePersistence()
+        {
+            VisualStudioWorkspaceOutOfProc.SetPersistenceOption(true);
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
+
+        protected void DisablePersistence()
+        {
+            VisualStudioWorkspaceOutOfProc.SetPersistenceOption(false);
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
 
         protected void InvokeSignatureHelp()
         {
@@ -149,6 +212,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
             WaitForAsyncOperations(FeatureAttribute.QuickInfo);
         }
 
+        protected void VerifyQuickInfo(string expectedQuickInfo)
+        {
+            var actualQuickInfo = Editor.GetQuickInfo();
+            Assert.Equal(expectedQuickInfo, actualQuickInfo);
+        }
+
         protected void InvokeCodeActionList()
         {
             WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
@@ -157,6 +226,36 @@ namespace Roslyn.VisualStudio.IntegrationTests
             Editor.ShowLightBulb();
             Editor.WaitForLightBulbSession();
             WaitForAsyncOperations(FeatureAttribute.LightBulb);
+        }
+
+        protected void EnableFullSolutionAnalysis()
+        {
+            VisualStudio.Instance.VisualStudioWorkspace.SetPerLanguageOption(
+                optionName: "Closed File Diagnostic",
+                feature: "ServiceFeaturesOnOff",
+                language: LanguageNames.CSharp,
+                value: "true");
+
+            VisualStudio.Instance.VisualStudioWorkspace.SetPerLanguageOption(
+                optionName: "Closed File Diagnostic",
+                feature: "ServiceFeaturesOnOff",
+                language: LanguageNames.VisualBasic,
+                value: "true");
+        }
+
+        protected void DisableFullSolutionAnalysis()
+        {
+            VisualStudio.Instance.VisualStudioWorkspace.SetPerLanguageOption(
+                optionName: "Closed File Diagnostic",
+                feature: "ServiceFeaturesOnOff",
+                language: LanguageNames.CSharp,
+                value: "false");
+
+            VisualStudio.Instance.VisualStudioWorkspace.SetPerLanguageOption(
+                optionName: "Closed File Diagnostic",
+                feature: "ServiceFeaturesOnOff",
+                language: LanguageNames.VisualBasic,
+                value: "false");
         }
 
         private void VerifyCurrentLineTextAndAssertCaretPosition(string expectedText, bool trimWhitespace)

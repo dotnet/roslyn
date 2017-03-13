@@ -126,9 +126,9 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
-        public void Verify_Available_Code_Actions()
+        public void VerifyAvailableCodeActions()
         {
-            OpenFile(ConsoleProjectName, "Program.cs");
+            OpenFile("Program.cs", ConsoleProjectName);
             PlaceCaret("y.foo", charsOffset: 1);
             InvokeCodeActionList();
             VerifyCodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
@@ -141,9 +141,9 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
-        public void Invoke_Some_Fixes_In_CSharp_Then_Verify_References()
+        public void InvokeSomeFixesInCSharpThenVerifyReferences()
         {
-            OpenFile(ConsoleProjectName, "Program.cs");
+            OpenFile("Program.cs", ConsoleProjectName);
             PlaceCaret("y.foo", charsOffset: 1);
             InvokeCodeActionList();
             VerifyCodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);
