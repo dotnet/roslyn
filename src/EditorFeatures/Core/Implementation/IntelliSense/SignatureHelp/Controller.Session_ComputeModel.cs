@@ -26,13 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 ImmutableArray<ISignatureHelpProvider> providers,
                 SignatureHelpTriggerInfo triggerInfo)
             {
-                ComputeModel(ImmutableArray.Create(providers), triggerInfo);
-            }
-
-            public void ComputeModel(
-                ImmutableArray<ImmutableArray<ISignatureHelpProvider>> providers,
-                SignatureHelpTriggerInfo triggerInfo)
-            {
                 AssertIsForeground();
 
                 var caretPosition = Controller.TextView.GetCaretPoint(Controller.SubjectBuffer).Value;
@@ -58,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             private async Task<Model> ComputeModelInBackgroundAsync(
                 int id,
                 Model currentModel,
-                ImmutableArray<ImmutableArray<ISignatureHelpProvider>> providers,
+                ImmutableArray<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
                 DisconnectedBufferGraph disconnectedBufferGraph,
                 SignatureHelpTriggerInfo triggerInfo,
@@ -179,43 +172,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             private static bool CompareParts(TaggedText p1, TaggedText p2)
                 => p1.ToString() == p2.ToString();
-
-            /// <summary>
-            /// Returns <code>null</code> if our work was preempted and we want to return the 
-            /// previous model we've computed.
-            /// </summary>
-            private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)?> ComputeItemsAsync(
-                int id,
-                ImmutableArray<ImmutableArray<ISignatureHelpProvider>> providers,
-                SnapshotPoint caretPosition,
-                SignatureHelpTriggerInfo triggerInfo,
-                Document document,
-                CancellationToken cancellationToken)
-            {
-                foreach (var providerList in providers)
-                {
-                    var providersAndItemsOpt = await ComputeItemsAsync(
-                        id, providerList, caretPosition, triggerInfo,
-                        document, cancellationToken).ConfigureAwait(false);
-                    if (providersAndItemsOpt == null)
-                    {
-                        // Another task was enqueued while we were inflight.  Just 
-                        // stop all work and return the last computed model.  We'll compute
-                        // the correct model when we process the other retrigger task.
-                        return null;
-                    }
-
-                    if (providersAndItemsOpt.Value.provider != null)
-                    {
-                        // We found a provider that produced items.  We're done and can just
-                        // return those results.
-                        return providersAndItemsOpt;
-                    }
-                }
-
-                // Didn't find any provider that could produce items.
-                return (null, null);
-            }
 
             /// <summary>
             /// Returns <code>null</code> if our work was preempted and we want to return the 

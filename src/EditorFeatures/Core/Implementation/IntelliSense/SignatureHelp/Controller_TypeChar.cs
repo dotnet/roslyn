@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     //
                     // Or it can trigger a new list. Ask the computation to compute again.
                     sessionOpt.ComputeModel(
-                        ImmutableArray.Create(textuallyTriggeredProviders, untriggeredProviders), triggerInfo);
+                        textuallyTriggeredProviders.Concat(untriggeredProviders), triggerInfo);
                     computed = true;
                 }
 
