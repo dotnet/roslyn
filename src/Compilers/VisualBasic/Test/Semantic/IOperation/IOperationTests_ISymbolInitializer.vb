@@ -18,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 Class C
 	Shared s1 As Integer
 	Private i1 As Integer
+    Private Property P1 As Integer
 End Class
 ]]>
                              </file>
@@ -26,8 +27,8 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, parseOptions:=TestOptions.Regular)
 
             Dim tree = compilation.SyntaxTrees.Single()
-            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ToArray()
-            Assert.Equal(2, nodes.Length)
+            Dim nodes = tree.GetRoot().DescendantNodes().Where(Function(n) TryCast(n, VariableDeclaratorSyntax) IsNot Nothing OrElse TryCast(n, PropertyStatementSyntax) IsNot Nothing).ToArray()
+            Assert.Equal(3, nodes.Length)
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
             For Each node In nodes
@@ -40,7 +41,8 @@ End Class
             Dim source = <![CDATA[
 Class C
 	Shared s1 As Integer = 1
-	Private i1 As Integer = 1
+	Private i1 As Integer = 1, i2 as Integer = 2
+    Private Property P1 As Integer = 1
 
 	Private Sub M(Optional p1 As Integer = 0, Optional ParamArray p2 As Integer() = Nothing)
     End Sub
@@ -50,7 +52,7 @@ End Class
 
             Dim tree = compilation.SyntaxTrees.Single()
             Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of EqualsValueSyntax)().ToArray()
-            Assert.Equal(4, nodes.Length)
+            Assert.Equal(6, nodes.Length)
 
             compilation.VerifyOperationTree(nodes(0), expectedOperationTree:=
             <![CDATA[IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
@@ -63,11 +65,19 @@ IFieldInitializer (Field: C.i1 As System.Int32) (OperationKind.FieldInitializerA
 ]]>.Value)
 
             compilation.VerifyOperationTree(nodes(2), expectedOperationTree:=<![CDATA[
+IFieldInitializer (Field: C.i2 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
+  ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)]]>.Value)
+
+            compilation.VerifyOperationTree(nodes(3), expectedOperationTree:=<![CDATA[
+IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializerAtDeclaration)
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)]]>.Value)
+
+            compilation.VerifyOperationTree(nodes(4), expectedOperationTree:=<![CDATA[
 IParameterInitializer (Parameter: [p1 As System.Int32 = 0]) (OperationKind.ParameterInitializerAtDeclaration)
   ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
 ]]>.Value)
 
-            compilation.VerifyOperationTree(nodes(3), expectedOperationTree:=<![CDATA[
+            compilation.VerifyOperationTree(nodes(5), expectedOperationTree:=<![CDATA[
 IParameterInitializer (Parameter: [ParamArray p2 As System.Int32() = Nothing]) (OperationKind.ParameterInitializerAtDeclaration)
   IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null)
     ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null)
@@ -80,6 +90,7 @@ IParameterInitializer (Parameter: [ParamArray p2 As System.Int32() = Nothing]) (
 Class C
 	Shared s1 As Integer = 1 + F()
 	Private i1 As Integer = 1 + F()
+    Private Property P1 As Integer = 1 + F()
 
 	Private Shared Function F() As Integer
 		Return 1
@@ -91,7 +102,7 @@ End Class
 
             Dim tree = compilation.SyntaxTrees.Single()
             Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of EqualsValueSyntax)().ToArray()
-            Assert.Equal(2, nodes.Length)
+            Assert.Equal(3, nodes.Length)
 
             compilation.VerifyOperationTree(nodes(0), expectedOperationTree:=<![CDATA[
 IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
@@ -102,6 +113,12 @@ IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializerA
 
             compilation.VerifyOperationTree(nodes(1), expectedOperationTree:=<![CDATA[
 IFieldInitializer (Field: C.i1 As System.Int32) (OperationKind.FieldInitializerAtDeclaration)
+  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32)
+    Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+    Right: IInvocationExpression (static Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
+]]>.Value)
+            compilation.VerifyOperationTree(nodes(2), expectedOperationTree:=<![CDATA[
+IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializerAtDeclaration)
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32)
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
     Right: IInvocationExpression (static Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)

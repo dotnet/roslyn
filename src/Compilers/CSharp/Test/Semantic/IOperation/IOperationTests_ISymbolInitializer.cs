@@ -19,13 +19,14 @@ class C
 {
     static int s1;
     int i1;
+    int P1 { get; }
 }";
 
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
             var tree = compilation.SyntaxTrees.Single();
-            var nodes = tree.GetRoot().DescendantNodes().OfType<VariableDeclarationSyntax>().ToArray();
-            Assert.Equal(2, nodes.Length);
+            var nodes = tree.GetRoot().DescendantNodes().Where(n => n is VariableDeclarationSyntax || n is PropertyDeclarationSyntax).ToArray();
+            Assert.Equal(3, nodes.Length);
 
             var semanticModel = compilation.GetSemanticModel(tree);
             foreach (var node in nodes)
@@ -41,7 +42,8 @@ class C
 class C
 {
     static int s1 = 1;
-    int i1 = 1;
+    int i1 = 1, i2 = 2;
+    int P1 { get; } = 1;
     void M(int p1 = 0, params int[] p2 = null) { }
 }";
 
@@ -49,7 +51,7 @@ class C
 
             var tree = compilation.SyntaxTrees.Single();
             var nodes = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().ToArray();
-            Assert.Equal(4, nodes.Length);
+            Assert.Equal(6, nodes.Length);
 
             compilation.VerifyOperationTree(nodes[0], expectedOperationTree:
 @"IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration)
@@ -60,15 +62,22 @@ class C
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)");
 
             compilation.VerifyOperationTree(nodes[2], expectedOperationTree:
+@"IFieldInitializer (Field: System.Int32 C.i2) (OperationKind.FieldInitializerAtDeclaration)
+  ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)");
+
+            compilation.VerifyOperationTree(nodes[3], expectedOperationTree:
+@"IPropertyInitializer (Property: System.Int32 C.P1 { get; }) (OperationKind.PropertyInitializerAtDeclaration)
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)");
+
+            compilation.VerifyOperationTree(nodes[4], expectedOperationTree:
 @"IParameterInitializer (Parameter: [System.Int32 p1 = 0]) (OperationKind.ParameterInitializerAtDeclaration)
   ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)");
 
-            compilation.VerifyOperationTree(nodes[3], expectedOperationTree:
+            compilation.VerifyOperationTree(nodes[5], expectedOperationTree:
 @"IParameterInitializer (Parameter: params System.Int32[] p2) (OperationKind.ParameterInitializerAtDeclaration)
   IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null)
     ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null)");
         }
-
 
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
         public void ExpressionInitializers()
@@ -78,6 +87,7 @@ class C
 {
     static int s1 = 1 + F();
     int i1 = 1 + F();
+    int P1 { get; }= 1 + F();
 
     static int F() { return 1; }
 }";
@@ -86,7 +96,7 @@ class C
 
             var tree = compilation.SyntaxTrees.Single();
             var nodes = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().ToArray();
-            Assert.Equal(2, nodes.Length);
+            Assert.Equal(3, nodes.Length);
 
             compilation.VerifyOperationTree(nodes[0], expectedOperationTree:
 @"IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializerAtDeclaration)
@@ -96,6 +106,12 @@ class C
 
             compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
 @"IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializerAtDeclaration)
+  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32)
+    Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+    Right: IInvocationExpression (static System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32)");
+
+            compilation.VerifyOperationTree(nodes[2], expectedOperationTree:
+@"IPropertyInitializer (Property: System.Int32 C.P1 { get; }) (OperationKind.PropertyInitializerAtDeclaration)
   IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32)
     Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
     Right: IInvocationExpression (static System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32)");
@@ -209,7 +225,7 @@ class C
                       Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "B"),
                       // (25,28): error CS1922: Cannot initialize type 'F' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
                       //         var e2 = new F() { "" };      
-                      Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, @"{ """" }").WithArguments("F").WithLocation(25, 28));
+                      Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, @"{ """" }").WithArguments("F").WithLocation(25, 26));
 
             var tree = compilation.SyntaxTrees.Single();
             var nodes = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(v => v.Initializer).Where(n => n != null).ToArray();
