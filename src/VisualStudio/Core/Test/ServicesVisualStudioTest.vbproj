@@ -330,7 +330,6 @@
     <Compile Include="EditAndContinue\EditAndContinueWorkspaceServiceTests.vb" />
     <Compile Include="EditAndContinue\VsReadOnlyDocumentTrackerTests.vb" />
     <Compile Include="ExtractInterface\ExtractInterfaceViewModelTests.vb" />
-    <Compile Include="FindResults\FindResultsTests.vb" />
     <Compile Include="GenerateType\GenerateTypeViewModelTests.vb" />
     <Compile Include="GoToDefinition\GoToDefinitionApiTests.vb" />
     <Compile Include="Help\HelpTests.vb" />
