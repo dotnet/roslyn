@@ -5253,6 +5253,23 @@ class C
         }
 
         [Fact]
+        public void ExtensionMethodsAreNotAvailableInEarlierCSharpVersions()
+        {
+            var code = @"
+ public static class Test
+ {
+     public static void DoSomething(this int x) { }
+ }";
+
+            ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.CSharp2),
+                // (4,37): error CS8023: Feature 'extension method' is not available in C# 2.  Please use language version 3 or greater.
+                //      public static void DoSomething(this int x) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "this").WithArguments("extension method", "3").WithLocation(4, 37));
+
+            ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.Latest));
+        }
+
+        [Fact]
         public void ExceptionFilterBeforeVersionSix()
         {
             var text = @"
