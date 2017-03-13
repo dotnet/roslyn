@@ -2331,38 +2331,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public sealed override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
-            if (node.IsByRef)
-            {
-                return VisitRefConditionalOperator(node);
-            }
+            var isByRef = node.IsByRef;
 
             VisitCondition(node.Condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
             if (IsConstantTrue(node.Condition))
             {
-                SetState(alternativeState);
-                Visit(node.Alternative);
-                SetState(consequenceState);
-                Visit(node.Consequence);
+                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
+                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
                 // it may be a boolean state at this point.
             }
             else if (IsConstantFalse(node.Condition))
             {
-                SetState(consequenceState);
-                Visit(node.Consequence);
-                SetState(alternativeState);
-                Visit(node.Alternative);
+                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
+                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
                 // it may be a boolean state at this point.
             }
             else
             {
-                SetState(consequenceState);
-                Visit(node.Consequence);
+                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
                 Unsplit();
                 consequenceState = this.State;
-                SetState(alternativeState);
-                Visit(node.Alternative);
+                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
                 Unsplit();
                 IntersectWith(ref this.State, ref consequenceState);
                 // it may not be a boolean state at this point (5.3.3.28)
@@ -2371,53 +2362,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private BoundNode VisitRefConditionalOperator(BoundConditionalOperator node)
+        private void VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
         {
-            VisitCondition(node.Condition);
-            var consequenceState = this.StateWhenTrue;
-            var alternativeState = this.StateWhenFalse;
-            if (IsConstantTrue(node.Condition))
+            SetState(state);
+            if (isByRef)
             {
-                SetState(alternativeState);
-                VisitLvalue(node.Alternative);
+                VisitLvalue(operand);
                 // exposing ref is a potential write
-                WriteArgument(node.Alternative, RefKind.Ref, method: null);
-                SetState(consequenceState);
-                VisitLvalue(node.Consequence);
-                // exposing ref is a potential write
-                WriteArgument(node.Consequence, RefKind.Ref, method: null);
-                // it may be a boolean state at this point.
-            }
-            else if (IsConstantFalse(node.Condition))
-            {
-                SetState(consequenceState);
-                VisitLvalue(node.Consequence);
-                // exposing ref is a potential write
-                WriteArgument(node.Consequence, RefKind.Ref, method: null);
-                SetState(alternativeState);
-                VisitLvalue(node.Alternative);
-                // exposing ref is a potential write
-                WriteArgument(node.Alternative, RefKind.Ref, method: null);
-                // it may be a boolean state at this point.
+                WriteArgument(operand, RefKind.Ref, method: null);
             }
             else
             {
-                SetState(consequenceState);
-                VisitLvalue(node.Consequence);
-                // exposing ref is a potential write
-                WriteArgument(node.Consequence, RefKind.Ref, method: null);
-                Unsplit();
-                consequenceState = this.State;
-                SetState(alternativeState);
-                VisitLvalue(node.Alternative);
-                // exposing ref is a potential write
-                WriteArgument(node.Alternative, RefKind.Ref, method: null);
-                Unsplit();
-                IntersectWith(ref this.State, ref consequenceState);
-                // it may not be a boolean state at this point (5.3.3.28)
+                Visit(operand);
             }
-
-            return null;
         }
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)

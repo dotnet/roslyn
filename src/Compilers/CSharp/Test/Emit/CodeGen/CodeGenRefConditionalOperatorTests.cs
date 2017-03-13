@@ -700,7 +700,7 @@ class C
         }
 
         [Fact]
-        public void TestRefConditionlalUnsafeToReturn3()
+        public void TestRefConditionalUnsafeToReturn3()
         {
             var source = @"
 class C
@@ -782,7 +782,7 @@ class C
         }
 
         [Fact]
-        public void TestRefConditionlalDifferentTypes1()
+        public void TestRefConditionalDifferentTypes1()
         {
             var source = @"
 class C
@@ -808,7 +808,7 @@ class C
         }
 
         [Fact]
-        public void TestRefConditionlalDifferentTypes2()
+        public void TestRefConditionalDifferentTypes2()
         {
             var source = @"
 class C
@@ -833,7 +833,7 @@ class C
         }
 
         [Fact]
-        public void TestRefConditionlalDifferentTypes3()
+        public void TestRefConditionalDifferentTypes3()
         {
             var source = @"
 class C
@@ -871,7 +871,7 @@ class C
         }
 
         [Fact]
-        public void TestRefConditionlalDifferentTypes4()
+        public void TestRefConditionalDifferentTypes4()
         {
             var source = @"
 class C
