@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
@@ -17,16 +18,19 @@ namespace Microsoft.CodeAnalysis.FindUsages
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
         DefinitionsAndReferences CreateDefinitionsAndReferences(
-            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols, bool includeHiddenLocations);
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols,
+            bool includeHiddenLocations, CancellationToken cancellationToken);
 
-        DefinitionItem GetThirdPartyDefinitionItem(Solution solution, ISymbol definition);
+        DefinitionItem GetThirdPartyDefinitionItem(
+            Solution solution, ISymbol definition, CancellationToken cancellationToken);
     }
 
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory)), Shared]
     internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
     {
         public DefinitionsAndReferences CreateDefinitionsAndReferences(
-            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols, bool includeHiddenLocations)
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols,
+            bool includeHiddenLocations, CancellationToken cancellationToken)
         {
             var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
             var references = ArrayBuilder<SourceReferenceItem>.GetInstance();
@@ -34,13 +38,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
             var uniqueLocations = new HashSet<DocumentSpan>();
 
             // Order the symbols by precedence, then create the appropriate
-            // definition item per symbol and all refernece items for its
+            // definition item per symbol and all reference items for its
             // reference locations.
             foreach (var referencedSymbol in referencedSymbols.OrderBy(GetPrecedence))
             {
                 ProcessReferencedSymbol(
                     solution, referencedSymbol, definitions, references,
-                    includeHiddenLocations, uniqueLocations);
+                    includeHiddenLocations, uniqueLocations,cancellationToken);
             }
 
             return new DefinitionsAndReferences(
@@ -48,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         /// <summary>
-        /// Reference locations are deduplicated across the entire find references result set
+        /// Reference locations are de-duplicated across the entire find references result set
         /// Order the definitions so that references to multiple definitions appear under the
         /// desired definition (e.g. constructor references should prefer the constructor method
         /// over the type definition). Note that this does not change the order in which
@@ -88,7 +92,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ArrayBuilder<DefinitionItem> definitions,
             ArrayBuilder<SourceReferenceItem> references,
             bool includeHiddenLocations,
-            HashSet<DocumentSpan> uniqueSpans)
+            HashSet<DocumentSpan> uniqueSpans,
+            CancellationToken cancellationToken)
         {
             // See if this is a symbol we even want to present to the user.  If not,
             // ignore it entirely (including all its reference locations).
@@ -109,7 +114,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             // Finally, see if there are any third parties that want to add their
             // own result to our collection.
-            var thirdPartyItem = GetThirdPartyDefinitionItem(solution, referencedSymbol.Definition);
+            var thirdPartyItem = GetThirdPartyDefinitionItem(
+                solution, referencedSymbol.Definition, cancellationToken);
             if (thirdPartyItem != null)
             {
                 definitions.Add(thirdPartyItem);
@@ -121,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// results to the results found by the FindReferences engine.
         /// </summary>
         public virtual DefinitionItem GetThirdPartyDefinitionItem(
-            Solution solution, ISymbol definition)
+            Solution solution, ISymbol definition, CancellationToken cancellationToken)
         {
             return null;
         }
@@ -167,7 +173,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
 
-            // If it's a namespace, don't create any normal lcoation.  Namespaces
+            // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
             // root definition node for it.  That node won't be navigable.
             if (definition.Kind != SymbolKind.Namespace)
@@ -238,8 +244,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return null;
             }
 
-            return new SourceReferenceItem(definitionItem, 
-                new DocumentSpan(referenceLocation.Document, location.SourceSpan));
+            return new SourceReferenceItem(
+                definitionItem, 
+                new DocumentSpan(referenceLocation.Document, location.SourceSpan),
+                referenceLocation.IsWrittenTo);
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)

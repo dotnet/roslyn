@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken)
         {
-            return (IMethodSymbol)model.GetEnclosingSymbol(lambdaExpression.SpanStart, cancellationToken);
+            return (IMethodSymbol)model.GetEnclosingSymbol(((AnonymousFunctionExpressionSyntax)lambdaExpression).Body.SpanStart, cancellationToken);
         }
 
         internal override SyntaxNode GetContainingQueryExpression(SyntaxNode node)
@@ -1725,7 +1725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(_kind);
                 }
             }
 
@@ -1793,7 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(newNode.Kind());
                 }
             }
 
@@ -2209,7 +2209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(newNode.Kind());
                 }
             }
 
@@ -3039,7 +3039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((ReturnStatementSyntax)statement).Expression;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(statement.Kind());
             }
         }
 

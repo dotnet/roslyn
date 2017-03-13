@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         private static readonly string s_CSharpCompilerExecutable = typeof(Csc).GetTypeInfo().Assembly.Location;
         private static readonly string s_defaultSdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
         private static readonly string s_compilerVersion = typeof(Csc).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+        private static readonly string s_compilerShortCommitHash =
+            CommonCompiler.ExtractShortCommitHash(typeof(CSharpCompiler).GetTypeInfo().Assembly.GetCustomAttribute<CommitHashAttribute>().Hash);
 
         private readonly string _baseDirectory = TempRoot.Root;
 
@@ -1324,6 +1326,14 @@ d.cs
             parsedArgs = DefaultParse(new[] { "/langversion: ", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/langversion:"));
             Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+        }
+
+        [Fact]
+        public void RememberToUpdateDiagnosticsWhenUpdatingLangVersion()
+        {
+            // When new language versions are added, this test will fail. Remember to update the diagnostics message (ERR_BadCompatMode).
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
         }
 
         [Fact]
@@ -5273,14 +5283,50 @@ class C
             var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", "/preferreduilang:en", "a.cs" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
+
+            var patched = Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(\\.\\d+)?", "version A.B.C.D");
+            patched = ReplaceCommitHash(patched);
             Assert.Equal(@"
-Microsoft (R) Visual C# Compiler version A.B.C.D
+Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
-                Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(\\.\\d+)?", "version A.B.C.D"));
+                patched);
             // Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
             // making the last part optional will fix this.
 
             CleanupAllGeneratedFiles(file.Path);
+        }
+
+        [Theory,
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (<developer build>)",
+                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (ABCDEF01)",
+                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (abcdef90)",
+                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (12345678)",
+                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)")]
+        public void TestReplaceCommitHash(string orig, string expected)
+        {
+            Assert.Equal(expected, ReplaceCommitHash(orig));
+        }
+
+        private static string ReplaceCommitHash(string s)
+        {
+            // open paren, followed by either <developer build> or 8 hex, followed by close paren
+            return Regex.Replace(s, "(\\((<developer build>|[a-fA-F0-9]{8})\\))", "(HASH)");
+        }
+
+        [Fact]
+        public void ExtractShortCommitHash()
+        {
+            Assert.Null(CommonCompiler.ExtractShortCommitHash(null));
+            Assert.Equal("", CommonCompiler.ExtractShortCommitHash(""));
+            Assert.Equal("<", CommonCompiler.ExtractShortCommitHash("<"));
+            Assert.Equal("<developer build>", CommonCompiler.ExtractShortCommitHash("<developer build>"));
+            Assert.Equal("1", CommonCompiler.ExtractShortCommitHash("1"));
+            Assert.Equal("1234567", CommonCompiler.ExtractShortCommitHash("1234567"));
+            Assert.Equal("12345678", CommonCompiler.ExtractShortCommitHash("12345678"));
+            Assert.Equal("12345678", CommonCompiler.ExtractShortCommitHash("123456789"));
         }
 
         private void CheckOutputFileName(string source1, string source2, string inputName1, string inputName2, string[] commandLineArguments, string expectedOutputName)
@@ -6953,7 +6999,7 @@ class Program3
         /// On Linux/Mac <see cref="FileShare.Delete"/> on its own doesn't do anything. 
         /// We need to create the actual memory map. This works on Windows as well.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(8896, "https://github.com/dotnet/roslyn/issues/8896")]
+        [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal)), WorkItem(8896, "https://github.com/dotnet/roslyn/issues/8896")]
         public void FileShareDeleteCompatibility_Xplat()
         {
             var bytes = TestResources.MetadataTests.InterfaceAndClass.CSClasses01;
@@ -6976,7 +7022,7 @@ class Program3
 
             var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/target:library /debug:portable {libSrc.Path}", startFolder: dir.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Microsoft (R) Visual C# Compiler version {s_compilerVersion}
+Microsoft (R) Visual C# Compiler version {s_compilerVersion} ({s_compilerShortCommitHash })
 Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             // reading original content from the memory map: 
@@ -8825,7 +8871,7 @@ class C {
         public void Version()
         {
             var folderName = Temp.CreateDirectory().ToString();
-            var expected = FileVersionInfo.GetVersionInfo(typeof(CSharpCompiler).Assembly.Location).FileVersion;
+            var expected = $"{FileVersionInfo.GetVersionInfo(typeof(CSharpCompiler).Assembly.Location).FileVersion} ({s_compilerShortCommitHash})";
             var argss = new[]
             {
                 "/version",

@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     {
         public static ArgumentSyntax GenerateArgument(SyntaxNode argument)
         {
-            if (argument is ExpressionSyntax)
+            if (argument is ExpressionSyntax expression)
             {
-                return SyntaxFactory.Argument((ExpressionSyntax)argument);
+                return SyntaxFactory.Argument(expression);
             }
 
             return (ArgumentSyntax)argument;

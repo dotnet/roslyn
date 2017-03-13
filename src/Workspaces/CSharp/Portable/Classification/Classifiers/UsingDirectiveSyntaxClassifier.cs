@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            if (syntax is UsingDirectiveSyntax)
+            if (syntax is UsingDirectiveSyntax usingDirective)
             {
-                return ClassifyUsingDirectiveSyntax((UsingDirectiveSyntax)syntax, semanticModel, cancellationToken);
+                return ClassifyUsingDirectiveSyntax(usingDirective, semanticModel, cancellationToken);
             }
 
             return null;

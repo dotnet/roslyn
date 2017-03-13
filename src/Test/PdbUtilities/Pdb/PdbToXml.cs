@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
 using Microsoft.CodeAnalysis.Debugging;
@@ -50,7 +51,7 @@ namespace Roslyn.Test.PdbUtilities
             _options = options;
         }
 
-        public unsafe static string DeltaPdbToXml(Stream deltaPdb, IEnumerable<int> methodTokens)
+        public static string DeltaPdbToXml(Stream deltaPdb, IEnumerable<int> methodTokens)
         {
             var writer = new StringWriter();
             ToXml(
@@ -77,17 +78,13 @@ namespace Roslyn.Test.PdbUtilities
             return writer.ToString();
         }
 
-        public unsafe static void ToXml(TextWriter xmlWriter, Stream pdbStream, Stream peStream, PdbToXmlOptions options = PdbToXmlOptions.Default, string methodName = null)
+        public static void ToXml(TextWriter xmlWriter, Stream pdbStream, Stream peStream, PdbToXmlOptions options = PdbToXmlOptions.Default, string methodName = null)
         {
             IEnumerable<MethodDefinitionHandle> methodHandles;
-            var headers = new PEHeaders(peStream);
-            byte[] metadata = new byte[headers.MetadataSize];
-            peStream.Seek(headers.MetadataStartOffset, SeekOrigin.Begin);
-            peStream.Read(metadata, 0, headers.MetadataSize);
 
-            fixed (byte* metadataPtr = metadata)
+            using (var peReader = new PEReader(peStream, PEStreamOptions.LeaveOpen))
             {
-                var metadataReader = new MetadataReader(metadataPtr, metadata.Length);
+                var metadataReader = peReader.GetMetadataReader();
 
                 if (string.IsNullOrEmpty(methodName))
                 {
@@ -101,7 +98,7 @@ namespace Roslyn.Test.PdbUtilities
                     if (matching.Length == 0)
                     {
                         xmlWriter.WriteLine("<error>");
-                        xmlWriter.WriteLine(string.Format("<message><![CDATA[No method '{0}' found in metadata.]]></message>", methodName));
+                        xmlWriter.WriteLine($"<message><![CDATA[No method '{methodName}' found in metadata.]]></message>");
                         xmlWriter.WriteLine("<available-methods>");
 
                         foreach (var methodHandle in metadataReader.MethodDefinitions)
@@ -170,6 +167,11 @@ namespace Roslyn.Test.PdbUtilities
                 WriteEntryPoint();
                 WriteAllMethods(methodHandles, methodTokenMap, documentIndex);
                 WriteAllMethodSpans();
+            }
+
+            if ((_options & PdbToXmlOptions.IncludeSourceServerInformation) != 0)
+            {
+                WriteSourceServerInformation();
             }
 
             _writer.WriteEndElement();
@@ -276,19 +278,19 @@ namespace Roslyn.Test.PdbUtilities
                 {
                     switch (record.Kind)
                     {
-                        case CustomDebugInfoKind.UsingInfo:
+                        case CustomDebugInfoKind.UsingGroups:
                             WriteUsingCustomDebugInfo(record);
                             break;
-                        case CustomDebugInfoKind.ForwardInfo:
+                        case CustomDebugInfoKind.ForwardMethodInfo:
                             WriteForwardCustomDebugInfo(record);
                             break;
-                        case CustomDebugInfoKind.ForwardToModuleInfo:
+                        case CustomDebugInfoKind.ForwardModuleInfo:
                             WriteForwardToModuleCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.StateMachineHoistedLocalScopes:
                             WriteStateMachineHoistedLocalScopesCustomDebugInfo(record);
                             break;
-                        case CustomDebugInfoKind.ForwardIterator:
+                        case CustomDebugInfoKind.StateMachineTypeName:
                             WriteForwardIteratorCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.DynamicLocals:
@@ -345,7 +347,7 @@ namespace Roslyn.Test.PdbUtilities
         /// </remarks>
         private void WriteUsingCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(record.Kind == CustomDebugInfoKind.UsingInfo);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.UsingGroups);
 
             _writer.WriteStartElement("using");
 
@@ -370,7 +372,7 @@ namespace Roslyn.Test.PdbUtilities
         /// </remarks>
         private void WriteForwardCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardInfo);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardMethodInfo);
 
             _writer.WriteStartElement("forward");
 
@@ -390,7 +392,7 @@ namespace Roslyn.Test.PdbUtilities
         /// </remarks>
         private void WriteForwardToModuleCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardToModuleInfo);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardModuleInfo);
 
             _writer.WriteStartElement("forwardToModule");
 
@@ -419,8 +421,13 @@ namespace Roslyn.Test.PdbUtilities
             foreach (StateMachineHoistedLocalScope scope in scopes)
             {
                 _writer.WriteStartElement("slot");
-                _writer.WriteAttributeString("startOffset", AsILOffset(scope.StartOffset));
-                _writer.WriteAttributeString("endOffset", AsILOffset(scope.EndOffset));
+
+                if (!scope.IsDefault)
+                {
+                    _writer.WriteAttributeString("startOffset", AsILOffset(scope.StartOffset));
+                    _writer.WriteAttributeString("endOffset", AsILOffset(scope.EndOffset));
+                }
+
                 _writer.WriteEndElement(); //slot
             }
 
@@ -436,7 +443,7 @@ namespace Roslyn.Test.PdbUtilities
         /// </remarks>
         private void WriteForwardIteratorCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardIterator);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.StateMachineTypeName);
 
             _writer.WriteStartElement("forwardIterator");
 
@@ -1549,6 +1556,47 @@ namespace Roslyn.Test.PdbUtilities
             }
 
             return string.Format("<unexpected token kind: {0}>", AsToken(metadataReader.GetToken(handle)));
+        }
+
+        private unsafe void WriteSourceServerInformation()
+        {
+            var srcsvrModule = _symReader as ISymUnmanagedSourceServerModule;
+            if (srcsvrModule != null)
+            {
+                _writer.WriteStartElement("srcsvr");
+
+                Marshal.ThrowExceptionForHR(srcsvrModule.GetSourceServerData(out int length, out byte* data));
+
+                try
+                {
+                    string str = Encoding.UTF8.GetString(data, length);
+
+                    try
+                    {
+                        _writer.WriteCData(str);
+                    }
+                    catch (ArgumentException)
+                    {
+                        try
+                        {
+                            _writer.WriteValue(str);
+                        }
+                        catch (ArgumentException)
+                        {
+                            _writer.WriteAttributeString("encoding", "base64");
+                            var bytes = new byte[length];
+                            Marshal.Copy((IntPtr)data, bytes, 0, bytes.Length);
+                            _writer.WriteBase64(bytes, 0, bytes.Length);
+                        }
+                    }
+                }
+                finally
+                {
+                    Marshal.FreeCoTaskMem((IntPtr)data);
+                }
+
+                _writer.WriteEndElement();
+            }
         }
 
         #region Utils

@@ -360,13 +360,13 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public void PushMethod(IMethodSymbol method)
-                => _methodSymbolStack.Add(method);
+            public void PushMethod(IMethodSymbol methodOpt)
+                => _methodSymbolStack.Add(methodOpt);
 
-            public void PopMethod(IMethodSymbol method)
+            public void PopMethod(IMethodSymbol methodOpt)
             {
                 Contract.ThrowIfTrue(_methodSymbolStack.Count == 0);
-                Contract.ThrowIfFalse(method.Equals(_methodSymbolStack.Last()));
+                Contract.ThrowIfFalse(Equals(methodOpt, _methodSymbolStack.Last()));
                 _methodSymbolStack.RemoveAt(_methodSymbolStack.Count - 1);
             }
 

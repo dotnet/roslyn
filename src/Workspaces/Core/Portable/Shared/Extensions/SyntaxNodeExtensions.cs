@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var current = node.Parent;
             while (current != null)
             {
-                if (current is TNode)
+                if (current is TNode tNode)
                 {
-                    yield return (TNode)current;
+                    yield return tNode;
                 }
 
                 current = current is IStructuredTriviaSyntax
@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var current = node;
             while (current != null)
             {
-                if (current is TNode)
+                if (current is TNode tNode)
                 {
-                    yield return (TNode)current;
+                    yield return tNode;
                 }
 
                 current = current is IStructuredTriviaSyntax
@@ -110,9 +110,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (currentNode != null && searchSpan.Contains(currentNode.FullSpan) && predicate(currentNode))
                 {
-                    if (currentNode is TSyntaxNode)
+                    if (currentNode is TSyntaxNode tSyntax)
                     {
-                        yield return (TSyntaxNode)currentNode;
+                        yield return tSyntax;
                     }
 
                     nodes.AddRangeAtHead(currentNode.ChildNodes());

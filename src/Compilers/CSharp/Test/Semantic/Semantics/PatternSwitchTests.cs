@@ -2007,7 +2007,7 @@ null");
 class Program
 {
     static void Main(string[] args)
-    {                           
+    {
         switch((object)new A())
         {
             case A a:
@@ -2036,9 +2036,9 @@ class Program
 {
     static void Main(string[] args)
     {
-        int val = 3; 
+        int val = 3;
         var l = new System.Collections.Generic.List<System.Action>();
-        int i = 1;                          
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2098,9 +2098,9 @@ class Program
 
     static System.Collections.Generic.IEnumerable<string> Test()
     {
-        int val = 3; 
+        int val = 3;
         var l = new System.Collections.Generic.List<System.Action>();
-        int i = 1;                          
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2160,8 +2160,8 @@ class Program
 
     static System.Collections.Generic.IEnumerable<string> Test()
     {
-        int val = 3; 
-        int i = 1;                          
+        int val = 3;
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2216,8 +2216,8 @@ class Program
 
     static System.Collections.Generic.IEnumerable<int> Test()
     {
-        int val = 3; 
-        int i = 1;                          
+        int val = 3;
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2275,7 +2275,7 @@ class Program
 
     static System.Collections.Generic.IEnumerable<string> Test()
     {
-        int val = 3; 
+        int val = 3;
         switch(val)
         {
             case int a when TakeOutVar(out var b) && a == b:
@@ -2316,9 +2316,9 @@ class Program
 
     static async Task<int> Test()
     {
-        int val = 3; 
+        int val = 3;
         var l = new System.Collections.Generic.List<System.Action>();
-        int i = 1;                          
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2386,8 +2386,8 @@ class Program
 
     static async Task<int> Test()
     {
-        int val = 3; 
-        int i = 1;                          
+        int val = 3;
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2450,8 +2450,8 @@ class Program
 
     static async Task<int> Test()
     {
-        int val = 3; 
-        int i = 1;                          
+        int val = 3;
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2509,7 +2509,7 @@ class Program
 
     static async Task<int> Test()
     {
-        int val = 3; 
+        int val = 3;
         switch(val)
         {
             case int a when TakeOutVar(out var b) && a == b:
@@ -2538,6 +2538,333 @@ class Program
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"case: 3
 3");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_01()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<(int a, int b)>();
+        switch (list)
+        {
+            case List<(int x, int y)> list1:
+                break;
+            case List<(int z, int w)> list2: // subsumed
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case List<(int z, int w)> list2: // subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "List<(int z, int w)> list2").WithLocation(13, 18),
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_02()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<(int a, int b)>();
+        switch (list)
+        {
+            case List<(int x, int y)> list1:
+                Console.WriteLine(""pass"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_03()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var t = (a: 1, b: 2);
+        switch (t)
+        {
+            case ValueTuple<int, int> x:
+                Console.WriteLine(""pass"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_04()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var t = (a: 1, b: 2);
+        switch (t)
+        {
+            case var x:
+                Console.WriteLine(x.a);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"1");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_05()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var t = (a: 1, b: 2);
+        switch (t)
+        {
+            case ValueTuple<int, int> x:
+                break;
+            case var x:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var x:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var x").WithLocation(13, 18),
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void DynamicDifferences_01()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<dynamic>();
+        switch (list)
+        {
+            case List<object> list1:
+                break;
+            case List<dynamic> list2: // subsumed
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case List<dynamic> list2: // subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "List<dynamic> list2").WithLocation(13, 18),
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break")
+                );
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void DynamicDifferences_02()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<dynamic>();
+        switch (list)
+        {
+            case List<object> list1:
+                Console.WriteLine(""pass"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+        }
+
+        [Fact]
+        [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
+        public void Dynamic_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        switch (d)
+        {
+            case dynamic x: // error 1
+                break;
+        }
+        if (d is dynamic y) {} // error 2
+        if (d is var z) // ok
+        {
+            long l = z;
+            string s = z;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (9,18): error CS8207: It is not legal to use the type 'dynamic' in a pattern.
+                //             case dynamic x: // error 1
+                Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic"),
+                // (12,18): error CS8207: It is not legal to use the type 'dynamic' in a pattern.
+                //         if (d is dynamic y) {} // error 2
+                Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic").WithLocation(12, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
+        public void Dynamic_02()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        switch (d)
+        {
+            case object x:
+            case var y: // OK, catches null
+            case var z: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case object x:
+            case null:
+            case var y: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case object x:
+            case 1: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case object x:
+            case int y: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case object x:
+            case (dynamic)null:
+            case (string)null: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case int i:
+            case long l:
+            case object o:
+            case var v:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var z: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var z").WithLocation(11, 18),
+                // (18,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var y: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var y").WithLocation(18, 18),
+                // (24,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 1: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 1:"),
+                // (30,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case int y: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int y").WithLocation(30, 18),
+                // (37,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
+                //             case (string)null: // error: subsumed
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (string)null:").WithArguments("null").WithLocation(37, 13)
+                );
         }
     }
 }

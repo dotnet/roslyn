@@ -4,19 +4,19 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class NamespaceBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterNamespace() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestApplyAfterNamespace()
+            VerifyStatementEndConstructApplied(
                 before:="Namespace foo",
                 beforeCaret:={0, -1},
                 after:="Namespace foo
 
 End Namespace",
                 afterCaret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterNestedNamespace() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestApplyAfterNestedNamespace()
+            VerifyStatementEndConstructApplied(
                 before:="Namespace foo
 Namespace bar
 End Namespace",
@@ -27,37 +27,37 @@ Namespace bar
 End Namespace
 End Namespace",
                 afterCaret:={2, -1})
-        End Function
+        End Sub
 
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyRecommit() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyRecommit()
+            VerifyStatementEndConstructNotApplied(
                 text:="NameSpace Bar
 End Namespace",
                 caret:={0, -1})
-        End Function
+        End Sub
 
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyInvalidNSInMethod() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyInvalidNSInMethod()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
         NameSpace T
     End Sub
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyInvalidNSInModule() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyInvalidNSInModule()
+            VerifyStatementEndConstructNotApplied(
                 text:="Module M
     Namespace n
 End Module",
                 caret:={1, -1})
-        End Function
+        End Sub
     End Class
 End Namespace

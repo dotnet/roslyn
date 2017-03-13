@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetFileCodeModel(object location)
         {
-            if (location is string)
+            if (location is string locationString)
             {
                 var vsProject = _parentHandle.Value;
                 var vsProjectItems = vsProject.ProjectItems;
@@ -53,8 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 {
                     throw Exceptions.ThrowEFail();
                 }
-
-                var locationString = (string)location;
 
                 var project = GetProject();
                 var projectDirectory = Path.GetDirectoryName(project.FilePath);

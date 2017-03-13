@@ -21,10 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return True
             End Get
         End Property
-
-        Friend Overrides Function BinderSpecificLookupOptions(options As LookupOptions) As LookupOptions
-            Return options Or LookupOptions.IgnoreCorLibraryDuplicatedTypes
-        End Function
     End Class
 
 End Namespace

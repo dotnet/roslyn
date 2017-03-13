@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!SyntaxFacts.IsValidIdentifier(preprocessorSymbol))
                     {
-                        throw new ArgumentException(nameof(preprocessorSymbol));
+                        throw new ArgumentException($"{nameof(preprocessorSymbols)} contains a symbol that is not a valid identifier", nameof(preprocessorSymbols));
                     }
                 }
             }

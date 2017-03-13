@@ -2288,6 +2288,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_OpenEndedComment" xml:space="preserve">
     <value>End-of-file found, '*/' expected</value>
   </data>
+  <data name="ERR_Merge_conflict_marker_encountered" xml:space="preserve">
+    <value>Merge conflict marker encountered</value>
+  </data>
   <data name="ERR_OvlOperatorExpected" xml:space="preserve">
     <value>Overloadable operator expected</value>
   </data>
@@ -4581,11 +4584,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_EncodinglessSyntaxTree" xml:space="preserve">
     <value>Cannot emit debug information for a source text without encoding.</value>
   </data>
-  <data name="ERR_AccessorListAndExpressionBody" xml:space="preserve">
-    <value>Properties cannot combine accessor lists with expression bodies.</value>
-  </data>
   <data name="ERR_BlockBodyAndExpressionBody" xml:space="preserve">
-    <value>Methods and accessors cannot combine block bodies with expression bodies.</value>
+    <value>Block bodies and expression bodies cannot both be provided.</value>
   </data>
   <data name="ERR_SwitchFallOut" xml:space="preserve">
     <value>Control cannot fall out of switch from final case label ('{0}')</value>
@@ -4948,6 +4948,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsOutVariable" xml:space="preserve">
     <value>An expression tree may not contain an out argument variable declaration.</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsDiscard" xml:space="preserve">
+    <value>An expression tree may not contain a discard.</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsIsMatch" xml:space="preserve">
     <value>An expression tree may not contain an 'is' pattern-matching operator.</value>
   </data>
@@ -5002,7 +5005,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadAssemblyName" xml:space="preserve">
     <value>Invalid assembly name: {0}</value>
   </data>
+  <data name="ERR_BadAsyncMethodBuilderTaskProperty" xml:space="preserve">
+    <value>For type '{0}' to be used as an AsyncMethodBuilder for type '{1}', its Task property should return type '{1}' instead of type '{2}'.</value>
+  </data>
   <data name="ERR_AttributesInLocalFuncDecl" xml:space="preserve">
     <value>Attributes are not allowed on local function parameters or type parameters</value>
+  </data>
+  <data name="ERR_TypeForwardedToMultipleAssemblies" xml:space="preserve">
+    <value>Module '{0}' in assembly '{1}' is forwarding the type '{2}' to multiple assemblies: '{3}' and '{4}'.</value>
+  </data>
+  <data name="ERR_PatternDynamicType" xml:space="preserve">
+    <value>It is not legal to use the type 'dynamic' in a pattern.</value>
   </data>
 </root>

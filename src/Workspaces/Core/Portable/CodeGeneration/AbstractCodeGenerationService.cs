@@ -430,9 +430,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentNullException(nameof(namespaceOrType));
             }
 
-            if (namespaceOrType is INamespaceSymbol)
+            if (namespaceOrType is INamespaceSymbol namespaceSymbol)
             {
-                return AddNamespaceAsync(solution, destination, (INamespaceSymbol)namespaceOrType, options, cancellationToken);
+                return AddNamespaceAsync(solution, destination, namespaceSymbol, options, cancellationToken);
             }
             else
             {

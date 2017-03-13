@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationPropertySymbol : CodeGenerationSymbol, IPropertySymbol
     {
         public ITypeSymbol Type { get; }
+        public bool ReturnsByRef { get; }
         public bool IsIndexer { get; }
 
         public ImmutableArray<IParameterSymbol> Parameters { get; }
@@ -20,21 +21,23 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public CodeGenerationPropertySymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol type,
+            bool returnsByRef,
             IPropertySymbol explicitInterfaceSymbolOpt,
             string name,
             bool isIndexer,
-            IList<IParameterSymbol> parametersOpt,
+            ImmutableArray<IParameterSymbol> parametersOpt,
             IMethodSymbol getMethod,
             IMethodSymbol setMethod)
             : base(containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
+            this.ReturnsByRef = returnsByRef;
             this.IsIndexer = isIndexer;
-            this.Parameters = parametersOpt.AsImmutableOrEmpty();
+            this.Parameters = parametersOpt.NullToEmpty();
             this.ExplicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
                 ? ImmutableArray.Create<IPropertySymbol>()
                 : ImmutableArray.Create(explicitInterfaceSymbolOpt);
@@ -46,8 +49,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var result = new CodeGenerationPropertySymbol(
                 this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
-                this.Modifiers, this.Type, this.ExplicitInterfaceImplementations.FirstOrDefault(),
-                this.Name, this.IsIndexer, this.Parameters.IsDefault ? null : (IList<IParameterSymbol>)this.Parameters,
+                this.Modifiers, this.Type, this.ReturnsByRef, this.ExplicitInterfaceImplementations.FirstOrDefault(),
+                this.Name, this.IsIndexer, this.Parameters,
                 this.GetMethod, this.SetMethod);
             CodeGenerationPropertyInfo.Attach(result,
                 CodeGenerationPropertyInfo.GetIsNew(this),
@@ -57,23 +60,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return result;
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Property;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Property;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitProperty(this);
-        }
+            => visitor.VisitProperty(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitProperty(this);
-        }
+            => visitor.VisitProperty(this);
 
         public bool IsReadOnly
         {
@@ -91,13 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public bool ReturnsByRef
-        {
-            get
-            {
-                return this.GetMethod != null && this.GetMethod.ReturnsByRef;
-            }
-        }
+        public new IPropertySymbol OriginalDefinition => this;
 
         public bool ReturnsByRefReadonly
         {
@@ -123,28 +110,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public bool IsWithEvents
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsWithEvents => false;
 
-        public ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray.Create<CustomModifier>();
-            }
-        }
+        public ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
-        public ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray.Create<CustomModifier>();
-            }
-        }
+        public ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray<CustomModifier>.Empty;
     }
 }

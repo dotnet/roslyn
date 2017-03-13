@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool concurrentBuild = true;
             bool deterministic = false; // TODO(5431): Enable deterministic mode by default
             bool emitPdb = false;
-            DebugInformationFormat debugInformationFormat = DebugInformationFormat.Pdb;
+            DebugInformationFormat debugInformationFormat = PathUtilities.IsUnixLikePlatform ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb;
             bool debugPlus = false;
             string pdbPath = null;
             bool noStdLib = IsScriptRunner; // don't add mscorlib from sdk dir when running scripts

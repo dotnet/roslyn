@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.NamingStyles;
@@ -13,25 +12,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
 {
     public partial class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace) =>
-            new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpNamingStyleDiagnosticAnalyzer(),
-                new NamingStyleCodeFixProvider());
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpNamingStyleDiagnosticAnalyzer(), new NamingStyleCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseClass_CorrectName()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class [|C|]
 {
-}",
-                options: ClassNamesArePascalCase);
+}", new TestParameters(options: ClassNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseClass_NameGetsCapitalized()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class [|c|]
 {
 }",
@@ -44,20 +40,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_CorrectName()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void [|M|]()
     {
     }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_NameGetsCapitalized()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void [|m|]()
@@ -76,31 +71,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_ConstructorsAreIgnored()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class c
 {
     public [|c|]()
     {
     }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_PropertyAccessorsAreIgnored()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     public int P { [|get|]; set; }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_IndexerNameIsIgnored()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     public int [|this|][int index]
@@ -110,14 +103,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             return 1;
         }
     }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseParameters()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     public void M(int [|X|])
@@ -136,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_InInterfaceWithImplicitImplementation()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"interface I
 {
     void [|m|]();
@@ -161,7 +153,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_InInterfaceWithExplicitImplementation()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"interface I
 {
     void [|m|]();
@@ -186,7 +178,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_NotInImplicitInterfaceImplementation()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"interface I
 {
     void m();
@@ -195,14 +187,13 @@ class C : I
 class C : I
 {
     public void [|m|]() { }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_NotInExplicitInterfaceImplementation()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"interface I
 {
     void m();
@@ -211,14 +202,13 @@ class C : I
 class C : I
 {
     void I.[|m|]() { }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_InAbstractType()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 abstract class C
 {
@@ -245,7 +235,7 @@ class D : C
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_NotInAbstractMethodImplementation()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"
 abstract class C
 {
@@ -255,14 +245,13 @@ abstract class C
 class D : C
 {
     public override void [|m|]() { }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseProperty_InInterface()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 interface I
 {
@@ -289,7 +278,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseProperty_NotInImplicitInterfaceImplementation()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"
 interface I
 {
@@ -299,14 +288,13 @@ interface I
 class C : I
 {
     public int [|p|] { get { return 1; } set { } }
-}",
-                options: PropertyNamesArePascalCase);
+}", new TestParameters(options: PropertyNamesArePascalCase));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_OverrideInternalMethod()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"
 abstract class C
 {
@@ -316,8 +304,7 @@ abstract class C
 class D : C
 {
     internal override void [|m|]() { }
-}",
-                options: MethodNamesArePascalCase);
+}", new TestParameters(options: MethodNamesArePascalCase));
         }
     }
 }

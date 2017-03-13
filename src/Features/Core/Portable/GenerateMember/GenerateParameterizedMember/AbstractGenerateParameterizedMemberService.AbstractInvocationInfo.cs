@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -16,22 +17,22 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         {
             protected abstract bool IsIdentifierName();
 
-            protected abstract IList<ITypeParameterSymbol> GetCapturedTypeParameters(CancellationToken cancellationToken);
-            protected abstract IList<ITypeParameterSymbol> GenerateTypeParameters(CancellationToken cancellationToken);
+            protected abstract ImmutableArray<ITypeParameterSymbol> GetCapturedTypeParameters(CancellationToken cancellationToken);
+            protected abstract ImmutableArray<ITypeParameterSymbol> GenerateTypeParameters(CancellationToken cancellationToken);
 
             protected AbstractInvocationInfo(SemanticDocument document, State state)
                 : base(document, state)
             {
             }
 
-            protected override IList<ITypeParameterSymbol> DetermineTypeParametersWorker(
+            protected override ImmutableArray<ITypeParameterSymbol> DetermineTypeParametersWorker(
                 CancellationToken cancellationToken)
             {
                 var typeParameters = ComputeTypeParameters(cancellationToken);
-                return typeParameters.Select(tp => MassageTypeParameter(tp, cancellationToken)).ToList();
+                return typeParameters.SelectAsArray(tp => MassageTypeParameter(tp, cancellationToken));
             }
 
-            private IList<ITypeParameterSymbol> ComputeTypeParameters(
+            private ImmutableArray<ITypeParameterSymbol> ComputeTypeParameters(
                 CancellationToken cancellationToken)
             {
                 if (IsIdentifierName())
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     // a generic method if the expression 'x' captured any method type variables.
                     var capturedTypeParameters = GetCapturedTypeParameters(cancellationToken);
                     var availableTypeParameters = this.State.TypeToGenerateIn.GetAllTypeParameters();
-                    var result = capturedTypeParameters.Except(availableTypeParameters).ToList();
+                    var result = capturedTypeParameters.Except(availableTypeParameters).ToImmutableArray();
                     return result;
                 }
                 else
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
 
                 return CodeGenerationSymbolFactory.CreateTypeParameter(
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     varianceKind: typeParameter.Variance,
                     name: typeParameter.Name,
                     constraintTypes: constraints.AsImmutable<ITypeSymbol>(),

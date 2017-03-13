@@ -104,133 +104,133 @@ public class Ref<T> where T : Entity
         {
         }
 
-        private async Task<CodeFunction> GetCodeFunctionAsync(params object[] path)
+        private CodeFunction GetCodeFunction(params object[] path)
         {
-            return (CodeFunction)await GetCodeElementAsync(path);
+            return (CodeFunction)GetCodeElement(path);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task CanOverride_False()
+        public void CanOverride_False()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.False(testObject.CanOverride);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task CanOverride_True()
+        public void CanOverride_True()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodB");
+            CodeFunction testObject = GetCodeFunction("A", "MethodB");
 
             Assert.True(testObject.CanOverride);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task FullName()
+        public void FullName()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodD");
+            CodeFunction testObject = GetCodeFunction("A", "MethodD");
 
             Assert.Equal("A.MethodD", testObject.FullName);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task FunctionKind_Function()
+        public void FunctionKind_Function()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.Equal(vsCMFunction.vsCMFunctionFunction, testObject.FunctionKind);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task FunctionKind_Constructor()
+        public void FunctionKind_Constructor()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", 1);
+            CodeFunction testObject = GetCodeFunction("A", 1);
 
             Assert.Equal(vsCMFunction.vsCMFunctionConstructor, testObject.FunctionKind);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task FunctionKind_Finalizer()
+        public void FunctionKind_Finalizer()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", 2);
+            CodeFunction testObject = GetCodeFunction("A", 2);
 
             Assert.Equal(vsCMFunction.vsCMFunctionDestructor, testObject.FunctionKind);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task IsOverloaded_True()
+        public void IsOverloaded_True()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodE");
+            CodeFunction testObject = GetCodeFunction("A", "MethodE");
 
             Assert.True(testObject.IsOverloaded);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task IsOverloaded_False()
+        public void IsOverloaded_False()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.False(testObject.IsOverloaded);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task IsShared_False()
+        public void IsShared_False()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.False(testObject.IsShared);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task IsShared_True()
+        public void IsShared_True()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodC");
+            CodeFunction testObject = GetCodeFunction("A", "MethodC");
 
             Assert.True(testObject.IsShared);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Kind()
+        public void Kind()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.Equal(vsCMElement.vsCMElementFunction, testObject.Kind);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Name()
+        public void Name()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodC");
+            CodeFunction testObject = GetCodeFunction("A", "MethodC");
 
             Assert.Equal("MethodC", testObject.Name);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Parameters_Count()
+        public void Parameters_Count()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodD");
+            CodeFunction testObject = GetCodeFunction("A", "MethodD");
 
             Assert.Equal(3, testObject.Parameters.Count);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Parent()
+        public void Parent()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.NotNull(testObject.Parent);
             Assert.True(testObject.Parent is CodeClass, testObject.Parent.GetType().ToString());
@@ -239,18 +239,18 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Type()
+        public void Type()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             Assert.Equal("System.Int32", testObject.Type.AsFullName);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Comment()
+        public void Comment()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("C", "MethodB");
+            CodeFunction testObject = GetCodeFunction("C", "MethodB");
 
             string expected = "This is a short comment.\r\n";
 
@@ -259,9 +259,9 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task DocComment()
+        public void DocComment()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("C", "MethodA");
+            CodeFunction testObject = GetCodeFunction("C", "MethodA");
 
             string expected = "<doc>\r\n<summary>\r\nA short summary.\r\n</summary>\r\n<param name=\"intA\">A parameter.</param>\r\n<returns>An int.</returns>\r\n</doc>";
 
@@ -270,34 +270,34 @@ public class Ref<T> where T : Entity
 
         [ConditionalFact(typeof(x86), Skip = "636860")]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Overloads_Count()
+        public void Overloads_Count()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodE");
+            CodeFunction testObject = GetCodeFunction("A", "MethodE");
 
             Assert.Equal(2, testObject.Overloads.Count);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_Attributes()
+        public void GetStartPoint_Attributes()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_AttributesWithDelimiter()
+        public void GetStartPoint_AttributesWithDelimiter()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_Body()
+        public void GetStartPoint_Body()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartBody);
 
@@ -307,17 +307,17 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_BodyWithDelimiter()
+        public void GetStartPoint_BodyWithDelimiter()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_Header()
+        public void GetStartPoint_Header()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartHeader);
 
@@ -327,25 +327,25 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_HeaderWithAttributes()
+        public void GetStartPoint_HeaderWithAttributes()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_Name()
+        public void GetStartPoint_Name()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_Navigate()
+        public void GetStartPoint_Navigate()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
@@ -355,9 +355,9 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_NavigateWithBlankLine()
+        public void GetStartPoint_NavigateWithBlankLine()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodWithBlankLine");
+            CodeFunction testObject = GetCodeFunction("A", "MethodWithBlankLine");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
@@ -367,17 +367,17 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_Whole()
+        public void GetStartPoint_Whole()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetStartPoint_WholeWithAttributes()
+        public void GetStartPoint_WholeWithAttributes()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -387,25 +387,25 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Attributes()
+        public void GetEndPoint_Attributes()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_AttributesWithDelimiter()
+        public void GetEndPoint_AttributesWithDelimiter()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body()
+        public void GetEndPoint_Body()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -415,41 +415,41 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_BodyWithDelimiter()
+        public void GetEndPoint_BodyWithDelimiter()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Header()
+        public void GetEndPoint_Header()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_HeaderWithAttributes()
+        public void GetEndPoint_HeaderWithAttributes()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Name()
+        public void GetEndPoint_Name()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Navigate()
+        public void GetEndPoint_Navigate()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartNavigate);
 
@@ -459,17 +459,17 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Whole()
+        public void GetEndPoint_Whole()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_WholeWithAttributes()
+        public void GetEndPoint_WholeWithAttributes()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -479,9 +479,9 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task StartPoint()
+        public void StartPoint()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint startPoint = testObject.StartPoint;
 
@@ -491,9 +491,9 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task EndPoint()
+        public void EndPoint()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
+            CodeFunction testObject = GetCodeFunction("A", "MethodA");
 
             TextPoint endPoint = testObject.EndPoint;
 
@@ -503,9 +503,9 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task DynamicReturnType()
+        public void DynamicReturnType()
         {
-            CodeVariable testObject = (CodeVariable)await GetCodeElementAsync("C", "DynamicField");
+            CodeVariable testObject = (CodeVariable)GetCodeElement("C", "DynamicField");
 
             CodeTypeRef returnType = testObject.Type;
             Assert.Equal(returnType.AsFullName, "dynamic");
@@ -516,9 +516,9 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task DynamicParameter()
+        public void DynamicParameter()
         {
-            CodeFunction testObject = await GetCodeFunctionAsync("C", "DynamicMethod");
+            CodeFunction testObject = GetCodeFunction("C", "DynamicMethod");
 
             CodeTypeRef returnType = ((CodeParameter)testObject.Parameters.Item(1)).Type;
             Assert.Equal(returnType.AsFullName, "dynamic");
@@ -532,13 +532,13 @@ public class Ref<T> where T : Entity
         [WorkItem(530496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530496")]
         public async Task TestCodeElementFromPoint()
         {
-            var text = await (await GetCurrentDocumentAsync()).GetTextAsync();
-            var tree = await (await GetCurrentDocumentAsync()).GetSyntaxTreeAsync();
+            var text = await (GetCurrentDocument()).GetTextAsync();
+            var tree = await (GetCurrentDocument()).GetSyntaxTreeAsync();
             var position = text.ToString().IndexOf("DynamicMethod", StringComparison.Ordinal);
             var virtualTreePoint = new VirtualTreePoint(tree, text, position);
             var textPoint = new MockTextPoint(virtualTreePoint, 4);
             var scope = vsCMElement.vsCMElementFunction;
-            var element = (await GetCodeModelAsync()).CodeElementFromPoint(textPoint, scope);
+            var element = (GetCodeModel()).CodeElementFromPoint(textPoint, scope);
             Assert.Equal("DynamicMethod", element.Name);
         }
 
@@ -547,33 +547,33 @@ public class Ref<T> where T : Entity
         [WorkItem(726710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726710")]
         public async Task TestCodeElementFromPointBetweenMembers()
         {
-            var text = await (await GetCurrentDocumentAsync()).GetTextAsync();
-            var tree = await (await GetCurrentDocumentAsync()).GetSyntaxTreeAsync();
+            var text = await (GetCurrentDocument()).GetTextAsync();
+            var tree = await (GetCurrentDocument()).GetSyntaxTreeAsync();
             var position = text.ToString().IndexOf("protected virtual string MethodB", StringComparison.Ordinal) - 1;
             var virtualTreePoint = new VirtualTreePoint(tree, text, position);
             var textPoint = new MockTextPoint(virtualTreePoint, 4);
 
-            await Assert.ThrowsAsync<COMException>(async () =>
-                (await GetCodeModelAsync()).CodeElementFromPoint(textPoint, vsCMElement.vsCMElementFunction));
+            Assert.Throws<COMException>(() =>
+                (GetCodeModel()).CodeElementFromPoint(textPoint, vsCMElement.vsCMElementFunction));
 
-            var element = (await GetCodeModelAsync()).CodeElementFromPoint(textPoint, vsCMElement.vsCMElementClass);
+            var element = (GetCodeModel()).CodeElementFromPoint(textPoint, vsCMElement.vsCMElementClass);
             Assert.Equal("A", element.Name);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task Operator()
+        public void Operator()
         {
-            CodeFunction functionObject = await GetCodeFunctionAsync("A", 3);
+            CodeFunction functionObject = GetCodeFunction("A", 3);
             Assert.Equal("operator +", functionObject.Name);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         [WorkItem(924179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924179")]
-        public async Task ConversionOperator()
+        public void ConversionOperator()
         {
-            CodeClass classObject = (CodeClass)await GetCodeElementAsync("Ref");
+            CodeClass classObject = (CodeClass)GetCodeElement("Ref");
             var element = classObject.Members.Item(1);
             Assert.Equal("implicit operator Ref<T>", element.Name);
         }

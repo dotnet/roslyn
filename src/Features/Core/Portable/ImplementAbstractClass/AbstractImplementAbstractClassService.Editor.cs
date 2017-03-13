@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 var getMethod = ShouldGenerateAccessor(property.GetMethod)
                     ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         property.GetMethod,
-                        attributes: null,
+                        attributes: default(ImmutableArray<AttributeData>),
                         accessibility: property.GetMethod.ComputeResultantAccessibility(_state.ClassType),
                         statements: throwingBody)
                     : null;
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 var setMethod = ShouldGenerateAccessor(property.SetMethod)
                     ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         property.SetMethod,
-                        attributes: null,
+                        attributes: default(ImmutableArray<AttributeData>),
                         accessibility: property.SetMethod.ComputeResultantAccessibility(_state.ClassType),
                         statements: throwingBody)
                     : null;

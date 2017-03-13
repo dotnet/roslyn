@@ -93,9 +93,10 @@ Friend Module CompilationUtils
 
     Public Function CreateCompilationWithMscorlib45(sourceTrees As IEnumerable(Of SyntaxTree),
                                                     Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                    Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+                                                    Optional options As VisualBasicCompilationOptions = Nothing,
+                                                    Optional assemblyName As String = Nothing) As VisualBasicCompilation
         Dim additionalRefs = {MscorlibRef_v4_0_30316_17626}
-        Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
+        Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
     End Function
 
     Public Function CreateCompilationWithMscorlib45AndVBRuntime(sourceTrees As IEnumerable(Of SyntaxTree),
@@ -646,7 +647,7 @@ Friend Module CompilationUtils
     Public Function CreateParseTreeAndSpans(programElement As XElement, Optional parseOptions As VisualBasicParseOptions = Nothing) As (tree As SyntaxTree, spans As IList(Of TextSpan))
         Dim codeWithMarker As String = FilterString(programElement.Value)
         Dim codeWithoutMarker As String = Nothing
-        Dim spans As IList(Of TextSpan) = Nothing
+        Dim spans As ImmutableArray(Of TextSpan) = Nothing
         MarkupTestFile.GetSpans(codeWithMarker, codeWithoutMarker, spans)
 
         Dim text = SourceText.From(codeWithoutMarker, Encoding.UTF8)

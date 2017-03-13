@@ -47,12 +47,6 @@
     <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticArguments.cs">
-      <Link>Implementation\Diagnostics\DiagnosticArguments.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticResultSerializer.cs">
-      <Link>Implementation\Diagnostics\DiagnosticResultSerializer.cs</Link>
-    </Compile>
     <Compile Include="Experimentation\IVsExperimentationService.cs" />
     <Compile Include="Experimentation\VisualStudioExperimentationService.cs" />
     <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyResults.cs" />
@@ -63,8 +57,6 @@
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyIdentityList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNameList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNamePrefixList.cs" />
-    <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
-    <Compile Include="Implementation\Diagnostics\VisualStudioDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.AnalyzerAssemblyLoader.cs" />
     <Compile Include="Implementation\EditAndContinue\Interop\NativeMethods.cs" />
@@ -93,6 +85,11 @@
     <Compile Include="Implementation\AnalyzerDependency\MissingAnalyzerDependency.cs" />
     <Compile Include="Implementation\Options\LocalUserRegistryOptionPersister.cs" />
     <Compile Include="Implementation\Options\RoamingVisualStudioProfileOptionPersister.cs" />
+    <Compile Include="Implementation\PickMembers\PickMembersDialog.xaml.cs">
+      <DependentUpon>PickMembersDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Implementation\PickMembers\PickMembersDialogViewModel.cs" />
+    <Compile Include="Implementation\PickMembers\VisualStudioPickMembersService.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
@@ -115,7 +112,7 @@
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioFrameworkAssemblyPathResolverFactory.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionWorkingFoldersEvents.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl_IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\Extensions\VisualStudioWorkspaceImplExtensions.cs" />
     <Compile Include="Implementation\Options\LanguageSettingsPersister.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
@@ -196,7 +193,6 @@
     <Compile Include="Telemetry\ProjectTypeLookupService.cs" />
     <Compile Include="Telemetry\ProjectTelemetryIncrementalAnalyzerProvider.cs" />
     <Compile Include="Telemetry\RoslynTelemetrySetup.cs" />
-    <Compile Include="Telemetry\VSTelemetryActivityLogger.cs" />
     <Compile Include="Telemetry\VSTelemetryCache.cs" />
     <Compile Include="Telemetry\VSTelemetryLogger.cs" />
     <Compile Include="Utilities\IVsEditorAdaptersFactoryServiceExtensions.cs" />
@@ -354,7 +350,7 @@
     <Compile Include="Implementation\Debugging\CachedProximityExpressionsGetter.cs" />
     <Compile Include="Implementation\Debugging\DebugMode.cs" />
     <Compile Include="Implementation\Debugging\IProximityExpressionsService.cs" />
-    <Compile Include="Implementation\DesignerAttribute\AbstractDesignerAttributeIncrementalAnalyzer.cs" />
+    <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzerProvider.cs" />
     <Compile Include="Implementation\DesignerAttribute\DesignerAttributeState.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.cs" />
@@ -549,8 +545,8 @@
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectManagementService.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker.WorkspaceHostState.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionEvents.cs" />
-    <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionLoadEvents.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl_IVsSolutionEvents.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl_IVsSolutionLoadEvents.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspace.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.cs" />
     <Compile Include="Implementation\ProjectSystem\WorkspaceBackgroundWork.cs" />
@@ -661,6 +657,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Implementation\PickMembers\PickMembersDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Implementation\PreviewPane\PreviewPane.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -702,6 +702,7 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

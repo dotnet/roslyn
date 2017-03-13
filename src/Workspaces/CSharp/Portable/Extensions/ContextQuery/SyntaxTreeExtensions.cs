@@ -1243,7 +1243,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return node.FindTokenOnLeftOfPosition(node.SpanStart);
         }
 
-        private static bool IsPossibleTupleOpenParenOrComma(SyntaxToken possibleCommaOrParen)
+
+        public static bool IsPossibleTupleOpenParenOrComma(SyntaxToken possibleCommaOrParen)
         {
             if (!possibleCommaOrParen.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
             {
@@ -1251,10 +1252,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             if (possibleCommaOrParen.Parent.IsKind(
-                SyntaxKind.ParenthesizedExpression,
-                SyntaxKind.TupleExpression,
-                SyntaxKind.TupleType,
-                SyntaxKind.CastExpression))
+                    SyntaxKind.ParenthesizedExpression,
+                    SyntaxKind.TupleExpression,
+                    SyntaxKind.TupleType,
+                    SyntaxKind.CastExpression))
             {
                 return true;
             }
@@ -1268,8 +1269,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     return true;
                 }
-
             }
+
             return false;
         }
 
@@ -1708,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return token.IsBeginningOfGlobalStatementContext();
         }
 
-        public static bool IsInstanceContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+        public static bool IsInstanceContext(this SyntaxTree syntaxTree, SyntaxToken targetToken, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
 #if false
             if (syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken))
@@ -1717,41 +1718,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 #endif
 
-            var token = tokenOnLeftOfPosition;
-
-            // We're in an instance context if we're in the body of an instance member
-            var containingMember = token.GetAncestor<MemberDeclarationSyntax>();
-            if (containingMember == null)
-            {
-                return false;
-            }
-
-            var modifiers = containingMember.GetModifiers();
-            if (modifiers.Any(SyntaxKind.StaticKeyword))
-            {
-                return false;
-            }
-
-            var expressionBody = containingMember.GetExpressionBody();
-            if (expressionBody != null)
-            {
-                return TextSpan.FromBounds(expressionBody.ArrowToken.Span.End, expressionBody.FullSpan.End).IntersectsWith(position);
-            }
-
-            // Must be a property or something method-like.
-            if (containingMember.HasMethodShape())
-            {
-                var body = containingMember.GetBody();
-                return IsInBlock(body, position);
-            }
-
-            var accessor = token.GetAncestor<AccessorDeclarationSyntax>();
-            if (accessor != null)
-            {
-                return IsInBlock(accessor.Body, position);
-            }
-
-            return false;
+            var enclosingSymbol = semanticModel.GetEnclosingSymbol(targetToken.SpanStart, cancellationToken);
+            return !enclosingSymbol.IsStatic;
         }
 
         private static bool IsInBlock(BlockSyntax bodyOpt, int position)

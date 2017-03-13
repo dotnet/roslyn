@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isNullableValueType)
             {
-                MethodSymbol getValueOrDefault = GetNullableMethod(syntax, local.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
+                MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, local.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 // local.GetValueOrDefault()
                 disposedExpression = BoundCall.Synthesized(syntax, local, getValueOrDefault);
             }

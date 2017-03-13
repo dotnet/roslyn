@@ -76,10 +76,6 @@
       <Project>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</Project>
       <Name>CSharpEditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
@@ -169,6 +165,7 @@
   <ItemGroup>
     <Compile Include="AddBraces\AddBracesFixAllTests.cs" />
     <Compile Include="AddBraces\AddBracesTests.cs" />
+    <Compile Include="AddParameter\AddParameterTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBraceCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBracketCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticLessAndGreaterThanCompletionTests.cs" />
@@ -179,6 +176,7 @@
     <Compile Include="BraceHighlighting\BraceHighlightingTests.cs" />
     <Compile Include="BraceMatching\CSharpBraceMatcherTests.cs" />
     <Compile Include="CallHierarchy\CallHierarchyTests.cs" />
+    <Compile Include="ChangeSignature\ChangeSignatureTests.cs" />
     <Compile Include="ChangeSignature\ChangeSignature_CheckAllSignatureChanges.cs" />
     <Compile Include="ChangeSignature\ChangeSignature_Delegates.cs" />
     <Compile Include="ChangeSignature\ChangeSignature_Formatting.cs" />
@@ -195,15 +193,19 @@
     <Compile Include="Classification\TotalClassifierTests.cs" />
     <Compile Include="Classification\TotalClassifierTests_Dynamic.cs" />
     <Compile Include="CodeActions\AbstractCSharpCodeActionTest.cs" />
+    <Compile Include="CodeActions\ConvertIfToSwitch\ConvertIfToSwitchTests.cs" />
+    <Compile Include="CodeActions\ConvertNumericLiteral\ConvertNumericLiteralTests.cs" />
+    <Compile Include="CodeActions\UseNamedArguments\UseNamedArgumentsTests.cs" />
+    <Compile Include="ConflictMarkerResolution\ConflictMarkerResolutionTests.cs" />
     <Compile Include="Completion\CompletionProviders\OverrideCompletionProviderTests_ExpressionBody.cs" />
+    <Compile Include="Completion\CompletionProviders\TupleNameCompletionProviderTests.cs" />
     <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.cs" />
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.cs" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.cs" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.cs" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
-    <Compile Include="CodeActions\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersTests.cs" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.cs" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.cs" />
+    <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.cs" />
     <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.cs" />
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.cs" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.cs" />
@@ -230,8 +232,11 @@
     <Compile Include="Diagnostics\NamingStyles\NamingStylesTests_OptionSets.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.cs" />
+    <Compile Include="Diagnostics\RemoveUnusedVariable\RemoveUnusedVariableTest.cs" />
     <Compile Include="Extensions\ContextQuery\IsPossibleDeconstructionDesignationTests.cs" />
     <Compile Include="Extensions\ContextQuery\PossibleTupleContextTests.cs" />
+    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersTests.cs" />
+    <Compile Include="GenerateOverrides\GenerateOverridesTests.cs" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.cs" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
@@ -278,7 +283,7 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerDriver\DiagnosticAnalyzerDriverTests.cs" />
     <Compile Include="Diagnostics\FixAllProvider\BatchFixerTests.cs" />
     <Compile Include="Diagnostics\FullyQualify\FullyQualifyTests.cs" />
-    <Compile Include="Diagnostics\GenerateConstructor\GenerateConstructorTests.cs" />
+    <Compile Include="GenerateConstructor\GenerateConstructorTests.cs" />
     <Compile Include="Diagnostics\GenerateEnumMember\GenerateEnumMemberTests.cs" />
     <Compile Include="Diagnostics\GenerateMethod\GenerateMethodTests.cs" />
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests.cs" />

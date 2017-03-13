@@ -28,10 +28,14 @@ namespace Microsoft.CodeAnalysis.Execution
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
 
         private readonly ITemporaryStorageService _storageService;
+        private readonly IDocumentationProviderService _documentationService;
 
-        protected AbstractReferenceSerializationService(ITemporaryStorageService storageService)
+        protected AbstractReferenceSerializationService(
+            ITemporaryStorageService storageService,
+            IDocumentationProviderService documentationService)
         {
             _storageService = storageService;
+            _documentationService = documentationService;
         }
 
         public virtual void WriteTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken)
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 WriteTo(reference, writer, checksum: true, cancellationToken: cancellationToken);
 
@@ -173,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
                 WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
@@ -254,11 +258,18 @@ namespace Microsoft.CodeAnalysis.Execution
                     return new MissingMetadataReference(properties, filePath, XmlDocumentationProvider.Default);
                 }
 
-                // TODO: deal with xml document provider properly
-                //       should we shadow copy xml doc comment?
+                // for now, we will use IDocumentationProviderService to get DocumentationProvider for metadata
+                // references. if the service is not available, then use Default (NoOp) provider.
+                // since xml doc comment is not part of solution snapshot, (like xml reference resolver or strong name
+                // provider) this provider can also potentially provide content that is different than one in the host. 
+                // an alternative approach of this is synching content of xml doc comment to remote host as well
+                // so that we can put xml doc comment as part of snapshot. but until we believe that is necessary,
+                // it will go with simpler approach
+                var documentProvider = filePath != null && _documentationService != null ?
+                    _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
+
                 return new SerializedMetadataReference(
-                    properties, filePath, tuple.Value.metadata, tuple.Value.storages,
-                    XmlDocumentationProvider.Default);
+                    properties, filePath, tuple.Value.metadata, tuple.Value.storages, documentProvider);
             }
 
             throw ExceptionUtilities.UnexpectedValue(kind);
@@ -672,7 +683,6 @@ namespace Microsoft.CodeAnalysis.Execution
                 Metadata metadata, ImmutableArray<ITemporaryStreamStorage> storagesOpt, DocumentationProvider initialDocumentation) :
                 base(properties, fullPath, initialDocumentation)
             {
-                // TODO: doc comment provider is a bit wierd.
                 _metadata = metadata;
                 _storagesOpt = storagesOpt;
 
@@ -681,8 +691,8 @@ namespace Microsoft.CodeAnalysis.Execution
 
             protected override DocumentationProvider CreateDocumentationProvider()
             {
-                // TODO: properly implement this
-                return null;
+                // this uses documentation provider given at the constructor
+                throw ExceptionUtilities.Unreachable;
             }
 
             protected override Metadata GetMetadataImpl()

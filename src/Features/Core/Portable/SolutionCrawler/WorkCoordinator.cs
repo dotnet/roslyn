@@ -79,10 +79,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _optionService.OptionChanged += OnOptionChanged;
             }
 
-            public int CorrelationId
-            {
-                get { return _registration.CorrelationId; }
-            }
+            public int CorrelationId => _registration.CorrelationId;
 
             public void AddAnalyzer(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
             {
@@ -248,7 +245,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         ProcessDocumentEvent(args, asyncToken);
                         break;
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(args.Kind);
                 }
             }
 
@@ -290,7 +287,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(e.Kind);
                 }
             }
 
@@ -310,7 +307,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         EnqueueEvent(e.OldSolution, e.NewSolution, e.ProjectId, asyncToken);
                         break;
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(e.Kind);
                 }
             }
 
@@ -333,7 +330,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         EnqueueEvent(e.OldSolution, e.NewSolution, asyncToken);
                         break;
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(e.Kind);
                 }
             }
 

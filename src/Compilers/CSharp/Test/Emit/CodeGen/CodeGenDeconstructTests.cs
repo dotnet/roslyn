@@ -92,39 +92,42 @@ class C
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal(@"(x, y)", lhs.ToString());
                 Assert.Equal("(System.Int64, System.String)", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+
+                var right = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+                Assert.Equal(@"new C()", right.ToString());
+                Assert.Equal("C", model.GetTypeInfo(right).Type.ToTestDisplayString());
+                Assert.Equal("C", model.GetTypeInfo(right).ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.Identity, model.GetConversion(right).Kind);
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       48 (0x30)
+  // Code size       44 (0x2c)
   .maxstack  3
   .locals init (long V_0, //x
                 string V_1, //y
                 int V_2,
-                string V_3,
-                string V_4)
+                string V_3)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  ldloca.s   V_2
   IL_0007:  ldloca.s   V_3
-  IL_0009:  call       ""void C.Deconstruct(out int, out string)""
+  IL_0009:  callvirt   ""void C.Deconstruct(out int, out string)""
   IL_000e:  ldloc.2
   IL_000f:  conv.i8
-  IL_0010:  ldloc.3
-  IL_0011:  stloc.s    V_4
-  IL_0013:  dup
-  IL_0014:  stloc.0
-  IL_0015:  ldloc.s    V_4
-  IL_0017:  stloc.1
-  IL_0018:  pop
-  IL_0019:  ldloc.0
-  IL_001a:  box        ""long""
-  IL_001f:  ldstr      "" ""
-  IL_0024:  ldloc.1
-  IL_0025:  call       ""string string.Concat(object, object, object)""
-  IL_002a:  call       ""void System.Console.WriteLine(string)""
-  IL_002f:  ret
+  IL_0010:  dup
+  IL_0011:  stloc.0
+  IL_0012:  ldloc.3
+  IL_0013:  stloc.1
+  IL_0014:  pop
+  IL_0015:  ldloc.0
+  IL_0016:  box        ""long""
+  IL_001b:  ldstr      "" ""
+  IL_0020:  ldloc.1
+  IL_0021:  call       ""string string.Concat(object, object, object)""
+  IL_0026:  call       ""void System.Console.WriteLine(string)""
+  IL_002b:  ret
 }");
         }
 
@@ -156,32 +159,24 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       47 (0x2f)
+  // Code size       39 (0x27)
   .maxstack  3
-  .locals init (int V_0, //x
-                string V_1, //y
-                int V_2,
-                string V_3,
-                string V_4)
+  .locals init (string V_0, //y
+                int V_1,
+                string V_2)
   IL_0000:  newobj     ""C..ctor()""
-  IL_0005:  ldloca.s   V_2
-  IL_0007:  ldloca.s   V_3
-  IL_0009:  call       ""void C.Deconstruct(out int, out string)""
-  IL_000e:  ldloc.2
-  IL_000f:  ldloc.3
-  IL_0010:  stloc.s    V_4
-  IL_0012:  dup
-  IL_0013:  stloc.0
-  IL_0014:  ldloc.s    V_4
-  IL_0016:  stloc.1
-  IL_0017:  pop
-  IL_0018:  ldloc.0
-  IL_0019:  box        ""int""
-  IL_001e:  ldstr      "" ""
-  IL_0023:  ldloc.1
-  IL_0024:  call       ""string string.Concat(object, object, object)""
-  IL_0029:  call       ""void System.Console.WriteLine(string)""
-  IL_002e:  ret
+  IL_0005:  ldloca.s   V_1
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_000e:  ldloc.1
+  IL_000f:  ldloc.2
+  IL_0010:  stloc.0
+  IL_0011:  box        ""int""
+  IL_0016:  ldstr      "" ""
+  IL_001b:  ldloc.0
+  IL_001c:  call       ""string string.Concat(object, object, object)""
+  IL_0021:  call       ""void System.Console.WriteLine(string)""
+  IL_0026:  ret
 }");
         }
 
@@ -839,84 +834,21 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size      152 (0x98)
-  .maxstack  10
-  .locals init (int V_0, //y
-                long V_1,
-                long V_2,
-                long V_3,
-                long V_4,
-                long V_5,
-                long V_6,
-                long V_7,
-                long V_8,
-                long V_9,
-                int V_10)
-  IL_0000:  ldc.i4.1
+  // Code size       31 (0x1f)
+  .maxstack  3
+  .locals init (int V_0) //y
+  IL_0000:  ldc.i4.4
   IL_0001:  conv.i8
-  IL_0002:  ldc.i4.1
-  IL_0003:  conv.i8
-  IL_0004:  ldc.i4.1
-  IL_0005:  conv.i8
-  IL_0006:  ldc.i4.1
-  IL_0007:  conv.i8
-  IL_0008:  ldc.i4.1
-  IL_0009:  conv.i8
-  IL_000a:  ldc.i4.1
-  IL_000b:  conv.i8
-  IL_000c:  ldc.i4.1
-  IL_000d:  conv.i8
-  IL_000e:  ldc.i4.1
-  IL_000f:  conv.i8
-  IL_0010:  ldc.i4.4
-  IL_0011:  conv.i8
-  IL_0012:  ldc.i4.2
-  IL_0013:  newobj     ""System.ValueTuple<long, long, int>..ctor(long, long, int)""
-  IL_0018:  newobj     ""System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>..ctor(long, long, long, long, long, long, long, (long, long, int))""
-  IL_001d:  dup
-  IL_001e:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item1""
-  IL_0023:  stloc.1
-  IL_0024:  dup
-  IL_0025:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item2""
-  IL_002a:  stloc.2
-  IL_002b:  dup
-  IL_002c:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item3""
-  IL_0031:  stloc.3
-  IL_0032:  dup
-  IL_0033:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item4""
-  IL_0038:  stloc.s    V_4
-  IL_003a:  dup
-  IL_003b:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item5""
-  IL_0040:  stloc.s    V_5
-  IL_0042:  dup
-  IL_0043:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item6""
-  IL_0048:  stloc.s    V_6
-  IL_004a:  dup
-  IL_004b:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item7""
-  IL_0050:  stloc.s    V_7
-  IL_0052:  dup
-  IL_0053:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
-  IL_0058:  ldfld      ""long System.ValueTuple<long, long, int>.Item1""
-  IL_005d:  stloc.s    V_8
-  IL_005f:  dup
-  IL_0060:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
-  IL_0065:  ldfld      ""long System.ValueTuple<long, long, int>.Item2""
-  IL_006a:  stloc.s    V_9
-  IL_006c:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
-  IL_0071:  ldfld      ""int System.ValueTuple<long, long, int>.Item3""
-  IL_0076:  stloc.s    V_10
-  IL_0078:  ldloc.s    V_9
-  IL_007a:  ldloc.s    V_10
-  IL_007c:  stloc.0
-  IL_007d:  box        ""long""
-  IL_0082:  ldstr      "" ""
-  IL_0087:  ldloc.0
-  IL_0088:  box        ""int""
-  IL_008d:  call       ""string string.Concat(object, object, object)""
-  IL_0092:  call       ""void System.Console.WriteLine(string)""
-  IL_0097:  ret
-}
-");
+  IL_0002:  ldc.i4.2
+  IL_0003:  stloc.0
+  IL_0004:  box        ""long""
+  IL_0009:  ldstr      "" ""
+  IL_000e:  ldloc.0
+  IL_000f:  box        ""int""
+  IL_0014:  call       ""string string.Concat(object, object, object)""
+  IL_0019:  call       ""void System.Console.WriteLine(string)""
+  IL_001e:  ret
+}");
         }
 
         [Fact]
@@ -1013,34 +945,23 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       52 (0x34)
+  // Code size       32 (0x20)
   .maxstack  3
   .locals init (string V_0, //x
-                string V_1, //y
-                string V_2,
-                string V_3)
+                string V_1) //y
   IL_0000:  ldstr      ""goodbye""
   IL_0005:  stloc.0
   IL_0006:  ldnull
-  IL_0007:  ldstr      ""hello""
-  IL_000c:  newobj     ""System.ValueTuple<string, string>..ctor(string, string)""
-  IL_0011:  dup
-  IL_0012:  ldfld      ""string System.ValueTuple<string, string>.Item1""
-  IL_0017:  stloc.2
-  IL_0018:  ldfld      ""string System.ValueTuple<string, string>.Item2""
-  IL_001d:  stloc.3
-  IL_001e:  ldloc.2
-  IL_001f:  stloc.0
-  IL_0020:  ldloc.3
-  IL_0021:  stloc.1
-  IL_0022:  ldstr      ""{0}{1}""
-  IL_0027:  ldloc.0
-  IL_0028:  ldloc.1
-  IL_0029:  call       ""string string.Format(string, object, object)""
-  IL_002e:  call       ""void System.Console.WriteLine(string)""
-  IL_0033:  ret
-}
-");
+  IL_0007:  stloc.0
+  IL_0008:  ldstr      ""hello""
+  IL_000d:  stloc.1
+  IL_000e:  ldstr      ""{0}{1}""
+  IL_0013:  ldloc.0
+  IL_0014:  ldloc.1
+  IL_0015:  call       ""string string.Format(string, object, object)""
+  IL_001a:  call       ""void System.Console.WriteLine(string)""
+  IL_001f:  ret
+} ");
         }
 
         [Fact]
@@ -1066,20 +987,15 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       19 (0x13)
+  // Code size       15 (0xf)
   .maxstack  3
   .locals init (int V_0,
-                int V_1,
-                int V_2)
+                int V_1)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  ldloca.s   V_0
   IL_0007:  ldloca.s   V_1
-  IL_0009:  call       ""void C.Deconstruct(out int, out int)""
-  IL_000e:  ldloc.0
-  IL_000f:  ldloc.1
-  IL_0010:  stloc.2
-  IL_0011:  pop
-  IL_0012:  ret
+  IL_0009:  callvirt   ""void C.Deconstruct(out int, out int)""
+  IL_000e:  ret
 }");
         }
 
@@ -1107,27 +1023,24 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       39 (0x27)
+  // Code size       37 (0x25)
   .maxstack  3
   .locals init (System.ValueTuple<int, int> V_0, //z
                 int V_1,
-                int V_2,
-                int V_3)
+                int V_2)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  ldloca.s   V_1
   IL_0007:  ldloca.s   V_2
-  IL_0009:  call       ""void C.Deconstruct(out int, out int)""
+  IL_0009:  callvirt   ""void C.Deconstruct(out int, out int)""
   IL_000e:  ldloc.1
   IL_000f:  ldloc.2
-  IL_0010:  stloc.3
-  IL_0011:  ldloc.3
-  IL_0012:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0017:  stloc.0
-  IL_0018:  ldloca.s   V_0
-  IL_001a:  constrained. ""System.ValueTuple<int, int>""
-  IL_0020:  callvirt   ""string object.ToString()""
-  IL_0025:  pop
-  IL_0026:  ret
+  IL_0010:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  constrained. ""System.ValueTuple<int, int>""
+  IL_001e:  callvirt   ""string object.ToString()""
+  IL_0023:  pop
+  IL_0024:  ret
 }");
         }
 
@@ -1431,25 +1344,19 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Swap", @"
 {
-  // Code size       41 (0x29)
+  // Code size       25 (0x19)
   .maxstack  2
-  .locals init (int V_0,
-                int V_1)
+  .locals init (int V_0)
   IL_0000:  ldsfld     ""int C.y""
   IL_0005:  ldsfld     ""int C.x""
-  IL_000a:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_000f:  dup
-  IL_0010:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0015:  stloc.0
-  IL_0016:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.0
-  IL_001d:  stsfld     ""int C.x""
-  IL_0022:  ldloc.1
-  IL_0023:  stsfld     ""int C.y""
-  IL_0028:  ret
+  IL_000a:  stloc.0
+  IL_000b:  dup
+  IL_000c:  stsfld     ""int C.x""
+  IL_0011:  ldloc.0
+  IL_0012:  stsfld     ""int C.y""
+  IL_0017:  pop
+  IL_0018:  ret
 }
-
 ");
         }
 
@@ -1461,7 +1368,7 @@ class C
 {
     static void Main()
     {
-        (object i, object ii) x = (1,2);
+        (object i, object ii) x = (1, 2);
         object y;
 
         (x.ii, y) = x;
@@ -1525,7 +1432,7 @@ class C : Base
         }
 
         [Fact]
-        public void DeconstructUsingExtensionMethod()
+        public void NestedDeconstructUsingSystemTupleExtensionMethod()
         {
             string source = @"
 using System;
@@ -1547,25 +1454,35 @@ class C
         }
 
         [Fact]
-        public void NestedDeconstructUsingExtensionMethod()
+        public void DeconstructUsingValueTupleExtensionMethod()
         {
             string source = @"
-using System;
 class C
 {
     static void Main()
     {
         int x;
         string y, z;
-        (x, (y, z)) = Tuple.Create(1, Tuple.Create(""hello"", ""world""));
-
-        System.Console.WriteLine(x + "" "" + y + "" "" + z);
+        (x, y, z) = (1, 2);
+    }
+}
+public static class Extensions
+{
+    public static void Deconstruct(this (int, int) self, out int x, out string y, out string z)
+    {
+        throw null;
     }
 }
 ";
-
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (8,25): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         (x, y, z) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "string").WithLocation(8, 25),
+                // (8,9): error CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                //         (x, y, z) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(x, y, z) = (1, 2)").WithArguments("2", "3").WithLocation(8, 9)
+                );
         }
 
         [Fact]
@@ -1776,7 +1693,7 @@ class C1
                 // (9,18): error CS0411: The type arguments for method 'C1.Deconstruct<T>(out int, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         (x, y) = new C1();
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C1()").WithArguments("C1.Deconstruct<T>(out int, out T)").WithLocation(9, 18),
-                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C1', with 2 out parameters.
+                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C1', with 2 out parameters and a void return type.
                 //         (x, y) = new C1();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(9, 18)
                 );
@@ -2149,33 +2066,19 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       51 (0x33)
+  // Code size       29 (0x1d)
   .maxstack  3
-  .locals init (int V_0, //x1
-                string V_1, //x2
-                int V_2,
-                string V_3)
+  .locals init (string V_0) //x2
   IL_0000:  ldc.i4.1
   IL_0001:  ldstr      ""hello""
-  IL_0006:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
-  IL_000b:  dup
-  IL_000c:  ldfld      ""int System.ValueTuple<int, string>.Item1""
-  IL_0011:  stloc.2
-  IL_0012:  ldfld      ""string System.ValueTuple<int, string>.Item2""
-  IL_0017:  stloc.3
-  IL_0018:  ldloc.2
-  IL_0019:  stloc.0
-  IL_001a:  ldloc.3
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.0
-  IL_001d:  box        ""int""
-  IL_0022:  ldstr      "" ""
-  IL_0027:  ldloc.1
-  IL_0028:  call       ""string string.Concat(object, object, object)""
-  IL_002d:  call       ""void System.Console.WriteLine(string)""
-  IL_0032:  ret
-}
-");
+  IL_0006:  stloc.0
+  IL_0007:  box        ""int""
+  IL_000c:  ldstr      "" ""
+  IL_0011:  ldloc.0
+  IL_0012:  call       ""string string.Concat(object, object, object)""
+  IL_0017:  call       ""void System.Console.WriteLine(string)""
+  IL_001c:  ret
+}");
         }
 
         [Fact]
@@ -2420,6 +2323,7 @@ class C
                 Assert.Equal(@"(1, 2)", nestedLiteral.ToString());
                 Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedLiteral).Type.ToTestDisplayString());
                 Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedLiteral).ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.Identity, model.GetConversion(nestedLiteral).Kind);
             };
 
             var comp = CompileAndVerify(source, expectedOutput: " (1, 2)", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
@@ -2490,7 +2394,7 @@ Deconstructing (1, hello)
 
         private static void VerifyModelForDeconstructionLocal(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.RegularVariable, references);
+            VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.DeconstructionVariable, references);
         }
 
         private static void VerifyModelForLocal(SemanticModel model, SingleVariableDesignationSyntax decl, LocalDeclarationKind kind, params IdentifierNameSyntax[] references)
@@ -2972,51 +2876,44 @@ class C
 
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       76 (0x4c)
+  // Code size       70 (0x46)
   .maxstack  2
   .locals init (System.Collections.Generic.IEnumerator<(int, int)> V_0,
-                int V_1, //x1
-                int V_2, //x2
-                int V_3,
-                int V_4)
+                int V_1, //x2
+                System.ValueTuple<int, int> V_2)
   IL_0000:  call       ""System.Collections.Generic.IEnumerable<(int, int)> C.M()""
   IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<(int, int)> System.Collections.Generic.IEnumerable<(int, int)>.GetEnumerator()""
   IL_000a:  stloc.0
   .try
   {
-    IL_000b:  br.s       IL_0037
+    IL_000b:  br.s       IL_0031
     IL_000d:  ldloc.0
     IL_000e:  callvirt   ""(int, int) System.Collections.Generic.IEnumerator<(int, int)>.Current.get""
-    IL_0013:  dup
-    IL_0014:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-    IL_0019:  stloc.3
-    IL_001a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-    IL_001f:  stloc.s    V_4
-    IL_0021:  ldloc.3
-    IL_0022:  stloc.1
-    IL_0023:  ldloc.s    V_4
-    IL_0025:  stloc.2
+    IL_0013:  stloc.2
+    IL_0014:  ldloc.2
+    IL_0015:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+    IL_001a:  ldloc.2
+    IL_001b:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_0020:  stloc.1
+    IL_0021:  box        ""int""
     IL_0026:  ldloc.1
     IL_0027:  box        ""int""
-    IL_002c:  ldloc.2
-    IL_002d:  box        ""int""
-    IL_0032:  call       ""void C.Print(object, object)""
-    IL_0037:  ldloc.0
-    IL_0038:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-    IL_003d:  brtrue.s   IL_000d
-    IL_003f:  leave.s    IL_004b
+    IL_002c:  call       ""void C.Print(object, object)""
+    IL_0031:  ldloc.0
+    IL_0032:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0037:  brtrue.s   IL_000d
+    IL_0039:  leave.s    IL_0045
   }
   finally
   {
-    IL_0041:  ldloc.0
-    IL_0042:  brfalse.s  IL_004a
-    IL_0044:  ldloc.0
-    IL_0045:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_004a:  endfinally
+    IL_003b:  ldloc.0
+    IL_003c:  brfalse.s  IL_0044
+    IL_003e:  ldloc.0
+    IL_003f:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0044:  endfinally
   }
-  IL_004b:  ret
-}
-");
+  IL_0045:  ret
+}");
         }
 
         [Fact]
@@ -3063,63 +2960,60 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       99 (0x63)
+  // Code size       96 (0x60)
   .maxstack  4
   .locals init ((int, int)[] V_0,
                 int V_1,
                 int V_2, //x1
                 int V_3, //x2
-                int V_4,
-                int V_5)
+                System.ValueTuple<int, int> V_4)
   IL_0000:  call       ""(int, int)[] C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
-  IL_0008:  br.s       IL_005c
+  IL_0008:  br.s       IL_0059
   IL_000a:  ldloc.0
   IL_000b:  ldloc.1
   IL_000c:  ldelem     ""System.ValueTuple<int, int>""
-  IL_0011:  dup
-  IL_0012:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0017:  stloc.s    V_4
-  IL_0019:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_001e:  stloc.s    V_5
-  IL_0020:  ldloc.s    V_4
-  IL_0022:  stloc.2
-  IL_0023:  ldloc.s    V_5
-  IL_0025:  stloc.3
-  IL_0026:  ldc.i4.4
-  IL_0027:  newarr     ""object""
-  IL_002c:  dup
-  IL_002d:  ldc.i4.0
-  IL_002e:  ldloc.2
-  IL_002f:  box        ""int""
-  IL_0034:  stelem.ref
-  IL_0035:  dup
-  IL_0036:  ldc.i4.1
-  IL_0037:  ldstr      "" ""
-  IL_003c:  stelem.ref
-  IL_003d:  dup
-  IL_003e:  ldc.i4.2
-  IL_003f:  ldloc.3
-  IL_0040:  box        ""int""
-  IL_0045:  stelem.ref
-  IL_0046:  dup
-  IL_0047:  ldc.i4.3
-  IL_0048:  ldstr      "" - ""
-  IL_004d:  stelem.ref
-  IL_004e:  call       ""string string.Concat(params object[])""
-  IL_0053:  call       ""void System.Console.Write(string)""
-  IL_0058:  ldloc.1
-  IL_0059:  ldc.i4.1
-  IL_005a:  add
-  IL_005b:  stloc.1
-  IL_005c:  ldloc.1
-  IL_005d:  ldloc.0
-  IL_005e:  ldlen
-  IL_005f:  conv.i4
-  IL_0060:  blt.s      IL_000a
-  IL_0062:  ret
+  IL_0011:  stloc.s    V_4
+  IL_0013:  ldloc.s    V_4
+  IL_0015:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_001a:  stloc.2
+  IL_001b:  ldloc.s    V_4
+  IL_001d:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0022:  stloc.3
+  IL_0023:  ldc.i4.4
+  IL_0024:  newarr     ""object""
+  IL_0029:  dup
+  IL_002a:  ldc.i4.0
+  IL_002b:  ldloc.2
+  IL_002c:  box        ""int""
+  IL_0031:  stelem.ref
+  IL_0032:  dup
+  IL_0033:  ldc.i4.1
+  IL_0034:  ldstr      "" ""
+  IL_0039:  stelem.ref
+  IL_003a:  dup
+  IL_003b:  ldc.i4.2
+  IL_003c:  ldloc.3
+  IL_003d:  box        ""int""
+  IL_0042:  stelem.ref
+  IL_0043:  dup
+  IL_0044:  ldc.i4.3
+  IL_0045:  ldstr      "" - ""
+  IL_004a:  stelem.ref
+  IL_004b:  call       ""string string.Concat(params object[])""
+  IL_0050:  call       ""void System.Console.Write(string)""
+  IL_0055:  ldloc.1
+  IL_0056:  ldc.i4.1
+  IL_0057:  add
+  IL_0058:  stloc.1
+  IL_0059:  ldloc.1
+  IL_005a:  ldloc.0
+  IL_005b:  ldlen
+  IL_005c:  conv.i4
+  IL_005d:  blt.s      IL_000a
+  IL_005f:  ret
 }");
         }
 
@@ -3166,17 +3060,15 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size      114 (0x72)
+  // Code size      107 (0x6b)
   .maxstack  3
   .locals init ((int, int)[,] V_0,
                 int V_1,
                 int V_2,
                 int V_3,
                 int V_4,
-                int V_5, //x1
-                int V_6, //x2
-                int V_7,
-                int V_8)
+                int V_5, //x2
+                System.ValueTuple<int, int> V_6)
   IL_0000:  call       ""(int, int)[,] C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -3191,45 +3083,41 @@ class C
   IL_0017:  ldc.i4.0
   IL_0018:  callvirt   ""int System.Array.GetLowerBound(int)""
   IL_001d:  stloc.3
-  IL_001e:  br.s       IL_006d
+  IL_001e:  br.s       IL_0066
   IL_0020:  ldloc.0
   IL_0021:  ldc.i4.1
   IL_0022:  callvirt   ""int System.Array.GetLowerBound(int)""
   IL_0027:  stloc.s    V_4
-  IL_0029:  br.s       IL_0064
+  IL_0029:  br.s       IL_005d
   IL_002b:  ldloc.0
   IL_002c:  ldloc.3
   IL_002d:  ldloc.s    V_4
   IL_002f:  call       ""(int, int)[*,*].Get""
-  IL_0034:  dup
-  IL_0035:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_003a:  stloc.s    V_7
-  IL_003c:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0041:  stloc.s    V_8
-  IL_0043:  ldloc.s    V_7
-  IL_0045:  stloc.s    V_5
-  IL_0047:  ldloc.s    V_8
-  IL_0049:  stloc.s    V_6
+  IL_0034:  stloc.s    V_6
+  IL_0036:  ldloc.s    V_6
+  IL_0038:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_003d:  ldloc.s    V_6
+  IL_003f:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0044:  stloc.s    V_5
+  IL_0046:  box        ""int""
   IL_004b:  ldloc.s    V_5
   IL_004d:  box        ""int""
-  IL_0052:  ldloc.s    V_6
-  IL_0054:  box        ""int""
-  IL_0059:  call       ""void C.Print(object, object)""
-  IL_005e:  ldloc.s    V_4
-  IL_0060:  ldc.i4.1
-  IL_0061:  add
-  IL_0062:  stloc.s    V_4
-  IL_0064:  ldloc.s    V_4
-  IL_0066:  ldloc.2
-  IL_0067:  ble.s      IL_002b
-  IL_0069:  ldloc.3
-  IL_006a:  ldc.i4.1
-  IL_006b:  add
-  IL_006c:  stloc.3
-  IL_006d:  ldloc.3
-  IL_006e:  ldloc.1
-  IL_006f:  ble.s      IL_0020
-  IL_0071:  ret
+  IL_0052:  call       ""void C.Print(object, object)""
+  IL_0057:  ldloc.s    V_4
+  IL_0059:  ldc.i4.1
+  IL_005a:  add
+  IL_005b:  stloc.s    V_4
+  IL_005d:  ldloc.s    V_4
+  IL_005f:  ldloc.2
+  IL_0060:  ble.s      IL_002b
+  IL_0062:  ldloc.3
+  IL_0063:  ldc.i4.1
+  IL_0064:  add
+  IL_0065:  stloc.3
+  IL_0066:  ldloc.3
+  IL_0067:  ldloc.1
+  IL_0068:  ble.s      IL_0020
+  IL_006a:  ret
 }");
         }
 
@@ -3283,48 +3171,40 @@ static class Extension
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       69 (0x45)
+  // Code size       60 (0x3c)
   .maxstack  3
   .locals init (string V_0,
                 int V_1,
-                int V_2, //x1
-                int V_3, //x2
-                int V_4,
-                int V_5,
-                int V_6)
+                int V_2, //x2
+                int V_3,
+                int V_4)
   IL_0000:  call       ""string C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
-  IL_0008:  br.s       IL_003b
+  IL_0008:  br.s       IL_0032
   IL_000a:  ldloc.0
   IL_000b:  ldloc.1
   IL_000c:  callvirt   ""char string.this[int].get""
-  IL_0011:  ldloca.s   V_4
-  IL_0013:  ldloca.s   V_5
+  IL_0011:  ldloca.s   V_3
+  IL_0013:  ldloca.s   V_4
   IL_0015:  call       ""void Extension.Deconstruct(char, out int, out int)""
-  IL_001a:  ldloc.s    V_4
-  IL_001c:  ldloc.s    V_5
-  IL_001e:  stloc.s    V_6
-  IL_0020:  dup
-  IL_0021:  stloc.2
-  IL_0022:  ldloc.s    V_6
-  IL_0024:  stloc.3
-  IL_0025:  pop
-  IL_0026:  ldloc.2
-  IL_0027:  box        ""int""
-  IL_002c:  ldloc.3
-  IL_002d:  box        ""int""
-  IL_0032:  call       ""void C.Print(object, object)""
-  IL_0037:  ldloc.1
-  IL_0038:  ldc.i4.1
-  IL_0039:  add
-  IL_003a:  stloc.1
-  IL_003b:  ldloc.1
-  IL_003c:  ldloc.0
-  IL_003d:  callvirt   ""int string.Length.get""
-  IL_0042:  blt.s      IL_000a
-  IL_0044:  ret
+  IL_001a:  ldloc.3
+  IL_001b:  ldloc.s    V_4
+  IL_001d:  stloc.2
+  IL_001e:  box        ""int""
+  IL_0023:  ldloc.2
+  IL_0024:  box        ""int""
+  IL_0029:  call       ""void C.Print(object, object)""
+  IL_002e:  ldloc.1
+  IL_002f:  ldc.i4.1
+  IL_0030:  add
+  IL_0031:  stloc.1
+  IL_0032:  ldloc.1
+  IL_0033:  ldloc.0
+  IL_0034:  callvirt   ""int string.Length.get""
+  IL_0039:  blt.s      IL_000a
+  IL_003b:  ret
 }");
         }
 
@@ -3455,6 +3335,33 @@ static class Extension
         }
 
         [Fact]
+        public void DeconstructExtensionOnInterface()
+        {
+            string source = @"
+public interface Interface { }
+class C : Interface
+{
+    static void Main()
+    {
+        var (x, y) = new C();
+        System.Console.Write($""{x} {y}"");
+    }
+}
+static class Extension
+{
+    public static void Deconstruct(this Interface value, out int item1, out string item2)
+    {
+        item1 = 42;
+        item2 = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "42 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ForEachIEnumerableDeclarationWithDeconstruct()
         {
             string source = @"
@@ -3511,7 +3418,7 @@ Deconstructing (5, 6)
 
             comp.VerifyIL("C.Main",
 @"{
-  // Code size      103 (0x67)
+  // Code size       95 (0x5f)
   .maxstack  3
   .locals init (System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> V_0,
                 long V_1, //x1
@@ -3520,15 +3427,13 @@ Deconstructing (5, 6)
                 int V_4,
                 Pair<int, int> V_5,
                 int V_6,
-                int V_7,
-                int V_8,
-                int V_9)
+                int V_7)
   IL_0000:  call       ""System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>> C.M()""
   IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>>.GetEnumerator()""
   IL_000a:  stloc.0
   .try
   {
-    IL_000b:  br.s       IL_0052
+    IL_000b:  br.s       IL_004a
     IL_000d:  ldloc.0
     IL_000e:  callvirt   ""Pair<int, Pair<int, int>> System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>>.Current.get""
     IL_0013:  ldloca.s   V_4
@@ -3540,38 +3445,34 @@ Deconstructing (5, 6)
     IL_0022:  callvirt   ""void Pair<int, int>.Deconstruct(out int, out int)""
     IL_0027:  ldloc.s    V_4
     IL_0029:  conv.i8
-    IL_002a:  ldloc.s    V_6
-    IL_002c:  stloc.s    V_8
-    IL_002e:  ldloc.s    V_7
-    IL_0030:  stloc.s    V_9
-    IL_0032:  dup
-    IL_0033:  stloc.1
-    IL_0034:  ldloc.s    V_8
-    IL_0036:  stloc.2
-    IL_0037:  ldloc.s    V_9
-    IL_0039:  stloc.3
-    IL_003a:  pop
-    IL_003b:  ldloc.1
-    IL_003c:  box        ""long""
-    IL_0041:  ldloc.2
-    IL_0042:  box        ""int""
-    IL_0047:  ldloc.3
-    IL_0048:  box        ""int""
-    IL_004d:  call       ""void C.Print(object, object, object)""
-    IL_0052:  ldloc.0
-    IL_0053:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-    IL_0058:  brtrue.s   IL_000d
-    IL_005a:  leave.s    IL_0066
+    IL_002a:  dup
+    IL_002b:  stloc.1
+    IL_002c:  ldloc.s    V_6
+    IL_002e:  stloc.2
+    IL_002f:  ldloc.s    V_7
+    IL_0031:  stloc.3
+    IL_0032:  pop
+    IL_0033:  ldloc.1
+    IL_0034:  box        ""long""
+    IL_0039:  ldloc.2
+    IL_003a:  box        ""int""
+    IL_003f:  ldloc.3
+    IL_0040:  box        ""int""
+    IL_0045:  call       ""void C.Print(object, object, object)""
+    IL_004a:  ldloc.0
+    IL_004b:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0050:  brtrue.s   IL_000d
+    IL_0052:  leave.s    IL_005e
   }
   finally
   {
-    IL_005c:  ldloc.0
-    IL_005d:  brfalse.s  IL_0065
-    IL_005f:  ldloc.0
-    IL_0060:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0065:  endfinally
+    IL_0054:  ldloc.0
+    IL_0055:  brfalse.s  IL_005d
+    IL_0057:  ldloc.0
+    IL_0058:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_005d:  endfinally
   }
-  IL_0066:  ret
+  IL_005e:  ret
 }
 ");
         }
@@ -3951,71 +3852,61 @@ System.Console.Write($""{x} {y}"");
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42", sourceSymbolValidator: validator);
             verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      151 (0x97)
+  // Code size      129 (0x81)
   .maxstack  3
   .locals init (int V_0,
                 object V_1,
-                string V_2,
-                int V_3,
-                System.Exception V_4)
+                System.Exception V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int <<Initialize>>d__0.<>1__state""
   IL_0006:  stloc.0
   .try
   {
-    IL_0007:  ldstr      ""hello""
-    IL_000c:  ldc.i4.s   42
-    IL_000e:  newobj     ""System.ValueTuple<string, int>..ctor(string, int)""
-    IL_0013:  dup
-    IL_0014:  ldfld      ""string System.ValueTuple<string, int>.Item1""
-    IL_0019:  stloc.2
-    IL_001a:  ldfld      ""int System.ValueTuple<string, int>.Item2""
-    IL_001f:  stloc.3
-    IL_0020:  ldarg.0
-    IL_0021:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
-    IL_0026:  ldloc.2
-    IL_0027:  stfld      ""string x""
-    IL_002c:  ldarg.0
-    IL_002d:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
-    IL_0032:  ldloc.3
-    IL_0033:  stfld      ""int y""
-    IL_0038:  ldstr      ""{0} {1}""
-    IL_003d:  ldarg.0
-    IL_003e:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
-    IL_0043:  ldfld      ""string x""
-    IL_0048:  ldarg.0
-    IL_0049:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
-    IL_004e:  ldfld      ""int y""
-    IL_0053:  box        ""int""
-    IL_0058:  call       ""string string.Format(string, object, object)""
-    IL_005d:  call       ""void System.Console.Write(string)""
-    IL_0062:  nop
-    IL_0063:  ldnull
-    IL_0064:  stloc.1
-    IL_0065:  leave.s    IL_0081
+    IL_0007:  ldarg.0
+    IL_0008:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_000d:  ldstr      ""hello""
+    IL_0012:  stfld      ""string x""
+    IL_0017:  ldarg.0
+    IL_0018:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_001d:  ldc.i4.s   42
+    IL_001f:  stfld      ""int y""
+    IL_0024:  ldstr      ""{0} {1}""
+    IL_0029:  ldarg.0
+    IL_002a:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_002f:  ldfld      ""string x""
+    IL_0034:  ldarg.0
+    IL_0035:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_003a:  ldfld      ""int y""
+    IL_003f:  box        ""int""
+    IL_0044:  call       ""string string.Format(string, object, object)""
+    IL_0049:  call       ""void System.Console.Write(string)""
+    IL_004e:  nop
+    IL_004f:  ldnull
+    IL_0050:  stloc.1
+    IL_0051:  leave.s    IL_006b
   }
   catch System.Exception
   {
-    IL_0067:  stloc.s    V_4
-    IL_0069:  ldarg.0
-    IL_006a:  ldc.i4.s   -2
-    IL_006c:  stfld      ""int <<Initialize>>d__0.<>1__state""
-    IL_0071:  ldarg.0
-    IL_0072:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-    IL_0077:  ldloc.s    V_4
-    IL_0079:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
-    IL_007e:  nop
-    IL_007f:  leave.s    IL_0096
+    IL_0053:  stloc.2
+    IL_0054:  ldarg.0
+    IL_0055:  ldc.i4.s   -2
+    IL_0057:  stfld      ""int <<Initialize>>d__0.<>1__state""
+    IL_005c:  ldarg.0
+    IL_005d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+    IL_0062:  ldloc.2
+    IL_0063:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
+    IL_0068:  nop
+    IL_0069:  leave.s    IL_0080
   }
-  IL_0081:  ldarg.0
-  IL_0082:  ldc.i4.s   -2
-  IL_0084:  stfld      ""int <<Initialize>>d__0.<>1__state""
-  IL_0089:  ldarg.0
-  IL_008a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-  IL_008f:  ldloc.1
-  IL_0090:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
-  IL_0095:  nop
-  IL_0096:  ret
+  IL_006b:  ldarg.0
+  IL_006c:  ldc.i4.s   -2
+  IL_006e:  stfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_0073:  ldarg.0
+  IL_0074:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0079:  ldloc.1
+  IL_007a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
+  IL_007f:  nop
+  IL_0080:  ret
 }");
         }
 
@@ -4135,13 +4026,12 @@ System.Console.Write($""{x1} {x2} {x3}"");
             var verifier = CompileAndVerify(comp, expectedOutput: "1 2 3");
             verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      182 (0xb6)
+  // Code size      178 (0xb2)
   .maxstack  4
   .locals init (int V_0,
                 object V_1,
-                int V_2,
-                int V_3,
-                System.Exception V_4)
+                System.ValueTuple<int, int> V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int <<Initialize>>d__0.<>1__state""
   IL_0006:  stloc.0
@@ -4153,61 +4043,59 @@ System.Console.Write($""{x1} {x2} {x3}"");
     IL_000e:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
     IL_0013:  ldflda     ""int x1""
     IL_0018:  call       ""(int, int) M(out int)""
-    IL_001d:  dup
-    IL_001e:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-    IL_0023:  stloc.2
-    IL_0024:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-    IL_0029:  stloc.3
-    IL_002a:  ldarg.0
-    IL_002b:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
-    IL_0030:  ldloc.2
-    IL_0031:  stfld      ""int x2""
-    IL_0036:  ldarg.0
-    IL_0037:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
-    IL_003c:  ldloc.3
-    IL_003d:  stfld      ""int x3""
-    IL_0042:  ldstr      ""{0} {1} {2}""
-    IL_0047:  ldarg.0
-    IL_0048:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
-    IL_004d:  ldfld      ""int x1""
-    IL_0052:  box        ""int""
-    IL_0057:  ldarg.0
-    IL_0058:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
-    IL_005d:  ldfld      ""int x2""
-    IL_0062:  box        ""int""
-    IL_0067:  ldarg.0
-    IL_0068:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
-    IL_006d:  ldfld      ""int x3""
-    IL_0072:  box        ""int""
-    IL_0077:  call       ""string string.Format(string, object, object, object)""
-    IL_007c:  call       ""void System.Console.Write(string)""
-    IL_0081:  nop
-    IL_0082:  ldnull
-    IL_0083:  stloc.1
-    IL_0084:  leave.s    IL_00a0
+    IL_001d:  stloc.2
+    IL_001e:  ldarg.0
+    IL_001f:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0024:  ldloc.2
+    IL_0025:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+    IL_002a:  stfld      ""int x2""
+    IL_002f:  ldarg.0
+    IL_0030:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0035:  ldloc.2
+    IL_0036:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_003b:  stfld      ""int x3""
+    IL_0040:  ldstr      ""{0} {1} {2}""
+    IL_0045:  ldarg.0
+    IL_0046:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_004b:  ldfld      ""int x1""
+    IL_0050:  box        ""int""
+    IL_0055:  ldarg.0
+    IL_0056:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_005b:  ldfld      ""int x2""
+    IL_0060:  box        ""int""
+    IL_0065:  ldarg.0
+    IL_0066:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_006b:  ldfld      ""int x3""
+    IL_0070:  box        ""int""
+    IL_0075:  call       ""string string.Format(string, object, object, object)""
+    IL_007a:  call       ""void System.Console.Write(string)""
+    IL_007f:  nop
+    IL_0080:  ldnull
+    IL_0081:  stloc.1
+    IL_0082:  leave.s    IL_009c
   }
   catch System.Exception
   {
-    IL_0086:  stloc.s    V_4
-    IL_0088:  ldarg.0
-    IL_0089:  ldc.i4.s   -2
-    IL_008b:  stfld      ""int <<Initialize>>d__0.<>1__state""
-    IL_0090:  ldarg.0
-    IL_0091:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-    IL_0096:  ldloc.s    V_4
-    IL_0098:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
-    IL_009d:  nop
-    IL_009e:  leave.s    IL_00b5
+    IL_0084:  stloc.3
+    IL_0085:  ldarg.0
+    IL_0086:  ldc.i4.s   -2
+    IL_0088:  stfld      ""int <<Initialize>>d__0.<>1__state""
+    IL_008d:  ldarg.0
+    IL_008e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+    IL_0093:  ldloc.3
+    IL_0094:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
+    IL_0099:  nop
+    IL_009a:  leave.s    IL_00b1
   }
-  IL_00a0:  ldarg.0
-  IL_00a1:  ldc.i4.s   -2
-  IL_00a3:  stfld      ""int <<Initialize>>d__0.<>1__state""
-  IL_00a8:  ldarg.0
-  IL_00a9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
-  IL_00ae:  ldloc.1
-  IL_00af:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
-  IL_00b4:  nop
-  IL_00b5:  ret
+  IL_009c:  ldarg.0
+  IL_009d:  ldc.i4.s   -2
+  IL_009f:  stfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_00a4:  ldarg.0
+  IL_00a5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_00aa:  ldloc.1
+  IL_00ab:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
+  IL_00b0:  nop
+  IL_00b1:  ret
 }
 ");
         }
@@ -4660,6 +4548,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
             // extra check on var
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
+            Assert.Null(model.GetTypeInfo(x123Var.Type).Type); 
             Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
         }
 
@@ -4701,6 +4590,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
             // extra check on var
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
+            Assert.Null(model.GetTypeInfo(x123Var.Type).Type);
             Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
         }
 
@@ -5223,6 +5113,35 @@ class C
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "CC");
+        }
+
+        [Fact]
+        public void VerifyDiscardIL()
+        {
+            var source =
+@"
+class C
+{
+    static int M()
+    {
+        var (x, _, _) = (1, new C(), 2);
+        return x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.M()", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (C V_0)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.1
+  IL_0007:  ret
+}");
         }
 
         [Fact]
@@ -5932,7 +5851,7 @@ class Program
             var x2Ref = GetReference(tree, "x2");
             Assert.Equal("string[]", model.GetTypeInfo(x2Ref).Type.ToDisplayString());
 
-            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref);
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.OutVariable, x1Ref);
             VerifyModelForLocal(model, x2, LocalDeclarationKind.PatternVariable, x2Ref);
         }
 
@@ -5966,7 +5885,7 @@ class Program
             var x1Ref = GetReference(tree, "x1");
             Assert.Equal("int", model.GetTypeInfo(x1Ref).Type.ToDisplayString());
 
-            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref);
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.OutVariable, x1Ref);
         }
 
         [Fact]
@@ -6007,7 +5926,7 @@ class Program
             var x2Ref = GetReferences(tree, "x2");
             Assert.Equal("string[]", model.GetTypeInfo(x2Ref.First()).Type.ToDisplayString());
 
-            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref.ToArray());
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.OutVariable, x1Ref.ToArray());
             VerifyModelForLocal(model, x2, LocalDeclarationKind.PatternVariable, x2Ref.ToArray());
         }
 
@@ -6056,8 +5975,8 @@ class C
             var x2Ref = GetReference(tree, "x2");
             Assert.Equal("string", model.GetTypeInfo(x2Ref).Type.ToDisplayString());
 
-            VerifyModelForDeconstructionLocal(model, x1, x1Ref);
-            VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+            VerifyModelForDeconstruction(model, x1, LocalDeclarationKind.DeclarationExpressionVariable, x1Ref);
+            VerifyModelForDeconstruction(model, x2, LocalDeclarationKind.DeclarationExpressionVariable, x2Ref);
         }
 
         [Fact]
@@ -6129,7 +6048,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/15614")]
+        [Fact]
         void InvokeVarForLvalueInParens()
         {
             var source = @"
@@ -6148,7 +6067,9 @@ class Program
 }";
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "10");
+
+            // PEVerify fails with ref return https://github.com/dotnet/roslyn/issues/12285
+            CompileAndVerify(compilation, expectedOutput: "10", verify: false);
         }
 
         [Fact]
@@ -6239,8 +6160,419 @@ public class MyClass
                 // (9,18): error CS8186: A foreach loop must declare its iteration variables.
                 //         foreach ((arr[out int size], int b) in data) {}
                 Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(arr[out int size], int b)").WithLocation(9, 18)
-
                 );
+        }
+        
+        [Fact]
+        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        public void Events_01()
+        {
+            string source = @"
+class C
+{
+    static event System.Action E;
+
+    static void Main()
+    {
+        (E, _) = (null, 1);
+        System.Console.WriteLine(E == null);
+        (E, _) = (Handler, 1);
+        E();
+    }
+
+    static void Handler()
+    {
+        System.Console.WriteLine(""Handler"");
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput:
+@"True
+Handler", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        public void Events_02()
+        {
+            string source = @"
+struct S
+{
+    event System.Action E;
+
+    class C
+    {
+        static void Main()
+        {
+            var s = new S();
+            (s.E, _) = (null, 1);
+            System.Console.WriteLine(s.E == null);
+            (s.E, _) = (Handler, 1);
+            s.E();
+        }
+
+        static void Handler()
+        {
+            System.Console.WriteLine(""Handler"");
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput:
+@"True
+Handler", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        public void Events_03()
+        {
+            string source1 = @"
+public interface EventInterface
+{
+	event System.Action E;
+}
+";
+
+            var comp1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular);
+
+            string source2 = @"
+class C : EventInterface
+{
+    public event System.Action E;
+
+    static void Main()
+    {
+        var c = new C();
+        c.Test();
+    }
+
+    void Test()
+    {
+        (E, _) = (null, 1);
+        System.Console.WriteLine(E == null);
+        (E, _) = (Handler, 1);
+        E();
+    }
+
+    static void Handler()
+    {
+        System.Console.WriteLine(""Handler"");
+    }
+}
+";
+
+            var comp2 = CompileAndVerify(source2, expectedOutput:
+@"True
+Handler", additionalRefs: WinRtRefs.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() }));
+            comp2.VerifyDiagnostics();
+
+            Assert.True(comp2.Compilation.GetMember<EventSymbol>("C.E").IsWindowsRuntimeEvent);
+        }
+
+        [Fact]
+        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        public void Events_04()
+        {
+            string source1 = @"
+public interface EventInterface
+{
+	event System.Action E;
+}
+";
+
+            var comp1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular);
+
+            string source2 = @"
+struct S : EventInterface
+{
+    public event System.Action E;
+
+    class C
+    {
+        S s = new S();
+
+        static void Main()
+        {
+            var c = new C();
+            (GetC(c).s.E, _) = (null, GetInt(1));
+            System.Console.WriteLine(c.s.E == null);
+            (GetC(c).s.E, _) = (Handler, GetInt(2));
+            c.s.E();
+        }
+
+        static int GetInt(int i)
+        {
+            System.Console.WriteLine(i);
+            return i;
+        }
+
+        static C GetC(C c)
+        {
+            System.Console.WriteLine(""GetC"");
+            return c;
+        }
+
+        static void Handler()
+        {
+            System.Console.WriteLine(""Handler"");
+        }
+    }
+}
+";
+
+            var comp2 = CompileAndVerify(source2, expectedOutput:
+@"GetC
+1
+True
+GetC
+2
+Handler", additionalRefs: WinRtRefs.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() }));
+            comp2.VerifyDiagnostics();
+
+            Assert.True(comp2.Compilation.GetMember<EventSymbol>("S.E").IsWindowsRuntimeEvent);
+        }
+
+        [Fact]
+        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        public void Events_05()
+        {
+            string source = @"
+class C
+{
+    public static event System.Action E;
+}
+
+class Program
+{
+    static void Main()
+    {
+        (C.E, _) = (null, 1);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            compilation.VerifyDiagnostics(
+                // (11,12): error CS0070: The event 'C.E' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                //         (C.E, _) = (null, 1);
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "E").WithArguments("C.E", "C").WithLocation(11, 12)
+                );
+        }
+
+        [Fact]
+        [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
+        public void Events_06()
+        {
+            string source = @"
+class C
+{
+    static event System.Action E
+    {
+        add {}
+        remove {}
+    }
+
+    static void Main()
+    {
+        (E, _) = (null, 1);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            compilation.VerifyDiagnostics(
+                // (12,10): error CS0079: The event 'C.E' can only appear on the left hand side of += or -=
+                //         (E, _) = (null, 1);
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E").WithArguments("C.E").WithLocation(12, 10)
+                );
+        }
+
+        [Fact]
+        public void SimpleAssignInConstructor()
+        {
+            string source = @"
+public class C
+{
+    public long x;
+    public string y;
+
+    public C(int a, string b) => (x, y) = (a, b);
+
+    public static void Main()
+    {
+        var c = new C(1, ""hello"");
+        System.Console.WriteLine(c.x + "" "" + c.y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C..ctor(int, string)", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (long V_0,
+                string V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.1
+  IL_0007:  conv.i8
+  IL_0008:  stloc.0
+  IL_0009:  ldarg.2
+  IL_000a:  stloc.1
+  IL_000b:  ldarg.0
+  IL_000c:  ldloc.0
+  IL_000d:  stfld      ""long C.x""
+  IL_0012:  ldarg.0
+  IL_0013:  ldloc.1
+  IL_0014:  stfld      ""string C.y""
+  IL_0019:  ret
+}");
+        }
+
+        [Fact]
+        public void DeconstructAssignInConstructor()
+        {
+            string source = @"
+public class C
+{
+    public long x;
+    public string y;
+
+    public C(C oldC) => (x, y) = oldC;
+    public C() { }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+
+    public static void Main()
+    {
+        var oldC = new C() { x = 1, y = ""hello"" };
+        var newC = new C(oldC);
+        System.Console.WriteLine(newC.x + "" "" + newC.y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  .locals init (int V_0,
+                string V_1,
+                long V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.1
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_0010:  ldloc.0
+  IL_0011:  conv.i8
+  IL_0012:  stloc.2
+  IL_0013:  ldarg.0
+  IL_0014:  ldloc.2
+  IL_0015:  stfld      ""long C.x""
+  IL_001a:  ldarg.0
+  IL_001b:  ldloc.1
+  IL_001c:  stfld      ""string C.y""
+  IL_0021:  ret
+}");
+        }
+
+        [Fact]
+        public void AssignInConstructorWithProperties()
+        {
+            string source = @"
+public class C
+{
+    public long X { get; set; }
+    public string Y { get; }
+    private int z;
+    public ref int Z { get { return ref z; } }
+
+    public C(int a, string b, ref int c) => (X, Y, Z) = (a, b, c);
+
+    public static void Main()
+    {
+        int number = 2;
+        var c = new C(1, ""hello"", ref number);
+        System.Console.WriteLine($""{c.X} {c.Y} {c.Z}"");
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello 2", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C..ctor(int, string, ref int)", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  4
+  .locals init (long V_0,
+                string V_1,
+                int V_2,
+                long V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""ref int C.Z.get""
+  IL_000c:  ldarg.1
+  IL_000d:  conv.i8
+  IL_000e:  stloc.0
+  IL_000f:  ldarg.2
+  IL_0010:  stloc.1
+  IL_0011:  ldarg.3
+  IL_0012:  ldind.i4
+  IL_0013:  stloc.2
+  IL_0014:  ldarg.0
+  IL_0015:  ldloc.0
+  IL_0016:  dup
+  IL_0017:  stloc.3
+  IL_0018:  call       ""void C.X.set""
+  IL_001d:  ldarg.0
+  IL_001e:  ldloc.1
+  IL_001f:  stfld      ""string C.<Y>k__BackingField""
+  IL_0024:  ldloc.2
+  IL_0025:  stind.i4
+  IL_0026:  ret
+}");
+        }
+
+        [Fact]
+        public void VerifyDeconstructionInAsync()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+class C
+{
+    static void Main()
+    {
+        System.Console.Write(C.M().Result);
+    }
+    static async Task<int> M()
+    {
+        await Task.Delay(0);
+        var (x, y) = (1, 2);
+        return x + y;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "3");
         }
     }
 }

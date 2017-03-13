@@ -378,8 +378,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual)
         {
-            var includeCompilerOutput = false;
-
             const int CSharp = 1;
             const int VisualBasic = 2;
             var language = actual.Any() && actual.First().Id.StartsWith("CS", StringComparison.Ordinal) ? CSharp : VisualBasic;
@@ -388,28 +386,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             StringBuilder assertText = new StringBuilder();
             assertText.AppendLine();
-
-            // Write out the 'command line compiler output' including squiggles (easy to read debugging info in the case of a failure).
-            // This will be useful for VB, because we can't do the inline comments.
-            if (includeCompilerOutput)
-            {
-                assertText.AppendLine("Compiler output:");
-                foreach (var d in actual)
-                {
-                    Indent(assertText, 1);
-                    assertText.AppendLine(d.ToString());
-                    var location = d.Location;
-                    var lineText = location.SourceTree.GetText().Lines.GetLineFromPosition(location.SourceSpan.Start).ToString();
-                    assertText.AppendLine(lineText);
-                    var span = location.GetMappedLineSpan();
-                    var startPosition = span.StartLinePosition;
-                    var endPosition = span.EndLinePosition;
-                    assertText.Append(' ', startPosition.Character);
-                    var endCharacter = (startPosition.Line == endPosition.Line) ? endPosition.Character : lineText.Length;
-                    assertText.Append('~', endCharacter - startPosition.Character);
-                    assertText.AppendLine();
-                }
-            }
 
             // write out the error baseline as method calls
             int i;
@@ -463,8 +439,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 var description = new DiagnosticDescription(d, errorCodeOnly: false, showPosition: true);
+                var diffDescription = description;
+                var idx = Array.IndexOf(expected, description);
+                if (idx != -1)
+                {
+                    diffDescription = expected[idx];
+                }
                 AppendDiagnosticDescription(assertText, description, indentDepth);
-                AppendDiagnosticDescription(actualText, description, indentDepth);
+                AppendDiagnosticDescription(actualText, diffDescription, indentDepth);
             }
             if (i > 0)
             {

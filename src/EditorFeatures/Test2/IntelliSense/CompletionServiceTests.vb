@@ -19,14 +19,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Document>
                 </Project>
             </Workspace>
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
+            Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
                 Dim completionService = New TestCompletionService(workspace)
 
                 Dim list = Await completionService.GetCompletionsAsync(
                     document:=document,
                     caretPosition:=0,
-                    trigger:=CompletionTrigger.Default,
+                    trigger:=CompletionTrigger.Invoke,
                     options:=Nothing,
                     cancellationToken:=Nothing)
 
