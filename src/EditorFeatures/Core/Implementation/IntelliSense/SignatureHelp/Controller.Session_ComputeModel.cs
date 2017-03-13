@@ -85,14 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             {
                                 return currentModel;
                             }
-
-                            // If there's another request in the queue to compute items, then just
-                            // bail out immediately.  No point in doing extra work that's just
-                            // going to be overridden by the next task.
-                            if (id != _computeId)
-                            {
-                                return currentModel;
-                            }
                         }
 
                         // first try to query the providers that can trigger on the specified character
