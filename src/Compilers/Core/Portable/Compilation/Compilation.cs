@@ -2832,7 +2832,5 @@ namespace Microsoft.CodeAnalysis
 
             return foundVersion;
         }
-
-
     }
 }

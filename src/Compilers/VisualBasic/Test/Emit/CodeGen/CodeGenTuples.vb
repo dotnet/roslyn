@@ -13608,9 +13608,9 @@ BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
         ~~~~
 </errors>)
             Dim x = comp.GetDiagnostics()
-            Assert.Equal("15", comp.GetRequiredLanguageVersion(comp.GetDiagnostics()(0)))
-            Assert.Null(comp.GetRequiredLanguageVersion(comp.GetDiagnostics()(2)))
-            Assert.Throws(Of ArgumentNullException)(Sub() comp.GetRequiredLanguageVersion(Nothing))
+            Assert.Equal("15", Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()(0)))
+            Assert.Null(Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()(2)))
+            Assert.Throws(Of ArgumentNullException)(Sub() Compilation.GetRequiredLanguageVersion(Nothing))
         End Sub
 
         <Fact>

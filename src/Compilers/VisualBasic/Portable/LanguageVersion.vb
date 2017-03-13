@@ -79,7 +79,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function ToDisplayString(version As LanguageVersion) As String
-
             Select Case version
                 Case LanguageVersion.VisualBasic9
                     Return "9"
@@ -101,7 +100,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw ExceptionUtilities.UnexpectedValue(version)
             End Select
         End Function
-
 
         ''' <summary>
         ''' Parse a LanguageVersion from a string input, as the command-line compiler does.

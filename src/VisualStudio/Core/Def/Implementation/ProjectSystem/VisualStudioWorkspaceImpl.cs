@@ -300,10 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<IParseOptionsService>();
-            if (parseOptionsService == null)
-            {
-                return;
-            }
+            Contract.ThrowIfNull(parseOptionsService, nameof(parseOptionsService));
 
             string newVersion = parseOptionsService.GetLanguageVersion(options);
 
