@@ -39,8 +39,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 var caretPosition = Controller.TextView.GetCaretPoint(Controller.SubjectBuffer).Value;
                 var disconnectedBufferGraph = new DisconnectedBufferGraph(Controller.SubjectBuffer, Controller.TextView.TextBuffer);
 
-                Interlocked.Increment(ref _computeId);
-                var localId = _computeId;
+                if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand)
+                {
+                    Interlocked.Increment(ref _retriggerId);
+                }
+
+                var localId = _retriggerId;
 
                 // If we've already computed a model, then just use that.  Otherwise, actually
                 // compute a new model and send that along.
@@ -196,7 +200,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // to the extension crashing.
                     foreach (var provider in providers)
                     {
-                        if (id != _computeId)
+                        if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand &&
+                            id != _retriggerId)
                         {
                             return (null, null);
                         }

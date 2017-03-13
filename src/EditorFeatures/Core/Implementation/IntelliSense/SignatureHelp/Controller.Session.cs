@@ -9,10 +9,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     {
         internal partial class Session : Session<Controller, Model, ISignatureHelpPresenterSession>
         {
-            // When we issue compute tasks, provide them with a (monotonically increasing) id.  That
-            // way, when they run we can bail on computation if they've been superseded by another
-            // compute task.
-            private int _computeId;
+            /// <summary>
+            /// When ther user moves the caret we issue retrigger commands.  There may be a long
+            /// chain of these, and they may take time for each to process.  This can be visible 
+            /// to the user as a long delay before the signature help items update.  To avoid this
+            /// we keep track if there is new outstanding retrigger command and we bail on the
+            /// computation if another is in the queue.
+            /// </summary>
+            private int _retriggerId;
 
             public Session(Controller controller, ISignatureHelpPresenterSession presenterSession)
                 : base(controller, new ModelComputation<Model>(controller, TaskScheduler.Default), presenterSession)
