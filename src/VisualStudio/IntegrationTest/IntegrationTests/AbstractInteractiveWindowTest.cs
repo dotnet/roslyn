@@ -44,10 +44,37 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void SubmitText(string text, bool waitForPrompt = true)
             => InteractiveWindow.SubmitText(text, waitForPrompt);
 
+        protected void SetText(string input)
+        {
+            VisualStudio.Instance.SendKeys.Send(input);
+        }
+
+        protected void SendKeys(params object[] input)
+        {
+            VisualStudio.Instance.SendKeys.Send(input);
+        }
+
+        protected void ExecuteCommand(string commandName)
+        {
+            VisualStudio.Instance.ExecuteCommand(commandName);
+        }
+
         protected void VerifyLastReplOutput(string expectedReplOutput)
         {
             var lastReplOutput = InteractiveWindow.GetLastReplOutput();
             Assert.Equal(expectedReplOutput, lastReplOutput);
+        }
+
+        protected void VerifyLastReplInput(string expectedReplInput)
+        {
+            var lastReplInput = InteractiveWindow.GetLastReplInput();
+            Assert.Equal(expectedReplInput, lastReplInput);
+        }
+
+        protected void VerifyCaretPositionColumn(int expectedCaretPosition)
+        {
+            var caretPosition = InteractiveWindow.GetCaretPositionColumn();
+            Assert.Equal(expectedCaretPosition, caretPosition);
         }
 
         protected void VerifyLastReplOutputContains(string expectedReplOutput)

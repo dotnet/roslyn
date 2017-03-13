@@ -45,6 +45,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetReplText()
             => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
 
+        public int GetCaretPositionColumn()
+            => _interactiveWindow.TextView.Caret.Position.BufferPosition.Position;
+
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.
         /// </summary>
@@ -97,6 +100,30 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             firstNewLineIndex += Environment.NewLine.Length;
             return replText.Substring(firstNewLineIndex, replText.Length - firstNewLineIndex);
+        }
+
+        /// <summary>
+        /// Gets the last input from the REPL.
+        /// </summary>
+        public string GetLastReplInput()
+        {
+            // TODO: This may be flaky if the last submission contains ReplPromptText
+            // TODO: ReplSubmissionText is not yet supported
+
+            var replText = GetReplText();
+            var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
+
+            replText = replText.Substring(lastPromptIndex, replText.Length - lastPromptIndex);
+            replText = replText.Substring(ReplPromptText.Length);
+
+            var firstNewLineIndex = replText.IndexOf(Environment.NewLine);
+
+            if (firstNewLineIndex <= 0)
+            {
+                return replText;
+            }
+
+            return replText.Substring(0, firstNewLineIndex);
         }
 
         public void Reset(bool waitForPrompt = true)

@@ -28,6 +28,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetLastReplOutput()
             => _inProc.GetLastReplOutput();
 
+        /// <summary>
+        /// Gets the last input from the REPL.
+        /// </summary>
+        public string GetLastReplInput()
+            => _inProc.GetLastReplInput();
+
+        public int GetCaretPositionColumn()
+            => _inProc.GetCaretPositionColumn();
+
         public string GetReplText()
             => _inProc.GetReplText();
 
