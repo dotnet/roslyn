@@ -306,8 +306,9 @@ namespace N1
             var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
 
             compilation.VerifyDiagnostics(
-                // warning CS2029: Invalid name for a preprocessing symbol; '1' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("1").WithLocation(1, 1));
+                // (1,1): error CS8301: Invalid name for a preprocessing symbol; '1' is not a valid identifier
+                // 
+                Diagnostic(ErrorCode.ERR_InvalidPreprocessingSymbol, "").WithArguments("1").WithLocation(1, 1));
         }
 
         [Fact]
@@ -318,8 +319,9 @@ namespace N1
 #pragma warning restore CS0618 // Type or member is obsolete
 
             compilation.VerifyDiagnostics(
-                // warning CS8190: Provided source code kind is unsupported or invalid: 'Interactive'
-                Diagnostic(ErrorCode.ERR_BadSourceCodeKind).WithArguments("Interactive").WithLocation(1, 1));
+                // (1,1): error CS8190: Provided source code kind is unsupported or invalid: 'Interactive'
+                // 
+                Diagnostic(ErrorCode.ERR_BadSourceCodeKind, "").WithArguments("Interactive").WithLocation(1, 1));
         }
 
         [Fact]
@@ -327,8 +329,9 @@ namespace N1
         {
             var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithLanguageVersion((LanguageVersion)10000));
             compilation.VerifyDiagnostics(
-                // error CS8192: Provided language version is unsupported or invalid: '10000'.
-                Diagnostic(ErrorCode.ERR_BadLanguageVersion).WithArguments("10000").WithLocation(1, 1));
+                // (1,1): error CS8192: Provided language version is unsupported or invalid: '10000'.
+                // 
+                Diagnostic(ErrorCode.ERR_BadLanguageVersion, "").WithArguments("10000").WithLocation(1, 1));
         }
 
         [Fact]
@@ -336,8 +339,9 @@ namespace N1
         {
             var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100)));
             compilation.VerifyDiagnostics(
-                // error CS8191: Provided documentation mode is unsupported or invalid: '100'.
-                Diagnostic(ErrorCode.ERR_BadDocumentationMode).WithArguments("100").WithLocation(1, 1));
+                // (1,1): error CS8191: Provided documentation mode is unsupported or invalid: '100'.
+                // 
+                Diagnostic(ErrorCode.ERR_BadDocumentationMode, "").WithArguments("100").WithLocation(1, 1));
         }
 
         [Fact]
@@ -345,25 +349,29 @@ namespace N1
         {
             var syntaxTree1 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
             var syntaxTree2 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" }));
-            var syntaxTree3 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "3" }).WithDocumentationMode(unchecked((DocumentationMode)100)));
+            var syntaxTree3 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "3" }));
 
             var compilation = CreateCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
+            var diagnostics = compilation.GetDiagnostics();
 
-            compilation.VerifyDiagnostics(
-                // warning CS2029: Invalid name for a preprocessing symbol; '1' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("1").WithLocation(1, 1),
-                // warning CS2029: Invalid name for a preprocessing symbol; '2' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("2").WithLocation(1, 1),
-                // warning CS2029: Invalid name for a preprocessing symbol; '3' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("3").WithLocation(1, 1),
-                // error CS8191: Provided documentation mode is unsupported or invalid: '100'.
-                Diagnostic(ErrorCode.ERR_BadDocumentationMode).WithArguments("100").WithLocation(1, 1));
+            diagnostics.Verify(
+                // (1,1): error CS8301: Invalid name for a preprocessing symbol; '1' is not a valid identifier
+                // 
+                Diagnostic(ErrorCode.ERR_InvalidPreprocessingSymbol, "").WithArguments("1").WithLocation(1, 1),
+                // (1,1): error CS8301: Invalid name for a preprocessing symbol; '2' is not a valid identifier
+                // 
+                Diagnostic(ErrorCode.ERR_InvalidPreprocessingSymbol, "").WithArguments("2").WithLocation(1, 1),
+                // (1,1): error CS8301: Invalid name for a preprocessing symbol; '3' is not a valid identifier
+                // 
+                Diagnostic(ErrorCode.ERR_InvalidPreprocessingSymbol, "").WithArguments("3").WithLocation(1, 1));
+
+            Assert.True(diagnostics[0].Location.SourceTree.Equals(syntaxTree1));
+            Assert.True(diagnostics[1].Location.SourceTree.Equals(syntaxTree2));
+            Assert.True(diagnostics[2].Location.SourceTree.Equals(syntaxTree3));
         }
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void CompilingCodeWithSameParseOptionsInMultipleSyntaxTreesShouldReportOnlyNonDuplicates_SerialBuild(bool concurrentBuild)
+        [Fact]
+        public void CompilingCodeWithSameParseOptionsInMultipleSyntaxTreesShouldReportOnlyNonDuplicates()
         {
             var parseOptions1 = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" });
             var parseOptions2 = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" });
@@ -372,14 +380,19 @@ namespace N1
             var syntaxTree2 = Parse(string.Empty, options: parseOptions2);
             var syntaxTree3 = Parse(string.Empty, options: parseOptions2);
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, concurrentBuild: concurrentBuild);
-            var compilation = CreateCompilationWithMscorlib(new[] { syntaxTree1, syntaxTree2, syntaxTree3 }, options: options);
+            var compilation = CreateCompilationWithMscorlib(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
+            var diagnostics = compilation.GetDiagnostics();
 
-            compilation.VerifyDiagnostics(
-                // warning CS2029: Invalid name for a preprocessing symbol; '1' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("1").WithLocation(1, 1),
-                // warning CS2029: Invalid name for a preprocessing symbol; '2' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("2").WithLocation(1, 1));
+            diagnostics.Verify(
+                // (1,1): error CS8301: Invalid name for a preprocessing symbol; '1' is not a valid identifier
+                // 
+                Diagnostic(ErrorCode.ERR_InvalidPreprocessingSymbol, "").WithArguments("1").WithLocation(1, 1),
+                // (1,1): error CS8301: Invalid name for a preprocessing symbol; '2' is not a valid identifier
+                // 
+                Diagnostic(ErrorCode.ERR_InvalidPreprocessingSymbol, "").WithArguments("2").WithLocation(1, 1));
+
+            Assert.True(diagnostics[0].Location.SourceTree.Equals(syntaxTree1));
+            Assert.True(diagnostics[1].Location.SourceTree.Equals(syntaxTree2));
         }
     }
 }

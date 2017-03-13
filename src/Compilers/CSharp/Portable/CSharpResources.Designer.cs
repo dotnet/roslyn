@@ -5669,6 +5669,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid name for a preprocessing symbol; &apos;{0}&apos; is not a valid identifier.
+        /// </summary>
+        internal static string ERR_InvalidPreprocessingSymbol {
+            get {
+                return ResourceManager.GetString("ERR_InvalidPreprocessingSymbol", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid preprocessor expression.
         /// </summary>
         internal static string ERR_InvalidPreprocExpr {

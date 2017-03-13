@@ -232,6 +232,8 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
 BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
+
+~
 </errors>)
         End Sub
 
@@ -243,6 +245,8 @@ BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
 BC37285: Provided source code kind is unsupported or invalid: 'Interactive'
+
+~
 </errors>)
         End Sub
 
@@ -252,6 +256,8 @@ BC37285: Provided source code kind is unsupported or invalid: 'Interactive'
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
 BC37287: Provided language version is unsupported or invalid: '10000'.
+
+~
 </errors>)
         End Sub
 
@@ -261,6 +267,8 @@ BC37287: Provided language version is unsupported or invalid: '10000'.
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
 BC37286: Provided documentation mode is unsupported or invalid: '100'.
+
+~
 </errors>)
         End Sub
 
@@ -275,23 +283,32 @@ BC37286: Provided documentation mode is unsupported or invalid: '100'.
 
             Dim syntaxTree1 = Parse(String.Empty, options:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict1))
             Dim syntaxTree2 = Parse(String.Empty, options:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict2))
-            Dim syntaxTree3 = Parse(String.Empty, options:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict3).WithDocumentationMode(CType(100, DocumentationMode)))
+            Dim syntaxTree3 = Parse(String.Empty, options:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict3))
 
-            Dim Compilation = CreateCompilationWithMscorlib({syntaxTree1, syntaxTree2, syntaxTree3}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            Dim compilation = CreateCompilationWithMscorlib({syntaxTree1, syntaxTree2, syntaxTree3}, options:=options)
+            Dim diagnostics = compilation.GetDiagnostics()
 
-            CompilationUtils.AssertTheseDiagnostics(Compilation,
+            CompilationUtils.AssertTheseDiagnostics(diagnostics,
 <errors>
 BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
+
+~
 BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
+
+~
 BC31030: Conditional compilation constant '3' is not valid: Identifier expected.
-BC37286: Provided documentation mode is unsupported or invalid: '100'.
+
+~
 </errors>)
+
+            Assert.True(diagnostics(0).Location.SourceTree.Equals(syntaxTree1))
+            Assert.True(diagnostics(1).Location.SourceTree.Equals(syntaxTree2))
+            Assert.True(diagnostics(2).Location.SourceTree.Equals(syntaxTree3))
         End Sub
 
-        <Theory>
-        <InlineData(True)>
-        <InlineData(False)>
-        Public Sub CompilingCodeWithSameParseOptionsInMultipleSyntaxTreesShouldReportOnlyNonDuplicates_SerialBuild(concurrentBuild As Boolean)
+        <Fact>
+        Public Sub CompilingCodeWithSameParseOptionsInMultipleSyntaxTreesShouldReportOnlyNonDuplicates()
             Dim dict1 = New Dictionary(Of String, Object)
             dict1.Add("1", Nothing)
             Dim dict2 = New Dictionary(Of String, Object)
@@ -304,20 +321,26 @@ BC37286: Provided documentation mode is unsupported or invalid: '100'.
             Dim syntaxTree2 = Parse(String.Empty, options:=parseOptions2)
             Dim syntaxTree3 = Parse(String.Empty, options:=parseOptions2)
 
-            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, concurrentBuild:=concurrentBuild)
-            Dim Compilation = CreateCompilationWithMscorlib({syntaxTree1, syntaxTree2, syntaxTree3}, options:=options)
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            Dim compilation = CreateCompilationWithMscorlib({syntaxTree1, syntaxTree2, syntaxTree3}, options:=options)
+            Dim diagnostics = compilation.GetDiagnostics()
 
-            CompilationUtils.AssertTheseDiagnostics(Compilation,
+            CompilationUtils.AssertTheseDiagnostics(diagnostics,
 <errors>
 BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
+
+~
 BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
+
+~
 </errors>)
+
+            Assert.True(diagnostics(0).Location.SourceTree.Equals(syntaxTree1))
+            Assert.True(diagnostics(1).Location.SourceTree.Equals(syntaxTree2))
         End Sub
 
-        <Theory>
-        <InlineData(True)>
-        <InlineData(False)>
-        Public Sub DiagnositcsInCompilationOptionsParseOptionsAreDedupedWithParseTreesParseOptions(concurrentBuild As Boolean)
+        <Fact>
+        Public Sub DiagnositcsInCompilationOptionsParseOptionsAreDedupedWithParseTreesParseOptions()
             Dim dict1 = New Dictionary(Of String, Object)
             dict1.Add("1", Nothing)
             Dim dict2 = New Dictionary(Of String, Object)
@@ -329,20 +352,27 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
             Dim syntaxTree1 = Parse(String.Empty, options:=parseOptions1)
             Dim syntaxTree2 = Parse(String.Empty, options:=parseOptions2)
 
-            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, concurrentBuild:=concurrentBuild, parseOptions:=parseOptions1)
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime({syntaxTree1, syntaxTree2}, options:=options)
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, parseOptions:=parseOptions1)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime({syntaxTree1, syntaxTree2}, options:=options)
+            Dim diagnostics = compilation.GetDiagnostics()
 
-            CompilationUtils.AssertTheseDiagnostics(Compilation,
+            CompilationUtils.AssertTheseDiagnostics(diagnostics,
 <errors>
 BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
 BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
+
+~
 </errors>)
+
+            Assert.Equal(diagnostics(0).Arguments, {"Identifier expected.", "2"})
+            Assert.True(diagnostics(0).Location.SourceTree.Equals(syntaxTree2)) ' Syntax tree parse options are reported in CompilationStage.Parse
+
+            Assert.Equal(diagnostics(1).Arguments, {"Identifier expected.", "1"})
+            Assert.Null(diagnostics(1).Location.SourceTree) ' Compilation parse options are reported in CompilationStage.Declare
         End Sub
 
-        <Theory>
-        <InlineData(True)>
-        <InlineData(False)>
-        Public Sub DiagnositcsInCompilationOptionsParseOptionsAreReportedSeparately(concurrentBuild As Boolean)
+        <Fact>
+        Public Sub DiagnositcsInCompilationOptionsParseOptionsAreReportedSeparately()
             Dim dict1 = New Dictionary(Of String, Object)
             dict1.Add("1", Nothing)
             Dim dict2 = New Dictionary(Of String, Object)
@@ -351,16 +381,30 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
             Dim parseOptions1 = New VisualBasicParseOptions().WithPreprocessorSymbols(dict1)
             Dim parseOptions2 = New VisualBasicParseOptions().WithPreprocessorSymbols(dict2)
 
-            Dim syntaxTree1 = Parse(String.Empty, options:=parseOptions1)
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, parseOptions:=parseOptions1)
 
-            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, concurrentBuild:=concurrentBuild, parseOptions:=parseOptions2)
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime({syntaxTree1}, options:=options)
+            CompilationUtils.AssertTheseDiagnostics(options.Errors,
+<errors>
+BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
+</errors>)
 
-            CompilationUtils.AssertTheseDiagnostics(Compilation,
+            Dim syntaxTree = Parse(String.Empty, options:=parseOptions2)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime({syntaxTree}, options:=options)
+            Dim diagnostics = compilation.GetDiagnostics()
+
+            CompilationUtils.AssertTheseDiagnostics(diagnostics,
 <errors>
 BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
 BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
+
+~
 </errors>)
+
+            Assert.Equal(diagnostics(0).Arguments, {"Identifier expected.", "2"})
+            Assert.True(diagnostics(0).Location.SourceTree.Equals(syntaxTree)) ' Syntax tree parse options are reported in CompilationStage.Parse
+
+            Assert.Equal(diagnostics(1).Arguments, {"Identifier expected.", "1"})
+            Assert.Null(diagnostics(1).Location.SourceTree) ' Compilation parse options are reported in CompilationStage.Declare
         End Sub
 
         Private Shared Function DequeueCompilationEvents(eventQueue As AsyncQueue(Of CompilationEvent), ByRef compilationStartedFired As Boolean, ByRef declaredSymbolNames As HashSet(Of String), ByRef completedCompilationUnits As HashSet(Of String)) As Boolean

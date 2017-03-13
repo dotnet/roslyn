@@ -189,11 +189,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (symbol == null)
                     {
-                        builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_DefineIdentifierRequired, "null"));
+                        builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_InvalidPreprocessingSymbol, "null"));
                     }
                     else if (!SyntaxFacts.IsValidIdentifier(symbol))
                     {
-                        builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_DefineIdentifierRequired, symbol));
+                        builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_InvalidPreprocessingSymbol, symbol));
                     }
                 }
             }

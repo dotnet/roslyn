@@ -5029,4 +5029,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadLanguageVersion" xml:space="preserve">
     <value>Provided language version is unsupported or invalid: '{0}'.</value>
   </data>
+  <data name="ERR_InvalidPreprocessingSymbol" xml:space="preserve">
+    <value>Invalid name for a preprocessing symbol; '{0}' is not a valid identifier</value>
+  </data>
 </root>

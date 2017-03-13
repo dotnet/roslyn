@@ -1920,36 +1920,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Embedded trees shouldn't have any errors, let's avoid making decision if they should be added too early.
                 ' Otherwise IDE performance might be affect.
                 If Options.ConcurrentBuild Then
-                    Dim parseOptionsReported = New ConcurrentSet(Of ParseOptions)
-                    If Options.ParseOptions IsNot Nothing Then
-                        parseOptionsReported.Add(Options.ParseOptions) ' This is reported in Options.Errors at CompilationStage.Declare
-                    End If
-
-                    Dim parallelOptions = New ParallelOptions() With {.CancellationToken = cancellationToken}
-                    Parallel.For(0, SyntaxTrees.Length, parallelOptions,
-                            UICultureUtilities.WithCurrentUICulture(Sub(i As Integer)
-                                                                        Dim syntaxTree = SyntaxTrees(i)
-                                                                        builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken))
-
-                                                                        If parseOptionsReported.Add(syntaxTree.Options) Then
-                                                                            builder.AddRange(syntaxTree.Options.Errors)
-                                                                        End If
-                                                                    End Sub))
+                    Dim options = New ParallelOptions() With {.CancellationToken = cancellationToken}
+                    Parallel.For(0, SyntaxTrees.Length, options,
+                            UICultureUtilities.WithCurrentUICulture(Sub(i As Integer) builder.AddRange(SyntaxTrees(i).GetDiagnostics(cancellationToken))))
                 Else
-                    Dim parseOptionsReported = New HashSet(Of ParseOptions)
-                    If Options.ParseOptions IsNot Nothing Then
-                        parseOptionsReported.Add(Options.ParseOptions) ' This is reported in Options.Errors at CompilationStage.Declare
-                    End If
-
                     For Each tree In SyntaxTrees
                         cancellationToken.ThrowIfCancellationRequested()
                         builder.AddRange(tree.GetDiagnostics(cancellationToken))
-
-                        If parseOptionsReported.Add(tree.Options) Then
-                            builder.AddRange(tree.Options.Errors)
-                        End If
                     Next
                 End If
+
+                Dim parseOptionsReported = New HashSet(Of ParseOptions)
+                If Options.ParseOptions IsNot Nothing Then
+                    parseOptionsReported.Add(Options.ParseOptions) ' This is reported in Options.Errors at CompilationStage.Declare
+                End If
+
+                For Each tree In SyntaxTrees
+                    cancellationToken.ThrowIfCancellationRequested()
+                    If Not tree.Options.Errors.IsDefaultOrEmpty AndAlso parseOptionsReported.Add(tree.Options) Then
+                        Dim location = tree.GetLocation(TextSpan.FromBounds(0, 0))
+                        For Each err In tree.Options.Errors
+                            builder.Add(err.WithLocation(location))
+                        Next
+                    End If
+                Next
             End If
 
             ' Add declaration errors

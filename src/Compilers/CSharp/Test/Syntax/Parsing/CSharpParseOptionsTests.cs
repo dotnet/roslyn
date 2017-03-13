@@ -165,8 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions(preprocessorSymbols: new[] { "test", "1" });
 
             options.Errors.Verify(
-                // warning CS2029: Invalid name for a preprocessing symbol; '1' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("1").WithLocation(1, 1));
+                // error CS8301: Invalid name for a preprocessing symbol; '1' is not a valid identifier
+                Diagnostic(ErrorCode.ERR_InvalidPreprocessingSymbol).WithArguments("1").WithLocation(1, 1));
         }
 
         [Fact]
@@ -207,8 +207,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "" });
 
             options.Errors.Verify(
-                // warning CS2029: Invalid name for a preprocessing symbol; '' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("").WithLocation(1, 1));
+                // error CS8301: Invalid name for a preprocessing symbol; '' is not a valid identifier
+                Diagnostic(ErrorCode.ERR_InvalidPreprocessingSymbol).WithArguments("").WithLocation(1, 1));
         }
 
         [Fact]
@@ -217,8 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { " " });
 
             options.Errors.Verify(
-                // warning CS2029: Invalid name for a preprocessing symbol; ' ' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments(" ").WithLocation(1, 1));
+                // error CS8301: Invalid name for a preprocessing symbol; ' ' is not a valid identifier
+                Diagnostic(ErrorCode.ERR_InvalidPreprocessingSymbol).WithArguments(" ").WithLocation(1, 1));
         }
 
         [Fact]
@@ -227,8 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", "Bad.Symbol" });
 
             options.Errors.Verify(
-                // warning CS2029: Invalid name for a preprocessing symbol; 'Bad.Symbol' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("Bad.Symbol").WithLocation(1, 1));
+                // error CS8301: Invalid name for a preprocessing symbol; 'Bad.Symbol' is not a valid identifier
+                Diagnostic(ErrorCode.ERR_InvalidPreprocessingSymbol).WithArguments("Bad.Symbol").WithLocation(1, 1));
         }
 
         [Fact]
@@ -237,8 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", "Bad\\Symbol" });
 
             options.Errors.Verify(
-                // warning CS2029: Invalid name for a preprocessing symbol; 'Bad\Symbol' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("Bad\\Symbol").WithLocation(1, 1));
+                // error CS8301: Invalid name for a preprocessing symbol; 'Bad\Symbol' is not a valid identifier
+                Diagnostic(ErrorCode.ERR_InvalidPreprocessingSymbol).WithArguments("Bad\\Symbol").WithLocation(1, 1));
         }
 
         [Fact]
@@ -247,8 +247,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", null });
 
             options.Errors.Verify(
-                // warning CS2029: Invalid name for a preprocessing symbol; 'null' is not a valid identifier
-                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("null").WithLocation(1, 1));
+                // error CS8301: Invalid name for a preprocessing symbol; 'null' is not a valid identifier
+                Diagnostic(ErrorCode.ERR_InvalidPreprocessingSymbol).WithArguments("null").WithLocation(1, 1));
         }
     }
 }
