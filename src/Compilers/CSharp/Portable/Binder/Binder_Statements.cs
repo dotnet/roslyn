@@ -793,7 +793,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (localSymbol.RefKind == RefKind.RefReadOnly)
             {
-                var refKeyword = typeSyntax.GetFirstToken();
+                Debug.Assert(typeSyntax.Parent is RefTypeSyntax);
+                var refKeyword = typeSyntax.Parent.GetFirstToken();
                 diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
             }
             else
