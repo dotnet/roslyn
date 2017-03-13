@@ -94,14 +94,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public new IPropertySymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
-
         public IPropertySymbol OverriddenProperty
         {
             get

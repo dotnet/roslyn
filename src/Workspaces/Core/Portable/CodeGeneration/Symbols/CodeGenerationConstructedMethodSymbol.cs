@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get
             {
                 // TODO(cyrusn): Construct this.
-                _constructedFrom.ReturnType;
+                return _constructedFrom.ReturnType;
+            }
+        }
 
         public override ImmutableArray<ITypeSymbol> TypeArguments
         {

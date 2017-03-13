@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
         public override ImmutableArray<IParameterSymbol> Parameters { get; }
         public override ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations { get; }
-        public override RefKind RefKind { get; }
         public override MethodKind MethodKind { get; }
 
         public CodeGenerationMethodSymbol(
@@ -44,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             this.OriginalDefinition = this;
         }
+
+        public RefKind RefKind { get; }
 
         protected override CodeGenerationSymbol Clone()
         {
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return _refKind == RefKind.Ref;
+                return RefKind == RefKind.Ref;
             }
         }
 
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return _refKind == RefKind.RefReadOnly;
+                return RefKind == RefKind.RefReadOnly;
             }
         }
 
