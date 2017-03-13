@@ -102,7 +102,7 @@ class Z
     int a;
     int b;
 
-    public Z(int a)
+    public Z(int a, int b)
     {
         this . a = a ;
         this . b = b ;
