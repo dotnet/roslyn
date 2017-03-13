@@ -381,6 +381,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var call = (BoundCall)expr;
                     return CheckCallValueKind(call, node, valueKind, checkingReceiver, diagnostics);
 
+                case BoundKind.ConditionalOperator:
+                    var conditional = (BoundConditionalOperator)expr;
+
+                    // byref conditional defers to its operands
+                    if (conditional.IsByRef && 
+                        (CheckValueKind(conditional.Consequence.Syntax, conditional.Consequence, valueKind, checkingReceiver: false, diagnostics: diagnostics) &
+                        CheckValueKind(conditional.Alternative.Syntax, conditional.Alternative, valueKind, checkingReceiver: false, diagnostics: diagnostics)))
+                    {
+                        return true;
+                    }
+
+                    // reprot standard lvalue error
+                    break;
+                
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
                     return CheckFieldValueKind(node, fieldAccess, valueKind, checkingReceiver, diagnostics);
@@ -949,15 +963,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
+
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.Assignable:
                     return ErrorCode.ERR_AssgReadonlyLocal;
+
                 case BindValueKind.RefOrOut:
                     return ErrorCode.ERR_RefReadonlyLocal;
+
                 case BindValueKind.AddressOf:
                     return ErrorCode.ERR_AddrOnReadOnlyLocal;
+
                 case BindValueKind.IncrementDecrement:
                     return ErrorCode.ERR_IncrementLvalueExpected;
+
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReturnableReference:
                     return ErrorCode.ERR_RefReturnStructThis;
@@ -972,16 +991,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.IncrementDecrement:
                     return ErrorCode.ERR_QueryRangeVariableReadOnly;
-                case BindValueKind.RefOrOut:
-                    return ErrorCode.ERR_QueryOutRefRangeVariable;
+
                 case BindValueKind.AddressOf:
                     return ErrorCode.ERR_InvalidAddrOp;
+
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReturnableReference:
                     return ErrorCode.ERR_RefReturnRangeVariable;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
+
+            if (RequiresReferenceToLocation(kind))
+            {
+                return ErrorCode.ERR_QueryOutRefRangeVariable;
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
         private static ErrorCode GetMethodGroupLvalueError(BindValueKind valueKind)
@@ -1008,9 +1032,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.Assignable:
                     return ErrorCode.ERR_AssgLvalueExpected;
 
-                case BindValueKind.RefOrOut:
-                    return ErrorCode.ERR_RefLvalueExpected;
-
                 case BindValueKind.AddressOf:
                     return ErrorCode.ERR_InvalidAddrOp;
 
@@ -1023,10 +1044,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReturnableReference:
                     return ErrorCode.ERR_RefReturnLvalueExpected;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
+
+            if (RequiresReferenceToLocation(kind))
+            {
+                return ErrorCode.ERR_RefLvalueExpected;
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
         private static void ReportReadOnlyFieldError(FieldSymbol field, SyntaxNode node, BindValueKind kind, bool checkingReceiver, DiagnosticBag diagnostics)

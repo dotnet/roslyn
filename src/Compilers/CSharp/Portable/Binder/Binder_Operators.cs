@@ -3439,7 +3439,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression condition = BindBooleanExpression(node.Condition, diagnostics);
 
-            var valKind = isRef ? BindValueKind.RefOrOut : BindValueKind.RValue;
+            var valKind = BindValueKind.RValue;
+            if (isRef)
+            {
+                valKind |= BindValueKind.RefersToLocation;
+            }
 
             BoundExpression trueExpr = BindValue(whenTrue, diagnostics, valKind);
             BoundExpression falseExpr = BindValue(whenFalse, diagnostics, valKind);
