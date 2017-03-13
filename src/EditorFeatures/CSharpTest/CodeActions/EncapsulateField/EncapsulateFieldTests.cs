@@ -19,12 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new EncapsulateFieldRefactoringProvider();
 
-        private static readonly Dictionary<OptionKey, object> AllOptionsOff =
-            new Dictionary<OptionKey, object>
-            {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement },
-            };
+        private IDictionary<OptionKey, object> AllOptionsOff =>
+            OptionsSet(
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
         internal Task TestAllOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
