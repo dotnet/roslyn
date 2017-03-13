@@ -2650,7 +2650,7 @@ baddate:
             If CheckFeatureAvailability(feature) Then
                 Return token
             End If
-            Dim requiredVersion = New RequiredLanguageVersion(feature.GetLanguageVersion())
+            Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
             Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion,
                                                    _options.LanguageVersion.GetErrorName(),
                                                    ErrorFactory.ErrorInfo(feature.GetResourceId()),

@@ -6,9 +6,10 @@
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Default = 0 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersionExtensions
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersionExtensions.MapSpecifiedToEffectiveVersion(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersionExtensions.ToDisplayString(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> String
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> String
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(version As String, ByRef result As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.AsClause() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleAsClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.Identifier() -> Microsoft.CodeAnalysis.SyntaxToken
@@ -63,7 +64,6 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax.Accept(Of TR
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax.Accept(Of TResult)(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult)) -> TResult
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetRequiredLanguageVersion(diagnostic As Microsoft.CodeAnalysis.Diagnostic) -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Language() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Language() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitNamedTupleElement(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -81,4 +81,3 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TupleType(ParamArray ele
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TupleType(elements As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleElementSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TupleType(openParenToken As Microsoft.CodeAnalysis.SyntaxToken, elements As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleElementSyntax), closeParenToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TypedTupleElement(type As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax
-Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.TryParseLanguageVersion(version As String, ByRef result As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Boolean

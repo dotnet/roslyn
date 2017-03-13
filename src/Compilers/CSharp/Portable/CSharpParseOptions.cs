@@ -238,58 +238,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Hash.Combine(base.GetHashCodeHelper(),
                 Hash.Combine((int)this.SpecifiedLanguageVersion, 0));
         }
-
-        /// <summary>
-        /// Parse a LanguageVersion from a string input, as the command-line compiler does.
-        /// </summary>
-        public static bool TryParseLanguageVersion(string version, out LanguageVersion result)
-        {
-            if (version == null)
-            {
-                result = LanguageVersion.Default;
-                return true;
-            }
-
-            switch (version.ToLowerInvariant())
-            {
-                case "iso-1":
-                    result = LanguageVersion.CSharp1;
-                    return true;
-
-                case "iso-2":
-                    result = LanguageVersion.CSharp2;
-                    return true;
-
-                case "7":
-                    result = LanguageVersion.CSharp7;
-                    return true;
-
-                case "default":
-                    result = LanguageVersion.Default;
-                    return true;
-
-                case "latest":
-                    result = LanguageVersion.Latest;
-                    return true;
-
-                default:
-                    // We are likely to introduce minor version numbers after C# 7, thus breaking the
-                    // one-to-one correspondence between the integers and the corresponding
-                    // LanguageVersion enum values. But for compatibility we continue to accept any
-                    // integral value parsed by int.TryParse for its corresponding LanguageVersion enum
-                    // value for language version C# 6 and earlier (e.g. leading zeros are allowed)
-                    int versionNumber;
-                    if (int.TryParse(version, NumberStyles.None, CultureInfo.InvariantCulture, out versionNumber) &&
-                        versionNumber <= 6 &&
-                        ((LanguageVersion)versionNumber).IsValid())
-                    {
-                        result = (LanguageVersion)versionNumber;
-                        return true;
-                    }
-
-                    result = LanguageVersion.Default;
-                    return false;
-            }
-        }
     }
 }

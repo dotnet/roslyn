@@ -2808,6 +2808,31 @@ namespace Microsoft.CodeAnalysis
         /// Returns the required language version found in a <see cref="Diagnostic"/>, if any is found.
         /// Returns null if none is found.
         /// </summary>
-        public abstract string GetRequiredLanguageVersion(Diagnostic diagnostic);
+        public static string GetRequiredLanguageVersion(Diagnostic diagnostic)
+        {
+            if (diagnostic == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            bool found = false;
+            string foundVersion = null;
+            if (diagnostic.Arguments != null)
+            {
+                foreach (var argument in diagnostic.Arguments)
+                {
+                    if (argument is RequiredLanguageVersion versionDiagnostic)
+                    {
+                        Debug.Assert(!found); // only one required language version in a given diagnostic
+                        found = true;
+                        foundVersion = versionDiagnostic.ToString();
+                    }
+                }
+            }
+
+            return foundVersion;
+        }
+
+
     }
 }

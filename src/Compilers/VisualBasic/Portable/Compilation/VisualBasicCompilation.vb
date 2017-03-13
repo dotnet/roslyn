@@ -2731,27 +2731,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Public Overrides Function GetRequiredLanguageVersion(diagnostic As Diagnostic) As String
-            If diagnostic Is Nothing Then
-                Throw New ArgumentNullException(NameOf(diagnostic))
-            End If
-
-            Dim found As Boolean = False
-            Dim foundVersion As LanguageVersion = LanguageVersion.Default
-            If diagnostic.Arguments IsNot Nothing Then
-                For Each argument In diagnostic.Arguments
-                    Dim versionDiagnostic As RequiredLanguageVersion = TryCast(argument, RequiredLanguageVersion)
-                    If versionDiagnostic IsNot Nothing Then
-                        Debug.Assert(Not found) ' only one required language version in a given diagnostic
-                        found = True
-                        foundVersion = versionDiagnostic.Version
-                    End If
-                Next
-            End If
-
-            Return If(found, foundVersion.ToDisplayString(), Nothing)
-        End Function
-
 #End Region
 
         Private Class SymbolSearcher

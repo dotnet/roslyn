@@ -807,7 +807,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
                             Else
-                                If Not VisualBasicParseOptions.TryParseLanguageVersion(value, languageVersion) Then
+                                If Not value.TryParse(languageVersion) Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
                                 End If
                             End If

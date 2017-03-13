@@ -917,7 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (availableVersion >= requiredVersion) return;
             var featureName = feature.Localize();
 
-            this.AddError(availableVersion.GetErrorCode(), featureName, new RequiredLanguageVersion(requiredVersion));
+            this.AddError(availableVersion.GetErrorCode(), featureName, new CSharpRequiredLanguageVersion(requiredVersion));
         }
 
         private bool ScanInteger()

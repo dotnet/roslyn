@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Module
 
-    Public Module LanguageVersionExtensions
+    Public Module LanguageVersionFacts
 
         ''' <summary>
         ''' Map a language version (such as Default, Latest, Or VisualBasicN) to a specific version (VisualBasicN).
@@ -101,14 +101,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw ExceptionUtilities.UnexpectedValue(version)
             End Select
         End Function
+
+
+        ''' <summary>
+        ''' Parse a LanguageVersion from a string input, as the command-line compiler does.
+        ''' </summary>
+        <Extension>
+        Public Function TryParse(version As String, ByRef result As LanguageVersion) As Boolean
+            If version Is Nothing Then
+                result = LanguageVersion.Default
+                Return False
+            End If
+
+            Select Case version.ToLowerInvariant()
+                Case "9", "9.0"
+                    result = LanguageVersion.VisualBasic9
+                Case "10", "10.0"
+                    result = LanguageVersion.VisualBasic10
+                Case "11", "11.0"
+                    result = LanguageVersion.VisualBasic11
+                Case "12", "12.0"
+                    result = LanguageVersion.VisualBasic12
+                Case "14", "14.0"
+                    result = LanguageVersion.VisualBasic14
+                Case "15", "15.0"
+                    result = LanguageVersion.VisualBasic15
+                Case "default"
+                    result = LanguageVersion.Default
+                Case "latest"
+                    result = LanguageVersion.Latest
+                Case Else
+                    result = LanguageVersion.Default
+                    Return False
+            End Select
+            Return True
+        End Function
+
     End Module
 
-    ''' <summary>
-    ''' This type is attached to diagnostics for required language version and should only be used
-    ''' on such diagnostics, as they are recognized by <see cref="VisualBasicCompilation.GetRequiredLanguageVersion"/>.
-    ''' </summary>
-    Friend Class RequiredLanguageVersion
-        Implements IMessageSerializable
+    Friend Class VisualBasicRequiredLanguageVersion
+        Inherits RequiredLanguageVersion
 
         Friend ReadOnly Property Version As LanguageVersion
 

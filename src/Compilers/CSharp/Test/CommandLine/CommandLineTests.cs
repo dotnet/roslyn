@@ -1380,7 +1380,7 @@ d.cs
             InlineData("bad", false, LanguageVersion.Default)]
         public void LanguageVersion_TryParseDisplayString(string input, bool success, LanguageVersion expected)
         {
-            Assert.Equal(success, CSharpParseOptions.TryParseLanguageVersion(input, out var version));
+            Assert.Equal(success, input.TryParse(out var version));
             Assert.Equal(expected, version);
 
             // The canary check is a reminder that this test needs to be updated when a language version is added

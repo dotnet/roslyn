@@ -305,38 +305,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Hash.Combine(MyBase.GetHashCodeHelper(), CInt(Me.SpecifiedLanguageVersion))
         End Function
 
-        ''' <summary>
-        ''' Parse a LanguageVersion from a string input, as the command-line compiler does.
-        ''' </summary>
-        Public Shared Function TryParseLanguageVersion(version As String, ByRef result As LanguageVersion) As Boolean
-            If version Is Nothing Then
-                result = LanguageVersion.Default
-                Return False
-            End If
-
-            Select Case version.ToLowerInvariant()
-                Case "9", "9.0"
-                    result = LanguageVersion.VisualBasic9
-                Case "10", "10.0"
-                    result = LanguageVersion.VisualBasic10
-                Case "11", "11.0"
-                    result = LanguageVersion.VisualBasic11
-                Case "12", "12.0"
-                    result = LanguageVersion.VisualBasic12
-                Case "14", "14.0"
-                    result = LanguageVersion.VisualBasic14
-                Case "15", "15.0"
-                    result = LanguageVersion.VisualBasic15
-                Case "default"
-                    result = LanguageVersion.Default
-                Case "latest"
-                    result = LanguageVersion.Latest
-                Case Else
-                    result = LanguageVersion.Default
-                    Return False
-            End Select
-            Return True
-        End Function
-
     End Class
 End Namespace
