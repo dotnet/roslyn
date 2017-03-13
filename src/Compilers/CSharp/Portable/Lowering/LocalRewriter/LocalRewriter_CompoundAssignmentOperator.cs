@@ -535,6 +535,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(((BoundCall)originalLHS).Method.RefKind != RefKind.None);
                     break;
 
+                case BoundKind.ConditionalOperator:
+                    Debug.Assert(((BoundConditionalOperator)originalLHS).IsByRef);
+                    break;
+
                 case BoundKind.AssignmentOperator:
                     Debug.Assert(((BoundAssignmentOperator)originalLHS).RefKind != RefKind.None);
                     break;

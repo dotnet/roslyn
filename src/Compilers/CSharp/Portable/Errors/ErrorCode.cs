@@ -1457,5 +1457,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion more stragglers for C# 7
 
         ERR_BadParameterModifiers = 8205,
+
+        //PROTOTYPE(ReadonlyRefs): make err IDs contiguous before merging to master. 
+        //                         For now it is more convenient to have a gap to avoid conflicts with other added errors
+        ERR_RefConditionalAndAwait = 8301,
+        ERR_RefConditionalNeedsTwoRefs = 8302,
+        ERR_RefConditionalDifferentTypes = 8332,
+
     }
 }
