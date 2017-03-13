@@ -91,7 +91,6 @@
     <Compile Include="EndConstructGeneration\VisualBasicEndConstructGenerationService.vb" />
     <Compile Include="ExtractInterface\ExtractInterfaceCommandHandler.vb" />
     <Compile Include="ExtractMethod\ExtractMethodCommandHandler.vb" />
-    <Compile Include="FindReferences\VisualBasicFindReferencesService.vb" />
     <Compile Include="FindUsages\VisualBasicFindUsagesService.vb" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatter.vb" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatterCommandHandler.vb" />
