@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class IncrementalParsingTests
+    public class IncrementalParsingTests : TestBase
     {
         private CSharpParseOptions GetOptions(string[] defines)
         {
@@ -2338,6 +2338,93 @@ class Program
             var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), "{"));
             var reparsedTree = startTree.WithChangedText(newText);
             var parsedTree = SyntaxFactory.ParseSyntaxTree(newText);
+            CompareIncToFullParseErrors(reparsedTree, parsedTree);
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void InsertExpressionStatementWithoutSemicolonBefore()
+        {
+            SourceText oldText = SourceText.From(@"System.Console.WriteLine(true)
+");
+            var startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
+
+            startTree.GetDiagnostics().Verify();
+
+            var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), @"System.Console.WriteLine(false)
+"));
+
+            AssertEx.AreEqual(@"System.Console.WriteLine(false)
+System.Console.WriteLine(true)
+",
+newText.ToString());
+
+            var reparsedTree = startTree.WithChangedText(newText);
+            var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
+
+            parsedTree.GetDiagnostics().Verify(
+                // (1,32): error CS1002: ; expected
+                // System.Console.WriteLine(false)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 32));
+
+            CompareIncToFullParseErrors(reparsedTree, parsedTree);
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void InsertExpressionStatementWithoutSemicolonAfter()
+        {
+            SourceText oldText = SourceText.From(@"System.Console.WriteLine(true)
+");
+            var startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
+
+            startTree.GetDiagnostics().Verify();
+
+            var newText = oldText.WithInsertAt(
+                oldText.Length, 
+                @"System.Console.WriteLine(false)
+");
+
+            AssertEx.Equal(@"System.Console.WriteLine(true)
+System.Console.WriteLine(false)
+", newText.ToString());
+
+            var reparsedTree = startTree.WithChangedText(newText);
+
+            var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
+            parsedTree.GetDiagnostics().Verify(
+                // (1,31): error CS1002: ; expected
+                // System.Console.WriteLine(true)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 31));
+
+            CompareIncToFullParseErrors(reparsedTree, parsedTree);
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void MakeEmbeddedExpressionStatementWithoutSemicolon()
+        {
+            SourceText oldText = SourceText.From(@"System.Console.WriteLine(true)
+");
+            var startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
+
+            startTree.GetDiagnostics().Verify();
+
+            var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), @"if (false)
+"));
+
+            AssertEx.Equal(@"if (false)
+System.Console.WriteLine(true)
+", newText.ToString());
+
+            var reparsedTree = startTree.WithChangedText(newText);
+            var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
+
+            parsedTree.GetDiagnostics().Verify(
+                // (2,31): error CS1002: ; expected
+                // System.Console.WriteLine(true)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 31));
+
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }
 

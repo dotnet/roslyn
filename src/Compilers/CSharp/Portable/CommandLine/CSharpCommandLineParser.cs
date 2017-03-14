@@ -1217,11 +1217,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 languageVersion: languageVersion,
                 preprocessorSymbols: defines.ToImmutableAndFree(),
                 documentationMode: parseDocumentationComments ? DocumentationMode.Diagnose : DocumentationMode.None,
-                kind: SourceCodeKind.Regular,
+                kind: IsScriptRunner ? SourceCodeKind.Script : SourceCodeKind.Regular,
                 features: parsedFeatures
             );
-
-            var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
 
             // We want to report diagnostics with source suppression in the error log file.
             // However, these diagnostics won't be reported on the command line.
@@ -1271,6 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // add option incompatibility errors if any
             diagnostics.AddRange(options.Errors);
+            diagnostics.AddRange(parseOptions.Errors);
 
             return new CSharpCommandLineArguments
             {
@@ -1307,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DisplayVersion = displayVersion,
                 ManifestResources = managedResources.AsImmutable(),
                 CompilationOptions = options,
-                ParseOptions = IsScriptRunner ? scriptParseOptions : parseOptions,
+                ParseOptions = parseOptions,
                 EmitOptions = emitOptions,
                 ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
                 TouchedFilesPath = touchedFilesPath,

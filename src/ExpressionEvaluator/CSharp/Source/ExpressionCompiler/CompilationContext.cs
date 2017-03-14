@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -12,11 +13,9 @@ using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Debugging;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly ImmutableDictionary<string, DisplayClassVariable> _displayClassVariables;
         private readonly ImmutableHashSet<string> _hoistedParameterNames;
         private readonly ImmutableArray<LocalSymbol> _localsForBinding;
-        private readonly CSharpSyntaxNode _syntax;
         private readonly bool _methodNotType;
 
         /// <summary>
@@ -50,15 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MethodSymbol currentFrame,
             ImmutableArray<LocalSymbol> locals,
             InScopeHoistedLocals inScopeHoistedLocals,
-            MethodDebugInfo<TypeSymbol, LocalSymbol> methodDebugInfo,
-            CSharpSyntaxNode syntax)
+            MethodDebugInfo<TypeSymbol, LocalSymbol> methodDebugInfo)
         {
-            Debug.Assert((syntax == null) || (syntax is ExpressionSyntax) || (syntax is LocalDeclarationStatementSyntax) || (syntax is ExpressionStatementSyntax));
-
-            // TODO: syntax.SyntaxTree should probably be added to the compilation,
-            // but it isn't rooted by a CompilationUnitSyntax so it doesn't work (yet).
             _currentFrame = currentFrame;
-            _syntax = syntax;
             _methodNotType = !locals.IsDefault;
 
             // NOTE: Since this is done within CompilationContext, it will not be cached.
@@ -105,109 +97,143 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 _displayClassVariables.Values.Any(v => v.Kind == DisplayClassVariableKind.This));
         }
 
+        internal CommonPEModuleBuilder CompileExpressions(
+            ImmutableArray<CSharpSyntaxNode> syntaxNodes,
+            string typeNameBase,
+            string methodName,
+            DiagnosticBag diagnostics)
+        {
+            // Create a separate synthesized type for each evaluation method.
+            // (Necessary for VB in particular since the EENamedTypeSymbol.Locations
+            // is tied to the expression syntax in VB.)
+            var synthesizedTypes = syntaxNodes.SelectAsArray(
+                (syntax, i, arg) => (NamedTypeSymbol)CreateSynthesizedType(syntax, typeNameBase + i, methodName, ImmutableArray<Alias>.Empty),
+                (object)null);
+            if (synthesizedTypes.Length == 0)
+            {
+                return null;
+            }
+            var module = CreateModuleBuilder(
+                this.Compilation,
+                additionalTypes: synthesizedTypes,
+                testData: null,
+                diagnostics: diagnostics);
+            Debug.Assert(module != null);
+            this.Compilation.Compile(
+                module,
+                emittingPdb: false,
+                diagnostics: diagnostics,
+                filterOpt: null,
+                cancellationToken: CancellationToken.None);
+            return diagnostics.HasAnyErrors() ? null : module;
+        }
+
         internal CommonPEModuleBuilder CompileExpression(
+            CSharpSyntaxNode syntax,
             string typeName,
             string methodName,
             ImmutableArray<Alias> aliases,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData,
             DiagnosticBag diagnostics,
-            out ResultProperties resultProperties)
+            out EEMethodSymbol synthesizedMethod)
         {
-            var properties = default(ResultProperties);
+            var synthesizedType = CreateSynthesizedType(syntax, typeName, methodName, aliases);
+            var module = CreateModuleBuilder(
+                this.Compilation,
+                additionalTypes: ImmutableArray.Create((NamedTypeSymbol)synthesizedType),
+                testData: testData,
+                diagnostics: diagnostics);
+
+            Debug.Assert(module != null);
+
+            this.Compilation.Compile(
+                module,
+                emittingPdb: false,
+                diagnostics: diagnostics,
+                filterOpt: null,
+                cancellationToken: CancellationToken.None);
+
+            if (diagnostics.HasAnyErrors())
+            {
+                synthesizedMethod = null;
+                return null;
+            }
+
+            synthesizedMethod = GetSynthesizedMethod(synthesizedType);
+            return module;
+        }
+
+        private EENamedTypeSymbol CreateSynthesizedType(
+            CSharpSyntaxNode syntax,
+            string typeName,
+            string methodName,
+            ImmutableArray<Alias> aliases)
+        {
             var objectType = this.Compilation.GetSpecialType(SpecialType.System_Object);
             var synthesizedType = new EENamedTypeSymbol(
                 this.Compilation.SourceModule.GlobalNamespace,
                 objectType,
-                _syntax,
+                syntax,
                 _currentFrame,
                 typeName,
                 methodName,
                 this,
-                (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals) =>
+                (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
                 {
                     var hasDisplayClassThis = _displayClassVariables.ContainsKey(GeneratedNames.ThisProxyFieldName());
                     var binder = ExtendBinderChain(
-                        _syntax,
+                        syntax,
                         aliases,
                         method,
                         this.NamespaceBinder,
                         hasDisplayClassThis,
                         _methodNotType,
                         out declaredLocals);
-                    var statementSyntax = _syntax as StatementSyntax;
+                    var statementSyntax = syntax as StatementSyntax;
 
                     return (statementSyntax == null) ?
-                        BindExpression(binder, (ExpressionSyntax)_syntax, diags, out properties) :
+                        BindExpression(binder, (ExpressionSyntax)syntax, diags, out properties) :
                         BindStatement(binder, statementSyntax, diags, out properties);
                 });
-
-            var module = CreateModuleBuilder(
-                this.Compilation,
-                synthesizedType.Methods,
-                additionalTypes: ImmutableArray.Create((NamedTypeSymbol)synthesizedType),
-                synthesizedType: synthesizedType,
-                testData: testData,
-                diagnostics: diagnostics);
-
-            Debug.Assert(module != null);
-
-            this.Compilation.Compile(
-                module,
-                emittingPdb: false,
-                diagnostics: diagnostics,
-                filterOpt: null,
-                cancellationToken: CancellationToken.None);
-
-            if (diagnostics.HasAnyErrors())
-            {
-                resultProperties = default(ResultProperties);
-                return null;
-            }
-
-            // Should be no name mangling since the caller provided explicit names.
-            Debug.Assert(synthesizedType.MetadataName == typeName);
-            Debug.Assert(synthesizedType.GetMembers()[0].MetadataName == methodName);
-
-            resultProperties = properties;
-            return module;
+            return synthesizedType;
         }
 
         internal CommonPEModuleBuilder CompileAssignment(
+            ExpressionSyntax syntax,
             string typeName,
             string methodName,
             ImmutableArray<Alias> aliases,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData,
             DiagnosticBag diagnostics,
-            out ResultProperties resultProperties)
+            out EEMethodSymbol synthesizedMethod)
         {
             var objectType = this.Compilation.GetSpecialType(SpecialType.System_Object);
             var synthesizedType = new EENamedTypeSymbol(
                 Compilation.SourceModule.GlobalNamespace,
                 objectType,
-                _syntax,
+                syntax,
                 _currentFrame,
                 typeName,
                 methodName,
                 this,
-                (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals) =>
+                (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
                 {
                     var hasDisplayClassThis = _displayClassVariables.ContainsKey(GeneratedNames.ThisProxyFieldName());
                     var binder = ExtendBinderChain(
-                        _syntax,
+                        syntax,
                         aliases,
                         method,
                         this.NamespaceBinder,
                         hasDisplayClassThis,
                         methodNotType: true,
                         declaredLocals: out declaredLocals);
-                    return BindAssignment(binder, (ExpressionSyntax)_syntax, diags);
+                    properties = new ResultProperties(DkmClrCompilationResultFlags.PotentialSideEffect);
+                    return BindAssignment(binder, syntax, diags);
                 });
 
             var module = CreateModuleBuilder(
                 this.Compilation,
-                synthesizedType.Methods,
                 additionalTypes: ImmutableArray.Create((NamedTypeSymbol)synthesizedType),
-                synthesizedType: synthesizedType,
                 testData: testData,
                 diagnostics: diagnostics);
 
@@ -222,16 +248,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (diagnostics.HasAnyErrors())
             {
-                resultProperties = default(ResultProperties);
+                synthesizedMethod = null;
                 return null;
             }
 
-            // Should be no name mangling since the caller provided explicit names.
-            Debug.Assert(synthesizedType.MetadataName == typeName);
-            Debug.Assert(synthesizedType.GetMembers()[0].MetadataName == methodName);
-
-            resultProperties = new ResultProperties(DkmClrCompilationResultFlags.PotentialSideEffect);
+            synthesizedMethod = GetSynthesizedMethod(synthesizedType);
             return module;
+        }
+
+        private static EEMethodSymbol GetSynthesizedMethod(EENamedTypeSymbol synthesizedType)
+        {
+            return (EEMethodSymbol)synthesizedType.Methods[0];
         }
 
         private static string GetNextMethodName(ArrayBuilder<MethodSymbol> builder)
@@ -264,7 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 typeVariablesType = new EENamedTypeSymbol(
                     this.Compilation.SourceModule.GlobalNamespace,
                     objectType,
-                    _syntax,
                     _currentFrame,
                     ExpressionCompilerConstants.TypeVariablesClassName,
                     (m, t) => ImmutableArray.Create<MethodSymbol>(new EEConstructorSymbol(t)),
@@ -276,7 +302,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var synthesizedType = new EENamedTypeSymbol(
                 Compilation.SourceModule.GlobalNamespace,
                 objectType,
-                _syntax,
                 _currentFrame,
                 typeName,
                 (m, container) =>
@@ -305,12 +330,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     alias);
                                 var methodName = GetNextMethodName(methodBuilder);
                                 var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
-                                var aliasMethod = this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals) =>
-                                {
-                                    declaredLocals = ImmutableArray<LocalSymbol>.Empty;
-                                    var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
-                                    return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
-                                });
+                                var aliasMethod = this.CreateMethod(
+                                    container,
+                                    methodName,
+                                    syntax,
+                                    (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+                                    {
+                                        declaredLocals = ImmutableArray<LocalSymbol>.Empty;
+                                        var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
+                                        properties = default(ResultProperties);
+                                        return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+                                    });
                                 var flags = local.IsWritable ? DkmClrCompilationResultFlags.None : DkmClrCompilationResultFlags.ReadOnlyResult;
                                 localBuilder.Add(MakeLocalAndMethod(local, aliasMethod, flags));
                                 methodBuilder.Add(aliasMethod);
@@ -395,9 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var module = CreateModuleBuilder(
                 this.Compilation,
-                synthesizedType.Methods,
                 additionalTypes: additionalTypes.ToImmutableAndFree(),
-                synthesizedType: synthesizedType,
                 testData: testData,
                 diagnostics: diagnostics);
 
@@ -456,20 +484,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static EEAssemblyBuilder CreateModuleBuilder(
             CSharpCompilation compilation,
-            ImmutableArray<MethodSymbol> methods,
             ImmutableArray<NamedTypeSymbol> additionalTypes,
-            EENamedTypeSymbol synthesizedType,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData,
             DiagnosticBag diagnostics)
         {
             // Each assembly must have a unique name.
             var emitOptions = new EmitOptions(outputNameOverride: ExpressionCompilerUtilities.GenerateUniqueName());
 
-            var dynamicOperationContextType = GetNonDisplayClassContainer(synthesizedType.SubstitutedSourceType);
-
             string runtimeMetadataVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
             var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMetadataVersion);
-            return new EEAssemblyBuilder(compilation.SourceAssembly, emitOptions, methods, serializationProperties, additionalTypes, dynamicOperationContextType, testData);
+            return new EEAssemblyBuilder(
+                compilation.SourceAssembly,
+                emitOptions,
+                serializationProperties,
+                additionalTypes,
+                contextType => GetNonDisplayClassContainer(((EENamedTypeSymbol)contextType).SubstitutedSourceType),
+                testData);
         }
 
         internal EEMethodSymbol CreateMethod(
@@ -492,11 +522,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetLocalMethod(EENamedTypeSymbol container, string methodName, string localName, int localIndex)
         {
             var syntax = SyntaxFactory.IdentifierName(localName);
-            return this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals) =>
+            return this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var local = method.LocalsForBinding[localIndex];
                 var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type);
+                properties = default(ResultProperties);
                 return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
         }
@@ -504,11 +535,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetParameterMethod(EENamedTypeSymbol container, string methodName, string parameterName, int parameterIndex)
         {
             var syntax = SyntaxFactory.IdentifierName(parameterName);
-            return this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals) =>
+            return this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var parameter = method.Parameters[parameterIndex];
                 var expression = new BoundParameter(syntax, parameter);
+                properties = default(ResultProperties);
                 return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
         }
@@ -516,10 +548,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetThisMethod(EENamedTypeSymbol container, string methodName)
         {
             var syntax = SyntaxFactory.ThisExpression();
-            return this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals) =>
+            return this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var expression = new BoundThisReference(syntax, GetNonDisplayClassContainer(container.SubstitutedSourceType));
+                properties = default(ResultProperties);
                 return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
         }
@@ -527,12 +560,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetTypeVariablesMethod(EENamedTypeSymbol container, string methodName, NamedTypeSymbol typeVariablesType)
         {
             var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
-            return this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals) =>
+            return this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var type = method.TypeMap.SubstituteNamedType(typeVariablesType);
                 var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0]);
                 var statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+                properties = default(ResultProperties);
                 return statement;
             });
         }
