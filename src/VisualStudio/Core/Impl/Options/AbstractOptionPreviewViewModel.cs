@@ -174,9 +174,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             var textView = _textEditorFactoryService.CreateTextView(projection,
               _textEditorFactoryService.CreateTextViewRoleSet(PredefinedTextViewRoles.Interactive));
-            
+
             this.TextViewHost = _textEditorFactoryService.CreateTextViewHost(textView, setFocus: false);
-            
+
             workspace.TryApplyChanges(documentBackedByTextBuffer.Project.Solution);
             workspace.OpenDocument(document.Id);
 
