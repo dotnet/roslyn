@@ -848,6 +848,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Metadata PE stream should not be given when emitting metadata only..
+        /// </summary>
+        internal static string MetadataPeStreamUnexpectedWhenEmittingMetadataOnly {
+            get {
+                return ResourceManager.GetString("MetadataPeStreamUnexpectedWhenEmittingMetadataOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MetadataReference &apos;{0}&apos; not found to remove..
         /// </summary>
         internal static string MetadataRefNotFoundToRemove1 {
@@ -1024,6 +1033,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string PdbStreamUnexpectedWhenEmbedding {
             get {
                 return ResourceManager.GetString("PdbStreamUnexpectedWhenEmbedding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PDB stream should not be given when emitting metadata only..
+        /// </summary>
+        internal static string PdbStreamUnexpectedWhenEmittingMetadataOnly {
+            get {
+                return ResourceManager.GetString("PdbStreamUnexpectedWhenEmittingMetadataOnly", resourceCulture);
             }
         }
         

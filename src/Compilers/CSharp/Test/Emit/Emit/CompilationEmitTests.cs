@@ -242,7 +242,7 @@ class Test2
             InlineData("", "private void M() { }", false), // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
             InlineData("internal void M() { }", "", false),
             InlineData("public struct S { private int i; }", "public struct S { }", false)]
-        public void RefAssemblyChanges(string change1, string change2, bool expectMatch)
+        public void RefAssembly_InvariantToSomeChanges(string change1, string change2, bool expectMatch)
         {
             string sourceTemplate = @"
 public class C
@@ -258,9 +258,8 @@ public class C
             byte[] image1;
 
             using (var output = new MemoryStream())
-            using (var pdbOutput = new MemoryStream())
             {
-                var emitResult = comp1.Emit(output, pdbOutput, options: EmitOptions.Default.WithEmitMetadataOnly(true));
+                var emitResult = comp1.Emit(output, options: EmitOptions.Default.WithEmitMetadataOnly(true));
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
                 image1 = output.ToArray();
@@ -273,15 +272,21 @@ public class C
             byte[] image2;
 
             using (var output = new MemoryStream())
-            using (var pdbOutput = new MemoryStream())
             {
-                var emitResult = comp2.Emit(output, pdbOutput, options: EmitOptions.Default.WithEmitMetadataOnly(true));
+                var emitResult = comp2.Emit(output, options: EmitOptions.Default.WithEmitMetadataOnly(true));
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
                 image2 = output.ToArray();
             }
 
-            Assert.True(AssertEx.SequenceEqual(image1, image2) == expectMatch);
+            if (expectMatch)
+            {
+                AssertEx.Equal(image1, image2);
+            }
+            else
+            {
+                AssertEx.NotEqual(image1, image2);
+            }
         }
 
         [Theory,
@@ -289,7 +294,7 @@ public class C
             InlineData("public int M() { error() }", false), // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
             InlineData("public Error M() { return null; }", false), // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
             ]
-        public void RefAssemblyDiagnostics(string change, bool expectSuccess)
+        public void RefAssembly_IgnoresSomeDiagnostics(string change, bool expectSuccess)
         {
             string sourceTemplate = @"
 public class C
@@ -305,9 +310,8 @@ public class C
             byte[] image;
 
             using (var output = new MemoryStream())
-            using (var pdbOutput = new MemoryStream())
             {
-                var emitResult = comp1.Emit(output, pdbOutput, options: EmitOptions.Default.WithEmitMetadataOnly(true));
+                var emitResult = comp1.Emit(output, options: EmitOptions.Default.WithEmitMetadataOnly(true));
                 Assert.Equal(expectSuccess, emitResult.Success);
                 Assert.Equal(!expectSuccess, emitResult.Diagnostics.Any());
                 image = output.ToArray();
@@ -318,12 +322,13 @@ public class C
         public void VerifyRefAssembly()
         {
             string source = @"
-public class PublicClass
+public abstract class PublicClass
 {
     public void PublicMethod() { System.Console.Write(""Hello""); }
     private void PrivateMethod() { System.Console.Write(""Hello""); }
     protected void ProtectedMethod() { System.Console.Write(""Hello""); }
     internal void InternalMethod() { System.Console.Write(""Hello""); }
+    public abstract void AbstractMethod();
 }
 ";
             CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
@@ -332,8 +337,8 @@ public class PublicClass
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
 
             var verifier = CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
-            // PROTOTYPE(refout) Not sure best way to verify that method bodies are "throw null"
 
+            // verify metadata (types, members, attributes)
             var image = comp.EmitToImageReference(emitRefOnly);
             var comp2 = CreateCompilation("", references: new[] { MscorlibRef, image },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -342,14 +347,101 @@ public class PublicClass
             AssertEx.SetEqual(members.Select(m => m.ToDisplayString()),
                 new[] { "<Module>", "PublicClass" });
 
-            AssertEx.SetEqual(((NamedTypeSymbol)assembly.GlobalNamespace.GetMember("PublicClass")).GetMembers().Select(m => m.ToTestDisplayString()),
+            AssertEx.SetEqual(
+                ((NamedTypeSymbol)assembly.GlobalNamespace.GetMember("PublicClass")).GetMembers()
+                    .Select(m => m.ToTestDisplayString()),
                 new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
-                    "void PublicClass.InternalMethod()", "void PublicClass.ProtectedMethod()", "PublicClass..ctor()" });
+                    "void PublicClass.InternalMethod()", "void PublicClass.ProtectedMethod()",
+                    "void PublicClass.AbstractMethod()", "PublicClass..ctor()" });
 
             AssertEx.SetEqual(assembly.GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()),
                 new[] { "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
                     "System.Diagnostics.DebuggableAttribute" });
+
+            var peImage = comp.EmitToArray(emitRefOnly);
+            VerifyMethodBodies(peImage, expectEmptyOrThrowNull: true);
+        }
+
+        private static void VerifyMethodBodies(System.Collections.Immutable.ImmutableArray<byte> peImage, bool expectEmptyOrThrowNull)
+        {
+            using (var peReader = new PEReader(peImage))
+            {
+                var metadataReader = peReader.GetMetadataReader();
+                foreach (var method in metadataReader.MethodDefinitions)
+                {
+                    var rva = metadataReader.GetMethodDefinition(method).RelativeVirtualAddress;
+                    if (rva != 0)
+                    {
+                        var il = peReader.GetMethodBody(rva).GetILBytes();
+                        var throwNull = new[] { (byte)ILOpCode.Ldnull, (byte)ILOpCode.Throw };
+
+                        if (expectEmptyOrThrowNull)
+                        {
+                            AssertEx.Equal(throwNull, il);
+                        }
+                        else
+                        {
+                            AssertEx.NotEqual(throwNull, il);
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_NoPdbs()
+        {
+            CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            using (var output = new MemoryStream())
+            using (var pdbOutput = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output, pdbOutput,
+                    options: EmitOptions.Default.WithEmitMetadataOnly(true)));
+            }
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_NoMetadataPeStream()
+        {
+            CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            using (var output = new MemoryStream())
+            using (var metadataPeOutput = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output, metadataPeStream: metadataPeOutput,
+                    options: EmitOptions.Default.WithEmitMetadataOnly(true)));
+            }
+        }
+
+        [Fact]
+        public void EmitMetadata()
+        {
+            string source = @"
+public abstract class PublicClass
+{
+    public void PublicMethod() { System.Console.Write(""Hello""); }
+}
+";
+            CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            using (var output = new MemoryStream())
+            using (var pdbOutput = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
+            {
+                var result = comp.Emit(output, pdbOutput, metadataPeStream: metadataOutput);
+                Assert.True(result.Success);
+                Assert.NotEqual(0, output.Position);
+                Assert.NotEqual(0, pdbOutput.Position);
+                Assert.NotEqual(0, metadataOutput.Position);
+            }
+
+            var peImage = comp.EmitToArray();
+            VerifyMethodBodies(peImage, expectEmptyOrThrowNull: false);
         }
 
         /// <summary>

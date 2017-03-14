@@ -70,7 +70,7 @@ namespace Microsoft.Cci
         // A map of method body before token translation to RVA. Used for deduplication of small bodies.
         private readonly Dictionary<ImmutableArray<byte>, int> _smallMethodBodies;
 
-        private ImmutableArray<byte> ThrowNullIL { get; } = ImmutableArray.Create((byte)ILOpCode.Ldnull, (byte)ILOpCode.Throw);
+        private static ImmutableArray<byte> ThrowNullIL { get; } = ImmutableArray.Create((byte)ILOpCode.Ldnull, (byte)ILOpCode.Throw);
         private const int ThrowNullMaxStack = 1;
 
         protected MetadataWriter(
@@ -2835,7 +2835,7 @@ namespace Microsoft.Cci
                 {
                     if (metadataOnly)
                     {
-                        bodyOffset = SerializeThrowNullMethodBody(encoder, ref mvidStringHandle, ref mvidStringFixup);
+                        bodyOffset = SerializeThrowNullMethodBody(encoder);
                         localSignatureHandleOpt = default(StandaloneSignatureHandle);
                         body = null;
                     }
@@ -2882,7 +2882,7 @@ namespace Microsoft.Cci
             return bodyOffsets;
         }
 
-        private int SerializeThrowNullMethodBody(MethodBodyStreamEncoder encoder, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
+        private int SerializeThrowNullMethodBody(MethodBodyStreamEncoder encoder)
         {
             var il = ThrowNullIL;
 
@@ -2907,7 +2907,11 @@ namespace Microsoft.Cci
                 _smallMethodBodies.Add(il, encodedBody.Offset);
             }
 
+            UserStringHandle mvidStringHandle = default(UserStringHandle);
+            Blob mvidStringFixup = default(Blob);
             WriteInstructions(encodedBody.Instructions, il, ref mvidStringHandle, ref mvidStringFixup);
+
+            Debug.Assert(mvidStringHandle.Equals(default(UserStringHandle)) && mvidStringFixup.Equals(default(Blob)));
 
             return encodedBody.Offset;
         }

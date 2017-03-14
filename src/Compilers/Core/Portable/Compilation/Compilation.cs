@@ -2060,11 +2060,16 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw new ArgumentException(CodeAnalysisResources.StreamMustSupportWrite, nameof(pdbStream));
                 }
+
+                if (options?.EmitMetadataOnly == true)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.PdbStreamUnexpectedWhenEmittingMetadataOnly, nameof(pdbStream));
+                }
             }
 
-            if (metadataPeStream != null && options.EmitMetadataOnly)
+            if (metadataPeStream != null && options?.EmitMetadataOnly == true)
             {
-                throw new ArgumentException(CodeAnalysisResources.StreamMustSupportWrite, nameof(metadataPeStream)); // PROTOTYPE(refout) fix error message and add test
+                throw new ArgumentException(CodeAnalysisResources.MetadataPeStreamUnexpectedWhenEmittingMetadataOnly, nameof(metadataPeStream));
             }
 
             if (win32Resources != null)
@@ -2567,7 +2572,6 @@ namespace Microsoft.CodeAnalysis
             {
                 nativePdbWriter?.Dispose();
                 signingInputStream?.Dispose();
-                refPeStream?.Dispose();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
             }

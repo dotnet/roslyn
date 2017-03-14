@@ -8999,6 +8999,12 @@ class C
             var refDll = Path.Combine(dir.Path, "a.dll");
             Assert.True(File.Exists(refDll));
 
+            VerifyPEMetadata(File.OpenRead(refDll),
+                new[] { "TypeDef:<Module>", "TypeDef:C" },
+                new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
+                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
+                );
+
             var pdb = Path.Combine(dir.Path, "a.pdb");
             Assert.False(File.Exists(pdb));
 

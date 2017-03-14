@@ -99,7 +99,7 @@ namespace Microsoft.Cci
 
         protected override void ProcessMethodBody(IMethodDefinition method)
         {
-            if (method.HasBody())
+            if (method.HasBody() && !metadataWriter.metadataOnly)
             {
                 var body = method.GetBody(Context);
 
@@ -118,10 +118,6 @@ namespace Microsoft.Cci
                             break;
                         }
                     }
-                }
-                else if (!metadataWriter.metadataOnly)
-                {
-                    throw ExceptionUtilities.Unreachable;
                 }
             }
         }
