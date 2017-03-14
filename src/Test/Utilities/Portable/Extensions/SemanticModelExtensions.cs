@@ -6,6 +6,7 @@ namespace Microsoft.CodeAnalysis.Test.Extensions
     {
         public static IOperation GetOperationInternal(this SemanticModel model, SyntaxNode node)
         {
+            // Invoke the GetOperationInternal API to by-pass the IOperation feature flag check.
             return model.GetOperationInternal(node);
         }
     }
