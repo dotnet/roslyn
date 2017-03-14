@@ -116,7 +116,7 @@ namespace TestHelper
 
             if (sources.Length != documents.Length)
             {
-                throw new SystemException("Amount of sources did not match amount of Documents created");
+                throw new InvalidOperationException("Amount of sources did not match amount of Documents created");
             }
 
             return documents;
