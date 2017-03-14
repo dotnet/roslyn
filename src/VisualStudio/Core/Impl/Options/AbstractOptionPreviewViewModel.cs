@@ -173,10 +173,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 LineSpan.FromBounds(startLine, endLine));
 
             var textView = _textEditorFactoryService.CreateTextView(projection,
-              _textEditorFactoryService.CreateTextViewRoleSet(PredefinedTextViewRoles.Analyzable));
-
+              _textEditorFactoryService.CreateTextViewRoleSet(PredefinedTextViewRoles.Interactive));
+            
             this.TextViewHost = _textEditorFactoryService.CreateTextViewHost(textView, setFocus: false);
-
+            
             workspace.TryApplyChanges(documentBackedByTextBuffer.Project.Solution);
             workspace.OpenDocument(document.Id);
 
