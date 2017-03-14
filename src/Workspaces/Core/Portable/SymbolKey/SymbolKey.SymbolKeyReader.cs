@@ -537,9 +537,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public ImmutableArray<Location> ReadLocationArray()
-            {
-                return ReadArray(_readLocation);
-            }
+                => ReadArray(_readLocation);
 
             #endregion
         }
