@@ -35,7 +35,13 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
             var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
-            var (taskType, taskOfTType, valueTaskOfTType) = GetTaskTypes(compilation);
+
+            // Find the symbols for Task, Task<T> and ValueTask<T>.  Note that the first
+            // two are mandatory (since we need them to generate the return types for our
+            // method if we convert it.  The last is optional.  It is only needed to know
+            // if our member is already Task-Like, and that functionality recognizes
+            // ValueTask if it is available, but does not care if it is not.
+            var (taskType, taskOfTType, valueTaskOfTTypeOpt) = GetTaskTypes(compilation);
             if (taskType == null || taskOfTType == null)
             {
                 return;
@@ -67,7 +73,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
         }
 
-        private (INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType) GetTaskTypes(Compilation compilation)
+        private (INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTTypeOpt) GetTaskTypes(Compilation compilation)
         {
             var taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
             var taskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
