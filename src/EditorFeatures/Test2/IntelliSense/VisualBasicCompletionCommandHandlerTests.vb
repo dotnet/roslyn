@@ -2824,7 +2824,7 @@ End Module
 
         <WorkItem(394863, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=394863&triage=true")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SymbolAndObjectPreselectionUnification() As Task
+        Public Async Function ImplementsClause() As Task
             Using state = TestState.CreateVisualBasicTestState(
                             <Document><![CDATA[
 Partial Class TestClass
