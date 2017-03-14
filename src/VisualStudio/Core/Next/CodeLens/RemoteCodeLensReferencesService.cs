@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 return null;
             }
 
-            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (remoteHostClient == null)
             {
                 // remote host is not running. this can happen if remote host is disabled.
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 return null;
             }
 
-            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (remoteHostClient == null)
             {
                 // remote host is not running. this can happen if remote host is disabled.
@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 return null;
             }
 
-            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (remoteHostClient == null)
             {
                 // remote host is not running. this can happen if remote host is disabled.
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 return null;
             }
 
-            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (remoteHostClient == null)
             {
                 // remote host is not running. this can happen if remote host is disabled.
