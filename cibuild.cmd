@@ -64,7 +64,7 @@ if defined testBuildCorrectness (
 )
 
 REM Output the commit that we're building, for reference in Jenkins logs
-if not "%SkipCommitPrinting" == "1" (
+if not "%SkipCommitPrinting%" == "1" (
     echo Building this commit:
     git show --no-patch --pretty=raw HEAD
 )
