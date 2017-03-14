@@ -4,7 +4,6 @@ Imports System.Windows.Data
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -242,6 +241,26 @@ Class Customer
     End Sub
 End Class"
 
+        Private Shared ReadOnly s_preferAutoProperties As String = $"
+Imports System
+
+Class Customer
+//[
+    ' {ServicesVSResources.Prefer_colon}
+    Public ReadOnly Property Age As Integer
+
+    ' {ServicesVSResources.Over_colon}
+    Private _age As Integer
+
+    Public ReadOnly Property Age As Integer
+        Get
+            return _age
+        End Get
+    End Property
+//]
+End Class
+"
+
 #End Region
 
         Public Sub New(optionSet As OptionSet, serviceProvider As IServiceProvider)
@@ -264,6 +283,7 @@ End Class"
                 New CodeStylePreference(ServicesVSResources.Prefer_framework_type, isChecked:=False)
             }
 
+            Dim codeBlockPreferencesGroupTitle = ServicesVSResources.Code_block_preferences_colon
             Dim expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon
             Dim nothingPreferencesGroupTitle = BasicVSResources.nothing_checking_colon
 
@@ -276,6 +296,9 @@ End Class"
             ' predefined or framework type group
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, ServicesVSResources.For_locals_parameters_and_members, _intrinsicDeclarationPreviewTrue, _intrinsicDeclarationPreviewFalse, Me, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences))
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, ServicesVSResources.For_member_access_expressions, _intrinsicMemberAccessPreviewTrue, _intrinsicMemberAccessPreviewFalse, Me, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences))
+
+            ' Code block
+            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, Me, optionSet, codeBlockPreferencesGroupTitle))
 
             ' expression preferences
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, Me, optionSet, expressionPreferencesGroupTitle))

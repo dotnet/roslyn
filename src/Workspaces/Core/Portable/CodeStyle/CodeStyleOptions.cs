@@ -132,5 +132,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             storageLocations: new OptionStorageLocation[] {
                 new EditorConfigStorageLocation("dotnet_style_explicit_tuple_names"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferExplicitTupleNames") });
+
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferAutoProperties = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferAutoProperties),
+            defaultValue: TrueWithNoneEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                new EditorConfigStorageLocation("dotnet_style_prefer_auto_properties"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferAutoProperties") });
     }
 }

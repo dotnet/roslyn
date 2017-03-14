@@ -1467,6 +1467,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer auto properties.
+        /// </summary>
+        internal static string Prefer_auto_properties {
+            get {
+                return ResourceManager.GetString("Prefer_auto_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer braces.
         /// </summary>
         internal static string Prefer_braces {

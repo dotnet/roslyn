@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
             var syntaxTree = context.Node.SyntaxTree;
-            var cancellationTokan = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationTokan).GetAwaiter().GetResult();
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
