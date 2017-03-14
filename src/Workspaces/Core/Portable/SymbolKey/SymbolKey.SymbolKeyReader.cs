@@ -458,9 +458,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public ImmutableArray<SymbolKeyResolution> ReadSymbolKeyArray()
-            {
-                return ReadArray(_readSymbolKey);
-            }
+                => ReadArray(_readSymbolKey);
 
             #endregion
 
@@ -494,31 +492,39 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var kind = (LocationKind)ReadInteger();
-                if (kind == LocationKind.None)
-                {
-                    return Location.None;
-                }
-                else if (kind == LocationKind.SourceFile)
+                if (kind == LocationKind.SourceFile)
                 {
                     var filePath = ReadString();
                     var start = ReadInteger();
                     var length = ReadInteger();
-                    return CreateSourceLocation(filePath, start, length);
-                }
-                else
-                {
-                    Debug.Assert(kind == LocationKind.MetadataFile);
-                    var assembly = ReadSymbolKey();
-                    var moduleName = ReadString();
-                    return CreateModuleLocation(assembly, moduleName);
-                }
-            }
 
-            private Location CreateSourceLocation(string filePath, int start, int length)
-            {
-                var syntaxTree = GetSyntaxTree(filePath);
-                Debug.Assert(syntaxTree != null);
-                return Location.Create(syntaxTree, new TextSpan(start, length));
+                    // The syntax tree can be null if we're resolving this location in a compilation
+                    // that does not contain this file.  In this case, just map this location to None.
+                    var syntaxTree = GetSyntaxTree(filePath);
+                    if (syntaxTree != null)
+                    {
+                        return Location.Create(syntaxTree, new TextSpan(start, length));
+                    }
+                }
+                else if (kind == LocationKind.MetadataFile)
+                {
+                    var assemblyResolution = ReadSymbolKey();
+                    var moduleName = ReadString();
+
+                    // We may be resolving in a compilation where we don't have a module
+                    // with this name.  In that case, just map this location to none.
+                    if (assemblyResolution.GetAnySymbol() is IAssemblySymbol assembly)
+                    {
+                        var module = assembly.Modules.FirstOrDefault(m => m.MetadataName == moduleName);
+                        var location = module?.Locations.FirstOrDefault();
+                        if (location != null)
+                        {
+                            return location;
+                        }
+                    }
+                }
+
+                return Location.None;
             }
 
             private Location CreateModuleLocation(
