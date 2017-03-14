@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             var outOfProcessAllowed = workspace.Options.GetOption(SymbolSearchOptions.OutOfProcessAllowed);
             if (outOfProcessAllowed)
             {
-                var client = await workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     return new RemoteUpdateEngine(workspace, client, logService, cancellationToken);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     _sessionDoNotAccessDirectly?.Dispose();
                     _sessionDoNotAccessDirectly = null;
 
-                    _client = await _workspace.GetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
+                    _client = await _workspace.TryGetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
                     if (_client != null)
                     {
                         // client can be null if host is shutting down
