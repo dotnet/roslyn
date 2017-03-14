@@ -25,10 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [WorkItem(15358, "https://github.com/dotnet/roslyn/issues/15358")]
         public void WithDocumentationModeDoesntChangeFeatures()
         {
-            var po = new CSharpParseOptions().WithFeatures(new[] { new KeyValuePair<string, string>("IOperation", "true") });
-            Assert.Equal(1, po.Features.Count);
+            var kvp = new KeyValuePair<string, string>("IOperation", "true");
+            var po = new CSharpParseOptions().WithFeatures(new[] { kvp });
+            Assert.Equal(po.Features.AsSingleton(), kvp);
             var po2 = po.WithDocumentationMode(DocumentationMode.Diagnose);
-            Assert.Equal(1, po2.Features.Count);
+            Assert.Equal(po2.Features.AsSingleton(), kvp);
         }
 
 
