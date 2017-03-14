@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             Assert.Equal(po2.Features.AsSingleton(), kvp);
         }
 
-
         [Fact]
         public void WithXxx()
         {
