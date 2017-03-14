@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // If the weights are the same and no names changed, just order 
                 // them based on the namespace we're adding an import for.
                 return INamespaceOrTypeSymbolExtensions.CompareNameParts(
-                    this.SearchResult.NameParts, other.SearchResult.NameParts);
+                    this.SearchResult.NameParts, other.SearchResult.NameParts,
+                    placeSystemNamespaceFirst: true);
             }
 
             public override bool Equals(object obj)

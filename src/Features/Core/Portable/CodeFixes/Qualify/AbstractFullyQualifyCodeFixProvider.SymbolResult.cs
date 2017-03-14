@@ -23,24 +23,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             }
 
             public override bool Equals(object obj)
-            {
-                return Equals((SymbolResult)obj);
-            }
+                => Equals((SymbolResult)obj);
 
             public bool Equals(SymbolResult other)
-            {
-                return Equals(Symbol, other.Symbol);
-            }
+                => Equals(Symbol, other.Symbol);
 
             public override int GetHashCode()
-            {
-                return Symbol.GetHashCode();
-            }
+                => Symbol.GetHashCode();
 
             public SymbolResult WithSymbol(INamespaceOrTypeSymbol other)
-            {
-                return new SymbolResult(other, Weight);
-            }
+                => new SymbolResult(other, Weight);
 
             public int CompareTo(SymbolResult other)
             {
@@ -54,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 }
 
                 return INamespaceOrTypeSymbolExtensions.CompareNameParts(
-                    this.NameParts, other.NameParts);
+                    this.NameParts, other.NameParts, placeSystemNamespaceFirst: true);
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -536,6 +537,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             strippedTrivia = leadingTriviaToStrip
             Return DirectCast(node.WithLeadingTrivia(leadingTriviaToKeep.Skip(index)), TSyntaxNode)
+        End Function
+
+        <Extension>
+        Public Function GetFileBanner(root As SyntaxNode) As ImmutableArray(Of SyntaxTrivia)
+            Debug.Assert(root.FullSpan.Start = 0)
+
+            Dim leadingTrivia = root.GetLeadingTrivia()
+            Dim index = 0
+            s_fileBannerMatcher.TryMatch(leadingTrivia.ToList(), index)
+
+            Return ImmutableArray.CreateRange(leadingTrivia.Take(index))
         End Function
 
         ''' <summary>
