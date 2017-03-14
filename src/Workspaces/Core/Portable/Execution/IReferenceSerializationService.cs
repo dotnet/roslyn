@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         void WriteTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken);
         void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken);
-        void WriteTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken);
+        void WriteTo(AnalyzerReference reference, ObjectWriter writer, bool usePathFromAssembly, CancellationToken cancellationToken);
 
         Encoding ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken);
         MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken);
