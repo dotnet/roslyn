@@ -122,7 +122,10 @@ try {
         }
 
         Terminate-BuildProcesses
-        Exec { & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe"  --search-directory=".\\Binaries\\$buildConfiguration\\Dlls\\" --no-trace-upload $extraArgs }
+        & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe"  --search-directory=".\\Binaries\\$buildConfiguration\\Dlls\\" --no-trace-upload $extraArgs 
+        if (-not $?) { 
+            throw "Perf run failed"
+        }
         exit 0
     }
 
