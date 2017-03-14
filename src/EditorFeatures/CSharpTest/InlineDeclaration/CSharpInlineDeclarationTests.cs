@@ -1533,5 +1533,82 @@ class Demo
     }
 }");
         }
+
+        [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMultipleDeclarationStatementsOnSameLine1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void Foo()
+    {
+        string a; string [|b|];
+        Method(out a, out b);
+    }
+}",
+@"
+class C
+{
+    void Foo()
+    {
+        string a; 
+        Method(out a, out string b);
+    }
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMultipleDeclarationStatementsOnSameLine2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void Foo()
+    {
+        string a; /*leading*/ string [|b|]; // trailing
+        Method(out a, out b);
+    }
+}",
+@"
+class C
+{
+    void Foo()
+    {
+        string a; /*leading*/  // trailing
+        Method(out a, out string b);
+    }
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMultipleDeclarationStatementsOnSameLine3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void Foo()
+    {
+        string a;
+        /*leading*/ string [|b|]; // trailing
+        Method(out a, out b);
+    }
+}",
+@"
+class C
+{
+    void Foo()
+    {
+        string a;
+        /*leading*/ // trailing
+        Method(out a, out string b);
+    }
+}", ignoreTrivia: false);
+        }
     }
 }

@@ -4,10 +4,9 @@ using System;
 using System.IO;
 using System.Linq;
 
-using Roslyn.Test.Performance.Utilities;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
-namespace Roslyn.Test.Performance.Runner
+namespace Roslyn.Test.Performance.Utilities
 {
     public static class Benchview
     {
@@ -25,12 +24,12 @@ namespace Roslyn.Test.Performance.Runner
             }
         }
 
-        internal static bool IsValidSubmissionType(string submissionType)
+        public static bool IsValidSubmissionType(string submissionType)
         {
             return s_validSubmissionTypes.Any(type => type == submissionType);
         }
 
-        internal static bool CheckEnvironment()
+        public static bool CheckEnvironment()
         {
             Log("Checking for valid environment");
 
@@ -64,10 +63,16 @@ namespace Roslyn.Test.Performance.Runner
             return true;
         }
 
-        internal static void UploadBenchviewReport(string submissionType, string submissionName, string branch)
+        public static void UploadBenchviewReport(string submissionType, string submissionName, string branch)
         {
             var consumptionXml = Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults.xml");
-            var result = ConvertConsumptionToMeasurementJson(consumptionXml);
+            UploadBenchviewReport(consumptionXml, submissionType, submissionName, branch);
+        }
+
+        public static void UploadBenchviewReport(string filepath, string submissionType, string submissionName, string branch)
+        {
+            var consumptionXml = Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults.xml");
+            var result = ConvertConsumptionToMeasurementJson(filepath);
 
             if (result)
             {
