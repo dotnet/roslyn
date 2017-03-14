@@ -859,7 +859,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence: consequence,
                 rewrittenAlternative: alternative,
                 constantValueOpt: null,
-                rewrittenType: type);
+                rewrittenType: type,
+                isRef: false);
 
             return new BoundSequence(
                 syntax: syntax,
@@ -985,7 +986,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 MakeConversionNode(null, syntax, conditional.Consequence, conversion, @checked, explicitCastInCode: false, constantValueOpt: ConstantValue.NotAvailable, rewrittenType: type),
                                 MakeConversionNode(null, syntax, conditional.Alternative, conversion, @checked, explicitCastInCode: false, constantValueOpt: ConstantValue.NotAvailable, rewrittenType: type),
                                 ConstantValue.NotAvailable,
-                                type),
+                                type,
+                                isRef: false),
                             type);
                     }
                 }
@@ -1098,7 +1100,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence: consequence,
                 rewrittenAlternative: alternative,
                 constantValueOpt: null,
-                rewrittenType: rewrittenType);
+                rewrittenType: rewrittenType,
+                isRef: false);
 
             // temp = operand
             // temp.HasValue ? new R?(op_Whatever(temp.GetValueOrDefault())) : default(R?)
