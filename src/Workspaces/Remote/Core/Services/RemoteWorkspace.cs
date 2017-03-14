@@ -25,6 +25,12 @@ namespace Microsoft.CodeAnalysis.Remote
             Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
         }
 
+        // constructor for testing
+        public RemoteWorkspace(string workspaceKind)
+            : base(RoslynServices.HostServices, workspaceKind: workspaceKind)
+        {
+        }
+
         // this workspace doesn't allow modification by calling TryApplyChanges.
         // consumer of solution is still free to fork solution as they want, they just can't apply those changes
         // back to primary workspace. only solution service can update primary workspace

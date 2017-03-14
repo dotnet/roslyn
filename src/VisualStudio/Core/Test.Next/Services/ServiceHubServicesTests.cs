@@ -107,6 +107,37 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestRemoteWorkspaceCircularReferences()
+        {
+            using (var tempRoot = new Microsoft.CodeAnalysis.Test.Utilities.TempRoot())
+            {
+                var file = tempRoot.CreateDirectory().CreateFile("p1.dll");
+                file.CopyContentFrom(typeof(object).Assembly.Location);
+
+                var p1 = ProjectId.CreateNewId();
+                var p2 = ProjectId.CreateNewId();
+
+                var solutionInfo = SolutionInfo.Create(
+                    SolutionId.CreateNewId(), VersionStamp.Create(), "",
+                    new[]
+                    {
+                        ProjectInfo.Create(
+                            p1, VersionStamp.Create(), "p1", "p1", LanguageNames.CSharp, outputFilePath: file.Path,
+                            projectReferences: new [] { new ProjectReference(p2) }),
+                        ProjectInfo.Create(
+                            p2, VersionStamp.Create(), "p2", "p2", LanguageNames.CSharp,
+                            metadataReferences: new [] { MetadataReference.CreateFromFile(file.Path) })
+                    });
+
+                var remoteWorkspace = new RemoteWorkspace(workspaceKind: "test");
+
+                // this shouldn't throw exception
+                var solution = remoteWorkspace.AddSolution(solutionInfo);
+                Assert.NotNull(solution);
+            }
+        }
+
         private static async Task<Solution> VerifyIncrementalUpdatesAsync(InProcRemoteHostClient client, Solution solution, string csAddition, string vbAddition)
         {
             Assert.True(PrimaryWorkspace.Workspace is RemoteWorkspace);
