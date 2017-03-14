@@ -76,7 +76,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     _sessionDoNotAccessDirectly = null;
 
                     _client = await _workspace.GetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
-                    _client.ConnectionChanged += OnConnectionChanged;
+                    if (_client != null)
+                    {
+                        // client can be null if host is shutting down
+                        _client.ConnectionChanged += OnConnectionChanged;
+                    }
                 }
             }
 
@@ -87,6 +91,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     if (_sessionDoNotAccessDirectly != null)
                     {
                         return _sessionDoNotAccessDirectly;
+                    }
+
+                    if (_client == null)
+                    {
+                        // client can be null if host is shutting down
+                        return null;
                     }
 
                     // We create a single session and use it for the entire lifetime of this process.
