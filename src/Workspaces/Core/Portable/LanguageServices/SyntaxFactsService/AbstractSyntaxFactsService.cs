@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             var leadingTriviaToKeep = new List<SyntaxTrivia>(node.GetLeadingTrivia());
 
             var index = 0;
-            _fileBannerMatcher.TryMatch(leadingTriviaToKeep, ref index);
+            _oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref index);
 
             strippedTrivia = leadingTriviaToKeep.Take(index).ToImmutableArray();
 
