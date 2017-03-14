@@ -7,6 +7,14 @@ namespace Microsoft.CodeAnalysis.PickMembers
 {
     internal interface IPickMembersService : IWorkspaceService
     {
-        PickMembersResult PickMembers(string title, ImmutableArray<ISymbol> members);
+        PickMembersResult PickMembers(
+            string title, ImmutableArray<ISymbol> members, 
+            ImmutableArray<IPickMembersOption> options = default(ImmutableArray<IPickMembersOption>));
+    }
+
+    internal interface IPickMembersOption
+    {
+        string Title { get; }
+        bool Value { get; set; }
     }
 }

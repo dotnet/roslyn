@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 var service = _service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Workspace.Services.GetService<IPickMembersService>();
-                return service.PickMembers(FeaturesResources.Pick_members_to_be_used_in_Equals_GetHashCode, _viableMembers);
+                return service.PickMembers(FeaturesResources.Pick_members_to_be_used_in_Equals_GetHashCode,
+                    _viableMembers,
+                    );
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)

@@ -124,10 +124,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             public TestPickMembersService(ImmutableArray<string> memberNames)
                 => _memberNames = memberNames;
 
-            public PickMembersResult PickMembers(string title, ImmutableArray<ISymbol> members)
-                => new PickMembersResult(_memberNames.IsDefault
+            public PickMembersResult PickMembers(
+                string title, ImmutableArray<ISymbol> members,
+                ImmutableArray<IPickMembersOption> options)
+            {
+                return new PickMembersResult(_memberNames.IsDefault
                     ? members
                     : _memberNames.SelectAsArray(n => members.Single(m => m.Name == n)));
+            }
         }
 
         internal Task TestWithPickMembersDialogAsync(
