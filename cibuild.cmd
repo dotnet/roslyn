@@ -116,7 +116,8 @@ if defined TestPerfRun (
 
     call :TerminateBuildProcesses || goto :BuildFailed
 
-    .\Binaries\%BuildConfiguration%\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe  --search-directory=".\\Binaries\\%BuildConfiguration%\\Dlls\\" --no-trace-upload !EXTRA_PERF_RUNNER_ARGS! || goto :BuildFailed
+    if not defined PerfTestSearchPath set PerfTestSearchPath = ".\\Binaries\\%BuildConfiguration%\\Dlls\\"
+    .\Binaries\%BuildConfiguration%\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe  --search-directory=%PerfTestSearchPatch% --no-trace-upload !EXTRA_PERF_RUNNER_ARGS! || goto :BuildFailed
     exit /b 0
 )
 
