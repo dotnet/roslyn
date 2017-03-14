@@ -1979,5 +1979,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan)
             => ImmutableArray<SyntaxNode>.CastUp(root.GetMembersInSpan(textSpan));
+
+        public ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root)
+            => root.GetFileBanner();
     }
 }
