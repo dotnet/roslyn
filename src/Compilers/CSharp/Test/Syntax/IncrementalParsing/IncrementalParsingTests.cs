@@ -2403,10 +2403,9 @@ System.Console.WriteLine(true)
             var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
 
             parsedTree.GetDiagnostics().Verify(
-                // (3,1): error CS1002: ; expected
+                // (3,31): error CS1002: ; expected
                 // System.Console.WriteLine(true)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, @"System.Console.WriteLine(true)
-").WithLocation(3, 1));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 31));
 
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }

@@ -193,7 +193,10 @@ d.Do()"
             catch (CompilationErrorException ex)
             {
                 exceptionThrown = true;
-                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_SemicolonExpected, "System.Console.WriteLine(true)").WithLocation(3, 2));
+                ex.Diagnostics.Verify(
+                // (3,32): error CS1002: ; expected
+                //  System.Console.WriteLine(true)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 32));
             }
 
              Assert.True(exceptionThrown);

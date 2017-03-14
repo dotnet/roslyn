@@ -7363,11 +7363,24 @@ tryAgain:
                 case SyntaxKind.LocalFunctionStatement:
                     statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
                     break;
-                // Expression statements as embedded statements should be followed by semicolon in scripts.
+                // In scripts, stand-alone expression statements may not be followed by semicolons.
+                // ParseExpressionStatement hides the error.
+                // However, embedded expression statements are required to be followed by semicolon. 
                 case SyntaxKind.ExpressionStatement:
-                    if (IsScript && ((ExpressionStatementSyntax)statement).SemicolonToken.IsMissing)
+                    if (IsScript)
                     {
-                        statement = this.AddError(statement, ErrorCode.ERR_SemicolonExpected);
+                        var expressionStatementSyntax = (ExpressionStatementSyntax)statement;
+                        var semicolonToken = expressionStatementSyntax.SemicolonToken;
+
+                        // Do not add a new error if the same error was already added.
+                        if (semicolonToken.IsMissing  
+                            && (!semicolonToken.ContainsDiagnostics
+                            || !semicolonToken.GetDiagnostics()
+                            .Contains(diagnosticInfo => (ErrorCode)diagnosticInfo.Code == ErrorCode.ERR_SemicolonExpected)))
+                        {
+                            semicolonToken = this.AddError(semicolonToken, ErrorCode.ERR_SemicolonExpected);
+                            statement = expressionStatementSyntax.Update(expressionStatementSyntax.Expression, semicolonToken);
+                        }
                     }
                     break;
             }
