@@ -34,6 +34,13 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
 
             var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
+            var (taskType, taskOfTType, valueTaskOfTType) = GetTaskTypes(compilation);
+            if (taskType == null || taskOfTType == null)
+            {
+                return;
+            }
+
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
 
             // If it's a void returning method, offer to keep the void return type, or convert to 
@@ -58,6 +65,15 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                         context.Document, diagnostic, keepVoid: false, cancellationToken: c)),
                     context.Diagnostics);
             }
+        }
+
+        private (INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType) GetTaskTypes(Compilation compilation)
+        {
+            var taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
+            var taskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
+            var valueTaskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+
+            return (taskType, taskOfTType, valueTaskOfTType);
         }
 
         protected abstract string GetMakeAsyncTaskFunctionResource();
@@ -128,9 +144,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             SyntaxNode node, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
-            var taskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
-            var valueTaskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+            var (taskType, taskOfTType, valueTaskOfTType) = GetTaskTypes(compilation);
 
             var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, taskType, taskOfTType, valueTaskOfTType)
                 .WithAdditionalAnnotations(Formatter.Annotation);
