@@ -104,7 +104,7 @@ try {
         Run-MSBuild Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false
 
         # Check if we have credentials to upload to benchview
-        if ((Test-Path env:\GIT_BRANCH) -and (Test-Path BV_UPLOAD_SAS_TOKEN)) {
+        if ((Test-Path env:GIT_BRANCH) -and (Test-Path BV_UPLOAD_SAS_TOKEN)) {
             $extraArgs="--report-benchview --branch $(env:GIT_BRANCH)"
 
             # Check if we are in a PR or this is a rolling submission
