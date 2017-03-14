@@ -238,6 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case SyntaxKind.ByValKeyword : foundFlag = SourceParameterFlags.ByVal
                     Case SyntaxKind.OptionalKeyword : foundFlag = SourceParameterFlags.Optional
                     Case SyntaxKind.ParamArrayKeyword : foundFlag = SourceParameterFlags.ParamArray
+                    Case SyntaxKind.MeKeyword : foundFlag = SourceParameterFlags.Me
                 End Select
 
                 ' Report errors with the modifier
@@ -899,6 +900,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 flag = flag And (Not SourceParameterFlags.Optional)
             End If
 
+            If (flag And SourceParameterFlags.Me) <> 0 Then
+                diagnostics.Add(ERRID.ERR_MeIllegal1, token.GetLocation(), container.GetKindText())
+                flag = flag And (Not SourceParameterFlags.Me)
+            End If
+
             Return flag
         End Function
 
@@ -950,7 +956,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If flag = SourceParameterFlags.ByRef Then
                 Dim location = token.GetLocation()
                 diagnostics.Add(ERRID.ERR_ByRefIllegal1, location, container.GetKindText(), token.ToString())
-                Return flag And (Not SourceParameterFlags.ByRef)
+                flag = flag And (Not SourceParameterFlags.ByRef)
+            End If
+
+            If flag = SourceParameterFlags.Me Then
+                Dim location = token.GetLocation()
+                diagnostics.Add(ERRID.ERR_MeIllegal1, location, container.GetKindText(), token.ToString())
+                flag = flag And (Not SourceParameterFlags.Me)
             End If
             Return flag
         End Function
@@ -1005,7 +1017,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim flags As SourceParameterFlags = Nothing
 
                 flags = DecodeParameterModifiers(container, paramSyntax.Modifiers, checkModifier, diagBag)
-
+                ' Check validatity of 'Optional' parameter usage
                 If (flagsOfPreviousParameters And SourceParameterFlags.Optional) = SourceParameterFlags.Optional Then
                     If (flags And SourceParameterFlags.ParamArray) = SourceParameterFlags.ParamArray AndAlso
                         Not reportedError Then
@@ -1023,13 +1035,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     End If
                 End If
+                ' Check validity of 'Me' Parameter usage.
+                '    (Me arg0 As T) Valid
+                '    (arg0 As T, Me arg1 As T)  Error
+                '    (Me arg0 As T, Me arg1 as T)  Error
+                If (flags And SourceParameterFlags.Me) <> 0 Then
+                    If Not container.ContainingType.IsModuleType AndAlso Not reportedError Then
+                        ReportDiagnostic(diagBag, paramSyntax, ERRID.ERR_MeIllegal1)
+                        reportedError = True
+                    ElseIf i > 0 AndAlso Not reportedError Then
+                        ReportDiagnostic(diagBag, paramSyntax, ERRID.ERR_MeParamMustBeFirst)
+                        reportedError = True
+                    ElseIf (flagsOfPreviousParameters And SourceParameterFlags.Me) <> 0 AndAlso Not reportedError Then
+                        ReportDiagnostic(diagBag, paramSyntax, ERRID.ERR_MeIllegal1)
+                        reportedError = True
+                    End If
+                End If
 
                 If (flagsOfPreviousParameters And SourceParameterFlags.ParamArray) <> 0 AndAlso
-                    Not reportedError Then
+                     Not reportedError Then
 
                     ReportDiagnostic(diagBag, paramSyntax, ERRID.ERR_ParamArrayMustBeLast)
                     reportedError = True
-
                 End If
 
                 Dim newParam As ParameterSymbol

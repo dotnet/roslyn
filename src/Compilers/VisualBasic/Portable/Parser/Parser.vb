@@ -4656,6 +4656,13 @@ checkNullable:
                         End If
                         specifier = ParameterSpecifiers.ParamArray
 
+                    Case SyntaxKind.MeKeyword
+                        keyword = DirectCast(CurrentToken, KeywordSyntax)
+                        If (specifiers And ParameterSpecifiers.Me) <> 0 Then
+                            keyword = ReportSyntaxError(keyword, ERRID.ERR_MultipleMeParameterSpecifiers)
+                        End If
+                        specifier = ParameterSpecifiers.Me
+
                     Case Else
                         Dim result = keywords.ToList
                         Me._pool.Free(keywords)
@@ -6216,6 +6223,7 @@ checkNullable:
         [ByVal] = &H2
         [Optional] = &H4
         [ParamArray] = &H8
+        [Me] = &H10
     End Enum
 
 End Namespace

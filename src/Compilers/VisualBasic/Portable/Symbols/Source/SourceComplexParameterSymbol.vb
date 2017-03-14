@@ -208,7 +208,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return (_flags And SourceParameterFlags.Optional) <> 0
             End Get
         End Property
-
+        Public Overrides ReadOnly Property IsMe As Boolean
+            Get
+                Return (_flags And SourceParameterFlags.Me) <> 0
+            End Get
+        End Property
         Public Overrides ReadOnly Property IsParamArray As Boolean
             Get
                 If (_flags And SourceParameterFlags.ParamArray) <> 0 Then
@@ -349,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Attributes and default values are computed lazily and need access to the parameter's syntax.
             ' If the parameter syntax includes either of these get a syntax reference and pass it to the parameter symbol.
-            If (syntax.AttributeLists.Count <> 0 OrElse syntax.Default IsNot Nothing) Then
+            If (syntax.AttributeLists.Count <> 0 OrElse syntax.Default IsNot Nothing OrElse ((flags And SourceParameterFlags.Me) <> 0)) Then
                 syntaxRef = binder.GetSyntaxReference(syntax)
             End If
 

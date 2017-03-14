@@ -479,6 +479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         [ByRef] = 1 << 1
         [Optional] = 1 << 2
         [ParamArray] = 1 << 3
+        [Me] = 1 << 4
     End Enum
 
 End Namespace

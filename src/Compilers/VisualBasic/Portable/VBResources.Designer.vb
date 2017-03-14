@@ -6883,6 +6883,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to {0} parameters cannot be declared &apos;Me&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_MeIllegal1() As String
+            Get
+                Return ResourceManager.GetString("ERR_MeIllegal1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0} &apos;{1}&apos; conflicts with a member implicitly declared for {2} &apos;{3}&apos; in {4} &apos;{5}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_MemberClashesWithSynth6() As String
@@ -6897,6 +6906,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_MemberConflictWithSynth4() As String
             Get
                 Return ResourceManager.GetString("ERR_MemberConflictWithSynth4", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &apos;Me&apos; Parameter must be first..
+        '''</summary>
+        Friend ReadOnly Property ERR_MeParamMustBeFirst() As String
+            Get
+                Return ResourceManager.GetString("ERR_MeParamMustBeFirst", resourceCulture)
             End Get
         End Property
         
@@ -7365,6 +7383,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_MultipleExtends() As String
             Get
                 Return ResourceManager.GetString("ERR_MultipleExtends", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Multiple &apos;Me&apos; parameter specifiers..
+        '''</summary>
+        Friend ReadOnly Property ERR_MultipleMeParameterSpecifiers() As String
+            Get
+                Return ResourceManager.GetString("ERR_MultipleMeParameterSpecifiers", resourceCulture)
             End Get
         End Property
         

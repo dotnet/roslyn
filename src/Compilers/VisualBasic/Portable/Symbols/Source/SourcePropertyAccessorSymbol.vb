@@ -459,9 +459,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If flag <> SourceParameterFlags.ByVal Then
                 Dim location = token.GetLocation()
                 diagnostics.Add(ERRID.ERR_SetHasToBeByVal1, location, token.ToString())
-                Return flag And SourceParameterFlags.ByVal
+                flag = flag And SourceParameterFlags.ByVal
             End If
-            Return SourceParameterFlags.ByVal
+            If (flag And SourceParameterFlags.Me) <> 0 Then
+                Dim location = token.GetLocation()
+                diagnostics.Add(ERRID.ERR_MeIllegal1, location, token.ToString())
+                flag = flag And (Not SourceParameterFlags.Me)
+            End If
+            Return flag
         End Function
 
         Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock

@@ -936,6 +936,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 flag = flag And (Not SourceParameterFlags.Optional)
             End If
 
+            If (flag And SourceParameterFlags.Me) = SourceParameterFlags.Me Then
+                Dim location = token.GetLocation()
+                diagnostics.Add(ERRID.ERR_MeIllegal1, location, GetDelegateOrEventKeywordText(container))
+                flag = flag And (Not SourceParameterFlags.Me)
+            End If
+
+
             Return flag
         End Function
 
