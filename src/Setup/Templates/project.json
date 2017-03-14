@@ -17,9 +17,9 @@
     "VSLangProj": "7.0.3300"
   },
   "frameworks": {
-    "net46": {}
+    "net46": { }
   },
   "runtimes": {
-    "win7": {}
+    "win7": { }
   }
 }
