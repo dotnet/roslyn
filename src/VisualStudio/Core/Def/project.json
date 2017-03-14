@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "EnvDTE": "8.0.0",
+    "EnvDTE": "8.0.1",
     "EnvDTE80": "8.0.0",
     "ManagedEsent": "1.9.4",
     "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",

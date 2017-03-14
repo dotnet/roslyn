@@ -1733,5 +1733,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetSelectedMembers(root As SyntaxNode, textSpan As TextSpan) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFactsService.GetSelectedMembers
             Return ImmutableArray(Of SyntaxNode).CastUp(root.GetMembersInSpan(textSpan))
         End Function
+
+        Public Function GetFileBanner(root As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetFileBanner
+            Return root.GetFileBanner()
+        End Function
     End Class
 End Namespace
