@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -235,27 +237,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void VerifyOperationTree(string expectedOperationTree, string actualOperationTree)
         {
-            var assertFailed = false;
             char[] newLineChars = Environment.NewLine.ToCharArray();
             string actual = actualOperationTree.Trim(newLineChars);
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
-
-            try
-            {
-                Assert.Equal(expectedOperationTree, actual);
-            }
-            catch (EqualException)
-            {
-                assertFailed = true;
-                throw;
-            }
-            finally
-            {
-                if (assertFailed)
-                {
-                    Console.WriteLine($"Actual operation tree:\r\n{actual}\r\n");
-                }
-            }
+            expectedOperationTree = Regex.Replace(expectedOperationTree, "([^\r])\n", "$1" + Environment.NewLine);
+            AssertEx.AreEqual(expectedOperationTree, actual);
         }
 
         internal static bool CanHaveExecutableCodeBlock(ISymbol symbol)

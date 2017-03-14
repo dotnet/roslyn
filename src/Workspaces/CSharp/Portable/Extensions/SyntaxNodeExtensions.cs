@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -655,6 +656,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             strippedTrivia = leadingTriviaToStrip;
             return node.WithLeadingTrivia(leadingTriviaToKeep.Skip(index));
+        }
+
+        public static ImmutableArray<SyntaxTrivia> GetFileBanner(this SyntaxNode root)
+        {
+            Debug.Assert(root.FullSpan.Start == 0);
+
+            var leadingTrivia = root.GetLeadingTrivia();
+            var index = 0;
+            s_fileBannerMatcher.TryMatch(leadingTrivia.ToList(), ref index);
+
+            return ImmutableArray.CreateRange(leadingTrivia.Take(index));
         }
 
         public static bool IsAnyAssignExpression(this SyntaxNode node)

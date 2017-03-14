@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -1192,6 +1193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return declaration;
             }
         }
+
+        internal override ImmutableArray<SyntaxNode> GetTypeInheritance(SyntaxNode declaration)
+            => declaration is BaseTypeDeclarationSyntax baseType && baseType.BaseList != null
+                ? ImmutableArray.Create<SyntaxNode>(baseType.BaseList)
+                : ImmutableArray<SyntaxNode>.Empty;
 
         public override IReadOnlyList<SyntaxNode> GetNamespaceImports(SyntaxNode declaration)
         {
