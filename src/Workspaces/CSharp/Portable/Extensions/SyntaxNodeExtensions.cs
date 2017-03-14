@@ -192,24 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => node.GetFirstToken().GetAllPrecedingTriviaToPreviousToken(
                 sourceText, includePreviousTokenTrailingTriviaOnlyIfOnSameLine);
 
-        public static ImmutableArray<SyntaxTrivia> GetLeadingBlankLines<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
-            => CSharpSyntaxFactsService.Instance.GetLeadingBlankLines(node);
-
-        public static TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
-            => CSharpSyntaxFactsService.Instance.GetNodeWithoutLeadingBlankLines(node);
-
-        public static TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(this TSyntaxNode node, out ImmutableArray<SyntaxTrivia> strippedTrivia) where TSyntaxNode : SyntaxNode
-            => CSharpSyntaxFactsService.Instance.GetNodeWithoutLeadingBlankLines(node, out strippedTrivia);
-
-        public static ImmutableArray<SyntaxTrivia> GetLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
-            => CSharpSyntaxFactsService.Instance.GetLeadingBannerAndPreprocessorDirectives(node);
-
-        public static TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
-            => CSharpSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node);
-
-        public static TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node, out ImmutableArray<SyntaxTrivia> strippedTrivia) where TSyntaxNode : SyntaxNode
-            => CSharpSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out strippedTrivia);
-
         /// <summary>
         /// Returns all of the trivia to the left of this token up to the previous token (concatenates
         /// the previous token's trailing trivia and this token's leading trivia).
@@ -533,10 +515,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return result;
         }
 
+        public static ImmutableArray<SyntaxTrivia> GetLeadingBlankLines<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.GetLeadingBlankLines(node);
+
+        public static TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.GetNodeWithoutLeadingBlankLines(node);
+
+        public static TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(this TSyntaxNode node, out ImmutableArray<SyntaxTrivia> strippedTrivia) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.GetNodeWithoutLeadingBlankLines(node, out strippedTrivia);
+
+        public static ImmutableArray<SyntaxTrivia> GetLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.GetLeadingBannerAndPreprocessorDirectives(node);
+
+        public static TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node);
+
+        public static TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node, out ImmutableArray<SyntaxTrivia> strippedTrivia) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out strippedTrivia);
+
         public static bool IsAnyAssignExpression(this SyntaxNode node)
-        {
-            return SyntaxFacts.IsAssignmentExpression(node.Kind());
-        }
+            => SyntaxFacts.IsAssignmentExpression(node.Kind());
 
         public static bool IsCompoundAssignExpression(this SyntaxNode node)
         {
