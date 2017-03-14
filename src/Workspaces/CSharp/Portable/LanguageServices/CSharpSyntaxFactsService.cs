@@ -1029,9 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static string GetSimpleTypeName(SimpleNameSyntax name)
-        {
-            return name.Identifier.ValueText;
-        }
+            => name.Identifier.ValueText;
 
         private static string ExpandExplicitInterfaceName(string identifier, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
         {
