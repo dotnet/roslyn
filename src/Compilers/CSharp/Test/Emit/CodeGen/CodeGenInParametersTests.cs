@@ -40,6 +40,77 @@ class Program
         }
 
         [Fact]
+        public void InParamPassLValue()
+        {
+            var text = @"
+class Program
+{
+    public static void Main()
+    {
+        var local = 42;
+        System.Console.WriteLine(M(local));
+    }
+
+    static ref readonly int M(in int x)
+    {
+        return ref x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput:"42");
+
+            comp.VerifyIL("Program.Main()", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (int V_0) //local
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""ref readonly int Program.M(ref readonly int)""
+  IL_000a:  ldind.i4
+  IL_000b:  call       ""void System.Console.WriteLine(int)""
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void InParamPassRValue()
+        {
+            var text = @"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(M(42));
+    }
+
+    static ref readonly int M(in int x)
+    {
+        return ref x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: "42");
+
+            comp.VerifyIL("Program.Main()", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""ref readonly int Program.M(ref readonly int)""
+  IL_000a:  ldind.i4
+  IL_000b:  call       ""void System.Console.WriteLine(int)""
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
         public void RefReturnParamAccess1()
         {
             var text = @"

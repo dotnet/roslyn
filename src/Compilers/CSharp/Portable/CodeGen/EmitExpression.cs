@@ -575,16 +575,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitArgument(BoundExpression argument, RefKind refKind)
         {
-            if (refKind == RefKind.None)
+            switch(refKind)
             {
-                EmitExpression(argument, true);
-            }
-            else
-            {
-                var temp = EmitAddress(argument, AddressKind.Writeable);
+                case RefKind.None:
+                    EmitExpression(argument, true);
+                    break;
 
-                // Dynamic is allowed to be passed by reference, via a temp.
-                Debug.Assert(temp == null || argument.Type.IsDynamic(), "passing args byref should not clone them into temps");
+                case RefKind.RefReadOnly:
+                    //PROTOTYPE(reaadonlyRefs): leaking a temp here
+                    //PROTOTYPE(reaadonlyRefs): readonly fields should not be cloned to temps
+                    var temp = EmitAddress(argument, AddressKind.Writeable);
+                    break;
+
+                default:
+                    var unexpectedTemp = EmitAddress(argument, AddressKind.Writeable);
+                    Debug.Assert(unexpectedTemp == null, "passing args byref should not clone them into temps");
+                    break;
             }
         }
 
