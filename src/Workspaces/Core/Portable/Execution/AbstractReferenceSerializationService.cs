@@ -88,14 +88,30 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            switch (reference)
+            using (var stream = SerializableBytes.CreateWritableStream())
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
-                case AnalyzerFileReference _:
-                case UnresolvedAnalyzerReference _:
-                    return CreateAnalyzerReferenceChecksum(reference, cancellationToken);
+                switch (reference)
+                {
+                    case AnalyzerFileReference file:
+                        WriteAnalyzerFileReferenceMvid(file, writer, cancellationToken);
+                        break;
 
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(reference.GetType());
+                    case UnresolvedAnalyzerReference unresolved:
+                        WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
+                        break;
+
+                    case AnalyzerImageReference _:
+                        // TODO: think a way to support this or a way to deal with this kind of situation.
+                        // https://github.com/dotnet/roslyn/issues/15783
+                        throw new NotSupportedException(nameof(AnalyzerImageReference));
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(reference.GetType());
+                }
+
+                stream.Position = 0;
+                return Checksum.Create(stream);
             }
         }
 
@@ -204,27 +220,6 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             throw ExceptionUtilities.UnexpectedValue(type);
-        }
-
-        private Checksum CreateAnalyzerReferenceChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
-        {
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-            {
-                switch (reference)
-                {
-                    case AnalyzerFileReference file:
-                        WriteAnalyzerFileReferenceMvid(file, writer, cancellationToken);
-                        break;
-
-                    case UnresolvedAnalyzerReference unresolved:
-                        WriteUnresolvedAnalyzerReferenceTo(reference, writer);
-                        break;
-                }
-
-                stream.Position = 0;
-                return Checksum.Create(stream);
-            }
         }
 
         private void WriteAnalyzerFileReferenceMvid(AnalyzerFileReference reference, ObjectWriter writer, CancellationToken cancellationToken)
