@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                    triggerInfo.TriggerCharacter == null;
 
             private async Task<Model> ComputeModelInBackgroundAsync(
-                int id,
+                int localRetriggerId,
                 Model currentModel,
                 ImmutableArray<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         {
                             if (currentModel == null)
                             {
-                                return currentModel;
+                                return null;
                             }
 
                             if (triggerInfo.TriggerCharacter.HasValue &&
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                         // first try to query the providers that can trigger on the specified character
                         var providerAndItemsOpt = await ComputeItemsAsync(
-                            id, providers, caretPosition,
+                            localRetriggerId, providers, caretPosition,
                             triggerInfo, document, cancellationToken).ConfigureAwait(false);
 
                         if (providerAndItemsOpt == null)
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             /// previous model we've computed.
             /// </summary>
             private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)?> ComputeItemsAsync(
-                int id,
+                int localRetriggerId,
                 ImmutableArray<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
                 SignatureHelpTriggerInfo triggerInfo,
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         // If this is a retrigger command, and another retrigger command has already
                         // been issued then we can bail out immediately.
                         if (IsNonTypeCharRetrigger(triggerInfo) &&
-                            id != _retriggerId)
+                            localRetriggerId != _retriggerId)
                         {
                             return null;
                         }
