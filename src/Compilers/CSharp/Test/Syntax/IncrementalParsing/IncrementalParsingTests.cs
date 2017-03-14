@@ -2345,21 +2345,27 @@ class Program
         [Fact]
         public void InsertExpressionStatementWithoutSemicolonBefore()
         {
-            SourceText oldText = SourceText.From(@"
-System.Console.WriteLine(true)
+            SourceText oldText = SourceText.From(@"System.Console.WriteLine(true)
 ");
             var startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
 
             startTree.GetDiagnostics().Verify();
 
-            var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), "\nSystem.Console.WriteLine(false)"));
+            var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), @"System.Console.WriteLine(false)
+"));
+
+            AssertEx.AreEqual(@"System.Console.WriteLine(false)
+System.Console.WriteLine(true)
+",
+newText.ToString());
+
             var reparsedTree = startTree.WithChangedText(newText);
             var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
 
             parsedTree.GetDiagnostics().Verify(
-                // (2,33): error CS1002: ; expected
-                // System.Console.WriteLine(true)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 32));
+                // (1,32): error CS1002: ; expected
+                // System.Console.WriteLine(false)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 32));
 
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }
@@ -2368,21 +2374,28 @@ System.Console.WriteLine(true)
         [Fact]
         public void InsertExpressionStatementWithoutSemicolonAfter()
         {
-            SourceText oldText = SourceText.From(@"
-System.Console.WriteLine(true)
+            SourceText oldText = SourceText.From(@"System.Console.WriteLine(true)
 ");
             var startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
 
             startTree.GetDiagnostics().Verify();
 
-            var newText = oldText.WithInsertAt(oldText.Length, "\nSystem.Console.WriteLine(false)");
+            var newText = oldText.WithInsertAt(
+                oldText.Length, 
+                @"System.Console.WriteLine(false)
+");
+
+            AssertEx.Equal(@"System.Console.WriteLine(true)
+System.Console.WriteLine(false)
+", newText.ToString());
+
             var reparsedTree = startTree.WithChangedText(newText);
 
             var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
             parsedTree.GetDiagnostics().Verify(
-                // (2,31): error CS1002: ; expected
+                // (1,31): error CS1002: ; expected
                 // System.Console.WriteLine(true)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 31));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 31));
 
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }
@@ -2391,21 +2404,26 @@ System.Console.WriteLine(true)
         [Fact]
         public void MakeEmbeddedExpressionStatementWithoutSemicolon()
         {
-            SourceText oldText = SourceText.From(@"
-System.Console.WriteLine(true)
+            SourceText oldText = SourceText.From(@"System.Console.WriteLine(true)
 ");
             var startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
 
             startTree.GetDiagnostics().Verify();
 
-            var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), "if (false)\n"));
+            var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), @"if (false)
+"));
+
+            AssertEx.Equal(@"if (false)
+System.Console.WriteLine(true)
+", newText.ToString());
+
             var reparsedTree = startTree.WithChangedText(newText);
             var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
 
             parsedTree.GetDiagnostics().Verify(
-                // (3,31): error CS1002: ; expected
+                // (2,31): error CS1002: ; expected
                 // System.Console.WriteLine(true)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 31));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 31));
 
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }

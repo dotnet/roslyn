@@ -186,17 +186,16 @@ d.Do()"
 
             try
             {
-                var state = CSharpScript.RunAsync(@"
- if (true)
+                var state = CSharpScript.RunAsync(@"if (true)
  System.Console.WriteLine(true)", globals: new ScriptTests());
             }
             catch (CompilationErrorException ex)
             {
                 exceptionThrown = true;
                 ex.Diagnostics.Verify(
-                // (3,32): error CS1002: ; expected
+                // (2,32): error CS1002: ; expected
                 //  System.Console.WriteLine(true)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 32));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 32));
             }
 
              Assert.True(exceptionThrown);
@@ -206,8 +205,7 @@ d.Do()"
         [Fact]
         public void TestRunEmbeddedStatementFollowedBySemicolon()
         {
-            var state = CSharpScript.RunAsync(@"
-if (true)
+            var state = CSharpScript.RunAsync(@"if (true)
 System.Console.WriteLine(true);", globals: new ScriptTests());
             Assert.Null(state.Exception);
         }
@@ -216,8 +214,7 @@ System.Console.WriteLine(true);", globals: new ScriptTests());
         [Fact]
         public void TestRunStatementFollowedBySpace()
         {
-            var state = CSharpScript.RunAsync(@"
-System.Console.WriteLine(true) ", globals: new ScriptTests());
+            var state = CSharpScript.RunAsync(@"System.Console.WriteLine(true) ", globals: new ScriptTests());
             Assert.Null(state.Exception);
         }
 
@@ -225,23 +222,33 @@ System.Console.WriteLine(true) ", globals: new ScriptTests());
         [Fact]
         public void TestRunStatementFollowedByNewLineNoSemicolon()
         {
+            var state = CSharpScript.RunAsync(@"
+System.Console.WriteLine(true)
+
+", globals: new ScriptTests());
+            Assert.Null(state.Exception);
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void TestRunEmbeddedNoSemicolonFollowedByAnotherStatement()
+        {
             var exceptionThrown = false;
 
             try
             {
-                var state = CSharpScript.RunAsync(@"
-System.Console.WriteLine(true)\n", globals: new ScriptTests());
+                var state = CSharpScript.RunAsync(@"if (e) a = b 
+throw e;", globals: new ScriptTests());
             }
             catch (CompilationErrorException ex)
             {
                 exceptionThrown = true;
+                // Verify that it produces a single ExpectedSemicolon error. 
+                // No duplicates for the same error.
                 ex.Diagnostics.Verify(
-                // (2,31): error CS1002: ; expected
-                // System.Console.WriteLine(true)\n
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, @"\").WithLocation(2, 31),
-                // (2,31): error CS1056: Unexpected character '\'
-                // System.Console.WriteLine(true)\n
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(2, 31));
+                // (1,13): error CS1002: ; expected
+                // if (e) a = b 
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 13));
             }
 
             Assert.True(exceptionThrown);
