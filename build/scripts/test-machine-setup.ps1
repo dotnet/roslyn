@@ -12,8 +12,8 @@ try {
     }
 
     . (Join-Path $PSScriptRoot "build-utils.ps1")
-    Write-Host "Calling Get-MSBuildDirCore"
-    Get-MSBuildDirCore
+    Write-Host "Calling Get-MSBuildKindAndDir"
+    Get-MSBuildKindAndDir
     Write-Host "Calling Get-MSBuildDir"
     Get-MSBuildDir
     

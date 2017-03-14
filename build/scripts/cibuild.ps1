@@ -24,7 +24,7 @@ function Print-Usage() {
 }
 
 function Run-MSBuild() {
-    # Because override the C#/VB toolset to build against our LKG package, it is important
+    # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
@@ -39,13 +39,13 @@ function Run-MSBuild() {
 # Kill any instances of msbuild.exe to ensure that we never reuse nodes (e.g. if a non-roslyn CI run
 # left some floating around).
 function Terminate-BuildProcesses() {
-    gps msbuild -ErrorAction SilentlyContinue | kill 
-    gps vbcscompiler -ErrorAction SilentlyContinue | kill
+    Get-Process msbuild -ErrorAction SilentlyContinue | kill 
+    Get-Process vbcscompiler -ErrorAction SilentlyContinue | kill
 }
 
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
-    pushd $repoDir
+    Push-Location $repoDir
 
     Write-Host "Parameters:"
     foreach ($k in $PSBoundParameters.Keys)  {
@@ -140,5 +140,5 @@ catch {
     exit 1
 }
 finally {
-    popd
+    Pop-Location
 }

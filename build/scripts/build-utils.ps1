@@ -22,11 +22,8 @@ function Exec([scriptblock]$cmd, [string]$errorMessage = "Error executing comman
 # Ensure that NuGet is installed and return the path to the 
 # executable to use.
 function Ensure-NuGet() {
+    Exec { & (Join-Path $PSScriptRoot "download-nuget.ps1") }
     $nuget = Join-Path $repoDir "NuGet.exe"
-    if (-not (Test-Path $nuget)) {
-        Exec { & (Join-Path $PSScriptRoot "download-nuget.ps1") }
-    }
-
     return $nuget
 }
 
@@ -78,7 +75,7 @@ function Get-PackagesDir {
 #   2. MSBuild from a machine wide VS install
 #
 # This function will return two values: the kind of MSBuild chosen and the MSBuild directory.
-function Get-MSBuildDirCore() {
+function Get-MSBuildKindAndDir() {
 
     # MSBuild from an active VS command prompt.  
     if (${env:VSINSTALLDIR} -ne $null) {
@@ -109,7 +106,7 @@ function Get-MSBuildDirCore() {
 }
 
 function Get-MSBuildDir() {
-    $both = Get-MSBuildDirCore
+    $both = Get-MSBuildKindAndDir
     return $both[1]
 }
 
