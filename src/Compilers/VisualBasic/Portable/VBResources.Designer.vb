@@ -11866,6 +11866,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Unable to load analyzer assembly.
+        '''</summary>
+        Friend ReadOnly Property ERRWRN_Last_Title() As String
+            Get
+                Return ResourceManager.GetString("ERRWRN_Last_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to array literal expressions.
         '''</summary>
         Friend ReadOnly Property FEATURE_ArrayLiterals() As String
@@ -11952,6 +11961,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite() As String
             Get
                 Return ResourceManager.GetString("FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to interpolated strings.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_InterpolatedStrings() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_InterpolatedStrings", resourceCulture)
             End Get
         End Property
         

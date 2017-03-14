@@ -1,0 +1,88 @@
+{
+  "version": 2,
+  "targets": {
+    ".NETFramework,Version=v4.6": {
+      "Microsoft.VSSDK.BuildTools/14.3.25420": {
+        "type": "package"
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.VSSDK.BuildTools/14.3.25420": {
+      "sha512": "UAy68tZnVLve6y6EIovy11n3hi6aiJ7HsfCA3oiwZXBaISkmP94+QL3zdDfNNLpEfrVtt/RXakZwaORPhSx38Q==",
+      "type": "package",
+      "path": "microsoft.vssdk.buildtools/14.3.25420",
+      "files": [
+        "build/Microsoft.VSSDK.BuildTools.props",
+        "build/Microsoft.VSSDK.BuildTools.targets",
+        "microsoft.vssdk.buildtools.14.3.25420.nupkg.sha512",
+        "microsoft.vssdk.buildtools.nuspec",
+        "tools/vssdk/Microsoft.VsSDK.Build.Tasks.dll",
+        "tools/vssdk/Microsoft.VsSDK.Common.props",
+        "tools/vssdk/Microsoft.VsSDK.Common.targets",
+        "tools/vssdk/Microsoft.VsSDK.Cpp.Overrides.targets",
+        "tools/vssdk/Microsoft.VsSDK.Cpp.targets",
+        "tools/vssdk/Microsoft.VsSDK.targets",
+        "tools/vssdk/ProjectItemsSchema.xml",
+        "tools/vssdk/bin/ConvertCTCToVSCT.pl",
+        "tools/vssdk/bin/CreatePkgDef.exe",
+        "tools/vssdk/bin/CreatePkgDef.exe.config",
+        "tools/vssdk/bin/DebugSamples.dll",
+        "tools/vssdk/bin/Microsoft.VSDebugger.Native.targets",
+        "tools/vssdk/bin/Microsoft.VSDebugger.targets",
+        "tools/vssdk/bin/Microsoft.VisualStudio.Shell.Immutable.10.0.dll",
+        "tools/vssdk/bin/RegPkg.exe",
+        "tools/vssdk/bin/RegPkg.exe.config",
+        "tools/vssdk/bin/RegRiched20.exe",
+        "tools/vssdk/bin/SetEngineLogMode.cmd",
+        "tools/vssdk/bin/VSCT.exe",
+        "tools/vssdk/bin/VSCTCompress.dll",
+        "tools/vssdk/bin/VSCTLibrary.dll",
+        "tools/vssdk/bin/vsdconfigtool.exe",
+        "tools/vssdk/inc/AppIDCmdUsed.vsct",
+        "tools/vssdk/inc/EmulatorCmdUsed.vsct",
+        "tools/vssdk/inc/KnownImageIds.vsct",
+        "tools/vssdk/inc/Menus.vsct",
+        "tools/vssdk/inc/MnuHelpIds.h",
+        "tools/vssdk/inc/RazorCmdId.h",
+        "tools/vssdk/inc/RazorCmdUsed.vsct",
+        "tools/vssdk/inc/RazorGuids.h",
+        "tools/vssdk/inc/SharedCmdDef.vsct",
+        "tools/vssdk/inc/SharedCmdPlace.vsct",
+        "tools/vssdk/inc/ShellCmdDef.vsct",
+        "tools/vssdk/inc/ShellCmdPlace.vsct",
+        "tools/vssdk/inc/VsDbgCmd.h",
+        "tools/vssdk/inc/VsDbgCmdPlace.VSCT",
+        "tools/vssdk/inc/VsDbgCmdUsed.VSCT",
+        "tools/vssdk/inc/editids.h",
+        "tools/vssdk/inc/sccmnid.h",
+        "tools/vssdk/inc/sharedids.h",
+        "tools/vssdk/inc/stdidcmd.h",
+        "tools/vssdk/inc/venusids.h",
+        "tools/vssdk/inc/venusmenu.vsct",
+        "tools/vssdk/inc/virtkeys.h",
+        "tools/vssdk/inc/vsdebugguids.h",
+        "tools/vssdk/inc/vsshlids.h",
+        "tools/vssdk/inc/wbids.h",
+        "tools/vssdk/schemas/PackageLanguagePackManifestSchema.xsd",
+        "tools/vssdk/schemas/PackageManifestSchema.Assets.xsd",
+        "tools/vssdk/schemas/PackageManifestSchema.Dependencies.xsd",
+        "tools/vssdk/schemas/PackageManifestSchema.Installation.xsd",
+        "tools/vssdk/schemas/PackageManifestSchema.Metadata.xsd",
+        "tools/vssdk/schemas/PackageManifestSchema.xsd",
+        "tools/vssdk/schemas/VSIXManifestSchema.xsd"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "": [
+      "Microsoft.VSSDK.BuildTools >= 14.3.25420"
+    ],
+    ".NETFramework,Version=v4.6": []
+  },
+  "tools": {},
+  "projectFileToolGroups": {},
+  "packageFolders": {
+    "C:\\Users\\Adam\\.nuget\\packages\\": {}
+  }
+}

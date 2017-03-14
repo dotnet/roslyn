@@ -149,6 +149,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_Tuples
                 Case Feature.IOperation
                     Return ERRID.FEATURE_IOperation
+                Case Feature.InterpolatedStrings
+                    Return ERRID.FEATURE_InterpolatedStrings
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
