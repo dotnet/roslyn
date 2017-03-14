@@ -76,11 +76,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             // We're going to be continually editing this tree.  Track all the nodes we
             // care about so we can find them across each edit.
-            var currentRoot = originalRoot.TrackNodes(originalObjectCreationNodes);
-
+            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes));
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            (semanticModel, currentRoot) = GetCurrentSemanticModelAndRoot(
-                semanticModel, currentRoot, cancellationToken);
+            var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             while (originalObjectCreationNodes.Count > 0)
             {
@@ -107,27 +105,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     subEditor.RemoveNode(match);
                 }
 
-                var newRoot = subEditor.GetChangedRoot();
-                (semanticModel, currentRoot) = GetCurrentSemanticModelAndRoot(
-                    semanticModel, newRoot, cancellationToken);
+                document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
+                semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
             editor.ReplaceNode(originalRoot, currentRoot);
-        }
-
-        private static (SemanticModel, SyntaxNode) GetCurrentSemanticModelAndRoot(
-            SemanticModel semanticModel, SyntaxNode newRoot, CancellationToken cancellationToken)
-        {
-            var oldSyntaxTree = semanticModel.SyntaxTree;
-            var newSyntaxTree = semanticModel.SyntaxTree.WithRootAndOptions(
-                newRoot, oldSyntaxTree.Options);
-
-            var newCompilation = semanticModel.Compilation.ReplaceSyntaxTree(oldSyntaxTree, newSyntaxTree);
-
-            var currentSemanticModel = newCompilation.GetSemanticModel(newSyntaxTree);
-            var currentRoot = currentSemanticModel.SyntaxTree.GetRoot(cancellationToken);
-
-            return (currentSemanticModel, currentRoot);
         }
 
         protected abstract TStatementSyntax GetNewStatement(
