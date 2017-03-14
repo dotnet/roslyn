@@ -30,7 +30,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Benchview.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Tools.cs" />
     <Compile Include="TraceBackup.cs" />
