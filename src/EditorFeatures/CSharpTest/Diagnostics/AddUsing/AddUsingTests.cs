@@ -4405,6 +4405,96 @@ namespace N
 }");
         }
 
+        [WorkItem(15025, "https://github.com/dotnet/roslyn/issues/15025")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestPreferSystemNamespaceFirst()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+namespace Microsoft
+{
+    public class SomeClass { }
+}
+
+namespace System
+{
+    public class SomeClass { }
+}
+
+namespace N
+{
+    class Class
+    {
+        [|SomeClass|] c;
+    }
+}",
+@"
+using System;
+
+namespace Microsoft
+{
+    public class SomeClass { }
+}
+
+namespace System
+{
+    public class SomeClass { }
+}
+
+namespace N
+{
+    class Class
+    {
+        SomeClass c;
+    }
+}");
+        }
+
+        [WorkItem(15025, "https://github.com/dotnet/roslyn/issues/15025")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestPreferSystemNamespaceFirst2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+namespace Microsoft
+{
+    public class SomeClass { }
+}
+
+namespace System
+{
+    public class SomeClass { }
+}
+
+namespace N
+{
+    class Class
+    {
+        [|SomeClass|] c;
+    }
+}",
+@"
+using Microsoft;
+
+namespace Microsoft
+{
+    public class SomeClass { }
+}
+
+namespace System
+{
+    public class SomeClass { }
+}
+
+namespace N
+{
+    class Class
+    {
+        SomeClass c;
+    }
+}", index: 1);
+        }
+
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
