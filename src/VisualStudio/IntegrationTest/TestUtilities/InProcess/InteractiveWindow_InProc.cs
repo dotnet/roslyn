@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
 
         public int GetCaretPositionColumn()
-            => _interactiveWindow.TextView.Caret.Position.BufferPosition.Position;
+            => _interactiveWindow.TextView.Caret.Position.VirtualSpaces;
 
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.

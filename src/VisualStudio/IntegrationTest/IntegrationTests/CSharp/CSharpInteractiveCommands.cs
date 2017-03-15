@@ -20,46 +20,37 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             SubmitText("1 + 2");
             SubmitText("1.ToString()");
             SendKeys(new KeyPress(VirtualKey.Up, ShiftState.Alt));
-            Wait();
             VerifyLastReplInput("1.ToString()");
             SendKeys(VirtualKey.Enter);
-            Wait();
-            VerifyLastReplOutput("\"1\"");
+            WaitForReplOutput("\"1\"");
             SendKeys(new KeyPress(VirtualKey.Up, ShiftState.Alt));
-            Wait();
             VerifyLastReplInput("1.ToString()");
             SendKeys(new KeyPress(VirtualKey.Up, ShiftState.Alt));
-            Wait();
             VerifyLastReplInput("1 + 2");
             SendKeys(VirtualKey.Enter);
-            Wait();
-            VerifyLastReplOutput("3");
+            WaitForReplOutput("3");
             SendKeys(new KeyPress(VirtualKey.Down, ShiftState.Alt));
-            Wait();
             VerifyLastReplInput("1.ToString()");
             SendKeys(VirtualKey.Enter);
-            Wait();
-            VerifyLastReplOutput("\"1\"");
+            WaitForReplOutput("\"1\"");
         }
 
         [Fact]
         public void VerifyMaybeExecuteInput()
         {
-            SetText("2 + 3");
+            SendKeys("2 + 3");
             SendKeys(VirtualKey.Enter);
-            Wait();
-            VerifyLastReplOutput("5");
+            WaitForReplOutput("5");
         }
 
         [Fact]
         public void VerifyNewLineAndIndent()
         {
-            SetText("3 + ");
+            SendKeys("3 + ");
             SendKeys(VirtualKey.Enter);
-            SetText("4");
+            SendKeys("4");
             SendKeys(VirtualKey.Enter);
-            Wait();
-            VerifyLastReplOutput("7");
+            WaitForReplOutput("7");
         }
 
         [Fact]
@@ -72,9 +63,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyForceNewLineAndIndent()
         {
-            SetText("1 + 2");
+            SendKeys("1 + 2");
             SendKeys(VirtualKey.Enter);
-            Wait();
             SubmitText("+ 3");
             VerifyReplPromptConsistency("<![CDATA[1 + 2 + 3]]>", "6");
         }
@@ -82,10 +72,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyCancelInput()
         {
-            SetText("1 + 4");
+            SendKeys("1 + 4");
             SendKeys(new KeyPress(VirtualKey.Enter, ShiftState.Shift));
             SendKeys(VirtualKey.Escape);
-            Wait();
             VerifyLastReplInput(string.Empty);
         }
 
@@ -93,23 +82,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void VerifyUndoAndRedo()
         {
             ClearReplText();
-            SetText(" 2 + 4 ");
+            SendKeys(" 2 + 4 ");
             SendKeys(new KeyPress(VirtualKey.Z, ShiftState.Ctrl));
-            //  < VerifyReplInput >
-            //    < ![CDATA[]] >
-            //  </ VerifyReplInput >
-            VerifyLastReplInput(string.Empty);
+            VerifyReplPromptConsistency("< ![CDATA[]] >", string.Empty);
             SendKeys(new KeyPress(VirtualKey.Y, ShiftState.Ctrl));
             VerifyLastReplInput(" 2 + 4 ");
             SendKeys(VirtualKey.Enter);
-            Wait();
-            VerifyLastReplOutput("6");
+            WaitForReplOutput("6");
         }
 
         [Fact]
         public void CutDeletePasteSelectAll()
         {
-            SetText("Text");
+            SendKeys("Text");
             ExecuteCommand("Edit.LineStart");
             ExecuteCommand("Edit.LineEnd");
             ExecuteCommand("Edit.LineStartExtend");
@@ -144,11 +129,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             SendKeys(VirtualKey.Left);
             SendKeys(VirtualKey.Enter);
             VerifyCaretPositionColumn(6);
-        }
-
-        private void Wait()
-        {
-            Wait(seconds: 5);
         }
     }
 }

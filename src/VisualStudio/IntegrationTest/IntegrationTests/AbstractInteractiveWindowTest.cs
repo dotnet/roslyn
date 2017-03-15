@@ -44,11 +44,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void SubmitText(string text, bool waitForPrompt = true)
             => InteractiveWindow.SubmitText(text, waitForPrompt);
 
-        protected void SetText(string input)
-        {
-            VisualStudio.Instance.SendKeys.Send(input);
-        }
-
         protected void SendKeys(params object[] input)
         {
             VisualStudio.Instance.SendKeys.Send(input);
@@ -73,8 +68,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void VerifyCaretPositionColumn(int expectedCaretPosition)
         {
-            var caretPosition = InteractiveWindow.GetCaretPositionColumn();
-            Assert.Equal(expectedCaretPosition, caretPosition);
+            var position = InteractiveWindow.GetCaretPositionColumn();
+            Assert.Equal(expectedCaretPosition, position);
         }
 
         protected void VerifyLastReplOutputContains(string expectedReplOutput)
