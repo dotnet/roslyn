@@ -40,6 +40,7 @@
     "Microsoft.MSXML": "8.0.0.0-alpha",
     "Microsoft.Build": "15.1.0-preview-000458-02",
     "VSLangProj": "7.0.3300",
+    "VSLangProj2": "7.0.5000",
     "VSLangProj80": "8.0.0.0-alpha",
     "VSLangProj140": "14.3.25407-alpha",
     "VsWebsite.Interop": "8.0.0.0-alpha",

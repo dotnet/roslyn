@@ -1325,11 +1325,66 @@ d.cs
         }
 
         [Fact]
-        public void RememberToUpdateDiagnosticsWhenUpdatingLangVersion()
+        public void LanguageVersionAdded_Canary()
         {
-            // When new language versions are added, this test will fail. Remember to update the diagnostics message (ERR_BadCompatMode).
+            // When a new version is added, this test will break. This list must be checked:
+            // - update the command-line error for bad /langver flag (<see cref="ErrorCode.ERR_BadCompatMode"/>)
+            // - update the "UpgradeProject" codefixer
+            // - update the IDE drop-down for selecting Language Version
+            // - don't fix the canary test until you update all the tests that include it
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
+        }
+
+        [Fact]
+        public void LanguageVersion_DisplayString()
+        {
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7", "latest" },
+                Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
+            // For minor versions, the format should be "x.y", such as "7.1"
+        }
+
+        [Fact]
+        public void LanguageVersion_MapSpecifiedToEffectiveVersion()
+        {
+            Assert.Equal(LanguageVersion.CSharp1, LanguageVersion.CSharp1.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp2, LanguageVersion.CSharp2.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp3, LanguageVersion.CSharp3.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp4, LanguageVersion.CSharp4.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp5, LanguageVersion.CSharp5.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp6, LanguageVersion.CSharp6.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.CSharp7.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+
+            // The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary();
+        }
+
+        [Theory,
+            InlineData("iso-1", true, LanguageVersion.CSharp1),
+            InlineData("ISO-1", true, LanguageVersion.CSharp1),
+            InlineData("iso-2", true, LanguageVersion.CSharp2),
+            InlineData("1", true, LanguageVersion.CSharp1),
+            InlineData("2", true, LanguageVersion.CSharp2),
+            InlineData("3", true, LanguageVersion.CSharp3),
+            InlineData("4", true, LanguageVersion.CSharp4),
+            InlineData("5", true, LanguageVersion.CSharp5),
+            InlineData("05", true, LanguageVersion.CSharp5),
+            InlineData("6", true, LanguageVersion.CSharp6),
+            InlineData("7", true, LanguageVersion.CSharp7),
+            InlineData("07", false, LanguageVersion.Default),
+            InlineData("default", true, LanguageVersion.Default),
+            InlineData("latest", true, LanguageVersion.Latest),
+            InlineData(null, true, LanguageVersion.Default),
+            InlineData("bad", false, LanguageVersion.Default)]
+        public void LanguageVersion_TryParseDisplayString(string input, bool success, LanguageVersion expected)
+        {
+            Assert.Equal(success, input.TryParse(out var version));
+            Assert.Equal(expected, version);
+
+            // The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary();
         }
 
         [Fact]
@@ -6388,7 +6443,9 @@ namespace System
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", src.ToString(), "/define:a;;b@" }).Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal("warning CS2029: Invalid name for a preprocessing symbol; '' is not a valid identifier", outWriter.ToString().Trim());
+            var errorLines = outWriter.ToString().Trim().Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            Assert.Equal("warning CS2029: Invalid name for a preprocessing symbol; '' is not a valid identifier", errorLines[0]);
+            Assert.Equal("warning CS2029: Invalid name for a preprocessing symbol; 'b@' is not a valid identifier", errorLines[1]);
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", src.ToString(), "/define:a,b@;" }).Run(outWriter);
@@ -6399,8 +6456,9 @@ namespace System
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", src.ToString(), @"/define:OE_WIN32=-1:LANG_HOST_EN=-1:LANG_OE_EN=-1:LANG_PRJ_EN=-1:HOST_COM20SDKEVERETT=-1:EXEMODE=-1:OE_NT5=-1:Win32=-1", @"/d:TRACE=TRUE,DEBUG=TRUE" }).Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal(@"warning CS2029: Invalid name for a preprocessing symbol; 'OE_WIN32=-1:LANG_HOST_EN=-1:LANG_OE_EN=-1:LANG_PRJ_EN=-1:HOST_COM20SDKEVERETT=-1:EXEMODE=-1:OE_NT5=-1:Win32=-1' is not a valid identifier
-warning CS2029: Invalid name for a preprocessing symbol; 'TRACE=TRUE' is not a valid identifier", outWriter.ToString().Trim());
+            errorLines = outWriter.ToString().Trim().Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            Assert.Equal(@"warning CS2029: Invalid name for a preprocessing symbol; 'OE_WIN32=-1:LANG_HOST_EN=-1:LANG_OE_EN=-1:LANG_PRJ_EN=-1:HOST_COM20SDKEVERETT=-1:EXEMODE=-1:OE_NT5=-1:Win32=-1' is not a valid identifier", errorLines[0]);
+            Assert.Equal(@"warning CS2029: Invalid name for a preprocessing symbol; 'TRACE=TRUE' is not a valid identifier", errorLines[1]);
 
             CleanupAllGeneratedFiles(src.Path);
         }
@@ -8901,6 +8959,19 @@ class C {
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("1000").WithLocation(1, 1));
         }
 
+        [Fact, WorkItem(16913, "https://github.com/dotnet/roslyn/issues/16913")]
+        public void CompilingCodeWithMultipleInvalidPreProcessorSymbolsShouldErrorOut()
+        {
+            var parsedArgs = DefaultParse(new[] { "/define:valid1,2invalid,valid3", "/define:4,5,valid6", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2029: Invalid value for '/define'; '2invalid' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("2invalid"),
+                // warning CS2029: Invalid value for '/define'; '4' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("4"),
+                // warning CS2029: Invalid value for '/define'; '5' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("5"));
+        }
+        
         public class QuotedArgumentTests
         {
             private void VerifyQuotedValid<T>(string name, string value, T expected, Func<CSharpCommandLineArguments, T> getValue)

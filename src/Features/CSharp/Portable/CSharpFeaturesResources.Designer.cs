@@ -1055,6 +1055,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Upgrade all C# projects to language version &apos;{0}&apos;.
+        /// </summary>
+        internal static string Upgrade_all_csharp_projects_to_language_version_0 {
+            get {
+                return ResourceManager.GetString("Upgrade_all_csharp_projects_to_language_version_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upgrade this project to C# language version &apos;{0}&apos;.
+        /// </summary>
+        internal static string Upgrade_this_project_to_csharp_language_version_0 {
+            get {
+                return ResourceManager.GetString("Upgrade_this_project_to_csharp_language_version_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use explicit type.
         /// </summary>
         internal static string Use_explicit_type {

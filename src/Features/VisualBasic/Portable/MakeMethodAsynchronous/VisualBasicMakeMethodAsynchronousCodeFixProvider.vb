@@ -91,16 +91,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
             ' Have to convert this sub into a func. 
             Dim subStatement = node.SubOrFunctionStatement
-            Dim asClause = SyntaxFactory.SimpleAsClause(taskType.GenerateTypeSyntax()).
-                                         WithTrailingTrivia(subStatement.ParameterList.GetTrailingTrivia())
+            Dim asClause =
+                SyntaxFactory.SimpleAsClause(taskType.GenerateTypeSyntax()).
+                              WithTrailingTrivia(
+                                If(subStatement.ParameterList?.GetTrailingTrivia(),
+                                   subStatement.GetTrailingTrivia()))
 
             Dim functionStatement = SyntaxFactory.FunctionStatement(
                 subStatement.AttributeLists,
                 subStatement.Modifiers.Add(s_asyncToken),
                 SyntaxFactory.Token(SyntaxKind.FunctionKeyword).WithTriviaFrom(subStatement.SubOrFunctionKeyword),
-                subStatement.Identifier,
-                subStatement.TypeParameterList,
-                subStatement.ParameterList.WithoutTrailingTrivia(),
+                subStatement.Identifier.WithTrailingTrivia(),
+                subStatement.TypeParameterList?.WithoutTrailingTrivia(),
+                subStatement.ParameterList?.WithoutTrailingTrivia(),
                 asClause,
                 subStatement.HandlesClause,
                 subStatement.ImplementsClause)
