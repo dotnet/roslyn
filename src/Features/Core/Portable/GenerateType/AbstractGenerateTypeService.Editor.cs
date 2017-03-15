@@ -309,11 +309,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     var syntaxFacts = _document.Document.GetLanguageService<ISyntaxFactsService>();
                     var fileBanner = syntaxFacts.GetFileBanner(_document.Root);
-
-                    if (fileBanner.Any(syntaxFacts.IsRegularComment))
-                    {
-                        newRoot = newRoot.WithPrependedLeadingTrivia(fileBanner);
-                    }
+                    newRoot = newRoot.WithPrependedLeadingTrivia(fileBanner);
                 }
 
                 return await CreateAddDocumentAndUpdateUsingsOrImportsOperationsAsync(

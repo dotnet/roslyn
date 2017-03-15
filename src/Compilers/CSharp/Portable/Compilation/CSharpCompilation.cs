@@ -1940,6 +1940,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
                     }
                 }
+
+                var parseOptionsReported = new HashSet<ParseOptions>();
+                foreach (var syntaxTree in syntaxTrees)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (!syntaxTree.Options.Errors.IsDefaultOrEmpty && parseOptionsReported.Add(syntaxTree.Options))
+                    {
+                        var location = syntaxTree.GetLocation(TextSpan.FromBounds(0, 0));
+                        foreach (var error in syntaxTree.Options.Errors)
+                        {
+                            builder.Add(error.WithLocation(location));
+                        }
+                    }
+                }
             }
 
             if (stage == CompilationStage.Declare || stage > CompilationStage.Declare && includeEarlierStages)

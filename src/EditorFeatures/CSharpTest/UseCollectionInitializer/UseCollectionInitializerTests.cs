@@ -701,5 +701,73 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
+        public async Task TestMissingWhenReferencedInInitializer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        var items = new [||]List<object>();
+        items[0] = items[0];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
+        public async Task TestWhenReferencedInInitializer()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        var items = new [||]List<object>();
+        items[0] = 1;
+        items[1] = items[0];
+    }
+}",
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        var items = new [||]List<object>
+        {
+            [0] = 1
+        };
+        items[1] = items[0];
+    }
+}");
+        }
+
+        [WorkItem(17853, "https://github.com/dotnet/roslyn/issues/17853")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestMissingForDynamic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Dynamic;
+
+class C
+{
+    void Foo()
+    {
+        dynamic body = [||]new ExpandoObject();
+        body[0] = new ExpandoObject();
+    }
+}");
+        }
     }
 }

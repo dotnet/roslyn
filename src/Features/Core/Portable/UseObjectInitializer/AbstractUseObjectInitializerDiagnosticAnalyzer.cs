@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var syntaxFacts = GetSyntaxFactsService();
             var analyzer = new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>(
-                syntaxFacts, objectCreationExpression);
+                context.SemanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
             var result = analyzer.Analyze();
 
             if (result == null || result.Value.Length == 0)

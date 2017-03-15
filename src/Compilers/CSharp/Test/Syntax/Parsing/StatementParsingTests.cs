@@ -2661,6 +2661,21 @@ class Program
                 CSharpTestBase.Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 10));
         }
 
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void TestRunEmbeddedStatementNotFollowedBySemicolon()
+        {
+            var text = @"if (true)
+System.Console.WriteLine(true)";
+            var statement = this.ParseStatement(text);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.IfStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(1, statement.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, statement.Errors()[0].Code);
+        }
+
         private sealed class TokenAndTriviaWalker : CSharpSyntaxWalker
         {
             public int Tokens;

@@ -45,19 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsSingleLineComment(this SyntaxTrivia trivia)
-        {
-            return trivia.Kind() == SyntaxKind.SingleLineCommentTrivia;
-        }
+            => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia;
 
         public static bool IsMultiLineComment(this SyntaxTrivia trivia)
-        {
-            return trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
-        }
+            => trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
 
         public static bool IsShebangDirective(this SyntaxTrivia trivia)
-        {
-            return trivia.Kind() == SyntaxKind.ShebangDirectiveTrivia;
-        }
+            => trivia.Kind() == SyntaxKind.ShebangDirectiveTrivia;
 
         public static bool IsCompleteMultiLineComment(this SyntaxTrivia trivia)
         {

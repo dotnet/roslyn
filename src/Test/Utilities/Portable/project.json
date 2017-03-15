@@ -4,6 +4,7 @@
     "Microsoft.CSharp": "4.3.0",
     "Microsoft.NETCore.Platforms": "1.1.0",
     "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+    "Microsoft.DiaSymReader.Converter.Xml": "1.0.0-beta1-61513-01",
     "System.Collections.Concurrent": "4.3.0",
     "System.Console": "4.3.0",
     "System.Diagnostics.Debug": "4.3.0",

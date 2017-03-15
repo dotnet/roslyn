@@ -1331,6 +1331,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Provided documentation mode is unsupported or invalid: &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_BadDocumentationMode {
+            get {
+                return ResourceManager.GetString("ERR_BadDocumentationMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: user-defined conversions to or from the dynamic type are not allowed.
         /// </summary>
         internal static string ERR_BadDynamicConversion {
@@ -1619,6 +1628,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Provided language version is unsupported or invalid: &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_BadLanguageVersion {
+            get {
+                return ResourceManager.GetString("ERR_BadLanguageVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The modifier &apos;{0}&apos; is not valid for this item.
         /// </summary>
         internal static string ERR_BadMemberFlag {
@@ -1858,6 +1876,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadSKunknown {
             get {
                 return ResourceManager.GetString("ERR_BadSKunknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Provided source code kind is unsupported or invalid: &apos;{0}&apos;.
+        /// </summary>
+        internal static string ERR_BadSourceCodeKind {
+            get {
+                return ResourceManager.GetString("ERR_BadSourceCodeKind", resourceCulture);
             }
         }
         
@@ -5638,6 +5665,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InvalidPathMap {
             get {
                 return ResourceManager.GetString("ERR_InvalidPathMap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid name for a preprocessing symbol; &apos;{0}&apos; is not a valid identifier.
+        /// </summary>
+        internal static string ERR_InvalidPreprocessingSymbol {
+            get {
+                return ResourceManager.GetString("ERR_InvalidPreprocessingSymbol", resourceCulture);
             }
         }
         
@@ -12105,7 +12141,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid value for &apos;/define&apos;; &apos;{0}&apos; is not a valid identifier.
+        ///   Looks up a localized string similar to Invalid name for a preprocessing symbol; &apos;{0}&apos; is not a valid identifier.
         /// </summary>
         internal static string WRN_DefineIdentifierRequired {
             get {
@@ -12114,7 +12150,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid value for &apos;/define&apos;; not a valid identifier.
+        ///   Looks up a localized string similar to Invalid name for a preprocessing symbol; not a valid identifier.
         /// </summary>
         internal static string WRN_DefineIdentifierRequired_Title {
             get {

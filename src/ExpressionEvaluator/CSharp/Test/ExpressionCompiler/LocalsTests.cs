@@ -801,7 +801,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            WithRuntimeInstance(comp, references: null, includeLocalSignatures: false, validator: runtime =>
+            WithRuntimeInstance(comp, references: null, includeLocalSignatures: false, includeIntrinsicAssembly: true, validator: runtime =>
             {
                 var context = CreateMethodContext(
                     runtime,
