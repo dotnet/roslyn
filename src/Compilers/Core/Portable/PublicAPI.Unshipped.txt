@@ -815,6 +815,7 @@ override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWithStatement(Mic
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation) -> void
 override Microsoft.CodeAnalysis.SyntaxNode.ToString() -> string
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.StartsWith(string value, string possibleStart) -> bool
+static Microsoft.CodeAnalysis.Compilation.GetRequiredLanguageVersion(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> string
 static Microsoft.CodeAnalysis.EmbeddedText.FromBytes(string filePath, System.ArraySegment<byte> bytes, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1) -> Microsoft.CodeAnalysis.EmbeddedText
 static Microsoft.CodeAnalysis.EmbeddedText.FromSource(string filePath, Microsoft.CodeAnalysis.Text.SourceText text) -> Microsoft.CodeAnalysis.EmbeddedText
 static Microsoft.CodeAnalysis.EmbeddedText.FromStream(string filePath, System.IO.Stream stream, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1) -> Microsoft.CodeAnalysis.EmbeddedText
