@@ -109,6 +109,86 @@ class Program
   IL_0010:  ret
 }");
         }
+        
+        [Fact]
+        public void InParamPassRoField()
+        {
+            var text = @"
+class Program
+{
+    public static readonly int F = 42;
+
+    public static void Main()
+    {
+        System.Console.WriteLine(M(F));
+    }
+
+    static ref readonly int M(in int x)
+    {
+        return ref x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: "42");
+
+            comp.VerifyIL("Program.Main()", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldsflda    ""int Program.F""
+  IL_0005:  call       ""ref readonly int Program.M(ref readonly int)""
+  IL_000a:  ldind.i4
+  IL_000b:  call       ""void System.Console.WriteLine(int)""
+  IL_0010:  ret
+}");
+
+
+            comp.VerifyIL("Program.M(ref readonly int)", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void InParamPassRoParamReturn()
+        {
+            var text = @"
+class Program
+{
+    public static readonly int F = 42;
+
+    public static void Main()
+    {
+        System.Console.WriteLine(M(F));
+    }
+
+    static ref readonly int M(in int x)
+    {
+        return ref M1(x);
+    }
+
+    static ref readonly int M1(in int x)
+    {
+        return ref x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: "42");
+
+            comp.VerifyIL("Program.M(ref readonly int)", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref readonly int Program.M1(ref readonly int)""
+  IL_0006:  ret
+}");
+        }
 
         [Fact]
         public void RefReturnParamAccess1()
