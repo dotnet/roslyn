@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : CompilingTestBase
+    public partial class IOperationTests : SemanticModelTestBase
     {
         [Fact]
         [WorkItem(382240, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=382240")]

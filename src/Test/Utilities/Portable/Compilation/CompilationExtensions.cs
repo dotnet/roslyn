@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var actualTextBuilder = new StringBuilder();
             SemanticModel model = compilation.GetSemanticModel(node.SyntaxTree);
             AppendOperationTree(model, node, actualTextBuilder);
-            VerifyOperationTree(expectedOperationTree, actualTextBuilder.ToString());
+            OperationTreeVerifier.Verify(expectedOperationTree, actualTextBuilder.ToString());
         }
 
         internal static void VerifyOperationTree(this Compilation compilation, string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 actualTextBuilder.Append(Environment.NewLine);
             }
 
-            VerifyOperationTree(expectedOperationTree, actualTextBuilder.ToString());
+            OperationTreeVerifier.Verify(expectedOperationTree, actualTextBuilder.ToString());
         }
 
         private static void AppendOperationTree(SemanticModel model, SyntaxNode node, StringBuilder actualTextBuilder, int initialIndent = 0)
@@ -233,15 +233,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 actualTextBuilder.Append($"  SemanticModel.GetOperation() returned NULL for node with text: '{node.ToString()}'");
             }
-        }
-
-        private static void VerifyOperationTree(string expectedOperationTree, string actualOperationTree)
-        {
-            char[] newLineChars = Environment.NewLine.ToCharArray();
-            string actual = actualOperationTree.Trim(newLineChars);
-            expectedOperationTree = expectedOperationTree.Trim(newLineChars);
-            expectedOperationTree = Regex.Replace(expectedOperationTree, "([^\r])\n", "$1" + Environment.NewLine);
-            AssertEx.AreEqual(expectedOperationTree, actual);
         }
 
         internal static bool CanHaveExecutableCodeBlock(ISymbol symbol)
