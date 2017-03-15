@@ -1,17 +1,10 @@
-﻿Imports <xmlns:wix="http://schemas.microsoft.com/wix/2006/wi">
-Imports <xmlns:msbuild="http://schemas.microsoft.com/developer/msbuild/2003">
-Imports <xmlns:vsix="http://schemas.microsoft.com/developer/vsx-schema/2011">
-Imports <xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
-Imports System.IO.Packaging
+﻿Imports System.IO.Packaging
 Imports System.IO
 Imports System.Threading
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 Imports System.Reflection.PortableExecutable
 Imports System.Reflection.Metadata
-Imports Roslyn.BuildDevDivInsertionFiles
-Imports System.Security.Cryptography
-Imports System.Text
 Imports System.Runtime.InteropServices
 
 Public Class BuildDevDivInsertionFiles
@@ -1043,8 +1036,7 @@ Public Class BuildDevDivInsertionFiles
         filesToInsert.GroupBy(Function(x) x).All(Function(g) g.Count() = 1)
 
 
-        Const toolsetDir As String = "VS_Toolset_Files"
-        Dim outputFolder = GetAbsolutePathInOutputDirectory(toolsetDir)
+        Dim outputFolder = GetAbsolutePathInOutputDirectory(PackageName)
 
         Directory.CreateDirectory(outputFolder)
 
@@ -1097,10 +1089,10 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
                           <version>0.0</version>
                       </metadata>
                       <files>
-                          <file src=<%= Path.Combine(outputFolder, " Init.cmd") %>/>
+                          <file src="Init.cmd"/>
                           <%= filesToInsert.
                               OrderBy(Function(f) f).
-                              Select(Function(f) <file src=<%= Path.Combine(outputFolder, f) %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
+                              Select(Function(f) <file src=<%= f %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
                       </files>
                   </package>
 
