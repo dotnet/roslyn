@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 
         #region Namespaces, Types
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17869")]
         public async Task CompilationChain_NestedTypesClass()
         {
             var script = CSharpScript.Create(@"
