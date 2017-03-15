@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private SolutionChecksumUpdater _checksumUpdater;
             private CancellationTokenSource _shutdownCancellationTokenSource;
-            private Task<RemoteHostClient> _instanceTask;
+            private Task<RemoteHostClient> _remoteClientTask;
 
             public RemoteHostClientService(
                 IAsynchronousOperationListener listener,
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 lock (_gate)
                 {
-                    if (_instanceTask != null)
+                    if (_remoteClientTask != null)
                     {
                         // already enabled
                         return;
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     // create solution checksum updater
                     _checksumUpdater = new SolutionChecksumUpdater(this, token);
 
-                    _instanceTask = Task.Run(() => EnableAsync(token), token);
+                    _remoteClientTask = Task.Run(() => EnableAsync(token), token);
                 }
             }
 
@@ -102,14 +102,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 lock (_gate)
                 {
-                    if (_instanceTask == null)
+                    if (_remoteClientTask == null)
                     {
                         // already disabled
                         return;
                     }
 
-                    var instanceTask = _instanceTask;
-                    _instanceTask = null;
+                    var instanceTask = _remoteClientTask;
+                    _remoteClientTask = null;
 
                     RemoveGlobalAssets();
 
@@ -149,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 Task<RemoteHostClient> instanceTask;
                 lock (_gate)
                 {
-                    instanceTask = _instanceTask;
+                    instanceTask = _remoteClientTask;
                 }
 
                 if (instanceTask == null)
@@ -232,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     lock (_gate)
                     {
                         // RemoteHost has been disabled
-                        _instanceTask = null;
+                        _remoteClientTask = null;
                     }
                 }
                 else
@@ -240,11 +240,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     lock (_gate)
                     {
                         // save last remoteHostClient
-                        s_lastInstanceTask = _instanceTask;
+                        s_lastInstanceTask = _remoteClientTask;
 
                         // save NoOpRemoteHostClient to instance so that all RemoteHost call becomes
                         // No Op. this basically have same effect as disabling all RemoteHost features
-                        _instanceTask = Task.FromResult<RemoteHostClient>(new RemoteHostClient.NoOpClient(_workspace));
+                        _remoteClientTask = Task.FromResult<RemoteHostClient>(new RemoteHostClient.NoOpClient(_workspace));
                     }
 
                     // s_lastInstanceTask info should be saved in the dump
@@ -261,9 +261,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var allowRestarting = _workspace.Options.GetOption(RemoteHostOptions.RestartRemoteHostAllowed);
                     if (allowRestarting)
                     {
+                        // this is hidden restart option. by default, user can't restart remote host that got killed
+                        // by users
                         infoBarUIs.Add(
-                            new ErrorReportingUI("Restart OOP", ErrorReportingUI.UIKind.Button, async () =>
-                            await RequestNewRemoteHostAsync(CancellationToken.None).ConfigureAwait(false), closeAfterAction: true));
+                            new ErrorReportingUI("Restart external process", ErrorReportingUI.UIKind.Button, () =>
+                            {
+                                // start off new remote host
+                                var unused = RequestNewRemoteHostAsync(CancellationToken.None);
+                            }, closeAfterAction: true));
                     }
 
                     _workspace.Services.GetService<IErrorReportingService>().ShowGlobalErrorInfo(
@@ -274,27 +279,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             public async Task RequestNewRemoteHostAsync(CancellationToken cancellationToken)
             {
-                var instance = await GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-                if (instance == null)
+                var existingClient = await TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                if (existingClient == null)
                 {
                     return;
                 }
-
 
                 // log that remote host is restarted
                 Logger.Log(FunctionId.RemoteHostClientService_Restarted, KeyValueLogMessage.NoProperty);
 
                 // we are going to kill the existing remote host, connection change is expected
-                instance.ConnectionChanged -= OnConnectionChanged;
+                existingClient.ConnectionChanged -= OnConnectionChanged;
 
                 lock (_gate)
                 {
+                    // create new remote host client
                     var token = _shutdownCancellationTokenSource.Token;
-                    _instanceTask = Task.Run(() => EnableAsync(token), token);
+                    _remoteClientTask = Task.Run(() => EnableAsync(token), token);
                 }
 
                 // shutdown 
-                instance.Shutdown();
+                existingClient.Shutdown();
             }
         }
     }
