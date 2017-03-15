@@ -1035,7 +1035,6 @@ Public Class BuildDevDivInsertionFiles
         ' No duplicates are allowed
         filesToInsert.GroupBy(Function(x) x).All(Function(g) g.Count() = 1)
 
-
         Dim outputFolder = GetAbsolutePathInOutputDirectory(PackageName)
 
         Directory.CreateDirectory(outputFolder)
