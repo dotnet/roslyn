@@ -59,7 +59,7 @@ System.Console.WriteLine(iC.innerStr);
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17869")]
         public async Task CompilationChain_NestedTypesStruct()
         {
             var script = CSharpScript.Create(@"
