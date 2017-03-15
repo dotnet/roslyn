@@ -25,6 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void ClearInteractiveWindow()
         {
             InteractiveWindow.Initialize();
+            InteractiveWindow.ClearScreen();
             InteractiveWindow.ShowWindow();
             InteractiveWindow.Reset();
         }
@@ -49,6 +50,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.Instance.SendKeys.Send(input);
         }
 
+        protected void InsertCode(string text)
+            => InteractiveWindow.InsertCode(text);
+
         protected void ExecuteCommand(string commandName)
         {
             VisualStudio.Instance.ExecuteCommand(commandName);
@@ -66,9 +70,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
             Assert.Equal(expectedReplInput, lastReplInput);
         }
 
-        protected void VerifyCaretPositionColumn(int expectedCaretPosition)
+        protected void VerifyCaretPosition(int expectedCaretPosition)
         {
-            var position = InteractiveWindow.GetCaretPositionColumn();
+            var position = InteractiveWindow.GetCaretPosition();
             Assert.Equal(expectedCaretPosition, position);
         }
 

@@ -15,6 +15,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     internal abstract class InteractiveWindow_InProc : InProcComponent
     {
         private const string ResetCommand = "InteractiveConsole.Reset";
+        private const string CleanScreenCommand = "InteractiveConsole.ClearScreen";
         private const string ReplSubmissionText = ". ";
         private const string ReplPromptText = "> ";
 
@@ -45,8 +46,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetReplText()
             => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
 
-        public int GetCaretPositionColumn()
-            => _interactiveWindow.TextView.Caret.Position.VirtualSpaces;
+        public int GetCaretPosition()
+             => _interactiveWindow.TextView.Caret.Position.BufferPosition.Position;
 
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.
@@ -183,6 +184,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void WaitForReplOutput(string outputText)
             => WaitForReplOutputAsync(outputText).Wait();
+
+        public void ClearScreen()
+        {
+            ExecuteCommand(CleanScreenCommand);
+        }
+
+        public void InsertCode(string text)
+        {
+            _interactiveWindow.InsertCode(text);
+        }
 
         private async Task WaitForReplOutputAsync(string outputText)
         {

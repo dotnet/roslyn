@@ -38,7 +38,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyMaybeExecuteInput()
         {
-            SendKeys("2 + 3");
+            InsertCode("2 + 3");
             SendKeys(VirtualKey.Enter);
             WaitForReplOutput("5");
         }
@@ -46,9 +46,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyNewLineAndIndent()
         {
-            SendKeys("3 + ");
+            InsertCode("3 + ");
             SendKeys(VirtualKey.Enter);
-            SendKeys("4");
+            InsertCode("4");
             SendKeys(VirtualKey.Enter);
             WaitForReplOutput("7");
         }
@@ -63,7 +63,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyForceNewLineAndIndent()
         {
-            SendKeys("1 + 2");
+            InsertCode("1 + 2");
             SendKeys(VirtualKey.Enter);
             SubmitText("+ 3");
             VerifyReplPromptConsistency("<![CDATA[1 + 2 + 3]]>", "6");
@@ -72,7 +72,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyCancelInput()
         {
-            SendKeys("1 + 4");
+            InsertCode("1 + 4");
             SendKeys(new KeyPress(VirtualKey.Enter, ShiftState.Shift));
             SendKeys(VirtualKey.Escape);
             VerifyLastReplInput(string.Empty);
@@ -82,7 +82,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void VerifyUndoAndRedo()
         {
             ClearReplText();
-            SendKeys(" 2 + 4 ");
+            InsertCode(" 2 + 4 ");
             SendKeys(new KeyPress(VirtualKey.Z, ShiftState.Ctrl));
             VerifyReplPromptConsistency("< ![CDATA[]] >", string.Empty);
             SendKeys(new KeyPress(VirtualKey.Y, ShiftState.Ctrl));
@@ -124,11 +124,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyReturnIndentCurrentLine()
         {
+            InteractiveWindow.ClearScreen();
             SendKeys(" (");
             SendKeys(")");
             SendKeys(VirtualKey.Left);
             SendKeys(VirtualKey.Enter);
-            VerifyCaretPositionColumn(6);
+            VerifyCaretPosition(12);
         }
     }
 }
