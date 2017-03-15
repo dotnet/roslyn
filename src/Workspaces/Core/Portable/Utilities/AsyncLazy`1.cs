@@ -520,7 +520,12 @@ namespace Roslyn.Utilities
             }
         }
 
-        private sealed class Request
+        /// <remarks>
+        /// This inherits from <see cref="TaskCompletionSource{TResult}"/> to avoid allocating two objects when we can just use one.
+        /// The public surface area of <see cref="TaskCompletionSource{TResult}"/> should probably be avoided in favor of the public
+        /// methods on this class for correct behavior.
+        /// </remarks>
+        private sealed class Request : TaskCompletionSource<T>
         {
             /// <summary>
             /// The <see cref="CancellationToken"/> associated with this request. This field will be initialized before
@@ -529,19 +534,14 @@ namespace Roslyn.Utilities
             private CancellationToken _cancellationToken;
             private CancellationTokenRegistration _cancellationTokenRegistration;
 
-            private TaskCompletionSource<T> _taskCompletionSource;
-
-            public Request()
+            // We want to always run continuations asynchronously. Running them synchronously could result in deadlocks:
+            // if we're looping through a bunch of Requests and completing them one by one, and the continuation for the
+            // first Request was then blocking waiting for a later Request, we would hang. It also could cause performance
+            // issues. If the first request then consumes a lot of CPU time, we're not letting other Requests complete that
+            // could use another CPU core at the same time.
+            public Request() : base(TaskCreationOptions.RunContinuationsAsynchronously)
             {
-                // We want to always run continuations asynchronously. Running them synchronously could result in deadlocks:
-                // if we're looping through a bunch of Requests and completing them one by one, and the continuation for the
-                // first Request was then blocking waiting for a later Request, we would hang. It also could cause performance
-                // issues. If the first request then consumes a lot of CPU time, we're not letting other Requests complete that
-                // could use another CPU core at the same time.
-                _taskCompletionSource = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
             }
-
-            public Task<T> Task => _taskCompletionSource.Task;
 
             public void RegisterForCancellation(Action<object> callback, CancellationToken cancellationToken)
             {
@@ -559,11 +559,11 @@ namespace Roslyn.Utilities
                 }
                 else if (task.IsFaulted)
                 {
-                    _taskCompletionSource.TrySetException(task.Exception);
+                    this.TrySetException(task.Exception);
                 }
                 else
                 {
-                    _taskCompletionSource.TrySetResult(task.Result);
+                    this.TrySetResult(task.Result);
                 }
 
                 _cancellationTokenRegistration.Dispose();
@@ -571,7 +571,7 @@ namespace Roslyn.Utilities
 
             public void Cancel()
             {
-                _taskCompletionSource.TrySetCanceled(_cancellationToken);
+                this.TrySetCanceled(_cancellationToken);
             }
         }
     }
