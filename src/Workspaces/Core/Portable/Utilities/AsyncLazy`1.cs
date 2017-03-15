@@ -387,9 +387,7 @@ namespace Roslyn.Utilities
                             task = GetCachedValueAndCacheThisValueIfNoneCached_NoLock(task);
                         }
 
-                        // It's safe to synchronously complete this task, since the Task object hasn't been returned
-                        // to the caller of GetValueAsync yet
-                        requestToCompleteSynchronously.CompleteFromTaskSynchronously(task);
+                        requestToCompleteSynchronously.CompleteFromTask(task);
                     }
 
                     // We avoid creating a full closure just to pass the token along
@@ -453,9 +451,11 @@ namespace Roslyn.Utilities
                 task = GetCachedValueAndCacheThisValueIfNoneCached_NoLock(task);
             }
 
+            // Complete the requests outside the lock. It's not necessary to do this (none of this is touching any shared state)
+            // but there's no reason to hold the lock so we could reduce any theoretical lock contention.
             foreach (var requestToComplete in requestsToComplete)
             {
-                requestToComplete.CompleteFromTaskAsynchronously(task);
+                requestToComplete.CompleteFromTask(task);
             }
         }
 
@@ -512,7 +512,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            request.CancelAsynchronously();
+            request.Cancel();
 
             if (cancellationTokenSource != null)
             {
@@ -533,7 +533,12 @@ namespace Roslyn.Utilities
 
             public Request()
             {
-                _taskCompletionSource = new TaskCompletionSource<T>();
+                // We want to always run continuations asynchronously. Running them synchronously could result in deadlocks:
+                // if we're looping through a bunch of Requests and completing them one by one, and the continuation for the
+                // first Request was then blocking waiting for a later Request, we would hang. It also could cause performance
+                // issues. If the first request then consumes a lot of CPU time, we're not letting other Requests complete that
+                // could use another CPU core at the same time.
+                _taskCompletionSource = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
             }
 
             public Task<T> Task => _taskCompletionSource.Task;
@@ -544,28 +549,13 @@ namespace Roslyn.Utilities
                 _cancellationTokenRegistration = cancellationToken.Register(callback, this);
             }
 
-            public void CompleteFromTaskAsynchronously(Task<T> task)
+            public void CompleteFromTask(Task<T> task)
             {
-                System.Threading.Tasks.Task.Factory.StartNew(CompleteFromTaskSynchronouslyStub, task, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
-            }
-
-            private void CompleteFromTaskSynchronouslyStub(object task)
-            {
-                CompleteFromTaskSynchronously((Task<T>)task);
-            }
-
-            public void CompleteFromTaskSynchronously(Task<T> task)
-            {
-                if (this.Task.IsCompleted)
-                {
-                    return;
-                }
-
                 // As an optimization, we'll cancel the request even we did get a value for it.
                 // That way things abort sooner.
                 if (task.IsCanceled || _cancellationToken.IsCancellationRequested)
                 {
-                    CancelSynchronously();
+                    Cancel();
                 }
                 else if (task.IsFaulted)
                 {
@@ -579,15 +569,7 @@ namespace Roslyn.Utilities
                 _cancellationTokenRegistration.Dispose();
             }
 
-            public void CancelAsynchronously()
-            {
-                // Since there could be synchronous continuations on the TaskCancellationSource, we queue this to the threadpool
-                // to avoid inline running of other operations.
-                System.Threading.Tasks.Task.Factory.StartNew(
-                    CancelSynchronously, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
-            }
-
-            private void CancelSynchronously()
+            public void Cancel()
             {
                 _taskCompletionSource.TrySetCanceled(_cancellationToken);
             }
