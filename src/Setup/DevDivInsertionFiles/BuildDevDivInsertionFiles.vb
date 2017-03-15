@@ -1058,6 +1058,7 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
         ' exes (csc, vbc, vbcscompiler) since we are going to mark them
         ' 32-bit only to work around problems with the VS build.
         ' These binaries should never ship anywhere other than the VS toolset
+        ' See https://github.com/dotnet/roslyn/issues/17864
         Dim corFlagsPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
             "Microsoft SDKs/Windows/v10.0A/bin/NETFX 4.6 Tools/CorFlags.exe")
