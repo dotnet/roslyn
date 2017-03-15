@@ -3885,15 +3885,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Next
         End Sub
 
-        Public Overrides Function RemoveNode(root As SyntaxNode, declaration As SyntaxNode) As SyntaxNode
-            Return RemoveNode(root, declaration, DefaultRemoveOptions)
-        End Function
-
-        Public Overrides Function RemoveNode(root As SyntaxNode, declaration As SyntaxNode, options As SyntaxRemoveOptions) As SyntaxNode
-            If root.Span.Contains(declaration.Span) Then
-                Return Isolate(root.TrackNodes(declaration), Function(r) Me.RemoveNodeInternal(r, r.GetCurrentNode(declaration), options))
+        Public Overrides Function RemoveNode(root As SyntaxNode, node As SyntaxNode, options As SyntaxRemoveOptions) As SyntaxNode
+            If root.Span.Contains(node.Span) Then
+                Dim isolated = AsIsolatedDeclaration(root.TrackNodes(node))
+                Return RemoveNodeInternal(isolated, isolated.GetCurrentNode(node), options)
             Else
-                Return MyBase.RemoveNode(root, declaration, options)
+                Return MyBase.RemoveNode(root, node, options)
             End If
         End Function
 

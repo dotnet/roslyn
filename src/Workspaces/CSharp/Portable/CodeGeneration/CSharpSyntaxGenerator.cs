@@ -3362,17 +3362,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node)
-        {
-            return RemoveNode(root, node, DefaultRemoveOptions);
-        }
-
         public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node, SyntaxRemoveOptions options)
         {
             if (root.Span.Contains(node.Span))
             {
                 // node exists within normal span of the root (not in trivia)
-                return this.Isolate(root.TrackNodes(node), r => RemoveNodeInternal(r, r.GetCurrentNode(node), options));
+                var isolated = AsIsolatedDeclaration(root.TrackNodes(node));
+                return RemoveNodeInternal(isolated, isolated.GetCurrentNode(node), options);
             }
             else
             {
