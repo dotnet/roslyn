@@ -24,7 +24,7 @@
   <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec -> $(PackagesOutDir)\%(Filename)%(Extension).%(Version).nupkg">
     <MakeDir Directories="$(PackagesOutDir)" Condition="!Exists('$(PackagesOutDir)')" />
     <!-- nuget doesn't set exitcode when the value of an arg is invalid -->
-    <Exec Command="Pack.cmd %(NuSpec.FullPath) %(NuSpec.Version) $(NuSpec.BaseDir) $(PackagesOutDir)"
+    <Exec Command="Pack.cmd %(NuSpec.FullPath) %(NuSpec.Version) %(NuSpec.BaseDir) $(PackagesOutDir)"
           CustomErrorRegularExpression="pack: invalid arguments" />
   </Target>
   <Target Name="Clean">
