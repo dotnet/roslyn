@@ -3905,11 +3905,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         ' Isolate so that the comments on the attribute list move to the declaration
                         ' the attribute is on.
                         Dim declaration = attrList.Parent
-                        Dim currentDeclaration = root.TrackNodes(declaration, attrList).
-                                                      GetCurrentNode(declaration)
-
-                        Dim finalDeclaration = PreserveTrivia(
-                            currentDeclaration,
+                        Dim finalDeclaration = Isolate(
+                            root.TrackNodes(declaration, attrList).GetCurrentNode(declaration),
                             Function(d) d.RemoveNode(d.GetCurrentNode(attrList), options))
 
                         Return root.ReplaceNode(declaration, finalDeclaration)
