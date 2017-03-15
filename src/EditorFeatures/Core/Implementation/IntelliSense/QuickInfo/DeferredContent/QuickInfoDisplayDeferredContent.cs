@@ -70,13 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
         }
 
-        internal IDeferredQuickInfoContent Documentation
-        {
-            get
-            {
-                return _documentation;
-            }
-        }
+        internal IDeferredQuickInfoContent Documentation => _documentation;
 
         internal ClassifiableDeferredContent TypeParameterMap
         {

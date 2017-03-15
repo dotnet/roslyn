@@ -6901,6 +6901,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Merge conflict marker encountered.
+        '''</summary>
+        Friend ReadOnly Property ERR_Merge_conflict_marker_encountered() As String
+            Get
+                Return ResourceManager.GetString("ERR_Merge_conflict_marker_encountered", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}&apos; is a module and cannot be referenced as an assembly..
         '''</summary>
         Friend ReadOnly Property ERR_MetaDataIsNotAssembly() As String
@@ -10682,6 +10691,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_TypeDisallowsElements() As String
             Get
                 Return ResourceManager.GetString("ERR_TypeDisallowsElements", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Module &apos;{0}&apos; in assembly &apos;{1}&apos; is forwarding the type &apos;{2}&apos; to multiple assemblies: &apos;{3}&apos; and &apos;{4}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_TypeForwardedToMultipleAssemblies() As String
+            Get
+                Return ResourceManager.GetString("ERR_TypeForwardedToMultipleAssemblies", resourceCulture)
             End Get
         End Property
         

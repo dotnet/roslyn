@@ -19,6 +19,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <ItemGroup>
+    <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
+      <_Parameter1>$(GitHeadSha)</_Parameter1>
+    </AssemblyVersionAttribute>
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj">
       <Project>{6da08f12-32f2-4dd9-bbad-982eb71a2c9b}</Project>
@@ -176,9 +181,8 @@
     <Compile Include="BoundTree\DecisionTree.cs" />
     <Compile Include="BoundTree\DecisionTreeBuilder.cs" />
     <Compile Include="BoundTree\Expression.cs" />
-    <Compile Include="BoundTree\DeconstructionVariablePendingInference.cs" />
     <Compile Include="BoundTree\BoundDiscardExpression.cs" />
-    <Compile Include="BoundTree\OutVariablePendingInference.cs" />
+    <Compile Include="BoundTree\VariablePendingInference.cs" />
     <Compile Include="BoundTree\OutDeconstructVarPendingInference.cs" />
     <Compile Include="BoundTree\PseudoVariableExpressions.cs" />
     <Compile Include="BoundTree\Formatting.cs" />
@@ -657,7 +661,6 @@
     <Compile Include="Symbols\Source\SourcePropertyAccessorSymbol.cs" />
     <Compile Include="Symbols\Source\SourcePropertySymbol.cs" />
     <Compile Include="Symbols\Source\SourceSimpleParameterSymbol.cs" />
-    <Compile Include="Symbols\Source\SourceStrictComplexParameterSymbol.cs" />
     <Compile Include="Symbols\Source\SourceTypeParameterSymbol.cs" />
     <Compile Include="Symbols\Source\SourceUserDefinedConversionSymbol.cs" />
     <Compile Include="Symbols\Source\SourceUserDefinedOperatorSymbol.cs" />

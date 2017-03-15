@@ -38,7 +38,14 @@ namespace Microsoft.CodeAnalysis
         private MetadataReader _lazyMetadataReader;
 
         private ImmutableArray<AssemblyIdentity> _lazyAssemblyReferences;
-        private Dictionary<string, AssemblyReferenceHandle> _lazyForwardedTypesToAssemblyMap;
+
+        /// <summary>
+        /// This is a tuple for optimization purposes. In valid cases, we need to store
+        /// only one assembly index per type. However, if we found more than one, we
+        /// keep a second one as well to use it for error reporting.
+        /// We use -1 in case there was no forward.
+        /// </summary>
+        private Dictionary<string, (int FirstIndex, int SecondIndex)> _lazyForwardedTypesToAssemblyIndexMap;
 
         private readonly Lazy<IdentifierCollection> _lazyTypeNameCollection;
         private readonly Lazy<IdentifierCollection> _lazyNamespaceNameCollection;
@@ -764,7 +771,7 @@ namespace Microsoft.CodeAnalysis
         {
             EnsureForwardTypeToAssemblyMap();
 
-            foreach (var typeName in _lazyForwardedTypesToAssemblyMap.Keys)
+            foreach (var typeName in _lazyForwardedTypesToAssemblyIndexMap.Keys)
             {
                 int index = typeName.LastIndexOf('.');
                 string namespaceName = index >= 0 ? typeName.Substring(0, index) : "";
@@ -2822,7 +2829,7 @@ namespace Microsoft.CodeAnalysis
             return ConstantValue.Bad;
         }
 
-        internal AssemblyReferenceHandle GetAssemblyForForwardedType(string fullName, bool ignoreCase, out string matchedName)
+        internal (int FirstIndex, int SecondIndex) GetAssemblyRefsForForwardedType(string fullName, bool ignoreCase, out string matchedName)
         {
             EnsureForwardTypeToAssemblyMap();
 
@@ -2832,7 +2839,7 @@ namespace Microsoft.CodeAnalysis
                 // this functionality when computing diagnostics.  Note
                 // that we can't store the map case-insensitively, since real metadata name
                 // lookup has to remain case sensitive.
-                foreach (var pair in _lazyForwardedTypesToAssemblyMap)
+                foreach (var pair in _lazyForwardedTypesToAssemblyIndexMap)
                 {
                     if (string.Equals(pair.Key, fullName, StringComparison.OrdinalIgnoreCase))
                     {
@@ -2843,29 +2850,29 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                AssemblyReferenceHandle assemblyRef;
-                if (_lazyForwardedTypesToAssemblyMap.TryGetValue(fullName, out assemblyRef))
+                (int FirstIndex, int SecondIndex) assemblyIndices;
+                if (_lazyForwardedTypesToAssemblyIndexMap.TryGetValue(fullName, out assemblyIndices))
                 {
                     matchedName = fullName;
-                    return assemblyRef;
+                    return assemblyIndices;
                 }
             }
 
             matchedName = null;
-            return default(AssemblyReferenceHandle);
+            return (FirstIndex: -1, SecondIndex: - 1);
         }
 
-        internal IEnumerable<KeyValuePair<string, AssemblyReferenceHandle>> GetForwardedTypes()
+        internal IEnumerable<KeyValuePair<string, (int FirstIndex, int SecondIndex)>> GetForwardedTypes()
         {
             EnsureForwardTypeToAssemblyMap();
-            return _lazyForwardedTypesToAssemblyMap;
+            return _lazyForwardedTypesToAssemblyIndexMap;
         }
 
         private void EnsureForwardTypeToAssemblyMap()
         {
-            if (_lazyForwardedTypesToAssemblyMap == null)
+            if (_lazyForwardedTypesToAssemblyIndexMap == null)
             {
-                var typesToAssemblyMap = new Dictionary<string, AssemblyReferenceHandle>();
+                var typesToAssemblyIndexMap = new Dictionary<string, (int FirstIndex, int SecondIndex)>();
 
                 try
                 {
@@ -2874,6 +2881,27 @@ namespace Microsoft.CodeAnalysis
                     {
                         ExportedType exportedType = MetadataReader.GetExportedType(handle);
                         if (!exportedType.IsForwarder)
+                        {
+                            continue;
+                        }
+
+                        AssemblyReferenceHandle refHandle = (AssemblyReferenceHandle)exportedType.Implementation;
+                        if (refHandle.IsNil)
+                        {
+                            continue;
+                        }
+
+                        int referencedAssemblyIndex;
+                        try
+                        {
+                            referencedAssemblyIndex = this.GetAssemblyReferenceIndexOrThrow(refHandle);
+                        }
+                        catch (BadImageFormatException)
+                        {
+                            continue;
+                        }
+
+                        if (referencedAssemblyIndex < 0 || referencedAssemblyIndex >= this.ReferencedAssemblies.Length)
                         {
                             continue;
                         }
@@ -2889,13 +2917,29 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
-                        typesToAssemblyMap.Add(name, (AssemblyReferenceHandle)exportedType.Implementation);
+                        (int FirstIndex, int SecondIndex) indices;
+
+                        if (typesToAssemblyIndexMap.TryGetValue(name, out indices))
+                        {
+                            Debug.Assert(indices.FirstIndex >= 0, "Not allowed to store a negative (non-existent) index in typesToAssemblyIndexMap");
+
+                            // Store it only if it was not a duplicate
+                            if (indices.FirstIndex != referencedAssemblyIndex && indices.SecondIndex < 0)
+                            {
+                                indices.SecondIndex = referencedAssemblyIndex;
+                                typesToAssemblyIndexMap[name] = indices;
+                            }
+                        }
+                        else
+                        {
+                            typesToAssemblyIndexMap.Add(name, (FirstIndex: referencedAssemblyIndex, SecondIndex: -1));
+                        }
                     }
                 }
                 catch (BadImageFormatException)
                 { }
 
-                _lazyForwardedTypesToAssemblyMap = typesToAssemblyMap;
+                _lazyForwardedTypesToAssemblyIndexMap = typesToAssemblyIndexMap;
             }
         }
 

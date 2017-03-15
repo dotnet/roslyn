@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return DirectCast(receiver, BoundLocal).LocalSymbol.IsByRef
 
                 Case Else
-                    Return True
+                    Return Not receiver.IsDefaultValue()
             End Select
         End Function
 

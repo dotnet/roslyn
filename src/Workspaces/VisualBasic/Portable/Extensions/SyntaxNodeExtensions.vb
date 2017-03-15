@@ -1,9 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -227,11 +227,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Friend Function IsMultiLineLambda(lambda As LambdaExpressionSyntax) As Boolean
-            Return lambda.Kind = SyntaxKind.MultiLineSubLambdaExpression OrElse
-                   lambda.Kind = SyntaxKind.MultiLineFunctionLambdaExpression
+        Friend Function IsMultiLineLambda(node As SyntaxNode) As Boolean
+            Return SyntaxFacts.IsMultiLineLambdaExpression(node.Kind())
         End Function
-
 
         <Extension()>
         Friend Function GetTypeCharacterString(type As TypeCharacter) As String
@@ -539,6 +537,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             strippedTrivia = leadingTriviaToStrip
             Return DirectCast(node.WithLeadingTrivia(leadingTriviaToKeep.Skip(index)), TSyntaxNode)
+        End Function
+
+        <Extension>
+        Public Function GetFileBanner(root As SyntaxNode) As ImmutableArray(Of SyntaxTrivia)
+            Debug.Assert(root.FullSpan.Start = 0)
+
+            Dim leadingTrivia = root.GetLeadingTrivia()
+            Dim index = 0
+            s_fileBannerMatcher.TryMatch(leadingTrivia.ToList(), index)
+
+            Return ImmutableArray.CreateRange(leadingTrivia.Take(index))
         End Function
 
         ''' <summary>
@@ -1086,6 +1095,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End While
 
             Return Nothing
+        End Function
+
+        <Extension>
+        Public Function IsInExpressionTree(node As SyntaxNode,
+                                           semanticModel As SemanticModel,
+                                           expressionTypeOpt As INamedTypeSymbol,
+                                           cancellationToken As CancellationToken) As Boolean
+
+            If expressionTypeOpt IsNot Nothing Then
+                Dim current = node
+                While current IsNot Nothing
+                    If SyntaxFacts.IsSingleLineLambdaExpression(current.Kind) OrElse
+                       SyntaxFacts.IsMultiLineLambdaExpression(current.Kind) Then
+                        Dim TypeInfo = semanticModel.GetTypeInfo(current, cancellationToken)
+                        If expressionTypeOpt.Equals(TypeInfo.ConvertedType?.OriginalDefinition) Then
+                            Return True
+                        End If
+                    End If
+
+                    current = current.Parent
+                End While
+            End If
+
+            Return False
         End Function
     End Module
 End Namespace

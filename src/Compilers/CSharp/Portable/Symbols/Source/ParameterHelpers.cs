@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,10 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             Symbol owner,
             BaseParameterListSyntax syntax,
-            bool allowRefOrOut,
             out SyntaxToken arglistToken,
             DiagnosticBag diagnostics,
-            bool beStrict)
+            bool allowRefOrOut,
+            bool allowThis)
         {
             arglistToken = default(SyntaxToken);
 
@@ -31,19 +32,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameterSyntax in syntax.Parameters)
             {
-                SyntaxToken refOrOutKeyword;
-                SyntaxToken paramsKeyword;
-                SyntaxToken thisKeyword;
-                var refKind = GetModifiers(parameterSyntax.Modifiers, out refOrOutKeyword, out paramsKeyword, out thisKeyword);
+                CheckParameterModifiers(parameterSyntax, diagnostics);
+
+                var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refOrOutKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
+
+                if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
+                }
 
                 if (parameterSyntax.IsArgList)
                 {
                     arglistToken = parameterSyntax.Identifier;
                     // The native compiler produces "Expected type" here, in the parser. Roslyn produces
                     // the somewhat more informative "arglist not valid" error.
-                    if (paramsKeyword.Kind() != SyntaxKind.None ||
-                        refKind != RefKind.None || 
-                        thisKeyword.Kind() != SyntaxKind.None)
+                    if (paramsKeyword.Kind() != SyntaxKind.None
+                        || refOrOutKeyword.Kind() != SyntaxKind.None
+                        || thisKeyword.Kind() != SyntaxKind.None)
                     {
                         // CS1669: __arglist is not valid in this context
                         diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
@@ -77,8 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     parameterIndex,
                     (paramsKeyword.Kind() != SyntaxKind.None),
                     parameterIndex == 0 && thisKeyword.Kind() != SyntaxKind.None,
-                    diagnostics,
-                    beStrict);
+                    diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, firstDefault, diagnostics);
 
@@ -95,6 +99,193 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             binder.ValidateParameterNameConflicts(typeParameters, parameters, diagnostics);
             return parameters;
+        }
+
+        private static void CheckParameterModifiers(
+            ParameterSyntax parameter, DiagnosticBag diagnostics)
+        {
+            var seenThis = false;
+            var seenRef = false;
+            var seenOut = false;
+            var seenParams = false;
+            var seenRefReadOnly = false;
+            var seenIn = false;
+
+            foreach (var modifier in parameter.Modifiers)
+            {
+                switch (modifier.Kind())
+                {
+                    case SyntaxKind.ThisKeyword:
+                        if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                        }
+                        else if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ThisKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenRef || seenRefReadOnly)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ThisKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParamModThis, modifier.GetLocation());
+                        }
+                        else if (seenIn)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ThisKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                        }
+                        else
+                        {
+                            seenThis = true;
+                        }
+                        break;
+
+                    case SyntaxKind.RefKeyword:
+                        if (seenRef || seenRefReadOnly)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ParamsCantBeWithModifier, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenIn)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                        }
+                        else
+                        {
+                            seenRef = true;
+                        }
+                        break;
+
+                    case SyntaxKind.OutKeyword:
+                        if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ParamsCantBeWithModifier, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenRef || seenRefReadOnly)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if (seenIn)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                        }
+                        else
+                        {
+                            seenOut = true;
+                        }
+                        break;
+
+                    case SyntaxKind.ParamsKeyword:
+                        if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ParamsKeyword));
+                        }
+                        else if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParamModThis, modifier.GetLocation());
+                        }
+                        else if (seenRef || seenRefReadOnly)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ParamsKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ParamsKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenIn)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ParamsKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                        }
+                        else
+                        {
+                            seenParams = true;
+                        }
+                        break;
+
+                    case SyntaxKind.InKeyword:
+                        if (seenIn)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                        }
+                        else if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                        }
+                        else if (seenRef || seenRefReadOnly)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ParamsCantBeWithModifier, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                        }
+                        else
+                        {
+                            seenIn = true;
+                        }
+                        break;
+
+                    case SyntaxKind.ReadOnlyKeyword:
+                        if(seenRefReadOnly)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
+                        }
+                        else if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                        }
+                        else if (seenIn)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                        }
+                        else if(seenRef)
+                        {
+                            seenRef = false;
+                            seenRefReadOnly = true;
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ParamsCantBeWithModifier, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
+                        }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, modifier.GetLocation(), modifier.Text);
+                        }
+                        break;
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected SyntaxKind {modifier.Kind()}");
+                }
+            }
         }
 
         private static void ReportParameterErrors(

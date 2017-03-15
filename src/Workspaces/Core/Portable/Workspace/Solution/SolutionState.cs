@@ -1091,6 +1091,27 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the document specified updated to have the specified name.
+        /// </summary>
+        public SolutionState WithDocumentName(DocumentId documentId, string name)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            var oldDocument = this.GetDocumentState(documentId);
+            var newDocument = oldDocument.UpdateName(name);
+
+            return this.WithDocumentState(newDocument);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the document specified updated to be contained in
         /// the sequence of logical folders.
         /// </summary>
@@ -1110,6 +1131,27 @@ namespace Microsoft.CodeAnalysis
 
             var oldDocument = this.GetDocumentState(documentId);
             var newDocument = oldDocument.UpdateFolders(folders.WhereNotNull().ToReadOnlyCollection());
+
+            return this.WithDocumentState(newDocument);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the document specified updated to have the specified file path.
+        /// </summary>
+        public SolutionState WithDocumentFilePath(DocumentId documentId, string filePath)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            var oldDocument = this.GetDocumentState(documentId);
+            var newDocument = oldDocument.UpdateFilePath(filePath);
 
             return this.WithDocumentState(newDocument);
         }

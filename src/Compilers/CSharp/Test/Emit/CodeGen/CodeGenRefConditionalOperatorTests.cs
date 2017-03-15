@@ -522,7 +522,7 @@ class C
             var comp = CreateCompilationWithMscorlib45(source,options: TestOptions.ReleaseExe);
   
             comp.VerifyEmitDiagnostics(
-                // (16,10): error CS8208: 'await' cannot be used in an expression containing a ref conditional operator
+                // (16,10): error CS8401: 'await' cannot be used in an expression containing a ref conditional operator
                 //         (b? ref val1: ref val2) += await One();
                 Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10)
                 );
@@ -567,7 +567,7 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (16,35): error CS8208: 'await' cannot be used in an expression containing a ref conditional operator
+                // (16,35): error CS8401: 'await' cannot be used in an expression containing a ref conditional operator
                 //         (b? ref val1: ref val2) = await One();
                 Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "await One()").WithLocation(16, 35)
                );
@@ -594,10 +594,10 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (8,43): error CS8302: Both conditional operator values must be ref values or neither may be a ref value
+                // (8,43): error CS8402: Both conditional operator values must be ref values or neither may be a ref value
                 //         System.Console.Write(b? val1: ref val2);
                 Diagnostic(ErrorCode.ERR_RefConditionalNeedsTwoRefs, "val2").WithLocation(8, 43),
-                // (9,37): error CS8302: Both conditional operator values must be ref values or neither may be a ref value
+                // (9,37): error CS8402: Both conditional operator values must be ref values or neither may be a ref value
                 //         System.Console.Write(b? ref val1: val2);
                 Diagnostic(ErrorCode.ERR_RefConditionalNeedsTwoRefs, "val1").WithLocation(9, 37)
                );
@@ -801,7 +801,7 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (8,47): error CS8332: The expression must be of type 'int' to match the alternative ref value
+                // (8,47): error CS8403: The expression must be of type 'int' to match the alternative ref value
                 //         System.Console.Write(b? ref val1: ref val2);
                 Diagnostic(ErrorCode.ERR_RefConditionalDifferentTypes, "val2").WithArguments("int").WithLocation(8, 47)
                );

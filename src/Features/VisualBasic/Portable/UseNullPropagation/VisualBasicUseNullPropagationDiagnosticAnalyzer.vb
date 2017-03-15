@@ -26,6 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             Return VisualBasicSyntaxFactsService.Instance
         End Function
 
+        Protected Overrides Function GetSemanticFactsService() As ISemanticFactsService
+            Return VisualBasicSemanticFactsService.instance
+        End Function
+
         Protected Overrides Function GetSyntaxKindToAnalyze() As SyntaxKind
             Return SyntaxKind.TernaryConditionalExpression
         End Function

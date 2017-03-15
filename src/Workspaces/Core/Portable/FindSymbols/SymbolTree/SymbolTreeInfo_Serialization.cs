@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Get the unique key to identify our data.
                 var key = PrefixMetadataSymbolTreeInfo + prefix + keySuffix;
                 using (var stream = await storage.ReadStreamAsync(key, cancellationToken).ConfigureAwait(false))
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     if (reader != null)
                     {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (result != null)
                 {
                     using (var stream = SerializableBytes.CreateWritableStream())
-                    using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+                    using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                     {
                         writeObject(writer, result);
                         stream.Position = 0;

@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.SequencePoint(
                     body.Syntax,
                     F.Block(
-                        locals.ToImmutableAndFree(), 
+                        locals.ToImmutableAndFree(),
                         newStatements));
 
             if (rootScopeHoistedLocals.Length > 0)

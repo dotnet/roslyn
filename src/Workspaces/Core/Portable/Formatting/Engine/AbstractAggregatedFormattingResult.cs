@@ -76,7 +76,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var changes = CreateTextChangesWorker(cancellationToken);
 
                 // formatted spans and formatting spans are different, filter returns to formatting span
-                return _formattingSpans == null ? changes : changes.Where(s => _formattingSpans.IntersectsWith(s.Span)).ToList();
+                return _formattingSpans == null 
+                    ? changes
+                    : changes.Where(s => _formattingSpans.HasIntervalThatIntersectsWith(s.Span)).ToList();
             }
         }
 

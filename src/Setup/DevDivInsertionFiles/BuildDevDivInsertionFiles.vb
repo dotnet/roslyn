@@ -95,6 +95,11 @@ Public Class BuildDevDivInsertionFiles
         "VisualBasicInteractivePackageRegistration.pkgdef"
     }
 
+    ' N.B. This list of facades must be kept in-sync with the &
+    ' other facades used by the compiler. Facades are listed in
+    ' the src/NuGet/Microsoft.Net.Compilers.nuspec file, the
+    ' src/Setup/DevDivVsix/CompilersPackage/Microsoft.CodeAnalysis.Compilers.swr file,
+    ' and src/Compilers/Extension/CompilerExtension.csproj file.
     Private ReadOnly CompilerFiles As String() = {
         "Microsoft.CodeAnalysis.dll",
         "Microsoft.CodeAnalysis.CSharp.dll",
@@ -103,7 +108,10 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.CodeAnalysis.VisualBasic.dll",
         "Microsoft.DiaSymReader.Native.amd64.dll",
         "Microsoft.DiaSymReader.Native.x86.dll",
+        "System.AppContext.dll",
+        "System.Console.dll",
         "System.Diagnostics.FileVersionInfo.dll",
+        "System.Diagnostics.Process.dll",
         "System.Diagnostics.StackTrace.dll",
         "System.IO.Compression.dll",
         "System.IO.FileSystem.dll",
@@ -341,7 +349,6 @@ Public Class BuildDevDivInsertionFiles
         "Roslyn.Test.PdbUtilities.dll",
         "Roslyn.Test.Utilities.Desktop.dll",
         "Roslyn.Test.Utilities.dll",
-        "Roslyn.Test.Utilities.FX45.dll",
         "vbc.exe",
         "vbc.exe.config",
         "vbc.rsp",
@@ -825,6 +832,7 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\VBCSCompiler\VBCSCompiler.exe.config")
         add("Exes\InteractiveHost\InteractiveHost.exe.config")
         add("Exes\csi\csi.rsp")
+        add("Exes\Pdb2Xml\Microsoft.DiaSymReader.PortablePdb.dll")
         add("Vsix\Roslyn.Deployment.Full.Next\remoteSymbolSearchUpdateEngine.servicehub.service.json")
         add("Vsix\Roslyn.Deployment.Full.Next\snapshotService.servicehub.service.json")
         add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")
@@ -848,7 +856,6 @@ Public Class BuildDevDivInsertionFiles
         add("Dlls\PdbUtilities\Roslyn.Test.PdbUtilities.dll")
         add("Dlls\TestUtilities.Desktop\Roslyn.Test.Utilities.Desktop.dll")
         add("Dlls\TestUtilities\Roslyn.Test.Utilities.dll")
-        add("Dlls\TestUtilities.FX45\Roslyn.Test.Utilities.FX45.dll")
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
         add("UnitTests\EditorServicesTest\Esent.Interop.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
@@ -860,29 +867,32 @@ Public Class BuildDevDivInsertionFiles
         add("Dlls\Concord\Microsoft.VisualStudio.Debugger.Engine.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
-        add("Vsix\CompilerExtension\System.Collections.Immutable.dll")
-        add("Vsix\CompilerExtension\System.Reflection.Metadata.dll")
-        add("Vsix\CompilerExtension\System.Diagnostics.FileVersionInfo.dll")
-        add("Vsix\CompilerExtension\System.IO.Compression.dll")
-        add("Vsix\CompilerExtension\System.IO.FileSystem.dll")
-        add("Vsix\CompilerExtension\System.IO.FileSystem.DriveInfo.dll")
-        add("Vsix\CompilerExtension\System.IO.FileSystem.Primitives.dll")
-        add("Vsix\CompilerExtension\System.IO.Pipes.dll")
-        add("Vsix\CompilerExtension\System.Security.AccessControl.dll")
-        add("Vsix\CompilerExtension\System.Security.Claims.dll")
-        add("Vsix\CompilerExtension\System.Security.Cryptography.Algorithms.dll")
-        add("Vsix\CompilerExtension\System.Security.Cryptography.Encoding.dll")
-        add("Vsix\CompilerExtension\System.Security.Cryptography.Primitives.dll")
-        add("Vsix\CompilerExtension\System.Security.Cryptography.X509Certificates.dll")
-        add("Vsix\CompilerExtension\System.Security.Principal.Windows.dll")
-        add("Vsix\CompilerExtension\System.Text.Encoding.CodePages.dll")
-        add("Vsix\CompilerExtension\System.Threading.Thread.dll")
-        add("Vsix\CompilerExtension\System.Xml.ReaderWriter.dll")
-        add("Vsix\CompilerExtension\System.Xml.XmlDocument.dll")
-        add("Vsix\CompilerExtension\System.Xml.XPath.dll")
-        add("Vsix\CompilerExtension\System.Xml.XPath.XDocument.dll")
-        add("Exes\csi\System.Diagnostics.StackTrace.dll")
-        add("Exes\csi\System.ValueTuple.dll")
+        add("Exes\Toolset\System.AppContext.dll")
+        add("Exes\Toolset\System.Console.dll")
+        add("Exes\Toolset\System.Collections.Immutable.dll")
+        add("Exes\Toolset\System.Diagnostics.FileVersionInfo.dll")
+        add("Exes\Toolset\System.Diagnostics.Process.dll")
+        add("Exes\Toolset\System.Diagnostics.StackTrace.dll")
+        add("Exes\Toolset\System.IO.Compression.dll")
+        add("Exes\Toolset\System.IO.FileSystem.dll")
+        add("Exes\Toolset\System.IO.FileSystem.DriveInfo.dll")
+        add("Exes\Toolset\System.IO.FileSystem.Primitives.dll")
+        add("Exes\Toolset\System.IO.Pipes.dll")
+        add("Exes\Toolset\System.Reflection.Metadata.dll")
+        add("Exes\Toolset\System.Security.AccessControl.dll")
+        add("Exes\Toolset\System.Security.Claims.dll")
+        add("Exes\Toolset\System.Security.Cryptography.Algorithms.dll")
+        add("Exes\Toolset\System.Security.Cryptography.Encoding.dll")
+        add("Exes\Toolset\System.Security.Cryptography.Primitives.dll")
+        add("Exes\Toolset\System.Security.Cryptography.X509Certificates.dll")
+        add("Exes\Toolset\System.Security.Principal.Windows.dll")
+        add("Exes\Toolset\System.Text.Encoding.CodePages.dll")
+        add("Exes\Toolset\System.Threading.Thread.dll")
+        add("Exes\Toolset\System.ValueTuple.dll")
+        add("Exes\Toolset\System.Xml.ReaderWriter.dll")
+        add("Exes\Toolset\System.Xml.XmlDocument.dll")
+        add("Exes\Toolset\System.Xml.XPath.dll")
+        add("Exes\Toolset\System.Xml.XPath.XDocument.dll")
         Return map
     End Function
 

@@ -62,7 +62,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return body;
             }
 
-            return rewriter.Rewrite();
+            try
+            {
+                return rewriter.Rewrite();
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+            {
+                diagnostics.Add(ex.Diagnostic);
+                return new BoundBadStatement(body.Syntax, ImmutableArray.Create<BoundNode>(body), hasErrors: true);
+            }
         }
 
         /// <returns>

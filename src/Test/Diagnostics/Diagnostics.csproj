@@ -74,6 +74,7 @@
     <Compile Include="Waiters\ErrorListWaiter.cs" />
     <Compile Include="Waiters\ErrorSquiggleWaiter.cs" />
     <Compile Include="Waiters\EventHookupWaiter.cs" />
+    <Compile Include="Waiters\FindReferencesWaiter.cs" />
     <Compile Include="Waiters\GlobalOperationWatier.cs" />
     <Compile Include="Waiters\GraphProviderWaiter.cs" />
     <Compile Include="Waiters\KeywordHighlightingWaiter.cs" />

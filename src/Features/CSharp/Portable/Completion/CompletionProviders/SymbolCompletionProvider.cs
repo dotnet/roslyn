@@ -164,12 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return rule;
         }
 
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context)
-        {
-            // Unused
-            throw new NotImplementedException();
-        }
-
         protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior => CompletionItemSelectionBehavior.HardSelection;
     }
 }

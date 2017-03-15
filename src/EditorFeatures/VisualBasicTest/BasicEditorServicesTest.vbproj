@@ -132,10 +132,6 @@
       <Project>{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}</Project>
       <Name>BasicEditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CSharp\CSharpEditorFeatures.csproj">
       <Project>{b0ce9307-ffdb-4838-a5ec-ce1f7cdc4ac2}</Project>
       <Name>CSharpEditorFeatures</Name>
@@ -170,6 +166,7 @@
     <Compile Include="BraceMatching\BraceHighlightingTests.vb" />
     <Compile Include="BraceMatching\VisualBasicBraceMatcherTests.vb" />
     <Compile Include="CaseCorrecting\CaseCorrectionServiceTests.vb" />
+    <Compile Include="ChangeSignature\ChangeSignatureTests.vb" />
     <Compile Include="ChangeSignature\ChangeSignature_CheckAllSignatureChanges.vb" />
     <Compile Include="ChangeSignature\ChangeSignature_Delegates.vb" />
     <Compile Include="ChangeSignature\ChangeSignature_Formatting.vb" />
@@ -183,14 +180,18 @@
     <Compile Include="Classification\SemanticClassifierTests.vb" />
     <Compile Include="Classification\SyntacticClassifierTests.vb" />
     <Compile Include="CodeActions\AbstractVisualBasicCodeActionTest.vb" />
+    <Compile Include="CodeActions\ConvertIfToSwitch\ConvertIfToSwitchTests.vb" />
+    <Compile Include="CodeActions\ConvertNumericLiteral\ConvertNumericLiteralTests.vb" />
+    <Compile Include="CodeActions\UseNamedArguments\UseNamedArgumentsTests.vb" />
+    <Compile Include="Diagnostics\RemoveUnusedVariable\RemoveUnusedVariableTest.vb" />
     <Compile Include="Structure\CollectionInitializerStructureProviderTests.vb" />
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.vb" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.vb" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
-    <Compile Include="CodeActions\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersTests.vb" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.vb" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.vb" />
+    <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.vb" />
+    <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.vb" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersTests.vb" />
     <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.vb" />
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.vb" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.vb" />
@@ -691,6 +692,9 @@
       <SubType>Designer</SubType>
     </None>
     <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.vb" />
+    <Compile Include="AddParameter\AddParameterTests.vb" />
+    <Compile Include="ConflictMarkerResolution\ConflictMarkerResolutionTests.vb" />
+    <Compile Include="GenerateOverrides\GenerateOverridesTests.vb" />
     <Content Include="PerfTests\Sources\BasicPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

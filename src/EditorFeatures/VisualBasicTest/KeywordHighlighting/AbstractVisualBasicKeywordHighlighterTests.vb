@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return TestAsync(element.NormalizedValue)
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFileAsync(code As String, options As ParseOptions) As Threading.Tasks.Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(code, DirectCast(options, ParseOptions))
+        Protected Overrides Function CreateWorkspaceFromFile(code As String, options As ParseOptions) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(code, DirectCast(options, ParseOptions))
         End Function
     End Class
 End Namespace

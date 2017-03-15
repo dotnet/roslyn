@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -700,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Expression is assigned by reference.
             /// </summary>
             RefAssign,
-            
+
             /// <summary>
             /// Expression is returned by reference.
             /// </summary>
@@ -738,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binders.ToArrayAndFree();
         }
 #endif
-        
+
         internal BoundExpression WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundExpression expression)
         {
             var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
@@ -756,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundBlock(statement.Syntax, locals, ImmutableArray.Create(statement))
-                        { WasCompilerGenerated = true };
+                { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -774,6 +775,67 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(statement.Syntax, locals, localFunctions,
                                   ImmutableArray.Create(statement))
             { WasCompilerGenerated = true };
+        }
+
+        internal string Dump()
+        {
+            return TreeDumper.DumpCompact(DumpAncestors());
+
+            TreeDumperNode DumpAncestors()
+            {
+                TreeDumperNode current = null;
+
+                for (Binder scope = this; scope != null; scope = scope.Next)
+                {
+                    var(description, snippet, locals) = Print(scope);
+                    var sub = new List<TreeDumperNode>();
+                    if (!locals.IsEmpty())
+                    {
+                        sub.Add(new TreeDumperNode("locals", locals, null));
+                    }
+                    var currentContainer = scope.ContainingMemberOrLambda;
+                    if (currentContainer != null && currentContainer != scope.Next?.ContainingMemberOrLambda)
+                    {
+                        sub.Add(new TreeDumperNode("containing symbol", currentContainer.ToDisplayString(), null));
+                    }
+                    if (snippet != null)
+                    {
+                        sub.Add(new TreeDumperNode($"scope", $"{snippet} ({scope.ScopeDesignator.Kind()})", null));
+                    }
+                    if (current != null)
+                    {
+                        sub.Add(current);
+                    }
+                    current = new TreeDumperNode(description, null, sub);
+                }
+
+                return current;
+            }
+
+            (string description, string snippet, string locals) Print(Binder scope)
+            {
+                var locals = string.Join(", ", scope.Locals.SelectAsArray(s => s.Name));
+                string snippet = null;
+                if (scope.ScopeDesignator != null)
+                {
+                    var lines = scope.ScopeDesignator.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                    if (lines.Length == 1)
+                    {
+                        snippet = lines[0];
+                    }
+                    else
+                    {
+                        var first = lines[0];
+                        var last = lines[lines.Length - 1].Trim();
+                        var lastSize = Math.Min(last.Length, 12);
+                        snippet = first.Substring(0, Math.Min(first.Length, 12)) + " ... " + last.Substring(last.Length - lastSize, lastSize);
+                    }
+                    snippet = snippet.IsEmpty() ? null : snippet;
+                }
+
+                var description = scope.GetType().Name;
+                return (description, snippet, locals);
+            }
         }
     }
 }

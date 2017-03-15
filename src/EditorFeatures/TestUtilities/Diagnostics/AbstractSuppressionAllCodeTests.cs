@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract class AbstractSuppressionAllCodeTests : IEqualityComparer<Diagnostic>
     {
-        protected abstract Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions);
+        protected abstract TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions);
+
         internal abstract Tuple<Analyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
         protected Task TestPragmaAsync(string code, ParseOptions options, Func<string, bool> verifier)
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         protected async Task TestPragmaOrAttributeAsync(
             string code, ParseOptions options, bool pragma, Func<SyntaxNode, bool> digInto, Func<string, bool> verifier, Func<CodeAction, bool> fixChecker)
         {
-            using (var workspace = await CreateWorkspaceFromFileAsync(code, options))
+            using (var workspace = CreateWorkspaceFromFile(code, options))
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 var root = document.GetSyntaxRootAsync().GetAwaiter().GetResult();

@@ -87,7 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> GetTypesSimple(ExpressionSyntax expression)
             {
-                if (expression != null)
+                if (expression is RefTypeSyntax refType)
+                {
+                    return GetTypes(refType.Type);
+                }
+                else if (expression != null)
                 {
                     var typeInfo = SemanticModel.GetTypeInfo(expression, CancellationToken);
                     var symbolInfo = SemanticModel.GetSymbolInfo(expression, CancellationToken);
@@ -154,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression: return InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression);
                     case PostfixUnaryExpressionSyntax postfixUnary: return InferTypeInPostfixUnaryExpression(postfixUnary);
                     case PrefixUnaryExpressionSyntax prefixUnary: return InferTypeInPrefixUnaryExpression(prefixUnary);
+                    case RefExpressionSyntax refExpression: return InferTypeInRefExpression(refExpression);
                     case ReturnStatementSyntax returnStatement: return InferTypeForReturnStatement(returnStatement);
                     case SimpleLambdaExpressionSyntax simpleLambdaExpression: return InferTypeInSimpleLambdaExpression(simpleLambdaExpression);
                     case SwitchLabelSyntax switchLabel: return InferTypeInSwitchLabel(switchLabel);
@@ -191,6 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (parent)
                 {
+                    case AnonymousObjectCreationExpressionSyntax anonymousObjectCreation: return InferTypeInAnonymousObjectCreation(anonymousObjectCreation, token);
                     case AnonymousObjectMemberDeclaratorSyntax memberDeclarator: return InferTypeInMemberDeclarator(memberDeclarator, token);
                     case ArgumentListSyntax argument: return InferTypeInArgumentList(argument, token);
                     case ArgumentSyntax argument: return InferTypeInArgument(argument, token);
@@ -238,6 +244,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case YieldStatementSyntax yieldStatement: return InferTypeInYieldStatement(yieldStatement, token);
                     default: return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInAnonymousObjectCreation(AnonymousObjectCreationExpressionSyntax expression, SyntaxToken previousToken)
+            {
+                if (previousToken == expression.NewKeyword)
+                {
+                    return InferTypes(expression.SpanStart);
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArgument(
@@ -1593,15 +1609,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ITypeSymbol InferTypeForFirstParameterOfLambda(
                 LambdaExpressionSyntax lambdaExpression)
             {
-                if (lambdaExpression is ParenthesizedLambdaExpressionSyntax)
+                if (lambdaExpression is ParenthesizedLambdaExpressionSyntax parenLambda)
                 {
-                    return InferTypeForFirstParameterOfParenthesizedLambda(
-                        (ParenthesizedLambdaExpressionSyntax)lambdaExpression);
+                    return InferTypeForFirstParameterOfParenthesizedLambda(parenLambda);
                 }
-                else if (lambdaExpression is SimpleLambdaExpressionSyntax)
+                else if (lambdaExpression is SimpleLambdaExpressionSyntax simpleLambda)
                 {
-                    return InferTypeForFirstParameterOfSimpleLambda(
-                        (SimpleLambdaExpressionSyntax)lambdaExpression);
+                    return InferTypeForFirstParameterOfSimpleLambda(simpleLambda);
                 }
 
                 return null;
@@ -1768,12 +1782,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var memberType = GetMemberType(memberSymbol);
 
-                if (memberType is INamedTypeSymbol)
+                if (memberType is INamedTypeSymbol namedType)
                 {
                     if (memberType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
                         memberType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerator_T)
                     {
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(((INamedTypeSymbol)memberType).TypeArguments[0]));
+                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(namedType.TypeArguments[0]));
                     }
                 }
 
@@ -1784,12 +1798,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (memberSymbol)
                 {
-                    case IMethodSymbol method: return method.ReturnType; 
-                    case IPropertySymbol property: return property.Type; 
+                    case IMethodSymbol method: return method.ReturnType;
+                    case IPropertySymbol property: return property.Type;
                 }
 
                 return null;
             }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInRefExpression(RefExpressionSyntax refExpression)
+                => InferTypes(refExpression);
 
             private IEnumerable<TypeInferenceInfo> InferTypeForReturnStatement(ReturnStatementSyntax returnStatement, SyntaxToken? previousToken = null)
             {

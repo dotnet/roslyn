@@ -95,9 +95,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isMetadataVirtualIgnoringModifiers);
 
-            _typeParameters = (syntax.Arity == 0) ?
-                ImmutableArray<TypeParameterSymbol>.Empty :
-                MakeTypeParameters(syntax, diagnostics);
+            if (syntax.Arity == 0)
+            {
+                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics);
+            }
+            else
+            {
+                _typeParameters = MakeTypeParameters(syntax, diagnostics);
+            }
 
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
@@ -113,6 +119,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(info, location);
             }
+
+            // When a generic method overrides a generic method declared in a base class, or is an 
+            // explicit interface member implementation of a method in a base interface, the method
+            // shall not specify any type-parameter-constraints-clauses. In these cases, the type 
+            // parameters of the method inherit constraints from the method being overridden or 
+            // implemented
+            if (syntax.ConstraintClauses.Count > 0)
+            {
+                if (syntax.ExplicitInterfaceSpecifier != null ||
+                    syntax.Modifiers.Any(SyntaxKind.OverrideKeyword))
+                {
+                    diagnostics.Add(
+                        ErrorCode.ERR_OverrideWithConstraints, 
+                        syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
+                }
+            }
+
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
         public override bool ReturnsVoid
@@ -135,7 +160,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // instance). Constraints are checked in AfterAddingTypeMembersChecks.
             var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
-            _lazyParameters = ParameterHelpers.MakeParameters(signatureBinder, this, syntax.ParameterList, true, out arglistToken, diagnostics, false);
+            _lazyParameters = ParameterHelpers.MakeParameters(
+                signatureBinder, this, syntax.ParameterList, out arglistToken,
+                allowRefOrOut: true,
+                allowThis: true,
+                diagnostics: diagnostics);
+
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             RefKind refKind;
             var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
@@ -803,6 +833,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
             {
                 var parameter = typeParameters[ordinal];
+                if (parameter.VarianceKeyword.Kind() != SyntaxKind.None)
+                {
+                    diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
+                }
+
                 var identifier = parameter.Identifier;
                 var location = identifier.GetLocation();
                 var name = identifier.ValueText;

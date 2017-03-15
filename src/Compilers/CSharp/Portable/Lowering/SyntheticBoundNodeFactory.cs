@@ -637,7 +637,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 ImmutableArray<String>.Empty, ImmutableArray<RefKind>.Empty, false, false, false,
-                default(ImmutableArray<int>), LookupResultKind.Viable, method.ReturnType)
+                default(ImmutableArray<int>), LookupResultKind.Viable, method.ReturnType,
+                hasErrors:method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
         }
 

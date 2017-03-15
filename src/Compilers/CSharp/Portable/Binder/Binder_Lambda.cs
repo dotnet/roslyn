@@ -94,6 +94,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var p in parameterSyntaxList.Value)
                 {
+                    foreach (var attributeList in p.AttributeLists)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                    }
+
+                    if (p.Default != null)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_DefaultValueNotAllowed, p.Default.EqualsToken);
+                    }
+
                     if (p.IsArgList)
                     {
                         Error(diagnostics, ErrorCode.ERR_IllegalVarArgs, p);
@@ -115,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var modKind = modifier.Kind();
 
-                            switch(modifier.Kind())
+                            switch (modifier.Kind())
                             {
                                 case SyntaxKind.RefKeyword:
                                     refKind = RefKind.Ref;
@@ -141,6 +151,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     // it is a semantic analysis error in Roslyn. See comments to
                                     // changeset 1674 for details.
                                     Error(diagnostics, ErrorCode.ERR_IllegalParams, p);
+                                    break;
+
+                                case SyntaxKind.ThisKeyword:
+                                    Error(diagnostics, ErrorCode.ERR_ThisInBadContext, modifier);
                                     break;
                             }
                         }

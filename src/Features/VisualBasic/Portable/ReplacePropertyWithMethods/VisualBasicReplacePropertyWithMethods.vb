@@ -42,25 +42,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return containingProperty
         End Function
 
-        Public Overrides Function GetReplacementMembers(
+        Public Overrides Function GetReplacementMembersAsync(
                 document As Document,
                 [property] As IPropertySymbol,
                 propertyDeclarationNode As SyntaxNode,
                 propertyBackingField As IFieldSymbol,
                 desiredGetMethodName As String,
                 desiredSetMethodName As String,
-                cancellationToken As CancellationToken) As IList(Of SyntaxNode)
+                cancellationToken As CancellationToken) As Task(Of IList(Of SyntaxNode))
 
             Dim propertyStatement = TryCast(propertyDeclarationNode, PropertyStatementSyntax)
             If propertyStatement Is Nothing Then
-                Return SpecializedCollections.EmptyList(Of SyntaxNode)
+                Return Task.FromResult(SpecializedCollections.EmptyList(Of SyntaxNode))
             End If
 
-            Return ConvertPropertyToMembers(
+            Return Task.FromResult(ConvertPropertyToMembers(
                 SyntaxGenerator.GetGenerator(document), [property],
                 propertyStatement, propertyBackingField,
                 desiredGetMethodName, desiredSetMethodName,
-                cancellationToken)
+                cancellationToken))
         End Function
 
         Private Function ConvertPropertyToMembers(
