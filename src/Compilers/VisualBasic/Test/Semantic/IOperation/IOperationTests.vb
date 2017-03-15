@@ -8,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Partial Public Class IOperationTests
-        Inherits BasicTestBase
+        Inherits SemanticModelTestBase
 
         <Fact>
         Public Sub InvalidUserDefinedOperators()

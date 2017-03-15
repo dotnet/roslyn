@@ -8,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Partial Public Class IOperationTests
-        Inherits BasicTestBase
+        Inherits SemanticModelTestBase
 
         <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub NoInitializers()
