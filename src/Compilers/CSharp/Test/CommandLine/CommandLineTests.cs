@@ -1191,7 +1191,8 @@ d.cs
         [Fact]
         public void LangVersion()
         {
-            LanguageVersion defaultVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
+            LanguageVersion defaultEffectiveVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
+            LanguageVersion latestEffectiveVersion = LanguageVersion.Latest.MapSpecifiedToEffectiveVersion();
 
             var parsedArgs = DefaultParse(new[] { "/langversion:1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
@@ -1233,15 +1234,19 @@ d.cs
             parsedArgs.Errors.Verify();
             Assert.Equal(LanguageVersion.CSharp7, parsedArgs.ParseOptions.LanguageVersion);
 
+            parsedArgs = DefaultParse(new[] { "/langversion:7.1", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(LanguageVersion.CSharp7_1, parsedArgs.ParseOptions.LanguageVersion);
+
             parsedArgs = DefaultParse(new[] { "/langversion:default", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(LanguageVersion.Default, parsedArgs.ParseOptions.SpecifiedLanguageVersion);
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:latest", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(LanguageVersion.Latest, parsedArgs.ParseOptions.SpecifiedLanguageVersion);
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(latestEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:iso-1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
@@ -1251,14 +1256,11 @@ d.cs
             parsedArgs.Errors.Verify();
             Assert.Equal(LanguageVersion.CSharp2, parsedArgs.ParseOptions.LanguageVersion);
 
-            parsedArgs = DefaultParse(new[] { "/langversion:default", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
-
             // default value
             parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(LanguageVersion.Default, parsedArgs.ParseOptions.SpecifiedLanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             // override value with iso-1
             parsedArgs = DefaultParse(new[] { "/langversion:6", "/langversion:iso-1", "a.cs" }, _baseDirectory);
@@ -1272,13 +1274,13 @@ d.cs
 
             // override value with default
             parsedArgs = DefaultParse(new[] { "/langversion:6", "/langversion:default", "a.cs" }, _baseDirectory);
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
             parsedArgs.Errors.Verify();
 
             // override value with default
             parsedArgs = DefaultParse(new[] { "/langversion:7", "/langversion:default", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             // override value with numeric
             parsedArgs = DefaultParse(new[] { "/langversion:iso-2", "/langversion:6", "a.cs" }, _baseDirectory);
@@ -1288,40 +1290,40 @@ d.cs
             //  errors
             parsedArgs = DefaultParse(new[] { "/langversion:iso-3", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("iso-3"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:iso1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("iso1"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:0", "/langversion:7", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:0", "/langversion:8", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"),
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("8"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:0", "/langversion:1000", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"),
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("1000"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/langversion:"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/LANGversion:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/langversion:"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion: ", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/langversion:"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
         }
 
         [Fact]
@@ -1332,14 +1334,14 @@ d.cs
             // - update the "UpgradeProject" codefixer
             // - update the IDE drop-down for selecting Language Version
             // - don't fix the canary test until you update all the tests that include it
-            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
         }
 
         [Fact]
         public void LanguageVersion_DisplayString()
         {
-            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7", "latest" },
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7", "7.1", "latest" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions, the format should be "x.y", such as "7.1"
         }
@@ -1355,7 +1357,7 @@ d.cs
             Assert.Equal(LanguageVersion.CSharp6, LanguageVersion.CSharp6.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.CSharp7.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
 
             // The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary();
@@ -1373,7 +1375,8 @@ d.cs
             InlineData("05", true, LanguageVersion.CSharp5),
             InlineData("6", true, LanguageVersion.CSharp6),
             InlineData("7", true, LanguageVersion.CSharp7),
-            InlineData("07", false, LanguageVersion.Default),
+            InlineData("07", true, LanguageVersion.CSharp7),
+            InlineData("7.1", true, LanguageVersion.CSharp7_1),
             InlineData("default", true, LanguageVersion.Default),
             InlineData("latest", true, LanguageVersion.Latest),
             InlineData(null, true, LanguageVersion.Default),
