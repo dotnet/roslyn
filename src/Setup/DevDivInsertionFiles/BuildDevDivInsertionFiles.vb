@@ -1070,7 +1070,7 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
             "Microsoft SDKs/Windows/v10.0A/bin/NETFX 4.6 Tools/CorFlags.exe")
 
         For Each fileName In filesToInsert
-            Dim srcPath = GetAbsolutePathInOutputDirectory(GetMappedPath(fileName))
+            Dim srcPath = Path.Combine(_binDirectory, GetMappedPath(fileName))
             Dim dstPath = Path.Combine(outputFolder, fileName)
             File.Copy(srcPath, dstPath)
 
