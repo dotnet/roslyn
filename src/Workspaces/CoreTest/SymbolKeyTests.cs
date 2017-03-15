@@ -671,7 +671,10 @@ class C
             // Ensure we don't crash getting these symbol keys.
             var id = SymbolKey.ToString(symbol);
             Assert.NotNull(id);
-            var found = SymbolKey.Resolve(id, compilation2).GetAnySymbol();
+
+            // Validate that if the client does ask to resolve locations that we
+            // do not crash if those locations cannot be found.
+            var found = SymbolKey.Resolve(id, compilation2, resolveLocations: true).GetAnySymbol();
             Assert.NotNull(found);
 
             Assert.Equal(symbol.Name, found.Name);
@@ -705,7 +708,10 @@ class C
             // Ensure we don't crash getting these symbol keys.
             var id = SymbolKey.ToString(symbol);
             Assert.NotNull(id);
-            var found = SymbolKey.Resolve(id, compilation2).GetAnySymbol();
+
+            // Validate that if the client does ask to resolve locations that we
+            // do not crash if those locations cannot be found.
+            var found = SymbolKey.Resolve(id, compilation2, resolveLocations: true).GetAnySymbol();
             Assert.NotNull(found);
 
             Assert.Equal(symbol.Name, found.Name);
