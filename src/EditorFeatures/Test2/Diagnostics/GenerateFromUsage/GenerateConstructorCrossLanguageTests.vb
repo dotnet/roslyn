@@ -11,11 +11,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateConstructo
             If language = LanguageNames.CSharp Then
                 Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
                     Nothing,
-                    New Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateConstructor.GenerateConstructorCodeFixProvider())
+                    New CodeAnalysis.CSharp.GenerateConstructor.GenerateConstructorCodeFixProvider())
             Else
                 Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
                     Nothing,
-                    New Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor.GenerateConstructorCodeFixProvider())
+                    New CodeAnalysis.VisualBasic.GenerateConstructor.GenerateConstructorCodeFixProvider())
             End If
         End Function
 

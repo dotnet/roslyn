@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateTypeCodeFixProvider());
 
-        protected override IList<CodeAction> MassageActions(IList<CodeAction> codeActions)
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> codeActions)
             => FlattenActions(codeActions);
 
         #region Generate Class
@@ -212,7 +213,7 @@ index: 2);
             await TestAddDocumentInRegularAndScriptAsync(
 @"class Program { void Main ( ) { [|Foo|] f ; } } ",
 @"internal class Foo { } ",
-expectedContainers: Array.Empty<string>(),
+expectedContainers: ImmutableArray<string>.Empty,
 expectedDocumentName: "Foo.cs");
         }
 
@@ -222,7 +223,7 @@ expectedDocumentName: "Foo.cs");
             await TestAddDocumentInRegularAndScriptAsync(
 @"class Class { [|TestNamespace|].Foo f; }",
 @"namespace TestNamespace { internal class Foo { } }",
-expectedContainers: new List<string> { "TestNamespace" },
+expectedContainers: ImmutableArray.Create("TestNamespace"),
 expectedDocumentName: "Foo.cs");
         }
 
@@ -916,7 +917,7 @@ index: 1);
             await TestAddDocumentInRegularAndScriptAsync(
 @"class Class { static void Main(string[] args) { [|N|].C c; } }",
 @"namespace N { internal class C { } }",
-expectedContainers: new List<string> { "N" },
+expectedContainers: ImmutableArray.Create("N"),
 expectedDocumentName: "C.cs");
         }
 
@@ -2904,7 +2905,7 @@ index: 1);
             await TestAddDocumentInRegularAndScriptAsync(
 @"class Class { void F() { new [|Foo|].Bar(); } }",
 @"namespace Foo { internal class Bar { public Bar() { } } }",
-expectedContainers: new List<string> { "Foo" },
+expectedContainers: ImmutableArray.Create("Foo"),
 expectedDocumentName: "Bar.cs");
         }
 
@@ -4178,7 +4179,7 @@ string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", Featur
             await TestAddDocumentInRegularAndScriptAsync(
 @"class C : [|Foo|]",
 "internal class Foo { }",
-Array.Empty<string>(),
+ImmutableArray<string>.Empty,
 "Foo.cs");
         }
 
@@ -4372,7 +4373,7 @@ namespace Namespace1.Namespace2
 
             await TestAddDocumentInRegularAndScriptAsync(code,
                 expected,
-                expectedContainers: Array.Empty<string>(),
+                expectedContainers: ImmutableArray<string>.Empty,
                 expectedDocumentName: "ClassB.cs",
                 ignoreTrivia: false);
         }
@@ -4403,7 +4404,7 @@ namespace Namespace1.Namespace2.Namespace3
 
             await TestAddDocumentInRegularAndScriptAsync(code,
                 expected,
-                expectedContainers: new List<string> { "Namespace1", "Namespace2" },
+                expectedContainers: ImmutableArray.Create("Namespace1", "Namespace2"),
                 expectedDocumentName: "ClassB.cs",
                 ignoreTrivia: false);
         }
@@ -4781,6 +4782,83 @@ index: 1);
 }",
 index: 2);
         }
+
+        [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestPreserveFileBanner1()
+        {
+            await TestAddDocumentInRegularAndScriptAsync(
+@"// I am a banner
+
+class Program
+{
+    void Main ( )
+    {
+        [|Foo|] f ;
+    }
+} ",
+@"// I am a banner
+
+internal class Foo
+{
+}",
+expectedContainers: ImmutableArray<string>.Empty,
+expectedDocumentName: "Foo.cs",
+ignoreTrivia: false);
+        }
+
+        [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestPreserveFileBanner2()
+        {
+            await TestAddDocumentInRegularAndScriptAsync(
+@"/// I am a doc comment
+class Program
+{
+    void Main ( )
+    {
+        [|Foo|] f ;
+    }
+} ",
+@"internal class Foo
+{
+}",
+expectedContainers: ImmutableArray<string>.Empty,
+expectedDocumentName: "Foo.cs",
+ignoreTrivia: false);
+        }
+
+        [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestPreserveFileBanner3()
+        {
+            await TestAddDocumentInRegularAndScriptAsync(
+    @"// I am a banner
+using System;
+
+class Program
+{
+    void Main (StackOverflowException e)
+    {
+        var f = new [|Foo|](e);
+    }
+}",
+    @"// I am a banner
+using System;
+
+internal class Foo
+{
+    private StackOverflowException e;
+
+    public Foo(StackOverflowException e)
+    {
+        this.e = e;
+    }
+}",
+    expectedContainers: ImmutableArray<string>.Empty,
+    expectedDocumentName: "Foo.cs",
+    ignoreTrivia: false);
+        }
     }
 
     public partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
@@ -4788,7 +4866,7 @@ index: 2);
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateTypeCodeFixProvider());
 
-        protected override IList<CodeAction> MassageActions(IList<CodeAction> codeActions)
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> codeActions)
             => FlattenActions(codeActions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]

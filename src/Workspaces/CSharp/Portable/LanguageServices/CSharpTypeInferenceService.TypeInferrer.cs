@@ -1609,15 +1609,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ITypeSymbol InferTypeForFirstParameterOfLambda(
                 LambdaExpressionSyntax lambdaExpression)
             {
-                if (lambdaExpression is ParenthesizedLambdaExpressionSyntax)
+                if (lambdaExpression is ParenthesizedLambdaExpressionSyntax parenLambda)
                 {
-                    return InferTypeForFirstParameterOfParenthesizedLambda(
-                        (ParenthesizedLambdaExpressionSyntax)lambdaExpression);
+                    return InferTypeForFirstParameterOfParenthesizedLambda(parenLambda);
                 }
-                else if (lambdaExpression is SimpleLambdaExpressionSyntax)
+                else if (lambdaExpression is SimpleLambdaExpressionSyntax simpleLambda)
                 {
-                    return InferTypeForFirstParameterOfSimpleLambda(
-                        (SimpleLambdaExpressionSyntax)lambdaExpression);
+                    return InferTypeForFirstParameterOfSimpleLambda(simpleLambda);
                 }
 
                 return null;
@@ -1784,12 +1782,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var memberType = GetMemberType(memberSymbol);
 
-                if (memberType is INamedTypeSymbol)
+                if (memberType is INamedTypeSymbol namedType)
                 {
                     if (memberType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
                         memberType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerator_T)
                     {
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(((INamedTypeSymbol)memberType).TypeArguments[0]));
+                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(namedType.TypeArguments[0]));
                     }
                 }
 

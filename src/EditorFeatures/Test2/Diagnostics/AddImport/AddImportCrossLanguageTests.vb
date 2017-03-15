@@ -219,7 +219,7 @@ Namespace VBAssembly1
 End Namespace
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, codeActionIndex:=0)
+            Await TestAsync(input, expected, codeActionIndex:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>

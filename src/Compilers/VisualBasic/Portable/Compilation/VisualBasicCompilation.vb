@@ -239,12 +239,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim parseOptions = If(compilationOptions.ParseOptions, VisualBasicParseOptions.Default)
 
                         Dim tree As SyntaxTree = Nothing
+
                         If s_myTemplateCache.TryGetValue(parseOptions, tree) Then
                             Debug.Assert(tree IsNot Nothing)
                             Debug.Assert(tree IsNot VisualBasicSyntaxTree.Dummy)
                             Debug.Assert(tree.IsMyTemplate)
 
-                            _lazyMyTemplate = tree
+                            Interlocked.CompareExchange(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy)
                         Else
                             ' we need to make one.
                             Dim text As String = EmbeddedResources.VbMyTemplateText
@@ -259,13 +260,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Throw ExceptionUtilities.Unreachable
                             End If
 
-                            ' set global cache
-                            s_myTemplateCache(parseOptions) = tree
-
-                            _lazyMyTemplate = tree
+                            If Interlocked.CompareExchange(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy) Is VisualBasicSyntaxTree.Dummy Then
+                                ' set global cache
+                                s_myTemplateCache(parseOptions) = tree
+                            End If
                         End If
                     End If
-
                     Debug.Assert(_lazyMyTemplate Is Nothing OrElse _lazyMyTemplate.IsMyTemplate)
                 End If
 
@@ -1929,6 +1929,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         builder.AddRange(tree.GetDiagnostics(cancellationToken))
                     Next
                 End If
+
+                Dim parseOptionsReported = New HashSet(Of ParseOptions)
+                If Options.ParseOptions IsNot Nothing Then
+                    parseOptionsReported.Add(Options.ParseOptions) ' This is reported in Options.Errors at CompilationStage.Declare
+                End If
+
+                For Each tree In SyntaxTrees
+                    cancellationToken.ThrowIfCancellationRequested()
+                    If Not tree.Options.Errors.IsDefaultOrEmpty AndAlso parseOptionsReported.Add(tree.Options) Then
+                        Dim location = tree.GetLocation(TextSpan.FromBounds(0, 0))
+                        For Each err In tree.Options.Errors
+                            builder.Add(err.WithLocation(location))
+                        Next
+                    End If
+                Next
             End If
 
             ' Add declaration errors

@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
@@ -398,7 +397,7 @@ class Customer
             3
         }};
 
-        // {ServicesVSResources.Prefer_colon}
+        // {ServicesVSResources.Over_colon}
         var list = new List<int>();
         list.Add(1);
         list.Add(2);

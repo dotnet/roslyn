@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FullyQualif
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpFullyQualifyCodeFixProvider());
 
-        protected override IList<CodeAction> MassageActions(IList<CodeAction> actions)
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
@@ -1115,7 +1116,8 @@ public class Program
 {
     static void M()
     {
-        [|Xaml|] }
+        [|Xaml|]
+    }
 }",
 @"namespace MS.Internal.Xaml
 {
@@ -1135,7 +1137,8 @@ public class Program
 {
     static void M()
     {
-        System.Xaml }
+        System.Xaml
+    }
 }");
 
             await TestInRegularAndScriptAsync(
@@ -1157,7 +1160,8 @@ public class Program
 {
     static void M()
     {
-        [|Xaml|] }
+        [|Xaml|]
+    }
 }",
 @"namespace MS.Internal.Xaml
 {
@@ -1177,8 +1181,9 @@ public class Program
 {
     static void M()
     {
-        MS.Internal.Xaml }
-}");
+        MS.Internal.Xaml
+    }
+}", index: 1);
         }
 
         [WorkItem(11071, "https://github.com/dotnet/roslyn/issues/11071")]

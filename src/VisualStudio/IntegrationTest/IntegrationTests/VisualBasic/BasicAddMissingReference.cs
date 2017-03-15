@@ -139,7 +139,7 @@ End Module";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
-        public void Verify_Available_Code_Actions()
+        public void VerifyAvailableCodeActions()
         {
             OpenFile(ConsoleProjectName, "Module1.vb");
             PlaceCaret("y.foo", charsOffset: 1);
@@ -157,7 +157,7 @@ End Module";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
-        public void Invoke_Some_Fixes_In_VisualBasic_Then_Verify_References()
+        public void InvokeSomeFixesInVisualBasicThenVerifyReferences()
         {
             OpenFile(ConsoleProjectName, "Module1.vb");
             PlaceCaret("y.foo", charsOffset: 1);

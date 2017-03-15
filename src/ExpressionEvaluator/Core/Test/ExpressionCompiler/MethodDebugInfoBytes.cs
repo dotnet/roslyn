@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
                 // Record header
                 _bytesBuilder.Add(Version);
-                _bytesBuilder.Add((byte)CustomDebugInfoKind.UsingInfo);
+                _bytesBuilder.Add((byte)CustomDebugInfoKind.UsingGroups);
                 _bytesBuilder.Add(Padding);
                 _bytesBuilder.Add(Padding);
                 _bytesBuilder.Add4(recordSize);
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             {
                 // Record header
                 _bytesBuilder.Add(Version);
-                _bytesBuilder.Add((byte)(isModuleLevel ? CustomDebugInfoKind.ForwardToModuleInfo : CustomDebugInfoKind.ForwardInfo));
+                _bytesBuilder.Add((byte)(isModuleLevel ? CustomDebugInfoKind.ForwardModuleInfo : CustomDebugInfoKind.ForwardMethodInfo));
                 _bytesBuilder.Add(Padding);
                 _bytesBuilder.Add(Padding);
                 _bytesBuilder.Add4(12); // Record size, including header.

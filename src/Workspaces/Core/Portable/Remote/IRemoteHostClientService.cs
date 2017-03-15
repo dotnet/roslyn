@@ -29,9 +29,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         Task RequestNewRemoteHostAsync(CancellationToken cancellationToken);
 
+        [Obsolete("use TryGetRemoteHostClientAsync instead")]
+        Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken);
+
         /// <summary>
         /// Get <see cref="RemoteHostClient"/> to current RemoteHost
         /// </summary>
-        Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken);
+        Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken);
     }
 }

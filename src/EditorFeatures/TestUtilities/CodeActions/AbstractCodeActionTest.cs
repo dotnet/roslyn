@@ -26,10 +26,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected abstract CodeRefactoringProvider CreateCodeRefactoringProvider(
             Workspace workspace, TestParameters parameters);
 
-        protected override async Task<IList<CodeAction>> GetCodeActionsWorkerAsync(
+        protected override async Task<ImmutableArray<CodeAction>> GetCodeActionsWorkerAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            return (await GetCodeRefactoringAsync(workspace, parameters))?.Actions?.ToList();
+            var refactoring = await GetCodeRefactoringAsync(workspace, parameters);
+            return refactoring == null
+                ? ImmutableArray<CodeAction>.Empty
+                : refactoring.Actions;
         }
 
         internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
@@ -52,17 +55,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             var document = GetDocument(workspace);
             var span = workspace.Documents.Single(d => !d.IsLinkFile && d.SelectedSpans.Count == 1).SelectedSpans.Single();
-            var actions = new List<CodeAction>();
-            var context = new CodeRefactoringContext(document, span, (a) => actions.Add(a), CancellationToken.None);
+            var actions = ArrayBuilder<CodeAction>.GetInstance();
+            var context = new CodeRefactoringContext(document, span, actions.Add, CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);
-            return actions.Count > 0 ? new CodeRefactoring(provider, actions) : null;
+
+            var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable()) : null;
+            actions.Free();
+            return result;
         }
 
         protected async Task TestActionsOnLinkedFiles(
             TestWorkspace workspace,
             string expectedText,
             int index,
-            IList<CodeAction> actions,
+            ImmutableArray<CodeAction> actions,
             string expectedPreviewContents = null,
             bool ignoreTrivia = true)
         {
@@ -119,7 +125,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 => _memberNames = memberNames;
 
             public PickMembersResult PickMembers(string title, ImmutableArray<ISymbol> members)
-                => new PickMembersResult(_memberNames.SelectAsArray(n => members.Single(m => m.Name == n)));
+                => new PickMembersResult(_memberNames.IsDefault
+                    ? members
+                    : _memberNames.SelectAsArray(n => members.Single(m => m.Name == n)));
         }
 
         internal Task TestWithPickMembersDialogAsync(
@@ -131,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null,
             TestParameters parameters = default(TestParameters))
         {
-            var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrEmpty());
+            var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull());
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup,
                 index, ignoreTrivia, priority,

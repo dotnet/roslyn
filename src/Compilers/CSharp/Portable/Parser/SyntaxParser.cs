@@ -1074,11 +1074,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (forceWarning)
                 {
-                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
+                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName,
+                        new CSharpRequiredLanguageVersion(requiredVersion));
                     return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
                 }
 
-                return this.AddError(node, availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
+                return this.AddError(node, availableVersion.GetErrorCode(), featureName, new CSharpRequiredLanguageVersion(requiredVersion));
             }
         }
 

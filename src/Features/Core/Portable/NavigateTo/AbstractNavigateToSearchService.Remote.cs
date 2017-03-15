@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return null;
             }
 
-            return await project.Solution.Workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            return await project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

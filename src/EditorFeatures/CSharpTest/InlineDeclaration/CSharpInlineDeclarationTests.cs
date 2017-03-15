@@ -1197,5 +1197,418 @@ class C
     }
 }");
         }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotInLoops1()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        do
+        {
+        }
+        while (!TryExtractTokenFromEmail(out token));
+
+        Console.WriteLine(token == ""Test"");
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotInLoops2()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        while (!TryExtractTokenFromEmail(out token))
+        {
+        }
+
+        Console.WriteLine(token == ""Test"");
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotInLoops3()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        foreach (var v in TryExtractTokenFromEmail(out token))
+        {
+        }
+
+        Console.WriteLine(token == ""Test"");
+    }
+
+    private static IEnumerable<bool> TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotInLoops4()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        for ( ; TryExtractTokenFromEmail(out token); )
+        {
+        }
+
+        Console.WriteLine(token == ""Test"");
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInLoops1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        do
+        {
+        }
+        while (!TryExtractTokenFromEmail(out token));
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        do
+        {
+        }
+        while (!TryExtractTokenFromEmail(out string token));
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInLoops2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        while (!TryExtractTokenFromEmail(out token))
+        {
+        }
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        while (!TryExtractTokenFromEmail(out string token))
+        {
+        }
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17635"),
+         Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInLoops3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        foreach (var v in TryExtractTokenFromEmail(out token))
+        {
+        }
+    }
+
+    private static IEnumerable<bool> TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        foreach (var v in TryExtractTokenFromEmail(out string token))
+        {
+        }
+    }
+
+    private static IEnumerable<bool> TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInLoops4()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        for ( ; TryExtractTokenFromEmail(out token); )
+        {
+        }
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        for ( ; TryExtractTokenFromEmail(out string token); )
+        {
+        }
+    }
+
+    private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(17743, "https://github.com/dotnet/roslyn/issues/17743")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInLocalFunction()
+        {
+            // Note: this currently works, but it should be missing.  
+            // This test validates that we don't crash in this case though.
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Collections.Generic;
+
+class Demo
+{
+    static void Main()
+    {
+        F();
+        void F()
+        {
+            Action f = () =>
+            {
+                Dictionary<int, int> dict = null;
+                int [|x|] = 0;
+                dict?.TryGetValue(0, out x);
+                Console.WriteLine(x);
+            };
+        }
+    }
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Demo
+{
+    static void Main()
+    {
+        F();
+        void F()
+        {
+            Action f = () =>
+            {
+                Dictionary<int, int> dict = null;
+                dict?.TryGetValue(0, out int x);
+                Console.WriteLine(x);
+            };
+        }
+    }
+}");
+        }
+
+        [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMultipleDeclarationStatementsOnSameLine1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void Foo()
+    {
+        string a; string [|b|];
+        Method(out a, out b);
+    }
+}",
+@"
+class C
+{
+    void Foo()
+    {
+        string a; 
+        Method(out a, out string b);
+    }
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMultipleDeclarationStatementsOnSameLine2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void Foo()
+    {
+        string a; /*leading*/ string [|b|]; // trailing
+        Method(out a, out b);
+    }
+}",
+@"
+class C
+{
+    void Foo()
+    {
+        string a; /*leading*/  // trailing
+        Method(out a, out string b);
+    }
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMultipleDeclarationStatementsOnSameLine3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void Foo()
+    {
+        string a;
+        /*leading*/ string [|b|]; // trailing
+        Method(out a, out b);
+    }
+}",
+@"
+class C
+{
+    void Foo()
+    {
+        string a;
+        /*leading*/ // trailing
+        Method(out a, out string b);
+    }
+}", ignoreTrivia: false);
+        }
     }
 }

@@ -405,16 +405,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 if (symbol != null && !symbol.IsStatic)
                 {
-                    if (symbol is IFieldSymbol)
+                    if (symbol is IFieldSymbol field)
                     {
-                        var field = (IFieldSymbol)symbol;
                         return
                             !field.IsConst &&
                             _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, field.Type);
                     }
-                    else if (symbol is IPropertySymbol)
+                    else if (symbol is IPropertySymbol property)
                     {
-                        var property = (IPropertySymbol)symbol;
                         return
                             property.Parameters.Length == 0 &&
                             property.IsWritableInConstructor() &&

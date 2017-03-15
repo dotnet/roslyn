@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             var uniqueLocations = new HashSet<DocumentSpan>();
 
             // Order the symbols by precedence, then create the appropriate
-            // definition item per symbol and all refernece items for its
+            // definition item per symbol and all reference items for its
             // reference locations.
             foreach (var referencedSymbol in referencedSymbols.OrderBy(GetPrecedence))
             {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         /// <summary>
-        /// Reference locations are deduplicated across the entire find references result set
+        /// Reference locations are de-duplicated across the entire find references result set
         /// Order the definitions so that references to multiple definitions appear under the
         /// desired definition (e.g. constructor references should prefer the constructor method
         /// over the type definition). Note that this does not change the order in which
@@ -164,6 +164,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
             bool includeHiddenLocations,
             HashSet<DocumentSpan> uniqueSpans = null)
         {
+            // Ensure we're working with the original definition for the symbol. I.e. When we're 
+            // creating definition items, we want to create them for types like Dictionary<TKey,TValue>
+            // not some random instantiation of that type.  
+            //
+            // This ensures that the type will both display properly to the user, as well as ensuring
+            // that we can accurately resolve the type later on when we try to navigate to it.
+            definition = definition.OriginalDefinition;
+
             var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
             var nameDisplayParts = definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
 
@@ -173,7 +181,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
 
-            // If it's a namespace, don't create any normal lcoation.  Namespaces
+            // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
             // root definition node for it.  That node won't be navigable.
             if (definition.Kind != SymbolKind.Namespace)
@@ -244,8 +252,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return null;
             }
 
-            return new SourceReferenceItem(definitionItem, 
-                new DocumentSpan(referenceLocation.Document, location.SourceSpan));
+            return new SourceReferenceItem(
+                definitionItem, 
+                new DocumentSpan(referenceLocation.Document, location.SourceSpan),
+                referenceLocation.IsWrittenTo);
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)

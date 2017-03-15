@@ -3121,6 +3121,59 @@ class Program{
         }
 
         [WpfFact]
+        [WorkItem(17257, "https://github.com/dotnet/roslyn/issues/17257")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void FormattingRangeForConstructor()
+        {
+            var code = @"class C
+{public C()=>f=1;$$
+}";
+
+            var expected = @"class C
+{
+    public C() => f = 1;
+}";
+
+            AutoFormatToken(code, expected);
+        }
+
+        [WpfFact]
+        [WorkItem(17257, "https://github.com/dotnet/roslyn/issues/17257")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void FormattingRangeForDestructor()
+        {
+            var code = @"class C
+{~C()=>f=1;$$
+}";
+
+            var expected = @"class C
+{
+    ~C() => f = 1;
+}";
+
+            AutoFormatToken(code, expected);
+        }
+
+        [WpfFact]
+        [WorkItem(17257, "https://github.com/dotnet/roslyn/issues/17257")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void FormattingRangeForOperator()
+        {
+            var code = @"class C
+{public static C operator +(C left, C right)=>field=1;$$
+    static int field;
+}";
+
+            var expected = @"class C
+{
+    public static C operator +(C left, C right) => field = 1;
+    static int field;
+}";
+
+            AutoFormatToken(code, expected);
+        }
+
+        [WpfFact]
         [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FormattingRangeForFirstMemberOfNamespace()

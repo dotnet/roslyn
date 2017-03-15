@@ -34,6 +34,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void AddProject(string projectName, string projectTemplate, string languageName)
             => _inProc.AddProject(projectName, projectTemplate, languageName);
 
+        public void AddProjectReference(string fromProjectName, string toProjectName)
+            => _inProc.AddProjectReference(fromProjectName, toProjectName);
+
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
 

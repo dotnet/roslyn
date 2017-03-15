@@ -15341,6 +15341,48 @@ class C
 ");
         }
 
+        [Fact]
+        public void MissingCSharpArgumentInfoCreate()
+        {
+            string source =
+@"class C
+{
+    static void F(dynamic d)
+    {
+        d.F();
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(
+                new[] { DynamicAttributeSource, source },
+                references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
+                //         d.F();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(5, 9));
+        }
+
+        [Fact]
+        [WorkItem(377883, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=377883")]
+        public void MissingCSharpArgumentInfoCreate_Async()
+        {
+            string source =
+@"using System.Threading.Tasks;
+class C
+{
+    static async Task F(dynamic d)
+    {
+        await d;
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(
+                new[] { DynamicAttributeSource, source },
+                references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
+                //         await d;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(6, 15));
+        }
+
         #endregion
     }
 }

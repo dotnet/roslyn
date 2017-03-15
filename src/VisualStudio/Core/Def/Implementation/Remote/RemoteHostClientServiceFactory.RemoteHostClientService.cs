@@ -139,6 +139,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             public Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
+                return TryGetRemoteHostClientAsync(cancellationToken);
+            }
+
+            public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
+            {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Task<RemoteHostClient> instanceTask;

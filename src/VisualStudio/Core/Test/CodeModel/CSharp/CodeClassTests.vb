@@ -3930,15 +3930,7 @@ class $$C
 }
 </Code>
 
-            Dim expectedPropertyNames =
-                {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind", "IsCodeType",
-                 "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
-                 "ExtenderCATID", "Parent", "Namespace", "Bases", "Members", "Access", "Attributes",
-                 "DocComment", "Comment", "DerivedTypes", "ImplementedInterfaces", "IsAbstract",
-                 "ClassKind", "PartialClasses", "DataTypeKind", "Parts", "InheritanceKind", "IsGeneric",
-                 "IsShared"}
-
-            TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(Of EnvDTE80.CodeClass2)(code)
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

@@ -122,7 +122,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 (parent is FieldDeclarationSyntax) ||
                 (parent is EventFieldDeclarationSyntax) ||
                 (parent is MethodDeclarationSyntax) ||
-                (parent is PropertyDeclarationSyntax))
+                (parent is PropertyDeclarationSyntax) ||
+                (parent is ConstructorDeclarationSyntax) ||
+                (parent is DestructorDeclarationSyntax) ||
+                (parent is OperatorDeclarationSyntax))
             {
                 return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
             }

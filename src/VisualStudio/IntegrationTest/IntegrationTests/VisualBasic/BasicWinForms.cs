@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         protected override string LanguageName => LanguageNames.VisualBasic;
 
         public BasicWinForms(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicWinForms), WellKnownProjectTemplates.WinFormsApplication, clearEditor: false)
+            : base(instanceFactory, nameof(BasicWinForms), WellKnownProjectTemplates.WinFormsApplication)
         {
         }
 
@@ -49,7 +49,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void Add_Control()
         {
-            OpenFileWithDesigner(ProjectName, "Form1.cs");
+            OpenFileWithDesigner(ProjectName, "Form1.vb");
             AddWinFormButton("SomeButton");
             CloseFile(ProjectName, "Form1.vb", saveFile: true);
             OpenFile(ProjectName, "Form1.Designer.vb");
@@ -60,7 +60,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void Change_Control_Property()
         {
-            OpenFileWithDesigner(ProjectName, "Form1.cs");
+            OpenFileWithDesigner(ProjectName, "Form1.vb");
             AddWinFormButton("SomeButton");
             EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Text", propertyValue: "NewButtonText");
             CloseFile(ProjectName, "Form1.vb", saveFile: true);
@@ -71,7 +71,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void Change_Control_Property_In_Code()
         {
-            OpenFileWithDesigner(ProjectName, "Form1.cs");
+            OpenFileWithDesigner(ProjectName, "Form1.vb");
             AddWinFormButton("SomeButton");
             EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Text", propertyValue: "ButtonTextGoesHere");
             var expectedPropertyValue = "ButtonTextGoesHere";
@@ -96,7 +96,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void Add_Click_Handler()
         {
-            OpenFileWithDesigner(ProjectName, "Form1.cs");
+            OpenFileWithDesigner(ProjectName, "Form1.vb");
             AddWinFormButton("SomeButton");
             EditWinFormsButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "ExecuteWhenButtonClicked");
             OpenFile(ProjectName, "Form1.vb");
@@ -107,7 +107,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void Rename_Control()
         {
-            OpenFileWithDesigner(ProjectName, "Form1.cs");
+            OpenFileWithDesigner(ProjectName, "Form1.vb");
             AddWinFormButton("SomeButton");
             // Add some control properties and events
             EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Text", propertyValue: "ButtonTextValue");
@@ -134,7 +134,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void Remove_Event_Handler()
         {
-            OpenFileWithDesigner(ProjectName, "Form1.cs");
+            OpenFileWithDesigner(ProjectName, "Form1.vb");
             AddWinFormButton("SomeButton");
             EditWinFormsButtonEvent(buttonName: "SomeButton", eventName: "Click", eventHandlerName: "FooHandler");
             //  Remove the event handler
@@ -148,7 +148,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void Change_Accessibility()
         {
-            OpenFileWithDesigner(ProjectName, "Form1.cs");
+            OpenFileWithDesigner(ProjectName, "Form1.vb");
             AddWinFormButton("SomeButton");
             EditWinFormButtonProperty(
                 buttonName: "SomeButton",
@@ -163,7 +163,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void Delete_Control()
         {
-            OpenFileWithDesigner(ProjectName, "Form1.cs");
+            OpenFileWithDesigner(ProjectName, "Form1.vb");
             AddWinFormButton("SomeButton");
             DeleteWinFormButton("SomeButton");
             VerifyNoBuildErrors();

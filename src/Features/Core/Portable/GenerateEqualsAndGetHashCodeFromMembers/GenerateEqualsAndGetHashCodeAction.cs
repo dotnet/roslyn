@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             internal static string GetTitle(bool generateEquals, bool generateGetHashCode)
                 => generateEquals
                     ? generateGetHashCode
-                        ? FeaturesResources.Generate_Both
+                        ? FeaturesResources.Generate_Equals_and_GetHashCode
                         : FeaturesResources.Generate_Equals_object
                     : FeaturesResources.Generate_GetHashCode;
         }

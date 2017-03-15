@@ -10,6 +10,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
@@ -31,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 
                 if (expectedOutputMarkup != null)
                 {
-                    MarkupTestFile.GetSpans(expectedOutputMarkup, out var expectedOutput, out IList<TextSpan> expectedSpans);
+                    MarkupTestFile.GetSpans(expectedOutputMarkup,
+                        out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
 
                     Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
                     Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);

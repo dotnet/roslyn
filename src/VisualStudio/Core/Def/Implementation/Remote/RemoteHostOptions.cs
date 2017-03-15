@@ -8,7 +8,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal static class RemoteHostOptions
     {
         [ExportOption]
-        public static readonly Option<bool> RemoteHost = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RemoteHost), defaultValue: true,
+        public static readonly Option<bool> RemoteHost = new Option<bool>(
+            nameof(InternalFeatureOnOffOptions), nameof(RemoteHost), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(RemoteHost)));
 
         // Update primary workspace on OOP every 4 seconds if VS is not running any global operation 

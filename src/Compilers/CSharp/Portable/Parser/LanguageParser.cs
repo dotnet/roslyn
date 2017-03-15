@@ -4025,7 +4025,14 @@ tryAgain:
         {
             while (IsParameterModifier(this.CurrentToken.Kind))
             {
-                modifiers.Add(this.EatToken());
+                var modifier = this.EatToken();
+
+                if (modifier.Kind == SyntaxKind.ThisKeyword)
+                {
+                    modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExtensionMethod);
+                }
+
+                modifiers.Add(modifier);
             }
         }
 
@@ -7347,14 +7354,34 @@ tryAgain:
                 statement = SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
             }
 
-            // An "embedded" statement is simply a statement that is not a labelled
-            // statement or a declaration statement.
             switch (statement.Kind)
             {
+                // An "embedded" statement is simply a statement that is not a labelled
+                // statement or a declaration statement.
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.LocalFunctionStatement:
                     statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
+                    break;
+                // In scripts, stand-alone expression statements may not be followed by semicolons.
+                // ParseExpressionStatement hides the error.
+                // However, embedded expression statements are required to be followed by semicolon. 
+                case SyntaxKind.ExpressionStatement:
+                    if (IsScript)
+                    {
+                        var expressionStatementSyntax = (ExpressionStatementSyntax)statement;
+                        var semicolonToken = expressionStatementSyntax.SemicolonToken;
+
+                        // Do not add a new error if the same error was already added.
+                        if (semicolonToken.IsMissing  
+                            && (!semicolonToken.ContainsDiagnostics
+                            || !semicolonToken.GetDiagnostics()
+                            .Contains(diagnosticInfo => (ErrorCode)diagnosticInfo.Code == ErrorCode.ERR_SemicolonExpected)))
+                        {
+                            semicolonToken = this.AddError(semicolonToken, ErrorCode.ERR_SemicolonExpected);
+                            statement = expressionStatementSyntax.Update(expressionStatementSyntax.Expression, semicolonToken);
+                        }
+                    }
                     break;
             }
 

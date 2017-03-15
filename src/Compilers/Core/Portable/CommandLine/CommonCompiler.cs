@@ -130,12 +130,27 @@ namespace Microsoft.CodeAnalysis
         {
             if (_clientDirectory != null)
             {
-                var name = $"{Type.GetTypeInfo().Assembly.GetName().Name}.dll";
+                Assembly assembly = Type.GetTypeInfo().Assembly;
+                var name = $"{assembly.GetName().Name}.dll";
                 var filePath = Path.Combine(_clientDirectory, name);
-                return FileVersionInfo.GetVersionInfo(filePath).FileVersion;
+                var fileVersionInfo = FileVersionInfo.GetVersionInfo(filePath);
+                string hash = ExtractShortCommitHash(assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash);
+
+                return $"{fileVersionInfo.FileVersion} ({hash})";
             }
 
             return "";
+        }
+
+        internal static string ExtractShortCommitHash(string hash)
+        {
+            // leave "<developer build>" alone, but truncate SHA to 8 characters
+            if (hash != null && hash.Length >= 8 && hash[0] != '<')
+            {
+                return hash.Substring(0, 8);
+            }
+
+            return hash;
         }
 
         /// <summary>

@@ -45,10 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
                 return (null, new CSharpAddImportCodeFixProvider(data.Item1, data.Item2));
             }
 
-            protected override IList<CodeAction> MassageActions(IList<CodeAction> actions)
-            {
-                return FlattenActions(actions);
-            }
+            protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+                => FlattenActions(actions);
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestSearchPackageSingleName()

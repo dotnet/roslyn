@@ -2,7 +2,10 @@
 
 using System.Collections;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -22,18 +25,25 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TExpressionStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
+        private readonly SemanticModel _semanticModel;
         private readonly ISyntaxFactsService _syntaxFacts;
         private readonly TObjectCreationExpressionSyntax _objectCreationExpression;
+        private readonly CancellationToken _cancellationToken;
 
         private TStatementSyntax _containingStatement;
         private SyntaxNodeOrToken _valuePattern;
+        private ISymbol _variableSymbol;
 
         public ObjectCreationExpressionAnalyzer(
+            SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
-            TObjectCreationExpressionSyntax objectCreationExpression) : this()
+            TObjectCreationExpressionSyntax objectCreationExpression,
+            CancellationToken cancellationToken) : this()
         {
+            _semanticModel = semanticModel;
             _syntaxFacts = syntaxFacts;
             _objectCreationExpression = objectCreationExpression;
+            _cancellationToken = cancellationToken;
         }
 
         internal ImmutableArray<TExpressionStatementSyntax>? Analyze()
@@ -146,6 +156,21 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
+            // If we're initializing a variable, then we can't reference that variable on the right 
+            // side of the initialization.  Rewriting this into a collection initializer would lead
+            // to a definite-assignment error.
+            if (_variableSymbol != null)
+            {
+                foreach (var child in right.DescendantNodesAndSelf().OfType<TExpressionSyntax>())
+                {
+                    if (ValuePatternMatches(child) &&
+                        _variableSymbol.Equals(_semanticModel.GetSymbolInfo(child, _cancellationToken).GetAnySymbol()))
+                    {
+                        return false;
+                    }
+                }
+            }
+
             instance = _syntaxFacts.GetExpressionOfElementAccessExpression(left);
             return true;
         }
@@ -228,6 +253,14 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
+            var typeInfo = _semanticModel.GetTypeInfo(left, _cancellationToken);
+            if (typeInfo.Type is IDynamicTypeSymbol || typeInfo.ConvertedType is IDynamicTypeSymbol)
+            {
+                // Not supported if we're initializing something dynamic.  The object we're instantiating
+                // may not have the members that we're trying to access on the dynamic object.
+                return false;
+            }
+
             _valuePattern = left;
             return true;
         }
@@ -245,12 +278,22 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
+            var symbol = _semanticModel.GetDeclaredSymbol(containingDeclarator, _cancellationToken);
+            if (symbol is ILocalSymbol local &&
+                local.Type is IDynamicTypeSymbol)
+            {
+                // Not supported if we're creating a dynamic local.  The object we're instantiating
+                // may not have the members that we're trying to access on the dynamic object.
+                return false;
+            }
+
             if (!_syntaxFacts.IsDeclaratorOfLocalDeclarationStatement(containingDeclarator, _containingStatement))
             {
                 return false;
             }
 
             _valuePattern = _syntaxFacts.GetIdentifierOfVariableDeclarator(containingDeclarator);
+            _variableSymbol = _semanticModel.GetDeclaredSymbol(containingDeclarator);
             return true;
         }
     }

@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return null;
             }
 
-            public sealed override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
+            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
             {
                 if (columnName == StandardTableColumnDefinitions2.LineText)
                 {

@@ -1012,26 +1012,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private string GetTypeName(TypeSyntax type)
         {
-            if (type is SimpleNameSyntax)
+            if (type is SimpleNameSyntax simpleName)
             {
-                return GetSimpleTypeName((SimpleNameSyntax)type);
+                return GetSimpleTypeName(simpleName);
             }
-            else if (type is QualifiedNameSyntax)
+            else if (type is QualifiedNameSyntax qualifiedName)
             {
-                return GetSimpleTypeName(((QualifiedNameSyntax)type).Right);
+                return GetSimpleTypeName(qualifiedName.Right);
             }
-            else if (type is AliasQualifiedNameSyntax)
+            else if (type is AliasQualifiedNameSyntax aliasName)
             {
-                return GetSimpleTypeName(((AliasQualifiedNameSyntax)type).Name);
+                return GetSimpleTypeName(aliasName.Name);
             }
 
             return null;
         }
 
         private static string GetSimpleTypeName(SimpleNameSyntax name)
-        {
-            return name.Identifier.ValueText;
-        }
+            => name.Identifier.ValueText;
 
         private static string ExpandExplicitInterfaceName(string identifier, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
         {
@@ -1516,9 +1514,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var structure = triviaTok.GetStructure();
-                        if (structure is BranchingDirectiveTriviaSyntax)
+                        if (structure is BranchingDirectiveTriviaSyntax branch)
                         {
-                            var branch = (BranchingDirectiveTriviaSyntax)structure;
                             return !branch.IsActive || !branch.BranchTaken ? TextSpan.FromBounds(branch.FullSpan.Start, position) : default(TextSpan);
                         }
                     }
@@ -1608,9 +1605,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             => token.Kind() == SyntaxKind.CharacterLiteralToken;
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
-        {
-            return ((invocationExpression as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;
-        }
+            => GetArgumentsOfArgumentList((invocationExpression as InvocationExpressionSyntax)?.ArgumentList);
+
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode invocationExpression)
+            => GetArgumentsOfArgumentList((invocationExpression as ObjectCreationExpressionSyntax)?.ArgumentList);
+
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
+            => (argumentList as ArgumentListSyntax)?.Arguments ?? default(SeparatedSyntaxList<SyntaxNode>);
 
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
@@ -1695,10 +1696,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             newContextNode = newRoot.GetAnnotatedNodes(s_annotation).Single();
         }
 
-        public SyntaxNode GetObjectCreationInitializer(SyntaxNode objectCreationExpression)
-        {
-            return ((ObjectCreationExpressionSyntax)objectCreationExpression).Initializer;
-        }
+        public SyntaxNode GetObjectCreationInitializer(SyntaxNode node)
+            => ((ObjectCreationExpressionSyntax)node).Initializer;
+
+        public SyntaxNode GetObjectCreationType(SyntaxNode node)
+            => ((ObjectCreationExpressionSyntax)node).Type;
 
         public bool IsSimpleAssignmentStatement(SyntaxNode statement)
         {
@@ -1828,11 +1830,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetNextExecutableStatement(SyntaxNode statement)
             => ((StatementSyntax)statement).GetNextStatement();
 
-        public bool IsWhitespaceTrivia(SyntaxTrivia trivia)
+        public override bool IsWhitespaceTrivia(SyntaxTrivia trivia)
             => trivia.IsWhitespace();
 
-        public bool IsEndOfLineTrivia(SyntaxTrivia trivia)
+        public override bool IsEndOfLineTrivia(SyntaxTrivia trivia)
             => trivia.IsEndOfLine();
+
+        public override bool IsSingleLineCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsSingleLineComment();
+
+        public override bool IsMultiLineCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsMultiLineComment();
+
+        public override bool IsShebangDirectiveTrivia(SyntaxTrivia trivia)
+            => trivia.IsShebangDirective();
+
+        public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
+            => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
         {

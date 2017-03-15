@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 typeName: typeName,
                 parameters: constructor.Parameters,
                 statements: default(ImmutableArray<SyntaxNode>),
-                baseConstructorArguments: constructor.Parameters.Length == 0 
+                baseConstructorArguments: constructor.Parameters.Length == 0
                     ? default(ImmutableArray<SyntaxNode>)
                     : factory.CreateArguments(constructor.Parameters));
         }
@@ -230,10 +230,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             else if (overriddenProperty.IsIndexer() && document.Project.Language == LanguageNames.CSharp)
             {
                 // Indexer: return or set base[]. Only in C#, since VB must refer to these by name.
+
                 getBody = codeFactory.ReturnStatement(
-                    codeFactory.ElementAccessExpression(
-                        codeFactory.BaseExpression(),
-                        codeFactory.CreateArguments(overriddenProperty.Parameters)));
+                    WrapWithRefIfNecessary(codeFactory, overriddenProperty,
+                        codeFactory.ElementAccessExpression(
+                            codeFactory.BaseExpression(),
+                            codeFactory.CreateArguments(overriddenProperty.Parameters))));
 
                 setBody = codeFactory.ExpressionStatement(
                     codeFactory.AssignmentStatement(
@@ -249,8 +251,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     && (await SymbolFinder.FindSourceDefinitionAsync(overriddenProperty, document.Project.Solution, cancellationToken).ConfigureAwait(false))
                         .Language == LanguageNames.VisualBasic)
                 {
-                    var getName = overriddenProperty.GetMethod != null ? overriddenProperty.GetMethod.Name : null;
-                    var setName = overriddenProperty.SetMethod != null ? overriddenProperty.SetMethod.Name : null;
+                    var getName = overriddenProperty.GetMethod?.Name;
+                    var setName = overriddenProperty.SetMethod?.Name;
 
                     getBody = getName == null
                         ? null
@@ -273,10 +275,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 else
                 {
                     getBody = codeFactory.ReturnStatement(
-                        codeFactory.InvocationExpression(
-                        codeFactory.MemberAccessExpression(
-                            codeFactory.BaseExpression(),
-                            codeFactory.IdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters)));
+                        WrapWithRefIfNecessary(codeFactory, overriddenProperty,
+                            codeFactory.InvocationExpression(
+                                codeFactory.MemberAccessExpression(
+                                    codeFactory.BaseExpression(),
+                                    codeFactory.IdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters))));
+
                     setBody = codeFactory.ExpressionStatement(
                         codeFactory.AssignmentStatement(
                             codeFactory.InvocationExpression(
@@ -289,10 +293,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             else
             {
                 // Regular property: return or set the base property
+
                 getBody = codeFactory.ReturnStatement(
-                    codeFactory.MemberAccessExpression(
-                        codeFactory.BaseExpression(),
-                        codeFactory.IdentifierName(overriddenProperty.Name)));
+                    WrapWithRefIfNecessary(codeFactory, overriddenProperty,
+                        codeFactory.MemberAccessExpression(
+                            codeFactory.BaseExpression(),
+                            codeFactory.IdentifierName(overriddenProperty.Name))));
+
                 setBody = codeFactory.ExpressionStatement(
                     codeFactory.AssignmentStatement(
                         codeFactory.MemberAccessExpression(
@@ -335,6 +342,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 setMethod: accessorSet);
         }
 
+        private static SyntaxNode WrapWithRefIfNecessary(SyntaxGenerator codeFactory, IPropertySymbol overriddenProperty, SyntaxNode body)
+            => overriddenProperty.ReturnsByRef
+                ? codeFactory.RefExpression(body)
+                : body;
+
         public static IEventSymbol OverrideEvent(
             this SyntaxGenerator codeFactory,
             IEventSymbol overriddenEvent,
@@ -350,7 +362,43 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 name: overriddenEvent.Name);
         }
 
-        public static async Task<IMethodSymbol> OverrideMethodAsync(
+        public static async Task<ISymbol> OverrideAsync(
+            this SyntaxGenerator generator,
+            ISymbol symbol,
+            INamedTypeSymbol containingType,
+            Document document,
+            DeclarationModifiers? modifiersOpt = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var modifiers = modifiersOpt ?? GetOverrideModifiers(symbol);
+
+            if (symbol is IMethodSymbol method)
+            {
+                return await generator.OverrideMethodAsync(method,
+                    modifiers, containingType, document, cancellationToken).ConfigureAwait(false);
+            }
+            else if (symbol is IPropertySymbol property)
+            {
+                return await generator.OverridePropertyAsync(property,
+                    modifiers, containingType, document, cancellationToken).ConfigureAwait(false);
+            }
+            else if (symbol is IEventSymbol ev)
+            {
+                return generator.OverrideEvent(ev, modifiers, containingType);
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private static DeclarationModifiers GetOverrideModifiers(ISymbol symbol)
+            => symbol.GetSymbolModifiers()
+                     .WithIsOverride(true)
+                     .WithIsAbstract(false)
+                     .WithIsVirtual(false);
+
+        private static async Task<IMethodSymbol> OverrideMethodAsync(
             this SyntaxGenerator codeFactory,
             IMethodSymbol overriddenMethod,
             DeclarationModifiers modifiers,
@@ -380,6 +428,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         ? codeFactory.IdentifierName(overriddenMethod.Name)
                         : codeFactory.GenericName(overriddenMethod.Name, typeParams)),
                     codeFactory.CreateArguments(overriddenMethod.GetParameters()));
+
+                if (overriddenMethod.ReturnsByRef)
+                {
+                    body = codeFactory.RefExpression(body);
+                }
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     method: overriddenMethod,
