@@ -12,7 +12,7 @@
       <!-- TFS build number isn't set on CI server -->
       <Version Condition="'$(NuGetPerBuildPreReleaseVersion)' == ''">$(NuGetReleaseVersion)-cibuild</Version>
     </NuSpec>
-    <NuSpec Include="$(InsertionFilesDir)\VS.Tools.Roslyn.nuspec">
+    <NuSpec Include="$(InsertionFilesDir)\VS_Toolset_files\VS.Tools.Roslyn.nuspec">
       <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
       <!-- TFS build number isn't set on CI server -->
       <Version Condition="'$(NuGetPerBuildPreReleaseVersion)' == ''">$(NuGetReleaseVersion)-cibuild</Version>
