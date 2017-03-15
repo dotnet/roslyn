@@ -1042,7 +1042,9 @@ Public Class BuildDevDivInsertionFiles
         ' No duplicates are allowed
         filesToInsert.GroupBy(Function(x) x).All(Function(g) g.Count() = 1)
 
-        Dim outputFolder = GetAbsolutePathInOutputDirectory("VS_Toolset_Files")
+
+        Const toolsetDir As String = "VS_Toolset_Files"
+        Dim outputFolder = GetAbsolutePathInOutputDirectory(toolsetDir)
 
         Directory.CreateDirectory(outputFolder)
 
@@ -1095,10 +1097,10 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
                           <version>0.0</version>
                       </metadata>
                       <files>
-                          <file src="Init.cmd"/>
+                          <file src=<%= Path.Combine(outputFolder, " Init.cmd") %>/>
                           <%= filesToInsert.
                               OrderBy(Function(f) f).
-                              Select(Function(f) <file src=<%= f %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
+                              Select(Function(f) <file src=<%= Path.Combine(outputFolder, f) %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
                       </files>
                   </package>
 
