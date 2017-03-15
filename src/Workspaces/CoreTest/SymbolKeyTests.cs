@@ -633,7 +633,7 @@ class C
                 // Ensure we don't crash getting these symbol keys.
                 var id = SymbolKey.ToString(symbol);
                 Assert.NotNull(id);
-                var found = SymbolKey.Resolve(id, compilation).GetAnySymbol();
+                var found = SymbolKey.Resolve(id, compilation: compilation).GetAnySymbol();
                 Assert.NotNull(found);
 
                 // note: we don't check that the symbols are equal.  That's because the compiler

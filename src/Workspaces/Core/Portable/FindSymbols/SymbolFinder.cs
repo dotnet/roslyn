@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var key = symbol.GetSymbolKey();
-            return key.Resolve(compilation, cancellationToken: cancellationToken).GetAllSymbols().OfType<TSymbol>();
+            return key.Resolve(compilation, resolveLocations: false, cancellationToken: cancellationToken).GetAllSymbols().OfType<TSymbol>();
         }
     }
 }
