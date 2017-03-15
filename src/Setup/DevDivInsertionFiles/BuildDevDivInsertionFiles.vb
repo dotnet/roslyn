@@ -1042,7 +1042,9 @@ Public Class BuildDevDivInsertionFiles
         ' No duplicates are allowed
         filesToInsert.GroupBy(Function(x) x).All(Function(g) g.Count() = 1)
 
-        Dim outputFolder = GetAbsolutePathInOutputDirectory("VS_Toolset_Files")
+        Dim outputFolder = Path.Combine(_outputDirectory, "VS_Toolset_Files")
+
+        Directory.CreateDirectory(outputFolder)
 
         ' Write an Init.cmd that sets DEVPATH to the toolset location. This overrides
         ' assembly loading during the VS build to always look in the Roslyn toolset
