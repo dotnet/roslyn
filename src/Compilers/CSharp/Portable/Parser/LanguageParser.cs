@@ -9413,7 +9413,7 @@ tryAgain:
                         // there is a new declaration on the next line.
                         if (this.CurrentToken.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia) &&
                             this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
-                            this.PeekToken(2).Kind == SyntaxKind.IdentifierToken)
+                            this.PeekToken(2).ContextualKind == SyntaxKind.IdentifierToken)
                         {
                             expr = _syntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(),
