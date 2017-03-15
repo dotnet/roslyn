@@ -2,17 +2,18 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class SyntaxFactoryTests
+    public class SyntaxFactoryTests : CSharpTestBase
     {
         [Fact]
         public void SyntaxTree()
@@ -376,6 +377,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             return builder.ToString();
+        }
+
+        [Fact]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
+        public void GetTokenDiagnositcsWithoutSyntaxTree()
+        {
+            var tokens = SyntaxFactory.ParseTokens("1l").ToList();
+            Assert.Equal(2, tokens.Count); // { "1l", "EOF" }
+
+            var literal = tokens.First();
+            Assert.Equal("1l", literal.Text);
+
+            Assert.Equal(Location.None, literal.GetLocation());
+
+            literal.GetDiagnostics().Verify(
+                // warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix));
         }
     }
 }

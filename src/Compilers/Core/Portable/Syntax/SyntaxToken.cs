@@ -634,9 +634,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Location GetLocation()
         {
-            return Node != null
-                ? this.SyntaxTree.GetLocation(this.Span)
-                : Location.None;
+            if (this.Node == null || this.SyntaxTree == null)
+            {
+                return Location.None;
+            }
+
+            return this.SyntaxTree.GetLocation(this.Span);
         }
 
         /// <summary>
@@ -646,9 +649,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<Diagnostic> GetDiagnostics()
         {
-            return Node != null
-                ? this.SyntaxTree.GetDiagnostics(this)
-                : SpecializedCollections.EmptyEnumerable<Diagnostic>();
+            if (this.Node == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<Diagnostic>();
+            }
+
+            if (this.SyntaxTree == null)
+            {
+                // If the parent or it's syntax tree are null, return diagnostics without a location.
+                return this.Node.GetDiagnostics().Select(Diagnostic.Create);
+            }
+
+            return this.SyntaxTree.GetDiagnostics(this);
         }
 
         /// <summary>
