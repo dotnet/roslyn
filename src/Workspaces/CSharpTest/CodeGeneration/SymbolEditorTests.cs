@@ -664,8 +664,7 @@ partial class C
 }";
 
             var expected =
-@"
-";
+@"";
 
             var solution = GetSolution(code);
             var symbol = (await GetSymbolsAsync(solution, "C")).First();

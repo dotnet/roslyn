@@ -2351,14 +2351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        private SyntaxNode Isolate(SyntaxNode declaration, Func<SyntaxNode, SyntaxNode> editor)
-        {
-            var isolated = AsIsolatedDeclaration(declaration);
-
-            return PreserveTrivia(isolated, editor);
-        }
-
-        private SyntaxNode AsIsolatedDeclaration(SyntaxNode declaration)
+        internal override SyntaxNode AsIsolatedDeclaration(SyntaxNode declaration)
         {
             if (declaration != null)
             {

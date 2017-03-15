@@ -1890,20 +1890,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return IsChildOf(node, SyntaxKind.FieldDeclaration) OrElse IsChildOf(node, SyntaxKind.LocalDeclarationStatement)
         End Function
 
-        Private Function Isolate(declaration As SyntaxNode, editor As Func(Of SyntaxNode, SyntaxNode), Optional shouldPreserveTrivia As Boolean = True) As SyntaxNode
-            Dim isolated = AsIsolatedDeclaration(declaration)
-
-            Dim result As SyntaxNode = Nothing
-
-            If shouldPreserveTrivia Then
-                result = PreserveTrivia(isolated, editor)
-            Else
-                result = editor(isolated)
-            End If
-
-            Return result
-        End Function
-
         Private Function GetFullDeclaration(declaration As SyntaxNode) As SyntaxNode
             Select Case declaration.Kind
                 Case SyntaxKind.ModifiedIdentifier
@@ -1927,7 +1913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declaration
         End Function
 
-        Private Function AsIsolatedDeclaration(declaration As SyntaxNode) As SyntaxNode
+        Friend Overrides Function AsIsolatedDeclaration(declaration As SyntaxNode) As SyntaxNode
             Select Case declaration.Kind
                 Case SyntaxKind.ModifiedIdentifier
                     Dim full = GetFullDeclaration(declaration)
@@ -3915,6 +3901,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     If attrStmt IsNot Nothing AndAlso attrStmt.AttributeLists.Count = 1 Then
                         ' remove entire attribute statement if this is the only attribute list
                         Return RemoveNodeInternal(root, attrStmt, options)
+                    Else
+                        ' Isolate so that the comments on the attribute list move to the declaration
+                        ' the attribute is on.
+                        Dim declaration = attrList.Parent
+                        Dim currentDeclaration = root.TrackNodes(declaration, attrList).
+                                                      GetCurrentNode(declaration)
+
+                        Dim finalDeclaration = PreserveTrivia(
+                            currentDeclaration,
+                            Function(d) d.RemoveNode(d.GetCurrentNode(attrList), options))
+
+                        Return root.ReplaceNode(declaration, finalDeclaration)
                     End If
                 Case SyntaxKind.Attribute
                     Dim attrList = TryCast(node.Parent, AttributeListSyntax)
