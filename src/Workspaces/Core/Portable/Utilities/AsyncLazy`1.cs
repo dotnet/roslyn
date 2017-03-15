@@ -529,7 +529,6 @@ namespace Roslyn.Utilities
             private CancellationToken _cancellationToken;
             private CancellationTokenRegistration _cancellationTokenRegistration;
 
-            // WARNING: this is a mutable struct, and thus cannot be made readonly
             private TaskCompletionSource<T> _taskCompletionSource;
 
             public Request()
@@ -557,10 +556,6 @@ namespace Roslyn.Utilities
 
             public void CompleteFromTaskSynchronously(Task<T> task)
             {
-                // AsyncTaskMethodBuilder doesn't give us Try* methods, and the Set methods may throw if the task
-                // is already completed. The belief is that the race is somewhere between rare to impossible, and
-                // so we'll do a quick check to see if the task is already completed or otherwise just give it a shot
-                // and catch it if it fails
                 if (this.Task.IsCompleted)
                 {
                     return;
