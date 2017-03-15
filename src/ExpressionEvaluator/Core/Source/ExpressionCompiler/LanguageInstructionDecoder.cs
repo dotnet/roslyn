@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return languageInstructionAddress.GetMethodName(argumentFlags);
             }
-            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
+            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e)) // ExpressionCompiler.CrashIfFailFastEnabled(e)?
             {
                 throw ExceptionUtilities.Unreachable;
             }

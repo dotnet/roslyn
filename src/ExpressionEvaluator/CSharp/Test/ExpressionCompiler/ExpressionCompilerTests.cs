@@ -1189,15 +1189,8 @@ class B : A
     ret
   }
 }";
-            ImmutableArray<byte> exeBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(source, appendDefaultHeader: true, includePdb: true, assemblyBytes: out exeBytes, pdbBytes: out pdbBytes);
-            var moduleId = Guid.NewGuid();
-            var runtime = CreateRuntimeInstance(
-                assemblyName: moduleId.ToString("D"),
-                references: ImmutableArray.Create(MscorlibRef),
-                exeBytes: exeBytes.ToArray(),
-                symReader: SymReaderFactory.CreateReader(pdbBytes));
+            var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             Assert.Throws<UnsupportedSignatureContent>(() => CreateMethodContext(runtime, methodName: "C.M1"));
         }
 
