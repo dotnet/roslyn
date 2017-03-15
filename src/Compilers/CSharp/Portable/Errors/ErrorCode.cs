@@ -1468,5 +1468,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_Merge_conflict_marker_encountered = 8300,
         ERR_InvalidPreprocessingSymbol = 8301,
+        ERR_FeatureNotAvailableInVersion7_1 = 8302,
     }
 }
