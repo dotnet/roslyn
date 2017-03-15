@@ -41,6 +41,7 @@ try
     switch ($branchName)
     {
         "dev15.0.x" { } 
+        "dev16" { } 
         "master" { } 
         "dev_pilchie_Fix389698" { }
         default
