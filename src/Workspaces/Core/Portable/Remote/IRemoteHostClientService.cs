@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -11,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal interface IRemoteHostClientService : IWorkspaceService
     {
+        [Obsolete("use TryGetRemoteHostClientAsync instead")]
         Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken);
+        Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken);
     }
 }

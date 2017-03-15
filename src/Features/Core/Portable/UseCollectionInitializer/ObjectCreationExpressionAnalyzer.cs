@@ -253,6 +253,14 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
+            var typeInfo = _semanticModel.GetTypeInfo(left, _cancellationToken);
+            if (typeInfo.Type is IDynamicTypeSymbol || typeInfo.ConvertedType is IDynamicTypeSymbol)
+            {
+                // Not supported if we're initializing something dynamic.  The object we're instantiating
+                // may not have the members that we're trying to access on the dynamic object.
+                return false;
+            }
+
             _valuePattern = left;
             return true;
         }
@@ -267,6 +275,15 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var containingDeclarator = _objectCreationExpression.Parent.Parent as TVariableDeclaratorSyntax;
             if (containingDeclarator == null)
             {
+                return false;
+            }
+
+            var symbol = _semanticModel.GetDeclaredSymbol(containingDeclarator, _cancellationToken);
+            if (symbol is ILocalSymbol local &&
+                local.Type is IDynamicTypeSymbol)
+            {
+                // Not supported if we're creating a dynamic local.  The object we're instantiating
+                // may not have the members that we're trying to access on the dynamic object.
                 return false;
             }
 

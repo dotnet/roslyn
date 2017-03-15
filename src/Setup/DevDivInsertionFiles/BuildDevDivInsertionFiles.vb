@@ -323,6 +323,7 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
         "Microsoft.CodeAnalysis.Workspaces.dll",
         "Microsoft.DiaSymReader.dll",
+        "Microsoft.DiaSymReader.Converter.Xml.dll",
         "Microsoft.DiaSymReader.Native.amd64.dll",
         "Microsoft.DiaSymReader.Native.x86.dll",
         "Microsoft.DiaSymReader.PortablePdb.dll",
@@ -832,7 +833,6 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\VBCSCompiler\VBCSCompiler.exe.config")
         add("Exes\InteractiveHost\InteractiveHost.exe.config")
         add("Exes\csi\csi.rsp")
-        add("Exes\Pdb2Xml\Microsoft.DiaSymReader.PortablePdb.dll")
         add("Vsix\Roslyn.Deployment.Full.Next\remoteSymbolSearchUpdateEngine.servicehub.service.json")
         add("Vsix\Roslyn.Deployment.Full.Next\snapshotService.servicehub.service.json")
         add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")
@@ -860,6 +860,8 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\EditorServicesTest\Esent.Interop.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
         add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
+        add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.PortablePdb.dll")
+        add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Converter.Xml.dll")
         add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.dll")
         add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Native.amd64.dll")
         add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Native.x86.dll")

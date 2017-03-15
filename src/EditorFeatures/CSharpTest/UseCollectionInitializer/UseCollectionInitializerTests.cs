@@ -752,5 +752,22 @@ class C
     }
 }");
         }
+
+        [WorkItem(17853, "https://github.com/dotnet/roslyn/issues/17853")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestMissingForDynamic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Dynamic;
+
+class C
+{
+    void Foo()
+    {
+        dynamic body = [||]new ExpandoObject();
+        body[0] = new ExpandoObject();
+    }
+}");
+        }
     }
 }
