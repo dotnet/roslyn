@@ -219,7 +219,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal override void VisitNoneOperation(IOperation operation)
         {
-            Assert.True(false, "Encountered an IOperation with `Kind == OperationKind.None` while walking the operation tree.");
+            LogString("IOperation: ");
+            LogCommonPropertiesAndNewLine(operation);
         }
 
         public override void VisitBlockStatement(IBlockStatement operation)
