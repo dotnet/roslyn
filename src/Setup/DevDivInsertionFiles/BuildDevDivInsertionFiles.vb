@@ -1042,6 +1042,8 @@ Public Class BuildDevDivInsertionFiles
         ' No duplicates are allowed
         filesToInsert.GroupBy(Function(x) x).All(Function(g) g.Count() = 1)
 
+        Dim outputFolder = GetAbsolutePathInOutputDirectory("VS_Toolset_Files")
+
         ' Write an Init.cmd that sets DEVPATH to the toolset location. This overrides
         ' assembly loading during the VS build to always look in the Roslyn toolset
         ' first. This is necessary because there are various incompatible versions
@@ -1053,8 +1055,33 @@ set RoslynToolsRoot=%~dp0
 set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
 
         File.WriteAllText(
-            Path.Combine(_binDirectory, "Init.cmd"),
+            Path.Combine(outputFolder, "Init.cmd"),
             fileContents)
+
+        ' Copy all dependent compiler files to the output directory
+        ' It is most important to have isolated copies of the compiler
+        ' exes (csc, vbc, vbcscompiler) since we are going to mark them
+        ' 32-bit only to work around problems with the VS build.
+        ' These binaries should never ship anywhere other than the VS toolset
+        Dim corFlagsPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+            "Microsoft SDKs/Windows/v10.0A/bin/NETFX 4.6 Tools/CorFlags.exe")
+
+        For Each fileName In filesToInsert
+            Dim srcPath = GetMappedPath(fileName)
+            Dim dstPath = Path.Combine(outputFolder, fileName)
+            File.Copy(srcPath, dstPath)
+
+            ' If the file is an exe, use corflags to mark it 32bitpref
+            If Path.GetExtension(fileName) = ".exe" Then
+                Dim proc = Process.Start(corFlagsPath, "/force /32bitpref+")
+                proc.WaitForExit()
+
+                If proc.ExitCode <> 0 Then
+                    Throw New Exception($"CorFlags on {fileName} failed with exit code {proc.ExitCode}")
+                End If
+            End If
+        Next
 
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
                   <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
@@ -1069,11 +1096,11 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
                           <file src="Init.cmd"/>
                           <%= filesToInsert.
                               OrderBy(Function(f) f).
-                              Select(Function(f) <file src=<%= GetMappedPath(f) %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
+                              Select(Function(f) <file src=<%= f %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
                       </files>
                   </package>
 
-        xml.Save(GetAbsolutePathInOutputDirectory(PackageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
+        xml.Save(Path.Combine(outputFolder, PackageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
     End Sub
 
     Private Function IsLanguageServiceRegistrationFile(fileName As String) As Boolean
