@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
         }
 
-        private async void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
             switch (e.Kind)
             {
@@ -76,7 +76,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
                     var newDocument = e.NewSolution.GetDocument(e.DocumentId);
 
-                    await DocumentChangedAsync(oldDocument, newDocument).ConfigureAwait(false);
+                    // make sure we do this in background thread. we don't care about ordering of events
+                    // we just need to refresh OB at some point if it ever needs to be updated
+                    Task.Run(() => DocumentChangedAsync(oldDocument, newDocument));
                     break;
 
                 case WorkspaceChangeKind.ProjectAdded:
