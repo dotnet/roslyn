@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -28,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var context = CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
 
-            var targetToken = context.TargetToken;
             var nameInfo = await NameDeclarationInfo.GetDeclarationInfo(document, position, cancellationToken).ConfigureAwait(false);
 
             if (!IsValidType(nameInfo.Type))
@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var type = UnwrapType(nameInfo.Type);
             var baseNames = NameGenerator.GetBaseNames(type);
-            int i = 0;
+            int sortValue = 0;
             foreach (var (name, kind) in GetRecommendedNames(baseNames, nameInfo, context))
             {
                 // We've produced items in the desired order, add a sort text to each item to prevent alphabetization
-                completionContext.AddItem(CreateCompletionItem(name, GetGlyph(kind, nameInfo.DeclaredAccessibility), i++.ToString("D8")));
+                completionContext.AddItem(CreateCompletionItem(name, GetGlyph(kind, nameInfo.DeclaredAccessibility), sortValue++.ToString("D8")));
             }
 
             AddBuilder(completionContext);
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var namingStyleOptions = context.Workspace.Options.GetOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp);
             var rules = namingStyleOptions.CreateRules().NamingRules.Concat(s_BuiltInRules);
-            var result = new List<(string, SymbolKind)>();
+            var result = new Dictionary<string, SymbolKind>();
             foreach (var symbolKind in declarationInfo.PossibleSymbolKinds)
             {
                 var kind = new SymbolKindOrTypeKind(symbolKind);
@@ -161,15 +161,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     if (rule.SymbolSpecification.AppliesTo(kind, declarationInfo.Modifiers, declarationInfo.DeclaredAccessibility))
                     {
-                        foreach (var name in baseNames)
+                        foreach (var baseName in baseNames)
                         {
-                            result.Add((rule.NamingStyle.CreateName(name), symbolKind));
+                            var name = rule.NamingStyle.CreateName(baseName);
+                            if (!result.ContainsKey(name)) // Don't add multiple items for the same name
+                            {
+                                result.Add(name, symbolKind);
+                            }
                         }
                     }
                 }
             }
 
-            return result;
+            return result.Select(kvp => (kvp.Key, kvp.Value));
         }
 
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
