@@ -9566,6 +9566,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A value of type &apos;void&apos; may not be assigned..
+        /// </summary>
+        internal static string ERR_VoidAssignment {
+            get {
+                return ResourceManager.GetString("ERR_VoidAssignment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The operation in question is undefined on void pointers.
         /// </summary>
         internal static string ERR_VoidError {

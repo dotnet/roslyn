@@ -23347,5 +23347,25 @@ namespace ConsoleApplication1
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsThrowExpression, "throw null").WithLocation(16, 49)
                 );
         }
+
+        [Fact, WorkItem(17674, "https://github.com/dotnet/roslyn/issues/17674")]
+        public void VoidDiscardAssignment()
+        {
+            var text = @"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        _ = M();
+    }
+    static void M() { }
+}
+";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (6,9): error CS8209: A value of type 'void' may not be assigned.
+                //         _ = M();
+                Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9)
+                );
+        }
     }
 }
