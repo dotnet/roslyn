@@ -8885,7 +8885,8 @@ class C
 }");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/out:a.exe", "/refout:ref/a.dll", "/doc:doc.xml", "/deterministic", "a.cs" });
+            var csc = new MockCSharpCompiler(null, dir.Path,
+                new[] { "/nologo", "/out:a.exe", "/refout:ref/a.dll", "/doc:doc.xml", "/deterministic", "a.cs" });
 
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -8971,7 +8972,8 @@ class C
             src.WriteAllText(@"class C { public static void Main() { error(); } }");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "a.cs" });
+            var csc = new MockCSharpCompiler(null, dir.Path,
+                new[] { "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "a.cs" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
 

@@ -236,12 +236,12 @@ class Test2
             }
         }
 
-        [Theory,
-            InlineData("public int M() { return 1; }", "public int M() { return 2; }", true),
-            InlineData("public int M() { return 1; }", "public int M() { error(); }", true),
-            InlineData("", "private void M() { }", false), // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
-            InlineData("internal void M() { }", "", false),
-            InlineData("public struct S { private int i; }", "public struct S { }", false)]
+        [Theory]
+        [InlineData("public int M() { return 1; }", "public int M() { return 2; }", true)]
+        [InlineData("public int M() { return 1; }", "public int M() { error(); }", true)]
+        [InlineData("", "private void M() { }", false)] // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+        [InlineData("internal void M() { }", "", false)]
+        [InlineData("public struct S { private int i; }", "public struct S { }", false)]
         public void RefAssembly_InvariantToSomeChanges(string change1, string change2, bool expectMatch)
         {
             string sourceTemplate = @"
@@ -289,11 +289,10 @@ public class C
             }
         }
 
-        [Theory,
-            InlineData("public int M() { error(); }", true),
-            InlineData("public int M() { error() }", false), // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
-            InlineData("public Error M() { return null; }", false), // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
-            ]
+        [Theory]
+        [InlineData("public int M() { error(); }", true)]
+        [InlineData("public int M() { error() }", false)] // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+        [InlineData("public Error M() { return null; }", false)] // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
         public void RefAssembly_IgnoresSomeDiagnostics(string change, bool expectSuccess)
         {
             string sourceTemplate = @"

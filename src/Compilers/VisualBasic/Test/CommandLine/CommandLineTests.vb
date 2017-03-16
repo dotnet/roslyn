@@ -7996,7 +7996,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub RefOut()
+        Public Sub RefOut()
             Dim dir = Temp.CreateDirectory()
             dir.CreateDirectory("ref")
 
@@ -8128,7 +8128,7 @@ outWriter.ToString().Trim())
         End Sub
 
         <Fact>
-        Sub RefOnly()
+        Public Sub RefOnly()
             Dim dir = Temp.CreateDirectory()
 
             Dim src = dir.CreateFile("a.vb")
