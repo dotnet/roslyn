@@ -19,17 +19,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             SubmitText("1 + 2");
             SubmitText("1.ToString()");
-            SendKeys(new KeyPress(VirtualKey.Up, ShiftState.Alt));
+            SendKeys(Alt(VirtualKey.Up));
             VerifyLastReplInput("1.ToString()");
             SendKeys(VirtualKey.Enter);
             WaitForReplOutput("\"1\"");
-            SendKeys(new KeyPress(VirtualKey.Up, ShiftState.Alt));
+            SendKeys(Alt(VirtualKey.Up));
             VerifyLastReplInput("1.ToString()");
-            SendKeys(new KeyPress(VirtualKey.Up, ShiftState.Alt));
+            SendKeys(Alt(VirtualKey.Up));
             VerifyLastReplInput("1 + 2");
             SendKeys(VirtualKey.Enter);
             WaitForReplOutput("3");
-            SendKeys(new KeyPress(VirtualKey.Down, ShiftState.Alt));
+            SendKeys(Alt(VirtualKey.Down));
             VerifyLastReplInput("1.ToString()");
             SendKeys(VirtualKey.Enter);
             WaitForReplOutput("\"1\"");
@@ -73,7 +73,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void VerifyCancelInput()
         {
             InsertCode("1 + 4");
-            SendKeys(new KeyPress(VirtualKey.Enter, ShiftState.Shift));
+            SendKeys(Shift(VirtualKey.Enter));
             SendKeys(VirtualKey.Escape);
             VerifyLastReplInput(string.Empty);
         }
@@ -83,9 +83,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             ClearReplText();
             InsertCode(" 2 + 4 ");
-            SendKeys(new KeyPress(VirtualKey.Z, ShiftState.Ctrl));
+            SendKeys(Ctrl(VirtualKey.Z));
             VerifyReplPromptConsistency("< ![CDATA[]] >", string.Empty);
-            SendKeys(new KeyPress(VirtualKey.Y, ShiftState.Ctrl));
+            SendKeys(Ctrl(VirtualKey.Y));
             VerifyLastReplInput(" 2 + 4 ");
             SendKeys(VirtualKey.Enter);
             WaitForReplOutput("6");

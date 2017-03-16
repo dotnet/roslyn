@@ -53,11 +53,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void InsertCode(string text)
             => InteractiveWindow.InsertCode(text);
 
-        protected void ExecuteCommand(string commandName)
-        {
-            VisualStudio.Instance.ExecuteCommand(commandName);
-        }
-
         protected void VerifyLastReplOutput(string expectedReplOutput)
         {
             var lastReplOutput = InteractiveWindow.GetLastReplOutput();
