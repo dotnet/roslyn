@@ -62,6 +62,15 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 }
 
                 var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+                // If the user has selected a set of members (i.e. TextSpan is not empty), then we will
+                // choose the right location (i.e. null) to insert the constructor.  However, if they're 
+                // just invoking the feature manually at a specific location, then we'll insert the 
+                // members at that specific place in the class/struct.
+                var afterThisLocation = _state.TextSpan.IsEmpty
+                    ? syntaxTree.GetLocation(_state.TextSpan)
+                    : null;
+
                 var result = await codeGenerationService.AddMethodAsync(
                     _document.Project.Solution,
                     _state.ContainingType,
@@ -75,7 +84,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         thisConstructorArguments: thisConstructorArguments),
                     new CodeGenerationOptions(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
-                        afterThisLocation: _state.TextSpan.IsEmpty ? syntaxTree.GetLocation(_state.TextSpan) : null),
+                        afterThisLocation: afterThisLocation),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 return result;

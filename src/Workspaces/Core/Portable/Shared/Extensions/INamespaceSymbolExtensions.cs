@@ -90,11 +90,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var current = stack.Pop();
-                if (current is INamespaceSymbol)
+                if (current is INamespaceSymbol childNamespace)
                 {
-                    var child = (INamespaceSymbol)current;
-                    stack.Push(child.GetMembers().AsEnumerable());
-                    yield return child;
+                    stack.Push(childNamespace.GetMembers().AsEnumerable());
+                    yield return childNamespace;
                 }
                 else
                 {

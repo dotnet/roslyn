@@ -688,8 +688,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initializer.Kind() == SyntaxKind.ArrayInitializerExpression)
             {
-                return BindUnexpectedArrayInitializer((InitializerExpressionSyntax)initializer,
+                var result = BindUnexpectedArrayInitializer((InitializerExpressionSyntax)initializer,
                     diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableAssignedArrayInitializer, errorSyntax);
+
+                return CheckValue(result, valueKind, diagnostics);
             }
 
             BoundExpression expression = BindValue(initializer, diagnostics, valueKind);
@@ -1867,7 +1869,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expr;
 
                 case BoundKind.DiscardExpression:
-                    Debug.Assert(valueKind == BindValueKind.Assignment || valueKind == BindValueKind.RefOrOut);
+                    Debug.Assert(valueKind == BindValueKind.Assignment || valueKind == BindValueKind.RefOrOut ||
+                                 diagnostics.HasAnyResolvedErrors());
                     return expr;
             }
 
@@ -2284,14 +2287,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindValue(node, diagnostics, valueKind);
             }
 
+            BoundExpression result;
             if (destinationType.Kind == SymbolKind.ArrayType)
             {
-                return BindArrayCreationWithInitializer(diagnostics, null,
+                result = BindArrayCreationWithInitializer(diagnostics, null,
                     (InitializerExpressionSyntax)node, (ArrayTypeSymbol)destinationType,
                     ImmutableArray<BoundExpression>.Empty);
             }
+            else
+            {
+                result = BindUnexpectedArrayInitializer((InitializerExpressionSyntax)node, diagnostics, ErrorCode.ERR_ArrayInitToNonArrayType);
+            }
 
-            return BindUnexpectedArrayInitializer((InitializerExpressionSyntax)node, diagnostics, ErrorCode.ERR_ArrayInitToNonArrayType);
+            return CheckValue(result, valueKind, diagnostics);
         }
 
         protected virtual SourceLocalSymbol LookupLocal(SyntaxToken nameToken)

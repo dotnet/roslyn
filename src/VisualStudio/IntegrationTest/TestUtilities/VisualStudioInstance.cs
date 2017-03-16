@@ -17,30 +17,40 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public class VisualStudioInstance
     {
-        private readonly Process _hostProcess;
-        private readonly DTE _dte;
         private readonly IntegrationService _integrationService;
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
 
         public SendKeys SendKeys { get; }
 
+        public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
+
         public CSharpInteractiveWindow_OutOfProc CSharpInteractiveWindow { get; }
 
         public Editor_OutOfProc Editor { get; }
+
+        public FindReferencesWindow_OutOfProc FindReferencesWindow { get; }
+
+        public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
+
+        public Shell_OutOfProc Shell { get; }
 
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
 
         public VisualStudioWorkspace_OutOfProc VisualStudioWorkspace { get; }
 
+        internal DTE Dte { get; }
+
+        internal Process HostProcess { get; }
+
         public VisualStudioInstance(Process hostProcess, DTE dte)
         {
-            _hostProcess = hostProcess;
-            _dte = dte;
+            HostProcess = hostProcess;
+            Dte = dte;
 
             StartRemoteIntegrationService(dte);
 
-            _integrationServiceChannel = new IpcClientChannel($"IPC channel client for {_hostProcess.Id}", sinkProvider: null);
+            _integrationServiceChannel = new IpcClientChannel($"IPC channel client for {HostProcess.Id}", sinkProvider: null);
             ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: true);
 
             // Connect to a 'well defined, shouldn't conflict' IPC channel
@@ -56,8 +66,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // we start executing any actual code.
             _inProc.WaitForSystemIdle();
 
+            ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             CSharpInteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
+            FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
+            GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
+            Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             VisualStudioWorkspace = new VisualStudioWorkspace_OutOfProc(this);
 
@@ -89,10 +103,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public void WaitForApplicationIdle()
             => _inProc.WaitForApplicationIdle();
 
-        public void ExecuteCommand(string commandName)
-            => _inProc.ExecuteCommand(commandName);
+        public void ExecuteCommand(string commandName, string argument = "")
+            => _inProc.ExecuteCommand(commandName, argument);
 
-        public bool IsRunning => !_hostProcess.HasExited;
+        public bool IsRunning => !HostProcess.HasExited;
 
         public async Task ClickAutomationElementAsync(string elementName, bool recursive = false)
         {
@@ -139,7 +153,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             CSharpInteractiveWindow.CleanUpInteractiveWindow();
         }
 
-        public void Close()
+        public void Close(bool exitHostProcess = true)
         {
             if (!IsRunning)
             {
@@ -149,13 +163,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             CleanUp();
 
             CloseRemotingService();
-            CloseHostProcess();
+
+            if (exitHostProcess)
+            {
+                CloseHostProcess();
+            }
         }
 
         private void CloseHostProcess()
         {
             _inProc.Quit();
-            IntegrationHelper.KillProcess(_hostProcess);
+            IntegrationHelper.KillProcess(HostProcess);
         }
 
         private void CloseRemotingService()
@@ -173,7 +191,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        private void StartRemoteIntegrationService(EnvDTE.DTE dte)
+        private void StartRemoteIntegrationService(DTE dte)
         {
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
 

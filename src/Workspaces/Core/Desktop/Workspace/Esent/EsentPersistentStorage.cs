@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Esent
 
             try
             {
-                var uniqueIdValue = fileCheck ? FilePathUtilities.GetRelativePath(Path.GetDirectoryName(SolutionFilePath), value) : value;
+                var uniqueIdValue = fileCheck ? PathUtilities.GetRelativePath(Path.GetDirectoryName(SolutionFilePath), value) : value;
                 id = _nameTableCache.GetOrAdd(value, _esentStorage.GetUniqueId(uniqueIdValue));
 
                 return true;

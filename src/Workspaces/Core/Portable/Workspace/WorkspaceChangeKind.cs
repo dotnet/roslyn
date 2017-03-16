@@ -88,6 +88,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// An additional document in the current solution was changed.
         /// </summary>
-        AdditionalDocumentChanged = 16
+        AdditionalDocumentChanged = 16,
+
+        /// <summary>
+        /// The document in the current solution had is info changed; name, folders, filepath
+        /// </summary>
+        DocumentInfoChanged = 17,
     }
 }

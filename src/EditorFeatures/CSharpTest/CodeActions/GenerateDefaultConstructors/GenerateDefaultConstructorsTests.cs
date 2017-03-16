@@ -3,7 +3,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.GenerateDefaultConstructors;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -11,15 +10,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 {
     public class GenerateDefaultConstructorsTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new GenerateDefaultConstructorsCodeRefactoringProvider();
-        }
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+            => new GenerateDefaultConstructorsCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestProtectedBase()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
 }
@@ -42,14 +39,13 @@ class B
     protected B(int x)
     {
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestPublicBase()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
 }
@@ -72,14 +68,13 @@ class B
     public B(int x)
     {
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestInternalBase()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
 }
@@ -102,14 +97,13 @@ class B
     internal B(int x)
     {
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestPrivateBase()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C : [||]B
 {
 }
@@ -125,7 +119,7 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestRefOutParams()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
 }
@@ -148,14 +142,13 @@ class B
     internal B(ref int x, out string s, params bool[] b)
     {
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFix1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
 }
@@ -194,14 +187,13 @@ class B
     public B(bool x)
     {
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFix2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
 }
@@ -247,7 +239,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestRefactoring1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
 }
@@ -293,7 +285,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFixAll1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
 }
@@ -347,7 +339,7 @@ index: 3);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFixAll2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
     public C(bool x)
@@ -404,7 +396,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFixAll_WithTuples()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
     public C((bool, bool) x)
@@ -461,7 +453,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestMissing1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C : [||]B
 {
     public C(int x)
@@ -481,7 +473,7 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestDefaultConstructorGeneration_1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
     public C(int y)
@@ -518,7 +510,7 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestDefaultConstructorGeneration_2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
     private C(int y)
@@ -572,7 +564,7 @@ count: 1);
         [WorkItem(544070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544070")]
         public async Task TestException1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 class Program : Excep[||]tion
 {
@@ -599,13 +591,13 @@ class Program : Exception
     }
 }",
 index: 3,
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestException2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -653,7 +645,7 @@ index: 3);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestException3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -701,14 +693,13 @@ class Program : Exception
     static void Main(string[] args)
     {
     }
-}",
-index: 0);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestException4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -763,7 +754,7 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task Tuple()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
 }
@@ -786,16 +777,13 @@ class B
     public B((int, string) x)
     {
     }
-}",
-index: 0,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TupleWithNames()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C : [||]B
 {
 }
@@ -818,10 +806,7 @@ class B
     public B((int a, string b) x)
     {
     }
-}",
-index: 0,
-parseOptions: TestOptions.Regular,
-withScriptOption: true);
+}");
         }
     }
 }

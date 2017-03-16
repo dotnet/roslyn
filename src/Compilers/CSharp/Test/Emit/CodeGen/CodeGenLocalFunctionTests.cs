@@ -2242,7 +2242,7 @@ class Program
     }
     static object D(object val)
     {
-        T Local<T>(T valu) where T : object
+        T Local<T>(T valu) where T : class
         {
             return valu;
         }

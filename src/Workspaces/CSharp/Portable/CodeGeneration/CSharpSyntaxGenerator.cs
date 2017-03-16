@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -1192,6 +1193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return declaration;
             }
         }
+
+        internal override ImmutableArray<SyntaxNode> GetTypeInheritance(SyntaxNode declaration)
+            => declaration is BaseTypeDeclarationSyntax baseType && baseType.BaseList != null
+                ? ImmutableArray.Create<SyntaxNode>(baseType.BaseList)
+                : ImmutableArray<SyntaxNode>.Empty;
 
         public override IReadOnlyList<SyntaxNode> GetNamespaceImports(SyntaxNode declaration)
         {
@@ -4020,6 +4026,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 statement: CreateBlock(statements));
         }
 
+        public override SyntaxNode LockStatement(SyntaxNode expression, IEnumerable<SyntaxNode> statements)
+        {
+            return SyntaxFactory.LockStatement(
+                expression: (ExpressionSyntax)expression,
+                statement: CreateBlock(statements));
+        }
+
         public override SyntaxNode TryCatchStatement(IEnumerable<SyntaxNode> tryStatements, IEnumerable<SyntaxNode> catchClauses, IEnumerable<SyntaxNode> finallyStatements = null)
         {
             return SyntaxFactory.TryStatement(
@@ -4150,6 +4163,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 SyntaxFactory.NameEquals((IdentifierNameSyntax)identifier),
                 (ExpressionSyntax)expression);
         }
+
+        internal override SyntaxNode RefExpression(SyntaxNode expression)
+            => SyntaxFactory.RefExpression((ExpressionSyntax)expression);
 
         #endregion
     }

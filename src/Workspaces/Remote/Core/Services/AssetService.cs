@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.Remote
             return s_serializer.Deserialize<T>(kind, reader, cancellationToken);
         }
 
+        public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
+        {
+            return _assetStorage.GetGlobalAssetsOfType<T>(cancellationToken);
+        }
+
         public async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
             T asset;

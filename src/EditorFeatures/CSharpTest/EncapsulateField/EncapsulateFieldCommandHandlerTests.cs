@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
     public class EncapsulateFieldCommandHandlerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task EncapsulatePrivateField()
+        public void EncapsulatePrivateField()
         {
             var text = @"
 class C
@@ -53,14 +53,14 @@ class C
     }
 }";
 
-            using (var state = await EncapsulateFieldTestState.CreateAsync(text))
+            using (var state = EncapsulateFieldTestState.Create(text))
             {
                 state.AssertEncapsulateAs(expected);
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task EncapsulateNonPrivateField()
+        public void EncapsulateNonPrivateField()
         {
             var text = @"
 class C
@@ -96,14 +96,14 @@ class C
     }
 }";
 
-            using (var state = await EncapsulateFieldTestState.CreateAsync(text))
+            using (var state = EncapsulateFieldTestState.Create(text))
             {
                 state.AssertEncapsulateAs(expected);
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task DialogShownIfNotFieldsFound()
+        public void DialogShownIfNotFieldsFound()
         {
             var text = @"
 class$$ C
@@ -116,7 +116,7 @@ class$$ C
     }
 }";
 
-            using (var state = await EncapsulateFieldTestState.CreateAsync(text))
+            using (var state = EncapsulateFieldTestState.Create(text))
             {
                 state.AssertError();
             }
@@ -124,7 +124,7 @@ class$$ C
 
         [WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task EncapsulateTwoFields()
+        public void EncapsulateTwoFields()
         {
             var text = @"
 class Program
@@ -179,7 +179,7 @@ class Program
 }
 ";
 
-            using (var state = await EncapsulateFieldTestState.CreateAsync(text))
+            using (var state = EncapsulateFieldTestState.Create(text))
             {
                 state.AssertEncapsulateAs(expected);
             }
@@ -188,12 +188,12 @@ class Program
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async Task EncapsulateFieldCommandDisabledInSubmission()
+        public void EncapsulateFieldCommandDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(@"
+            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C

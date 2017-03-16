@@ -241,7 +241,7 @@ End Class"
     End Sub
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            WithRuntimeInstance(comp, references:=Nothing, includeLocalSignatures:=False, validator:=
+            WithRuntimeInstance(comp, references:=Nothing, includeLocalSignatures:=False, includeIntrinsicAssembly:=True, validator:=
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M", atLineNumber:=999)
 

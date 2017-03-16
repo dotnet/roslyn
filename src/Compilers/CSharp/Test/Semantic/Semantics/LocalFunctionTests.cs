@@ -30,7 +30,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        [Fact]
+        [WorkItem(17014, "https://github.com/dotnet/roslyn/pull/17014")]
+        public void RecursiveLocalFuncsAsParameterTypes()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    void M()
+    {
+        int L(L2 l2) => 0;
+        int L2(L l1) => 0;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0246: The type or namespace name 'L2' could not be found (are you missing a using directive or an assembly reference?)
+                //         int L(L2 l2) => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "L2").WithArguments("L2").WithLocation(6, 15),
+                // (7,16): error CS0246: The type or namespace name 'L' could not be found (are you missing a using directive or an assembly reference?)
+                //         int L2(L l1) => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "L").WithArguments("L").WithLocation(7, 16),
+                // (6,13): warning CS0168: The variable 'L' is declared but never used
+                //         int L(L2 l2) => 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "L").WithArguments("L").WithLocation(6, 13),
+                // (7,13): warning CS0168: The variable 'L2' is declared but never used
+                //         int L2(L l1) => 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "L2").WithArguments("L2").WithLocation(7, 13));
+        }
+
+        [Fact]
+        [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
+        public void BadGenericConstraint()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public void M<T>(T value) where T : object { }
+}");
+            comp.VerifyDiagnostics(
+                // (4,41): error CS0702: Constraint cannot be special class 'object'
+                //     public void M<T>(T value) where T : object { }
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(4, 41));
+        }
+
+        [Fact]
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void RecursiveDefaultParameter()
         {
@@ -50,7 +93,7 @@ class C
             comp.DeclarationDiagnostics.Verify();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        [Fact]
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void RecursiveDefaultParameter2()
         {
@@ -71,7 +114,7 @@ class C
             comp.DeclarationDiagnostics.Verify();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        [Fact]
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void MutuallyRecursiveDefaultParameters()
         {
@@ -377,6 +420,7 @@ class C
                              .GetMember<NamedTypeSymbol>("CLSCompliantAttribute"),
                 attrs[2].AttributeClass);
             Assert.True(attrs[3].AttributeClass.IsErrorType());
+
             comp.DeclarationDiagnostics.Verify();
         }
 
@@ -988,9 +1032,9 @@ class Program
                 Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CallerMemberName]").WithLocation(9, 31),
                 // (9,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //         void CallerMemberName([CallerMemberName] int s = 2)
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32)
-    );
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32));
         }
+
         [WorkItem(10708, "https://github.com/dotnet/roslyn/issues/10708")]
         [CompilerTrait(CompilerFeature.Dynamic, CompilerFeature.Params)]
         [Fact]

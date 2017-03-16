@@ -74,7 +74,9 @@ End Class
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
 
-            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+            VerifyDocuments(reader, reader.Documents,
+                            "'c.vb' 1A-10-00-3A-D1-71-8C-BD-53-CC-9D-9C-5D-53-5D-7F-8C-70-89-0F (SHA1)",
+                            "'a.vb' 04-2B-9F-E0-61-0E-58-A3-32-F2-82-C4-EB-B6-2F-CD-CA-42-5D-D5 (SHA1)")
 
             Assert.Equal(11, reader.Methods.Length)
 
@@ -189,7 +191,9 @@ End Module
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
 
-            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+            VerifyDocuments(reader, reader.Documents,
+                            "'c.vb' 55-FA-D1-46-BA-6F-EC-77-0E-02-1A-A6-BC-62-21-F7-E3-31-4F-2C (SHA1)",
+                            "'a.vb' 04-2B-9F-E0-61-0E-58-A3-32-F2-82-C4-EB-B6-2F-CD-CA-42-5D-D5 (SHA1)")
 
             Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
 
@@ -287,7 +291,9 @@ End Module
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
 
-            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+            VerifyDocuments(reader, reader.Documents,
+                            "'c.vb' 36-B0-C2-29-F1-DC-B1-63-93-45-31-11-58-6C-5A-46-89-A1-42-34 (SHA1)",
+                            "'a.vb' 04-2B-9F-E0-61-0E-58-A3-32-F2-82-C4-EB-B6-2F-CD-CA-42-5D-D5 (SHA1)")
 
             Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
 
@@ -353,7 +359,9 @@ End Module
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
 
-            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+            VerifyDocuments(reader, reader.Documents,
+                            "'c.vb' 1B-06-B9-C5-D5-D3-AD-EE-8A-D3-31-8F-48-EC-20-BE-AF-7D-2C-27 (SHA1)",
+                            "'a.vb' 04-2B-9F-E0-61-0E-58-A3-32-F2-82-C4-EB-B6-2F-CD-CA-42-5D-D5 (SHA1)")
 
             Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
 
@@ -445,7 +453,9 @@ End Class
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
 
-            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+            VerifyDocuments(reader, reader.Documents,
+                            "'c.vb' 49-14-6E-73-25-48-FF-97-B3-56-26-54-65-D2-2B-00-B2-1A-FA-F5 (SHA1)",
+                            "'a.vb' 04-2B-9F-E0-61-0E-58-A3-32-F2-82-C4-EB-B6-2F-CD-CA-42-5D-D5 (SHA1)")
 
             Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
 
@@ -548,7 +558,9 @@ End Class
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
 
-            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+            VerifyDocuments(reader, reader.Documents,
+                            "'c.vb' 13-52-6F-4D-3B-A7-8B-F7-A3-50-EE-1C-3B-0A-57-AB-B7-E5-33-0C (SHA1)",
+                            "'a.vb' 04-2B-9F-E0-61-0E-58-A3-32-F2-82-C4-EB-B6-2F-CD-CA-42-5D-D5 (SHA1)")
 
             Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
 
@@ -636,7 +648,9 @@ End Class
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
 
-            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+            VerifyDocuments(reader, reader.Documents,
+                            "'c.vb' 7D-27-1F-B0-ED-E6-00-8D-6C-FF-13-69-26-40-2D-4B-AB-06-0D-2E (SHA1)",
+                            "'a.vb' 04-2B-9F-E0-61-0E-58-A3-32-F2-82-C4-EB-B6-2F-CD-CA-42-5D-D5 (SHA1)")
 
             Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
 
@@ -732,7 +746,9 @@ End Module
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
 
-            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+            VerifyDocuments(reader, reader.Documents,
+                            "'c.vb' 71-DD-56-A9-0E-56-57-E0-2B-53-EC-DA-0E-60-47-5E-CD-D1-D9-16 (SHA1)",
+                            "'a.vb' 04-2B-9F-E0-61-0E-58-A3-32-F2-82-C4-EB-B6-2F-CD-CA-42-5D-D5 (SHA1)")
 
             Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
 

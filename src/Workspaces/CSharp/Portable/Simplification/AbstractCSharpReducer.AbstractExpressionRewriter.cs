@@ -36,14 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private static SyntaxNode GetParentNode(SyntaxNode node)
             {
-                if (node is ExpressionSyntax)
+                if (node is ExpressionSyntax expression)
                 {
-                    return GetParentNode((ExpressionSyntax)node);
+                    return GetParentNode(expression);
                 }
 
-                if (node is CrefSyntax)
+                if (node is CrefSyntax cref)
                 {
-                    return GetParentNode((CrefSyntax)node);
+                    return GetParentNode(cref);
                 }
 
                 return null;

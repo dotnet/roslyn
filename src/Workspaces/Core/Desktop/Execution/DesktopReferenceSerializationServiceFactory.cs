@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new Service(workspaceServices.GetService<ITemporaryStorageService>());
+            return new Service(
+                workspaceServices.GetService<ITemporaryStorageService>(),
+                workspaceServices.GetService<IDocumentationProviderService>());
         }
 
         private sealed class Service : AbstractReferenceSerializationService
@@ -34,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Execution
             // typical low number, high volumn data cache.
             private static readonly ConcurrentDictionary<Encoding, byte[]> s_encodingCache = new ConcurrentDictionary<Encoding, byte[]>(concurrencyLevel: 2, capacity: 5);
 
-            public Service(ITemporaryStorageService service) : base(service)
+            public Service(ITemporaryStorageService service, IDocumentationProviderService documentationService) :
+                base(service, documentationService)
             {
             }
 

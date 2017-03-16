@@ -401,9 +401,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var leftHandBinding = context.SemanticModel.GetSymbolInfo(expression, cancellationToken);
 
             var container = context.SemanticModel.GetTypeInfo(expression, cancellationToken).Type;
-            if (container is IPointerTypeSymbol)
+            if (container is IPointerTypeSymbol pointerType)
             {
-                container = ((IPointerTypeSymbol)container).PointedAtType;
+                container = pointerType.PointedAtType;
             }
 
             return GetSymbolsOffOfBoundExpression(context, originalExpression, expression, leftHandBinding, container, cancellationToken);

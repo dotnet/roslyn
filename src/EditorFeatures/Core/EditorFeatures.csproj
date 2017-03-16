@@ -113,6 +113,7 @@
     <Compile Include="Implementation\Intellisense\Completion\FilterResult.cs" />
     <Compile Include="Implementation\Structure\BlockTagState.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionSetComparer.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActionsSource.cs" />
     <Compile Include="Tags\ExportImageMonikerServiceAttribute.cs" />
     <Compile Include="Implementation\NavigateTo\AbstractNavigateToItemDisplay.cs" />
     <Compile Include="CommandArgs.cs" />
@@ -613,9 +614,7 @@
     <Compile Include="Implementation\TextDiffing\EditorTextDifferencingService.cs" />
     <Compile Include="Implementation\TextStructureNavigation\AbstractTextStructureNavigatorProvider.cs" />
     <Compile Include="Implementation\TextStructureNavigation\AbstractTextStructureNavigatorProvider.TextStructureNavigator.cs" />
-    <Compile Include="Implementation\TodoComment\AbstractTodoCommentIncrementalAnalyzer.cs" />
-    <Compile Include="Implementation\TodoComment\AbstractTodoCommentService.cs" />
-    <Compile Include="Implementation\TodoComment\ITodoCommentService.cs" />
+    <Compile Include="Implementation\TodoComment\TodoCommentIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\TodoComment\TodoCommentIncrementalAnalyzerProvider.cs" />
     <Compile Include="Implementation\TodoComment\TodoCommentOptions.cs" />
     <Compile Include="Implementation\TodoComment\TodoCommentState.cs" />

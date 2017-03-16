@@ -8,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     Public Class AnalyzerItemsSourceTests
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Async Function Ordering() As Task
+        Public Sub Ordering()
             Dim workspaceXml =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
                 Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
@@ -31,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Assert.Equal(expected:="Beta", actual:=analyzers(1).Text)
                 Assert.Equal(expected:="Gamma", actual:=analyzers(2).Text)
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace
 

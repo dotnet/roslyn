@@ -29,11 +29,12 @@ namespace Roslyn.Test.Utilities
             public const string ClassView = nameof(ClassView);
             public const string CodeActionsAddConstructorParametersFromMembers = "CodeActions.AddConstructorParametersFromMembers";
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
-            public const string CodeActionsAddAsync = "CodeActions.AddAsync";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
+            public const string CodeActionsUpgradeProject = "CodeActions.UpgradeProject";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";
+            public const string CodeActionsAddParameter = "CodeActions.AddParameter";
             public const string CodeActionsChangeToAsync = "CodeActions.ChangeToAsync";
             public const string CodeActionsChangeToIEnumerable = "CodeActions.ChangeToIEnumerable";
             public const string CodeActionsChangeToYield = "CodeActions.ChangeToYield";
@@ -53,6 +54,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsGenerateEqualsAndGetHashCode = "CodeActions.GenerateEqualsAndGetHashCodeFromMembers";
             public const string CodeActionsGenerateVariable = "CodeActions.GenerateVariable";
             public const string CodeActionsGenerateMethod = "CodeActions.GenerateMethod";
+            public const string CodeActionsGenerateOverrides = "CodeActions.GenerateOverrides";
             public const string CodeActionsGenerateType = "CodeActions.GenerateType";
             public const string CodeActionsExtractMethod = "CodeActions.ExtractMethod";
             public const string CodeActionsFixAllOccurrences = "CodeActions.FixAllOccurrences";
@@ -69,6 +71,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsInvertIf = "CodeActions.InvertIf";
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
+            public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
             public const string CodeActionsMakeMethodSynchronous = "CodeActions.MakeMethodSynchronous";
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";
             public const string CodeActionsMoveToTopOfFile = "CodeActions.MoveToTopOfFile";
@@ -82,6 +85,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
             public const string CodeActionsRemoveUnusedVariable = "CodeActions.RemoveUnusedVariable";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
+            public const string CodeActionsResolveConflictMarker = "CodeActions.ResolveConflictMarker";
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
