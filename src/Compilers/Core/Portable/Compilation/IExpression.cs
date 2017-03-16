@@ -1370,5 +1370,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </remarks>
     public interface IInvalidExpression : IOperation
     {
+        ImmutableArray<IOperation> Children { get; }
     }
 }

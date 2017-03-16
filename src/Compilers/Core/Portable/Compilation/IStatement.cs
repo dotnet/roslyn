@@ -596,5 +596,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </remarks>
     public interface IInvalidStatement : IOperation
     {
+        ImmutableArray<IOperation> Children { get; }
     }
 }

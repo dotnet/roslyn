@@ -287,29 +287,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
-        private static BoundStatement BadStatement(BoundNode node)
-        {
-            return (node == null)
-                ? new BoundBadStatement(null, default(ImmutableArray<BoundNode>), true)
-                : new BoundBadStatement(node.Syntax, ImmutableArray.Create<BoundNode>(node), true);
-        }
-
         private static BoundExpression BadExpression(BoundExpression node)
         {
-            return BadExpression(node.Syntax, node.Type, ImmutableArray.Create<BoundNode>(node));
+            return BadExpression(node.Syntax, node.Type, ImmutableArray.Create(node));
         }
 
-        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, BoundNode child)
+        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, BoundExpression child)
         {
-            return BadExpression(syntax, resultType, ImmutableArray.Create<BoundNode>(child));
+            return BadExpression(syntax, resultType, ImmutableArray.Create(child));
         }
 
-        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, BoundNode child1, BoundNode child2)
+        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, BoundExpression child1, BoundExpression child2)
         {
-            return BadExpression(syntax, resultType, ImmutableArray.Create<BoundNode>(child1, child2));
+            return BadExpression(syntax, resultType, ImmutableArray.Create(child1, child2));
         }
 
-        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, ImmutableArray<BoundNode> children)
+        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, ImmutableArray<BoundExpression> children)
         {
             return new BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray<Symbol>.Empty, children, resultType);
         }

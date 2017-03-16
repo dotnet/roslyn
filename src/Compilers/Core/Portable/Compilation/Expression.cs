@@ -453,9 +453,10 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     internal sealed class InvalidExpression : IInvalidExpression
     {
-        public InvalidExpression(SyntaxNode syntax)
+        public InvalidExpression(SyntaxNode syntax, ImmutableArray<IOperation> children)
         {
             this.Syntax = syntax;
+            this.Children = children;
         }
 
         public Optional<object> ConstantValue => default(Optional<object>);
@@ -467,6 +468,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SyntaxNode Syntax { get; }
 
         public ITypeSymbol Type => null;
+
+        public ImmutableArray<IOperation> Children { get; }
 
         public void Accept(OperationVisitor visitor)
         {
