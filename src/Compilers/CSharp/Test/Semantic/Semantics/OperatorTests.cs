@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using static Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions;
 using Xunit;
 using Roslyn.Test.Utilities;
 
@@ -48,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(insideMethodBody.IsEmpty);
 
             Assert.NotEqual(insideEnumDefinition, insideMethodBody);
+
+            Assert.Equal(insideEnumDefinition.Symbol.ToTestDisplayString(), 
+                "System.Int32 System.Int32.op_BitwiseOr(System.Int32 left, System.Int32 right)");
+            Assert.Equal(insideMethodBody.Symbol.ToTestDisplayString(), 
+                "TestEnum TestEnum.op_BitwiseOr(TestEnum left, TestEnum right)");
         }
 
         [Fact, WorkItem(543895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543895")]
