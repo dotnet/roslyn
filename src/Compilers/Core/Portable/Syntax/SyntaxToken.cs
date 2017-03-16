@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis
     {
         internal static readonly Func<SyntaxToken, bool> NonZeroWidth = t => t.Width > 0;
         internal static readonly Func<SyntaxToken, bool> Any = t => true;
+        internal static readonly Func<DiagnosticInfo, Diagnostic> CreateDiagnosticWithoutLocation = Diagnostic.Create;
 
         internal SyntaxToken(SyntaxNode parent, GreenNode token, int position, int index)
         {
@@ -634,12 +635,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Location GetLocation()
         {
-            if (this.Node == null || this.SyntaxTree == null)
-            {
-                return Location.None;
-            }
+            var tree = SyntaxTree;
 
-            return this.SyntaxTree.GetLocation(this.Span);
+            return tree == null
+                ? Location.None
+                : tree.GetLocation(Span);
         }
 
         /// <summary>
@@ -649,18 +649,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<Diagnostic> GetDiagnostics()
         {
-            if (this.Node == null)
+            if (Node == null)
             {
                 return SpecializedCollections.EmptyEnumerable<Diagnostic>();
             }
 
-            if (this.SyntaxTree == null)
+            var tree = SyntaxTree;
+
+            if (tree == null)
             {
-                // If the parent or it's syntax tree are null, return diagnostics without a location.
-                return this.Node.GetDiagnostics().Select(Diagnostic.Create);
+                var diagnostics = Node.GetDiagnostics();
+
+                return diagnostics.Length == 0
+                    ? SpecializedCollections.EmptyEnumerable<Diagnostic>()
+                    : diagnostics.Select(CreateDiagnosticWithoutLocation);
             }
 
-            return this.SyntaxTree.GetDiagnostics(this);
+            return tree.GetDiagnostics(this);
         }
 
         /// <summary>
