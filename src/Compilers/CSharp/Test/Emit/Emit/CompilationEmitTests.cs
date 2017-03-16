@@ -307,14 +307,11 @@ public class C
             CSharpCompilation comp1 = CreateCompilationWithMscorlib(Parse(source),
                 options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
 
-            byte[] image;
-
             using (var output = new MemoryStream())
             {
                 var emitResult = comp1.Emit(output, options: EmitOptions.Default.WithEmitMetadataOnly(true));
                 Assert.Equal(expectSuccess, emitResult.Success);
                 Assert.Equal(!expectSuccess, emitResult.Diagnostics.Any());
-                image = output.ToArray();
             }
         }
 

@@ -279,7 +279,6 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        // PROTOTYPE it would be better to shared the implementation with PdbToXml
         private sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string, object>
         {
             public static readonly ConstantSignatureVisualizer Instance = new ConstantSignatureVisualizer();
@@ -296,13 +295,11 @@ namespace Roslyn.Test.Utilities
 
             public string GetFunctionPointerType(MethodSignature<string> signature)
             {
-                // TODO:
                 return "method-ptr";
             }
 
             public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments)
             {
-                // using {} since the result is embedded in XML
                 return genericType + "{" + string.Join(", ", typeArguments) + "}";
             }
 

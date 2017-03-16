@@ -2765,6 +2765,14 @@ print Goodbye, World"
             Assert.Equal("MyBinary.dll", parsedArgs.CompilationOptions.ModuleName)
             Assert.Equal("C:\My Folder", parsedArgs.OutputDirectory)
 
+            parsedArgs = DefaultParse({"/refout:", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("refout", ":<file>").WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/refout:ref.dll", "/refonly", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_NoRefOutWhenRefOnly).WithLocation(1, 1))
+
             parsedArgs = DefaultParse({"/out:C:\""My Folder""\MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                     Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("C:""My Folder\MyBinary.dll").WithLocation(1, 1))
@@ -7977,6 +7985,196 @@ End Class
                 Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, args, startFolder:=folderName)
                 Assert.Equal(expected, output.Trim())
             Next
+        End Sub
+
+        <Fact>
+        Sub RefOut()
+            Dim dir = Temp.CreateDirectory()
+            dir.CreateDirectory("ref")
+
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText("
+Class C
+    ''' <summary>Main method</summary>
+    Public Shared Sub Main()
+        System.Console.Write(""Hello"")
+    End Sub
+End Class")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:a.exe", "/refout:ref/a.dll", "/doc:doc.xml", "/deterministic", "a.vb"})
+
+            Dim exitCode = vbc.Run(outWriter)
+            Assert.Equal(0, exitCode)
+
+            Dim exe = Path.Combine(dir.Path, "a.exe")
+            Assert.True(File.Exists(exe))
+
+            VerifyPEMetadata(File.OpenRead(exe),
+                {"TypeDef:<Module>", "TypeDef:C"},
+                {"MethodDef: Void Main()", "MethodDef: Void .ctor()"},
+                {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
+                )
+
+
+            Dim doc = Path.Combine(dir.Path, "doc.xml")
+            Assert.True(File.Exists(doc))
+
+            Using reader As New StreamReader(doc)
+                Dim content = reader.ReadToEnd()
+                Dim expectedDoc =
+"<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+a
+</name>
+</assembly>
+<members>
+<member name=""M:C.Main"">
+ <summary>Main method</summary>
+</member>
+</members>
+</doc>"
+                Assert.Equal(expectedDoc, content.Trim())
+
+            End Using
+
+            Dim output = ProcessUtilities.RunAndGetOutput(exe, startFolder:=dir.ToString())
+            Assert.Equal("Hello", output.Trim())
+
+            Dim refDll = Path.Combine(dir.Path, "ref\\a.dll")
+            Assert.True(File.Exists(refDll))
+
+            VerifyPEMetadata(File.OpenRead(refDll),
+                {"TypeDef:<Module>", "TypeDef:C"},
+                {"MethodDef: Void Main()", "MethodDef: Void .ctor()"},
+                {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
+                )
+
+            output = ProcessUtilities.RunAndGetOutput(refDll, startFolder:=dir.ToString(), expectedRetCode:=-532462766)
+
+            ' Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path)
+        End Sub
+
+        Private Shared Sub VerifyPEMetadata(peStream As FileStream, types As String(), methods As String(), attributes As String())
+            Using refPeReader As New PEReader(peStream)
+                Dim metadataReader = refPeReader.GetMetadataReader()
+
+                ' The types And members that are included needs further refinement.
+                ' See issue https://github.com/dotnet/roslyn/issues/17612
+                AssertEx.SetEqual(metadataReader.TypeDefinitions.Select(Function(t) metadataReader.Dump(t)), types)
+
+                AssertEx.SetEqual(metadataReader.MethodDefinitions.Select(Function(t) metadataReader.Dump(t)), methods)
+
+                ' ReferenceAssemblyAttribute is missing.
+                ' See issue https://github.com/dotnet/roslyn/issues/17612
+                AssertEx.SetEqual(
+                    metadataReader.CustomAttributes.Select(Function(a) metadataReader.GetCustomAttribute(a).Constructor).
+                        Select(Function(c) metadataReader.GetMemberReference(CType(c, MemberReferenceHandle)).Parent).
+                        Select(Function(p) metadataReader.GetTypeReference(CType(p, TypeReferenceHandle)).Name).
+                        Select(Function(n) metadataReader.GetString(n)),
+                    attributes)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub RefOutWithError()
+            Dim dir = Temp.CreateDirectory()
+            dir.CreateDirectory("ref")
+
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText(
+"Class C
+    Public Shared Sub Main()
+        Bad()
+    End Sub
+End Class")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim csc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "a.vb"})
+
+            Dim exitCode = csc.Run(outWriter)
+            Assert.Equal(1, exitCode)
+
+            Dim vb = Path.Combine(dir.Path, "a.vb")
+
+            Dim dll = Path.Combine(dir.Path, "a.dll")
+            Assert.False(File.Exists(dll))
+
+            Dim refDll = Path.Combine(dir.Path, "ref\\a.dll")
+            Assert.False(File.Exists(refDll))
+
+            Assert.Equal(
+$"{vb}(3) : error BC30451: 'Bad' is not declared. It may be inaccessible due to its protection level.
+
+        Bad()
+        ~~~",
+outWriter.ToString().Trim())
+
+            ' Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path)
+        End Sub
+
+        <Fact>
+        Sub RefOnly()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText(
+"Class C
+    ''' <summary>Main method</summary>
+    Public Shared Sub Main()
+        Bad()
+    End Sub
+End Class")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim csc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/doc:doc.xml", "a.vb"})
+
+            Dim exitCode = csc.Run(outWriter)
+            Assert.Equal(0, exitCode)
+
+            Dim refDll = Path.Combine(dir.Path, "a.dll")
+            Assert.True(File.Exists(refDll))
+
+            VerifyPEMetadata(File.OpenRead(refDll),
+                {"TypeDef:<Module>", "TypeDef:C"},
+                {"MethodDef: Void Main()", "MethodDef: Void .ctor()"},
+                {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
+                )
+
+            Dim pdb = Path.Combine(dir.Path, "a.pdb")
+            Assert.False(File.Exists(pdb))
+
+            Dim doc = Path.Combine(dir.Path, "doc.xml")
+            Assert.True(File.Exists(doc))
+
+            Using reader As New StreamReader(doc)
+                Dim content = reader.ReadToEnd()
+                Dim expectedDoc =
+"<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+a
+</name>
+</assembly>
+<members>
+<member name=""M:C.Main"">
+ <summary>Main method</summary>
+</member>
+</members>
+</doc>"
+                Assert.Equal(expectedDoc, content.Trim())
+            End Using
+
+            ' Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path)
         End Sub
 
         <WorkItem(13681, "https://github.com/dotnet/roslyn/issues/13681")>

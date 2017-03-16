@@ -2270,8 +2270,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As DiagnosticBag,
             cancellationToken As CancellationToken) As Boolean
 
-            Debug.Assert(Not moduleBuilder.EmitOptions.EmitMetadataOnly)
-
             ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             Dim resourceDiagnostics = DiagnosticBag.GetInstance()
 
