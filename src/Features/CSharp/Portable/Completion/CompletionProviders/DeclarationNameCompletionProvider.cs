@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private void AddBuilder(CompletionContext completionContext)
         {
-            completionContext.SuggestionModeItem = CommonCompletionItem.Create(CSharpFeaturesResources.Name);
+            completionContext.SuggestionModeItem = CommonCompletionItem.Create(CSharpFeaturesResources.Name, CompletionItemRules.Default);
         }
 
         private ITypeSymbol UnwrapType(ITypeSymbol type)
@@ -178,8 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
         {
-            return CommonCompletionItem.Create(name, glyph, sortText: sortText,
-                rules: CompletionItemRules.Default);
+            return CommonCompletionItem.Create(name, CompletionItemRules.Default, glyph: glyph, sortText: sortText);
         }
     }
 }
