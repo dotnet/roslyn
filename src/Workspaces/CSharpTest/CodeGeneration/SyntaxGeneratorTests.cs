@@ -567,6 +567,14 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         }
 
         [Fact]
+        public void TestLockStatements()
+        {
+            VerifySyntax<LockStatementSyntax>(
+                _g.LockStatement(_g.IdentifierName("x"), new[] { _g.IdentifierName("y") }),
+                "lock (x)\r\n{\r\n    y;\r\n}");
+        }
+
+        [Fact]
         public void TestTryCatchStatements()
         {
             VerifySyntax<TryStatementSyntax>(

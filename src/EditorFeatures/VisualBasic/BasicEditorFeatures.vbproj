@@ -160,7 +160,6 @@
     <Compile Include="RenameTracking\BasicRenameTrackingLanguageHeuristicsService.vb" />
     <Compile Include="RenameTracking\RenameTrackingCodeFixProvider.vb" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.vb" />
-    <Compile Include="TodoComment\BasicTodoCommentIncrementalAnalyzerProvider.vb" />
     <Compile Include="UseAutoProperty\UseAutoPropertyAnalyzer.vb" />
     <Compile Include="UseAutoProperty\UseAutoPropertyCodeFixProvider.vb" />
     <Compile Include="UseAutoProperty\Utilities.vb" />

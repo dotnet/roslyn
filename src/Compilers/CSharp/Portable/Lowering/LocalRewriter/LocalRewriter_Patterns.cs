@@ -145,6 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var type = loweredTarget.Type;
 
+            // The type here is not a Nullable<T> instance type, as that would have led to the semantic error:
+            // ERR_PatternNullableType: It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.
+            Debug.Assert(!type.IsNullableType());
+
             // a pattern match of the form "expression is Type identifier" is equivalent to
             // an invocation of one of these helpers:
             if (type.IsReferenceType)
@@ -168,20 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
                         _factory.Null(type));
                 }
-            }
-            else if (type.IsNullableType())
-            {
-                // While `(o is int?)` is statically an error in the binder, we can get here
-                // through generic substitution. Note that (null is int?) is false.
-
-                // bool Is<T>(object e, out T? t) where T : struct
-                // {
-                //     t = e as T?;
-                //     return t.HasValue;
-                // }
-                return _factory.Call(
-                    _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
-                    GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_get_HasValue));
             }
             else if (type.IsValueType)
             {
@@ -207,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), tmpType == loweredInput.Type ? loweredInput : _factory.As(loweredInput, tmpType));
                 var value = _factory.Call(
                     _factory.Local(tmp),
-                    GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                    UnsafeGetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
                 var asg2 = _factory.AssignmentExpression(loweredTarget, value);
                 var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
                 return _factory.MakeSequence(tmp, asg1, asg2, result);

@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
         Public Async Function TestOnLeft_Equals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -37,7 +37,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
         Public Async Function TestOnLeft_NotEquals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -57,7 +57,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
         Public Async Function TestComplexExpression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -77,7 +77,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
         Public Async Function TestParens1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -97,7 +97,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
         Public Async Function TestFixAll1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -119,7 +119,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
         Public Async Function TestFixAll2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -140,7 +140,7 @@ End Class")
         <WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
         Public Async Function TestInExpressionOfT() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 Imports System.Linq.Expressions

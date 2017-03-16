@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         private static readonly string s_CSharpCompilerExecutable = typeof(Csc).GetTypeInfo().Assembly.Location;
         private static readonly string s_defaultSdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
         private static readonly string s_compilerVersion = typeof(Csc).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+        private static readonly string s_compilerShortCommitHash =
+            CommonCompiler.ExtractShortCommitHash(typeof(CSharpCompiler).GetTypeInfo().Assembly.GetCustomAttribute<CommitHashAttribute>().Hash);
 
         private readonly string _baseDirectory = TempRoot.Root;
 
@@ -1189,7 +1191,8 @@ d.cs
         [Fact]
         public void LangVersion()
         {
-            LanguageVersion defaultVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
+            LanguageVersion defaultEffectiveVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
+            LanguageVersion latestEffectiveVersion = LanguageVersion.Latest.MapSpecifiedToEffectiveVersion();
 
             var parsedArgs = DefaultParse(new[] { "/langversion:1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
@@ -1231,15 +1234,19 @@ d.cs
             parsedArgs.Errors.Verify();
             Assert.Equal(LanguageVersion.CSharp7, parsedArgs.ParseOptions.LanguageVersion);
 
+            parsedArgs = DefaultParse(new[] { "/langversion:7.1", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(LanguageVersion.CSharp7_1, parsedArgs.ParseOptions.LanguageVersion);
+
             parsedArgs = DefaultParse(new[] { "/langversion:default", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(LanguageVersion.Default, parsedArgs.ParseOptions.SpecifiedLanguageVersion);
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:latest", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(LanguageVersion.Latest, parsedArgs.ParseOptions.SpecifiedLanguageVersion);
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(latestEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:iso-1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
@@ -1249,14 +1256,11 @@ d.cs
             parsedArgs.Errors.Verify();
             Assert.Equal(LanguageVersion.CSharp2, parsedArgs.ParseOptions.LanguageVersion);
 
-            parsedArgs = DefaultParse(new[] { "/langversion:default", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
-
             // default value
             parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(LanguageVersion.Default, parsedArgs.ParseOptions.SpecifiedLanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             // override value with iso-1
             parsedArgs = DefaultParse(new[] { "/langversion:6", "/langversion:iso-1", "a.cs" }, _baseDirectory);
@@ -1270,13 +1274,13 @@ d.cs
 
             // override value with default
             parsedArgs = DefaultParse(new[] { "/langversion:6", "/langversion:default", "a.cs" }, _baseDirectory);
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
             parsedArgs.Errors.Verify();
 
             // override value with default
             parsedArgs = DefaultParse(new[] { "/langversion:7", "/langversion:default", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             // override value with numeric
             parsedArgs = DefaultParse(new[] { "/langversion:iso-2", "/langversion:6", "a.cs" }, _baseDirectory);
@@ -1286,48 +1290,104 @@ d.cs
             //  errors
             parsedArgs = DefaultParse(new[] { "/langversion:iso-3", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("iso-3"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:iso1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("iso1"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:0", "/langversion:7", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:0", "/langversion:8", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"),
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("8"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:0", "/langversion:1000", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"),
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("1000"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/langversion:"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/LANGversion:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/langversion:"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion: ", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/langversion:"));
-            Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
+            Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
         }
 
         [Fact]
-        public void RememberToUpdateDiagnosticsWhenUpdatingLangVersion()
+        public void LanguageVersionAdded_Canary()
         {
-            // When new language versions are added, this test will fail. Remember to update the diagnostics message (ERR_BadCompatMode).
-            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+            // When a new version is added, this test will break. This list must be checked:
+            // - update the command-line error for bad /langver flag (<see cref="ErrorCode.ERR_BadCompatMode"/>)
+            // - update the "UpgradeProject" codefixer
+            // - update the IDE drop-down for selecting Language Version
+            // - don't fix the canary test until you update all the tests that include it
+            Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
+        }
+
+        [Fact]
+        public void LanguageVersion_DisplayString()
+        {
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7", "7.1", "latest" },
+                Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
+            // For minor versions, the format should be "x.y", such as "7.1"
+        }
+
+        [Fact]
+        public void LanguageVersion_MapSpecifiedToEffectiveVersion()
+        {
+            Assert.Equal(LanguageVersion.CSharp1, LanguageVersion.CSharp1.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp2, LanguageVersion.CSharp2.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp3, LanguageVersion.CSharp3.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp4, LanguageVersion.CSharp4.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp5, LanguageVersion.CSharp5.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp6, LanguageVersion.CSharp6.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.CSharp7.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+
+            // The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary();
+        }
+
+        [Theory,
+            InlineData("iso-1", true, LanguageVersion.CSharp1),
+            InlineData("ISO-1", true, LanguageVersion.CSharp1),
+            InlineData("iso-2", true, LanguageVersion.CSharp2),
+            InlineData("1", true, LanguageVersion.CSharp1),
+            InlineData("2", true, LanguageVersion.CSharp2),
+            InlineData("3", true, LanguageVersion.CSharp3),
+            InlineData("4", true, LanguageVersion.CSharp4),
+            InlineData("5", true, LanguageVersion.CSharp5),
+            InlineData("05", true, LanguageVersion.CSharp5),
+            InlineData("6", true, LanguageVersion.CSharp6),
+            InlineData("7", true, LanguageVersion.CSharp7),
+            InlineData("07", true, LanguageVersion.CSharp7),
+            InlineData("7.1", true, LanguageVersion.CSharp7_1),
+            InlineData("default", true, LanguageVersion.Default),
+            InlineData("latest", true, LanguageVersion.Latest),
+            InlineData(null, true, LanguageVersion.Default),
+            InlineData("bad", false, LanguageVersion.Default)]
+        public void LanguageVersion_TryParseDisplayString(string input, bool success, LanguageVersion expected)
+        {
+            Assert.Equal(success, input.TryParse(out var version));
+            Assert.Equal(expected, version);
+
+            // The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary();
         }
 
         [Fact]
@@ -1382,7 +1442,7 @@ d.cs
             var nonCompliant = "def1;;def2;";
             parsed = CSharpCommandLineParser.ParseConditionalCompilationSymbols(nonCompliant, out diagnostics);
             diagnostics.Verify(
-                // warning CS2029: Invalid value for '/define'; '' is not a valid identifier
+                // warning CS2029: Invalid name for a preprocessing symbol; '' is not a valid identifier
                 Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments(""));
             Assert.Equal(new[] { "def1", "def2" }, parsed);
 
@@ -5277,14 +5337,50 @@ class C
             var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", "/preferreduilang:en", "a.cs" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
+
+            var patched = Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(\\.\\d+)?", "version A.B.C.D");
+            patched = ReplaceCommitHash(patched);
             Assert.Equal(@"
-Microsoft (R) Visual C# Compiler version A.B.C.D
+Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
-                Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(\\.\\d+)?", "version A.B.C.D"));
+                patched);
             // Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
             // making the last part optional will fix this.
 
             CleanupAllGeneratedFiles(file.Path);
+        }
+
+        [Theory,
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (<developer build>)",
+                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (ABCDEF01)",
+                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (abcdef90)",
+                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (12345678)",
+                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)")]
+        public void TestReplaceCommitHash(string orig, string expected)
+        {
+            Assert.Equal(expected, ReplaceCommitHash(orig));
+        }
+
+        private static string ReplaceCommitHash(string s)
+        {
+            // open paren, followed by either <developer build> or 8 hex, followed by close paren
+            return Regex.Replace(s, "(\\((<developer build>|[a-fA-F0-9]{8})\\))", "(HASH)");
+        }
+
+        [Fact]
+        public void ExtractShortCommitHash()
+        {
+            Assert.Null(CommonCompiler.ExtractShortCommitHash(null));
+            Assert.Equal("", CommonCompiler.ExtractShortCommitHash(""));
+            Assert.Equal("<", CommonCompiler.ExtractShortCommitHash("<"));
+            Assert.Equal("<developer build>", CommonCompiler.ExtractShortCommitHash("<developer build>"));
+            Assert.Equal("1", CommonCompiler.ExtractShortCommitHash("1"));
+            Assert.Equal("1234567", CommonCompiler.ExtractShortCommitHash("1234567"));
+            Assert.Equal("12345678", CommonCompiler.ExtractShortCommitHash("12345678"));
+            Assert.Equal("12345678", CommonCompiler.ExtractShortCommitHash("123456789"));
         }
 
         private void CheckOutputFileName(string source1, string source2, string inputName1, string inputName2, string[] commandLineArguments, string expectedOutputName)
@@ -6325,7 +6421,7 @@ namespace System
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", src.ToString(), @"/define:""""" }).Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal("warning CS2029: Invalid value for '/define'; '' is not a valid identifier", outWriter.ToString().Trim());
+            Assert.Equal("warning CS2029: Invalid name for a preprocessing symbol; '' is not a valid identifier", outWriter.ToString().Trim());
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", src.ToString(), "/define: " }).Run(outWriter);
@@ -6340,29 +6436,32 @@ namespace System
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", src.ToString(), "/define:,,," }).Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal("warning CS2029: Invalid value for '/define'; '' is not a valid identifier", outWriter.ToString().Trim());
+            Assert.Equal("warning CS2029: Invalid name for a preprocessing symbol; '' is not a valid identifier", outWriter.ToString().Trim());
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", src.ToString(), "/define:,blah,Blah" }).Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal("warning CS2029: Invalid value for '/define'; '' is not a valid identifier", outWriter.ToString().Trim());
+            Assert.Equal("warning CS2029: Invalid name for a preprocessing symbol; '' is not a valid identifier", outWriter.ToString().Trim());
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", src.ToString(), "/define:a;;b@" }).Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal("warning CS2029: Invalid value for '/define'; '' is not a valid identifier", outWriter.ToString().Trim());
+            var errorLines = outWriter.ToString().Trim().Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            Assert.Equal("warning CS2029: Invalid name for a preprocessing symbol; '' is not a valid identifier", errorLines[0]);
+            Assert.Equal("warning CS2029: Invalid name for a preprocessing symbol; 'b@' is not a valid identifier", errorLines[1]);
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", src.ToString(), "/define:a,b@;" }).Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal("warning CS2029: Invalid value for '/define'; 'b@' is not a valid identifier", outWriter.ToString().Trim());
+            Assert.Equal("warning CS2029: Invalid name for a preprocessing symbol; 'b@' is not a valid identifier", outWriter.ToString().Trim());
 
             //Bug 531612 - Native would normally not give the 2nd warning
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", src.ToString(), @"/define:OE_WIN32=-1:LANG_HOST_EN=-1:LANG_OE_EN=-1:LANG_PRJ_EN=-1:HOST_COM20SDKEVERETT=-1:EXEMODE=-1:OE_NT5=-1:Win32=-1", @"/d:TRACE=TRUE,DEBUG=TRUE" }).Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal(@"warning CS2029: Invalid value for '/define'; 'OE_WIN32=-1:LANG_HOST_EN=-1:LANG_OE_EN=-1:LANG_PRJ_EN=-1:HOST_COM20SDKEVERETT=-1:EXEMODE=-1:OE_NT5=-1:Win32=-1' is not a valid identifier
-warning CS2029: Invalid value for '/define'; 'TRACE=TRUE' is not a valid identifier", outWriter.ToString().Trim());
+            errorLines = outWriter.ToString().Trim().Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            Assert.Equal(@"warning CS2029: Invalid name for a preprocessing symbol; 'OE_WIN32=-1:LANG_HOST_EN=-1:LANG_OE_EN=-1:LANG_PRJ_EN=-1:HOST_COM20SDKEVERETT=-1:EXEMODE=-1:OE_NT5=-1:Win32=-1' is not a valid identifier", errorLines[0]);
+            Assert.Equal(@"warning CS2029: Invalid name for a preprocessing symbol; 'TRACE=TRUE' is not a valid identifier", errorLines[1]);
 
             CleanupAllGeneratedFiles(src.Path);
         }
@@ -6980,7 +7079,7 @@ class Program3
 
             var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/target:library /debug:portable {libSrc.Path}", startFolder: dir.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Microsoft (R) Visual C# Compiler version {s_compilerVersion}
+Microsoft (R) Visual C# Compiler version {s_compilerVersion} ({s_compilerShortCommitHash })
 Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             // reading original content from the memory map: 
@@ -8829,7 +8928,7 @@ class C {
         public void Version()
         {
             var folderName = Temp.CreateDirectory().ToString();
-            var expected = FileVersionInfo.GetVersionInfo(typeof(CSharpCompiler).Assembly.Location).FileVersion;
+            var expected = $"{FileVersionInfo.GetVersionInfo(typeof(CSharpCompiler).Assembly.Location).FileVersion} ({s_compilerShortCommitHash})";
             var argss = new[]
             {
                 "/version",
@@ -8845,6 +8944,37 @@ class C {
             }
         }
 
+        [Fact]
+        public void CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
+        {
+            var parsedArgs = DefaultParse(new[] { "/define:1", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2029: Invalid name for a preprocessing symbol; '1' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void CompilingCodeWithInvalidLanguageVersionShouldProvideDiagnostics()
+        {
+            var parsedArgs = DefaultParse(new[] { "/langversion:1000", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS1617: Invalid option '1000' for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 6.
+                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("1000").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(16913, "https://github.com/dotnet/roslyn/issues/16913")]
+        public void CompilingCodeWithMultipleInvalidPreProcessorSymbolsShouldErrorOut()
+        {
+            var parsedArgs = DefaultParse(new[] { "/define:valid1,2invalid,valid3", "/define:4,5,valid6", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // warning CS2029: Invalid value for '/define'; '2invalid' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("2invalid"),
+                // warning CS2029: Invalid value for '/define'; '4' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("4"),
+                // warning CS2029: Invalid value for '/define'; '5' is not a valid identifier
+                Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("5"));
+        }
+        
         public class QuotedArgumentTests
         {
             private void VerifyQuotedValid<T>(string name, string value, T expected, Func<CSharpCommandLineArguments, T> getValue)

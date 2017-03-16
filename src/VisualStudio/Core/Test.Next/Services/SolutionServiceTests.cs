@@ -7,7 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Test.Utilities;
@@ -24,7 +26,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var solution = workspace.CurrentSolution;
                 var service = await GetSolutionServiceAsync(solution);
@@ -96,7 +98,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var options = new TestOptionSet().WithChangedOption(RemoteHostOptions.RemoteHostTest, true);
 
@@ -119,7 +121,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var solution = workspace.CurrentSolution;
                 var service = await GetSolutionServiceAsync(solution);
@@ -143,7 +145,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var solution = workspace.CurrentSolution;
                 var service = await GetSolutionServiceAsync(solution);
@@ -164,7 +166,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var options = new TestOptionSet().WithChangedOption(RemoteHostOptions.RemoteHostTest, true);
 
@@ -251,7 +253,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public async Task TestAdditionalDocument()
         {
             var code = @"class Test { void Method() { } }";
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var projectId = workspace.CurrentSolution.ProjectIds.First();
                 var additionalDocumentId = DocumentId.CreateNewId(projectId);
@@ -283,7 +285,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var projectId = workspace.CurrentSolution.ProjectIds.First();
                 var documentId = DocumentId.CreateNewId(projectId);
@@ -310,9 +312,53 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestRemoteWorkspaceSolutionCrawler()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            // create base solution
+            using (var workspace = TestWorkspace.CreateCSharp(code))
+            {
+                // create solution service
+                var solution = workspace.CurrentSolution;
+                var service = await GetSolutionServiceAsync(solution);
+
+                // update primary workspace
+                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+                await service.UpdatePrimaryWorkspaceAsync(solutionChecksum, CancellationToken.None);
+
+                // get solution in remote host
+                var oopSolution = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
+                Assert.True(oopSolution.Workspace is RemoteWorkspace);
+
+                // get solution cralwer in remote host
+                var solutionCrawlerService = oopSolution.Workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
+                Assert.NotNull(solutionCrawlerService);
+
+                // check remote workspace has enabled solution crawler in remote host
+                var testAnalyzerProvider = new TestAnalyzerProvider();
+                solutionCrawlerService.AddAnalyzerProvider(
+                    testAnalyzerProvider,
+                    new IncrementalAnalyzerProviderMetadata("Test", highPriorityForActiveFile: false, workspaceKinds: WorkspaceKind.RemoteWorkspace));
+
+                // check our solution crawler has ran
+                Assert.True(await testAnalyzerProvider.Analyzer.Called);
+
+                testAnalyzerProvider.Analyzer.Reset();
+
+                // update remote workspace
+                var remoteWorkspace = (RemoteWorkspace)oopSolution.Workspace;
+                remoteWorkspace.UpdateSolution(oopSolution.WithDocumentText(oopSolution.Projects.First().Documents.First().Id, SourceText.From(code + " class Test2 { }")));
+
+                // check solution update correctly ran solution crawler
+                Assert.True(await testAnalyzerProvider.Analyzer.Called);
+            }
+        }
+
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 await VerifySolutionUpdate(workspace, newSolutionGetter);
             }
@@ -367,6 +413,34 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var service = new SolutionService(new AssetService(sessionId, storage));
 
             return service;
+        }
+
+        private class TestAnalyzerProvider : IIncrementalAnalyzerProvider
+        {
+            public readonly TestAnalyzer Analyzer = new TestAnalyzer();
+
+            public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+            {
+                return Analyzer;
+            }
+
+            public class TestAnalyzer : IncrementalAnalyzerBase
+            {
+                private TaskCompletionSource<bool> _source = new TaskCompletionSource<bool>();
+
+                public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+                {
+                    _source.SetResult(true);
+                    return SpecializedTasks.EmptyTask;
+                }
+
+                public Task<bool> Called => _source.Task;
+
+                public void Reset()
+                {
+                    _source = new TaskCompletionSource<bool>();
+                }
+            }
         }
     }
 }

@@ -78,13 +78,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             codeElement.RemoveParameter(child)
         End Sub
 
-        Protected Async Function TestBaseClass(code As XElement, expectedFullName As String) As Task
-            Await TestElement(code,
+        Protected Sub TestBaseClass(code As XElement, expectedFullName As String)
+            TestElement(code,
                 Sub(codeElement)
                     Assert.NotNull(codeElement.BaseClass)
                     Assert.Equal(expectedFullName, codeElement.BaseClass.FullName)
                 End Sub)
-        End Function
+        End Sub
 
     End Class
 End Namespace

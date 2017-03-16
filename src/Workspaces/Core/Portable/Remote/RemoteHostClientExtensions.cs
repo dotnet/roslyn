@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 WellKnownServiceHubServices.CodeAnalysisService, solution, callbackTarget, cancellationToken);
         }
 
-        public static Task<RemoteHostClient> GetRemoteHostClientAsync(this Workspace workspace, CancellationToken cancellationToken)
+        public static Task<RemoteHostClient> TryGetRemoteHostClientAsync(this Workspace workspace, CancellationToken cancellationToken)
         {
             var clientService = workspace.Services.GetService<IRemoteHostClientService>();
-            return clientService?.GetRemoteHostClientAsync(cancellationToken);
+            return clientService?.TryGetRemoteHostClientAsync(cancellationToken);
         }
 
         public static Task RunOnRemoteHostAsync(

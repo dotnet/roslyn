@@ -527,7 +527,7 @@ class Program
 
         private async Task AssertTagsOnBracesOrSemicolonsTokensAsync(string contents, int[] tokenIndices, CSharpParseOptions options = null)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(contents, options))
+            using (var workspace = TestWorkspace.CreateCSharp(contents, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
                 var spans = await new CSharpLineSeparatorService().GetLineSeparatorsAsync(document, (await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None);

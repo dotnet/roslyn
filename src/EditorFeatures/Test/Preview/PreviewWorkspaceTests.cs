@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTagger()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync("class { }", exportProvider: EditorServicesUtil.ExportProvider))
+            using (var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider))
             using (var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution))
             {
                 //// preview workspace and owner of the solution now share solution and its underlying text buffer
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/14444")]
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync("class { }", exportProvider: EditorServicesUtil.ExportProvider))
+            using (var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider))
             {
                 // set up listener to wait until diagnostic finish running
                 var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>() as DiagnosticService;

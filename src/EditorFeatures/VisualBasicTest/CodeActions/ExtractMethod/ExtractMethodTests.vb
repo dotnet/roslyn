@@ -7,14 +7,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.E
     Public Class ExtractMethodTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New ExtractMethodCodeRefactoringProvider()
         End Function
 
         <WorkItem(540686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540686")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestExtractReturnExpression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Module1
     Private Delegate Function Func(i As Integer)
     Shared Sub Main(args As String())
@@ -37,14 +37,13 @@ End Class",
     Private Shared Function GetArg(arg As Integer) As Integer
         Return arg
     End Function
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(540755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540755")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestExtractMultilineLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -65,14 +64,13 @@ Module Program
         Return Sub()
                End Sub
     End Function
-End Module",
-index:=0)
+End Module")
         End Function
 
         <WorkItem(541515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541515")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestCollectionInitializerInObjectCollectionInitializer() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     Sub Main()
         [|Dim x As New List(Of Program) From {New Program}|]
@@ -87,15 +85,14 @@ End Class",
         Dim x As New List(Of Program) From {New Program}
     End Sub
     Public Property Name As String
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(542251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542251")>
         <WorkItem(543030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543030")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestLambdaSelection() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -124,7 +121,7 @@ End Module")
         <WorkItem(542904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542904")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestFormatBeforeAttribute() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Module Program
     Sub Main(args As String())
         Dim x = [|1 + 1|]
@@ -149,13 +146,13 @@ End Module
     End Sub
 End Module
 </Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(545262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545262")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestInTernaryConditional() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         Dim p As Object = Nothing
@@ -176,7 +173,7 @@ End Module")
         <WorkItem(545547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545547")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestInRangeArgumentUpperBound() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         Dim x(0 To [|1 + 2|]) ' Extract method 
@@ -195,7 +192,7 @@ End Module")
         <WorkItem(545655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545655")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestInWhileUntilCondition() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module M
     Sub Main()
         Dim x = 0
@@ -219,7 +216,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestInInterpolation1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module M
     Sub Main()
         Dim v As New Object
@@ -238,12 +235,12 @@ End Module",
         System.Console.WriteLine($""{v}"")
     End Sub
 End Module",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestInInterpolation2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module M
     Sub Main()
         Dim v As New Object
@@ -262,13 +259,13 @@ End Module",
         Return $""{v}""
     End Function
 End Module",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(545829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545829")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestMissingOnImplicitMemberAccess() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         With """"""""
@@ -291,7 +288,7 @@ End Module")
         <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestPreserveCommentsBeforeDeclaration_1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Class Program
     Sub Main(args As String())
         [|Dim one As Program = New Program()
@@ -330,13 +327,13 @@ End Class
     End Sub
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestPreserveCommentsBeforeDeclaration_2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Class Program
     Sub Main(args As String())
         [|Dim one As Program = New Program()
@@ -379,13 +376,13 @@ End Class
     End Sub
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestPreserveCommentsBeforeDeclaration_3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Class Program
     Sub Main(args As String())
         [|Dim one As Program = New Program()
@@ -433,14 +430,14 @@ End Class
     End Sub
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
         <WorkItem(13042, "https://github.com/dotnet/roslyn/issues/13042")>
         Public Async Function TestTuples() As Task
 
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     Sub Main(args As String())
         [|Dim x = (1, 2)|]
@@ -475,7 +472,7 @@ End Namespace")
         <WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")>
         Public Async Function TestTupleDeclarationWithNames() As Task
 
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     Sub Main(args As String())
         [|Dim x As (a As Integer, b As Integer) = (1, 2)|]
@@ -506,7 +503,7 @@ End Namespace")
         <WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")>
         Public Async Function TestTupleDeclarationWithSomeNames() As Task
 
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class Program
     Sub Main(args As String())
         [|Dim x As (a As Integer, Integer) = (1, 2)|]

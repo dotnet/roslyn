@@ -86,13 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
         private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
         {
-            if (expression is InvocationExpressionSyntax)
+            if (expression is InvocationExpressionSyntax invocation)
             {
-                return ConvertInvocation((InvocationExpressionSyntax)expression);
+                return ConvertInvocation(invocation);
             }
-            else if (expression is AssignmentExpressionSyntax)
+            else if (expression is AssignmentExpressionSyntax assignment)
             {
-                return ConvertAssignment((AssignmentExpressionSyntax)expression);
+                return ConvertAssignment(assignment);
             }
 
             throw new InvalidOperationException();

@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             IGlyphService glyphService,
             ImmutableArray<ISymbol> members)
         {
-            MemberContainers = members.Select(m => new MemberSymbolViewModel(m, glyphService)).OrderBy(s => s.MemberName).ToList();
+            MemberContainers = members.Select(m => new MemberSymbolViewModel(m, glyphService)).ToList();
         }
 
         internal void DeselectAll()

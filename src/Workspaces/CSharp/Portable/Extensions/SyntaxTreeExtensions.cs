@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return
                 syntaxTree.IsEntirelyWithinNonUserCodeComment(position, cancellationToken) ||
+                syntaxTree.IsEntirelyWithinConflictMarker(position, cancellationToken) ||
                 syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken) ||
                 syntaxTree.IsInInactiveRegion(position, cancellationToken);
         }
@@ -204,9 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments: true);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.Parent is XmlCrefAttributeSyntax)
+            if (token.Parent is XmlCrefAttributeSyntax attribute)
             {
-                var attribute = (XmlCrefAttributeSyntax)token.Parent;
                 return token == attribute.StartQuoteToken;
             }
 
@@ -300,6 +300,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsEntirelyWithinConflictMarker(
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(position, cancellationToken);
+
+            if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+            {
+                // Check if we're on the newline right at the end of a comment
+                trivia = trivia.GetPreviousTrivia(syntaxTree, cancellationToken);
+            }
+
+            return trivia.Kind() == SyntaxKind.ConflictMarkerTrivia;
         }
 
         public static bool IsEntirelyWithinTopLevelSingleLineComment(
@@ -488,9 +502,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         }
 
                         var structure = triviaTok.GetStructure();
-                        if (structure is BranchingDirectiveTriviaSyntax)
+                        if (structure is BranchingDirectiveTriviaSyntax branch)
                         {
-                            var branch = (BranchingDirectiveTriviaSyntax)structure;
                             return !branch.IsActive || !branch.BranchTaken;
                         }
                     }

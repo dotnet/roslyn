@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var item = SymbolCompletionItem.CreateWithSymbolId(
                     displayText,
                     insertionText: insertionText,
-                    symbol: member,
+                    symbols: ImmutableArray.Create(member),
                     contextPosition: position,
                     rules: CompletionItemRules.Default);
                 item = item.AddProperty(InsertionTextOnOpenParen, member.Name);

@@ -74,12 +74,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function TryCreateVariableSlotAllocator(symbol As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
             Dim method = TryCast(symbol, EEMethodSymbol)
-            If method IsNot Nothing AndAlso Methods.Contains(method) Then
+            If method IsNot Nothing Then
                 Dim defs = GetLocalDefinitions(method.Locals)
                 Return New SlotAllocator(defs)
             End If
-
-            Debug.Assert(Not Methods.Contains(symbol))
             Return Nothing
         End Function
 

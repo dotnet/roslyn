@@ -1544,6 +1544,7 @@ End Class
         End Sub
 
         <WorkItem(8506, "https://github.com/dotnet/roslyn/issues/8506")>
+        <WorkItem(17403, "https://github.com/dotnet/roslyn/issues/17403")>
         <Fact()>
         Public Sub CrossCorlibSystemObjectReturnType_Script()
             ' MinAsyncCorlibRef corlib Is used since it provides just enough corlib type definitions
@@ -1552,21 +1553,40 @@ End Class
             '
             ' In the original bug, Xamarin iOS, Android, And Mac Mobile profile corlibs were
             ' realistic cross-compilation targets.
-            Dim compilation = VisualBasicCompilation.CreateScriptCompilation(
-                "submission-assembly",
+
+            Dim AssertCompilationCorlib As Action(Of VisualBasicCompilation) =
+                Sub(compilation As VisualBasicCompilation)
+                    Assert.True(compilation.IsSubmission)
+
+                    Dim taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
+                    Dim taskOfObject = taskOfT.Construct(compilation.ObjectType)
+                    Dim entryPoint = compilation.GetEntryPoint(Nothing)
+
+                    Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly)
+                    Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly)
+                    Assert.Equal(taskOfObject, entryPoint.ReturnType)
+                End Sub
+
+            Dim firstCompilation = VisualBasicCompilation.CreateScriptCompilation(
+                "submission-assembly-1",
                 references:={MinAsyncCorlibRef},
                 syntaxTree:=Parse("? True", options:=TestOptions.Script)
             ).VerifyDiagnostics()
 
-            Assert.True(compilation.IsSubmission)
+            AssertCompilationCorlib(firstCompilation)
 
-            Dim taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
-            Dim taskOfObject = taskOfT.Construct(compilation.ObjectType)
-            Dim entryPoint = compilation.GetEntryPoint(Nothing)
+            Dim secondCompilation = VisualBasicCompilation.CreateScriptCompilation(
+                "submission-assembly-2",
+                previousScriptCompilation:=firstCompilation,
+                syntaxTree:=Parse("? False", options:=TestOptions.Script)
+            ).WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(firstCompilation, Nothing, Nothing)
+            ).VerifyDiagnostics()
 
-            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly)
-            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly)
-            Assert.Equal(taskOfObject, entryPoint.ReturnType)
+            AssertCompilationCorlib(secondCompilation)
+
+            Assert.Same(firstCompilation.ObjectType, secondCompilation.ObjectType)
+
+            Assert.Null(New VisualBasicScriptCompilationInfo(Nothing, Nothing, Nothing).WithPreviousScriptCompilation(firstCompilation).ReturnTypeOpt)
         End Sub
 
         <WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")>

@@ -212,25 +212,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     return ((IdentifierNameSyntax)current).Identifier.ValueText.ToCamelCase();
                 }
-                else if (current is MemberAccessExpressionSyntax)
+                else if (current is MemberAccessExpressionSyntax memberAccess)
                 {
-                    return ((MemberAccessExpressionSyntax)current).Name.Identifier.ValueText.ToCamelCase();
+                    return memberAccess.Name.Identifier.ValueText.ToCamelCase();
                 }
-                else if (current is MemberBindingExpressionSyntax)
+                else if (current is MemberBindingExpressionSyntax memberBinding)
                 {
-                    return ((MemberBindingExpressionSyntax)current).Name.Identifier.ValueText.ToCamelCase();
+                    return memberBinding.Name.Identifier.ValueText.ToCamelCase();
                 }
-                else if (current is ConditionalAccessExpressionSyntax)
+                else if (current is ConditionalAccessExpressionSyntax conditionalAccess)
                 {
-                    current = ((ConditionalAccessExpressionSyntax)current).WhenNotNull;
+                    current = conditionalAccess.WhenNotNull;
                 }
-                else if (current is CastExpressionSyntax)
+                else if (current is CastExpressionSyntax castExpression)
                 {
-                    current = ((CastExpressionSyntax)current).Expression;
+                    current = castExpression.Expression;
                 }
-                else if (current is DeclarationExpressionSyntax)
+                else if (current is DeclarationExpressionSyntax decl)
                 {
-                    var decl = (DeclarationExpressionSyntax)current;
                     var name = decl.Designation as SingleVariableDesignationSyntax;
                     if (name == null)
                     {

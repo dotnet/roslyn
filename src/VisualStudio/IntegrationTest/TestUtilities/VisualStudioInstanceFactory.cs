@@ -9,9 +9,10 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.Setup.Configuration;
-using Xunit.Sdk;
+using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
@@ -52,17 +53,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             try
             {
-                if (eventArgs.Exception is XunitException)
-                {
-                    var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
-                    var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
-                    var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
-                    var fileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}.png";
+                var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
+                var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
+                var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
+                var fileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}.png";
 
-                    var fullPath = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots", fileName);
+                var fullPath = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots", fileName);
 
-                    ScreenshotService.TakeScreenshot(fullPath);
-                }
+                ScreenshotService.TakeScreenshot(fullPath);
             }
             catch (Exception e)
             {
@@ -98,10 +96,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             ThrowExceptionIfAlreadyHasActiveContext();
 
-            if (ShouldStartNewInstance(requiredPackageIds))
-            {
-                StartNewInstance(requiredPackageIds);
-            }
+            bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
+            UpdateCurrentlyRunningInstance(requiredPackageIds, shouldStartNewInstance);
 
             return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
         }
@@ -142,18 +138,39 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// Starts up a new <see cref="VisualStudioInstance"/>, shutting down any instances that are already running.
         /// </summary>
-        private void StartNewInstance(ImmutableHashSet<string> requiredPackageIds)
+        private void UpdateCurrentlyRunningInstance(ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance)
         {
-            var instance = LocateVisualStudioInstance(requiredPackageIds) as ISetupInstance2;
+            Process hostProcess;
+            DTE dte;
 
-            _supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetId()));
-            _installationPath = instance.GetInstallationPath();
+            if (shouldStartNewInstance)
+            {
+                // We are starting a new instance, so ensure we close the currently running instance, if it exists
+                _currentlyRunningInstance?.Close();
 
-            var process = StartNewVisualStudioProcess(_installationPath);
-            // We wait until the DTE instance is up before we're good
-            var dte = IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(process)).Result;
+                var instance = LocateVisualStudioInstance(requiredPackageIds) as ISetupInstance2;
+                _supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetId()));
+                _installationPath = instance.GetInstallationPath();
 
-            _currentlyRunningInstance = new VisualStudioInstance(process, dte);
+                hostProcess = StartNewVisualStudioProcess(_installationPath);
+                // We wait until the DTE instance is up before we're good
+                dte = IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).Result;
+            }
+            else
+            {
+                // We are going to reuse the currently running instance, so ensure that we grab the host Process and Dte
+                // before cleaning up any hooks or remoting services created by the previous instance. We will then
+                // create a new VisualStudioInstance from the previous to ensure that everything is in a 'clean' state.
+
+                Debug.Assert(_currentlyRunningInstance != null);
+
+                hostProcess = _currentlyRunningInstance.HostProcess;
+                dte = _currentlyRunningInstance.Dte;
+
+                _currentlyRunningInstance.Close(exitHostProcess: false);
+            }
+
+            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte);
         }
 
         private static ISetupConfiguration GetSetupConfiguration()
@@ -166,7 +183,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 // Fallback to P/Invoke if the COM registration is missing
                 var hresult = NativeMethods.GetSetupConfiguration(out var setupConfiguration, pReserved: IntPtr.Zero);
-                
+
                 if (hresult < 0)
                 {
                     throw Marshal.GetExceptionForHR(hresult);

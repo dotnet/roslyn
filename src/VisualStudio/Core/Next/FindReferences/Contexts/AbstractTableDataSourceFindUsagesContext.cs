@@ -40,8 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             #region Fields that should be locked by _gate
 
             /// <summary>
+            /// If we've been cleared or not.  If we're cleared we'll just return an empty
+            /// list of results whenever queried for the current snapshot.
+            /// </summary>
+            private bool _cleared;
+
+            /// <summary>
             /// The list of all definitions we've heard about.  This may be a superset of the
-            /// keys in <see cref="_definitionToBucket"/> becaue we may encounter definitions
+            /// keys in <see cref="_definitionToBucket"/> because we may encounter definitions
             /// we don't create definition buckets for.  For example, if the definition asks
             /// us to not display it if it has no references, and we don't run into any 
             /// references for it (common with implicitly declared symbols).
@@ -162,6 +168,32 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public sealed override CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
+            public void Clear()
+            {
+                this.Presenter.AssertIsForeground();
+
+                // Stop all existing work.
+                this.CancelSearch();
+
+                // Clear the title of the window.  It will go back to the default editor title.
+                this._findReferencesWindow.Title = null;
+
+                lock (Gate)
+                {
+                    // Mark ourselves as clear so that no further changes are made.
+                    // Note: we don't actually mutate any of our entry-lists.  Instead, 
+                    // GetCurrentSnapshot will simply ignore them if it sees that _cleared
+                    // is true.  This way we don't have to do anything complicated if we
+                    // keep hearing about definitions/references on the background.
+                    _cleared = true;
+                    CurrentVersionNumber++;
+                }
+
+                // Let all our subscriptions know that we've updated.  That way they'll refresh
+                // and remove all the data.
+                NotifyChange();
+            }
+
             #region ITableDataSource
 
             public string DisplayName => "Roslyn Data Source";
@@ -218,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // The FAR system needs to know the guid for the project that a def/reference is 
                 // from (to support features like filtering).  Normally that would mean we could
                 // only support this from a VisualStudioWorkspace.  However, we want till work 
-                // in cases lke Any-Code (which does not use a VSWorkspace).  So we are tolerant
+                // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
                 // when we have another type of workspace.  This means we will show results, but
                 // certain features (like filtering) may not work in that context.
                 var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
@@ -231,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected async Task<Entry> CreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
-                bool isDefinitionLocation)
+                HighlightSpanKind spanKind)
             {
                 var document = documentSpan.Document;
                 var (guid, sourceText) = await GetGuidAndSourceTextAsync(document).ConfigureAwait(false);
@@ -242,7 +274,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var taggedLineParts = await GetTaggedTextForDocumentRegionAsync(document, narrowSpan, lineSpan).ConfigureAwait(false);
 
                 return new DocumentSpanEntry(
-                    this, definitionBucket, documentSpan, isDefinitionLocation,
+                    this, definitionBucket, documentSpan, spanKind,
                     guid, sourceText, taggedLineParts);
             }
 
@@ -270,10 +302,27 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private async Task<ClassifiedSpansAndHighlightSpan> GetTaggedTextForDocumentRegionAsync(
                 Document document, TextSpan narrowSpan, TextSpan widenedSpan)
             {
+                var highlightSpan = new TextSpan(
+                    start: narrowSpan.Start - widenedSpan.Start,
+                    length: narrowSpan.Length);
+
+                var classifiedSpans = await GetClassifiedSpansAsync(document, narrowSpan, widenedSpan).ConfigureAwait(false);
+                return new ClassifiedSpansAndHighlightSpan(classifiedSpans, highlightSpan);
+            }
+
+            private async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
+                Document document, TextSpan narrowSpan, TextSpan widenedSpan)
+            {
                 var classificationService = document.GetLanguageService<IEditorClassificationService>();
                 if (classificationService == null)
                 {
-                    return new ClassifiedSpansAndHighlightSpan(ImmutableArray<ClassifiedSpan>.Empty, new TextSpan());
+                    // For languages that don't expose a classification service, we show the entire
+                    // item as plain text. Break the text into three spans so that we can properly
+                    // highlight the 'narrow-span' later on when we display the item.
+                    return ImmutableArray.Create(
+                        new ClassifiedSpan(ClassificationTypeNames.Text, TextSpan.FromBounds(widenedSpan.Start, narrowSpan.Start)),
+                        new ClassifiedSpan(ClassificationTypeNames.Text, narrowSpan),
+                        new ClassifiedSpan(ClassificationTypeNames.Text, TextSpan.FromBounds(narrowSpan.End, widenedSpan.End)));
                 }
 
                 // Call out to the individual language to classify the chunk of text around the
@@ -296,12 +345,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                     var classifiedSpans = MergeClassifiedSpans(
                         syntaxSpans, semanticSpans, widenedSpan, sourceText);
-
-                    var highlightSpan = new TextSpan(
-                        start: narrowSpan.Start - widenedSpan.Start,
-                        length: narrowSpan.Length);
-
-                    return new ClassifiedSpansAndHighlightSpan(classifiedSpans, highlightSpan);
+                    return classifiedSpans;
                 }
                 finally
                 {
@@ -505,9 +549,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // our version.
                     if (_lastSnapshot?.VersionNumber != CurrentVersionNumber)
                     {
-                        var entries = _currentlyGroupingByDefinition
-                            ? EntriesWhenGroupingByDefinition
-                            : EntriesWhenNotGroupingByDefinition;
+                        // If we've been cleared, then just return an empty list of entries.
+                        // Otherwise return the appropriate list based on how we're currently
+                        // grouping.
+                        var entries = _cleared 
+                            ? ImmutableList<Entry>.Empty
+                            : _currentlyGroupingByDefinition
+                                ? EntriesWhenGroupingByDefinition
+                                : EntriesWhenNotGroupingByDefinition;
 
                         _lastSnapshot = new TableEntriesSnapshot(entries, CurrentVersionNumber);
                     }
@@ -539,6 +588,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             void IDisposable.Dispose()
             {
+                this.Presenter.AssertIsForeground();
+
                 // VS is letting go of us.  i.e. because a new FAR call is happening, or because
                 // of some other event (like the solution being closed).  Remove us from the set
                 // of sources for the window so that the existing data is cleared out.
@@ -548,6 +599,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _findReferencesWindow.Manager.RemoveSource(this);
 
                 CancelSearch();
+
+                // Remove ourselves from the list of contexts that are currently active.
+                Presenter._currentContexts.Remove(this);
             }
 
             #endregion

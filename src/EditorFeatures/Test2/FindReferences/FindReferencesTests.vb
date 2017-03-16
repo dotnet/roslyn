@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return
             End If
 
-            Using workspace = Await TestWorkspace.CreateAsync(element)
+            Using workspace = TestWorkspace.Create(element)
                 workspace.Options = workspace.Options.WithChangedOption(
                     SymbolFinderOptions.OutOfProcessAllowed, outOfProcess)
 
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                        searchSingleFileOnly As Boolean,
                                        uiVisibleOnly As Boolean,
                                        outOfProcess As Boolean) As Task
-            Using workspace = Await TestWorkspace.CreateAsync(definition)
+            Using workspace = TestWorkspace.Create(definition)
                 workspace.Options = workspace.Options.WithChangedOption(
                     SymbolFinderOptions.OutOfProcessAllowed, outOfProcess)
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Linq;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Execution;
 using Roslyn.Utilities;
@@ -395,32 +397,48 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task RoundTrip_Analyzer_Serailization_Test()
         {
-            var workspace = new AdhocWorkspace();
-            var serializer = new Serializer(workspace);
+            using (var tempRoot = new TempRoot())
+            {
+                var workspace = new AdhocWorkspace();
+                var serializer = new Serializer(workspace);
 
-            var reference = new AnalyzerFileReference(typeof(object).Assembly.Location, new MockShadowCopyAnalyzerAssemblyLoader());
+                // actually shadow copy content
+                var location = typeof(object).Assembly.Location;
+                var file = tempRoot.CreateFile("shadow", "dll");
+                file.CopyContentFrom(location);
 
-            // make sure this doesn't throw
-            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
-            var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
-            var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+                var reference = new AnalyzerFileReference(location, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(location, file.Path)));
+
+                // make sure this doesn't throw
+                var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+                var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
+                var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+            }
         }
 
         [Fact]
         public async Task RoundTrip_Analyzer_Serailization_Desktop_Test()
         {
-            var hostServices = MefHostServices.Create(
+            using (var tempRoot = new TempRoot())
+            {
+                var hostServices = MefHostServices.Create(
                 MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
 
-            var workspace = new AdhocWorkspace(hostServices);
-            var serializer = new Serializer(workspace);
+                var workspace = new AdhocWorkspace(hostServices);
+                var serializer = new Serializer(workspace);
 
-            var reference = new AnalyzerFileReference(typeof(object).Assembly.Location, new MockShadowCopyAnalyzerAssemblyLoader());
+                // actually shadow copy content
+                var location = typeof(object).Assembly.Location;
+                var file = tempRoot.CreateFile("shadow", "dll");
+                file.CopyContentFrom(location);
 
-            // make sure this doesn't throw
-            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
-            var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
-            var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+                var reference = new AnalyzerFileReference(location, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(location, file.Path)));
+
+                // make sure this doesn't throw
+                var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+                var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
+                var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+            }
         }
 
         [Fact]
@@ -488,6 +506,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task TestMetadataXmlDocComment()
+        {
+            // portable layer doesn't support xml doc comments
+            // this depends on which layer supports IDocumentationProviderService
+            var xmlDocComment = await GetXmlDocumentAsync(MefHostServices.Create(MefHostServices.DefaultAssemblies));
+            Assert.True(string.IsNullOrEmpty(xmlDocComment));
+        }
+
+        [Fact]
+        public async Task TestMetadataXmlDocComment_Desktop()
+        {
+            // desktop layer supports xml doc comments
+            // this depends on which layer supports IDocumentationProviderService
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var xmlDocComment = await GetXmlDocumentAsync(hostServices);
+            Assert.False(string.IsNullOrEmpty(xmlDocComment));
+        }
+
+        [Fact]
         public void TestEncodingSerialization()
         {
             var hostServices = MefHostServices.Create(
@@ -529,6 +568,50 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
                     Assert.Equal(sourceText.ToString(), newText.ToString());
+                }
+            }
+        }
+
+        private async Task<string> GetXmlDocumentAsync(HostServices services)
+        {
+            using (var tempRoot = new TempRoot())
+            {
+                // get original assembly location
+                var mscorlibLocation = typeof(object).Assembly.Location;
+
+                // set up dll and xml doc content
+                var tempDir = tempRoot.CreateDirectory();
+                var tempCorlib = tempDir.CopyFile(mscorlibLocation);
+                var tempCorlibXml = tempDir.CreateFile(Path.ChangeExtension(tempCorlib.Path, "xml"));
+                tempCorlibXml.WriteAllText(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<doc>
+  <assembly>
+    <name>mscorlib</name>
+  </assembly>
+  <members>
+    <member name=""T:System.Object"">
+      <summary>Supports all classes in the .NET Framework class hierarchy and provides low-level services to derived classes. This is the ultimate base class of all classes in the .NET Framework; it is the root of the type hierarchy.To browse the .NET Framework source code for this type, see the Reference Source.</summary>
+    </member>
+  </members>
+</doc>");
+
+                // currently portable layer doesn't support xml documment
+                var solution = new AdhocWorkspace(services).CurrentSolution
+                                                   .AddProject("Project", "Project.dll", LanguageNames.CSharp)
+                                                   .AddMetadataReference(MetadataReference.CreateFromFile(tempCorlib.Path))
+                                                   .Solution;
+
+                var snapshotService = (new SolutionSynchronizationServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSynchronizationService;
+                using (var scope = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None))
+                {
+                    // recover solution from given snapshot
+                    var recovered = await GetSolutionAsync(snapshotService, scope);
+
+                    var compilation = await recovered.Projects.First().GetCompilationAsync(CancellationToken.None);
+                    var objectType = compilation.GetTypeByMetadataName("System.Object");
+                    var xmlDocComment = objectType.GetDocumentationCommentXml();
+
+                    return xmlDocComment;
                 }
             }
         }
@@ -708,14 +791,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class MockShadowCopyAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
         {
+            private readonly ImmutableDictionary<string, string> _map;
+
+            public MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string> map)
+            {
+                _map = map;
+            }
+
             public void AddDependencyLocation(string fullPath)
             {
             }
 
             public Assembly LoadFromPath(string fullPath)
             {
-                // return something other than given one. mimicing behavior of shadow copy 
-                return typeof(SharedAttribute).Assembly;
+                return Assembly.LoadFrom(_map[fullPath]);
             }
         }
 

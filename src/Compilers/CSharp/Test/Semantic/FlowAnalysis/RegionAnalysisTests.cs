@@ -4751,6 +4751,41 @@ class C
             Assert.Equal("this, p", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
+        [Fact]
+        [WorkItem(17281, "https://github.com/dotnet/roslyn/issues/17281")]
+        public void DiscardVsVariablesDeclared()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+class A { }
+
+class Test
+{
+    private void Repro(A node)
+    {
+/*<bind>*/
+        switch (node)
+        {
+            case A _:
+                break;
+            case Unknown:
+                break;
+            default:
+                return;
+        }
+/*</bind>*/
+    }
+}");
+            Assert.Empty(dataFlowAnalysisResults.Captured);
+            Assert.Empty(dataFlowAnalysisResults.VariablesDeclared);
+            Assert.Empty(dataFlowAnalysisResults.AlwaysAssigned);
+            Assert.Equal("node", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Empty(dataFlowAnalysisResults.DataFlowsOut);
+            Assert.Equal("node", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Empty(dataFlowAnalysisResults.WrittenInside);
+            Assert.Equal("this, node", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
         #endregion
 
         #region "Misc."

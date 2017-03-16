@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsObjectCreationExpressionType(SyntaxNode node);
         bool IsObjectCreationExpression(SyntaxNode node);
-        SyntaxNode GetObjectCreationInitializer(SyntaxNode objectCreationExpression);
+        SyntaxNode GetObjectCreationInitializer(SyntaxNode node);
+        SyntaxNode GetObjectCreationType(SyntaxNode node);
 
         bool IsBinaryExpression(SyntaxNode node);
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right);
@@ -77,6 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
 
+        bool IsLogicalAndExpression(SyntaxNode node);
         bool IsLogicalNotExpression(SyntaxNode node);
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
 
@@ -150,7 +152,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
-        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression);
+
+        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode node);
+        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode node);
+        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode node);
+
         bool IsUsingDirectiveName(SyntaxNode node);
         bool IsIdentifierName(SyntaxNode node);
         bool IsGenericName(SyntaxNode node);
@@ -166,6 +172,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsForEachStatement(SyntaxNode node);
         bool IsLockStatement(SyntaxNode node);
         bool IsUsingStatement(SyntaxNode node);
+
+        bool IsReturnStatement(SyntaxNode node);
+        SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
 
         bool IsLocalDeclarationStatement(SyntaxNode node);
         bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declator, SyntaxNode localDeclarationStatement);
@@ -270,6 +279,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             out SyntaxNode newRoot, out SyntaxNode newContextNode);
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
+
+        ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
     }
 
     [Flags]

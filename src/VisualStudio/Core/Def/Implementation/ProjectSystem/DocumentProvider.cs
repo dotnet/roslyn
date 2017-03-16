@@ -713,19 +713,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
             else
             {
-                NewBufferOpened(docCookie, textBuffer, documentKeyOpt, IsCurrentContext(docCookie, documentKeyOpt));
+                NewBufferOpened(docCookie, textBuffer, documentKeyOpt, IsCurrentContext(documentKeyOpt));
             }
         }
 
-        private bool IsCurrentContext(uint docCookie, DocumentKey documentKey)
+        private bool IsCurrentContext(DocumentKey documentKey)
         {
             AssertIsForeground();
-            _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out var itemid);
-
-            // If it belongs to a Shared Code or ASP.NET 5 project, then find the correct host project
-            var hostProject = LinkedFileUtilities.GetContextHostProject(hierarchy, _projectContainer);
-
-            return documentKey.HostProject == hostProject;
+            var document = documentKey.HostProject.GetCurrentDocumentFromPath(documentKey.Moniker);
+            return document != null && LinkedFileUtilities.IsCurrentContextHierarchy(document, _runningDocumentTable);
         }
 
         public IDisposable ProvideDocumentIdHint(string filePath, DocumentId documentId)

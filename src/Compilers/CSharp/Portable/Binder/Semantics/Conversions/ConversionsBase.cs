@@ -528,11 +528,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return conversion;
             }
 
-            //if (HasImplicitDynamicConversion(source, destination))
-            //{
-            //    return Conversion.ImplicitDynamic;
-            //}
-
             return Conversion.NoConversion;
         }
 
@@ -1861,14 +1856,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // An implicit dynamic conversion exists from an expression of type dynamic to any type T.
 
             Debug.Assert((object)destination != null);
-            return (object)expressionType != null && expressionType.Kind == SymbolKind.DynamicType && !destination.IsPointerType();
+            return expressionType?.Kind == SymbolKind.DynamicType && !destination.IsPointerType();
         }
 
         private static bool HasExplicitDynamicConversion(TypeSymbol source, TypeSymbol destination)
         {
-            // SPEC: An explicit dynamic conversion exists from an expression of type dynamic to any type T. 
-            // ISSUE: Note that this is exactly the same as an implicit dynamic conversion. Conversion of
-            // ISSUE: dynamic to int is both an explicit dynamic conversion and an implicit dynamic conversion.
+            // SPEC: An explicit dynamic conversion exists from an expression of [sic] type dynamic to any type T.
+            // ISSUE: The "an expression of" part of the spec is probably an error; see https://github.com/dotnet/csharplang/issues/132
 
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
