@@ -204,6 +204,7 @@
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.cs" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.cs" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
+    <Compile Include="Diagnostics\UpgradeProject\UpgradeProjectTests.cs" />
     <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.cs" />
     <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.cs" />
     <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.cs" />

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         {
             // same service run in both inproc and remote host, but remote host will not have RemoteHostClient service, 
             // so inproc one will always run
-            var client = await document.Project.Solution.Workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (client != null && !document.IsOpen())
             {
                 // run todo scanner on remote host. 

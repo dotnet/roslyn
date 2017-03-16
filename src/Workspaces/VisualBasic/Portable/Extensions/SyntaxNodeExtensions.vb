@@ -188,44 +188,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return Contract.FailWithReturn(Of SyntaxList(Of StatementSyntax))("unknown statements container!")
         End Function
 
-        ' Matches the following:
-        '
-        ' (whitespace* newline)+ 
-        Private ReadOnly s_oneOrMoreBlankLines As Matcher(Of SyntaxTrivia)
-
-        ' Matches the following:
-        '
-        ' (whitespace* comment whitespace* newline)+ OneOrMoreBlankLines
-        Private ReadOnly s_bannerMatcher As Matcher(Of SyntaxTrivia)
-
-        ' Used to match the following:
-        '
-        ' <start-of-file> (whitespace* comment whitespace* newline)+ blankLine*
-        Private ReadOnly s_fileBannerMatcher As Matcher(Of SyntaxTrivia)
-
-        Sub New()
-            Dim whitespace = Matcher.Repeat(Match(SyntaxKind.WhitespaceTrivia, "\\b"))
-            Dim endOfLine = Match(SyntaxKind.EndOfLineTrivia, "\\n")
-            Dim singleBlankLine = Matcher.Sequence(whitespace, endOfLine)
-
-            Dim comment = Match(SyntaxKind.CommentTrivia, "'")
-            Dim commentLine = Matcher.Sequence(whitespace, comment, whitespace, endOfLine)
-
-            s_oneOrMoreBlankLines = Matcher.OneOrMore(singleBlankLine)
-            s_bannerMatcher =
-                Matcher.Sequence(
-                    Matcher.OneOrMore(commentLine),
-                    s_oneOrMoreBlankLines)
-            s_fileBannerMatcher =
-                Matcher.Sequence(
-                    Matcher.OneOrMore(commentLine),
-                    Matcher.Repeat(singleBlankLine))
-        End Sub
-
-        Private Function Match(kind As SyntaxKind, description As String) As Matcher(Of SyntaxTrivia)
-            Return Matcher.Single(Of SyntaxTrivia)(Function(t) t.Kind = kind, description)
-        End Function
-
         <Extension()>
         Friend Function IsMultiLineLambda(node As SyntaxNode) As Boolean
             Return SyntaxFacts.IsMultiLineLambdaExpression(node.Kind())
@@ -448,106 +410,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return False
         End Function
 
-
         <Extension()>
-        Public Function GetLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As IEnumerable(Of SyntaxTrivia)
-            Dim blankLines As IEnumerable(Of SyntaxTrivia) = Nothing
-            node.GetNodeWithoutLeadingBlankLines(blankLines)
-            Return blankLines
+        Public Function GetLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
+            Return VisualBasicSyntaxFactsService.Instance.GetLeadingBlankLines(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Dim blankLines As IEnumerable(Of SyntaxTrivia) = Nothing
-            Return node.GetNodeWithoutLeadingBlankLines(blankLines)
+            Return VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBlankLines(node)
         End Function
 
         <Extension()>
-        Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(
-            node As TSyntaxNode, ByRef strippedTrivia As IEnumerable(Of SyntaxTrivia)) As TSyntaxNode
-
-            Dim leadingTriviaToKeep = New List(Of SyntaxTrivia)(node.GetLeadingTrivia())
-
-            Dim index = 0
-            s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, index)
-
-            strippedTrivia = New List(Of SyntaxTrivia)(leadingTriviaToKeep.Take(index))
-
-            Return DirectCast(node.WithLeadingTrivia(leadingTriviaToKeep.Skip(index)), TSyntaxNode)
+        Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
+            Return VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBlankLines(node, strippedTrivia)
         End Function
 
         <Extension()>
-        Public Function GetLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As IEnumerable(Of SyntaxTrivia)
-            Dim leadingTrivia As IEnumerable(Of SyntaxTrivia) = Nothing
-            node.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(leadingTrivia)
-            Return leadingTrivia
+        Public Function GetLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
+            Return VisualBasicSyntaxFactsService.Instance.GetLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Dim strippedTrivia As IEnumerable(Of SyntaxTrivia) = Nothing
-            Return node.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(strippedTrivia)
+            Return VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
-        Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(
-            node As TSyntaxNode,
-            ByRef strippedTrivia As IEnumerable(Of SyntaxTrivia)) As TSyntaxNode
-
-            Dim leadingTrivia = node.GetLeadingTrivia()
-
-            ' Rules for stripping trivia: 
-            ' 1) If there is a pp directive, then it (and all preceding trivia) *must* be stripped.
-            '    This rule supersedes all other rules.
-            ' 2) If there is a doc comment, it cannot be stripped.  Even if there is a doc comment,
-            '    followed by 5 new lines, then the doc comment still must stay with the node.  This
-            '    rule does *not* supersede rule 1.
-            ' 3) Single line comments in a group (i.e. with no blank lines between them) belong to
-            '    the node *iff* there is no blank line between it and the following trivia.
-
-            Dim leadingTriviaToStrip, leadingTriviaToKeep As List(Of SyntaxTrivia)
-
-            Dim ppIndex = -1
-            For i = leadingTrivia.Count - 1 To 0 Step -1
-                If SyntaxFacts.IsPreprocessorDirective(leadingTrivia(i).Kind) Then
-                    ppIndex = i
-                    Exit For
-                End If
-            Next
-
-            If ppIndex <> -1 Then
-                ' We have a pp directive.  it (and all previous trivia) must be stripped.
-                leadingTriviaToStrip = New List(Of SyntaxTrivia)(leadingTrivia.Take(ppIndex + 1))
-                leadingTriviaToKeep = New List(Of SyntaxTrivia)(leadingTrivia.Skip(ppIndex + 1))
-            Else
-                leadingTriviaToKeep = New List(Of SyntaxTrivia)(leadingTrivia)
-                leadingTriviaToStrip = New List(Of SyntaxTrivia)()
-            End If
-
-            ' Now, consume as many banners as we can.  s_fileBannerMatcher will only be matched at
-            ' the start of the file.
-            Dim index = 0
-            While (
-                s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, index) OrElse
-                s_bannerMatcher.TryMatch(leadingTriviaToKeep, index) OrElse
-                (node.FullSpan.Start = 0 AndAlso s_fileBannerMatcher.TryMatch(leadingTriviaToKeep, index)))
-            End While
-
-            leadingTriviaToStrip.AddRange(leadingTriviaToKeep.Take(index))
-
-            strippedTrivia = leadingTriviaToStrip
-            Return DirectCast(node.WithLeadingTrivia(leadingTriviaToKeep.Skip(index)), TSyntaxNode)
-        End Function
-
-        <Extension>
-        Public Function GetFileBanner(root As SyntaxNode) As ImmutableArray(Of SyntaxTrivia)
-            Debug.Assert(root.FullSpan.Start = 0)
-
-            Dim leadingTrivia = root.GetLeadingTrivia()
-            Dim index = 0
-            s_fileBannerMatcher.TryMatch(leadingTrivia.ToList(), index)
-
-            Return ImmutableArray.CreateRange(leadingTrivia.Take(index))
+        Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
+            Return VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, strippedTrivia)
         End Function
 
         ''' <summary>

@@ -100,6 +100,15 @@ Friend Module CompilationUtils
         Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
     End Function
 
+    Public Function CreateCompilationWithMscorlib45(source As String,
+                                                  Optional references As IEnumerable(Of MetadataReference) = Nothing,
+                                                  Optional options As VisualBasicCompilationOptions = Nothing,
+                                                  Optional assemblyName As String = Nothing,
+                                                  Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
+        Dim additionalRefs = {MscorlibRef_v4_0_30316_17626}
+        Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), {Parse(source, parseOptions)}, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
+    End Function
+
     Public Function CreateCompilationWithMscorlib45AndVBRuntime(sourceTrees As IEnumerable(Of SyntaxTree),
                                                                 Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                                                 Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
@@ -178,6 +187,14 @@ Friend Module CompilationUtils
         Dim references = {MscorlibRef, SystemRef, MsvbRef}.Concat(additionalRefs)
 
         Return CreateCompilationWithReferences(sources, references, options, parseOptions:=parseOptions)
+    End Function
+
+    Public Function CreateCompilationWithMscorlibAndVBRuntime(trees As IEnumerable(Of SyntaxTree),
+                                                              options As VisualBasicCompilationOptions,
+                                                              Optional assemblyName As String = Nothing) As VisualBasicCompilation
+
+        Dim references = {MscorlibRef, SystemRef, MsvbRef}
+        Return CreateCompilation(trees, references, options, assemblyName)
     End Function
 
     Public Function CreateCompilationWithMscorlibAndVBRuntime(sources As XElement,

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
@@ -26,13 +27,19 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         private TStatementSyntax _containingStatement;
         private SyntaxNodeOrToken _valuePattern;
+        private readonly SemanticModel _semanticModel;
+        private readonly CancellationToken _cancellationToken;
 
         public ObjectCreationExpressionAnalyzer(
+            SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
-            TObjectCreationExpressionSyntax objectCreationExpression) : this()
+            TObjectCreationExpressionSyntax objectCreationExpression,
+            CancellationToken cancellationToken) : this()
         {
+            _semanticModel = semanticModel;
             _syntaxFacts = syntaxFacts;
             _objectCreationExpression = objectCreationExpression;
+            _cancellationToken = cancellationToken;
         }
 
         internal ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>? Analyze()
@@ -237,6 +244,14 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 return false;
             }
 
+            var typeInfo = _semanticModel.GetTypeInfo(left, _cancellationToken);
+            if (typeInfo.Type is IDynamicTypeSymbol || typeInfo.ConvertedType is IDynamicTypeSymbol)
+            {
+                // Not supported if we're initializing something dynamic.  The object we're instantiating
+                // may not have the members that we're trying to access on the dynamic object.
+                return false;
+            }
+
             _valuePattern = left;
             return true;
         }
@@ -251,6 +266,15 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var containingDeclarator = _objectCreationExpression.Parent.Parent as TVariableDeclaratorSyntax;
             if (containingDeclarator == null)
             {
+                return false;
+            }
+
+            var symbol = _semanticModel.GetDeclaredSymbol(containingDeclarator, _cancellationToken);
+            if (symbol is ILocalSymbol local &&
+                local.Type is IDynamicTypeSymbol)
+            {
+                // Not supported if we're creating a dynamic local.  The object we're instantiating
+                // may not have the members that we're trying to access on the dynamic object.
                 return false;
             }
 

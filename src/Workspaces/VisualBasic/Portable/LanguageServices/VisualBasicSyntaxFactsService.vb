@@ -1659,12 +1659,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(statement, StatementSyntax).GetNextStatement()?.FirstAncestorOrSelf(Of ExecutableStatementSyntax)
         End Function
 
-        Public Function IsWhitespaceTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsWhitespaceTrivia
+        Public Overrides Function IsWhitespaceTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsWhitespaceTrivia
             Return trivia.IsWhitespace()
         End Function
 
-        Public Function IsEndOfLineTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsEndOfLineTrivia
+        Public Overrides Function IsEndOfLineTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsEndOfLineTrivia
             Return trivia.IsEndOfLine()
+        End Function
+
+        Public Overrides Function IsSingleLineCommentTrivia(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.CommentTrivia
+        End Function
+
+        Public Overrides Function IsMultiLineCommentTrivia(trivia As SyntaxTrivia) As Boolean
+            ' VB does not have multi-line comments.
+            Return False
+        End Function
+
+        Public Overrides Function IsShebangDirectiveTrivia(trivia As SyntaxTrivia) As Boolean
+            ' VB does not have shebang directives.
+            Return False
+        End Function
+
+        Public Overrides Function IsPreprocessorDirective(trivia As SyntaxTrivia) As Boolean
+            Return SyntaxFacts.IsPreprocessorDirective(trivia.Kind())
         End Function
 
         Public Function IsRegularComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsRegularComment
@@ -1734,8 +1752,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ImmutableArray(Of SyntaxNode).CastUp(root.GetMembersInSpan(textSpan))
         End Function
 
-        Public Function GetFileBanner(root As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetFileBanner
-            Return root.GetFileBanner()
+        Private Function ISyntaxFactsService_GetFileBanner(root As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetFileBanner
+            Return GetFileBanner(root)
         End Function
     End Class
 End Namespace

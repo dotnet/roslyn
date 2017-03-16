@@ -1029,9 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static string GetSimpleTypeName(SimpleNameSyntax name)
-        {
-            return name.Identifier.ValueText;
-        }
+            => name.Identifier.ValueText;
 
         private static string ExpandExplicitInterfaceName(string identifier, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
         {
@@ -1832,11 +1830,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetNextExecutableStatement(SyntaxNode statement)
             => ((StatementSyntax)statement).GetNextStatement();
 
-        public bool IsWhitespaceTrivia(SyntaxTrivia trivia)
+        public override bool IsWhitespaceTrivia(SyntaxTrivia trivia)
             => trivia.IsWhitespace();
 
-        public bool IsEndOfLineTrivia(SyntaxTrivia trivia)
+        public override bool IsEndOfLineTrivia(SyntaxTrivia trivia)
             => trivia.IsEndOfLine();
+
+        public override bool IsSingleLineCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsSingleLineComment();
+
+        public override bool IsMultiLineCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsMultiLineComment();
+
+        public override bool IsShebangDirectiveTrivia(SyntaxTrivia trivia)
+            => trivia.IsShebangDirective();
+
+        public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
+            => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
         {
@@ -1979,8 +1989,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan)
             => ImmutableArray<SyntaxNode>.CastUp(root.GetMembersInSpan(textSpan));
-
-        public ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root)
-            => root.GetFileBanner();
     }
 }
