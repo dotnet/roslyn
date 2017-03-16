@@ -45,18 +45,6 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void AsyncTask()
-        {
-            var markup = @"
-public class C
-{
-    async Task $$
-}
-";
-            await VerifyNoItemsExistAsync(markup);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void AsyncTaskOfT()
         {
             var markup = @"
