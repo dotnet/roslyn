@@ -73,27 +73,27 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 
         // Can use non const fields and properties with setters in them.
         protected static bool IsWritableInstanceFieldOrProperty(ISymbol symbol)
-            => IsInstanceFieldOrProperty(symbol) &&
+            => IsViableInstanceFieldOrProperty(symbol) &&
                IsWritableFieldOrProperty(symbol);
 
         private static bool IsWritableFieldOrProperty(ISymbol symbol)
         {
             switch (symbol)
             {
-                case IFieldSymbol field: return !field.IsConst && field.AssociatedSymbol == null;
+                case IFieldSymbol field: return !field.IsConst && IsViableField(field);
                 case IPropertySymbol property: return property.IsWritableInConstructor();
                 default: return false;
             }
         }
 
-        protected static bool IsInstanceFieldOrProperty(ISymbol symbol)
-            => !symbol.IsStatic && (IsField(symbol) || IsProperty(symbol));
+        protected static bool IsViableInstanceFieldOrProperty(ISymbol symbol)
+            => !symbol.IsStatic && (IsViableField(symbol) || IsViableProperty(symbol));
 
-        private static bool IsProperty(ISymbol symbol)
+        private static bool IsViableProperty(ISymbol symbol)
             => symbol.Kind == SymbolKind.Property;
 
-        private static bool IsField(ISymbol symbol)
-            => symbol.Kind == SymbolKind.Field;
+        private static bool IsViableField(ISymbol symbol)
+            => symbol is IFieldSymbol field && field.AssociatedSymbol == null;
 
         protected ImmutableArray<IParameterSymbol> DetermineParameters(
             ImmutableArray<ISymbol> selectedMembers)

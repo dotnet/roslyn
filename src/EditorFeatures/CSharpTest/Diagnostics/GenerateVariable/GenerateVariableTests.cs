@@ -7126,5 +7126,33 @@ class C
     }
 }");
         }
+
+        [WorkItem(17621, "https://github.com/dotnet/roslyn/issues/17621")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestWithMatchingTypeName()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class Foo
+{
+    public Foo(String foo)
+    {
+        [|String|] = foo;
+    }
+}",
+@"using System;
+
+public class Foo
+{
+    public Foo(String foo)
+    {
+        String = foo;
+    }
+
+    public string String { get; private set; }
+}");
+        }
     }
 }

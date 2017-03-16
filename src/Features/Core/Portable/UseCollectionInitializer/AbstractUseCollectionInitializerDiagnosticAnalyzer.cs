@@ -63,10 +63,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return;
             }
 
+            var semanticModel = context.SemanticModel;
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
             var syntaxTree = objectCreationExpression.SyntaxTree;
             var cancellationToken = context.CancellationToken;
+
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             var analyzer = new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>(
-                GetSyntaxFactsService(), objectCreationExpression);
+                semanticModel, GetSyntaxFactsService(), objectCreationExpression, cancellationToken);
             var matches = analyzer.Analyze();
             if (matches == null || matches.Value.Length == 0)
             {
