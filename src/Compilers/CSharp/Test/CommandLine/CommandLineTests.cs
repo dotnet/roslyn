@@ -2794,6 +2794,18 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 // error CS8301: Do not use refout when using refonly.
                 Diagnostic(ErrorCode.ERR_NoRefOutWhenRefOnly).WithLocation(1, 1));
 
+            parsedArgs = DefaultParse(new[] { @"/refout:ref.dll", "/target:module", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8302: Cannot compile net modules when using /refout or /refonly.
+                Diagnostic(ErrorCode.ERR_NoNetModuleOutputWhenRefOutOrRefOnly).WithLocation(1, 1)
+                );
+
+            parsedArgs = DefaultParse(new[] { @"/refonly", "/target:module", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8302: Cannot compile net modules when using /refout or /refonly.
+                Diagnostic(ErrorCode.ERR_NoNetModuleOutputWhenRefOutOrRefOnly).WithLocation(1, 1)
+                );
+
             // Dev11 reports CS2007: Unrecognized option: '/out'
             parsedArgs = DefaultParse(new[] { @"/out", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(

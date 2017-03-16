@@ -1218,6 +1218,10 @@ lVbRuntimePlus:
                 AddDiagnostic(diagnostics, ERRID.ERR_NoRefOutWhenRefOnly)
             End If
 
+            If outputKind = OutputKind.NetModule AndAlso (metadataOnly OrElse outputRefFileName IsNot Nothing) Then
+                AddDiagnostic(diagnostics, ERRID.ERR_NoNetModuleOutputWhenRefOutOrRefOnly)
+            End If
+
             If Not IsScriptRunner AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() Then
                 ' VB displays help when there is nothing specified on the command line
                 If flattenedArgs.Any Then

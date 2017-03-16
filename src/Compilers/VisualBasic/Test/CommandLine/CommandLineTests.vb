@@ -2765,13 +2765,21 @@ print Goodbye, World"
             Assert.Equal("MyBinary.dll", parsedArgs.CompilationOptions.ModuleName)
             Assert.Equal("C:\My Folder", parsedArgs.OutputDirectory)
 
-            parsedArgs = DefaultParse({"/refout:", "a.cs"}, baseDirectory)
+            parsedArgs = DefaultParse({"/refout:", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("refout", ":<file>").WithLocation(1, 1))
 
-            parsedArgs = DefaultParse({"/refout:ref.dll", "/refonly", "a.cs"}, baseDirectory)
+            parsedArgs = DefaultParse({"/refout:ref.dll", "/refonly", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_NoRefOutWhenRefOnly).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/refout:ref.dll", "/target:module", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_NoNetModuleOutputWhenRefOutOrRefOnly).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/refonly", "/target:module", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_NoNetModuleOutputWhenRefOutOrRefOnly).WithLocation(1, 1))
 
             parsedArgs = DefaultParse({"/out:C:\""My Folder""\MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
@@ -8063,7 +8071,7 @@ a
             Using refPeReader As New PEReader(peStream)
                 Dim metadataReader = refPeReader.GetMetadataReader()
 
-                ' The types And members that are included needs further refinement.
+                ' The types and members that are included needs further refinement.
                 ' See issue https://github.com/dotnet/roslyn/issues/17612
                 AssertEx.SetEqual(metadataReader.TypeDefinitions.Select(Function(t) metadataReader.Dump(t)), types)
 

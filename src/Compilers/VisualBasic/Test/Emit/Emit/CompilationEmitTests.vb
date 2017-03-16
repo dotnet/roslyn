@@ -532,11 +532,11 @@ End Class "
         End Sub
 
         <WorkItem(4344, "DevDiv_Projects/Roslyn")>
-                                         <Fact>
+        <Fact>
         Public Sub Bug4344()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-                                                 <file name="a.vb">
+    <file name="a.vb">
 Module M
   Sub Main()
     Dim a as String = "A"
@@ -545,18 +545,18 @@ Module M
   End Sub
 End Module
     </file>
-                                             </compilation>)
+</compilation>)
 
             CompileAndVerify(compilation)
         End Sub
 
         <WorkItem(540643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540643")>
-                                                 <Fact>
+        <Fact>
         Public Sub Bug6981()
             ' tests different casing of the method
             Dim source =
 <compilation>
-                                                         <file name="a.vb">
+    <file name="a.vb">
 Imports System
 
 MustInherit Class Base
@@ -577,7 +577,7 @@ Class Derived
 End Class
 
     </file>
-                                                     </compilation>
+</compilation>
 
             CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
@@ -585,7 +585,7 @@ Keep calm and carry on.]]>)
 
             source =
             <compilation>
-                                                         <file name="a.vb">
+                <file name="a.vb">
 Imports System
 
     MustInherit Class Base
@@ -612,7 +612,7 @@ Imports System
     End Class
 
     </file>
-                                                     </compilation>
+            </compilation>
 
             CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -627,7 +627,7 @@ Keep calm and carry on.]]>)
 
             Dim source =
             <compilation>
-                                                             <file name="a.vb">
+                <file name="a.vb">
 Imports System
 
     MustInherit Class Base
@@ -671,7 +671,7 @@ Imports System
     End Class
 
     </file>
-                                                         </compilation>
+            </compilation>
 
             CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -694,7 +694,7 @@ All done.]]>)
 
             Dim source =
             <compilation>
-                                                                 <file name="a.vb">
+                <file name="a.vb">
 Imports System
 
     Class Derived
@@ -719,7 +719,7 @@ Imports System
     End Class
 
     </file>
-                                                             </compilation>
+            </compilation>
 
             Dim verifier = CompileAndVerify(source,
                                             additionalRefs:={TestReferences.SymbolsTests.DifferByCase.CsharpDifferCaseOverloads},
@@ -751,13 +751,13 @@ The authorities have been called.]]>)
         Public Sub EnsureModulesRoundTrip()
             Dim source =
             <compilation>
-                                                                     <file name="a.vb">
+                <file name="a.vb">
 Module M
   Sub F()
   End Sub
 End Module
     </file>
-                                                                 </compilation>
+            </compilation>
 
             Dim c As Compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim s = New MemoryStream()
@@ -777,13 +777,13 @@ End Module
         Public Sub TestRuntimeMetaDataVersion()
             Dim source =
             <compilation>
-                                                                         <file name="a.vb">
+                <file name="a.vb">
         Class C1
             Public Shared Sub Main()
             End Sub
         End Class
                 </file>
-                                                                     </compilation>
+            </compilation>
 
             Dim compilation = CreateCompilationWithReferences(source, {TestReferences.NetFx.v2_0_50727.mscorlib}, Nothing)
             Dim metadata = ModuleMetadata.CreateFromImage(compilation.EmitToArray())
@@ -798,13 +798,13 @@ End Module
         Public Sub TestCorFlags()
             Dim source =
             <compilation>
-                                                                             <file name="a.vb">
+                <file name="a.vb">
         Class C1
             Public Shared Sub Main()
             End Sub
         End Class
                 </file>
-                                                                         </compilation>
+            </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=Nothing)
             Dim peHeaders = New peHeaders(compilation.EmitToStream())
@@ -831,13 +831,13 @@ End Module
         Public Sub TestCOFFAndPEOptionalHeaders32()
             Dim source =
             <compilation>
-                                                                                 <file name="a.vb">
+                <file name="a.vb">
         Class C1
             Public Shared Sub Main()
             End Sub
         End Class
                 </file>
-                                                                             </compilation>
+            </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.AnyCpu))
             Dim peHeaders = New peHeaders(compilation.EmitToStream())
@@ -892,13 +892,13 @@ End Module
         Public Sub TestCOFFAndPEOptionalHeadersArm()
             Dim source =
             <compilation>
-                                                                                     <file name="a.vb">
+                <file name="a.vb">
         Class C1
             Public Shared Sub Main()
             End Sub
         End Class
                 </file>
-                                                                                 </compilation>
+            </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.Arm))
             Dim peHeaders = New peHeaders(compilation.EmitToStream())
@@ -953,13 +953,13 @@ End Module
         Public Sub TestCOFFAndPEOptionalHeaders64()
             Dim source =
             <compilation>
-                                                                                         <file name="a.vb">
+                <file name="a.vb">
         Class C1
             Public Shared Sub Main()
             End Sub
         End Class
                 </file>
-                                                                                     </compilation>
+            </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X64))
             Dim peHeaders = New peHeaders(compilation.EmitToStream())
@@ -1011,13 +1011,13 @@ End Module
         Public Sub CheckDllCharacteristicsHighEntropyVA()
             Dim source =
             <compilation>
-                                                                                             <file name="a.vb">
+                <file name="a.vb">
         Class C1
             Public Shared Sub Main()
             End Sub
         End Class
                 </file>
-                                                                                         </compilation>
+            </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source)
             Dim peHeaders = New PEHeaders(compilation.EmitToStream(options:=New EmitOptions(highEntropyVirtualAddressSpace:=True)))
@@ -1025,17 +1025,17 @@ End Module
         End Sub
 
         <WorkItem(764418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/764418")>
-                                                                                             <Fact()>
+        <Fact()>
         Public Sub CheckDllCharacteristicsWinRtApp()
             Dim source =
             <compilation>
-                                                                                                     <file name="a.vb">
+                <file name="a.vb">
         Class C1
             Public Shared Sub Main()
             End Sub
         End Class
                 </file>
-                                                                                                 </compilation>
+            </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.WindowsRuntimeApplication))
             Dim peHeaders = New peHeaders(compilation.EmitToStream())
@@ -1046,13 +1046,13 @@ End Module
         Public Sub TestBaseAddress()
             Dim source =
             <compilation>
-                                                                                                         <file name="a.vb">
+                <file name="a.vb">
         Class C1
             Public Shared Sub Main()
             End Sub
         End Class
                 </file>
-                                                                                                     </compilation>
+            </compilation>
 
             ' last four hex digits get zero'ed out
             Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe)
@@ -1088,13 +1088,13 @@ End Module
         Public Sub TestFileAlignment()
             Dim source =
             <compilation>
-                                                                                                             <file name="a.vb">
+                <file name="a.vb">
         Class C1
             Public Shared Sub Main()
             End Sub
         End Class
                 </file>
-                                                                                                         </compilation>
+            </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source)
             Dim peHeaders = New PEHeaders(compilation.EmitToStream(options:=New EmitOptions(fileAlignment:=1024)))
@@ -1113,7 +1113,7 @@ End Module
 
             Dim source =
             <compilation name="C">
-                                                                                                                 <file name="a.vb">
+                <file name="a.vb">
 Imports System
 
     Public Structure C
@@ -1183,7 +1183,7 @@ Imports System
     Namespace D
     End Namespace
     </file>
-                                                                                                             </compilation>
+            </compilation>
 
             Dim sourceSymbolValidator = Sub(m As ModuleSymbol)
                                             Dim expectedGlobalMembers = {"C", "B", "A", "F", "G", "E", "D"}
@@ -1358,7 +1358,7 @@ Imports System
         Public Sub TestSecurityPseudoCustomAttributeOnType()
             Dim source =
 <compilation name="Test">
-                                                                                                                     <file name="a.vb">
+    <file name="a.vb">
 Imports System.Security
 Imports System.Security.Permissions
 
@@ -1384,7 +1384,7 @@ Module Program
     End Sub
 End Module
     </file>
-                                                                                                                 </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
             compilation.VerifyDiagnostics()
@@ -1425,7 +1425,7 @@ End Module
         Public Sub TestSecurityPseudoCustomAttributeOnMethod()
             Dim source =
 <compilation>
-                                                                                                                         <file name="a.vb">
+    <file name="a.vb">
 Imports System.Security.Permissions
     
 public class C
@@ -1439,7 +1439,7 @@ Module Program
     End Sub
 End Module
     </file>
-                                                                                                                     </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
             compilation.VerifyDiagnostics()
@@ -1469,7 +1469,7 @@ End Module
         Public Sub TestSecurityPseudoCustomAttributeSameTypeSameAction()
             Dim source =
 <compilation>
-                                                                                                                             <file name="a.vb">
+    <file name="a.vb">
 Imports System.Security.Permissions
 
 &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
@@ -1482,7 +1482,7 @@ Module Program
     End Sub
 End Module
     </file>
-                                                                                                                         </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
             compilation.VerifyDiagnostics()
@@ -1525,7 +1525,7 @@ End Module
         Public Sub TestSecurityPseudoCustomAttributeSameMethodSameAction()
             Dim source =
 <compilation>
-                                                                                                                                 <file name="a.vb">
+    <file name="a.vb">
 Imports System.Security.Permissions
     
 public class C
@@ -1540,7 +1540,7 @@ Module Program
     End Sub
 End Module
     </file>
-                                                                                                                             </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
             compilation.VerifyDiagnostics()
@@ -1583,7 +1583,7 @@ End Module
         Public Sub TestSecurityPseudoCustomAttributeSameTypeDifferentAction()
             Dim source =
 <compilation>
-                                                                                                                                     <file name="a.vb">
+    <file name="a.vb">
 Imports System.Security.Permissions
 
 &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
@@ -1596,7 +1596,7 @@ Module Program
     End Sub
 End Module
     </file>
-                                                                                                                                 </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
             compilation.VerifyDiagnostics()
@@ -1644,7 +1644,7 @@ End Module
         Public Sub TestSecurityPseudoCustomAttributeSameMethodDifferentAction()
             Dim source =
 <compilation>
-                                                                                                                                         <file name="a.vb">
+    <file name="a.vb">
 Imports System.Security.Permissions
 
 public class C
@@ -1659,7 +1659,7 @@ Module Program
     End Sub
 End Module
     </file>
-                                                                                                                                     </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
             compilation.VerifyDiagnostics()
@@ -1707,7 +1707,7 @@ End Module
         Public Sub TestSecurityPseudoCustomAttributeDifferentTypeSameAction()
             Dim source =
 <compilation>
-                                                                                                                                             <file name="a.vb">
+    <file name="a.vb">
 Imports System.Security.Permissions
     
 public class C1
@@ -1728,7 +1728,7 @@ Module Program
     End Sub
 End Module
     </file>
-                                                                                                                                         </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
             compilation.VerifyDiagnostics()
@@ -1776,7 +1776,7 @@ End Module
         Public Sub TestSecurityPseudoCustomAttributeDifferentMethodSameAction()
             Dim source =
 <compilation>
-                                                                                                                                                 <file name="a.vb">
+    <file name="a.vb">
 Imports System.Security.Permissions
 
 &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
@@ -1792,7 +1792,7 @@ Module Program
     End Sub
 End Module
     </file>
-                                                                                                                                             </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
             compilation.VerifyDiagnostics()
@@ -1840,7 +1840,7 @@ End Module
         Public Sub TestSecurityPseudoCustomAttributesMultipleAssemblyTypeMethod()
             Dim source =
 <compilation>
-                                                                                                                                                     <file name="a.vb">
+    <file name="a.vb">
 Imports System.Security.Permissions
 
 &lt;assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration:=true)&gt;
@@ -1858,7 +1858,7 @@ Module Program
     End Sub
 End Module
     </file>
-                                                                                                                                                 </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
             compilation.VerifyDiagnostics(
@@ -1940,7 +1940,7 @@ End Module
         Public Sub TestSecurityPseudoCustomAttributesMultipleAssemblyTypeMethodSymbolApi()
             Dim source =
 <compilation>
-                                                                                                                                                         <file name="a.vb">
+    <file name="a.vb">
 Imports System
 Imports System.Security
 Imports System.Security.Permissions
@@ -1964,7 +1964,7 @@ Module Program
 End Module
 end namespace
     </file>
-                                                                                                                                                     </compilation>
+</compilation>
 
             Dim attributeValidator As Action(Of ModuleSymbol) =
                 Sub([module] As ModuleSymbol)
@@ -1987,7 +1987,7 @@ end namespace
                     Dim emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "SecurityPermissionAttribute")
                     Dim securityPermissionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(emittedName, True)
 
-                    ' Verify <assembly:SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration:=true)>
+                    ' Verify <assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration:=true)>
                     Dim securityAttribute As Cci.SecurityAttribute = assemblySecurityAttributes.First()
                     Assert.Equal(DeclarativeSecurityAction.RequestOptional, securityAttribute.Action)
                     Dim typeAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
@@ -1997,7 +1997,7 @@ end namespace
                     Assert.Equal(1, typeAttribute.CommonNamedArguments.Length)
                     typeAttribute.VerifyNamedArgumentValue(0, "RemotingConfiguration", TypedConstantKind.Primitive, True)
 
-                    ' Verify <assembly:SecurityPermission(SecurityAction.RequestMinimum, UnmanagedCode:=true)>
+                    ' Verify <assembly: SecurityPermission(SecurityAction.RequestMinimum, UnmanagedCode:=true)>
                     securityAttribute = assemblySecurityAttributes.Last()
                     Assert.Equal(DeclarativeSecurityAction.RequestMinimum, securityAttribute.Action)
                     typeAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
@@ -2075,11 +2075,11 @@ end namespace
 
             Dim source =
 <compilation name=<%= name %>>
-                                                                                                                                                                                 <file name="a.vb">
+    <file name="a.vb">
 Class A
 End Class
     </file>
-                                                                                                                                                                             </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseModule)
             compilation.VerifyDiagnostics()
@@ -2111,11 +2111,11 @@ End Class
 
             Dim source =
 <compilation name=<%= name %>>
-                                                                                                                                                                                     <file name="a.vb">
+    <file name="a.vb">
 Class A
 End Class
     </file>
-                                                                                                                                                                                 </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
@@ -2148,11 +2148,11 @@ End Class
 
             Dim source =
 <compilation name=<%= name %>>
-                                                                                                                                                                                         <file name="a.vb">
+    <file name="a.vb">
 Class A
 End Class
     </file>
-                                                                                                                                                                                     </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
@@ -2185,11 +2185,11 @@ End Class
 
             Dim source =
 <compilation name=<%= name %>>
-                                                                                                                                                                                             <file name="a.vb">
+    <file name="a.vb">
 Class A
 End Class
     </file>
-                                                                                                                                                                                         </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
@@ -2222,11 +2222,11 @@ End Class
 
             Dim source =
 <compilation name=<%= name %>>
-                                                                                                                                                                                                 <file name="a.vb">
+    <file name="a.vb">
 Class A
 End Class
     </file>
-                                                                                                                                                                                             </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
@@ -2254,11 +2254,11 @@ End Class
         Public Sub IllegalNameOverride()
             Dim source =
 <compilation>
-                                                                                                                                                                                                     <file name="a.vb">
+    <file name="a.vb">
 Class A
 End Class
     </file>
-                                                                                                                                                                                                 </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
@@ -2267,7 +2267,7 @@ End Class
         End Sub
 
         <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
-                                                                                                                                                                                                     <Fact>
+        <Fact>
         Public Sub PermissionSetAttribute_Fixup()
             Dim tempDir = Temp.CreateDirectory()
             Dim tempFile = tempDir.CreateFile("pset.xml")
@@ -2284,7 +2284,7 @@ End Class
 
             Dim source =
 <compilation>
-                                                                                                                                                                                                             <file name="a.vb">
+    <file name="a.vb">
 imports System.Security.Permissions
 
 &lt;PermissionSetAttribute(SecurityAction.Deny, File:="pset.xml")&gt;
@@ -2294,7 +2294,7 @@ public class AClass
     end sub
 End Class
 </file>
-                                                                                                                                                                                                         </compilation>
+</compilation>
 
             Dim syntaxTree = CreateParseTree(source)
             Dim resolver = New XmlFileResolver(tempDir.Path)
@@ -2333,11 +2333,11 @@ End Class
         End Sub
 
         <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
-                                                                                                                                                                                                             <Fact>
+        <Fact>
         Public Sub PermissionSetAttributeInvalidFile()
             Dim source =
 <compilation>
-                                                                                                                                                                                                                     <file name="a.vb">
+    <file name="a.vb">
 imports System.Security.Permissions
 
 &lt;PermissionSetAttribute(SecurityAction.Deny, File:="NonExistentFile.xml")&gt;
@@ -2345,7 +2345,7 @@ imports System.Security.Permissions
 public class AClass 
 end class
     </file>
-                                                                                                                                                                                                                 </compilation>
+</compilation>
 
             CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default)).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
@@ -2358,14 +2358,14 @@ end class
         Public Sub PermissionSetAttribute_NoResolver()
             Dim source =
 <compilation>
-                                                                                                                                                                                                                             <file name="a.vb">
+    <file name="a.vb">
 imports System.Security.Permissions
 
 &lt;PermissionSetAttribute(SecurityAction.Deny, File:="NonExistentFile.xml")&gt;
 public class AClass 
 end class
     </file>
-                                                                                                                                                                                                                         </compilation>
+</compilation>
 
             CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(Nothing)).VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.").WithLocation(3, 25),
@@ -2373,11 +2373,11 @@ end class
         End Sub
 
         <WorkItem(546074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
-                                                                                                                                                                                                                             <Fact()>
+        <Fact()>
         Public Sub ReDimPreserve()
             Dim source =
 <compilation>
-                                                                                                                                                                                                                                     <file name="a.vb">
+    <file name="a.vb">
 Module MainModule
     Sub Main()
         Dim o As Object
@@ -2385,18 +2385,18 @@ Module MainModule
     End Sub
 End Module
     </file>
-                                                                                                                                                                                                                                 </compilation>
+</compilation>
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             CompileAndVerify(comp)
         End Sub
 
         <WorkItem(546074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
-                                                                                                                                                                                                                                     <Fact()>
+        <Fact()>
         Public Sub ReDimPreserve2()
             Dim source =
 <compilation>
-                                                                                                                                                                                                                                             <file name="a.vb">
+    <file name="a.vb">
 Module MainModule
     Sub Main()
         Dim oo(123) As Object
@@ -2404,18 +2404,18 @@ Module MainModule
     End Sub
 End Module
     </file>
-                                                                                                                                                                                                                                         </compilation>
+</compilation>
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             CompileAndVerify(comp)
         End Sub
 
         <WorkItem(546074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
-                                                                                                                                                                                                                                             <Fact()>
+        <Fact()>
         Public Sub ReDimPreserve3()
             Dim source =
 <compilation>
-                                                                                                                                                                                                                                                     <file name="a.vb">
+    <file name="a.vb">
 Module MainModule
     Sub Main()
         ReDim Preserve F().M1(15)
@@ -2425,21 +2425,21 @@ Module MainModule
     End Function
 End Module
     </file>
-                                                                                                                                                                                                                                                 </compilation>
+</compilation>
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             CompileAndVerify(comp)
         End Sub
 
         <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
-                                                                                                                                                                                                                                                     <Fact>
+        <Fact>
         Public Sub PermissionSetAttributeFileReadError()
             Dim tempDir = Temp.CreateDirectory()
             Dim filePath = Path.Combine(tempDir.Path, "pset_01.xml")
 
             Dim source =
 <compilation>
-                                                                                                                                                                                                                                                             <file name="a.vb">
+    <file name="a.vb">
 imports System.Security.Permissions
 
 &lt;PermissionSetAttribute(SecurityAction.Deny, File:="pset_01.xml")&gt;
@@ -2449,7 +2449,7 @@ public class AClass
     end Sub
 End Class
 </file>
-                                                                                                                                                                                                                                                         </compilation>
+</compilation>
 
             Dim syntaxTree = CreateParseTree(source)
             Dim comp As VisualBasicCompilation
@@ -2485,14 +2485,14 @@ End Class
         End Sub
 
         <WorkItem(654522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654522")>
-                                                                                                                                                                                                                                                             <Fact>
+        <Fact>
         Public Sub Bug654522()
             Dim refSource =
 <compilation>
-                                                                                                                                                                                                                                                                     <file name="a.vb">
+    <file name="a.vb">
 Public Interface I(Of W As Structure) : End Interface
 </file>
-                                                                                                                                                                                                                                                                 </compilation>
+</compilation>
 
             Dim comp = CreateCompilationWithMscorlib(refSource).VerifyDiagnostics()
 
@@ -2527,24 +2527,24 @@ Public Interface I(Of W As Structure) : End Interface
         End Sub
 
         <WorkItem(546450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546450")>
-                                                                                                                                                                                                                                                                     <Fact>
+        <Fact>
         Public Sub EmitNetModuleWithReferencedNetModule()
             Dim source1 =
 <compilation>
-                                                                                                                                                                                                                                                                             <file name="Source1.vb">
+    <file name="Source1.vb">
 Public Class A
 End Class
 </file>
-                                                                                                                                                                                                                                                                         </compilation>
+</compilation>
 
             Dim source2 =
 <compilation>
-                                                                                                                                                                                                                                                                             <file name="Source2.vb">
+    <file name="Source2.vb">
 Public Class B
   Inherits A
 End Class
 </file>
-                                                                                                                                                                                                                                                                         </compilation>
+</compilation>
 
             Dim comp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
             Dim metadataRef = comp.EmitToImageReference()
@@ -2555,11 +2555,11 @@ End Class
         Public Sub PlatformMismatch_01()
             Dim refSource =
 <compilation name="PlatformMismatch">
-                                                                                                                                                                                                                                                                                 <file name="a.vb">
+    <file name="a.vb">
 public interface ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                             </compilation>
+</compilation>
 
             Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
@@ -2570,12 +2570,12 @@ End interface
 
             Dim useSource =
 <compilation>
-                                                                                                                                                                                                                                                                                 <file name="b.vb">
+    <file name="b.vb">
 public interface IUsePlatform
     Function M() As ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                             </compilation>
+</compilation>
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
                 {compRef},
@@ -2648,11 +2648,11 @@ BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral
         Public Sub PlatformMismatch_02()
             Dim refSource =
 <compilation name="PlatformMismatch">
-                                                                                                                                                                                                                                                                                     <file name="a.vb">
+    <file name="a.vb">
 public interface ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                 </compilation>
+</compilation>
 
             Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
@@ -2662,12 +2662,12 @@ End interface
 
             Dim useSource =
 <compilation>
-                                                                                                                                                                                                                                                                                     <file name="b.vb">
+    <file name="b.vb">
 public interface IUsePlatform
     Function M() As ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                 </compilation>
+</compilation>
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
@@ -2701,11 +2701,11 @@ BC37214: Assembly and module 'PlatformMismatch.netmodule' cannot target differen
         Public Sub PlatformMismatch_03()
             Dim refSource =
 <compilation name="PlatformMismatch">
-                                                                                                                                                                                                                                                                                         <file name="a.vb">
+    <file name="a.vb">
 public interface ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                     </compilation>
+</compilation>
 
             Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.X86))
 
@@ -2716,12 +2716,12 @@ End interface
 
             Dim useSource =
 <compilation>
-                                                                                                                                                                                                                                                                                         <file name="b.vb">
+    <file name="b.vb">
 public interface IUsePlatform
     Function M() As ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                     </compilation>
+</compilation>
 
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
@@ -2765,11 +2765,11 @@ BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral
         Public Sub PlatformMismatch_04()
             Dim refSource =
 <compilation name="PlatformMismatch">
-                                                                                                                                                                                                                                                                                             <file name="a.vb">
+    <file name="a.vb">
 public interface ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                         </compilation>
+</compilation>
 
             Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.X86))
 
@@ -2779,12 +2779,12 @@ End interface
 
             Dim useSource =
 <compilation>
-                                                                                                                                                                                                                                                                                             <file name="b.vb">
+    <file name="b.vb">
 public interface IUsePlatform
     Function M() As ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                         </compilation>
+</compilation>
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
@@ -2800,11 +2800,11 @@ BC37214: Assembly and module 'PlatformMismatch.netmodule' cannot target differen
         Public Sub PlatformMismatch_05()
             Dim refSource =
 <compilation name="PlatformMismatch">
-                                                                                                                                                                                                                                                                                                 <file name="a.vb">
+    <file name="a.vb">
 public interface ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                             </compilation>
+</compilation>
 
             Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu))
 
@@ -2815,12 +2815,12 @@ End interface
 
             Dim useSource =
 <compilation>
-                                                                                                                                                                                                                                                                                                 <file name="b.vb">
+    <file name="b.vb">
 public interface IUsePlatform
     Function M() As ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                             </compilation>
+</compilation>
 
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
@@ -2829,7 +2829,7 @@ End interface
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
-                                                                                                                                                                                                                                                                                             </expected>)
+</expected>)
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
@@ -2837,7 +2837,7 @@ End interface
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
-                                                                                                                                                                                                                                                                                             </expected>)
+</expected>)
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {compRef},
@@ -2845,7 +2845,7 @@ End interface
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
-                                                                                                                                                                                                                                                                                             </expected>)
+</expected>)
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
@@ -2853,18 +2853,18 @@ End interface
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
-                                                                                                                                                                                                                                                                                             </expected>)
+</expected>)
         End Sub
 
         <Fact>
         Public Sub PlatformMismatch_06()
             Dim refSource =
 <compilation name="PlatformMismatch">
-                                                                                                                                                                                                                                                                                                     <file name="a.vb">
+    <file name="a.vb">
 public interface ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                                 </compilation>
+</compilation>
 
             Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu))
 
@@ -2874,12 +2874,12 @@ End interface
 
             Dim useSource =
 <compilation>
-                                                                                                                                                                                                                                                                                                     <file name="b.vb">
+    <file name="b.vb">
 public interface IUsePlatform
     Function M() As ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                                 </compilation>
+</compilation>
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
@@ -2887,18 +2887,18 @@ End interface
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
-                                                                                                                                                                                                                                                                                                 </expected>)
+</expected>)
         End Sub
 
         <Fact>
         Public Sub PlatformMismatch_07()
             Dim refSource =
 <compilation name="PlatformMismatch">
-                                                                                                                                                                                                                                                                                                         <file name="a.vb">
+    <file name="a.vb">
 public interface ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                                     </compilation>
+</compilation>
 
             Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
@@ -2909,12 +2909,12 @@ End interface
 
             Dim useSource =
 <compilation>
-                                                                                                                                                                                                                                                                                                         <file name="b.vb">
+    <file name="b.vb">
 public interface IUsePlatform
     Function M() As ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                                     </compilation>
+</compilation>
 
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
@@ -2923,7 +2923,7 @@ End interface
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
-                                                                                                                                                                                                                                                                                                     </expected>)
+</expected>)
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
@@ -2931,7 +2931,7 @@ End interface
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
-                                                                                                                                                                                                                                                                                                     </expected>)
+</expected>)
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {compRef},
@@ -2939,7 +2939,7 @@ End interface
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
-                                                                                                                                                                                                                                                                                                     </expected>)
+</expected>)
 
             useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
@@ -2947,18 +2947,18 @@ End interface
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
-                                                                                                                                                                                                                                                                                                     </expected>)
+</expected>)
         End Sub
 
         <Fact>
         Public Sub PlatformMismatch_08()
             Dim refSource =
 <compilation name="PlatformMismatch">
-                                                                                                                                                                                                                                                                                                             <file name="a.vb">
+    <file name="a.vb">
 public interface ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                                         </compilation>
+</compilation>
 
             Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
@@ -2968,12 +2968,12 @@ End interface
 
             Dim useSource =
 <compilation>
-                                                                                                                                                                                                                                                                                                             <file name="b.vb">
+    <file name="b.vb">
 public interface IUsePlatform
     Function M() As ITestPlatform
 End interface
 </file>
-                                                                                                                                                                                                                                                                                                         </compilation>
+</compilation>
 
             Dim useCompilation = CreateCompilationWithReferences(useSource,
                 {imageRef},
@@ -2981,16 +2981,16 @@ End interface
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics,
 <expected>
-                                                                                                                                                                                                                                                                                                         </expected>)
+</expected>)
         End Sub
 
         <Fact, WorkItem(769741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769741"), WorkItem(1001945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1001945")>
         Public Sub Bug769741()
             Dim source =
 <compilation>
-                                                                                                                                                                                                                                                                                                                 <file name="a.vb">
-                                                                                                                                                                                                                                                                                                                 </file>
-                                                                                                                                                                                                                                                                                                             </compilation>
+    <file name="a.vb">
+    </file>
+</compilation>
 
             Dim compilation = CreateCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, TestOptions.DebugDll)
 
@@ -3004,7 +3004,7 @@ End interface
 
             Dim useSource =
 <compilation>
-                                                                                                                                                                                                                                                                                                                     <file name="b.vb">
+    <file name="b.vb">
         Class Viewable
             Sub Maine()
                 Dim v = New Viewable()
@@ -3026,7 +3026,7 @@ End interface
             End Property
         End Class
     </file>
-                                                                                                                                                                                                                                                                                                                 </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(useSource, TestOptions.ReleaseDll)
             Dim metadataReader = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).Module.GetMetadataReader()
@@ -3076,7 +3076,7 @@ End interface
             ' examining the emitted binary.
             Dim source =
 <compilation>
-                                                                                                                                                                                                                                                                                                                             <file name="a.vb">
+    <file name="a.vb">
 Class C
     Function M() As ULong
         Return &amp;H8675309ABCDE4225UL
@@ -3088,7 +3088,7 @@ Class C
     End Property
 End Class
     </file>
-                                                                                                                                                                                                                                                                                                                         </compilation>
+</compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
             Using stream As Stream = compilation.EmitToStream()
@@ -3101,7 +3101,7 @@ End Class
                 Dim firstMatch = IndexOfPattern(bytes, 0, pattern)
                 Assert.True(firstMatch >= 0, "Couldn't find the expected byte pattern in the output.")
                 Dim secondMatch = IndexOfPattern(bytes, firstMatch + 1, pattern)
-                Assert.True(secondMatch <0, "Expected to find just one occurrence of the pattern in the output.")
+                Assert.True(secondMatch < 0, "Expected to find just one occurrence of the pattern in the output.")
             End Using
 
         End Sub

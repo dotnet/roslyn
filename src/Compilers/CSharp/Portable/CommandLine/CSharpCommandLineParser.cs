@@ -1169,6 +1169,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoRefOutWhenRefOnly);
             }
 
+            if (outputKind == OutputKind.NetModule && (metadataOnly || outputRefFilePath != null))
+            {
+                AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoNetModuleOutputWhenRefOutOrRefOnly);
+            }
+
             if (!IsScriptRunner && !sourceFilesSpecified && (outputKind.IsNetModule() || !resourcesOrModulesSpecified))
             {
                 AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.WRN_NoSources);

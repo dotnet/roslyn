@@ -5470,4 +5470,7 @@
   <data name="ERR_NoRefOutWhenRefOnly" xml:space="preserve">
     <value>Do not use refout when using refonly.</value>
   </data>
+  <data name="ERR_NoNetModuleOutputWhenRefOutOrRefOnly" xml:space="preserve">
+    <value>Cannot compile net modules when using /refout or /refonly.</value>
+  </data>
 </root>

@@ -8071,6 +8071,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot compile net modules when using /refout or /refonly..
+        '''</summary>
+        Friend ReadOnly Property ERR_NoNetModuleOutputWhenRefOutOrRefOnly() As String
+            Get
+                Return ResourceManager.GetString("ERR_NoNetModuleOutputWhenRefOutOrRefOnly", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Member &apos;{0}&apos; cannot be initialized in an object initializer expression because it is not a field or property..
         '''</summary>
         Friend ReadOnly Property ERR_NonFieldPropertyAggrMemberInit1() As String

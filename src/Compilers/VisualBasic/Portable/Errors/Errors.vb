@@ -1726,6 +1726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_Merge_conflict_marker_encountered = 37284
         ERR_NoRefOutWhenRefOnly = 37285
+        ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 37286
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
