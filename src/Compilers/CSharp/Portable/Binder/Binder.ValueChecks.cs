@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expr;
 
                 case BoundKind.DiscardExpression:
-                    Debug.Assert(valueKind == BindValueKind.Assignable || valueKind == BindValueKind.RefOrOut);
+                    Debug.Assert(valueKind == BindValueKind.Assignable || valueKind == BindValueKind.RefOrOut || diagnostics.HasAnyResolvedErrors());
                     return expr;
             }
 
@@ -274,11 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
-
-                //PROTOTYPE(readonlyeRefs): this is incorrect and fixed in master. Update when merged.
-                case BoundKind.DynamicMemberAccess:
-                case BoundKind.DynamicIndexerAccess:
-                    return true;
             }
 
             // easy out for a very common RValue case.
@@ -349,6 +344,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
                     break;
+
+                case BoundKind.DynamicMemberAccess:
+                case BoundKind.DynamicIndexerAccess:
+                    // dynamic expressions can be read and written to
+                    // can even be passed by reference (which is implemented via a temp)
+                    // it is not valid to return them by reference though.
+                    if (RequiresReturnableReference(valueKind))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefReturnLvalueExpected, expr.Syntax);
+                        return false;
+                    }
+
+                    return true;
 
                 case BoundKind.Parameter:
                     var parameter = (BoundParameter)expr;

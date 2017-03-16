@@ -582,7 +582,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 var temp = EmitAddress(argument, AddressKind.Writeable);
-                Debug.Assert(temp == null, "passing args byref should not clone them into temps");
+
+                // Dynamic is allowed to be passed by reference, via a temp.
+                Debug.Assert(temp == null || argument.Type.IsDynamic(), "passing args byref should not clone them into temps");
             }
         }
 
