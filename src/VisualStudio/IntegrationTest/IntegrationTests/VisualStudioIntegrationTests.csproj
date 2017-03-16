@@ -32,6 +32,7 @@
     <Compile Include="CSharp\CSharpIntelliSense.cs" />
     <Compile Include="CSharp\CSharpInteractive.cs" />
     <Compile Include="AbstractEditorTest.cs" />
+    <Compile Include="CSharp\CSharpInteractiveCommands.cs" />
     <Compile Include="CSharp\CSharpSignatureHelp.cs" />
     <Compile Include="CSharp\CSharpWinForms.cs" />
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
