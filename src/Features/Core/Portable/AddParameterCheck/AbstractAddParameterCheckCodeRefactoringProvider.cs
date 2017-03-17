@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var method = (IMethodSymbol)semanticModel.GetDeclaredSymbol(containingMember, cancellationToken);
             var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
 
             if (parameter.Name == "")
@@ -82,6 +83,11 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
 
             if (!parameter.Type.IsReferenceType &&
                 !parameter.Type.IsNullable())
+            {
+                return;
+            }
+
+            if (!method.Parameters.Contains(parameter))
             {
                 return;
             }

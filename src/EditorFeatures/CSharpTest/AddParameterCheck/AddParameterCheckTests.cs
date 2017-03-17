@@ -448,5 +448,39 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestNotOnLambdaParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, int> f = ([||]string s) => { return 0; }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestNotOnLocalFunctionParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        void Foo([||]string s)
+        {
+        }
+    }
+}");
+        }
     }
 }
