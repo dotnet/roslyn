@@ -22,6 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact]
+        [WorkItem(15358, "https://github.com/dotnet/roslyn/issues/15358")]
+        public void WithDocumentationModeDoesntChangeFeatures()
+        {
+            var kvp = new KeyValuePair<string, string>("IOperation", "true");
+            var po = new CSharpParseOptions().WithFeatures(new[] { kvp });
+            Assert.Equal(po.Features.AsSingleton(), kvp);
+            var po2 = po.WithDocumentationMode(DocumentationMode.Diagnose);
+            Assert.Equal(po2.Features.AsSingleton(), kvp);
+        }
+
+        [Fact]
         public void WithXxx()
         {
             TestProperty((old, value) => old.WithKind(value), opt => opt.Kind, SourceCodeKind.Script);
