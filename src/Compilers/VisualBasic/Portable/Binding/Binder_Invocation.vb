@@ -3053,7 +3053,7 @@ ProduceBoundNode:
 
 
             If defaultConstantValue IsNot Nothing Then
-check_0:
+                'check_0:
                 If callerInfoOpt IsNot Nothing AndAlso
                    callerInfoOpt.SyntaxTree IsNot Nothing AndAlso
                    Not callerInfoOpt.SyntaxTree.IsEmbeddedOrMyTemplateTree() AndAlso
@@ -3206,7 +3206,7 @@ check_0:
                 Else
                     defaultArgument = New BoundLiteral(syntax, ConstantValue.Null, Nothing)
                 End If
-                GoTo check_0
+                'GoTo check_0
 
             End If
 

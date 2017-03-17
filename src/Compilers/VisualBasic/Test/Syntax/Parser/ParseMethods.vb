@@ -339,17 +339,22 @@ Public Class ParseMethods
 
     <Fact>
     Public Sub Bug862505()
-        ParseAndVerify(<![CDATA[
+        Dim source = <![CDATA[
             Class C1
                 Function f1(Optional ByVal c1 As New Object())
                 End Function
             End Class
-        ]]>,
-        <errors>
-            <error id="30201"/>
-            <error id="30812"/>
-            <error id="30180"/>
-        </errors>)
+        ]]>
+        'If FEATURE_ImplicitDefaultOptionalParameter Then
+        ParseAndVerify(source, Diagnostic(ERRID.ERR_UnrecognizedTypeKeyword, "").WithLocation(3, 50))
+        'Else
+        'ParseAndVerify(source,
+        '<errors>
+        '    <error id="30201"/>
+        '    <error id="30812"/>
+        '    <error id="30180"/>
+        '</errors>)
+        'End If
     End Sub
 
     <Fact>
