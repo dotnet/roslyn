@@ -13,7 +13,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal interface ISyntaxFactsService : ILanguageService
     {
         bool IsCaseSensitive { get; }
+
         bool SupportsIndexingInitializer(ParseOptions options);
+        bool SupportsThrowExpression(ParseOptions options);
 
         bool IsAwaitKeyword(SyntaxToken token);
         bool IsIdentifier(SyntaxToken token);
@@ -123,6 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPointerMemberAccessExpression(SyntaxNode node);
 
         bool IsNamedParameter(SyntaxNode node);
+        SyntaxNode GetDefaultOfParameter(SyntaxNode node);
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
 

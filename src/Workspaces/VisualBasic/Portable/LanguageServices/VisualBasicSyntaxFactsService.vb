@@ -45,6 +45,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
+        Public Function SupportsThrowExpression(options As ParseOptions) As Boolean Implements ISyntaxFactsService.SupportsThrowExpression
+            Return False
+        End Function
+
         Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
             Return token.Kind = SyntaxKind.AwaitKeyword
         End Function
@@ -176,6 +180,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsNamedParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNamedParameter
             Return node.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is node)
+        End Function
+
+        Public Function GetDefaultOfParameter(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetDefaultOfParameter
+            Return TryCast(node, ParameterSyntax)?.Default
         End Function
 
         Public Function IsSkippedTokensTrivia(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSkippedTokensTrivia

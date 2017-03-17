@@ -2841,22 +2841,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode WithStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
         {
-            BlockSyntax body = CreateBlock(statements);
-            BlockSyntax somebody = statements != null ? body : null;
-            SyntaxToken semicolon = statements == null ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken);
+            var body = CreateBlock(statements);
+            var somebody = statements != null ? body : null;
+            var semicolon = statements == null ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken);
 
             switch (declaration.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
-                    return ((MethodDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon);
+                    return ((MethodDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
                 case SyntaxKind.OperatorDeclaration:
-                    return ((OperatorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon);
+                    return ((OperatorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    return ((ConversionOperatorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon);
+                    return ((ConversionOperatorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
                 case SyntaxKind.ConstructorDeclaration:
-                    return ((ConstructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon);
+                    return ((ConstructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
                 case SyntaxKind.DestructorDeclaration:
-                    return ((DestructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon);
+                    return ((DestructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return ((ParenthesizedLambdaExpressionSyntax)declaration).WithBody(body);
                 case SyntaxKind.SimpleLambdaExpression:
@@ -2865,7 +2865,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                    return ((AccessorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon);
+                    return ((AccessorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
                 default:
                     return declaration;
             }

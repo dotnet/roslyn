@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool SupportsIndexingInitializer(ParseOptions options) 
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
 
+        public bool SupportsThrowExpression(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
+
         public bool IsAwaitKeyword(SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.AwaitKeyword);
@@ -191,9 +194,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsNamedParameter(SyntaxNode node)
-        {
-            return node.CheckParent<NameColonSyntax>(p => p.Name == node);
-        }
+            => node.CheckParent<NameColonSyntax>(p => p.Name == node);
+
+        public SyntaxNode GetDefaultOfParameter(SyntaxNode node)
+            => (node as ParameterSyntax)?.Default;
 
         public bool IsSkippedTokensTrivia(SyntaxNode node)
         {
