@@ -122,6 +122,17 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
             context.RegisterRefactoring(new MyCodeAction(
                 FeaturesResources.Add_null_check,
                 c => AddNullCheckAsync(document, blockStatement, parameter, c)));
+
+            if (parameter.Type.SpecialType == SpecialType.System_String)
+            {
+                context.RegisterRefactoring(new MyCodeAction(
+                    FeaturesResources.Add_string_IsNullOrEmpty_check,
+                    c => AddStringCheckAsync(document, blockStatement, parameter, nameof(string.IsNullOrEmpty), c)));
+
+                context.RegisterRefactoring(new MyCodeAction(
+                    FeaturesResources.Add_string_IsNullOrWhiteSpace_check,
+                    c => AddStringCheckAsync(document, blockStatement, parameter, nameof(string.IsNullOrWhiteSpace), c)));
+            }
         }
 
         private bool ContainsNullCoalesceCheck(
@@ -219,19 +230,38 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
                 return documentOpt;
             }
 
+            return await AddNullCheckAsync(
+                document, blockStatement, parameter,
+                (c, g) => CreateNullCheckStatement(c, g, parameter),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<Document> AddStringCheckAsync(
+            Document document,
+            IBlockStatement blockStatement,
+            IParameterSymbol parameter,
+            string methodName,
+            CancellationToken cancellationToken)
+        {
+            return await AddNullCheckAsync(
+                document, blockStatement, parameter,
+                (c, g) => CreateStringCheckStatement(c, g, parameter, methodName),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<Document> AddNullCheckAsync(
+            Document document, 
+            IBlockStatement blockStatement, 
+            IParameterSymbol parameter, 
+            Func<Compilation, SyntaxGenerator, TStatementSyntax> generateNullCheck,
+            CancellationToken cancellationToken)
+        {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            var generator = editor.Generator;
-            var nullCheckStatement = generator.IfStatement(
-                generator.ReferenceEqualsExpression(
-                    generator.IdentifierName(parameter.Name),
-                    generator.NullLiteralExpression()),
-                SpecializedCollections.SingletonEnumerable(
-                    generator.ThrowStatement(
-                        CreateArgumentNullException(compilation, generator, parameter))));
+            var nullCheckStatement = generateNullCheck(compilation, editor.Generator);
 
             var statementToAddAfter = GetStatementToAddNullCheckAfter(
                 semanticModel, blockStatement, parameter, cancellationToken);
@@ -239,6 +269,33 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        private static TStatementSyntax CreateNullCheckStatement(
+            Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
+        {
+            return (TStatementSyntax)generator.IfStatement(
+                generator.ReferenceEqualsExpression(
+                    generator.IdentifierName(parameter.Name),
+                    generator.NullLiteralExpression()),
+                SpecializedCollections.SingletonEnumerable(
+                    generator.ThrowStatement(
+                        CreateArgumentNullException(compilation, generator, parameter))));
+        }
+
+        private static TStatementSyntax CreateStringCheckStatement(
+            Compilation compilation, SyntaxGenerator generator,
+            IParameterSymbol parameter, string methodName)
+        {
+            return (TStatementSyntax)generator.IfStatement(
+                generator.InvocationExpression(
+                    generator.MemberAccessExpression(
+                        generator.TypeExpression(SpecialType.System_String),
+                        generator.IdentifierName(methodName)),
+                    generator.Argument(generator.IdentifierName(parameter.Name))),
+                SpecializedCollections.SingletonEnumerable(
+                    generator.ThrowStatement(
+                        CreateArgumentException(compilation, generator, parameter))));
         }
 
         protected abstract void InsertStatement(
@@ -374,10 +431,19 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
         private static SyntaxNode CreateArgumentNullException(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
         {
-            var argumentNullException = compilation.GetTypeByMetadataName("System.ArgumentNullException");
-
             return generator.ObjectCreationExpression(
-                argumentNullException,
+                compilation.GetTypeByMetadataName("System.ArgumentNullException"),
+                generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
+        }
+
+        private static SyntaxNode CreateArgumentException(
+            Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
+        {
+            // Note "message" is not localized.  It is the name of the first parameter of 
+            // "ArgumentException"
+            return generator.ObjectCreationExpression(
+                compilation.GetTypeByMetadataName("System.ArgumentException"),
+                generator.LiteralExpression("message"),
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }
 

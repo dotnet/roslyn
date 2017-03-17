@@ -216,6 +216,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add &apos;string.IsNullOrEmpty&apos; check.
+        /// </summary>
+        internal static string Add_string_IsNullOrEmpty_check {
+            get {
+                return ResourceManager.GetString("Add_string_IsNullOrEmpty_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add &apos;string.IsNullOrWhiteSpace&apos; check.
+        /// </summary>
+        internal static string Add_string_IsNullOrWhiteSpace_check {
+            get {
+                return ResourceManager.GetString("Add_string_IsNullOrWhiteSpace_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add &apos;this&apos; or &apos;Me&apos; qualification..
         /// </summary>
         internal static string Add_this_or_Me_qualification {
