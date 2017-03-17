@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddParameterCheck;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
@@ -143,6 +144,41 @@ class C
         S = s ?? throw new ArgumentNullException(nameof(s));
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task DoNotUseThrowExpressionBeforeCSharp7()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    private string S;
+
+    public C([||]string s)
+    {
+        S = s;
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S;
+
+    public C(string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+
+        S = s;
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
     }
 }
