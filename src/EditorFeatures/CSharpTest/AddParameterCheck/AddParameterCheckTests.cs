@@ -272,5 +272,125 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestInsertAfterExistingNullCheck1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C(string a, [||]string s)
+    {
+        if (a == null)
+        {
+        }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string a, string s)
+    {
+        if (a == null)
+        {
+        }
+
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestInsertBeforeExistingNullCheck1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C(string [||]a, string s)
+    {
+        if (s == null)
+        {
+        }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string a, string s)
+    {
+        if (a == null)
+        {
+            throw new ArgumentNullException(nameof(a));
+        }
+
+        if (s == null)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestMissingWithExistingNullCheck1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestMissingWithExistingNullCheck2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+        _s = s ?? throw new ArgumentNullException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestMissingWithoutParameterName()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C([||]string)
+    {
+    }
+}");
+        }
     }
 }
