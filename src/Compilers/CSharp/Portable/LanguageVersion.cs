@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Parse a LanguageVersion from a string input, as the command-line compiler does.
+        /// Try parse a <see cref="LanguageVersion"/> from a string input, returning default if input was null.
         /// </summary>
         public static bool TryParse(this string version, out LanguageVersion result)
         {
@@ -186,14 +186,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (version.ToLowerInvariant())
             {
-                case "iso-1":
-                    result = LanguageVersion.CSharp1;
-                    return true;
-
-                case "iso-2":
-                    result = LanguageVersion.CSharp2;
-                    return true;
-
                 case "default":
                     result = LanguageVersion.Default;
                     return true;
@@ -202,20 +194,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = LanguageVersion.Latest;
                     return true;
 
+                case "1":
+                case "iso-1":
+                    result = LanguageVersion.CSharp1;
+                    return true;
+
+                case "2":
+                case "iso-2":
+                    result = LanguageVersion.CSharp2;
+                    return true;
+
+                case "3":
+                    result = LanguageVersion.CSharp3;
+                    return true;
+
+                case "4":
+                    result = LanguageVersion.CSharp4;
+                    return true;
+
+                case "5":
+                    result = LanguageVersion.CSharp5;
+                    return true;
+
+                case "6":
+                    result = LanguageVersion.CSharp6;
+                    return true;
+
+                case "7":
+                    result = LanguageVersion.CSharp7;
+                    return true;
+
                 case "7.1":
                     result = LanguageVersion.CSharp7_1;
                     return true;
 
                 default:
-                    if (int.TryParse(version, NumberStyles.None, CultureInfo.InvariantCulture, out int versionNumber) && versionNumber <= 7)
-                    {
-                        result = (LanguageVersion)versionNumber;
-                        if (result.IsValid())
-                        {
-                            return true;
-                        }
-                    }
-
                     result = LanguageVersion.Default;
                     return false;
             }

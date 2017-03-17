@@ -1298,19 +1298,24 @@ d.cs
 
             parsedArgs = DefaultParse(new[] { "/langversion:0", "/langversion:7", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
-                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"));
+                // error CS8303: Specified language version '0' cannot have leading zeroes
+                Diagnostic(ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes).WithArguments("0").WithLocation(1, 1));
             Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:0", "/langversion:8", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
-                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"),
-                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("8"));
+                // error CS8303: Specified language version '0' cannot have leading zeroes
+                Diagnostic(ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes).WithArguments("0"),
+                // error CS1617: Invalid option '8' for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.1.
+                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("8").WithLocation(1, 1));
             Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:0", "/langversion:1000", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
-                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("0"),
-                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("1000"));
+                // error CS8303: Specified language version '0' cannot have leading zeroes
+                Diagnostic(ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes).WithArguments("0").WithLocation(1, 1),
+                // error CS1617: Invalid option '1000' for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.1.
+                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("1000").WithLocation(1, 1));
             Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion", "a.cs" }, _baseDirectory);
@@ -1324,6 +1329,14 @@ d.cs
             parsedArgs = DefaultParse(new[] { "/langversion: ", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/langversion:"));
             Assert.Equal(defaultEffectiveVersion, parsedArgs.ParseOptions.LanguageVersion);
+        }
+
+        [Fact]
+        public void CannotParseLanguageVersionWithLeadingZeroes()
+        {
+            DefaultParse(new[] { "/langversion:07", "a.cs" }, _baseDirectory).Errors.Verify(
+                // error CS8303: Specified language version '07' cannot have leading zeroes
+                Diagnostic(ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes).WithArguments("07").WithLocation(1, 1));
         }
 
         [Fact]
@@ -1347,6 +1360,28 @@ d.cs
         }
 
         [Fact]
+        public void LanguageVersion_GetErrorCode()
+        {
+            var versions = Enum.GetValues(typeof(LanguageVersion))
+                .Cast<LanguageVersion>()
+                .Except(new[] { LanguageVersion.Default, LanguageVersion.Latest })
+                .Select(v => v.GetErrorCode());
+
+            var errorCodes = new[] {
+                ErrorCode.ERR_FeatureNotAvailableInVersion1,
+                ErrorCode.ERR_FeatureNotAvailableInVersion2,
+                ErrorCode.ERR_FeatureNotAvailableInVersion3,
+                ErrorCode.ERR_FeatureNotAvailableInVersion4,
+                ErrorCode.ERR_FeatureNotAvailableInVersion5,
+                ErrorCode.ERR_FeatureNotAvailableInVersion6,
+                ErrorCode.ERR_FeatureNotAvailableInVersion7,
+                ErrorCode.ERR_FeatureNotAvailableInVersion7_1
+            };
+
+            AssertEx.SetEqual(versions, errorCodes);
+        }
+
+        [Fact]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion()
         {
             Assert.Equal(LanguageVersion.CSharp1, LanguageVersion.CSharp1.MapSpecifiedToEffectiveVersion());
@@ -1356,6 +1391,8 @@ d.cs
             Assert.Equal(LanguageVersion.CSharp5, LanguageVersion.CSharp5.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp6, LanguageVersion.CSharp6.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.CSharp7.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.CSharp7_1.MapSpecifiedToEffectiveVersion());
+
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
 
@@ -1372,11 +1409,12 @@ d.cs
             InlineData("3", true, LanguageVersion.CSharp3),
             InlineData("4", true, LanguageVersion.CSharp4),
             InlineData("5", true, LanguageVersion.CSharp5),
-            InlineData("05", true, LanguageVersion.CSharp5),
+            InlineData("05", false, LanguageVersion.Default),
             InlineData("6", true, LanguageVersion.CSharp6),
             InlineData("7", true, LanguageVersion.CSharp7),
-            InlineData("07", true, LanguageVersion.CSharp7),
+            InlineData("07", false, LanguageVersion.Default),
             InlineData("7.1", true, LanguageVersion.CSharp7_1),
+            InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
             InlineData("latest", true, LanguageVersion.Latest),
             InlineData(null, true, LanguageVersion.Default),
