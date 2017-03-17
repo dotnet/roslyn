@@ -2,17 +2,17 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.AddParameterCheck
+Imports Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddParameterCheck
-    Public Class AddParameterCheckTests
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InitializeParameter
+    Public Class InitializeParameterTests
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(Workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicAddParameterCheckCodeRefactoringProvider()
+            Return New VisualBasicInitializeParameterCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestSimpleReferenceType() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -34,7 +34,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestNullable() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -56,7 +56,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestNotOnValueType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -68,7 +68,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestNotOnInterfaceParameter() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -79,7 +79,7 @@ interface I
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestNotOnAbstractParameter() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -90,7 +90,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestDoNotUpdateExistingFieldAssignment() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -119,7 +119,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestDoNotUpdateExistingPropertyAssignment() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -148,7 +148,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestInsertAfterExistingNullCheck1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -175,7 +175,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestInsertBeforeExistingNullCheck1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -202,7 +202,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestMissingWithExistingNullCheck1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -217,7 +217,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestMissingWithExistingNullCheck3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -231,7 +231,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestMissingWithExistingNullCheck4() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -245,7 +245,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestInMethod() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -267,7 +267,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestNotOnLambdaParameter() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -281,7 +281,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestSpecialStringCheck1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -303,7 +303,7 @@ class C
 end class", index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestSpecialStringCheck2() As Task
             Await TestInRegularAndScript1Async(
 "

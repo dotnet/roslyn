@@ -1,23 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.AddParameterCheck;
+using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameterCheck
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
 {
-    public class AddParameterCheckTests : AbstractCSharpCodeActionTest
+    public class InitializeParameterTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpAddParameterCheckCodeRefactoringProvider();
+            => new CSharpInitializeParameterCodeRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestSimpleReferenceType()
         {
             await TestInRegularAndScript1Async(
@@ -45,7 +44,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestNullable()
         {
             await TestInRegularAndScript1Async(
@@ -73,7 +72,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestNotOnValueType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -88,7 +87,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestNotOnInterfaceParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -101,7 +100,7 @@ interface I
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestNotOnAbstractParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -114,7 +113,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateExistingFieldAssignment()
         {
             await TestInRegularAndScript1Async(
@@ -144,7 +143,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateExistingPropertyAssignment()
         {
             await TestInRegularAndScript1Async(
@@ -174,7 +173,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task DoNotUseThrowExpressionBeforeCSharp7()
         {
             await TestAsync(
@@ -209,7 +208,7 @@ class C
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task RespectUseThrowExpressionOption()
         {
             await TestInRegularAndScript1Async(
@@ -245,7 +244,7 @@ class C
     Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithNoneEnforcement)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateExpressionBody1()
         {
             await TestInRegularAndScript1Async(
@@ -271,7 +270,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateExpressionBody2()
         {
             await TestInRegularAndScript1Async(
@@ -300,7 +299,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestInsertAfterExistingNullCheck1()
         {
             await TestInRegularAndScript1Async(
@@ -335,7 +334,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestInsertBeforeExistingNullCheck1()
         {
             await TestInRegularAndScript1Async(
@@ -370,7 +369,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestMissingWithExistingNullCheck1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -389,7 +388,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestMissingWithExistingNullCheck2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -405,7 +404,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestMissingWithExistingNullCheck3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -423,7 +422,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestMissingWithExistingNullCheck4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -441,7 +440,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestMissingWithoutParameterName()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -456,7 +455,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestInMethod()
         {
             await TestInRegularAndScript1Async(
@@ -484,7 +483,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestInOperator()
         {
             await TestInRegularAndScript1Async(
@@ -512,7 +511,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestNotOnLambdaParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -528,7 +527,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestNotOnLocalFunctionParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -546,7 +545,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestSpecialStringCheck1()
         {
             await TestInRegularAndScript1Async(
@@ -574,7 +573,7 @@ class C
 }", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestSpecialStringCheck2()
         {
             await TestInRegularAndScript1Async(

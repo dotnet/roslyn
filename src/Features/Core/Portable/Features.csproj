@@ -106,7 +106,6 @@
     <Compile Include="AddPackage\InstallPackageDirectlyCodeActionOperation.cs" />
     <Compile Include="AddPackage\InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageParentCodeAction.cs" />
-    <Compile Include="AddParameterCheck\AbstractAddParameterCheckCodeRefactoringProvider.cs" />
     <Compile Include="AddParameter\AbstractAddParameterCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnusedVariable\AbstractRemoveUnusedVariableCodeFixProvider.cs" />
     <Compile Include="ConvertIfToSwitch\AbstractConvertIfToSwitchCodeRefactoringProvider.cs" />
@@ -140,6 +139,7 @@
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndHashWithDialogCodeAction.cs" />
     <Compile Include="GenerateOverrides\GenerateOverridesWithDialogCodeAction.cs" />
     <Compile Include="GenerateOverrides\GenerateOverridesCodeRefactoringProvider.cs" />
+    <Compile Include="InitializeParameter\AbstractInitializeParameterCodeRefactoringProvider.cs" />
     <Compile Include="PickMembers\IPickMembersService.cs" />
     <Compile Include="PickMembers\PickMembersResult.cs" />
     <Compile Include="GenerateFromMembers\SelectedMemberInfo.cs" />

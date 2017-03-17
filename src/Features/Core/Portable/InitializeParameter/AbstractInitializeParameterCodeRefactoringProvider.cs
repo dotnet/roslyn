@@ -14,9 +14,9 @@ using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AddParameterCheck
+namespace Microsoft.CodeAnalysis.InitializeParameter
 {
-    internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
+    internal abstract class AbstractInitializeParameterCodeRefactoringProvider<
         TParameterSyntax,
         TMemberDeclarationSyntax,
         TStatementSyntax,
@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        //private static MethodInfo s_registerOperationActionInfo =
-        //    typeof(CompilationStartAnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
-
         private static MethodInfo s_getOperationInfo =
             typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
 
