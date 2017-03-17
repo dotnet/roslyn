@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode> removeAccessorStatements = null)
         {
             var invoke = symbol.Type.GetMembers("Invoke").FirstOrDefault(m => m.Kind == SymbolKind.Method) as IMethodSymbol;
-            var parameters = invoke != null ? invoke.Parameters.Select(p => this.ParameterDeclaration(p)) : null;
+            var parameters = invoke?.Parameters.Select(p => this.ParameterDeclaration(p));
 
             return CustomEventDeclaration(
                 symbol.Name,
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.Editing
                                 accessibility: type.DeclaredAccessibility,
                                 modifiers: DeclarationModifiers.From(type),
                                 baseType: TypeExpression(type.BaseType),
-                                interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
+                                interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
                                 members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Struct:
@@ -556,14 +556,14 @@ namespace Microsoft.CodeAnalysis.Editing
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
                                 modifiers: DeclarationModifiers.From(type),
-                                interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
+                                interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
                                 members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Interface:
                             declaration = InterfaceDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
-                                interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
+                                interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
                                 members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Enum:
@@ -813,9 +813,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Removes all attributes from the declaration, including return attributes.
         /// </summary>
         public SyntaxNode RemoveAllAttributes(SyntaxNode declaration)
-        {
-            return this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
-        }
+            => this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
 
         internal SyntaxNode RemoveAllComments(SyntaxNode declaration)
         {
@@ -824,6 +822,11 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         internal abstract bool IsRegularOrDocComment(SyntaxTrivia trivia);
+
+        internal SyntaxNode RemoveAllTypeInheritance(SyntaxNode declaration)
+            => this.RemoveNodes(declaration, this.GetTypeInheritance(declaration));
+
+        internal abstract ImmutableArray<SyntaxNode> GetTypeInheritance(SyntaxNode declaration);
 
         /// <summary>
         /// Gets the attributes of a declaration, not including the return attributes.

@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "/langversion:");
                             }
-                            else if (!TryParseLanguageVersion(value, out languageVersion))
+                            else if (!value.TryParse(out languageVersion))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_BadCompatMode, value);
                             }
@@ -1217,11 +1217,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 languageVersion: languageVersion,
                 preprocessorSymbols: defines.ToImmutableAndFree(),
                 documentationMode: parseDocumentationComments ? DocumentationMode.Diagnose : DocumentationMode.None,
-                kind: SourceCodeKind.Regular,
+                kind: IsScriptRunner ? SourceCodeKind.Script : SourceCodeKind.Regular,
                 features: parsedFeatures
             );
-
-            var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
 
             // We want to report diagnostics with source suppression in the error log file.
             // However, these diagnostics won't be reported on the command line.
@@ -1271,6 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // add option incompatibility errors if any
             diagnostics.AddRange(options.Errors);
+            diagnostics.AddRange(parseOptions.Errors);
 
             return new CSharpCommandLineArguments
             {
@@ -1307,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DisplayVersion = displayVersion,
                 ManifestResources = managedResources.AsImmutable(),
                 CompilationOptions = options,
-                ParseOptions = IsScriptRunner ? scriptParseOptions : parseOptions,
+                ParseOptions = parseOptions,
                 EmitOptions = emitOptions,
                 ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
                 TouchedFilesPath = touchedFilesPath,
@@ -1470,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<string> ParseConditionalCompilationSymbols(string value, out IEnumerable<Diagnostic> diagnostics)
         {
-            Diagnostic myDiagnostic = null;
+            DiagnosticBag outputDiagnostics = DiagnosticBag.GetInstance();
 
             value = value.TrimEnd(null);
             // Allow a trailing semicolon or comma in the options
@@ -1490,15 +1489,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     defines.Add(trimmedId);
                 }
-                else if (myDiagnostic == null)
+                else
                 {
-                    myDiagnostic = Diagnostic.Create(CSharp.MessageProvider.Instance, (int)ErrorCode.WRN_DefineIdentifierRequired, trimmedId);
+                    outputDiagnostics.Add(Diagnostic.Create(CSharp.MessageProvider.Instance, (int)ErrorCode.WRN_DefineIdentifierRequired, trimmedId));
                 }
             }
 
-            diagnostics = myDiagnostic == null ? SpecializedCollections.EmptyEnumerable<Diagnostic>()
-                                                : SpecializedCollections.SingletonEnumerable(myDiagnostic);
-
+            diagnostics = outputDiagnostics.ToReadOnlyAndFree();
             return defines.AsEnumerable();
         }
 
@@ -1759,56 +1756,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                                             };
             return new ResourceDescription(resourceName, fileName, dataProvider, isPublic, embedded, checkArgs: false);
-        }
-
-        private static bool TryParseLanguageVersion(string str, out LanguageVersion version)
-        {
-            if (str == null)
-            {
-                version = LanguageVersion.Default;
-                return true;
-            }
-
-            switch (str.ToLowerInvariant())
-            {
-                case "iso-1":
-                    version = LanguageVersion.CSharp1;
-                    return true;
-
-                case "iso-2":
-                    version = LanguageVersion.CSharp2;
-                    return true;
-
-                case "7":
-                    version = LanguageVersion.CSharp7;
-                    return true;
-
-                case "default":
-                    version = LanguageVersion.Default;
-                    return true;
-
-                case "latest":
-                    version = LanguageVersion.Latest;
-                    return true;
-
-                default:
-                    // We are likely to introduce minor version numbers after C# 7, thus breaking the
-                    // one-to-one correspondence between the integers and the corresponding
-                    // LanguageVersion enum values. But for compatibility we continue to accept any
-                    // integral value parsed by int.TryParse for its corresponding LanguageVersion enum
-                    // value for language version C# 6 and earlier (e.g. leading zeros are allowed)
-                    int versionNumber;
-                    if (int.TryParse(str, NumberStyles.None, CultureInfo.InvariantCulture, out versionNumber) &&
-                        versionNumber <= 6 &&
-                        ((LanguageVersion)versionNumber).IsValid())
-                    {
-                        version = (LanguageVersion)versionNumber;
-                        return true;
-                    }
-
-                    version = LanguageVersion.Default;
-                    return false;
-            }
         }
 
         private static IEnumerable<string> ParseWarnings(string value)

@@ -279,6 +279,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             out SyntaxNode newRoot, out SyntaxNode newContextNode);
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
+
+        ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
     }
 
     [Flags]

@@ -1116,7 +1116,8 @@ public class Program
 {
     static void M()
     {
-        [|Xaml|] }
+        [|Xaml|]
+    }
 }",
 @"namespace MS.Internal.Xaml
 {
@@ -1136,7 +1137,8 @@ public class Program
 {
     static void M()
     {
-        System.Xaml }
+        System.Xaml
+    }
 }");
 
             await TestInRegularAndScriptAsync(
@@ -1158,7 +1160,8 @@ public class Program
 {
     static void M()
     {
-        [|Xaml|] }
+        [|Xaml|]
+    }
 }",
 @"namespace MS.Internal.Xaml
 {
@@ -1178,8 +1181,9 @@ public class Program
 {
     static void M()
     {
-        MS.Internal.Xaml }
-}");
+        MS.Internal.Xaml
+    }
+}", index: 1);
         }
 
         [WorkItem(11071, "https://github.com/dotnet/roslyn/issues/11071")]

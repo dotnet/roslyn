@@ -10,13 +10,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal sealed class LocalDeclarationRewriter
     {
-        internal static BoundStatement Rewrite(CSharpCompilation compilation, EENamedTypeSymbol container, HashSet<LocalSymbol> declaredLocals, BoundStatement node, ImmutableArray<LocalSymbol> declaredLocalsArray)
+        internal static BoundStatement Rewrite(
+            CSharpCompilation compilation,
+            EENamedTypeSymbol container,
+            HashSet<LocalSymbol> declaredLocals,
+            BoundStatement node,
+            ImmutableArray<LocalSymbol> declaredLocalsArray,
+            DiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
 
             foreach (var local in declaredLocalsArray)
             {
-                CreateLocal(compilation, declaredLocals, builder, local, node.Syntax);
+                CreateLocal(compilation, declaredLocals, builder, local, node.Syntax, diagnostics);
             }
 
             // Rewrite top-level declarations only.
@@ -74,19 +80,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        private static void CreateLocal(CSharpCompilation compilation, HashSet<LocalSymbol> declaredLocals, ArrayBuilder<BoundStatement> statements, LocalSymbol local, SyntaxNode syntax)
+        private static void CreateLocal(
+            CSharpCompilation compilation,
+            HashSet<LocalSymbol> declaredLocals,
+            ArrayBuilder<BoundStatement> statements,
+            LocalSymbol local,
+            SyntaxNode syntax,
+            DiagnosticBag diagnostics)
         {
+            // CreateVariable(Type type, string name)
+            var method = PlaceholderLocalSymbol.GetIntrinsicMethod(compilation, ExpressionCompilerConstants.CreateVariableMethodName);
+            if ((object)method == null)
+            {
+                diagnostics.Add(ErrorCode.ERR_DeclarationExpressionNotPermitted, local.Locations[0]);
+                return;
+            }
+
             declaredLocals.Add(local);
 
             var typeType = compilation.GetWellKnownType(WellKnownType.System_Type);
             var stringType = compilation.GetSpecialType(SpecialType.System_String);
             var guidConstructor = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Guid__ctor);
-
-            // CreateVariable(Type type, string name)
-            var method = PlaceholderLocalSymbol.GetIntrinsicMethod(compilation, ExpressionCompilerConstants.CreateVariableMethodName);
             var type = new BoundTypeOfOperator(syntax, new BoundTypeExpression(syntax, aliasOpt: null, type: local.Type), null, typeType);
             var name = new BoundLiteral(syntax, ConstantValue.Create(local.Name), stringType);
-
             bool hasCustomTypeInfoPayload;
             var customTypeInfoPayload = GetCustomTypeInfoPayload(local, syntax, compilation, out hasCustomTypeInfoPayload);
             var customTypeInfoPayloadId = GetCustomTypeInfoPayloadId(syntax, guidConstructor, hasCustomTypeInfoPayload);

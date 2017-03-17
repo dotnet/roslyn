@@ -1150,15 +1150,6 @@ goto Label;");
                 );
         }
 
-        [Fact]
-        [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
-        public void NoNeedToTestSourceCodeKindInteractive()
-        {
-#pragma warning disable CS0618
-            Assert.Throws<ArgumentOutOfRangeException>(() => new CSharp.CSharpParseOptions(kind: SourceCodeKind.Interactive));
-#pragma warning restore CS0618
-        }
-
         private static MemberAccessExpressionSyntax ErrorTestsGetNode(SyntaxTree syntaxTree)
         {
             var node1 = (CompilationUnitSyntax)syntaxTree.GetRoot();
