@@ -379,6 +379,42 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestMissingWithExistingNullCheck3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+        if (string.IsNullOrEmpty(s))
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestMissingWithExistingNullCheck4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+        if (string.IsNullOrWhiteSpace(s))
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
         public async Task TestMissingWithoutParameterName()
         {
             await TestMissingInRegularAndScriptAsync(

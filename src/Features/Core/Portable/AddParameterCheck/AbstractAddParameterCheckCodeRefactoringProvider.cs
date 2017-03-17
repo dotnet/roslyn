@@ -150,13 +150,40 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
 
         private bool IsNullCheck(IOperation statement, IParameterSymbol parameter)
         {
-            if (statement is IIfStatement ifStatement &&
-                ifStatement.Condition is IBinaryOperatorExpression binaryOperator)
+            if (statement is IIfStatement ifStatement)
             {
-                if (IsNullCheck(binaryOperator.LeftOperand, binaryOperator.RightOperand, parameter) ||
-                    IsNullCheck(binaryOperator.RightOperand, binaryOperator.LeftOperand, parameter))
+                if (ifStatement.Condition is IBinaryOperatorExpression binaryOperator)
+                {
+                    if (IsNullCheck(binaryOperator.LeftOperand, binaryOperator.RightOperand, parameter) ||
+                        IsNullCheck(binaryOperator.RightOperand, binaryOperator.LeftOperand, parameter))
+                    {
+                        return true;
+                    }
+                }
+                else if (parameter.Type.SpecialType == SpecialType.System_String &&
+                         IsStringCheck(ifStatement.Condition, parameter))
                 {
                     return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsStringCheck(IOperation condition, IParameterSymbol parameter)
+        {
+            if (condition is IInvocationExpression invocation &&
+                invocation.ArgumentsInSourceOrder.Length == 1 &&
+                IsParameterReference(invocation.ArgumentsInSourceOrder[0].Value, parameter))
+            {
+                var targetMethod = invocation.TargetMethod;
+                if (targetMethod?.Name == nameof(string.IsNullOrEmpty) ||
+                    targetMethod?.Name == nameof(string.IsNullOrWhiteSpace))
+                {
+                    if (targetMethod.ContainingType.SpecialType == SpecialType.System_String)
+                    {
+                        return true;
+                    }
                 }
             }
 
