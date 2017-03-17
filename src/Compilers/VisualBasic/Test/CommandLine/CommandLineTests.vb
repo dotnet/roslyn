@@ -8023,12 +8023,11 @@ End Class")
             Dim exe = Path.Combine(dir.Path, "a.exe")
             Assert.True(File.Exists(exe))
 
-            VerifyPEMetadata(exe,
+            MetadataReaderUtils.VerifyPEMetadata(exe,
                 {"TypeDef:<Module>", "TypeDef:C"},
                 {"MethodDef: Void Main()", "MethodDef: Void .ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
                 )
-
 
             Dim doc = Path.Combine(dir.Path, "doc.xml")
             Assert.True(File.Exists(doc))
@@ -8056,7 +8055,10 @@ a
             Dim refDll = Path.Combine(dir.Path, Path.Combine("ref", "a.dll"))
             Assert.True(File.Exists(refDll))
 
-            VerifyPEMetadata(refDll,
+            ' The types and members that are included needs further refinement.
+            ' ReferenceAssemblyAttribute is missing.
+            ' See issue https://github.com/dotnet/roslyn/issues/17612
+            MetadataReaderUtils.VerifyPEMetadata(refDll,
                 {"TypeDef:<Module>", "TypeDef:C"},
                 {"MethodDef: Void Main()", "MethodDef: Void .ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
@@ -8066,29 +8068,6 @@ a
 
             ' Clean up temp files
             CleanupAllGeneratedFiles(dir.Path)
-        End Sub
-
-        Private Shared Sub VerifyPEMetadata(pePath As String, types As String(), methods As String(), attributes As String())
-            Using peStream = File.OpenRead(pePath)
-                Using refPeReader = New PEReader(peStream)
-                    Dim metadataReader = refPeReader.GetMetadataReader()
-
-                    ' The types and members that are included needs further refinement.
-                    ' See issue https://github.com/dotnet/roslyn/issues/17612
-                    AssertEx.SetEqual(metadataReader.TypeDefinitions.Select(Function(t) metadataReader.Dump(t)), types)
-
-                    AssertEx.SetEqual(metadataReader.MethodDefinitions.Select(Function(t) metadataReader.Dump(t)), methods)
-
-                    ' ReferenceAssemblyAttribute is missing.
-                    ' See issue https://github.com/dotnet/roslyn/issues/17612
-                    AssertEx.SetEqual(
-                        metadataReader.CustomAttributes.Select(Function(a) metadataReader.GetCustomAttribute(a).Constructor).
-                            Select(Function(c) metadataReader.GetMemberReference(CType(c, MemberReferenceHandle)).Parent).
-                            Select(Function(p) metadataReader.GetTypeReference(CType(p, TypeReferenceHandle)).Name).
-                            Select(Function(n) metadataReader.GetString(n)),
-                        attributes)
-                End Using
-            End Using
         End Sub
 
         <Fact>
@@ -8153,7 +8132,10 @@ End Class")
             Dim refDll = Path.Combine(dir.Path, "a.dll")
             Assert.True(File.Exists(refDll))
 
-            VerifyPEMetadata(refDll,
+            ' The types and members that are included needs further refinement.
+            ' ReferenceAssemblyAttribute is missing.
+            ' See issue https://github.com/dotnet/roslyn/issues/17612
+            MetadataReaderUtils.VerifyPEMetadata(refDll,
                 {"TypeDef:<Module>", "TypeDef:C"},
                 {"MethodDef: Void Main()", "MethodDef: Void .ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}

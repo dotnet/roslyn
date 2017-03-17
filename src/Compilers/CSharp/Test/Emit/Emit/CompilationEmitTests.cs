@@ -339,35 +339,8 @@ public abstract class PublicClass
                     "System.Diagnostics.DebuggableAttribute" });
 
             var peImage = comp.EmitToArray(emitRefOnly);
-            VerifyMethodBodies(peImage, expectEmptyOrThrowNull: true);
+            MetadataReaderUtils.VerifyMethodBodies(peImage, expectEmptyOrThrowNull: true);
         }
-
-        private static void VerifyMethodBodies(System.Collections.Immutable.ImmutableArray<byte> peImage, bool expectEmptyOrThrowNull)
-        {
-            using (var peReader = new PEReader(peImage))
-            {
-                var metadataReader = peReader.GetMetadataReader();
-                foreach (var method in metadataReader.MethodDefinitions)
-                {
-                    var rva = metadataReader.GetMethodDefinition(method).RelativeVirtualAddress;
-                    if (rva != 0)
-                    {
-                        var il = peReader.GetMethodBody(rva).GetILBytes();
-                        var throwNull = new[] { (byte)ILOpCode.Ldnull, (byte)ILOpCode.Throw };
-
-                        if (expectEmptyOrThrowNull)
-                        {
-                            AssertEx.Equal(throwNull, il);
-                        }
-                        else
-                        {
-                            AssertEx.NotEqual(throwNull, il);
-                        }
-                    }
-                }
-            }
-        }
-
         [Fact]
         public void EmitMetadataOnly_DisallowPdbs()
         {
@@ -417,12 +390,12 @@ public abstract class PublicClass
                 Assert.NotEqual(0, output.Position);
                 Assert.NotEqual(0, pdbOutput.Position);
                 Assert.NotEqual(0, metadataOutput.Position);
-                VerifyMethodBodies(ImmutableArray.CreateRange(output.GetBuffer()), expectEmptyOrThrowNull: false);
-                VerifyMethodBodies(ImmutableArray.CreateRange(metadataOutput.GetBuffer()), expectEmptyOrThrowNull: true);
+                MetadataReaderUtils.VerifyMethodBodies(ImmutableArray.CreateRange(output.GetBuffer()), expectEmptyOrThrowNull: false);
+                MetadataReaderUtils.VerifyMethodBodies(ImmutableArray.CreateRange(metadataOutput.GetBuffer()), expectEmptyOrThrowNull: true);
             }
 
             var peImage = comp.EmitToArray();
-            VerifyMethodBodies(peImage, expectEmptyOrThrowNull: false);
+            MetadataReaderUtils.VerifyMethodBodies(peImage, expectEmptyOrThrowNull: false);
         }
 
         /// <summary>

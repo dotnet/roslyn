@@ -8900,7 +8900,7 @@ class C
             var exe = Path.Combine(dir.Path, "a.exe");
             Assert.True(File.Exists(exe));
 
-            VerifyPEMetadata(exe,
+            MetadataReaderUtils.VerifyPEMetadata(exe,
                 new[] { "TypeDef:<Module>", "TypeDef:C" },
                 new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
@@ -8930,7 +8930,10 @@ class C
             var refDll = Path.Combine(dir.Path, Path.Combine("ref", "a.dll"));
             Assert.True(File.Exists(refDll));
 
-            VerifyPEMetadata(refDll,
+            // The types and members that are included needs further refinement.
+            // ReferenceAssemblyAttribute is missing.
+            // See issue https://github.com/dotnet/roslyn/issues/17612
+            MetadataReaderUtils.VerifyPEMetadata(refDll,
                 new[] { "TypeDef:<Module>", "TypeDef:C" },
                 new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
@@ -8940,30 +8943,6 @@ class C
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);
-        }
-
-        private static void VerifyPEMetadata(string pePath, string[] types, string[] methods, string[] attributes)
-        {
-            using (var peStream = File.OpenRead(pePath))
-            using (var refPeReader = new PEReader(peStream))
-            {
-                var metadataReader = refPeReader.GetMetadataReader();
-
-                // The types and members that are included needs further refinement.
-                // See issue https://github.com/dotnet/roslyn/issues/17612
-                AssertEx.SetEqual(metadataReader.TypeDefinitions.Select(t => metadataReader.Dump(t)), types);
-
-                AssertEx.SetEqual(metadataReader.MethodDefinitions.Select(t => metadataReader.Dump(t)), methods);
-
-                // ReferenceAssemblyAttribute is missing.
-                // See issue https://github.com/dotnet/roslyn/issues/17612
-                AssertEx.SetEqual(
-                    metadataReader.CustomAttributes.Select(a => metadataReader.GetCustomAttribute(a).Constructor)
-                        .Select(c => metadataReader.GetMemberReference((MemberReferenceHandle)c).Parent)
-                        .Select(p => metadataReader.GetTypeReference((TypeReferenceHandle)p).Name)
-                        .Select(n => metadataReader.GetString(n)),
-                    attributes);
-            }
         }
 
         [Fact]
@@ -9018,7 +8997,10 @@ class C
             var refDll = Path.Combine(dir.Path, "a.dll");
             Assert.True(File.Exists(refDll));
 
-            VerifyPEMetadata(refDll,
+            // The types and members that are included needs further refinement.
+            // ReferenceAssemblyAttribute is missing.
+            // See issue https://github.com/dotnet/roslyn/issues/17612
+            MetadataReaderUtils.VerifyPEMetadata(refDll,
                 new[] { "TypeDef:<Module>", "TypeDef:C" },
                 new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }

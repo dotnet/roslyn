@@ -437,29 +437,11 @@ End Class"
 
             AssertEx.SetEqual(assembly.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()),
                 {"System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
-                                "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
-                                "System.Diagnostics.DebuggableAttribute"})
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute"})
 
             Dim peImage = comp.EmitToArray(emitRefOnly)
-            VerifyMethodBodies(peImage, expectEmptyOrThrowNull:=True)
-        End Sub
-
-        Private Shared Sub VerifyMethodBodies(peImage As ImmutableArray(Of Byte), expectEmptyOrThrowNull As Boolean)
-            Using peReader As New PEReader(peImage)
-                Dim metadataReader = peReader.GetMetadataReader()
-                For Each method In metadataReader.MethodDefinitions
-                    Dim rva = metadataReader.GetMethodDefinition(method).RelativeVirtualAddress
-                    If rva <> 0 Then
-                        Dim il = peReader.GetMethodBody(rva).GetILBytes()
-                        Dim throwNull = {CType(ILOpCode.Ldnull, Byte), CType(ILOpCode.Throw, Byte)}
-                        If expectEmptyOrThrowNull Then
-                            AssertEx.Equal(throwNull, il)
-                        Else
-                            AssertEx.NotEqual(throwNull, il)
-                        End If
-                    End If
-                Next
-            End Using
+            MetadataReaderUtils.VerifyMethodBodies(peImage, expectEmptyOrThrowNull:=True)
         End Sub
 
         <Fact>
@@ -507,14 +489,14 @@ End Class "
                         Assert.NotEqual(0, output.Position)
                         Assert.NotEqual(0, pdbOutput.Position)
                         Assert.NotEqual(0, metadataOutput.Position)
-                        VerifyMethodBodies(ImmutableArray.CreateRange(output.GetBuffer()), expectEmptyOrThrowNull:=False)
-                        VerifyMethodBodies(ImmutableArray.CreateRange(metadataOutput.GetBuffer()), expectEmptyOrThrowNull:=True)
+                        MetadataReaderUtils.VerifyMethodBodies(ImmutableArray.CreateRange(output.GetBuffer()), expectEmptyOrThrowNull:=False)
+                        MetadataReaderUtils.VerifyMethodBodies(ImmutableArray.CreateRange(metadataOutput.GetBuffer()), expectEmptyOrThrowNull:=True)
                     End Using
                 End Using
             End Using
 
             Dim peImage = comp.EmitToArray()
-            VerifyMethodBodies(peImage, expectEmptyOrThrowNull:=False)
+            MetadataReaderUtils.VerifyMethodBodies(peImage, expectEmptyOrThrowNull:=False)
         End Sub
 
         <WorkItem(4344, "DevDiv_Projects/Roslyn")>

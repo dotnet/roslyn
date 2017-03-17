@@ -358,5 +358,54 @@ namespace Roslyn.Test.Utilities
                 return new SignatureDecoder<string, object>(Instance, reader, genericContext).DecodeType(ref sigReader);
             }
         }
+
+        internal static void VerifyPEMetadata(string pePath, string[] types, string[] methods, string[] attributes)
+        {
+            using (var peStream = File.OpenRead(pePath))
+            using (var refPeReader = new PEReader(peStream))
+            {
+                var metadataReader = refPeReader.GetMetadataReader();
+
+                AssertEx.SetEqual(metadataReader.TypeDefinitions.Select(t => metadataReader.Dump(t)), types);
+                AssertEx.SetEqual(metadataReader.MethodDefinitions.Select(t => metadataReader.Dump(t)), methods);
+
+                AssertEx.SetEqual(
+                    metadataReader.CustomAttributes.Select(a => metadataReader.GetCustomAttribute(a).Constructor)
+                        .Select(c => metadataReader.GetMemberReference((MemberReferenceHandle)c).Parent)
+                        .Select(p => metadataReader.GetTypeReference((TypeReferenceHandle)p).Name)
+                        .Select(n => metadataReader.GetString(n)),
+                    attributes);
+            }
+        }
+
+        /// <summary>
+        /// Asserts that all the method bodies in the PE are empty or `throw null`, if expectEmptyOrThrowNull is true.
+        /// Asserts that none of the methods bodies are empty or `throw null`, if expectEmptyOrThrowNull is false.
+        /// </summary>
+        internal static void VerifyMethodBodies(ImmutableArray<byte> peImage, bool expectEmptyOrThrowNull)
+        {
+            using (var peReader = new PEReader(peImage))
+            {
+                var metadataReader = peReader.GetMetadataReader();
+                foreach (var method in metadataReader.MethodDefinitions)
+                {
+                    var rva = metadataReader.GetMethodDefinition(method).RelativeVirtualAddress;
+                    if (rva != 0)
+                    {
+                        var il = peReader.GetMethodBody(rva).GetILBytes();
+                        var throwNull = new[] { (byte)ILOpCode.Ldnull, (byte)ILOpCode.Throw };
+
+                        if (expectEmptyOrThrowNull)
+                        {
+                            AssertEx.Equal(throwNull, il);
+                        }
+                        else
+                        {
+                            AssertEx.NotEqual(throwNull, il);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
