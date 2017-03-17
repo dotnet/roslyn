@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Xunit;
@@ -14,11 +15,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
         private static readonly char[] LineSeparators = { '\r', '\n' };
 
         protected readonly CSharpInteractiveWindow_OutOfProc InteractiveWindow;
+        protected readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
 
         protected AbstractInteractiveWindowTest(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
             InteractiveWindow = VisualStudio.Instance.CSharpInteractiveWindow;
+            VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
             ClearInteractiveWindow();
         }
 
@@ -39,6 +42,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.Instance.ExecuteCommand(Edit_SelectionCancelCommand);
         }
 
+        protected void DisableSuggestionMode()
+            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
+
+        protected void EnableSuggestionMode()
+            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
+
         protected void Reset(bool waitForPrompt = true)
             => InteractiveWindow.Reset(waitForPrompt: true);
 
@@ -52,6 +61,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void InsertCode(string text)
             => InteractiveWindow.InsertCode(text);
+
+        protected void PlaceCaret(string text, int charsOffset = 0)
+              => InteractiveWindow.PlaceCaret(
+                  text, 
+                  charsOffset: charsOffset, 
+                  occurrence: 0, 
+                  extendSelection: false, 
+                  selectBlock: false);
 
         protected void VerifyLastReplOutput(string expectedReplOutput)
         {
@@ -111,6 +128,36 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 Assert.DoesNotContain(output, replTextLine);
             }
         }
+
+        protected void VerifyCompletionItemExists(params string[] expectedItems)
+        {
+            var completionItems = InteractiveWindow.GetCompletionItems();
+            foreach (var expectedItem in expectedItems)
+            {
+                Assert.Contains(expectedItem, completionItems);
+            }
+        }
+
+        public void VerifyCurrentTokenType(string tokenType)
+        {
+            WaitForAsyncOperations(
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.Classification);
+            var actualTokenTypes = InteractiveWindow.GetCurrentClassifications();
+            Assert.Equal(actualTokenTypes.Length, 1);
+            Assert.Contains(tokenType, actualTokenTypes[0]);
+            Assert.NotEqual("text", tokenType);
+        }
+
+        protected void InvokeCompletionList()
+        {
+            ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
+            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+        }
+
+        protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
+            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";", featuresToWaitFor));
 
         protected void WaitForReplOutput(string outputText)
             => InteractiveWindow.WaitForReplOutput(outputText);

@@ -69,5 +69,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void InsertCode(string text)
             => _inProc.InsertCode(text);
+
+        public string[] GetCompletionItems()
+            => _inProc.GetCompletionItems();
+
+        public void PlaceCaret(
+            string marker, 
+            int charsOffset, 
+            int occurrence, 
+            bool extendSelection, 
+            bool selectBlock)
+            => _inProc.PlaceCaret(
+                marker, 
+                charsOffset, 
+                occurrence, 
+                extendSelection, 
+                selectBlock);
+
+        public string[] GetCurrentClassifications()      
+            => _inProc.GetCurrentClassifications();
     }
 }
