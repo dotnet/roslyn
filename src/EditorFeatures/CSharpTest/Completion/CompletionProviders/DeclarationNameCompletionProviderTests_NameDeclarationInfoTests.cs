@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DeclarationInfoTests
     {
         protected CSharpTestWorkspaceFixture fixture = new CSharpTestWorkspaceFixture();
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void AfterTypeInClass1()
         {
             var markup = @"
@@ -30,11 +30,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property);
             await VerifyNoModifiers(markup);
-            await VerifyTypeName(markup, "Int32");
+            await VerifyTypeName(markup, "global::System.Int32");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void AfterTypeInClassWithAccessibility()
         {
             var markup = @"
@@ -45,11 +45,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property);
             await VerifyNoModifiers(markup);
-            await VerifyTypeName(markup, "Int32");
+            await VerifyTypeName(markup, "global::System.Int32");
             await VerifyAccessibility(markup, Accessibility.Public);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void AfterTypeInClassVirtual()
         {
             var markup = @"
@@ -60,11 +60,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Method, SymbolKind.Property);
             await VerifyModifiers(markup, new DeclarationModifiers(isVirtual: true));
-            await VerifyTypeName(markup, "Int32");
+            await VerifyTypeName(markup, "global::System.Int32");
             await VerifyAccessibility(markup, Accessibility.Public);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void AfterTypeInClassStatic()
         {
             var markup = @"
@@ -75,11 +75,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property);
             await VerifyModifiers(markup, new DeclarationModifiers(isStatic: true));
-            await VerifyTypeName(markup, "Int32");
+            await VerifyTypeName(markup, "global::System.Int32");
             await VerifyAccessibility(markup, Accessibility.Private);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void AfterTypeInClassConst()
         {
             var markup = @"
@@ -90,11 +90,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Field);
             await VerifyModifiers(markup, new DeclarationModifiers(isConst: true));
-            await VerifyTypeName(markup, "Int32");
+            await VerifyTypeName(markup, "global::System.Int32");
             await VerifyAccessibility(markup, Accessibility.Private);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void VariableDeclaration1()
         {
             var markup = @"
@@ -108,11 +108,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Local);
             await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "Int32");
+            await VerifyTypeName(markup, "global::System.Int32");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void VariableDeclaration2()
         {
             var markup = @"
@@ -126,11 +126,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Local);
             await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "Int32");
+            await VerifyTypeName(markup, "global::System.Int32");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ReadonlyVariableDeclaration1()
         {
             var markup = @"
@@ -144,11 +144,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Local);
             await VerifyModifiers(markup, new DeclarationModifiers(isReadOnly: true));
-            await VerifyTypeName(markup, "Int32");
+            await VerifyTypeName(markup, "global::System.Int32");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ReadonlyVariableDeclaration2()
         {
             var markup = @"
@@ -162,11 +162,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Local);
             await VerifyModifiers(markup, new DeclarationModifiers(isReadOnly: true));
-            await VerifyTypeName(markup, "Int32");
+            await VerifyTypeName(markup, "global::System.Int32");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void Parameter1()
         {
             var markup = @"
@@ -178,11 +178,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Parameter);
             await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "C");
+            await VerifyTypeName(markup, "global::C");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void Parameter2()
         {
             var markup = @"
@@ -194,11 +194,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Parameter);
             await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "C");
+            await VerifyTypeName(markup, "global::C");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ParameterAfterPredefinedType1()
         {
             var markup = @"
@@ -210,11 +210,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Parameter);
             await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "String");
+            await VerifyTypeName(markup, "global::System.String");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ParameterAfterPredefinedType2()
         {
             var markup = @"
@@ -226,11 +226,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Parameter);
             await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "String");
+            await VerifyTypeName(markup, "global::System.String");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ParameterAfterGeneric()
         {
             var markup = @"
@@ -243,11 +243,11 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Parameter);
             await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "List");
+            await VerifyTypeName(markup, "global::System.Collections.Generic.List");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ClassTypeParameter1()
         {
             var markup = @"
@@ -258,7 +258,7 @@ class C<$$
             await VerifySymbolKinds(markup, SymbolKind.TypeParameter);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ClassTypeParameter2()
         {
             var markup = @"
@@ -269,7 +269,7 @@ class C<T1, $$
             await VerifySymbolKinds(markup, SymbolKind.TypeParameter);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ModifierExclusion1()
         {
             var markup = @"
@@ -281,7 +281,7 @@ class C
             await VerifySymbolKinds(markup, SymbolKind.Field);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ModifierExclusion2()
         {
             var markup = @"
@@ -293,7 +293,7 @@ class C
             await VerifySymbolKinds(markup, SymbolKind.Field);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ModifierExclusion3()
         {
             var markup = @"
@@ -305,7 +305,7 @@ class C
             await VerifySymbolKinds(markup, SymbolKind.Method, SymbolKind.Property);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ModifierExclusion4()
         {
             var markup = @"
@@ -317,7 +317,7 @@ class C
             await VerifySymbolKinds(markup, SymbolKind.Method, SymbolKind.Property);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ModifierExclusion5()
         {
             var markup = @"
@@ -329,7 +329,7 @@ class C
             await VerifySymbolKinds(markup, SymbolKind.Method, SymbolKind.Property);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ModifierExclusion6()
         {
             var markup = @"
@@ -341,7 +341,7 @@ class C
             await VerifySymbolKinds(markup, SymbolKind.Method, SymbolKind.Property);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ModifierExclusion7()
         {
             // Note that the async is not included in the incomplete member syntax
@@ -354,7 +354,7 @@ class C
             await VerifySymbolKinds(markup, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ModifierExclusion8()
         {
             // Note that the async is not included in the incomplete member syntax
@@ -447,7 +447,7 @@ namespace ConsoleApp1
         private async Task VerifyTypeName(string markup, string typeName)
         {
             var result = await GetResultsAsync(markup);
-            Assert.Equal(typeName, result.Type.Name);
+            Assert.Equal(typeName, result.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
         }
 
         private async Task VerifyNoModifiers(string markup)
