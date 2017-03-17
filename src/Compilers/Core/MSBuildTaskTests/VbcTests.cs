@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
             vbc.OutputRefAssembly = MSBuildUtil.CreateTaskItem("ref\\test.dll");
-            Assert.Equal("/optionstrict:custom /out:test.exe /outref:ref\\test.dll test.vb", vbc.GenerateResponseFileContents());
+            Assert.Equal("/optionstrict:custom /out:test.exe /refout:ref\\test.dll test.vb", vbc.GenerateResponseFileContents());
         }
 
         [Fact]

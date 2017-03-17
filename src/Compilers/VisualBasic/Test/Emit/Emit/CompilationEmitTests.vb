@@ -345,26 +345,20 @@ End Class"
             Dim comp1 = CreateCompilationWithMscorlib(source1,
                 options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
 
-            Dim image1 As Byte()
+            Dim image1 As ImmutableArray(Of Byte)
 
             Using output As New MemoryStream()
-                Dim EmitResult = comp1.Emit(output, options:=EmitOptions.Default.WithEmitMetadataOnly(True))
-                Assert.True(EmitResult.Success)
-                EmitResult.Diagnostics.Verify()
-                image1 = output.ToArray()
+                image1 = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True))
             End Using
 
             Dim source2 = sourceTemplate.Replace("CHANGE", change2)
             Dim comp2 = CreateCompilationWithMscorlib(source2,
                             options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
 
-            Dim image2 As Byte()
+            Dim image2 As ImmutableArray(Of Byte)
 
             Using output As New MemoryStream()
-                Dim EmitResult = comp2.Emit(output, options:=EmitOptions.Default.WithEmitMetadataOnly(True))
-                Assert.True(EmitResult.Success)
-                EmitResult.Diagnostics.Verify()
-                image2 = output.ToArray()
+                image2 = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True))
             End Using
 
             If expectMatch Then

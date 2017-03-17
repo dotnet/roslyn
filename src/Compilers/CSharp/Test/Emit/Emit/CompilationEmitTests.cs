@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -255,28 +256,22 @@ public class C
             CSharpCompilation comp1 = CreateCompilationWithMscorlib(Parse(source1),
                 options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
 
-            byte[] image1;
+            ImmutableArray<byte> image1;
 
             using (var output = new MemoryStream())
             {
-                var emitResult = comp1.Emit(output, options: EmitOptions.Default.WithEmitMetadataOnly(true));
-                Assert.True(emitResult.Success);
-                emitResult.Diagnostics.Verify();
-                image1 = output.ToArray();
+                image1 = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true));
             }
 
             var source2 = sourceTemplate.Replace("CHANGE", change2);
             Compilation comp2 = CreateCompilationWithMscorlib(Parse(source2),
                 options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
 
-            byte[] image2;
+            ImmutableArray<byte> image2;
 
             using (var output = new MemoryStream())
             {
-                var emitResult = comp2.Emit(output, options: EmitOptions.Default.WithEmitMetadataOnly(true));
-                Assert.True(emitResult.Success);
-                emitResult.Diagnostics.Verify();
-                image2 = output.ToArray();
+                image2 = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true));
             }
 
             if (expectMatch)

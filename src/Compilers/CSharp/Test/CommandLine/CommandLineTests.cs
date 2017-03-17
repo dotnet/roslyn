@@ -8894,7 +8894,7 @@ class C
             var exe = Path.Combine(dir.Path, "a.exe");
             Assert.True(File.Exists(exe));
 
-            VerifyPEMetadata(File.OpenRead(exe),
+            VerifyPEMetadata(exe,
                 new[] { "TypeDef:<Module>", "TypeDef:C" },
                 new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
@@ -8903,10 +8903,8 @@ class C
             var doc = Path.Combine(dir.Path, "doc.xml");
             Assert.True(File.Exists(doc));
 
-            using (var reader = new StreamReader(doc))
-            {
-                var content = reader.ReadToEnd();
-                var expectedDoc =
+            var content = File.ReadAllText(doc);
+            var expectedDoc =
 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -8918,16 +8916,15 @@ class C
         </member>
     </members>
 </doc>";
-                Assert.Equal(expectedDoc, content.Trim());
-            }
+            Assert.Equal(expectedDoc, content.Trim());
 
             var output = ProcessUtilities.RunAndGetOutput(exe, startFolder: dir.ToString());
             Assert.Equal("Hello", output.Trim());
 
-            var refDll = Path.Combine(dir.Path, "ref\\a.dll");
+            var refDll = Path.Combine(dir.Path, Path.Combine("ref", "a.dll"));
             Assert.True(File.Exists(refDll));
 
-            VerifyPEMetadata(File.OpenRead(refDll),
+            VerifyPEMetadata(refDll,
                 new[] { "TypeDef:<Module>", "TypeDef:C" },
                 new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
@@ -8939,8 +8936,9 @@ class C
             CleanupAllGeneratedFiles(dir.Path);
         }
 
-        private static void VerifyPEMetadata(FileStream peStream, string[] types, string[] methods, string[] attributes)
+        private static void VerifyPEMetadata(string pePath, string[] types, string[] methods, string[] attributes)
         {
+            using (var peStream = File.OpenRead(pePath))
             using (var refPeReader = new PEReader(peStream))
             {
                 var metadataReader = refPeReader.GetMetadataReader();
@@ -8980,7 +8978,7 @@ class C
             var dll = Path.Combine(dir.Path, "a.dll");
             Assert.False(File.Exists(dll));
 
-            var refDll = Path.Combine(dir.Path, "ref\\a.dll");
+            var refDll = Path.Combine(dir.Path, Path.Combine("ref", "a.dll"));
             Assert.False(File.Exists(refDll));
 
             Assert.Equal("a.cs(1,39): error CS0103: The name 'error' does not exist in the current context", outWriter.ToString().Trim());
@@ -9006,14 +9004,15 @@ class C
 }");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/doc:doc.xml", "a.cs" });
+            var csc = new MockCSharpCompiler(null, dir.Path,
+                new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/doc:doc.xml", "a.cs" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
 
             var refDll = Path.Combine(dir.Path, "a.dll");
             Assert.True(File.Exists(refDll));
 
-            VerifyPEMetadata(File.OpenRead(refDll),
+            VerifyPEMetadata(refDll,
                 new[] { "TypeDef:<Module>", "TypeDef:C" },
                 new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
@@ -9025,10 +9024,8 @@ class C
             var doc = Path.Combine(dir.Path, "doc.xml");
             Assert.True(File.Exists(doc));
 
-            using (var reader = new StreamReader(doc))
-            {
-                var content = reader.ReadToEnd();
-                var expectedDoc =
+            var content = File.ReadAllText(doc);
+            var expectedDoc =
 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -9040,8 +9037,7 @@ class C
         </member>
     </members>
 </doc>";
-                Assert.Equal(expectedDoc, content.Trim());
-            }
+            Assert.Equal(expectedDoc, content.Trim());
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);

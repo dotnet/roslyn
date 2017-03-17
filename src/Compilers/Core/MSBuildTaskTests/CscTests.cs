@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.OutputRefAssembly = MSBuildUtil.CreateTaskItem("ref\\test.dll");
-            Assert.Equal("/out:test.exe /outref:ref\\test.dll test.cs", csc.GenerateResponseFileContents());
+            Assert.Equal("/out:test.exe /refout:ref\\test.dll test.cs", csc.GenerateResponseFileContents());
         }
 
         [Fact]
