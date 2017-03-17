@@ -89,6 +89,32 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestNotOnInterfaceParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+interface I
+{
+    void M([||]string s);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestNotOnAbstractParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    abstract void M([||]string s);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
         public async Task TestUpdateExistingFieldAssignment()
         {
             await TestInRegularAndScript1Async(
