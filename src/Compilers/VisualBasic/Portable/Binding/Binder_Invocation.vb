@@ -3038,14 +3038,22 @@ ProduceBoundNode:
 
         End Sub
 
-        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol, syntax As SyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As SyntaxNode) As BoundExpression
+        Friend Function GetArgumentForParameterDefaultValue(
+                                                             param As ParameterSymbol,
+                                                             syntax As SyntaxNode,
+                                                             diagnostics As DiagnosticBag,
+                                                             callerInfoOpt As SyntaxNode
+                                                           ) As BoundExpression
+
             Dim defaultArgument As BoundExpression = Nothing
 
             ' See Section 3 of §11.8.2 Applicable Methods
             ' Deal with Optional arguments. HasDefaultValue is true if the parameter is optional and has a default value.
             Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), Nothing)
-            If defaultConstantValue IsNot Nothing Then
 
+
+            If defaultConstantValue IsNot Nothing Then
+check_0:
                 If callerInfoOpt IsNot Nothing AndAlso
                    callerInfoOpt.SyntaxTree IsNot Nothing AndAlso
                    Not callerInfoOpt.SyntaxTree.IsEmbeddedOrMyTemplateTree() AndAlso
@@ -3198,6 +3206,7 @@ ProduceBoundNode:
                 Else
                     defaultArgument = New BoundLiteral(syntax, ConstantValue.Null, Nothing)
                 End If
+                GoTo check_0
 
             End If
 
