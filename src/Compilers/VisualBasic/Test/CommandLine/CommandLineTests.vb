@@ -2773,6 +2773,10 @@ print Goodbye, World"
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_NoRefOutWhenRefOnly).WithLocation(1, 1))
 
+            parsedArgs = DefaultParse({"/refonly:incorrect", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("refonly").WithLocation(1, 1))
+
             parsedArgs = DefaultParse({"/refout:ref.dll", "/target:module", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_NoNetModuleOutputWhenRefOutOrRefOnly).WithLocation(1, 1))
@@ -8046,7 +8050,7 @@ a
 </doc>"
             Assert.Equal(expectedDoc, content.Trim())
 
-            Dim output = ProcessUtilities.RunAndGetOutput(exe, startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(exe, startFolder:=dir.Path)
             Assert.Equal("Hello", output.Trim())
 
             Dim refDll = Path.Combine(dir.Path, Path.Combine("ref", "a.dll"))

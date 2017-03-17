@@ -344,22 +344,12 @@ End Class"
             Dim source1 As String = sourceTemplate.Replace("CHANGE", change1)
             Dim comp1 = CreateCompilationWithMscorlib(source1,
                 options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
-
-            Dim image1 As ImmutableArray(Of Byte)
-
-            Using output As New MemoryStream()
-                image1 = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True))
-            End Using
+            Dim image1 As ImmutableArray(Of Byte) = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True))
 
             Dim source2 = sourceTemplate.Replace("CHANGE", change2)
             Dim comp2 = CreateCompilationWithMscorlib(source2,
                             options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
-
-            Dim image2 As ImmutableArray(Of Byte)
-
-            Using output As New MemoryStream()
-                image2 = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True))
-            End Using
+            Dim image2 As ImmutableArray(Of Byte) = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True))
 
             If expectMatch Then
                 AssertEx.Equal(image1, image2)
@@ -382,7 +372,7 @@ End Function", False) ' Should be true. See follow-up issue https://github.com/d
 
             RefAssembly_IgnoresSomeDiagnostics(
 "Public Function M() As Error
-End Function", False) ' Should be True. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+End Function", False) ' This may get relaxed. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
         End Sub
 
         Private Sub RefAssembly_IgnoresSomeDiagnostics(change As String, expectSuccess As Boolean)
@@ -473,7 +463,7 @@ End Class"
         End Sub
 
         <Fact>
-        Public Sub EmitMetadataOnly_NoPdbs()
+        Public Sub EmitMetadataOnly_DisallowPdbs()
             Dim comp = CreateCompilation("", references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
@@ -486,7 +476,7 @@ End Class"
         End Sub
 
         <Fact>
-        Public Sub EmitMetadataOnly_NoMetadataPeStream()
+        Public Sub EmitMetadataOnly_DisallowMetadataPeStream()
             Dim comp = CreateCompilation("", references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
@@ -517,6 +507,8 @@ End Class "
                         Assert.NotEqual(0, output.Position)
                         Assert.NotEqual(0, pdbOutput.Position)
                         Assert.NotEqual(0, metadataOutput.Position)
+                        VerifyMethodBodies(ImmutableArray.CreateRange(output.GetBuffer()), expectEmptyOrThrowNull:=False)
+                        VerifyMethodBodies(ImmutableArray.CreateRange(metadataOutput.GetBuffer()), expectEmptyOrThrowNull:=True)
                     End Using
                 End Using
             End Using

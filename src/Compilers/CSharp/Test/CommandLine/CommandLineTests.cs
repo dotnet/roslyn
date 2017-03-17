@@ -2794,6 +2794,12 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 // error CS8301: Do not use refout when using refonly.
                 Diagnostic(ErrorCode.ERR_NoRefOutWhenRefOnly).WithLocation(1, 1));
 
+            parsedArgs = DefaultParse(new[] { "/refonly:incorrect", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2007: Unrecognized option: '/refonly:incorrect'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/refonly:incorrect").WithLocation(1, 1)
+                );
+
             parsedArgs = DefaultParse(new[] { @"/refout:ref.dll", "/target:module", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS8302: Cannot compile net modules when using /refout or /refonly.
@@ -8918,7 +8924,7 @@ class C
 </doc>";
             Assert.Equal(expectedDoc, content.Trim());
 
-            var output = ProcessUtilities.RunAndGetOutput(exe, startFolder: dir.ToString());
+            var output = ProcessUtilities.RunAndGetOutput(exe, startFolder: dir.Path);
             Assert.Equal("Hello", output.Trim());
 
             var refDll = Path.Combine(dir.Path, Path.Combine("ref", "a.dll"));

@@ -255,24 +255,12 @@ public class C
             string source1 = sourceTemplate.Replace("CHANGE", change1);
             CSharpCompilation comp1 = CreateCompilationWithMscorlib(Parse(source1),
                 options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
-
-            ImmutableArray<byte> image1;
-
-            using (var output = new MemoryStream())
-            {
-                image1 = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true));
-            }
+            ImmutableArray<byte> image1 = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true));
 
             var source2 = sourceTemplate.Replace("CHANGE", change2);
             Compilation comp2 = CreateCompilationWithMscorlib(Parse(source2),
                 options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
-
-            ImmutableArray<byte> image2;
-
-            using (var output = new MemoryStream())
-            {
-                image2 = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true));
-            }
+            ImmutableArray<byte> image2 = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true));
 
             if (expectMatch)
             {
@@ -287,7 +275,7 @@ public class C
         [Theory]
         [InlineData("public int M() { error(); }", true)]
         [InlineData("public int M() { error() }", false)] // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
-        [InlineData("public Error M() { return null; }", false)] // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+        [InlineData("public Error M() { return null; }", false)] // This may get relaxed. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
         public void RefAssembly_IgnoresSomeDiagnostics(string change, bool expectSuccess)
         {
             string sourceTemplate = @"
@@ -381,7 +369,7 @@ public abstract class PublicClass
         }
 
         [Fact]
-        public void EmitMetadataOnly_NoPdbs()
+        public void EmitMetadataOnly_DisallowPdbs()
         {
             CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
@@ -395,7 +383,7 @@ public abstract class PublicClass
         }
 
         [Fact]
-        public void EmitMetadataOnly_NoMetadataPeStream()
+        public void EmitMetadataOnly_DisallowMetadataPeStream()
         {
             CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
@@ -429,6 +417,8 @@ public abstract class PublicClass
                 Assert.NotEqual(0, output.Position);
                 Assert.NotEqual(0, pdbOutput.Position);
                 Assert.NotEqual(0, metadataOutput.Position);
+                VerifyMethodBodies(ImmutableArray.CreateRange(output.GetBuffer()), expectEmptyOrThrowNull: false);
+                VerifyMethodBodies(ImmutableArray.CreateRange(metadataOutput.GetBuffer()), expectEmptyOrThrowNull: true);
             }
 
             var peImage = comp.EmitToArray();
