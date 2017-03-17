@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -13,7 +11,6 @@ using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
@@ -53,18 +50,19 @@ public class C
     async Task<C> $$
 }
 ";
-            var workspace = WorkspaceFixture.GetWorkspace();
-            var oldOptions = workspace.Options;
-            try
-            {
-                var newOptions = oldOptions.WithChangedOption(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), AsyncMethodsEndWithAsync());
-                workspace.Options = newOptions;
-                await VerifyItemExistsAsync(markup, "GetCAsync");
-            }
-            finally
-            {
-                workspace.Options = oldOptions;
-            }
+            await VerifyItemExistsAsync(markup, "GetCAsync");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void NonAsyncTaskOfT()
+        {
+            var markup = @"
+public class C
+{
+    Task<C> $$
+}
+";
+            await VerifyItemExistsAsync(markup, "GetCAsync");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -116,7 +114,7 @@ public class C
 interface II {}
 public class C
 {
-    I $$
+    II $$
 }
 ";
             await VerifyItemExistsAsync(markup, "I");
@@ -197,7 +195,7 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void SuggestionsForInt()
+        public async void NoSuggestionsForInt()
         {
             var markup = @"
 using System.Threading;
@@ -206,7 +204,7 @@ public class C
     int $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "v");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -219,7 +217,7 @@ public class C
     long $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "v");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -232,11 +230,11 @@ public class C
     double $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "v");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void SuggestionsForFloat()
+        public async void NoSuggestionsForFloat()
         {
             var markup = @"
 using System.Threading;
@@ -245,11 +243,11 @@ public class C
     float $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "v");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void SuggestionsForSbyte()
+        public async void NoSuggestionsForSbyte()
         {
             var markup = @"
 using System.Threading;
@@ -258,11 +256,11 @@ public class C
     sbyte $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "v");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void SuggestionsForShort()
+        public async void NoSuggestionsForShort()
         {
             var markup = @"
 using System.Threading;
@@ -271,11 +269,11 @@ public class C
     short $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "v");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void SuggestionsForUint()
+        public async void NoSuggestionsForUint()
         {
             var markup = @"
 using System.Threading;
@@ -284,11 +282,11 @@ public class C
     uint $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "v");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void SuggestionsForUlong()
+        public async void NoSuggestionsForUlong()
         {
             var markup = @"
 using System.Threading;
@@ -297,7 +295,7 @@ public class C
     ulong $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "v");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -310,11 +308,11 @@ public class C
     ushort $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "v");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void SuggestionsForBool()
+        public async void NoSuggestionsForBool()
         {
             var markup = @"
 using System.Threading;
@@ -323,11 +321,11 @@ public class C
     bool $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "v");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void SuggestionsForByte()
+        public async void NoSuggestionsForByte()
         {
             var markup = @"
 using System.Threading;
@@ -336,11 +334,11 @@ public class C
     byte $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "v");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void SuggestionsForChar()
+        public async void NoSuggestionsForChar()
         {
             var markup = @"
 using System.Threading;
@@ -349,11 +347,11 @@ public class C
     char $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "v");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void SuggestionsForString()
+        public async void NoSuggestionsForString()
         {
             var markup = @"
 public class C
@@ -361,7 +359,19 @@ public class C
     string $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "v");
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void NoSingleLetterClassNameSuggested()
+        {
+            var markup = @"
+public class C
+{
+    C $$
+}
+";
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -427,36 +437,6 @@ public class C
 }
 ";
             await VerifyNoItemsExistAsync(markup);
-        }
-
-        private NamingStylePreferences AsyncMethodsEndWithAsync()
-        {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Method)),
-                ImmutableArray.Create<Accessibility>(),
-                ImmutableArray.Create(new SymbolSpecification.ModifierKind(ModifierKindEnum.IsAsync)));
-
-            var namingStyle = new NamingStyle(Guid.NewGuid(),
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "",
-                capitalizationScheme: Capitalization.PascalCase);
-                
-
-            var namingRule = new SerializableNamingRule();
-            namingRule.SymbolSpecificationID = symbolSpecification.ID;
-            namingRule.NamingStyleID = namingStyle.ID;
-            namingRule.EnforcementLevel = DiagnosticSeverity.Error;
-
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
-
-            return info;
         }
     }
 }
