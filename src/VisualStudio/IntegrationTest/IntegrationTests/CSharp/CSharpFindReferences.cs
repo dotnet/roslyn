@@ -25,7 +25,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17634"),
+         Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToCtor()
         {
             SetUpEditor(@"

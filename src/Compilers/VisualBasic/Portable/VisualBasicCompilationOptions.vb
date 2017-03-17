@@ -913,6 +913,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Sub ValidateOptions(builder As ArrayBuilder(Of Diagnostic))
             ValidateOptions(builder, MessageProvider.Instance)
 
+            If ParseOptions IsNot Nothing Then
+                builder.AddRange(ParseOptions.Errors)
+            End If
+
             If Me.EmbedVbCoreRuntime AndAlso Me.OutputKind.IsNetModule() Then
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_VBCoreNetModuleConflict))
             End If

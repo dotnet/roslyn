@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             VisualStudioWorkspace.CleanUpWaitingService();
             VisualStudioWorkspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
-            CSharpInteractiveWindow.CleanUpInteractiveWindow();
+            CSharpInteractiveWindow.CloseInteractiveWindow();
         }
 
         public void Close(bool exitHostProcess = true)

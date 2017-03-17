@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader.Tools;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
