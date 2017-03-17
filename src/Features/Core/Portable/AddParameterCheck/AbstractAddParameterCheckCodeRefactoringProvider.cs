@@ -189,10 +189,7 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
                 if (targetMethod?.Name == nameof(string.IsNullOrEmpty) ||
                     targetMethod?.Name == nameof(string.IsNullOrWhiteSpace))
                 {
-                    if (targetMethod.ContainingType.SpecialType == SpecialType.System_String)
-                    {
-                        return true;
-                    }
+                    return targetMethod.ContainingType.SpecialType == SpecialType.System_String;
                 }
             }
 
