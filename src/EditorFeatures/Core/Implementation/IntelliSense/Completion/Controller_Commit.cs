@@ -111,8 +111,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     var mappedSpan = triggerSnapshotSpan.TranslateTo(
                         this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
+                    // If the client is providing a caret position, then it's likely they're
+                    // making a large/complex change to the document.  In this case try to
+                    // get the editor to actually apply this as a minimal-change so that the
+                    // document change looks nice and tidy.  This won't mess anything up as we
+                    // will then place the caret manually.
+                    //
+                    // If the caret position is not provided, then we do not want a minimal-change
+                    // as it's important that the caret move to the end of the inserted text,
+                    // and the editor might actually make a smaller change than that when it 
+                    // does it's diff.
+                    var editOptions = completionChange.NewPosition != null
+                        ? EditOptions.DefaultMinimalChange
+                        : EditOptions.None;
                     // Now actually make the text change to the document.
-                    using (var textEdit = this.SubjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null))
+                    using (var textEdit = this.SubjectBuffer.CreateEdit(editOptions, reiteratedVersionNumber: null, editTag: null))
                     {
                         var adjustedNewText = AdjustForVirtualSpace(textChange);
 
