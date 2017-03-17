@@ -54,6 +54,7 @@
     <Compile Include="OutOfProcess\Shell_OutOfProc.cs" />
     <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
     <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
+    <Compile Include="OutOfProcess\TextViewWindow_OutOfProc.cs" />
     <Compile Include="ScreenshotService.cs" />
     <Compile Include="TemporaryTextFile.cs" />
     <Compile Include="TestUtilities.cs" />

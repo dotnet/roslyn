@@ -7,9 +7,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     /// <summary>
     /// Provides a means of interacting with the interactive window in the Visual Studio host.
     /// </summary>
-    public abstract class InteractiveWindow_OutOfProc : OutOfProcComponent
+    public abstract class InteractiveWindow_OutOfProc : TextViewWindow_OutOfProc
     {
         private readonly InteractiveWindow_InProc _inProc;
+        internal override TextViewWindow_InProc InProc => _inProc;
 
         internal InteractiveWindow_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base (visualStudioInstance)
@@ -33,9 +34,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// </summary>
         public string GetLastReplInput()
             => _inProc.GetLastReplInput();
-
-        public int GetCaretPosition()
-            => _inProc.GetCaretPosition();
 
         public string GetReplText()
             => _inProc.GetReplText();
@@ -69,24 +67,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void InsertCode(string text)
             => _inProc.InsertCode(text);
-
-        public string[] GetCompletionItems()
-            => _inProc.GetCompletionItems();
-
-        public void PlaceCaret(
-            string marker, 
-            int charsOffset, 
-            int occurrence, 
-            bool extendSelection, 
-            bool selectBlock)
-            => _inProc.PlaceCaret(
-                marker, 
-                charsOffset, 
-                occurrence, 
-                extendSelection, 
-                selectBlock);
-
-        public string[] GetCurrentClassifications()      
-            => _inProc.GetCurrentClassifications();
     }
 }

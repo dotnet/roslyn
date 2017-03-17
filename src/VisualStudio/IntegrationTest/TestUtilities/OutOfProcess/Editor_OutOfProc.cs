@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -10,16 +9,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     /// <summary>
     /// Provides a means of interacting with the Visual Studio editor by remoting calls into Visual Studio.
     /// </summary>
-    public partial class Editor_OutOfProc : OutOfProcComponent
+    public partial class Editor_OutOfProc : TextViewWindow_OutOfProc
     {
         private readonly Editor_InProc _inProc;
+        internal override TextViewWindow_InProc InProc => _inProc;
 
         internal Editor_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
             _inProc = CreateInProcComponent<Editor_InProc>(visualStudioInstance);
         }
-
+        
         public void Activate()
             => _inProc.Activate();
 
@@ -32,9 +32,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetCurrentLineText()
             => _inProc.GetCurrentLineText();
 
-        public int GetCaretPosition()
-            => _inProc.GetCaretPosition();
-
         public string GetLineTextBeforeCaret()
             => _inProc.GetLineTextBeforeCaret();
 
@@ -43,18 +40,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void MoveCaret(int position)
             => _inProc.MoveCaret(position);
-
-        public string[] GetCurrentClassifications()
-            => _inProc.GetCurrentClassifications();
-
-        public void PlaceCaret(string marker, int charsOffset, int occurrence, bool extendSelection, bool selectBlock)
-            => _inProc.PlaceCaret(marker, charsOffset, occurrence, extendSelection, selectBlock);
-
-        public string[] GetCompletionItems()
-        {
-            WaitForCompletionSet();
-            return _inProc.GetCompletionItems();
-        }
 
         public string GetCurrentCompletionItem()
         {
