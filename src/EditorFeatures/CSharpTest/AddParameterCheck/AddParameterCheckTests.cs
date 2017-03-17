@@ -217,5 +217,60 @@ class C
 }", parameters: new TestParameters(options:
     Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithNoneEnforcement)));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestUpdateExpressionBody1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S;
+
+    public C([||]string s)
+        => S = s;
+}",
+@"
+using System;
+
+class C
+{
+    private string S;
+
+    public C(string s)
+        => S = s ?? throw new ArgumentNullException(nameof(s));
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestUpdateExpressionBody2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C([||]string s)
+        => Init();
+}",
+@"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+        
+        Init();
+    }
+}");
+        }
     }
 }
