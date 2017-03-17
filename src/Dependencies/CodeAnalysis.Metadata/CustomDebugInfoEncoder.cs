@@ -171,6 +171,8 @@ namespace Microsoft.CodeAnalysis.Debugging
                 tupleLocals,
                 (infos, builder) =>
                 {
+                    Debug.Assert(infos.Count > 0);
+
                     builder.WriteInt32(infos.Count);
                     foreach (var info in infos)
                     {
