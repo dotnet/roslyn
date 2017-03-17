@@ -31,20 +31,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         public async void NameWithOnlyType1()
         {
             var markup = @"
-public class C
+public class MyClass
 {
-    C $$
+    MyClass $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "C", glyph: (int)Glyph.PropertyPublic);
-            await VerifyItemExistsAsync(markup, "c", glyph: (int)Glyph.FieldPublic);
-            await VerifyItemExistsAsync(markup, "GetC", glyph: (int)Glyph.MethodPublic);
+            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic);
+            await VerifyItemExistsAsync(markup, "myClass", glyph: (int)Glyph.FieldPublic);
+            await VerifyItemExistsAsync(markup, "GetMyClass", glyph: (int)Glyph.MethodPublic);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void AsyncTaskOfT()
         {
             var markup = @"
+using System.Threading.Tasks;
 public class C
 {
     async Task<C> $$
@@ -53,7 +54,7 @@ public class C
             await VerifyItemExistsAsync(markup, "GetCAsync");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact(Skip = "not yet implemented"), Trait(Traits.Feature, Traits.Features.Completion)]
         public async void NonAsyncTaskOfT()
         {
             var markup = @"
@@ -104,7 +105,7 @@ public class C
     I $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "I");
+            await VerifyItemExistsAsync(markup, "GetI");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -117,7 +118,7 @@ public class C
     II $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "I");
+            await VerifyItemExistsAsync(markup, "GetI");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -137,21 +138,21 @@ public class C
         public async void WordBreaking5()
         {
             var markup = @"
-class AWonderfullyLongClassName {}
+class SomeWonderfullyLongClassName {}
 public class C
 {
-    AWonderfullyLongClassName $$
+    SomeWonderfullyLongClassName $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "A");
-            await VerifyItemExistsAsync(markup, "AWonderfully");
-            await VerifyItemExistsAsync(markup, "AWonderfullyLong");
-            await VerifyItemExistsAsync(markup, "AWonderfullyLongClass");
+            await VerifyItemExistsAsync(markup, "Some");
+            await VerifyItemExistsAsync(markup, "SomeWonderfully");
+            await VerifyItemExistsAsync(markup, "SomeWonderfullyLong");
+            await VerifyItemExistsAsync(markup, "SomeWonderfullyLongClass");
             await VerifyItemExistsAsync(markup, "Name");
             await VerifyItemExistsAsync(markup, "ClassName");
             await VerifyItemExistsAsync(markup, "LongClassName");
             await VerifyItemExistsAsync(markup, "WonderfullyLongClassName");
-            await VerifyItemExistsAsync(markup, "AWonderfullyLongClassName");
+            await VerifyItemExistsAsync(markup, "SomeWonderfullyLongClassName");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -371,7 +372,8 @@ public class C
     C $$
 }
 ";
-            await VerifyNoItemsExistAsync(markup);
+            await VerifyItemIsAbsentAsync(markup, "C");
+            await VerifyItemIsAbsentAsync(markup, "c");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -379,12 +381,12 @@ public class C
         {
             var markup = @"
 using System.Threading;
-public class C
+public class MyClass
 {
-    C[] $$
+    MyClass[] $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "C");
+            await VerifyItemExistsAsync(markup, "MyClass");
             await VerifyItemIsAbsentAsync(markup, "Array");
         }
 
@@ -421,7 +423,7 @@ public class C
     System.Collections.Generic.IEnumerable<C> $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "C");
+            await VerifyItemExistsAsync(markup, "GetC");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

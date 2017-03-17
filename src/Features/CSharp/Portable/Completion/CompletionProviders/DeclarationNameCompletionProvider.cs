@@ -68,7 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            return type.SpecialType != SpecialType.System_Void;
+            if (type.SpecialType == SpecialType.System_Void)
+            {
+                return false;
+            }
+
+            return !type.IsSpecialType();
         }
 
         private Glyph GetGlyph(SymbolKind kind, Accessibility declaredAccessibility)
@@ -140,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var taskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
                 var valueTaskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
                 if (originalDefinition == taskOfTType
-                    || originalDefinition == valueTaskType )
+                    || originalDefinition == valueTaskType)
                 {
                     return UnwrapType(namedType.TypeArguments[0], compilation);
                 }
@@ -149,10 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return type;
         }
 
-        private async Task <IEnumerable<(string, SymbolKind)>> GetRecommendedNamesAsync(
-            IEnumerable<IEnumerable<string>> baseNames, 
-            NameDeclarationInfo declarationInfo, 
-            CSharpSyntaxContext context, 
+        private async Task<IEnumerable<(string, SymbolKind)>> GetRecommendedNamesAsync(
+            IEnumerable<IEnumerable<string>> baseNames,
+            NameDeclarationInfo declarationInfo,
+            CSharpSyntaxContext context,
             Document document,
             CancellationToken cancellationToken)
         {
@@ -171,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         foreach (var baseName in baseNames)
                         {
                             var name = rule.NamingStyle.CreateName(baseName);
-                            if (!result.ContainsKey(name)) // Don't add multiple items for the same name
+                            if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
                             {
                                 result.Add(name, symbolKind);
                             }

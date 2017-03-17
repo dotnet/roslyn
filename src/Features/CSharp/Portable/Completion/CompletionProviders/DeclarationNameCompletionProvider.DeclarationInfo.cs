@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 Func<DeclarationModifiers, ImmutableArray<SymbolKind>> possibleDeclarationComputer,
                 CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
             {
-                if (!IsValidToken(token))
+                if (!IsPossibleTypeToken(token) && !token.IsKind(SyntaxKind.CommaToken))
                 {
                     return default(NameDeclarationInfo);
                 }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 Func<DeclarationModifiers, ImmutableArray<SymbolKind>> possibleDeclarationComputer,
                 CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
             {
-                if (!IsValidToken(token))
+                if (!IsPossibleTypeToken(token))
                 {
                     return default(NameDeclarationInfo);
                 }
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return result.Type != null;
             }
 
-            private static bool IsValidToken(SyntaxToken token) => 
+            private static bool IsPossibleTypeToken(SyntaxToken token) => 
                 token.IsKind(
                     SyntaxKind.IdentifierToken, 
                     SyntaxKind.GreaterThanToken, 

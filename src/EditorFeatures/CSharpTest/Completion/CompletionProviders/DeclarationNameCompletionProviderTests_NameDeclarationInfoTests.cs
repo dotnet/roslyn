@@ -30,7 +30,7 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property);
             await VerifyNoModifiers(markup);
-            await VerifyTypeName(markup, "global::System.Int32");
+            await VerifyTypeName(markup, "int");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
@@ -45,7 +45,7 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property);
             await VerifyNoModifiers(markup);
-            await VerifyTypeName(markup, "global::System.Int32");
+            await VerifyTypeName(markup, "int");
             await VerifyAccessibility(markup, Accessibility.Public);
         }
 
@@ -60,7 +60,7 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Method, SymbolKind.Property);
             await VerifyModifiers(markup, new DeclarationModifiers(isVirtual: true));
-            await VerifyTypeName(markup, "global::System.Int32");
+            await VerifyTypeName(markup, "int");
             await VerifyAccessibility(markup, Accessibility.Public);
         }
 
@@ -75,7 +75,7 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property);
             await VerifyModifiers(markup, new DeclarationModifiers(isStatic: true));
-            await VerifyTypeName(markup, "global::System.Int32");
+            await VerifyTypeName(markup, "int");
             await VerifyAccessibility(markup, Accessibility.Private);
         }
 
@@ -90,7 +90,7 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Field);
             await VerifyModifiers(markup, new DeclarationModifiers(isConst: true));
-            await VerifyTypeName(markup, "global::System.Int32");
+            await VerifyTypeName(markup, "int");
             await VerifyAccessibility(markup, Accessibility.Private);
         }
 
@@ -108,7 +108,7 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Local);
             await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "global::System.Int32");
+            await VerifyTypeName(markup, "int");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
@@ -126,7 +126,7 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Local);
             await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "global::System.Int32");
+            await VerifyTypeName(markup, "int");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
@@ -144,7 +144,7 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Local);
             await VerifyModifiers(markup, new DeclarationModifiers(isReadOnly: true));
-            await VerifyTypeName(markup, "global::System.Int32");
+            await VerifyTypeName(markup, "int");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
@@ -162,7 +162,7 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Local);
             await VerifyModifiers(markup, new DeclarationModifiers(isReadOnly: true));
-            await VerifyTypeName(markup, "global::System.Int32");
+            await VerifyTypeName(markup, "int");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
@@ -210,7 +210,7 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Parameter);
             await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "global::System.String");
+            await VerifyTypeName(markup, "string");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
@@ -226,7 +226,7 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Parameter);
             await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "global::System.String");
+            await VerifyTypeName(markup, "string");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
@@ -243,7 +243,7 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Parameter);
             await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "global::System.Collections.Generic.List");
+            await VerifyTypeName(markup, "global::System.Collections.Generic.List<string>");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }
 
