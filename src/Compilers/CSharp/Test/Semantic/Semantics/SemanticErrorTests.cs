@@ -23065,6 +23065,7 @@ class C
         }
 
         [WorkItem(12900, "https://github.com/dotnet/roslyn/issues/12900")]
+        [WorkItem(17138, "https://github.com/dotnet/roslyn/issues/17138")]
         [Fact]
         public void CSharp7FeaturesInExprTrees()
         {
@@ -23095,6 +23096,15 @@ class C
         Expression<Func<(int, int)>> e6 = () => t1; // ERROR 5: tuple conversion
 
         Expression<Func<int>> e7 = () => TakeRef(ref GetRefThree()); // ERROR 6: calling ref-returning method
+
+        // discard
+        Expression<Func<bool>> e8 = () => TryGetThree(out int _);
+        Expression<Func<bool>> e9 = () => TryGetThree(out var _);
+        Expression<Func<bool>> e10 = () => _ = (bool)o;
+        Expression<Func<object>> e11 = () => _ = (_, _) = GetTuple();
+        Expression<Func<object>> e12 = () => _ = var (a, _) = GetTuple();
+        Expression<Func<object>> e13 = () => _ = (var a, var _) = GetTuple();
+        Expression<Func<bool>> e14 = () => TryGetThree(out _);
     }
 
     static bool TryGetThree(out int three)
@@ -23112,6 +23122,10 @@ class C
     {
         Console.WriteLine(""wow"");
         return x;
+    }
+    static (object, object) GetTuple()
+    {
+        return (null, null);
     }
 }
 namespace System
@@ -23138,6 +23152,12 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
+                // (34,50): error CS8185: A declaration is not allowed in this context.
+                //         Expression<Func<object>> e12 = () => _ = var (a, _) = GetTuple();
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var (a, _)").WithLocation(34, 50),
+                // (35,51): error CS8185: A declaration is not allowed in this context.
+                //         Expression<Func<object>> e13 = () => _ = (var a, var _) = GetTuple();
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var a").WithLocation(35, 51),
                 // (10,59): error CS8198: An expression tree may not contain an out argument variable declaration.
                 //         Expression<Func<bool>> e1 = () => TryGetThree(out int x) && x == 3; // ERROR 1
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOutVariable, "int x").WithLocation(10, 59),
@@ -23155,7 +23175,25 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleConversion, "t1").WithLocation(25, 49),
                 // (27,54): error CS8156: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
                 //         Expression<Func<int>> e7 = () => TakeRef(ref GetRefThree()); // ERROR 6: calling ref-returning method
-                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "GetRefThree()").WithLocation(27, 54)
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "GetRefThree()").WithLocation(27, 54),
+                // (30,59): error CS8205: An expression tree may not contain a discard.
+                //         Expression<Func<bool>> e8 = () => TryGetThree(out int _);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDiscard, "int _").WithLocation(30, 59),
+                // (31,59): error CS8205: An expression tree may not contain a discard.
+                //         Expression<Func<bool>> e9 = () => TryGetThree(out var _);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDiscard, "var _").WithLocation(31, 59),
+                // (32,44): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<Func<bool>> e10 = () => _ = (bool)o;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "_ = (bool)o").WithLocation(32, 44),
+                // (33,46): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<Func<object>> e11 = () => _ = (_, _) = GetTuple();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "_ = (_, _) = GetTuple()").WithLocation(33, 46),
+                // (33,50): error CS8143: An expression tree may not contain a tuple literal.
+                //         Expression<Func<object>> e11 = () => _ = (_, _) = GetTuple();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleLiteral, "(_, _)").WithLocation(33, 50),
+                // (36,60): error CS8205: An expression tree may not contain a discard.
+                //         Expression<Func<bool>> e14 = () => TryGetThree(out _);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDiscard, "_").WithLocation(36, 60)
                 );
         }
 

@@ -795,6 +795,13 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -900,6 +907,49 @@ public class X
                 var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).Single();
                 VerifyModelForDeclarationPattern(model, yDecl, yRef);
             }
+        }
+
+        [Fact]
+        public void Query_02()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var res = from x1 in new[] { 1 is var y1 && Print(y1) ? 2 : 0}
+                  select Print(x1);
+
+        res.ToArray(); 
+    }
+
+    static bool Print(object x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yDecl = GetPatternDeclaration(tree, "y1");
+            var yRef = GetReferences(tree, "y1").Single();
+            VerifyModelForDeclarationPattern(model, yDecl, yRef);
         }
 
         [Fact]
@@ -1039,6 +1089,33 @@ True");
         }
 
         [Fact]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        public void FieldInitializers_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1());
+    }
+
+    static System.Func<bool> Test1 = () => 1 is int x1 && Dummy(x1); 
+
+    static bool Dummy(int x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
+        }
+
+        [Fact]
         public void PropertyInitializers_01()
         {
             var source =
@@ -1071,6 +1148,34 @@ True");
                 );
 #endif
         }
+
+        [Fact]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        public void PropertyInitializers_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1());
+    }
+
+    static System.Func<bool> Test1 {get;} = () => 1 is int x1 && Dummy(x1); 
+
+    static bool Dummy(int x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
+        }
+
         [Fact]
         public void ConstructorInitializers_01()
         {
@@ -1127,6 +1232,54 @@ True");
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(17, 28)
                 );
 #endif
+        }
+
+        [Fact]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        public void ConstructorInitializers_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var x = new D();
+    }
+}
+
+class D : C
+{
+    public D(System.Func<bool> o) : base(() => 2 is int x1 && Dummy(x1)) 
+    {
+        System.Console.WriteLine(o());
+    }
+
+    public D() : this(() => 1 is int x1 && Dummy(x1)) 
+    {
+    }
+
+    static bool Dummy(int x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+
+class C
+{
+    public C(System.Func<bool> b) 
+    { 
+        System.Console.WriteLine(b());
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"2
+True
+1
+True");
         }
 
         [Fact]
@@ -2359,6 +2512,14 @@ public class X
             CompileAndVerify(compilation, expectedOutput:
 @"3
 3");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -2775,6 +2936,14 @@ public class X
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
         [Fact]
