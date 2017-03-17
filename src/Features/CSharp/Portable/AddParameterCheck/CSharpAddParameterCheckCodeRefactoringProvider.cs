@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameterCheck
             BaseMethodDeclarationSyntax,
             StatementSyntax,
             ExpressionSyntax,
-            BinaryExpressionSyntax,
-            ThrowExpressionSyntax>
+            BinaryExpressionSyntax>
     {
         protected override SyntaxNode GetBody(BaseMethodDeclarationSyntax containingMember)
             => containingMember.Body ?? (SyntaxNode)containingMember.ExpressionBody;
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameterCheck
             SyntaxEditor editor,
             SyntaxNode body,
             IOperation statementToAddAfterOpt,
-            SyntaxNode nullCheckStatement)
+            StatementSyntax nullCheckStatement)
         {
             var generator = editor.Generator;
 

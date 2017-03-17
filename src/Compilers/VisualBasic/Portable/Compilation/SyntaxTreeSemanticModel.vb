@@ -351,7 +351,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel
+
+            Dim methodBlock = TryCast(node, MethodBlockBaseSyntax)
+            If methodBlock IsNot Nothing Then
+                ' Trying to get the MemberSemanticModel for a MethodBlock will end up returning
+                ' nothing.  That's because trying to get Binder for the MethodBlock will actually
+                ' return the binder for the containing type.  To avoid this we ask for the binder
+                ' for the methodBlock, passing in a position at the end of it's starting block-statement.
+                ' This will cause it to try to get the interior MethodBodyBinder which we can then
+                ' effectively get a MemberSemanticModel from.
+                Dim binder = _binderFactory.GetBinderForPosition(methodBlock, methodBlock.BlockStatement.EndPosition)
+                model = GetMemberSemanticModel(binder)
+            Else
+                model = Me.GetMemberSemanticModel(node)
+            End If
 
             If model IsNot Nothing Then
                 Return model.GetOperationWorker(node, options, cancellationToken)

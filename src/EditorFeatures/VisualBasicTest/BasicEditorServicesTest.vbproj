@@ -695,6 +695,7 @@
     <Compile Include="AddParameter\AddParameterTests.vb" />
     <Compile Include="ConflictMarkerResolution\ConflictMarkerResolutionTests.vb" />
     <Compile Include="GenerateOverrides\GenerateOverridesTests.vb" />
+    <Compile Include="AddParameterCheck\AddParameterCheckTests.vb" />
     <Content Include="PerfTests\Sources\BasicPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

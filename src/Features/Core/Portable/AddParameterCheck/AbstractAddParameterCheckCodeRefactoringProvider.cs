@@ -21,14 +21,12 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
         TMemberDeclarationSyntax,
         TStatementSyntax,
         TExpressionSyntax,
-        TBinaryExpressionSyntax,
-        TThrowExpressionSyntax> : CodeRefactoringProvider
+        TBinaryExpressionSyntax> : CodeRefactoringProvider
         where TParameterSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
-        where TThrowExpressionSyntax : TExpressionSyntax
     {
         //private static MethodInfo s_registerOperationActionInfo =
         //    typeof(CompilationStartAnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
@@ -111,7 +109,9 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
                     return;
                 }
 
-                if (ContainsNullCoalesceCheck(semanticModel, statement, parameter, cancellationToken))
+                if (ContainsNullCoalesceCheck(
+                        syntaxFacts, semanticModel, statement, 
+                        parameter, cancellationToken))
                 {
                     return;
                 }
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
         }
 
         private bool ContainsNullCoalesceCheck(
-            SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
             IOperation statement, IParameterSymbol parameter,
             CancellationToken cancellationToken)
         {
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
                 if (operation is INullCoalescingExpression coalesceExpression)
                 {
                     if (IsParameterReference(coalesceExpression.PrimaryOperand, parameter) &&
-                        coalesceExpression.SecondaryOperand.Syntax is TThrowExpressionSyntax)
+                        syntaxFacts.IsThrowExpression(coalesceExpression.SecondaryOperand.Syntax))
                     {
                         return true;
                     }
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
 
         protected abstract void InsertStatement(
             SyntaxEditor editor, SyntaxNode body,
-            IOperation statementToAddAfterOpt, SyntaxNode nullCheckStatement);
+            IOperation statementToAddAfterOpt, TStatementSyntax nullCheckStatement);
 
         private IOperation GetStatementToAddNullCheckAfter(
             SemanticModel semanticModel,

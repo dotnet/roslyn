@@ -256,19 +256,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsQueryExpression(SyntaxNode node)
-        {
-            return node is QueryExpressionSyntax;
-        }
+            => node.Kind() == SyntaxKind.QueryExpression;
+
+        public bool IsThrowExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.ThrowExpression;
 
         public bool IsPredefinedType(SyntaxToken token)
-        {
-            return TryGetPredefinedType(token, out var actualType) && actualType != PredefinedType.None;
-        }
+            => TryGetPredefinedType(token, out var actualType) && actualType != PredefinedType.None;
 
         public bool IsPredefinedType(SyntaxToken token, PredefinedType type)
-        {
-            return TryGetPredefinedType(token, out var actualType) && actualType == type;
-        }
+            => TryGetPredefinedType(token, out var actualType) && actualType == type;
 
         public bool TryGetPredefinedType(SyntaxToken token, out PredefinedType type)
         {

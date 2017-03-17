@@ -243,7 +243,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsQueryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsQueryExpression
-            Return TypeOf node Is QueryExpressionSyntax
+            Return node.Kind() = SyntaxKind.QueryExpression
+        End Function
+
+        Public Function IsThrowExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsThrowExpression
+            ' VB does not support throw expressions currently.
+            Return False
         End Function
 
         Public Function IsPredefinedType(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsPredefinedType
