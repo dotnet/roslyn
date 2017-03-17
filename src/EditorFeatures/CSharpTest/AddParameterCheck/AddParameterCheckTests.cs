@@ -41,5 +41,108 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestNullable()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C([||]int? i)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(int? i)
+    {
+        if (i == null)
+        {
+            throw new ArgumentNullException(nameof(i));
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestNotOnValueType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C([||]int i)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestUpdateExistingFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string _s;
+
+    public C([||]string s)
+    {
+        _s = s;
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string _s;
+
+    public C(string s)
+    {
+        _s = s ?? throw new ArgumentNullException(nameof(s));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestUpdateExistingPropertyAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private string S;
+
+    public C([||]string s)
+    {
+        S = s;
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private string S;
+
+    public C(string s)
+    {
+        S = s ?? throw new ArgumentNullException(nameof(s));
+    }
+}");
+        }
     }
 }
