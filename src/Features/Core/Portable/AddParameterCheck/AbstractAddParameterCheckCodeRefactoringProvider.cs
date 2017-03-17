@@ -104,7 +104,6 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
                 return;
             }
 
-            var supportsThrowExpression = syntaxFacts.SupportsThrowExpression(syntaxTree.Options);
             foreach (var statement in blockStatement.Statements)
             {
                 if (IsNullCheck(statement, parameter))
@@ -112,8 +111,7 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
                     return;
                 }
 
-                if (supportsThrowExpression &&
-                     ContainsNullCoalesceCheck(semanticModel, statement, parameter, cancellationToken))
+                if (ContainsNullCoalesceCheck(semanticModel, statement, parameter, cancellationToken))
                 {
                     return;
                 }
