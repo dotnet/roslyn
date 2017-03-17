@@ -404,8 +404,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Figure out if runtime supports default interface implementation.
-        /// The setter is provided for test purposes only.
+        /// Figure out if the target runtime supports default interface implementation.
+        /// The setter is provided for test purposes only, use it carefully as symbol reuse/sharing
+        /// can cause the value to have effect on multiple compilations at the same time.
         /// </summary>
         internal virtual bool RuntimeSupportsDefaultInterfaceImplementation
         {

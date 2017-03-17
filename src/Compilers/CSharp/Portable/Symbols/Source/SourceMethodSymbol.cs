@@ -1558,13 +1558,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Checks to see if a body is legal given the current modifiers.
         /// If it is not, a diagnostic is added with the current type.
         /// </summary>
-        protected void CheckModifiersForBody(SyntaxNode syntax, Location location, DiagnosticBag diagnostics)
+        protected void CheckModifiersForBody(SyntaxNode declarationSyntax, Location location, DiagnosticBag diagnostics)
         {
             if (_containingType.IsInterface)
             {
                 if (!this.IsAccessor())
                 {
-                    Binder.CheckFeatureAvailability(syntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
+                    Binder.CheckFeatureAvailability(declarationSyntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
 
                     if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                     {

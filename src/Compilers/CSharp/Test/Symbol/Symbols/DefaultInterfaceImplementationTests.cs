@@ -207,6 +207,9 @@ public interface I1
 class Test1 : I1
 {}
 ";
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
             var compilation1 = CreateCompilation(source1, new [] { mscorLibRef }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
@@ -222,7 +225,7 @@ class Test1 : I1
             Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
 
             compilation1.VerifyDiagnostics(
-                // (4,10): error CS8401: Target runtime doesn't support default interface implementation.
+                // (4,10): error CS8501: Target runtime doesn't support default interface implementation.
                 //     void M1() 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(4, 10)
                 );
@@ -244,7 +247,7 @@ class Test2 : I1
             Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
 
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8402: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because the target runtime doesn't support default interface implementation.
+                // (2,15): error CS8502: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2").WithLocation(2, 15)
                 );
@@ -284,7 +287,7 @@ class Test1 : I1
                 // (4,10): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
                 //     void M1() 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M1").WithArguments("default interface implementation", "7.1").WithLocation(4, 10),
-                // (4,10): error CS8401: Target runtime doesn't support default interface implementation.
+                // (4,10): error CS8501: Target runtime doesn't support default interface implementation.
                 //     void M1() 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(4, 10)
                 );
@@ -306,7 +309,7 @@ class Test2 : I1
             Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
 
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8402: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because the target runtime doesn't support default interface implementation.
+                // (2,15): error CS8502: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2").WithLocation(2, 15)
                 );
@@ -390,7 +393,7 @@ public interface I1
             Assert.True(m1.IsVirtual);
 
             compilation1.VerifyDiagnostics(
-                // (4,8): error CS8401: Target runtime doesn't support default interface implementation.
+                // (4,8): error CS8501: Target runtime doesn't support default interface implementation.
                 //     I1 M1() 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(4, 8)
                 );

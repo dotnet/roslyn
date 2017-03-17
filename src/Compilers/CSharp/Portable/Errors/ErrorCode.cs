@@ -1470,7 +1470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidPreprocessingSymbol = 8301,
         ERR_FeatureNotAvailableInVersion7_1 = 8302,
 
-        ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8401,
-        ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8402,
+        ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8501,
+        ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8502,
     }
 }
