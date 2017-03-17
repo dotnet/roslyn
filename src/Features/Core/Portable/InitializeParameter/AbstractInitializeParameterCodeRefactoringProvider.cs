@@ -71,18 +71,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var method = (IMethodSymbol)semanticModel.GetDeclaredSymbol(containingMember, cancellationToken);
             var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
 
-            if (parameter.Name == "")
-            {
-                return;
-            }
-
-            if (!parameter.Type.IsReferenceType &&
-                !parameter.Type.IsNullable())
-            {
-                return;
-            }
-
             if (!method.Parameters.Contains(parameter))
+            {
+                return;
+            }
+
+            if (parameter.Name == "")
             {
                 return;
             }
@@ -99,6 +93,25 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
+            await RegisterNullCheckRefactoringsAsync(
+                context, parameter, blockStatement).ConfigureAwait(false);
+        }
+
+        private async Task RegisterNullCheckRefactoringsAsync(
+            CodeRefactoringContext context, IParameterSymbol parameter, IBlockStatement blockStatement)
+        {
+            if (!parameter.Type.IsReferenceType &&
+                !parameter.Type.IsNullable())
+            {
+                return;
+            }
+
+            var document = context.Document;
+            var cancellationToken = context.CancellationToken;
+
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
             foreach (var statement in blockStatement.Statements)
             {
                 if (IsNullCheck(statement, parameter))
@@ -107,7 +120,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 }
 
                 if (ContainsNullCoalesceCheck(
-                        syntaxFacts, semanticModel, statement, 
+                        syntaxFacts, semanticModel, statement,
                         parameter, cancellationToken))
                 {
                     return;
