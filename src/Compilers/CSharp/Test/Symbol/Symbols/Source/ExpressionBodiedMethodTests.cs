@@ -85,9 +85,10 @@ interface C
     int M() => 1;
 }");
             comp.VerifyDiagnostics(
-    // (4,9): error CS0531: 'C.M()': interface members cannot have a definition
-    //     int M() => 1;
-    Diagnostic(ErrorCode.ERR_InterfaceMemberHasBody, "M").WithArguments("C.M()").WithLocation(4, 9));
+                // (4,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                //     int M() => 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("default interface implementation", "7.1").WithLocation(4, 9)
+                );
         }
 
         [Fact]

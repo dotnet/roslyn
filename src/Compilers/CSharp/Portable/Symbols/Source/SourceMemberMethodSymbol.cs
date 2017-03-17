@@ -88,8 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !firstParam.IsArgList &&
                 firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
 
+            bool hasBlockBody = syntax.Body != null;
+            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            bool hasBody = hasBlockBody || _isExpressionBodied;
+
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(modifiers, methodKind, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(modifiers, methodKind, hasBody, location, diagnostics, out modifierErrors);
 
             var isMetadataVirtualIgnoringModifiers = (object)explicitInterfaceType != null; //explicit impls must be marked metadata virtual
 
@@ -105,13 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _typeParameters = MakeTypeParameters(syntax, diagnostics);
             }
 
-            bool hasBlockBody = syntax.Body != null;
-            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
             syntax.ReturnType.SkipRef(out _refKind);
 
-            if (hasBlockBody || _isExpressionBodied)
+            if (hasBody)
             {
-                CheckModifiersForBody(location, diagnostics);
+                CheckModifiersForBody(syntax, location, diagnostics);
             }
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
@@ -760,7 +762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _isExpressionBodied; }
         }
 
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
             var defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
@@ -794,17 +796,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
-            mods = AddImpliedModifiers(mods, isInterface, methodKind);
+            mods = AddImpliedModifiers(mods, isInterface, methodKind, hasBody);
             return mods;
         }
 
-        private static DeclarationModifiers AddImpliedModifiers(DeclarationModifiers mods, bool containingTypeIsInterface, MethodKind methodKind)
+        private static DeclarationModifiers AddImpliedModifiers(DeclarationModifiers mods, bool containingTypeIsInterface, MethodKind methodKind, bool hasBody)
         {
             // Let's overwrite modifiers for interface and explicit interface implementation methods with what they are supposed to be. 
             // Proper errors must have been reported by now.
             if (containingTypeIsInterface)
             {
-                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Public | DeclarationModifiers.Abstract;
+                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Public | 
+                       (hasBody ? DeclarationModifiers.Virtual : DeclarationModifiers.Abstract);
             }
             else if (methodKind == MethodKind.ExplicitInterfaceImplementation)
             {

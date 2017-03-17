@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            CheckModifiersForBody(location, diagnostics);
+            CheckModifiersForBody(syntax, location, diagnostics);
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
             if (info != null)
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasBody || hasExpressionBody)
             {
-                CheckModifiersForBody(location, diagnostics);
+                CheckModifiersForBody(syntax, location, diagnostics);
             }
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);

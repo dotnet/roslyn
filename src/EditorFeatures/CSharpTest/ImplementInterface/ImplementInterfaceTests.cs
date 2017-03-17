@@ -6637,7 +6637,47 @@ class Class : IInterface
 
         [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestDoNotReorderComImportMembers()
+        public async Task TestDoNotReorderComImportMembers_01()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Runtime.InteropServices;
+
+[ComImport]
+interface IComInterface
+{
+    void MOverload();
+    void X();
+    void MOverload(int i);
+    int Prop { get; }
+}
+
+class Class : [|IComInterface|]
+{
+}",
+@"using System.Runtime.InteropServices;
+
+[ComImport]
+interface IComInterface
+{
+    void MOverload();
+    void X();
+    void MOverload(int i);
+    int Prop { get; }
+}
+
+class Class : IComInterface
+{
+    public void MOverload() { throw new System.NotImplementedException(); }
+    public void X() { throw new System.NotImplementedException(); }
+    public void MOverload(int i) { throw new System.NotImplementedException(); }
+    public int Prop => throw new System.NotImplementedException();
+}");
+        }
+
+        [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestDoNotReorderComImportMembers_02()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -6668,9 +6708,6 @@ interface IComInterface
 
 class Class : IComInterface
 {
-    public void MOverload() { throw new System.NotImplementedException(); }
-    public void X() { throw new System.NotImplementedException(); }
-    public void MOverload(int i) { throw new System.NotImplementedException(); }
     public int Prop => throw new System.NotImplementedException();
 }");
         }

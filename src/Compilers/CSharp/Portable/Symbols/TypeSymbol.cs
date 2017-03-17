@@ -861,6 +861,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckForImplementationOfCorrespondingPropertyOrEvent((MethodSymbol)interfaceMember, implementingType, implementingTypeIsFromSomeCompilation, ref implicitImpl);
             }
 
+            if ((object)implicitImpl == null && (object)closestMismatch == null)
+            {
+                // Check for default interface implementations
+                if (!interfaceMember.IsAbstract)
+                {
+                    implicitImpl = interfaceMember;
+                }
+            }
+
             if ((object)implicitImpl != null)
             {
                 ReportImplicitImplementationMatchDiagnostics(interfaceMember, implementingType, implicitImpl, diagnostics);
@@ -1106,6 +1115,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+
+            if (implicitImpl.ContainingType.IsInterface && implementingType.ContainingModule != implicitImpl.ContainingModule)
+            {
+                // PROTOTYPE(DefaultInterfaceImplementation): Should we check language version as well?
+                // Usually, it is done based on specific syntax that targets a new feature, but in this case
+                // no special syntax is used. Also, partial types can have declarations coming from different 
+                // trees with different options. We could use options from the tree the result of 
+                // GetInterfaceLocation() is based on.
+
+                // The default implementation is coming from a different module, which means that we probably won't check
+                // for the required runtime capability
+                if (!implementingType.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember,
+                                    GetInterfaceLocation(interfaceMember, implementingType),
+                                    implicitImpl, interfaceMember, implementingType);
+                }
+            }
         }
 
         /// <summary>
@@ -1114,17 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void ReportImplicitImplementationMismatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol closestMismatch, DiagnosticBag diagnostics)
         {
             // Determine  a better location for diagnostic squiggles.  Squiggle the interface rather than the class.
-            Location interfaceLocation = null;
-            if ((object)implementingType != null)
-            {
-                var @interface = interfaceMember.ContainingType;
-                SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
-                interfaceLocation = snt.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
-            }
-            else
-            {
-                interfaceLocation = implementingType.Locations[0];
-            }
+            Location interfaceLocation = GetInterfaceLocation(interfaceMember, implementingType);
 
             if (closestMismatch.IsStatic)
             {
@@ -1186,6 +1203,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, interfaceLocation, implementingType, interfaceMember, closestMismatch, interfaceMemberReturnType);
                 }
             }
+        }
+
+        /// <summary>
+        /// Determine  a better location for diagnostic squiggles.  Squiggle the interface rather than the class.
+        /// </summary>
+        private static Location GetInterfaceLocation(Symbol interfaceMember, TypeSymbol implementingType)
+        {
+            Debug.Assert((object)implementingType != null);
+            var @interface = interfaceMember.ContainingType;
+            SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
+            return snt.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
         }
 
         private static void ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, DiagnosticBag diagnostics)

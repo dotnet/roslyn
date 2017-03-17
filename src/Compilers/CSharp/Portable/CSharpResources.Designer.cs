@@ -8441,6 +8441,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Target runtime doesn&apos;t support default interface implementation..
+        /// </summary>
+        internal static string ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation {
+            get {
+                return ResourceManager.GetString("ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos; because the target runtime doesn&apos;t support default interface implementation..
+        /// </summary>
+        internal static string ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember {
+            get {
+                return ResourceManager.GetString("ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{1}&apos; exists in both &apos;{0}&apos; and &apos;{2}&apos;.
         /// </summary>
         internal static string ERR_SameFullNameAggAgg {
@@ -9806,6 +9824,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_CSCHelp {
             get {
                 return ResourceManager.GetString("IDS_CSCHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to default interface implementation.
+        /// </summary>
+        internal static string IDS_DefaultInterfaceImplementation {
+            get {
+                return ResourceManager.GetString("IDS_DefaultInterfaceImplementation", resourceCulture);
             }
         }
         
