@@ -350,12 +350,12 @@ namespace Microsoft.CodeAnalysis.AddParameterCheck
                     {
                         return statement;
                     }
+
+                    continue;
                 }
-                else
-                {
-                    // Stop hunting after we hit something that isn't an if-statement
-                    return null;
-                }
+
+                // Stop hunting after we hit something that isn't an if-statement
+                break;
             }
 
             return null;
