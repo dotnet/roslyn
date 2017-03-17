@@ -81,13 +81,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return false;
             }
 
-            if (!IgnoreModifiers(RequiredModifierList))
+            var collapsedModifiers = CollapseModifiers(RequiredModifierList);
+            if ((modifiers & collapsedModifiers) != collapsedModifiers)
             {
-                var collapsedModifiers = CollapseModifiers(RequiredModifierList);
-                if (modifiers != collapsedModifiers)
-                {
-                    return false;
-                }
+                return false;
             }
 
             if (ApplicableAccessibilityList.Any() && accessibility != Accessibility.NotApplicable && !ApplicableAccessibilityList.Any(k => k == accessibility))
@@ -96,11 +93,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             return true;
-        }
-
-        private bool IgnoreModifiers(ImmutableArray<ModifierKind> requiredModifierList)
-        {
-            return requiredModifierList.Length == 1 && requiredModifierList[0].ModifierKindWrapper == ModifierKindEnum.Ignore;
         }
 
         private DeclarationModifiers CollapseModifiers(ImmutableArray<ModifierKind> requiredModifierList)
@@ -422,7 +414,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             IsAsync,
             IsReadOnly,
             IsConst,
-            Ignore // This matches any modifiers
         }
     }
 }

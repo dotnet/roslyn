@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static NamingRule CreateCamelCaseFieldsAndParametersRule()
         {
             var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field), new SymbolKindOrTypeKind(SymbolKind.Parameter), new SymbolKindOrTypeKind(SymbolKind.Local));
-            var modifiers = ImmutableArray.Create<ModifierKind>(new ModifierKind(ModifierKindEnum.Ignore));
+            var modifiers = ImmutableArray.Create<ModifierKind>();
             return new NamingRule(
                 new SymbolSpecification(Guid.NewGuid(), "camelcasefields", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
                 new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.CamelCase),
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static NamingRule CreateMethodStartsWithGetRule()
         {
             var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Method));
-            var modifiers = ImmutableArray.Create<ModifierKind>(new ModifierKind(ModifierKindEnum.Ignore));
+            var modifiers = ImmutableArray.Create<ModifierKind>();
             return new NamingRule(
                 new SymbolSpecification(Guid.NewGuid(), "startswithget", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
                 new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "Get"),
