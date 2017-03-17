@@ -236,6 +236,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                        Function(i) i.DisplayText = v))
         End Function
 
+        Public Function AssertItemsInOrder(expectedOrder As String()) As Boolean
+            AssertNoAsynchronousOperationsRunning()
+            Dim items = CurrentCompletionPresenterSession.CompletionItems
+            Assert.Equal(expectedOrder.Count, items.Count)
+            For i = 0 To expectedOrder.Count - 1
+                Assert.Equal(expectedOrder(i), items(i).DisplayText)
+            Next
+        End Function
+
         Public Async Function AssertSelectedCompletionItem(
                                Optional displayText As String = Nothing,
                                Optional description As String = Nothing,

@@ -3007,11 +3007,7 @@ class C
                         "service"
                     }
 
-                Dim items = state.CurrentCompletionPresenterSession.CompletionItems
-                Assert.Equal(expectedOrder.Count, items.Count)
-                For i = 0 To expectedOrder.Count - 1
-                    Assert.Equal(expectedOrder(i), items(i).DisplayText)
-                Next
+                state.AssertItemsInOrder(expectedOrder)
             End Using
         End Function
     End Class
