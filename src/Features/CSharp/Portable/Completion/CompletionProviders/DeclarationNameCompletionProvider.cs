@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -11,7 +12,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
-using Words = System.Collections.Generic.IEnumerable<string>;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -30,6 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
 
             var context = CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
+            if (context.IsInNonUserCode)
+            {
+                return;
+            }
 
             var nameInfo = await NameDeclarationInfo.GetDeclarationInfo(document, position, cancellationToken).ConfigureAwait(false);
 
@@ -38,16 +42,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var type = UnwrapType(nameInfo.Type);
+            var type = UnwrapType(nameInfo.Type, semanticModel.Compilation);
             var baseNames = NameGenerator.GetBaseNames(type);
+            var recommendedNames = await GetRecommendedNamesAsync(baseNames, nameInfo, context, document, cancellationToken).ConfigureAwait(false);
             int sortValue = 0;
-            foreach (var (name, kind) in GetRecommendedNames(baseNames, nameInfo, context))
+            foreach (var (name, kind) in recommendedNames)
             {
                 // We've produced items in the desired order, add a sort text to each item to prevent alphabetization
-                completionContext.AddItem(CreateCompletionItem(name, GetGlyph(kind, nameInfo.DeclaredAccessibility), sortValue++.ToString("D8")));
+                completionContext.AddItem(CreateCompletionItem(name, GetGlyph(kind, nameInfo.DeclaredAccessibility), sortValue.ToString("D8")));
+                sortValue++;
             }
 
-            AddBuilder(completionContext);
+            completionContext.SuggestionModeItem = CommonCompletionItem.Create(CSharpFeaturesResources.Name, CompletionItemRules.Default);
         }
 
         private bool IsValidType(ITypeSymbol type)
@@ -115,18 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return publicIcon;
         }
 
-        private void AddBuilder(CompletionContext completionContext)
+        private ITypeSymbol UnwrapType(ITypeSymbol type, Compilation compilation)
         {
-            completionContext.SuggestionModeItem = CommonCompletionItem.Create(CSharpFeaturesResources.Name, CompletionItemRules.Default);
-        }
-
-        private ITypeSymbol UnwrapType(ITypeSymbol type)
-        {
-            var nts = type as INamedTypeSymbol;
-            if (nts != null && nts.ConstructedFrom != null)
+            if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
             {
-                var constructedFrom = nts.ConstructedFrom;
-                switch (constructedFrom.SpecialType)
+                var originalDefinition = namedType.OriginalDefinition;
+                switch (originalDefinition.SpecialType)
                 {
                     case SpecialType.System_Collections_Generic_IEnumerable_T:
                     case SpecialType.System_Collections_Generic_IList_T:
@@ -134,25 +134,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     case SpecialType.System_Collections_Generic_IReadOnlyList_T:
                     case SpecialType.System_Collections_Generic_IReadOnlyCollection_T:
                     case SpecialType.System_Nullable_T:
-                        return UnwrapType(nts.TypeArguments[0]);
+                        return UnwrapType(namedType.TypeArguments[0], compilation);
                 }
 
-                if (constructedFrom.Name == "Task"
-                   && constructedFrom.ContainingNamespace?.Name == "Tasks"
-                   && constructedFrom.ContainingNamespace.ContainingNamespace?.Name == "Threading"
-                   && constructedFrom.ContainingNamespace.ContainingNamespace.ContainingNamespace?.Name == "System"
-                   && (constructedFrom.ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace ?? false))
+                var taskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
+                var valueTaskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+                if (originalDefinition == taskOfTType
+                    || originalDefinition == valueTaskType )
                 {
-                    return UnwrapType(nts.TypeArguments[0]);
+                    return UnwrapType(namedType.TypeArguments[0], compilation);
                 }
             }
 
             return type;
         }
 
-        private IEnumerable<(string, SymbolKind)> GetRecommendedNames(IEnumerable<Words> baseNames, NameDeclarationInfo declarationInfo, CSharpSyntaxContext context)
+        private async Task <IEnumerable<(string, SymbolKind)>> GetRecommendedNamesAsync(
+            IEnumerable<IEnumerable<string>> baseNames, 
+            NameDeclarationInfo declarationInfo, 
+            CSharpSyntaxContext context, 
+            Document document,
+            CancellationToken cancellationToken)
         {
-            var namingStyleOptions = context.Workspace.Options.GetOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp);
             var rules = namingStyleOptions.CreateRules().NamingRules.Concat(s_BuiltInRules);
             var result = new Dictionary<string, SymbolKind>();
             foreach (var symbolKind in declarationInfo.PossibleSymbolKinds)

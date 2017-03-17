@@ -124,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var typeSyntax = typeSyntaxGetter(target);
+                if (typeSyntax == null)
+                {
+                    return default(NameDeclarationInfo);
+                }
+
                 var modifiers = modifierGetter(target);
 
                 if (modifiers == null)
@@ -158,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var typeSyntax = typeSyntaxGetter(target);
-                if (token != typeSyntax.GetLastToken())
+                if (typeSyntax == null || token != typeSyntax.GetLastToken())
                 {
                     return default(NameDeclarationInfo);
                 }
@@ -181,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 result = IsFollowingTypeOrComma<VariableDeclarationSyntax>(token, semanticModel,
                     v => v.Type,
-                    v => v.IsParentKind(SyntaxKind.FieldDeclaration) ? ((FieldDeclarationSyntax)v.Parent).Modifiers : default(SyntaxTokenList?),
+                    v => v.Parent is FieldDeclarationSyntax f ? f.Modifiers : default(SyntaxTokenList?),
                     GetPossibleDeclarations,
                     cancellationToken);
                 return result.Type != null;
@@ -203,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 result = IsFollowingTypeOrComma<VariableDeclarationSyntax>(token, semanticModel,
                      v => v.Type,
-                     v => v.IsParentKind(SyntaxKind.LocalDeclarationStatement) ? ((LocalDeclarationStatementSyntax)v.Parent).Modifiers : (SyntaxTokenList?)null,
+                     v => v.Parent is LocalDeclarationStatementSyntax l ? l.Modifiers : default(SyntaxTokenList?),
                      d => ImmutableArray.Create(SymbolKind.Local),
                      cancellationToken);
                 return result.Type != null;
@@ -219,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         ImmutableArray.Create(SymbolKind.TypeParameter),
                         Accessibility.NotApplicable,
                         new DeclarationModifiers(),
-                        null);
+                        type: null);
 
                     return true;
                 }

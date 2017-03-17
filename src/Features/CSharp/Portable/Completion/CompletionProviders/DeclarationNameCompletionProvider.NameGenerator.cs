@@ -17,19 +17,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         internal class NameGenerator
         {
-            static readonly NamingStyle s_interfacePrefix = new NamingStyles.NamingStyle(Guid.NewGuid(),
-                prefix: "I", capitalizationScheme: Capitalization.PascalCase);
-
-            internal static ImmutableArray<Words> GetBaseNames(ITypeSymbol type)
+            internal static ImmutableArray<IEnumerable<string>> GetBaseNames(ITypeSymbol type)
             {
                 var baseName = TryRemoveInterfacePrefix(type);
                 var breaks = StringBreaker.BreakIntoWordParts(baseName);
                 return GetInterleavedPatterns(breaks, baseName);
             }
 
-            private static ImmutableArray<Words> GetInterleavedPatterns(StringBreaks breaks, string baseName)
+            private static ImmutableArray<IEnumerable<string>> GetInterleavedPatterns(StringBreaks breaks, string baseName)
             {
-                var result = ImmutableArray.CreateBuilder<Words>();
+                var result = ArrayBuilder<IEnumerable<string>>.GetInstance();
                 result.Add(GetWords(0, breaks.Count, breaks, baseName));
 
                 for (int length = breaks.Count - 1; length > 0; length--)
@@ -72,13 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var name = type.Name;
                 if (type.TypeKind == TypeKind.Interface && name.Length > 1)
                 {
-                    string unused;
-                    if (s_interfacePrefix.IsNameCompliant(name, out unused))
+                    if (name[0] == 'I' && char.IsLower(name[1]))
                     {
                         return name.Substring(1);
                     }
                 }
-
                 return type.CreateParameterName();
             }
         }

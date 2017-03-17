@@ -10,11 +10,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class DeclarationNameCompletionProvider
     {
-        private static ImmutableArray<NamingRule> s_BuiltInRules = ImmutableArray.Create(
-            CreateCamelCaseFieldsAndParametersRule(),
-            CreateEndWithAsyncRule(),
-            CreateGetAsyncRule(),
-            CreateMethodStartsWithGetRule());
+        private static ImmutableArray<NamingRule> s_BuiltInRules;
+
+        static DeclarationNameCompletionProvider()
+        {
+            s_BuiltInRules = ImmutableArray.Create(
+                CreateCamelCaseFieldsAndParametersRule(),
+                CreateEndWithAsyncRule(),
+                CreateGetAsyncRule(),
+                CreateMethodStartsWithGetRule());
+        }
 
         private static NamingRule CreateGetAsyncRule()
         {
@@ -24,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new SymbolSpecification(Guid.NewGuid(), "endswithasync", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
                 new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "Get", suffix: "Async"),
                 DiagnosticSeverity.Info);
-
         }
 
         private static NamingRule CreateCamelCaseFieldsAndParametersRule()
@@ -35,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new SymbolSpecification(Guid.NewGuid(), "camelcasefields", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
                 new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.CamelCase),
                 DiagnosticSeverity.Info);
-
         }
 
         private static NamingRule CreateEndWithAsyncRule()
@@ -46,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new SymbolSpecification(Guid.NewGuid(), "endswithasynct", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
                 new NamingStyles.NamingStyle(Guid.NewGuid(), suffix: "Async"),
                 DiagnosticSeverity.Info);
-
         }
 
         private static NamingRule CreateMethodStartsWithGetRule()
