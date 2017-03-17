@@ -1549,7 +1549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // '{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'
                     var methodKind = method1.MethodKind == MethodKind.Constructor ? MessageID.IDS_SK_CONSTRUCTOR : MessageID.IDS_SK_METHOD;
-                    diagnostics.Add(ErrorCode.ERR_OverloadRefKind, method1.Locations[0], this, methodKind.Localize(), refKind1.ToDisplayString(), refKind2.ToDisplayString());
+                    diagnostics.Add(ErrorCode.ERR_OverloadRefKind, method1.Locations[0], this, methodKind.Localize(), refKind1.ToParameterDisplayString(), refKind2.ToParameterDisplayString());
 
                     return;
                 }

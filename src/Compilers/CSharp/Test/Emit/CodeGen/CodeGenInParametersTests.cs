@@ -30,7 +30,7 @@ class Program
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false);
 
-            comp.VerifyIL("Program.M(ref readonly int)", @"
+            comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -54,7 +54,7 @@ class Program
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false);
 
-            comp.VerifyIL("Program.M(ref readonly int)", @"
+            comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1

@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeType)
             {
-                AddRefKindIfRequired(symbol.RefKind);
+                AddParameterRefKindIfRequired(symbol.RefKind);
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
 
                 if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddRefKindIfRequired(RefKind refKind)
+        private void AddParameterRefKindIfRequired(RefKind refKind)
         {
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
             {
@@ -743,9 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSpace();
                         break;
                     case RefKind.RefReadOnly:
-                        AddKeyword(SyntaxKind.RefKeyword);
-                        AddSpace();
-                        AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                        AddKeyword(SyntaxKind.InKeyword);
                         AddSpace();
                         break;
                 }

@@ -1593,7 +1593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Parameter {0} must be declared with the '{1}' keyword
                         Error(diagnostics, ErrorCode.ERR_BadParamRef, anonymousFunction.ParameterLocation(i),
-                            i + 1, delegateRefKind.ToDisplayString());
+                            i + 1, delegateRefKind.ToParameterDisplayString());
                     }
                 }
                 return;
@@ -1646,12 +1646,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (delegateRefKind == RefKind.None)
                         {
                             // Parameter {0} should not be declared with the '{1}' keyword
-                            Error(diagnostics, ErrorCode.ERR_BadParamExtraRef, lambdaParameterLocation, i + 1, lambdaRefKind.ToDisplayString());
+                            Error(diagnostics, ErrorCode.ERR_BadParamExtraRef, lambdaParameterLocation, i + 1, lambdaRefKind.ToParameterDisplayString());
                         }
                         else
                         {
                             // Parameter {0} must be declared with the '{1}' keyword
-                            Error(diagnostics, ErrorCode.ERR_BadParamRef, lambdaParameterLocation, i + 1, delegateRefKind.ToDisplayString());
+                            Error(diagnostics, ErrorCode.ERR_BadParamRef, lambdaParameterLocation, i + 1, delegateRefKind.ToParameterDisplayString());
                         }
                     }
                 }
