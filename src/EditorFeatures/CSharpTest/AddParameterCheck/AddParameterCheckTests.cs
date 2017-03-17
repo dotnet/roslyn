@@ -392,5 +392,61 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestInMethod()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void F([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void F(string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameterCheck)]
+        public async Task TestInOperator()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public static C operator +(C c1, [||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public static C operator +(C c1, [||]string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}");
+        }
     }
 }
