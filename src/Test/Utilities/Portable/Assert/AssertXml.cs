@@ -24,12 +24,12 @@ namespace Roslyn.Test.Utilities
     {
         public static void Equal(string expected, string actual)
         {
-            Equal(XElement.Parse(expected), XElement.Parse(actual), null, 0, expectedIsXmlLiteral: true);
+            Equal(XElement.Parse(expected), XElement.Parse(actual), null, null, 0, expectedIsXmlLiteral: true);
         }
 
         public static void Equal(XElement expected, XElement actual)
         {
-            Equal(expected, actual, null, 0, expectedIsXmlLiteral: false);
+            Equal(expected, actual, null, null, 0, expectedIsXmlLiteral: false);
         }
 
         /// <summary>
@@ -38,6 +38,7 @@ namespace Roslyn.Test.Utilities
         public static void Equal(
             XElement expectedRoot,
             XElement actualRoot,
+            string messagePrefix,
             string expectedValueSourcePath,
             int expectedValueSourceLine,
             bool expectedIsXmlLiteral)
@@ -45,7 +46,7 @@ namespace Roslyn.Test.Utilities
             Tuple<XElement, XElement> firstMismatch;
             if (!CheckEqual(expectedRoot, actualRoot, ShallowElementComparer.Instance, out firstMismatch))
             {
-                Assert.True(false, GetAssertText(GetXmlString(expectedRoot, expectedIsXmlLiteral), GetXmlString(actualRoot, expectedIsXmlLiteral), expectedRoot, firstMismatch, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral));
+                Assert.True(false, messagePrefix + GetAssertText(GetXmlString(expectedRoot, expectedIsXmlLiteral), GetXmlString(actualRoot, expectedIsXmlLiteral), expectedRoot, firstMismatch, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral));
             }
         }
 
