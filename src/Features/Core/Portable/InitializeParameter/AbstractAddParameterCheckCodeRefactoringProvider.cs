@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -16,14 +15,24 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
-    internal abstract partial class AbstractInitializeParameterCodeRefactoringProvider<
+    internal abstract partial class AbstractAddParameterCheckCodeRefactoringProvider<
         TParameterSyntax,
         TMemberDeclarationSyntax,
         TStatementSyntax,
         TExpressionSyntax,
-        TBinaryExpressionSyntax>
+        TBinaryExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
+            TParameterSyntax,
+            TMemberDeclarationSyntax,
+            TStatementSyntax,
+            TExpressionSyntax,
+            TBinaryExpressionSyntax>
+        where TParameterSyntax : SyntaxNode
+        where TMemberDeclarationSyntax : SyntaxNode
+        where TStatementSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
+        where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        private async Task<ImmutableArray<CodeAction>> GetNullCheckRefactoringsAsync(
+        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
             Document document, IParameterSymbol parameter, IBlockStatement blockStatement, CancellationToken cancellationToken)
         {
             if (!parameter.Type.IsReferenceType &&

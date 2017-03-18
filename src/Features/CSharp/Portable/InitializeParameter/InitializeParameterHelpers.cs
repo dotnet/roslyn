@@ -2,31 +2,20 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.InitializeParameter;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpInitializeParameterCodeRefactoringProvider)), Shared]
-    [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.ChangeSignature)]
-    internal class CSharpInitializeParameterCodeRefactoringProvider :
-        AbstractInitializeParameterCodeRefactoringProvider<
-            ParameterSyntax,
-            BaseMethodDeclarationSyntax,
-            StatementSyntax,
-            ExpressionSyntax,
-            BinaryExpressionSyntax>
+    internal static class InitializeParameterHelpers
     {
-        protected override SyntaxNode GetBody(BaseMethodDeclarationSyntax containingMember)
+        public static SyntaxNode GetBody(BaseMethodDeclarationSyntax containingMember)
             => containingMember.Body ?? (SyntaxNode)containingMember.ExpressionBody;
 
-        protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
+        public static bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => compilation.ClassifyConversion(source: source, destination: destination).IsImplicit;
 
-        protected override void InsertStatement(
+        public static void InsertStatement(
             SyntaxEditor editor,
             SyntaxNode body,
             IOperation statementToAddAfterOpt,

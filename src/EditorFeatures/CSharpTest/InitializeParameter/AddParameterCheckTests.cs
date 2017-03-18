@@ -11,10 +11,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
 {
-    public partial class InitializeParameterTests : AbstractCSharpCodeActionTest
+    public partial class AddParameterCheckTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpInitializeParameterCodeRefactoringProvider();
+            => new CSharpAddParameterCheckCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestSimpleReferenceType()

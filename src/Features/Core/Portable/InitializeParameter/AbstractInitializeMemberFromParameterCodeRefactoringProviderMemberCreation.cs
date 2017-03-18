@@ -16,12 +16,17 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
-    internal abstract partial class AbstractInitializeParameterCodeRefactoringProvider<
+    internal abstract partial class AbstractInitializeMemberFromParameterCodeRefactoringProvider<
         TParameterSyntax,
         TMemberDeclarationSyntax,
         TStatementSyntax,
         TExpressionSyntax,
-        TBinaryExpressionSyntax> : CodeRefactoringProvider
+        TBinaryExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
+            TParameterSyntax,
+            TMemberDeclarationSyntax,
+            TStatementSyntax,
+            TExpressionSyntax,
+            TBinaryExpressionSyntax>
         where TParameterSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
@@ -46,7 +51,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
                     enforcementLevel: DiagnosticSeverity.Hidden));
 
-        private async Task<ImmutableArray<CodeAction>> GetMemberCreationAndInitializationRefactoringsAsync(
+        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
             Document document, IParameterSymbol parameter, IBlockStatement blockStatement, CancellationToken cancellationToken)
         {
             var methodSymbol = parameter.ContainingSymbol as IMethodSymbol;
@@ -275,7 +280,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private List<string> CreateWords(StringBreaks wordBreaks, string name)
         {
             var result = new List<string>(wordBreaks.Count);
-            for (int i = 0; i < wordBreaks.Count; i++)
+            for (var i = 0; i < wordBreaks.Count; i++)
             {
                 var br = wordBreaks[i];
                 result.Add(name.Substring(br.Start, br.Length));

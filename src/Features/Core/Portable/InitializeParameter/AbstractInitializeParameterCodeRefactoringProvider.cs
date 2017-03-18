@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -35,6 +36,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract void InsertStatement(
             SyntaxEditor editor, SyntaxNode body,
             IOperation statementToAddAfterOpt, TStatementSyntax statement);
+
+        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(Document document, IParameterSymbol parameter, IBlockStatement blockStatement, CancellationToken cancellationToken);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -98,21 +101,18 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            context.RegisterRefactorings(await GetMemberCreationAndInitializationRefactoringsAsync(
-                document, parameter, blockStatement, cancellationToken).ConfigureAwait(false));
-
-            context.RegisterRefactorings(await GetNullCheckRefactoringsAsync(
+            context.RegisterRefactorings(await GetRefactoringsAsync(
                 document, parameter, blockStatement, cancellationToken).ConfigureAwait(false));
         }
 
-        private static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
+        protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
             => UnwrapConversion(operation) is IParameterReferenceExpression parameterReference &&
                parameter.Equals(parameterReference.Parameter);
 
-        private static IOperation UnwrapConversion(IOperation operation)
+        protected static IOperation UnwrapConversion(IOperation operation)
             => operation is IConversionExpression conversion ? conversion.Operand : operation;
 
-        private bool ContainsParameterReference(
+        protected static bool ContainsParameterReference(
             SemanticModel semanticModel,
             IOperation condition,
             IParameterSymbol parameter,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return false;
         }
 
-        private bool IsFieldOrPropertyAssignment(
+        protected static bool IsFieldOrPropertyAssignment(
             IOperation statement, INamedTypeSymbol containingType, out IAssignmentExpression assignmentExpression)
         {
             if (statement is IExpressionStatement expressionStatement)
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return false;
         }
 
-        private bool IsFieldOrPropertyReference(IOperation operation, INamedTypeSymbol containingType)
+        protected static bool IsFieldOrPropertyReference(IOperation operation, INamedTypeSymbol containingType)
         {
             if (operation is IFieldReferenceExpression fieldReference &&
                 fieldReference.Field.ContainingType.Equals(containingType))
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return false;
         }
 
-        private static IOperation GetOperation(
+        protected static IOperation GetOperation(
             SemanticModel semanticModel,
             SyntaxNode node,
             CancellationToken cancellationToken)
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 semanticModel, new object[] { node, cancellationToken });
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        protected class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
