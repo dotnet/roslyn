@@ -84,7 +84,7 @@ class C
 
     public C(string s)
     {
-        this.S = s;
+        S = s;
     }
 }");
         }
