@@ -173,5 +173,140 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestWhenAlreadyInitialized1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    private int s;
+    private int x;
+
+    public C([||]string s)
+    {
+        x = s;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestWhenAlreadyInitialized2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    private int s;
+    private int x;
+
+    public C([||]string s)
+    {
+        x = s ?? throw new Exception();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestWhenAlreadyInitialized3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    private int s;
+
+    public C([||]string s)
+    {
+        s = 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInsertionLocation1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private string s;
+    private string t;
+
+    public C([||]string s, string t)
+    {
+        this.t = t;   
+    }
+}",
+@"
+class C
+{
+    private string s;
+    private string t;
+
+    public C(string s, string t)
+    {
+        this.s = s;
+        this.t = t;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInsertionLocation2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private string s;
+    private string t;
+
+    public C(string s, [||]string t)
+    {
+        this.s = s;   
+    }
+}",
+@"
+class C
+{
+    private string s;
+    private string t;
+
+    public C(string s, string t)
+    {
+        this.s = s;
+        this.t = t;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInsertionLocation3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private string s;
+
+    public C([||]string s)
+    {
+        if (true) { } 
+    }
+}",
+@"
+class C
+{
+    private string s;
+
+    public C(string s)
+    {
+        if (true) { }
+        this.s = s;
+    }
+}");
+        }
     }
 }
