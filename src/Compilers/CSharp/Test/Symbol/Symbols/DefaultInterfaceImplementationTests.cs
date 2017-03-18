@@ -862,6 +862,95 @@ class Test2 : I1
         }
 
         [Fact]
+        public void MethodImplementation_052()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+            var m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
+            var test2 = compilation3.GetTypeByMetadataName("Test2");
+
+            Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
+
+            compilation3.VerifyDiagnostics(
+                // (2,15): error CS8502: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because the target runtime doesn't support default interface implementation.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void MethodImplementation_053()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public interface I2
+{
+    void M2();
+}
+
+class Test2 : I2
+{
+    public void M2() {}
+}
+";
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+            var m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
+            var test2 = compilation3.GetTypeByMetadataName("Test2");
+
+            Assert.Null(test2.FindImplementationForInterfaceMember(m1));
+
+            compilation3.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void MethodImplementation_061()
         {
             var source1 =

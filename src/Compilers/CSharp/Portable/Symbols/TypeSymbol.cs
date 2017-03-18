@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckForImplementationOfCorrespondingPropertyOrEvent((MethodSymbol)interfaceMember, implementingType, implementingTypeIsFromSomeCompilation, ref implicitImpl);
             }
 
-            if ((object)implicitImpl == null)
+            if ((object)implicitImpl == null && seenTypeDeclaringInterface)
             {
                 // Check for default interface implementations
                 if (!interfaceMember.IsAbstract)
