@@ -3550,9 +3550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode ExpressionStatement(SyntaxNode expression)
-        {
-            return SyntaxFactory.ExpressionStatement((ExpressionSyntax)expression);
-        }
+            => SyntaxFactory.ExpressionStatement((ExpressionSyntax)expression);
 
         internal override SyntaxNode MemberAccessExpressionWorker(SyntaxNode expression, SyntaxNode simpleName)
         {
@@ -3737,9 +3735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode AssignmentStatement(SyntaxNode left, SyntaxNode right)
-        {
-            return SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, (ExpressionSyntax)left, Parenthesize(right));
-        }
+            => SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, (ExpressionSyntax)left, Parenthesize(right));
 
         private SyntaxNode CreateBinaryExpression(SyntaxKind syntaxKind, SyntaxNode left, SyntaxNode right)
         {

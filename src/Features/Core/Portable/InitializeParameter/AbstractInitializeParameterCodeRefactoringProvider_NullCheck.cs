@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
@@ -21,17 +23,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         TExpressionSyntax,
         TBinaryExpressionSyntax>
     {
-        private async Task RegisterNullCheckRefactoringsAsync(
-            CodeRefactoringContext context, IParameterSymbol parameter, IBlockStatement blockStatement)
+        private async Task<ImmutableArray<CodeAction>> GetNullCheckRefactoringsAsync(
+            Document document, IParameterSymbol parameter, IBlockStatement blockStatement, CancellationToken cancellationToken)
         {
             if (!parameter.Type.IsReferenceType &&
                 !parameter.Type.IsNullable())
             {
-                return;
+                return ImmutableArray<CodeAction>.Empty;
             }
-
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -40,31 +39,34 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 if (IsNullCheck(statement, parameter))
                 {
-                    return;
+                    return ImmutableArray<CodeAction>.Empty;
                 }
 
                 if (ContainsNullCoalesceCheck(
                         syntaxFacts, semanticModel, statement,
                         parameter, cancellationToken))
                 {
-                    return;
+                    return ImmutableArray<CodeAction>.Empty;
                 }
             }
 
-            context.RegisterRefactoring(new MyCodeAction(
+            var result = ArrayBuilder<CodeAction>.GetInstance();
+            result.Add(new MyCodeAction(
                 FeaturesResources.Add_null_check,
-                c => AddNullCheckAsync(document, blockStatement, parameter, c)));
+                c => AddNullCheckAsync(document, parameter, blockStatement, c)));
 
             if (parameter.Type.SpecialType == SpecialType.System_String)
             {
-                context.RegisterRefactoring(new MyCodeAction(
+                result.Add(new MyCodeAction(
                     FeaturesResources.Add_string_IsNullOrEmpty_check,
-                    c => AddStringCheckAsync(document, blockStatement, parameter, nameof(string.IsNullOrEmpty), c)));
+                    c => AddStringCheckAsync(document, parameter, blockStatement, nameof(string.IsNullOrEmpty), c)));
 
-                context.RegisterRefactoring(new MyCodeAction(
+                result.Add(new MyCodeAction(
                     FeaturesResources.Add_string_IsNullOrWhiteSpace_check,
-                    c => AddStringCheckAsync(document, blockStatement, parameter, nameof(string.IsNullOrWhiteSpace), c)));
+                    c => AddStringCheckAsync(document, parameter, blockStatement, nameof(string.IsNullOrWhiteSpace), c)));
             }
+
+            return result.ToImmutableAndFree();
         }
 
         private bool ContainsNullCoalesceCheck(
@@ -138,12 +140,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private async Task<Document> AddNullCheckAsync(
             Document document,
-            IBlockStatement blockStatement,
             IParameterSymbol parameter,
+            IBlockStatement blockStatement,
             CancellationToken cancellationToken)
         {
             var documentOpt = await TryAddNullCheckToAssignmentAsync(
-                document, blockStatement, parameter, cancellationToken).ConfigureAwait(false);
+                document, parameter, blockStatement, cancellationToken).ConfigureAwait(false);
 
             if (documentOpt != null)
             {
@@ -151,28 +153,28 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             return await AddNullCheckAsync(
-                document, blockStatement, parameter,
+                document, parameter, blockStatement,
                 (c, g) => CreateNullCheckStatement(c, g, parameter),
                 cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Document> AddStringCheckAsync(
             Document document,
-            IBlockStatement blockStatement,
             IParameterSymbol parameter,
+            IBlockStatement blockStatement,
             string methodName,
             CancellationToken cancellationToken)
         {
             return await AddNullCheckAsync(
-                document, blockStatement, parameter,
+                document, parameter, blockStatement,
                 (c, g) => CreateStringCheckStatement(c, g, parameter, methodName),
                 cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Document> AddNullCheckAsync(
             Document document, 
-            IBlockStatement blockStatement, 
-            IParameterSymbol parameter, 
+            IParameterSymbol parameter,
+            IBlockStatement blockStatement,
             Func<Compilation, SyntaxGenerator, TStatementSyntax> generateNullCheck,
             CancellationToken cancellationToken)
         {
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var nullCheckStatement = generateNullCheck(compilation, editor.Generator);
 
             var statementToAddAfter = GetStatementToAddNullCheckAfter(
-                semanticModel, blockStatement, parameter, cancellationToken);
+                semanticModel, parameter, blockStatement, cancellationToken);
             InsertStatement(editor, blockStatement.Syntax, statementToAddAfter, nullCheckStatement);
 
             var newRoot = editor.GetChangedRoot();
@@ -220,12 +222,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private IOperation GetStatementToAddNullCheckAfter(
             SemanticModel semanticModel,
-            IBlockStatement blockStatement,
             IParameterSymbol parameter,
+            IBlockStatement blockStatement,
             CancellationToken cancellationToken)
         {
-            if (parameter.ContainingSymbol is IMethodSymbol methodSymbol)
-            {
+            var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
                 var parameterIndex = methodSymbol.Parameters.IndexOf(parameter);
 
                 // look for an existing check for a parameter that comes before us.
@@ -233,24 +234,23 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 for (var i = parameterIndex - 1; i >= 0; i--)
                 {
                     var checkStatement = TryFindParameterCheckStatement(
-                        semanticModel, blockStatement, methodSymbol.Parameters[i], cancellationToken);
+                        semanticModel, methodSymbol.Parameters[i], blockStatement, cancellationToken);
                     if (checkStatement != null)
                     {
                         return checkStatement;
                     }
                 }
 
-                // look for an existing check for a parameter that comes before us.
-                // If we find one, we'll add ourselves after that parameter check.
-                for (var i = parameterIndex + 1; i < methodSymbol.Parameters.Length; i++)
+            // look for an existing check for a parameter that comes before us.
+            // If we find one, we'll add ourselves after that parameter check.
+            for (var i = parameterIndex + 1; i < methodSymbol.Parameters.Length; i++)
+            {
+                var checkStatement = TryFindParameterCheckStatement(
+                    semanticModel, methodSymbol.Parameters[i], blockStatement, cancellationToken);
+                if (checkStatement != null)
                 {
-                    var checkStatement = TryFindParameterCheckStatement(
-                        semanticModel, blockStatement, methodSymbol.Parameters[i], cancellationToken);
-                    if (checkStatement != null)
-                    {
-                        var statementIndex = blockStatement.Statements.IndexOf(checkStatement);
-                        return statementIndex > 0 ? blockStatement.Statements[statementIndex - 1] : null;
-                    }
+                    var statementIndex = blockStatement.Statements.IndexOf(checkStatement);
+                    return statementIndex > 0 ? blockStatement.Statements[statementIndex - 1] : null;
                 }
             }
 
@@ -259,8 +259,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private IOperation TryFindParameterCheckStatement(
             SemanticModel semanticModel,
-            IBlockStatement blockStatement,
             IParameterSymbol parameterSymbol,
+            IBlockStatement blockStatement,
             CancellationToken cancellationToken)
         {
             foreach (var statement in blockStatement.Statements)
@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private async Task<Document> TryAddNullCheckToAssignmentAsync(
             Document document,
-            IBlockStatement blockStatement,
             IParameterSymbol parameter,
+            IBlockStatement blockStatement,
             CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -301,12 +301,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return null;
             }
 
+            var containingType = parameter.ContainingType;
             foreach (var statement in blockStatement.Statements)
             {
-                if (statement is IExpressionStatement expressionStatement &&
-                    expressionStatement.Expression is IAssignmentExpression assignmentExpression &&
-                    IsParameterReference(assignmentExpression.Value, parameter) &&
-                    IsFieldOrPropertyReference(assignmentExpression.Target, parameter))
+                if (IsFieldOrPropertyAssignment(statement, containingType, out var assignmentExpression) &&
+                    IsParameterReference(assignmentExpression.Value, parameter))
                 {
                     var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 

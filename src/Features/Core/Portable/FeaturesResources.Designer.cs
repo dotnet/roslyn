@@ -837,6 +837,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Create and initialize field &apos;{0}&apos;.
+        /// </summary>
+        internal static string Create_and_initialize_field_0 {
+            get {
+                return ResourceManager.GetString("Create_and_initialize_field_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create and initialize property &apos;{0}&apos;.
+        /// </summary>
+        internal static string Create_and_initialize_property_0 {
+            get {
+                return ResourceManager.GetString("Create_and_initialize_property_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to delegate.
         /// </summary>
         internal static string delegate_ {
@@ -1545,6 +1563,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string in_Suppression_File {
             get {
                 return ResourceManager.GetString("in_Suppression_File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialize field &apos;{0}&apos;.
+        /// </summary>
+        internal static string Initialize_field_0 {
+            get {
+                return ResourceManager.GetString("Initialize_field_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialize property &apos;{0}&apos;.
+        /// </summary>
+        internal static string Initialize_property_0 {
+            get {
+                return ResourceManager.GetString("Initialize_property_0", resourceCulture);
             }
         }
         

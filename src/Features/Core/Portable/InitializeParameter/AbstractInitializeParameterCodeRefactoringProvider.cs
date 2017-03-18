@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private static MethodInfo s_getOperationInfo =
             typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
 
-
         protected abstract SyntaxNode GetBody(TMemberDeclarationSyntax containingMember);
+        protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
 
         protected abstract void InsertStatement(
             SyntaxEditor editor, SyntaxNode body,
-            IOperation statementToAddAfterOpt, TStatementSyntax nullCheckStatement);
+            IOperation statementToAddAfterOpt, TStatementSyntax statement);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -98,18 +98,18 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            //await RegisterMemberInitializationRefactoringsAsync(
-            //    context, parameter, blockStatement).ConfigureAwait(false);
+            context.RegisterRefactorings(await GetMemberCreationAndInitializationRefactoringsAsync(
+                document, parameter, blockStatement, cancellationToken).ConfigureAwait(false));
 
-            await RegisterNullCheckRefactoringsAsync(
-                context, parameter, blockStatement).ConfigureAwait(false);
+            context.RegisterRefactorings(await GetNullCheckRefactoringsAsync(
+                document, parameter, blockStatement, cancellationToken).ConfigureAwait(false));
         }
 
-        private bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
+        private static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
             => UnwrapConversion(operation) is IParameterReferenceExpression parameterReference &&
                parameter.Equals(parameterReference.Parameter);
 
-        private IOperation UnwrapConversion(IOperation operation)
+        private static IOperation UnwrapConversion(IOperation operation)
             => operation is IConversionExpression conversion ? conversion.Operand : operation;
 
         private bool ContainsParameterReference(
@@ -130,16 +130,29 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return false;
         }
 
-        private bool IsFieldOrPropertyReference(IOperation operation, IParameterSymbol parameter)
+        private bool IsFieldOrPropertyAssignment(
+            IOperation statement, INamedTypeSymbol containingType, out IAssignmentExpression assignmentExpression)
+        {
+            if (statement is IExpressionStatement expressionStatement)
+            {
+                assignmentExpression = expressionStatement.Expression as IAssignmentExpression;
+                return IsFieldOrPropertyReference(assignmentExpression?.Target, containingType);
+            }
+
+            assignmentExpression = null;
+            return false;
+        }
+
+        private bool IsFieldOrPropertyReference(IOperation operation, INamedTypeSymbol containingType)
         {
             if (operation is IFieldReferenceExpression fieldReference &&
-                fieldReference.Field.ContainingType.Equals(parameter.ContainingType))
+                fieldReference.Field.ContainingType.Equals(containingType))
             {
                 return true;
             }
 
             if (operation is IPropertyReferenceExpression propertyReference &&
-                propertyReference.Property.ContainingType.Equals(parameter.ContainingType))
+                propertyReference.Property.ContainingType.Equals(containingType))
             {
                 return true;
             }

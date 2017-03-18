@@ -23,11 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override SyntaxNode GetBody(BaseMethodDeclarationSyntax containingMember)
             => containingMember.Body ?? (SyntaxNode)containingMember.ExpressionBody;
 
+        protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
+            => compilation.ClassifyConversion(source: source, destination: destination).IsImplicit;
+
         protected override void InsertStatement(
             SyntaxEditor editor,
             SyntaxNode body,
             IOperation statementToAddAfterOpt,
-            StatementSyntax nullCheckStatement)
+            StatementSyntax statement)
         {
             var generator = editor.Generator;
 
@@ -35,25 +38,35 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             {
                 var methodBase = (BaseMethodDeclarationSyntax)body.Parent;
 
-                editor.SetStatements(methodBase, 
-                    ImmutableArray.Create(
-                        nullCheckStatement,
-                        generator.ExpressionStatement(arrowExpression.Expression)));
+                if (statementToAddAfterOpt == null)
+                {
+                    editor.SetStatements(methodBase,
+                        ImmutableArray.Create(
+                            statement,
+                            generator.ExpressionStatement(arrowExpression.Expression)));
+                }
+                else
+                {
+                    editor.SetStatements(methodBase,
+                        ImmutableArray.Create(
+                            generator.ExpressionStatement(arrowExpression.Expression),
+                            statement));
+                }
             }
             else if (body is BlockSyntax block)
             {
                 var indexToAddAfter = block.Statements.IndexOf(s => s == statementToAddAfterOpt?.Syntax);
                 if (indexToAddAfter >= 0)
                 {
-                    editor.InsertAfter(block.Statements[indexToAddAfter], nullCheckStatement);
+                    editor.InsertAfter(block.Statements[indexToAddAfter], statement);
                 }
                 else if (block.Statements.Count > 0)
                 {
-                    editor.InsertBefore(block.Statements[0], nullCheckStatement);
+                    editor.InsertBefore(block.Statements[0], statement);
                 }
                 else
                 {
-                    editor.ReplaceNode(block, block.AddStatements((StatementSyntax)nullCheckStatement));
+                    editor.ReplaceNode(block, block.AddStatements((StatementSyntax)statement));
                 }
             }
             else

@@ -21,18 +21,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return containingMember
         End Function
 
+        Protected Overrides Function IsImplicitConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Boolean
+            Return compilation.ClassifyConversion(source:=source, destination:=destination).IsWidening
+        End Function
+
         Protected Overrides Sub InsertStatement(
                 editor As SyntaxEditor,
                 body As SyntaxNode,
                 statementToAddAfterOpt As IOperation,
-                nullCheckStatement As StatementSyntax)
+                statement As StatementSyntax)
             Dim methodBlock = DirectCast(body, MethodBlockBaseSyntax)
             Dim statements = methodBlock.Statements
 
             If statementToAddAfterOpt IsNot Nothing Then
-                editor.InsertAfter(statementToAddAfterOpt.Syntax, nullCheckStatement)
+                editor.InsertAfter(statementToAddAfterOpt.Syntax, statement)
             Else
-                Dim newStatements = statements.Insert(0, nullCheckStatement)
+                Dim newStatements = statements.Insert(0, statement)
                 editor.SetStatements(body, newStatements)
             End If
         End Sub

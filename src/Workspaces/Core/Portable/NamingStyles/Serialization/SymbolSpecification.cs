@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public SymbolSpecification(
             Guid? id, string symbolSpecName,
             ImmutableArray<SymbolKindOrTypeKind> symbolKindList,
-            ImmutableArray<Accessibility> accessibilityList,
-            ImmutableArray<ModifierKind> modifiers)
+            ImmutableArray<Accessibility> accessibilityList = default(ImmutableArray<Accessibility>),
+            ImmutableArray<ModifierKind> modifiers = default(ImmutableArray<ModifierKind>))
         {
             ID = id ?? Guid.NewGuid();
             Name = symbolSpecName;
-            ApplicableAccessibilityList = accessibilityList;
-            RequiredModifierList = modifiers;
             ApplicableSymbolKindList = symbolKindList;
+            ApplicableAccessibilityList = accessibilityList.NullToEmpty();
+            RequiredModifierList = modifiers.NullToEmpty();
         }
 
         public static SymbolSpecification CreateDefaultSymbolSpecification()

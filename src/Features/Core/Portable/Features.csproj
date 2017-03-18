@@ -139,6 +139,7 @@
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndHashWithDialogCodeAction.cs" />
     <Compile Include="GenerateOverrides\GenerateOverridesWithDialogCodeAction.cs" />
     <Compile Include="GenerateOverrides\GenerateOverridesCodeRefactoringProvider.cs" />
+    <Compile Include="InitializeParameter\AbstractInitializeParameterCodeRefactoringProvider_MemberCreation.cs" />
     <Compile Include="InitializeParameter\AbstractInitializeParameterCodeRefactoringProvider_NullCheck.cs" />
     <Compile Include="InitializeParameter\AbstractInitializeParameterCodeRefactoringProvider.cs" />
     <Compile Include="PickMembers\IPickMembersService.cs" />
