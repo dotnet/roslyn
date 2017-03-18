@@ -59,7 +59,7 @@ class C
 
     public C(string s)
     {
-        this._s = s;
+        _s = s;
     }
 }");
         }
