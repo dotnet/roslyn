@@ -7,10 +7,10 @@ Imports Microsoft.CodeAnalysis.InitializeParameter
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicAddParameterCheckCodeRefactoringProvider)), [Shared]>
-    <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.ChangeSignature)>
-    Friend Class VisualBasicAddParameterCheckCodeRefactoringProvider
-        Inherits AbstractAddParameterCheckCodeRefactoringProvider(Of
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicInitializeMemberFromParameterCodeRefactoringProvider)), [Shared]>
+    <ExtensionOrder(Before:=NameOf(VisualBasicAddParameterCheckCodeRefactoringProvider))>
+    Friend Class VisualBasicInitializeMemberFromParameterCodeRefactoringProvider
+        Inherits AbstractInitializeMemberFromParameterCodeRefactoringProvider(Of
             ParameterSyntax,
             MethodBlockBaseSyntax,
             StatementSyntax,

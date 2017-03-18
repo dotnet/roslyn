@@ -5,11 +5,11 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InitializeParameter
-    Public Class InitializeParameterTests
+    Public Class AddParameterCheckTests
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(Workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicInitializeParameterCodeRefactoringProvider()
+            Return New VisualBasicAddParameterCheckCodeRefactoringProvider()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
