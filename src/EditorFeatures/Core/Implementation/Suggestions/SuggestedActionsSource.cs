@@ -548,7 +548,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
 
-                    return filteredRefactorings.SelectAsArray(r => OrganizeRefactorings(workspace, r));
+                    return filteredRefactorings.SelectAsArray(
+                        r => OrganizeRefactorings(workspace, r, selection.Value.ToSpan()));
                 }
 
                 return ImmutableArray<SuggestedActionSet>.Empty;
@@ -562,7 +563,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// Priority for all <see cref="SuggestedActionSet"/>s containing refactorings is set to <see cref="SuggestedActionSetPriority.Low"/>
             /// and should show up after fixes but before suppression fixes in the light bulb menu.
             /// </remarks>
-            private SuggestedActionSet OrganizeRefactorings(Workspace workspace, CodeRefactoring refactoring)
+            private SuggestedActionSet OrganizeRefactorings(
+                Workspace workspace, CodeRefactoring refactoring, Span applicableSpan)
             {
                 var refactoringSuggestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
 
@@ -573,7 +575,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 return new SuggestedActionSet(
-                    refactoringSuggestedActions.ToImmutableAndFree(), SuggestedActionSetPriority.Low);
+                    refactoringSuggestedActions.ToImmutableAndFree(),
+                    SuggestedActionSetPriority.Low,
+                    applicableSpan);
             }
 
             public async Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
