@@ -5329,7 +5329,10 @@ public class C<S>
         const X NullTypeDef = null;
         const Action NullTypeRef = null;
         const Func<Dictionary<int, C<int>>, dynamic, T, List<S>> NullTypeSpec = null;
-        
+        const object[] Array1 = null;
+        const object[,] Array2 = null;
+        const object[][] Array3 = null;
+
         const decimal D = 0M;
         // DateTime const not expressible in C#
     }
@@ -5352,7 +5355,7 @@ public class C<S>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""53"" startColumn=""5"" endLine=""53"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""56"" startColumn=""5"" endLine=""56"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
@@ -5385,6 +5388,9 @@ public class C<S>
         <constant name=""NullTypeDef"" value=""null"" signature=""X"" />
         <constant name=""NullTypeRef"" value=""null"" signature=""System.Action"" />
         <constant name=""NullTypeSpec"" value=""null"" signature=""System.Func`4{System.Collections.Generic.Dictionary`2{Int32, C`1{Int32}}, Object, !!0, System.Collections.Generic.List`1{!0}}"" />
+        <constant name=""Array1"" value=""null"" signature=""Object[]"" />
+        <constant name=""Array2"" value=""null"" signature=""Object[,,]"" />
+        <constant name=""Array3"" value=""null"" signature=""Object[][]"" />
         <constant name=""D"" value=""0"" type=""Decimal"" />
       </scope>
     </method>
