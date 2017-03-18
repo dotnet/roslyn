@@ -308,5 +308,20 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotInMethod()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    private string s;
+
+    public M([||]string s)
+    {
+    }
+}");
+        }
     }
 }
