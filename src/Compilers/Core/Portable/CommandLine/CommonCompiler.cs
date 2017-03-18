@@ -128,18 +128,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal virtual string GetAssemblyFileVersion()
         {
-            if (_clientDirectory != null)
-            {
-                Assembly assembly = Type.GetTypeInfo().Assembly;
-                var name = $"{assembly.GetName().Name}.dll";
-                var filePath = Path.Combine(_clientDirectory, name);
-                var fileVersionInfo = FileVersionInfo.GetVersionInfo(filePath);
-                string hash = ExtractShortCommitHash(assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash);
+            Assembly assembly = Type.GetTypeInfo().Assembly;
+            return GetAssemblyFileVersion(assembly);
+        }
 
-                return $"{fileVersionInfo.FileVersion} ({hash})";
-            }
-
-            return "";
+        internal static string GetAssemblyFileVersion(Assembly assembly)
+        {
+            string assemblyVersion = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
+            string hash = ExtractShortCommitHash(assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash);
+            return $"{assemblyVersion} ({hash})";
         }
 
         internal static string ExtractShortCommitHash(string hash)

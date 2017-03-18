@@ -6,6 +6,7 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System.Reflection;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal class DirectiveParser : SyntaxParser
@@ -308,7 +309,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //could be negative if part of the error text comes from the trailing trivia of the keyword token
                 int triviaOffset = eod.GetLeadingTriviaWidth() - triviaWidth;
 
-                eod = this.AddError(eod, triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, triviaBuilder.ToString());
+                string errorText = triviaBuilder.ToString();
+                eod = this.AddError(eod, triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, errorText);
+
+                if (isError)
+                {
+                    if (errorText.Equals("version", StringComparison.Ordinal))
+                    {
+                        Assembly assembly = typeof(DirectiveParser).GetTypeInfo().Assembly;
+                        string version = CommonCompiler.GetAssemblyFileVersion(assembly);
+                        eod = this.AddError(eod, triviaOffset, triviaWidth, ErrorCode.ERR_CompilerAndLanguageVersion, version,
+                            this.Options.SpecifiedLanguageVersion.ToDisplayString());
+                    }
+                    else if (LanguageVersionFacts.TryParse(errorText, out var languageVersion))
+                    {
+                        ErrorCode error = languageVersion.GetErrorCode();
+                        eod = this.AddError(eod, triviaOffset, triviaWidth, error, "version", new CSharpRequiredLanguageVersion(languageVersion));
+                    }
+                }
             }
 
             if (isError)
