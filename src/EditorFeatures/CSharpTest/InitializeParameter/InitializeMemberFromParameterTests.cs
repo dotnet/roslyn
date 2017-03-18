@@ -40,6 +40,56 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestEndOfParameter1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private string s;
+
+    public C(string s[||])
+    {
+    }
+}",
+@"
+class C
+{
+    private string s;
+
+    public C(string s)
+    {
+        this.s = s;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestEndOfParameter2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private string s;
+
+    public C(string s[||], string t)
+    {
+    }
+}",
+@"
+class C
+{
+    private string s;
+
+    public C(string s, string t)
+    {
+        this.s = s;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestInitializeFieldWithUnderscoreName()
         {
             await TestInRegularAndScript1Async(
@@ -92,7 +142,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestInitializeFieldWithDifferentName()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -101,13 +151,25 @@ class C
     public C([||]string s)
     {
     }
+}",
+@"
+class C
+{
+    private string t;
+
+    public C(string s)
+    {
+        S = s;
+    }
+
+    public string S { get; }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestInitializeNonWritableProperty()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -116,13 +178,24 @@ class C
     public C([||]string s)
     {
     }
+}",
+@"
+class C
+{
+    private string S => null;
+    public string S1 { get; }
+
+    public C(string s)
+    {
+        S1 = s;
+    }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestInitializePropertyWithBadName()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -131,13 +204,24 @@ class C
     public C([||]string s)
     {
     }
+}",
+@"
+class C
+{
+    private string T { get; }
+    public string S { get; }
+
+    public C(string s)
+    {
+        S = s;
+    }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestInitializeFieldWithWrongType()
+        public async Task TestInitializeFieldWithWrongType1()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -146,7 +230,45 @@ class C
     public C([||]string s)
     {
     }
+}",
+@"
+class C
+{
+    private int s;
+
+    public C(string s)
+    {
+        S = s;
+    }
+
+    public string S { get; }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInitializeFieldWithWrongType2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private int s;
+
+    public C([||]string s)
+    {
+    }
+}",
+@"
+class C
+{
+    private int s;
+    private readonly string s1;
+
+    public C(string s)
+    {
+        s1 = s;
+    }
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -211,7 +333,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestWhenAlreadyInitialized3()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -221,6 +343,20 @@ class C
     {
         s = 0;
     }
+}",
+
+@"
+class C
+{
+    private int s;
+
+    public C([||]string s)
+    {
+        s = 0;
+        S = s;
+    }
+
+    public string S { get; }
 }");
         }
 
@@ -375,6 +511,62 @@ class C
         this.s = s;
         this.t = t;
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInsertionLocation6()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public C(string s, [||]string t)
+    {
+        S = s;   
+    }
+
+    public string S { get; }
+}",
+@"
+class C
+{
+    public C(string s, string t)
+    {
+        S = s;
+        T = t;
+    }
+
+    public string S { get; }
+    public string T { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInsertionLocation7()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public C([||]string s, string t)
+    {
+        T = t;   
+    }
+
+    public string T { get; }
+}",
+@"
+class C
+{
+    public C(string s, string t)
+    {
+        S = s;
+        T = t;
+    }
+
+    public string S { get; }
+    public string T { get; }
 }");
         }
     }
