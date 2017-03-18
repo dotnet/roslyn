@@ -323,5 +323,59 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInsertionLocation4()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private string s;
+    private string t;
+
+    public C(string s, [||]string t)
+        => this.s = s;   
+}",
+@"
+class C
+{
+    private string s;
+    private string t;
+
+    public C(string s, string t)
+    {
+        this.s = s;
+        this.t = t;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInsertionLocation5()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private string s;
+    private string t;
+
+    public C([||]string s, string t)
+        => this.t = t;   
+}",
+@"
+class C
+{
+    private string s;
+    private string t;
+
+    public C(string s, string t)
+    {
+        this.s = s;
+        this.t = t;
+    }
+}");
+        }
     }
 }
