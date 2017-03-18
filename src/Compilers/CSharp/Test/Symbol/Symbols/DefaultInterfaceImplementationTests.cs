@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     public class DefaultInterfaceImplementationTests : CSharpTestBase
     {
         [Fact]
-        public void MethodImplementation_01()
+        public void MethodImplementation_011()
         {
             var source1 =
 @"
@@ -58,6 +58,9 @@ class Test1 : I1
                     int rva;
                     ((PEModuleSymbol)m).Module.GetMethodDefPropsOrThrow(result.Handle, out _, out _, out _, out rva);
                     Assert.NotEqual(0, rva);
+
+                    var test1Result = m.GlobalNamespace.GetTypeMember("Test1");
+                    Assert.Equal("I1", test1Result.Interfaces.Single().ToTestDisplayString());
                 });
 
             var source2 =
@@ -74,7 +77,12 @@ class Test2 : I1
             Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false);
+            CompileAndVerify(compilation2, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
+                    Assert.Equal("I1", test2Result.Interfaces.Single().ToTestDisplayString());
+                });
 
             var compilation3 = CreateCompilationWithMscorlib(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -84,11 +92,208 @@ class Test2 : I1
             Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false);
+            CompileAndVerify(compilation3, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
+                    Assert.Equal("I1", test2Result.Interfaces.Single().ToTestDisplayString());
+                });
         }
 
         [Fact]
-        public void MethodImplementation_02()
+        public void MethodImplementation_012()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+
+class Test1 : I1
+{
+    public void M1() 
+    {
+        System.Console.WriteLine(""Test1 M1"");
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+
+            Assert.False(m1.IsAbstract);
+            Assert.True(m1.IsVirtual);
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Equal("void Test1.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
+
+            compilation1.VerifyDiagnostics();
+            Assert.True(m1.IsMetadataVirtual());
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var result = (PEMethodSymbol)m.GlobalNamespace.GetTypeMember("I1").GetMember("M1");
+
+                    Assert.True(m1.IsMetadataVirtual());
+                    Assert.False(m1.IsAbstract);
+                    Assert.True(m1.IsVirtual);
+
+                    int rva;
+                    ((PEModuleSymbol)m).Module.GetMethodDefPropsOrThrow(result.Handle, out _, out _, out _, out rva);
+                    Assert.NotEqual(0, rva);
+
+                    var test1Result = m.GlobalNamespace.GetTypeMember("Test1");
+                    Assert.Equal("I1", test1Result.Interfaces.Single().ToTestDisplayString());
+                });
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    public void M1() 
+    {
+        System.Console.WriteLine(""Test2 M1"");
+    }
+}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
+            var test2 = compilation2.GetTypeByMetadataName("Test2");
+
+            Assert.Equal("void Test2.M1()", test2.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
+                    Assert.Equal("I1", test2Result.Interfaces.Single().ToTestDisplayString());
+                });
+
+            var compilation3 = CreateCompilationWithMscorlib(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
+            test2 = compilation3.GetTypeByMetadataName("Test2");
+
+            Assert.Equal("void Test2.M1()", test2.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
+
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
+                    Assert.Equal("I1", test2Result.Interfaces.Single().ToTestDisplayString());
+                });
+        }
+
+        [Fact]
+        public void MethodImplementation_013()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+
+class Test1 : I1
+{
+    void I1.M1() 
+    {
+        System.Console.WriteLine(""Test1 M1"");
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+
+            Assert.False(m1.IsAbstract);
+            Assert.True(m1.IsVirtual);
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Equal("void Test1.I1.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
+
+            compilation1.VerifyDiagnostics();
+            Assert.True(m1.IsMetadataVirtual());
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var result = (PEMethodSymbol)m.GlobalNamespace.GetTypeMember("I1").GetMember("M1");
+
+                    Assert.True(m1.IsMetadataVirtual());
+                    Assert.False(m1.IsAbstract);
+                    Assert.True(m1.IsVirtual);
+
+                    int rva;
+                    ((PEModuleSymbol)m).Module.GetMethodDefPropsOrThrow(result.Handle, out _, out _, out _, out rva);
+                    Assert.NotEqual(0, rva);
+
+                    var test1Result = m.GlobalNamespace.GetTypeMember("Test1");
+                    Assert.Equal("I1", test1Result.Interfaces.Single().ToTestDisplayString());
+                });
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    void I1.M1() 
+    {
+        System.Console.WriteLine(""Test2 M1"");
+    }
+}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
+            var test2 = compilation2.GetTypeByMetadataName("Test2");
+
+            Assert.Equal("void Test2.I1.M1()", test2.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
+                    Assert.Equal("I1", test2Result.Interfaces.Single().ToTestDisplayString());
+                });
+
+            var compilation3 = CreateCompilationWithMscorlib(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
+            test2 = compilation3.GetTypeByMetadataName("Test2");
+
+            Assert.Equal("void Test2.I1.M1()", test2.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
+
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
+                    Assert.Equal("I1", test2Result.Interfaces.Single().ToTestDisplayString());
+                });
+        }
+
+        [Fact]
+        public void MethodImplementation_021()
         {
             var source1 =
 @"
@@ -113,18 +318,166 @@ class Test : I1 {}
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(
-                // (13,23): error CS0737: 'Derived' does not implement interface member 'I1.M2()'. 'Derived.M2()' cannot implement an interface member because it is not public.
-                // class Derived : Base, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1").WithArguments("Derived", "I1.M2()", "Derived.M2()").WithLocation(13, 23),
-                // (13,23): error CS0737: 'Derived' does not implement interface member 'I1.M1()'. 'Base.M1()' cannot implement an interface member because it is not public.
-                // class Derived : Base, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1").WithArguments("Derived", "I1.M1()", "Base.M1()").WithLocation(13, 23)
-                );
+            compilation1.VerifyDiagnostics();
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+            var m2 = compilation1.GetMember<MethodSymbol>("I1.M2");
+
+            var derived = compilation1.GetTypeByMetadataName("Derived");
+
+            Assert.Same(m1, derived.FindImplementationForInterfaceMember(m1));
+            Assert.Same(m2, derived.FindImplementationForInterfaceMember(m2));
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
+                    Assert.Equal("I1", derivedResult.Interfaces.Single().ToTestDisplayString());
+                });
         }
 
         [Fact]
-        public void MethodImplementation_03()
+        public void MethodImplementation_022()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void M1() {}
+    void M2() {}
+}
+
+class Base : Test
+{
+    void M1() { }
+}
+
+class Derived : Base, I1
+{
+    void M2() { }
+}
+
+class Test : I1 {}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+            var m2 = compilation1.GetMember<MethodSymbol>("I1.M2");
+
+            var derived = compilation1.GetTypeByMetadataName("Derived");
+
+            Assert.Same(m1, derived.FindImplementationForInterfaceMember(m1));
+            Assert.Same(m2, derived.FindImplementationForInterfaceMember(m2));
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
+                    Assert.Equal("I1", derivedResult.Interfaces.Single().ToTestDisplayString());
+                });
+        }
+
+        [Fact]
+        public void MethodImplementation_023()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void M1() {}
+    void M2() {}
+}
+
+class Base : Test
+{
+    void M1() { }
+}
+
+class Derived : Base, I1
+{
+    void M2() { }
+}
+
+class Test : I1 
+{
+    void I1.M1() {}
+    void I1.M2() {}
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+            var m2 = compilation1.GetMember<MethodSymbol>("I1.M2");
+
+            var derived = compilation1.GetTypeByMetadataName("Derived");
+
+            Assert.Equal("void Test.I1.M1()", derived.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
+            Assert.Equal("void Test.I1.M2()", derived.FindImplementationForInterfaceMember(m2).ToTestDisplayString());
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
+                    Assert.Equal("I1", derivedResult.Interfaces.Single().ToTestDisplayString());
+                });
+        }
+
+        [Fact]
+        public void MethodImplementation_024()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void M1() {}
+    void M2() {}
+}
+
+class Base : Test
+{
+    new void M1() { }
+}
+
+class Derived : Base, I1
+{
+    new void M2() { }
+}
+
+class Test : I1 
+{
+    public void M1() {}
+    public void M2() {}
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+            var m2 = compilation1.GetMember<MethodSymbol>("I1.M2");
+
+            var derived = compilation1.GetTypeByMetadataName("Derived");
+
+            Assert.Equal("void Test.M1()", derived.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
+            Assert.Equal("void Test.M2()", derived.FindImplementationForInterfaceMember(m2).ToTestDisplayString());
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
+                    Assert.Equal("I1", derivedResult.Interfaces.Single().ToTestDisplayString());
+                });
+        }
+
+        [Fact]
+        public void MethodImplementation_031()
         {
             var source1 =
 @"
@@ -143,15 +496,134 @@ class Test2 : I1 {}
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(
-                // (7,15): error CS0736: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implement an interface member because it is static.
-                // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(7, 15)
-                );
+            compilation1.VerifyDiagnostics();
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
+                    Assert.Equal("I1", test1Result.Interfaces.Single().ToTestDisplayString());
+                });
         }
 
         [Fact]
-        public void MethodImplementation_04()
+        public void MethodImplementation_032()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void M1() {}
+}
+
+class Test1 : Test2, I1
+{
+    public static void M1() { }
+}
+
+class Test2 : I1 {}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
+                    Assert.Equal("I1", test1Result.Interfaces.Single().ToTestDisplayString());
+                });
+        }
+
+        [Fact]
+        public void MethodImplementation_033()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void M1() {}
+}
+
+class Test1 : Test2, I1
+{
+    public static void M1() { }
+}
+
+class Test2 : I1 
+{
+    void I1.M1() {}
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Equal("void Test2.I1.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
+                    Assert.Equal("I1", test1Result.Interfaces.Single().ToTestDisplayString());
+                });
+        }
+
+        [Fact]
+        public void MethodImplementation_034()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void M1() {}
+}
+
+class Test1 : Test2, I1
+{
+    new public static void M1() { }
+}
+
+class Test2 : I1 
+{
+    public void M1() {}
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Equal("void Test2.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
+                    Assert.Equal("I1", test1Result.Interfaces.Single().ToTestDisplayString());
+                });
+        }
+
+        [Fact]
+        public void MethodImplementation_041()
         {
             var source1 =
 @"
@@ -172,14 +644,150 @@ class Test2 : I1 {}
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(
-                // (8,15): error CS8152: 'Test1' does not implement interface member 'I1.M2()'. 'Test1.M2()' cannot implement 'I1.M2()' because it does not return by value
-                // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "I1").WithArguments("Test1", "I1.M2()", "Test1.M2()", "value").WithLocation(8, 15),
-                // (8,15): error CS0738: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implement 'I1.M1()' because it does not have the matching return type of 'void'.
-                // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "void").WithLocation(8, 15)
-                );
+            compilation1.VerifyDiagnostics();
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+            var m2 = compilation1.GetMember<MethodSymbol>("I1.M2");
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
+            Assert.Same(m2, test1.FindImplementationForInterfaceMember(m2));
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
+                    Assert.Equal("I1", test1Result.Interfaces.Single().ToTestDisplayString());
+                });
+        }
+
+        [Fact]
+        public void MethodImplementation_042()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void M1() {}
+    int M2() => 1; 
+}
+
+class Test1 : Test2, I1
+{
+    public int M1() { return 0; }
+    public ref int M2() { throw null; }
+}
+
+class Test2 : I1 {}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+            var m2 = compilation1.GetMember<MethodSymbol>("I1.M2");
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
+            Assert.Same(m2, test1.FindImplementationForInterfaceMember(m2));
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
+                    Assert.Equal("I1", test1Result.Interfaces.Single().ToTestDisplayString());
+                });
+        }
+
+        [Fact]
+        public void MethodImplementation_043()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void M1() {}
+    int M2() => 1; 
+}
+
+class Test1 : Test2, I1
+{
+    public int M1() { return 0; }
+    public ref int M2() { throw null; }
+}
+
+class Test2 : I1 
+{
+    void I1.M1() {}
+    int I1.M2() => 1; 
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+            var m2 = compilation1.GetMember<MethodSymbol>("I1.M2");
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Equal("void Test2.I1.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
+            Assert.Equal("System.Int32 Test2.I1.M2()", test1.FindImplementationForInterfaceMember(m2).ToTestDisplayString());
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
+                    Assert.Equal("I1", test1Result.Interfaces.Single().ToTestDisplayString());
+                });
+        }
+
+        [Fact]
+        public void MethodImplementation_044()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void M1() {}
+    int M2() => 1; 
+}
+
+class Test1 : Test2, I1
+{
+    new public int M1() { return 0; }
+    new public ref int M2() { throw null; }
+}
+
+class Test2 : I1 
+{
+    public void M1() {}
+    public int M2() => 1; 
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+            var m2 = compilation1.GetMember<MethodSymbol>("I1.M2");
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Equal("void Test2.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
+            Assert.Equal("System.Int32 Test2.M2()", test1.FindImplementationForInterfaceMember(m2).ToTestDisplayString());
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
+                    Assert.Equal("I1", test1Result.Interfaces.Single().ToTestDisplayString());
+                });
         }
 
         private static MetadataReference MscorlibRefWithoutSharingCachedSymbols
@@ -192,7 +800,7 @@ class Test2 : I1 {}
         }
 
         [Fact]
-        public void MethodImplementation_05()
+        public void MethodImplementation_051()
         {
             var source1 =
 @"
@@ -254,7 +862,7 @@ class Test2 : I1
         }
 
         [Fact]
-        public void MethodImplementation_06()
+        public void MethodImplementation_061()
         {
             var source1 =
 @"
@@ -316,7 +924,7 @@ class Test2 : I1
         }
 
         [Fact]
-        public void MethodImplementation_07()
+        public void MethodImplementation_071()
         {
             var source1 =
 @"
@@ -367,11 +975,17 @@ class Test2 : I1
             Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false);
+
+            CompileAndVerify(compilation2, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
+                    Assert.Equal("I1", test2Result.Interfaces.Single().ToTestDisplayString());
+                });
         }
 
         [Fact]
-        public void MethodImplementation_08()
+        public void MethodImplementation_081()
         {
             var source1 =
 @"
@@ -404,7 +1018,7 @@ public interface I1
         }
 
         [Fact]
-        public void MethodImplementation_09()
+        public void MethodImplementation_091()
         {
             var source1 =
 @"
@@ -443,6 +1057,104 @@ class Test1 : I1
                 );
 
             Assert.True(m1.IsMetadataVirtual());
+        }
+
+        [Fact]
+        public void MethodImplementation_101()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+
+public interface I2 : I1
+{}
+
+class Test1 : I2
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
+
+            Assert.False(m1.IsAbstract);
+            Assert.True(m1.IsVirtual);
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
+
+            compilation1.VerifyDiagnostics();
+            Assert.True(m1.IsMetadataVirtual());
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var result = (PEMethodSymbol)m.GlobalNamespace.GetTypeMember("I1").GetMember("M1");
+
+                    Assert.True(m1.IsMetadataVirtual());
+                    Assert.False(m1.IsAbstract);
+                    Assert.True(m1.IsVirtual);
+
+                    int rva;
+                    ((PEModuleSymbol)m).Module.GetMethodDefPropsOrThrow(result.Handle, out _, out _, out _, out rva);
+                    Assert.NotEqual(0, rva);
+
+                    var test1Result = m.GlobalNamespace.GetTypeMember("Test1");
+                    var interfaces = test1Result.Interfaces.ToArray();
+                    Assert.Equal(2, interfaces.Length);
+                    Assert.Equal("I2", interfaces[0].ToTestDisplayString());
+                    Assert.Equal("I1", interfaces[1].ToTestDisplayString());
+                });
+
+            var source2 =
+@"
+class Test2 : I2
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
+            var test2 = compilation2.GetTypeByMetadataName("Test2");
+
+            Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
+                    var interfaces = test2Result.Interfaces.ToArray();
+                    Assert.Equal(2, interfaces.Length);
+                    Assert.Equal("I2", interfaces[0].ToTestDisplayString());
+                    Assert.Equal("I1", interfaces[1].ToTestDisplayString());
+                });
+
+            var compilation3 = CreateCompilationWithMscorlib(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
+            test2 = compilation3.GetTypeByMetadataName("Test2");
+
+            Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
+
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
+                    var interfaces = test2Result.Interfaces.ToArray();
+                    Assert.Equal(2, interfaces.Length);
+                    Assert.Equal("I2", interfaces[0].ToTestDisplayString());
+                    Assert.Equal("I1", interfaces[1].ToTestDisplayString());
+                });
         }
     }
 }
