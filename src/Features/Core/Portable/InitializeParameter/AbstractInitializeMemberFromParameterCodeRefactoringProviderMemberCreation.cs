@@ -7,13 +7,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
@@ -79,6 +81,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             if (symbol != null)
             {
+                // Found a field/property that this parameter should be assigned to.
+
                 var resource = symbol.Kind == SymbolKind.Field
                     ? FeaturesResources.Initialize_field_0
                     : FeaturesResources.Initialize_property_0;
@@ -91,10 +95,81 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
             else
             {
-                // await RegisterMemberCreationRefactoringsAsync().ConfigureAwait(false);
+                // Didn't find a field/prop that this parameter could be assigned to.
+                // Offer to create new one and assign to that.
+                var codeGenService = document.GetLanguageService<ICodeGenerationService>();
+
+                var parameterNameParts = this.GetParameterWordParts(parameter);
+                var rules = await this.GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
+
+                var field = CreateField(parameter, rules, parameterNameParts);
+                var property = CreateProperty(parameter, rules, parameterNameParts);
+
+                return ImmutableArray.Create<CodeAction>(
+                    new MyCodeAction(string.Format(FeaturesResources.Create_and_initialize_property_0, property.Name),
+                        c => AddSymbolInitializationAsync(document, parameter, blockStatement, property, c)),
+                    new MyCodeAction(string.Format(FeaturesResources.Create_and_initialize_field_0, field.Name),
+                        c => AddSymbolInitializationAsync(document, parameter, blockStatement, field, c)));
+            }
+        }
+
+        private IFieldSymbol CreateField(
+            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, List<string> parameterNameParts)
+        {
+            foreach (var rule in rules)
+            {
+                if (rule.SymbolSpecification.AppliesTo(SymbolKind.Field, Accessibility.Private))
+                {
+                    var containingType = parameter.ContainingType;
+                    var baseName = rule.NamingStyle.CreateName(parameterNameParts);
+                    var uniqueName = NameGenerator.GenerateUniqueName(
+                        baseName, n => containingType.GetMembers(n).IsEmpty);
+
+                    return CodeGenerationSymbolFactory.CreateFieldSymbol(
+                        default(ImmutableArray<AttributeData>),
+                        Accessibility.Private,
+                        DeclarationModifiers.ReadOnly,
+                        parameter.Type, uniqueName);
+                }
             }
 
-            return ImmutableArray<CodeAction>.Empty;
+            // We place a special rule in s_builtInRules that matches all fields.  So we should 
+            // always find a matching rule.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        private IPropertySymbol CreateProperty(
+            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, List<string> parameterNameParts)
+        {
+            foreach (var rule in rules)
+            {
+                if (rule.SymbolSpecification.AppliesTo(SymbolKind.Property, Accessibility.Public))
+                {
+                    var containingType = parameter.ContainingType;
+                    var baseName = rule.NamingStyle.CreateName(parameterNameParts);
+                    var uniqueName = NameGenerator.GenerateUniqueName(
+                        baseName, n => containingType.GetMembers(n).IsEmpty);
+
+                    var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                        default(ImmutableArray<AttributeData>),
+                        Accessibility.Public,
+                        default(ImmutableArray<SyntaxNode>));
+
+                    return CodeGenerationSymbolFactory.CreatePropertySymbol(
+                        default(ImmutableArray<AttributeData>),
+                        Accessibility.Public,
+                        new DeclarationModifiers(),
+                        parameter.Type,
+                        returnsByRef: false,
+                        explicitInterfaceSymbol: null,
+                        name: uniqueName,
+                        parameters: default(ImmutableArray<IParameterSymbol>),
+                        getMethod: getMethod,
+                        setMethod: null);
+                }
+            }
+
+            throw ExceptionUtilities.Unreachable;
         }
 
         private async Task<Document> AddSymbolInitializationAsync(
@@ -102,13 +177,46 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             ISymbol fieldOrProperty, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(
-                semanticModel, parameter, blockStatement, cancellationToken);
 
+            var workspace = document.Project.Solution.Workspace;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(root, workspace);
             var generator = editor.Generator;
 
+            if (fieldOrProperty.ContainingType == null)
+            {
+                // We're generating a new field/property.  Place into the containing type,
+                // ideally before/after a relevant existing member.
+                var blockSyntax = blockStatement.Syntax;
+                var typeDeclarationRef = parameter.ContainingType.DeclaringSyntaxReferences.Single(
+                    r => blockSyntax.Ancestors().Contains(r.GetSyntax(cancellationToken)));
+                var typeDeclaration = typeDeclarationRef.GetSyntax(cancellationToken);
+
+                editor.ReplaceNode(
+                    typeDeclaration,
+                    (currentTypeDecl, _) =>
+                    {
+                        if (fieldOrProperty is IPropertySymbol property)
+                        {
+                            return CodeGenerator.AddPropertyDeclaration(
+                                currentTypeDecl, property, workspace,
+                                GetAddOptions<IPropertySymbol>(parameter, blockStatement, typeDeclaration, cancellationToken));
+                        }
+                        else if (fieldOrProperty is IFieldSymbol field)
+                        {
+                            return CodeGenerator.AddFieldDeclaration(
+                                currentTypeDecl, field, workspace,
+                                GetAddOptions<IFieldSymbol>(parameter, blockStatement, typeDeclaration, cancellationToken));
+                        }
+                        else
+                        {
+                            throw ExceptionUtilities.Unreachable;
+                        }
+                    });
+            }
+
+            // Now that we've added any potential members, create an assignment between it
+            // and the parameter.
             var initializationStatement = (TStatementSyntax)generator.ExpressionStatement(
                 generator.AssignmentStatement(
                     generator.MemberAccessExpression(
@@ -116,9 +224,55 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         generator.IdentifierName(fieldOrProperty.Name)),
                     generator.IdentifierName(parameter.Name)));
 
+            var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(
+                semanticModel, parameter, blockStatement, cancellationToken);
+
             InsertStatement(editor, blockStatement.Syntax, statementToAddAfterOpt, initializationStatement);
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
+        }
+
+        private CodeGenerationOptions GetAddOptions<TSymbol>(
+            IParameterSymbol parameter, IBlockStatement blockStatement,
+            SyntaxNode typeDeclaration, CancellationToken cancellationToken)
+            where TSymbol : ISymbol
+        {
+            var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
+            var parameterIndex = methodSymbol.Parameters.IndexOf(parameter);
+
+            for (var i = parameterIndex - 1; i >= 0; i--)
+            {
+                var statement = TryFindFieldOrPropertyAssignmentStatement(
+                    methodSymbol.Parameters[i], blockStatement, out var fieldOrProperty);
+
+                if (statement != null &&
+                    fieldOrProperty is TSymbol symbol)
+                {
+                    var symbolSyntax = symbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                    if (symbolSyntax.Ancestors().Contains(typeDeclaration))
+                    {
+                        return new CodeGenerationOptions(afterThisLocation: symbolSyntax.GetLocation());
+                    }
+                }
+            }
+
+            for (var i = parameterIndex + 1; i < methodSymbol.Parameters.Length; i++)
+            {
+                var statement = TryFindFieldOrPropertyAssignmentStatement(
+                    methodSymbol.Parameters[i], blockStatement, out var fieldOrProperty);
+
+                if (statement != null &&
+                    fieldOrProperty is TSymbol symbol)
+                {
+                    var symbolSyntax = symbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                    if (symbolSyntax.Ancestors().Contains(typeDeclaration))
+                    {
+                        return new CodeGenerationOptions(beforeThisLocation: symbolSyntax.GetLocation());
+                    }
+                }
+            }
+
+            return null;
         }
 
         private static bool IsParameterReferenceOrCoalesceOfParameterReference(
@@ -149,20 +303,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             CancellationToken cancellationToken)
         {
             var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
-
             var parameterIndex = methodSymbol.Parameters.IndexOf(parameter);
 
-                // look for an existing assignment for a parameter that comes before us.
-                // If we find one, we'll add ourselves after that parameter check.
-                for (var i = parameterIndex - 1; i >= 0; i--)
+            // look for an existing assignment for a parameter that comes before us.
+            // If we find one, we'll add ourselves after that parameter check.
+            for (var i = parameterIndex - 1; i >= 0; i--)
+            {
+                var statement = TryFindFieldOrPropertyAssignmentStatement(
+                    methodSymbol.Parameters[i], blockStatement);
+                if (statement != null)
                 {
-                    var statement = TryFindFieldOrPropertyAssignmentStatement(
-                        methodSymbol.Parameters[i], blockStatement);
-                    if (statement != null)
-                    {
-                        return statement;
-                    }
+                    return statement;
                 }
+            }
 
             // look for an existing check for a parameter that comes before us.
             // If we find one, we'll add ourselves after that parameter check.
@@ -180,19 +333,23 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return blockStatement.Statements.LastOrDefault();
         }
 
+        private IOperation TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockStatement blockStatement)
+            => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement, out var fieldOrProperty);
+
         private IOperation TryFindFieldOrPropertyAssignmentStatement(
-            IParameterSymbol parameter, IBlockStatement blockStatement)
+            IParameterSymbol parameter, IBlockStatement blockStatement, out ISymbol fieldOrProperty)
         {
             var containingType = parameter.ContainingType;
             foreach (var statement in blockStatement.Statements)
             {
-                if (IsFieldOrPropertyAssignment(statement, containingType, out var assignmentExpression) &&
+                if (IsFieldOrPropertyAssignment(statement, containingType, out var assignmentExpression, out fieldOrProperty) &&
                     IsParameterReferenceOrCoalesceOfParameterReference(assignmentExpression, parameter))
                 {
                     return statement;
                 }
             }
 
+            fieldOrProperty = null;
             return null;
         }
 

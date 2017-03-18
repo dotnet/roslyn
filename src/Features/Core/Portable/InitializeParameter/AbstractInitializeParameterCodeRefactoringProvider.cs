@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
-            var parameterNode = token.Parent.FirstAncestorOrSelf<TParameterSyntax>();
+            var parameterNode = GetParameterNode(token, position);
             if (parameterNode == null)
             {
                 return;
@@ -105,6 +105,24 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 document, parameter, blockStatement, cancellationToken).ConfigureAwait(false));
         }
 
+        private TParameterSyntax GetParameterNode(SyntaxToken token, int position)
+        {
+            var parameterNode = token.Parent.FirstAncestorOrSelf<TParameterSyntax>();
+            if (parameterNode != null)
+            {
+                return parameterNode;
+            }
+
+            // We may be on the comma of a param list.  Try the position before us.
+            token = token.GetPreviousToken();
+            if (position == token.FullSpan.End)
+            {
+                return token.Parent.FirstAncestorOrSelf<TParameterSyntax>();
+            }
+
+            return null;
+        }
+
         protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
             => UnwrapConversion(operation) is IParameterReferenceExpression parameterReference &&
                parameter.Equals(parameterReference.Parameter);
@@ -130,33 +148,47 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return false;
         }
 
+        protected static bool IsFieldOrPropertyAssignment(IOperation statement, INamedTypeSymbol containingType, out IAssignmentExpression assignmentExpression)
+            => IsFieldOrPropertyAssignment(statement, containingType, out assignmentExpression, out var fieldOrProperty);
+
+
         protected static bool IsFieldOrPropertyAssignment(
-            IOperation statement, INamedTypeSymbol containingType, out IAssignmentExpression assignmentExpression)
+            IOperation statement, INamedTypeSymbol containingType, 
+            out IAssignmentExpression assignmentExpression, out ISymbol fieldOrProperty)
         {
             if (statement is IExpressionStatement expressionStatement)
             {
                 assignmentExpression = expressionStatement.Expression as IAssignmentExpression;
-                return IsFieldOrPropertyReference(assignmentExpression?.Target, containingType);
+                return IsFieldOrPropertyReference(assignmentExpression?.Target, containingType, out fieldOrProperty);
             }
 
+            fieldOrProperty = null;
             assignmentExpression = null;
             return false;
         }
 
         protected static bool IsFieldOrPropertyReference(IOperation operation, INamedTypeSymbol containingType)
+            => IsFieldOrPropertyAssignment(operation, containingType, out var fieldOrProperty);
+
+
+        protected static bool IsFieldOrPropertyReference(
+            IOperation operation, INamedTypeSymbol containingType, out ISymbol fieldOrProperty)
         {
             if (operation is IFieldReferenceExpression fieldReference &&
                 fieldReference.Field.ContainingType.Equals(containingType))
             {
+                fieldOrProperty = fieldReference.Field;
                 return true;
             }
 
             if (operation is IPropertyReferenceExpression propertyReference &&
                 propertyReference.Property.ContainingType.Equals(containingType))
             {
+                fieldOrProperty = propertyReference.Property;
                 return true;
             }
 
+            fieldOrProperty = null;
             return false;
         }
 

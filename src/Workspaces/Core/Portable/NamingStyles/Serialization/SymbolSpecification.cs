@@ -74,6 +74,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                    AnyMatches(this.ApplicableAccessibilityList, symbol);
         }
 
+        internal bool AppliesTo(SymbolKind symbolKind, Accessibility accessibility)
+            => this.ApplicableSymbolKindList.Any(s => s.SymbolKind == symbolKind) &&
+               (this.ApplicableAccessibilityList.IsDefaultOrEmpty || this.ApplicableAccessibilityList.Contains(accessibility));
+
         private bool AnyMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
             where TSymbolMatcher : ISymbolMatcher
         {
