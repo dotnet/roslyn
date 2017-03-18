@@ -112,19 +112,27 @@ End Class
             Await VerifyItemsExistAsync(text, "code", "list", "para")
         End Function
 
+        <WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRepeatableNestedParamRefAndTypeParamRefTagsOnMethod() As Task
             Dim text = "
-Class C
-    ''' <summary>
-    ''' <$$
-    ''' </summary>
-    Sub Goo(Of T)(i as Integer)
-    End Sub
+Class Outer(Of TOuter)
+    Class Inner(Of TInner)
+        ''' <summary>
+        ''' $$
+        ''' </summary>
+        Sub Goo(Of TMethod)(i as Integer)
+        End Sub
+    End Class
 End Class
 "
 
-            Await VerifyItemsExistAsync(text, "paramref name=""i""", "typeparamref name=""T""")
+            Await VerifyItemsExistAsync(
+                text,
+                "paramref name=""i""",
+                "typeparamref name=""TOuter""",
+                "typeparamref name=""TInner""",
+                "typeparamref name=""TMethod""")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -239,14 +247,15 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMethodParamTypeParam() As Task
             Dim text = "
-Class C(Of T)
+Class C(Of TClass)
     ''' <$$
-    Sub Goo(Of T)(bar as T)
+    Sub Goo(Of TMethod)(bar as TMethod)
     End Sub
 End Class
 "
 
-            Await VerifyItemsExistAsync(text, "param name=""bar""", "typeparam name=""T""")
+            Await VerifyItemsExistAsync(text, "param name=""bar""", "typeparam name=""TMethod""")
+            Await VerifyItemsAbsentAsync(text, "typeparam name=""TClass""")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -799,28 +808,31 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTypeParamNames() As Task
             Dim text = "
-Class C
+Class C(Of TClass)
     ''' <typeparam name=""$$""
-    Sub Goo(Of T)(i as Integer)
+    Sub Goo(Of TMethod)(i as TMethod)
     End Sub
 End Class
 "
-            Await VerifyItemsExistAsync(text, "T")
-            Await VerifyItemsAbsentAsync(text, "i")
+            Await VerifyItemsExistAsync(text, "TMethod")
+            Await VerifyItemsAbsentAsync(text, "TClass", "i")
         End Function
 
+        <WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTypeParamRefNames() As Task
             Dim text = "
-Class C
-    ''' <summary>
-    ''' <typeparamref name=""$$""
-    ''' </summary>
-    Sub Goo(Of T)(i as Integer)
-    End Sub
+Class Outer(Of TOuter)
+    Class Inner(Of TInner)
+        ''' <summary>
+        ''' <typeparamref name=""$$""
+        ''' </summary>
+        Sub Goo(Of TMethod)(i as Integer)
+        End Sub
+    End Class
 End Class
 "
-            Await VerifyItemsExistAsync(text, "T")
+            Await VerifyItemsExistAsync(text, "TOuter", "TInner", "TMethod")
             Await VerifyItemsAbsentAsync(text, "i")
         End Function
 

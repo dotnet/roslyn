@@ -327,13 +327,16 @@ public class goo
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodParamTypeParam()
         {
-            await VerifyItemsExistAsync(@"
-public class goo<T>
+            var text = @"
+public class goo<TGoo>
 {
     
     /// $$
-    public int bar<T>(T green) { }
-}", "typeparam name=\"T\"", "param name=\"green\"");
+    public int bar<TBar>(TBar green) { }
+}";
+
+            await VerifyItemsExistAsync(text, "typeparam name=\"TBar\"", "param name=\"green\"");
+            await VerifyItemsAbsentAsync(text, "typeparam name=\"TGoo\"");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -348,18 +351,27 @@ public class goo<T>
 }", "param name=\"green\"");
         }
 
+        [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodParamRefName()
         {
-            await VerifyItemsExistAsync(@"
-public class goo<T>
+            var text = @"
+public class Outer<TOuter>
 {
-    
-    /// <summary>
-    /// $$
-    /// </summary>
-    public int bar<T>(T green) { }
-}", "typeparamref name=\"T\"", "paramref name=\"green\"");
+    public class Inner<TInner>
+    {
+        /// <summary>
+        /// $$
+        /// </summary>
+        public int Method<TMethod>(T green) { }
+    }
+}";
+            await VerifyItemsExistAsync(
+                text,
+                "typeparamref name=\"TOuter\"",
+                "typeparamref name=\"TInner\"",
+                "typeparamref name=\"TMethod\"",
+                "paramref name=\"green\"");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1172,28 +1184,42 @@ static void Goo(string str)
 ", "str");
         }
 
+        [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParamRefNames()
         {
-            await VerifyItemExistsAsync(@"
-/// <summary>
-/// <typeparamref name=""$$""/>
-/// </summary>
-static void Goo<T>()
+            var text = @"
+public class Outer<TOuter>
 {
-}
-", "T");
+    public class Inner<TInner>
+    {
+        /// <summary>
+        /// <typeparamref name=""$$""/>
+        /// </summary>
+        public int Method<TMethod>(T green) { }
+    }
+}";
+
+            await VerifyItemsExistAsync(text, "TOuter", "TInner", "TMethod");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+    [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParamNames()
         {
-            await VerifyItemExistsAsync(@"
-/// <typeparam name=""$$""/>
-static void Goo<T>()
+            var text = @"
+public class Outer<TOuter>
 {
-}
-", "T");
+    public class Inner<TInner>
+    {
+        /// <summary>
+        /// <typeparam name=""$$""/>
+        /// </summary>
+        public int Method<TMethod>(T green) { }
+    }
+}";
+
+            await VerifyItemsExistAsync(text, "TMethod");
+            await VerifyItemsAbsentAsync(text, "TOuter", "TInner");
         }
 
         [WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]

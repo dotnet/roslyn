@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private IEnumerable<CompletionItem> GetTypeParamRefItems(ISymbol symbol)
         {
-            var names = symbol.GetTypeParameters().Select(t => t.Name);
+            var names = symbol.GetAllTypeParameters().Select(t => t.Name);
 
             return names.Select(t => CreateCompletionItem(
                 displayText: FormatParameter(TypeParameterReferenceElementName, t),
@@ -166,9 +166,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return symbol.GetParameters()
                                  .Select(parameter => CreateCompletionItem(parameter.Name));
                 }
-                else if (tagName == TypeParameterElementName || tagName == TypeParameterReferenceElementName)
+                else if (tagName == TypeParameterElementName)
                 {
                     return symbol.GetTypeParameters()
+                                 .Select(typeParameter => CreateCompletionItem(typeParameter.Name));
+                }
+                else if (tagName == TypeParameterReferenceElementName)
+                {
+                    return symbol.GetAllTypeParameters()
                                  .Select(typeParameter => CreateCompletionItem(typeParameter.Name));
                 }
             }
