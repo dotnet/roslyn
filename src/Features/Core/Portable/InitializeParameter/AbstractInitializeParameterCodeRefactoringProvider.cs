@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
+            // Only offered when there isn't a selection.
             if (context.Span.Length > 0)
             {
                 return;
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var parameterDefault = syntaxFacts.GetDefaultOfParameter(parameterNode);
 
-            // Don't offer inside the =initializer of a parameter
+            // Don't offer inside the "=initializer" of a parameter
             if (parameterDefault?.Span.Contains(position) == true)
             {
                 return;
@@ -90,6 +91,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
+            // Only offered on method-like things that have a body (i.e. non-interface/non-abstract).
             var body = GetBody(containingMember);
             if (body == null)
             {
@@ -152,7 +154,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected static bool IsFieldOrPropertyAssignment(IOperation statement, INamedTypeSymbol containingType, out IAssignmentExpression assignmentExpression)
             => IsFieldOrPropertyAssignment(statement, containingType, out assignmentExpression, out var fieldOrProperty);
 
-
         protected static bool IsFieldOrPropertyAssignment(
             IOperation statement, INamedTypeSymbol containingType, 
             out IAssignmentExpression assignmentExpression, out ISymbol fieldOrProperty)
@@ -171,22 +172,18 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected static bool IsFieldOrPropertyReference(IOperation operation, INamedTypeSymbol containingType)
             => IsFieldOrPropertyAssignment(operation, containingType, out var fieldOrProperty);
 
-
         protected static bool IsFieldOrPropertyReference(
             IOperation operation, INamedTypeSymbol containingType, out ISymbol fieldOrProperty)
         {
-            if (operation is IFieldReferenceExpression fieldReference &&
-                fieldReference.Field.ContainingType.Equals(containingType))
+            if (operation is IMemberReferenceExpression memberReference &&
+                memberReference.Member.ContainingType.Equals(containingType))
             {
-                fieldOrProperty = fieldReference.Field;
-                return true;
-            }
-
-            if (operation is IPropertyReferenceExpression propertyReference &&
-                propertyReference.Property.ContainingType.Equals(containingType))
-            {
-                fieldOrProperty = propertyReference.Property;
-                return true;
+                if (memberReference.Member is IFieldSymbol ||
+                    memberReference.Member is IPropertySymbol)
+                {
+                    fieldOrProperty = memberReference.Member;
+                    return true;
+                }
             }
 
             fieldOrProperty = null;
