@@ -188,10 +188,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
         {
             public PickMembersOption Option { get; }
 
+            public string Title { get; }
+
             public OptionViewModel(PickMembersOption option)
             {
                 Option = option;
-                _isChecked = option.Value;
+                Title = option.Title;
+                IsChecked = option.Value;
             }
 
             private bool _isChecked;
