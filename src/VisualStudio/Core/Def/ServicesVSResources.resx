@@ -876,4 +876,25 @@ Additional information: {1}</value>
   <data name="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual Studio" xml:space="preserve">
     <value>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</value>
   </data>
+  <data name="Add_a_symbol_specification" xml:space="preserve">
+    <value>Add a symbol specification</value>
+  </data>
+  <data name="Remove_symbol_specification" xml:space="preserve">
+    <value>Remove symbol specification</value>
+  </data>
+  <data name="Add_item" xml:space="preserve">
+    <value>Add item</value>
+  </data>
+  <data name="Edit_item" xml:space="preserve">
+    <value>Edit item</value>
+  </data>
+  <data name="Remove_item" xml:space="preserve">
+    <value>Remove item</value>
+  </data>
+  <data name="Add_a_naming_rule" xml:space="preserve">
+    <value>Add a naming rule</value>
+  </data>
+  <data name="Remove_naming_rule" xml:space="preserve">
+    <value>Remove naming rule</value>
+  </data>
 </root>
