@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     if (memberWithName is IFieldSymbol field &&
                         !field.IsConst &&
                         IsImplicitConversion(compilation, source: parameter.Type, destination: field.Type) &&
-                        !ContainsFieldAssignment(blockStatement, field))
+                        !ContainsMemberAssignment(blockStatement, field))
                     {
                         return field;
                     }
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     if (memberWithName is IPropertySymbol property &&
                         property.IsWritableInConstructor() &&
                         IsImplicitConversion(compilation, source: parameter.Type, destination: property.Type) &&
-                        !ContainsPropertyAssignment(blockStatement, property))
+                        !ContainsMemberAssignment(blockStatement, property))
                     {
                         return property;
                     }
@@ -443,30 +443,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
-        private bool ContainsFieldAssignment(
-            IBlockStatement blockStatement, IFieldSymbol field)
+        private bool ContainsMemberAssignment(
+            IBlockStatement blockStatement, ISymbol member)
         {
             foreach (var statement in blockStatement.Statements)
             {
-                if (IsFieldOrPropertyAssignment(statement, field.ContainingType, out var assignmentExpression) &&
-                    UnwrapConversion(assignmentExpression.Target) is IFieldReferenceExpression fieldReference &&
-                    field.Equals(fieldReference.Field))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool ContainsPropertyAssignment(
-            IBlockStatement blockStatement, IPropertySymbol property)
-        {
-            foreach (var statement in blockStatement.Statements)
-            {
-                if (IsFieldOrPropertyAssignment(statement, property.ContainingType, out var assignmentExpression) &&
-                    UnwrapConversion(assignmentExpression.Target) is IPropertyReferenceExpression propertyReference &&
-                    property.Equals(propertyReference.Property))
+                if (IsFieldOrPropertyAssignment(statement, member.ContainingType, out var assignmentExpression) &&
+                    UnwrapConversion(assignmentExpression.Target) is IMemberReferenceExpression memberReference &&
+                    member.Equals(memberReference.Member))
                 {
                     return true;
                 }
