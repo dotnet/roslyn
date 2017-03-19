@@ -79,22 +79,23 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // to an existing matching field/prop if we can find one, or add a new field/prop
             // if we can't.
 
-            var symbol = await TryFindMatchingUninitializedMemberSymbolAsync(
+            var fieldOrProperty = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
                 document, parameter, blockStatement, cancellationToken).ConfigureAwait(false);
 
-            if (symbol != null)
+            if (fieldOrProperty != null)
             {
                 // Found a field/property that this parameter should be assigned to.
+                // Just offer the simple assignment to it.
 
-                var resource = symbol.Kind == SymbolKind.Field
+                var resource = fieldOrProperty.Kind == SymbolKind.Field
                     ? FeaturesResources.Initialize_field_0
                     : FeaturesResources.Initialize_property_0;
 
-                var title = string.Format(resource, symbol.Name);
+                var title = string.Format(resource, fieldOrProperty.Name);
 
                 return ImmutableArray.Create<CodeAction>(new MyCodeAction(
                     title,
-                    c => AddSymbolInitializationAsync(document, parameter, blockStatement, symbol, c)));
+                    c => AddSymbolInitializationAsync(document, parameter, blockStatement, fieldOrProperty, c)));
             }
             else
             {
@@ -102,12 +103,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 // Offer to create new one and assign to that.
                 var codeGenService = document.GetLanguageService<ICodeGenerationService>();
 
+                // Get the parts of the parameter name and the appropriate naming rules so
+                // that we can name the field/property accordingly.
                 var parameterNameParts = this.GetParameterWordParts(parameter);
                 var rules = await this.GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
 
                 var field = CreateField(parameter, rules, parameterNameParts);
                 var property = CreateProperty(parameter, rules, parameterNameParts);
 
+                // Offer to generate either a property or a field.  Currently we place the property
+                // suggestion first (to help users with the immutable object+property pattern). But
+                // we could consider swapping this if people prefer creating private fields more.
                 return ImmutableArray.Create<CodeAction>(
                     new MyCodeAction(string.Format(FeaturesResources.Create_and_initialize_property_0, property.Name),
                         c => AddSymbolInitializationAsync(document, parameter, blockStatement, property, c)),
@@ -357,7 +363,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
-        private async Task<ISymbol> TryFindMatchingUninitializedMemberSymbolAsync(
+        private async Task<ISymbol> TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
             Document document, IParameterSymbol parameter, IBlockStatement blockStatement, CancellationToken cancellationToken)
         {
             var rules = await GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
