@@ -210,6 +210,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             var nullCheckStatement = generateNullCheck(compilation, editor.Generator);
 
+            // Find a good location to add the null check. In general, we want the order of checks
+            // and assignments in the constructor to match the order of parameters in the method
+            // signature.
             var statementToAddAfter = GetStatementToAddNullCheckAfter(
                 semanticModel, parameter, blockStatement, cancellationToken);
             InsertStatement(editor, blockStatement.Syntax, statementToAddAfter, nullCheckStatement);
@@ -221,6 +224,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private static TStatementSyntax CreateNullCheckStatement(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
         {
+            // generates: if (s == null) throw new ArgumentNullException(nameof(s))
             return (TStatementSyntax)generator.IfStatement(
                 generator.ReferenceEqualsExpression(
                     generator.IdentifierName(parameter.Name),
@@ -234,6 +238,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Compilation compilation, SyntaxGenerator generator,
             IParameterSymbol parameter, string methodName)
         {
+            // generates: if (string.IsXXX(s)) throw new ArgumentException("message", nameof(s))
             return (TStatementSyntax)generator.IfStatement(
                 generator.InvocationExpression(
                     generator.MemberAccessExpression(
@@ -283,6 +288,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
+        /// <summary>
+        /// Tries to find an if-statement that looks like it is checking the provided parameter
+        /// in some way.  If we find a match, we'll place our new null-check statement before/after
+        /// this statement as appropriate.
+        /// </summary>
         private IOperation TryFindParameterCheckStatement(
             SemanticModel semanticModel,
             IParameterSymbol parameterSymbol,
@@ -314,6 +324,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IBlockStatement blockStatement,
             CancellationToken cancellationToken)
         {
+            // tries to convert "this.s = s" into "this.s = s ?? throw ...".  Only supported
+            // in languages that have a throw-expression, and only if the user has set the
+            // preference that they like throw-expressions.
+
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (!syntaxFacts.SupportsThrowExpression(syntaxTree.Options))
@@ -327,12 +341,16 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return null;
             }
 
+            // Look through all the top level statements in the block to see if we can
+            // find an existing field/property assignment involving this parameter.
             var containingType = parameter.ContainingType;
             foreach (var statement in blockStatement.Statements)
             {
                 if (IsFieldOrPropertyAssignment(statement, containingType, out var assignmentExpression) &&
                     IsParameterReference(assignmentExpression.Value, parameter))
                 {
+                    // Found one.  Convert it to a coalesce expression with an appropriate 
+                    // throw expression.
                     var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
