@@ -132,10 +132,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 if (rule.SymbolSpecification.AppliesTo(SymbolKind.Field, Accessibility.Private))
                 {
-                    var containingType = parameter.ContainingType;
-                    var baseName = rule.NamingStyle.CreateName(parameterNameParts);
-                    var uniqueName = NameGenerator.GenerateUniqueName(
-                        baseName, n => containingType.GetMembers(n).IsEmpty);
+                    var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
                     return CodeGenerationSymbolFactory.CreateFieldSymbol(
                         default(ImmutableArray<AttributeData>),
@@ -150,6 +147,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             throw ExceptionUtilities.Unreachable;
         }
 
+        private static string GenerateUniqueName(IParameterSymbol parameter, List<string> parameterNameParts, NamingRule rule)
+        {
+            // Determine an appropriate name to call the new field.
+            var containingType = parameter.ContainingType;
+            var baseName = rule.NamingStyle.CreateName(parameterNameParts);
+
+            // Ensure that the name is unique in the containing type so we
+            // don't stomp on an existing member.
+            var uniqueName = NameGenerator.GenerateUniqueName(
+                baseName, n => containingType.GetMembers(n).IsEmpty);
+            return uniqueName;
+        }
+
         private IPropertySymbol CreateProperty(
             IParameterSymbol parameter, ImmutableArray<NamingRule> rules, List<string> parameterNameParts)
         {
@@ -157,10 +167,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 if (rule.SymbolSpecification.AppliesTo(SymbolKind.Property, Accessibility.Public))
                 {
-                    var containingType = parameter.ContainingType;
-                    var baseName = rule.NamingStyle.CreateName(parameterNameParts);
-                    var uniqueName = NameGenerator.GenerateUniqueName(
-                        baseName, n => containingType.GetMembers(n).IsEmpty);
+                    var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
                     var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         default(ImmutableArray<AttributeData>),
@@ -465,15 +472,18 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences);
 
+            // Add our built-in-rules at the end so that we always respect user naming rules 
+            // first, but we always have something to fall-back upon if there are no matches.
             var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(s_builtInRules);
             return rules;
         }
 
+        /// <summary>
+        /// Get the individual words in the parameter name.  This way we can generate 
+        /// appropriate field/property names based on the user's preference.
+        /// </summary>
         private List<string> GetParameterWordParts(IParameterSymbol parameter)
-        {
-            var parameterWordParts = StringBreaker.BreakIntoWordParts(parameter.Name);
-            return CreateWords(parameterWordParts, parameter.Name);
-        }
+            => CreateWords(StringBreaker.BreakIntoWordParts(parameter.Name), parameter.Name);
 
         private List<string> CreateWords(StringBreaks wordBreaks, string name)
         {
