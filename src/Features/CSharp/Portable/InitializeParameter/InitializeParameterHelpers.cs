@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
@@ -15,10 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         public static bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => compilation.ClassifyConversion(source: source, destination: destination).IsImplicit;
 
+        public static SyntaxNode GetLastStatement(IBlockStatement blockStatement)
+            => blockStatement.Syntax is BlockSyntax block
+                ? block.Statements.LastOrDefault()
+                : blockStatement.Syntax;
+
         public static void InsertStatement(
             SyntaxEditor editor,
             SyntaxNode body,
-            IOperation statementToAddAfterOpt,
+            SyntaxNode statementToAddAfterOpt,
             StatementSyntax statement)
         {
             var generator = editor.Generator;
@@ -44,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
             else if (body is BlockSyntax block)
             {
-                var indexToAddAfter = block.Statements.IndexOf(s => s == statementToAddAfterOpt?.Syntax);
+                var indexToAddAfter = block.Statements.IndexOf(s => s == statementToAddAfterOpt);
                 if (indexToAddAfter >= 0)
                 {
                     editor.InsertAfter(block.Statements[indexToAddAfter], statement);
@@ -55,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 }
                 else
                 {
-                    editor.ReplaceNode(block, block.AddStatements((StatementSyntax)statement));
+                    editor.ReplaceNode(block, block.AddStatements(statement));
                 }
             }
             else

@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             ExpressionSyntax,
             BinaryExpressionSyntax)
 
+        Protected Overrides Function GetTypeBlock(node As SyntaxNode) As SyntaxNode
+            Return DirectCast(node, TypeStatementSyntax).Parent
+        End Function
+
         Protected Overrides Function GetBody(containingMember As MethodBlockBaseSyntax) As SyntaxNode
             Return InitializeParameterHelpers.GetBody(containingMember)
         End Function
@@ -25,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination)
         End Function
 
-        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, body As SyntaxNode, statementToAddAfterOpt As IOperation, statement As StatementSyntax)
+        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, body As SyntaxNode, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
             InitializeParameterHelpers.InsertStatement(editor, body, statementToAddAfterOpt, statement)
         End Sub
     End Class

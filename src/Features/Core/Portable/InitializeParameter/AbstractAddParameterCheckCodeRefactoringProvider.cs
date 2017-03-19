@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         CreateArgumentException(compilation, generator, parameter))));
         }
 
-        private IOperation GetStatementToAddNullCheckAfter(
+        private SyntaxNode GetStatementToAddNullCheckAfter(
             SemanticModel semanticModel,
             IParameterSymbol parameter,
             IBlockStatement blockStatement,
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         semanticModel, methodSymbol.Parameters[i], blockStatement, cancellationToken);
                     if (checkStatement != null)
                     {
-                        return checkStatement;
+                        return checkStatement.Syntax;
                     }
                 }
 
@@ -259,10 +259,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 if (checkStatement != null)
                 {
                     var statementIndex = blockStatement.Statements.IndexOf(checkStatement);
-                    return statementIndex > 0 ? blockStatement.Statements[statementIndex - 1] : null;
+                    return statementIndex > 0 ? blockStatement.Statements[statementIndex - 1].Syntax : null;
                 }
             }
 
+            // Just place the null check at the start of the block
             return null;
         }
 

@@ -16,13 +16,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Public Shared Sub InsertStatement(
                 editor As SyntaxEditor,
                 body As SyntaxNode,
-                statementToAddAfterOpt As IOperation,
+                statementToAddAfterOpt As SyntaxNode,
                 statement As StatementSyntax)
             Dim methodBlock = DirectCast(body, MethodBlockBaseSyntax)
             Dim statements = methodBlock.Statements
 
             If statementToAddAfterOpt IsNot Nothing Then
-                editor.InsertAfter(statementToAddAfterOpt.Syntax, statement)
+                editor.InsertAfter(statementToAddAfterOpt, statement)
             Else
                 Dim newStatements = statements.Insert(0, statement)
                 editor.SetStatements(body, newStatements)

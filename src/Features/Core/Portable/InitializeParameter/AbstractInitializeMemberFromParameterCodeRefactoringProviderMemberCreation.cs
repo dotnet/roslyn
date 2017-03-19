@@ -188,9 +188,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 // We're generating a new field/property.  Place into the containing type,
                 // ideally before/after a relevant existing member.
                 var blockSyntax = blockStatement.Syntax;
-                var typeDeclarationRef = parameter.ContainingType.DeclaringSyntaxReferences.Single(
-                    r => blockSyntax.Ancestors().Contains(r.GetSyntax(cancellationToken)));
-                var typeDeclaration = typeDeclarationRef.GetSyntax(cancellationToken);
+                var typeDeclaration = 
+                    parameter.ContainingType.DeclaringSyntaxReferences
+                                            .Select(r => GetTypeBlock(r.GetSyntax(cancellationToken)))
+                                            .Single(d => blockSyntax.Ancestors().Contains(d));
 
                 editor.ReplaceNode(
                     typeDeclaration,
@@ -296,7 +297,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return false;
         }
 
-        private IOperation TryGetStatementToAddInitializationAfter(
+        private SyntaxNode TryGetStatementToAddInitializationAfter(
             SemanticModel semanticModel,
             IParameterSymbol parameter,
             IBlockStatement blockStatement,
@@ -313,7 +314,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     methodSymbol.Parameters[i], blockStatement);
                 if (statement != null)
                 {
-                    return statement;
+                    return statement.Syntax;
                 }
             }
 
@@ -326,12 +327,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 if (statement != null)
                 {
                     var statementIndex = blockStatement.Statements.IndexOf(statement);
-                    return statementIndex > 0 ? blockStatement.Statements[statementIndex - 1] : null;
+                    return statementIndex > 0 ? blockStatement.Statements[statementIndex - 1].Syntax : null;
                 }
             }
 
-            return blockStatement.Statements.LastOrDefault();
+            return GetLastStatement(blockStatement);
         }
+
+        protected abstract SyntaxNode GetLastStatement(IBlockStatement blockStatement);
 
         private IOperation TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockStatement blockStatement)
             => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement, out var fieldOrProperty);

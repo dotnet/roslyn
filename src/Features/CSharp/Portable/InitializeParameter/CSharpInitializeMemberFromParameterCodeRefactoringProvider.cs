@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.InitializeParameter;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
@@ -18,10 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             ExpressionSyntax,
             BinaryExpressionSyntax>
     {
+        protected override SyntaxNode GetTypeBlock(SyntaxNode node)
+            => node;
+
         protected override SyntaxNode GetBody(BaseMethodDeclarationSyntax containingMember)
             => InitializeParameterHelpers.GetBody(containingMember);
 
-        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode body, IOperation statementToAddAfterOpt, StatementSyntax statement)
+        protected override SyntaxNode GetLastStatement(IBlockStatement blockStatement)
+            => InitializeParameterHelpers.GetLastStatement(blockStatement);
+
+        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode body, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
             => InitializeParameterHelpers.InsertStatement(editor, body, statementToAddAfterOpt, statement);
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)

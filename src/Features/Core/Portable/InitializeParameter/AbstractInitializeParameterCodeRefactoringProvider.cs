@@ -32,10 +32,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract SyntaxNode GetBody(TMemberDeclarationSyntax containingMember);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
+        protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
         protected abstract void InsertStatement(
             SyntaxEditor editor, SyntaxNode body,
-            IOperation statementToAddAfterOpt, TStatementSyntax statement);
+            SyntaxNode statementToAddAfterOpt, TStatementSyntax statement);
 
         protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(Document document, IParameterSymbol parameter, IBlockStatement blockStatement, CancellationToken cancellationToken);
 
