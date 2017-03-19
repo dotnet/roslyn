@@ -441,6 +441,25 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingWithExistingNullCheck5()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+        if (null == s)
+        {
+            throw new ArgumentNullException();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestMissingWithoutParameterName()
         {
             await TestMissingInRegularAndScriptAsync(

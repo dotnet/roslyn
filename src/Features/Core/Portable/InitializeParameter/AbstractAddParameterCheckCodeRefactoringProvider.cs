@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 if (ifStatement.Condition is IBinaryOperatorExpression binaryOperator)
                 {
+                    // Look for code of the form "if (p == null)" or "if (null == p)"
                     if (IsNullCheck(binaryOperator.LeftOperand, binaryOperator.RightOperand, parameter) ||
                         IsNullCheck(binaryOperator.RightOperand, binaryOperator.LeftOperand, parameter))
                     {
