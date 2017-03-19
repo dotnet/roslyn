@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Globalization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -74,28 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         Latest = int.MaxValue,
     }
 
-    internal static partial class LanguageVersionExtensions
+    internal static class LanguageVersionExtensionsInternal
     {
-        internal static LanguageVersion MapSpecifiedToEffectiveVersion(this LanguageVersion version)
-        {
-            switch (version)
-            {
-                case LanguageVersion.Latest:
-                case LanguageVersion.Default:
-                    return LanguageVersion.CSharp7;
-                default:
-                    return version;
-            }
-        }
-
         internal static bool IsValid(this LanguageVersion value)
         {
             return value >= LanguageVersion.CSharp1 && value <= LanguageVersion.CSharp7;
-        }
-
-        internal static object Localize(this LanguageVersion value)
-        {
-            return (int)value;
         }
 
         internal static ErrorCode GetErrorCode(this LanguageVersion version)
@@ -118,6 +102,120 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_FeatureNotAvailableInVersion7;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
+            }
+        }
+    }
+
+    internal class CSharpRequiredLanguageVersion : RequiredLanguageVersion
+    {
+        internal LanguageVersion Version { get; }
+
+        internal CSharpRequiredLanguageVersion(LanguageVersion version)
+        {
+            Version = version;
+        }
+
+        public override string ToString() => Version.ToDisplayString();
+    }
+
+    public static class LanguageVersionFacts
+    {
+        /// <summary>
+        /// Displays the version number in the format expected on the command-line (/langver flag).
+        /// For instance, "6", "7", "7.1", "latest".
+        /// </summary>
+        public static string ToDisplayString(this LanguageVersion version)
+        {
+            switch (version)
+            {
+                case LanguageVersion.CSharp1:
+                    return "1";
+                case LanguageVersion.CSharp2:
+                    return "2";
+                case LanguageVersion.CSharp3:
+                    return "3";
+                case LanguageVersion.CSharp4:
+                    return "4";
+                case LanguageVersion.CSharp5:
+                    return "5";
+                case LanguageVersion.CSharp6:
+                    return "6";
+                case LanguageVersion.CSharp7:
+                    return "7";
+                case LanguageVersion.Default:
+                    return "default";
+                case LanguageVersion.Latest:
+                    return "latest";
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(version);
+            }
+        }
+
+        /// <summary>
+        /// Parse a LanguageVersion from a string input, as the command-line compiler does.
+        /// </summary>
+        public static bool TryParse(this string version, out LanguageVersion result)
+        {
+            if (version == null)
+            {
+                result = LanguageVersion.Default;
+                return true;
+            }
+
+            switch (version.ToLowerInvariant())
+            {
+                case "iso-1":
+                    result = LanguageVersion.CSharp1;
+                    return true;
+
+                case "iso-2":
+                    result = LanguageVersion.CSharp2;
+                    return true;
+
+                case "7":
+                    result = LanguageVersion.CSharp7;
+                    return true;
+
+                case "default":
+                    result = LanguageVersion.Default;
+                    return true;
+
+                case "latest":
+                    result = LanguageVersion.Latest;
+                    return true;
+
+                default:
+                    // We are likely to introduce minor version numbers after C# 7, thus breaking the
+                    // one-to-one correspondence between the integers and the corresponding
+                    // LanguageVersion enum values. But for compatibility we continue to accept any
+                    // integral value parsed by int.TryParse for its corresponding LanguageVersion enum
+                    // value for language version C# 6 and earlier (e.g. leading zeros are allowed)
+                    int versionNumber;
+                    if (int.TryParse(version, NumberStyles.None, CultureInfo.InvariantCulture, out versionNumber) &&
+                        versionNumber <= 6 &&
+                        ((LanguageVersion)versionNumber).IsValid())
+                    {
+                        result = (LanguageVersion)versionNumber;
+                        return true;
+                    }
+
+                    result = LanguageVersion.Default;
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Map a language version (such as Default, Latest, or CSharpN) to a specific version (CSharpM).
+        /// </summary>
+        public static LanguageVersion MapSpecifiedToEffectiveVersion(this LanguageVersion version)
+        {
+            switch (version)
+            {
+                case LanguageVersion.Latest:
+                case LanguageVersion.Default:
+                    return LanguageVersion.CSharp7;
+                default:
+                    return version;
             }
         }
     }
