@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Semantics;
@@ -31,6 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             if (body is ArrowExpressionClauseSyntax arrowExpression)
             {
+                // If this is a => method, then we'll have to convert the method to have a block
+                // body.  Add the new statement as the first/last statement of the new block 
+                // depending if we were asked to go after something or not.
                 var methodBase = (BaseMethodDeclarationSyntax)body.Parent;
 
                 if (statementToAddAfterOpt == null)
@@ -50,17 +54,24 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
             else if (body is BlockSyntax block)
             {
+                // Look for the statement we were asked to go after.
                 var indexToAddAfter = block.Statements.IndexOf(s => s == statementToAddAfterOpt);
                 if (indexToAddAfter >= 0)
                 {
+                    // If we find it, then insert the new statement after it.
                     editor.InsertAfter(block.Statements[indexToAddAfter], statement);
                 }
                 else if (block.Statements.Count > 0)
                 {
+                    // Otherwise, if we have multiple statements already, then insert ourselves
+                    // before the first one.
                     editor.InsertBefore(block.Statements[0], statement);
                 }
                 else
                 {
+                    // Otherwise, we have no statements in this block.  Add the new statement
+                    // as the single statement the block will have.
+                    Debug.Assert(block.Statements.Count == 0);
                     editor.ReplaceNode(block, block.AddStatements(statement));
                 }
             }
