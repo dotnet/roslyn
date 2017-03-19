@@ -126,11 +126,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public PickMembersResult PickMembers(
                 string title, ImmutableArray<ISymbol> members,
-                ImmutableArray<IPickMembersOption> options)
+                ImmutableArray<PickMembersOption> options)
             {
-                return new PickMembersResult(_memberNames.IsDefault
-                    ? members
-                    : _memberNames.SelectAsArray(n => members.Single(m => m.Name == n)));
+                return new PickMembersResult(
+                    _memberNames.IsDefault
+                        ? members
+                        : _memberNames.SelectAsArray(n => members.Single(m => m.Name == n)),
+                    options);
             }
         }
 

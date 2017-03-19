@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
         internal PickMembersDialogViewModel(
             IGlyphService glyphService,
             ImmutableArray<ISymbol> members,
-            ImmutableArray<IPickMembersOption> options)
+            ImmutableArray<PickMembersOption> options)
         {
             MemberContainers = members.Select(m => new MemberSymbolViewModel(m, glyphService)).ToList();
             Options = options.Select(o => new OptionViewModel(o)).ToList();
@@ -186,9 +186,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
         internal class OptionViewModel : AbstractNotifyPropertyChanged
         {
-            public IPickMembersOption Option { get; }
+            public PickMembersOption Option { get; }
 
-            public OptionViewModel(IPickMembersOption option)
+            public OptionViewModel(PickMembersOption option)
             {
                 Option = option;
                 _isChecked = option.Value;

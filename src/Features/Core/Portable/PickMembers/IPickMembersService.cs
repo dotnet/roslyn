@@ -9,12 +9,18 @@ namespace Microsoft.CodeAnalysis.PickMembers
     {
         PickMembersResult PickMembers(
             string title, ImmutableArray<ISymbol> members, 
-            ImmutableArray<IPickMembersOption> options = default(ImmutableArray<IPickMembersOption>));
+            ImmutableArray<PickMembersOption> options = default(ImmutableArray<PickMembersOption>));
     }
 
-    internal interface IPickMembersOption
+    internal class PickMembersOption
     {
-        string Title { get; }
-        bool Value { get; set; }
+        public PickMembersOption(string title, bool value = false)
+        {
+            Title = title;
+            Value = value;
+        }
+
+        public string Title { get; }
+        public bool Value { get; set; }
     }
 }

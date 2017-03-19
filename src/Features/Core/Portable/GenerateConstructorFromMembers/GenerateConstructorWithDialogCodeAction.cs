@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var workspace = _document.Project.Solution.Workspace;
                 var service = _service._pickMembersService_forTesting ?? workspace.Services.GetService<IPickMembersService>();
                 return service.PickMembers(
-                    FeaturesResources.Pick_members_to_be_used_as_constructor_parameters, _viableMembers);
+                    FeaturesResources.Pick_members_to_be_used_as_constructor_parameters, _viableMembers,
+                    ImmutableArray.Create(new PickMembersOption("Add null checks")));
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(

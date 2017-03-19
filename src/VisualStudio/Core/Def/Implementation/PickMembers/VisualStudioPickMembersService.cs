@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
         }
 
         public PickMembersResult PickMembers(
-            string title, ImmutableArray<ISymbol> members, ImmutableArray<IPickMembersOption> options)
+            string title, ImmutableArray<ISymbol> members, ImmutableArray<PickMembersOption> options)
         {
             options = options.NullToEmpty();
 
