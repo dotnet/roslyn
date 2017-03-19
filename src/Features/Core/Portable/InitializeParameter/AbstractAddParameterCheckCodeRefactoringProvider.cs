@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // Look for an existing null-check statement, or "p ?? throw" check.  If we already
+            // Look for an existing "if (p == null)" statement, or "p ?? throw" check.  If we already
             // have one, we don't want to offer to generate a new null check.
             //
             // Note: we only check the top level statements of the block.  I think that's sufficient
@@ -167,6 +167,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IBlockStatement blockStatement,
             CancellationToken cancellationToken)
         {
+            // First see if we can convert a statement of the form "this.s = s" into "this.s = s ?? throw ...".
             var documentOpt = await TryAddNullCheckToAssignmentAsync(
                 document, parameter, blockStatement, cancellationToken).ConfigureAwait(false);
 
@@ -175,7 +176,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return documentOpt;
             }
 
-            return await AddNullCheckAsync(
+            // If we can't, then just offer to add an "if (s == null)" statement.
+            return await AddNullCheckStatementAsync(
                 document, parameter, blockStatement,
                 (c, g) => CreateNullCheckStatement(c, g, parameter),
                 cancellationToken).ConfigureAwait(false);
@@ -188,13 +190,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             string methodName,
             CancellationToken cancellationToken)
         {
-            return await AddNullCheckAsync(
+            return await AddNullCheckStatementAsync(
                 document, parameter, blockStatement,
                 (c, g) => CreateStringCheckStatement(c, g, parameter, methodName),
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Document> AddNullCheckAsync(
+        private async Task<Document> AddNullCheckStatementAsync(
             Document document, 
             IParameterSymbol parameter,
             IBlockStatement blockStatement,
