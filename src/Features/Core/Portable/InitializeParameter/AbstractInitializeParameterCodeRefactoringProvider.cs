@@ -104,6 +104,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
+            // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
+            // actually determine if there are any viable refactorings here.
             context.RegisterRefactorings(await GetRefactoringsAsync(
                 document, parameter, blockStatement, cancellationToken).ConfigureAwait(false));
         }
