@@ -54,11 +54,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
                     enforcementLevel: DiagnosticSeverity.Hidden));
 
+        protected abstract SyntaxNode GetLastStatement(IBlockStatement blockStatement);
+
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
             Document document, IParameterSymbol parameter, IBlockStatement blockStatement, CancellationToken cancellationToken)
         {
+            // Only supported for constructor parameters.
             var methodSymbol = parameter.ContainingSymbol as IMethodSymbol;
-            if (methodSymbol == null || methodSymbol.MethodKind != MethodKind.Constructor)
+            if (methodSymbol?.MethodKind != MethodKind.Constructor)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
@@ -333,8 +336,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             return GetLastStatement(blockStatement);
         }
-
-        protected abstract SyntaxNode GetLastStatement(IBlockStatement blockStatement);
 
         private IOperation TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockStatement blockStatement)
             => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement, out var fieldOrProperty);
