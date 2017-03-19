@@ -37,6 +37,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
         // Standard field/property names we look for when we have a parameter with a given name.
+        // We also use the rules to help generate fresh fields/properties.  Note that we always
+        // look at these rules *after* the user's own rules.  That way we respect user naming, but
+        // also have a reasonably fallback if they don't have any specified preferences.
         private static readonly ImmutableArray<NamingRule> s_builtInRules = ImmutableArray.Create(
                 new NamingRule(new SymbolSpecification(
                     Guid.NewGuid(), "Property",
@@ -178,6 +181,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 }
             }
 
+            // We place a special rule in s_builtInRules that matches all properties.  So we should 
+            // always find a matching rule.
             throw ExceptionUtilities.Unreachable;
         }
 
@@ -196,12 +201,23 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 // We're generating a new field/property.  Place into the containing type,
                 // ideally before/after a relevant existing member.
+
+                // First, look for the right containing type (As a type may be partial). 
+                // We want the type-block that this constructor is contained within.
                 var blockSyntax = blockStatement.Syntax;
                 var typeDeclaration = 
                     parameter.ContainingType.DeclaringSyntaxReferences
                                             .Select(r => GetTypeBlock(r.GetSyntax(cancellationToken)))
                                             .Single(d => blockSyntax.Ancestors().Contains(d));
 
+                // Now add the field/property to this type.  Use the 'ReplaceNode+callback' form
+                // so that nodes will be appropriate tracked and so we can then update the constructor
+                // below even after we've replaced the whole type with a new type.
+                //
+                // Note: We'll pass the appropriate options so that the new field/property 
+                // is appropriate placed before/after an existing field/property.  We'll try
+                // to preserve the same order for fields/properties that we have for the constructor
+                // parameters.
                 editor.ReplaceNode(
                     typeDeclaration,
                     (currentTypeDecl, _) =>
@@ -234,6 +250,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         generator.IdentifierName(fieldOrProperty.Name)),
                     generator.IdentifierName(parameter.Name)));
 
+            // Attempt to place the initialization in a good location in the constructor
+            // We'll want to keep initialization statements in the same order as we see
+            // parameters for the constructor.
             var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(
                 semanticModel, parameter, blockStatement, cancellationToken);
 
@@ -261,6 +280,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var symbolSyntax = symbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
                     if (symbolSyntax.Ancestors().Contains(typeDeclaration))
                     {
+                        // Found an existing field/property that corresponds to a preceding parameter.
+                        // Place ourselves directly after it.
                         return new CodeGenerationOptions(afterThisLocation: symbolSyntax.GetLocation());
                     }
                 }
@@ -274,6 +295,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 if (statement != null &&
                     fieldOrProperty is TSymbol symbol)
                 {
+                    // Found an existing field/property that corresponds to a following parameter.
+                    // Place ourselves directly before it.
                     var symbolSyntax = symbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
                     if (symbolSyntax.Ancestors().Contains(typeDeclaration))
                     {
@@ -283,27 +306,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             return null;
-        }
-
-        private static bool IsParameterReferenceOrCoalesceOfParameterReference(
-            IAssignmentExpression assignmentExpression, IParameterSymbol parameter)
-        {
-            if (IsParameterReference(assignmentExpression.Value, parameter))
-            {
-                // We already have a member initialized with this parameter like:
-                //      this.field = parameter
-                return true;
-            }
-
-            if (UnwrapConversion(assignmentExpression.Value) is INullCoalescingExpression coalesceExpression &&
-                IsParameterReference(coalesceExpression.PrimaryOperand, parameter))
-            {
-                // We already have a member initialized with this parameter like:
-                //      this.field = parameter ?? ...
-                return true;
-            }
-
-            return false;
         }
 
         private SyntaxNode TryGetStatementToAddInitializationAfter(
@@ -340,6 +342,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 }
             }
 
+            // We couldn't find a reasonable location for the new initialization statement.
+            // Just place ourselves after the last statement in the constructor.
             return GetLastStatement(blockStatement);
         }
 
@@ -352,6 +356,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var containingType = parameter.ContainingType;
             foreach (var statement in blockStatement.Statements)
             {
+                // look for something of the form:  "this.s = s" or "this.s = s ?? ..."
                 if (IsFieldOrPropertyAssignment(statement, containingType, out var assignmentExpression, out fieldOrProperty) &&
                     IsParameterReferenceOrCoalesceOfParameterReference(assignmentExpression, parameter))
                 {
@@ -363,19 +368,54 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
+        private static bool IsParameterReferenceOrCoalesceOfParameterReference(
+           IAssignmentExpression assignmentExpression, IParameterSymbol parameter)
+        {
+            if (IsParameterReference(assignmentExpression.Value, parameter))
+            {
+                // We already have a member initialized with this parameter like:
+                //      this.field = parameter
+                return true;
+            }
+
+            if (UnwrapConversion(assignmentExpression.Value) is INullCoalescingExpression coalesceExpression &&
+                IsParameterReference(coalesceExpression.PrimaryOperand, parameter))
+            {
+                // We already have a member initialized with this parameter like:
+                //      this.field = parameter ?? ...
+                return true;
+            }
+
+            return false;
+        }
+
         private async Task<ISymbol> TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
             Document document, IParameterSymbol parameter, IBlockStatement blockStatement, CancellationToken cancellationToken)
         {
+            // Look for a field/property that really looks like it corresponds to this parameter.
+            // Use a variety of heuristics around the name/type to see if this is a match.
+
             var rules = await GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
             var parameterWords = GetParameterWordParts(parameter);
 
             var containingType = parameter.ContainingType;
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            // Walk through the naming rules against this parameter's name to see what
+            // name the user would like for it as a member in this type.  Note that we
+            // have some fallback rules that use the standard conventions around 
+            // properties /fields so that can still find things even if the user has no
+            // naming preferences set.
+
             foreach (var rule in rules)
             {
                 var memberName = rule.NamingStyle.CreateName(parameterWords);
                 foreach (var memberWithName in containingType.GetMembers(memberName))
                 {
+                    // We found members in our type with that name.  If it's a writable
+                    // field that we could assign this parameter to, and it's not already
+                    // been assigned to, then this field is a good candidate for us to
+                    // hook up to.
                     if (memberWithName is IFieldSymbol field &&
                         !field.IsConst &&
                         IsImplicitConversion(compilation, source: parameter.Type, destination: field.Type) &&
@@ -384,6 +424,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         return field;
                     }
 
+
+                    // If it's a writable property that we could assign this parameter to, and it's
+                    // not already been assigned to, then this property is a good candidate for us to
+                    // hook up to.
                     if (memberWithName is IPropertySymbol property &&
                         property.IsWritableInConstructor() &&
                         IsImplicitConversion(compilation, source: parameter.Type, destination: property.Type) &&
@@ -394,6 +438,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 }
             }
 
+            // Couldn't find any existing member.  Just return nothing so we can offer to
+            // create a member for them.
             return null;
         }
 
