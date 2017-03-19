@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // people do strange things in their constructors.
             foreach (var statement in blockStatement.Statements)
             {
-                if (IsNullCheck(statement, parameter))
+                if (IsIfNullCheck(statement, parameter))
                 {
                     return ImmutableArray<CodeAction>.Empty;
                 }
@@ -93,6 +93,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IOperation statement, IParameterSymbol parameter,
             CancellationToken cancellationToken)
         {
+            // Look for anything in this statement of the form "p ?? throw ...".
+            // If so, we'll consider this parameter checked for null and we can stop immediately.
+
             var syntax = statement.Syntax;
             foreach (var coalesceNode in syntax.DescendantNodes().OfType<TBinaryExpressionSyntax>())
             {
@@ -110,7 +113,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return false;
         }
 
-        private bool IsNullCheck(IOperation statement, IParameterSymbol parameter)
+        private bool IsIfNullCheck(IOperation statement, IParameterSymbol parameter)
         {
             if (statement is IIfStatement ifStatement)
             {
