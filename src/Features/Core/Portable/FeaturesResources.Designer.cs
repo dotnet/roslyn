@@ -162,6 +162,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add null check.
+        /// </summary>
+        internal static string Add_null_check {
+            get {
+                return ResourceManager.GetString("Add_null_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add optional parameters to &apos;{0}&apos;.
         /// </summary>
         internal static string Add_optional_parameters_to_0 {
@@ -203,6 +212,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Add_reference_to_0 {
             get {
                 return ResourceManager.GetString("Add_reference_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add &apos;string.IsNullOrEmpty&apos; check.
+        /// </summary>
+        internal static string Add_string_IsNullOrEmpty_check {
+            get {
+                return ResourceManager.GetString("Add_string_IsNullOrEmpty_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add &apos;string.IsNullOrWhiteSpace&apos; check.
+        /// </summary>
+        internal static string Add_string_IsNullOrWhiteSpace_check {
+            get {
+                return ResourceManager.GetString("Add_string_IsNullOrWhiteSpace_check", resourceCulture);
             }
         }
         
