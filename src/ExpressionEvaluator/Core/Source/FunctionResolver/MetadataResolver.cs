@@ -11,28 +11,33 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
+    internal delegate void OnFunctionResolvedDelegate<TModule, TRequest>(TModule module, TRequest request, int token, int version, int ilOffset);
+
     internal sealed class MetadataResolver<TProcess, TModule, TRequest>
         where TProcess : class
         where TModule : class
         where TRequest : class
     {
-        private static readonly StringComparer s_stringComparer = StringComparer.Ordinal;
-
-        private readonly FunctionResolverBase<TProcess, TModule, TRequest> _resolver;
         private readonly TProcess _process;
         private readonly TModule _module;
         private readonly MetadataReader _reader;
+        private readonly StringComparer _stringComparer; // for comparing strings
+        private readonly bool _ignoreCase; // for comparing strings to strings represented with StringHandles
+        private readonly OnFunctionResolvedDelegate<TModule, TRequest> _onFunctionResolved;
 
         internal MetadataResolver(
-            FunctionResolverBase<TProcess, TModule, TRequest> resolver,
             TProcess process,
             TModule module,
-            MetadataReader reader)
+            MetadataReader reader,
+            bool ignoreCase,
+            OnFunctionResolvedDelegate<TModule, TRequest> onFunctionResolved)
         {
-            _resolver = resolver;
             _process = process;
             _module = module;
             _reader = reader;
+            _stringComparer = ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+            _ignoreCase = ignoreCase;
+            _onFunctionResolved = onFunctionResolved;
         }
 
         internal void Resolve(TRequest request, RequestSignature signature)
@@ -156,7 +161,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return false;
                 }
                 var part = parts[index];
-                if (!s_stringComparer.Equals(qualifiedName.Name, part))
+                if (!_stringComparer.Equals(qualifiedName.Name, part))
                 {
                     return false;
                 }
@@ -169,7 +174,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private bool MatchesTypeName(TypeDefinition typeDef, string name)
         {
             var typeName = RemoveAritySeparatorIfAny(_reader.GetString(typeDef.Name));
-            return s_stringComparer.Equals(typeName, name);
+            return _stringComparer.Equals(typeName, name);
         }
 
         private bool MatchesMethod(
@@ -184,7 +189,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             if ((methodDef.Attributes & MethodAttributes.RTSpecialName) != 0)
             {
-                if (!_reader.StringComparer.Equals(methodDef.Name, ".ctor"))
+                if (!_reader.StringComparer.Equals(methodDef.Name, ".ctor", ignoreCase: false))
                 {
                     // Unhandled special name.
                     return false;
@@ -194,7 +199,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return false;
                 }
             }
-            else if (!_reader.StringComparer.Equals(methodDef.Name, methodName))
+            else if (!_reader.StringComparer.Equals(methodDef.Name, methodName, _ignoreCase))
             {
                 return false;
             }
@@ -218,7 +223,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             int containingArity,
             ImmutableArray<ParameterSignature> propertyParameters)
         {
-            if (!_reader.StringComparer.Equals(propertyDef.Name, propertyName))
+            if (!_reader.StringComparer.Equals(propertyDef.Name, propertyName, _ignoreCase))
             {
                 return false;
             }
@@ -293,7 +298,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             MethodDefinitionHandle handle)
         {
             Debug.Assert(!handle.IsNil);
-            _resolver.OnFunctionResolved(_module, request, token: MetadataTokens.GetToken(handle), version: 1, ilOffset: 0);
+            _onFunctionResolved(_module, request, token: MetadataTokens.GetToken(handle), version: 1, ilOffset: 0);
         }
 
         private void OnAccessorResolved(
@@ -317,14 +322,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         // parameterA from string signature, parameterB from metadata.
-        private static bool MatchesParameter(ParameterSignature parameterA, ParameterSignature parameterB)
+        private bool MatchesParameter(ParameterSignature parameterA, ParameterSignature parameterB)
         {
             return MatchesType(parameterA.Type, parameterB.Type) &&
                 parameterA.IsByRef == parameterB.IsByRef;
         }
 
         // typeA from string signature, typeB from metadata.
-        private static bool MatchesType(TypeSignature typeA, TypeSignature typeB)
+        private bool MatchesType(TypeSignature typeA, TypeSignature typeB)
         {
             if (typeA.Kind != typeB.Kind)
             {
@@ -348,7 +353,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         // string signature but still considered a match
                         // (e.g.: "B<U>.C" should match N.A<T>.B<U>.C).
                         return (qualifiedA.Qualifier == null || (qualifiedB.Qualifier != null && MatchesType(qualifiedA.Qualifier, qualifiedB.Qualifier))) &&
-                            s_stringComparer.Equals(qualifiedA.Name, qualifiedB.Name);
+                            _stringComparer.Equals(qualifiedA.Name, qualifiedB.Name);
                     }
                 case TypeSignatureKind.ArrayType:
                     {

@@ -242,14 +242,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var semantic = state.GetAnalysisData(AnalysisKind.Semantic);
 
                 var project = document.Project;
-                var fullAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project);
+
+                // if project didn't successfully loaded, then it is same as FSA off
+                var fullAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project) && 
+                                   await project.HasSuccessfullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
 
                 // keep from build flag if full analysis is off
                 var fromBuild = fullAnalysis ? false : lastResult.FromBuild;
 
-                // if it is allowed to keep project state, check versions and if they are same, bail out
+                var openFileOnlyAnalyzer = _owner.Analyzer.IsOpenFileOnly(document.Project.Solution.Workspace);
+
+                // if it is allowed to keep project state, check versions and if they are same, bail out.
                 // if full solution analysis is off or we are asked to reset document state, we always merge.
-                if (fullAnalysis &&
+                if (fullAnalysis && !openFileOnlyAnalyzer &&
                     syntax.Version != VersionStamp.Default &&
                     syntax.Version == semantic.Version &&
                     syntax.Version == lastResult.Version)
@@ -401,10 +406,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 //
                 // after initial deserialization, we track actual document/project that actually have diagnostics so no data won't be a common
                 // case.
-
                 // check cache first
-                CacheEntry entry;
-                if (InMemoryStorage.TryGetValue(_owner.Analyzer, ValueTuple.Create(key, stateKey), out entry) && serializer.Version == entry.Version)
+                if (InMemoryStorage.TryGetValue(_owner.Analyzer, ValueTuple.Create(key, stateKey), out var entry) && serializer.Version == entry.Version)
                 {
                     if (entry.Diagnostics.Length == 0)
                     {

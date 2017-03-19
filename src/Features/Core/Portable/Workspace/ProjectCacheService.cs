@@ -72,8 +72,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             lock (_gate)
             {
-                Cache cache;
-                if (!_activeCaches.TryGetValue(key, out cache))
+                if (!_activeCaches.TryGetValue(key, out var cache))
                 {
                     cache = new Cache(this, key);
                     _activeCaches.Add(key, cache);
@@ -88,8 +87,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             lock (_gate)
             {
-                Cache cache;
-                if (_activeCaches.TryGetValue(key, out cache))
+                if (_activeCaches.TryGetValue(key, out var cache))
                 {
                     cache.CreateStrongReference(owner, instance);
                 }
@@ -130,8 +128,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             lock (_gate)
             {
-                Cache cache;
-                if (owner.CachedObject == null && _activeCaches.TryGetValue(key, out cache))
+                if (owner.CachedObject == null && _activeCaches.TryGetValue(key, out var cache))
                 {
                     owner.CachedObject = instance;
                     cache.CreateOwnerEntry(owner);
@@ -175,8 +172,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             internal void CreateStrongReference(object key, object instance)
             {
-                object o;
-                if (!_cache.TryGetValue(key, out o))
+                if (!_cache.TryGetValue(key, out var o))
                 {
                     _cache.Add(key, instance);
                 }
@@ -191,8 +187,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 foreach (var entry in _ownerObjects)
                 {
-                    ICachedObjectOwner owner;
-                    if (entry.TryGetTarget(out owner))
+                    if (entry.TryGetTarget(out var owner))
                     {
                         owner.CachedObject = null;
                     }

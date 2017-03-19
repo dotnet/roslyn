@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 public override string Title => _title;
 
-                internal override int? Glyph => (int)CodeAnalysis.Glyph.AddReference;
+                public override ImmutableArray<string> Tags => WellKnownTagArrays.AddReference;
 
                 private readonly Lazy<string> _lazyResolvedPath;
 

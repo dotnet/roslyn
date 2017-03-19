@@ -3,8 +3,8 @@
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
-using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.FunctionResolution;
+using Microsoft.VisualStudio.Debugger.Symbols;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         IDkmRuntimeFunctionResolver,
         IDkmModuleInstanceLoadNotification,
         IDkmModuleInstanceUnloadNotification,
-        IDkmModuleModifiedNotification
+        IDkmModuleModifiedNotification,
+        IDkmModuleSymbolsLoadedNotification
     {
         void IDkmRuntimeFunctionResolver.EnableResolution(DkmRuntimeFunctionResolutionRequest request, DkmWorkList workList)
         {
@@ -26,31 +27,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return;
             }
 
-            var languageId = request.CompilerId.LanguageId;
-            if (languageId == DkmLanguageId.MethodId)
-            {
-                return;
-            }
-            else if (languageId != default(Guid))
-            {
-                // Verify module matches language before binding
-                // (see https://github.com/dotnet/roslyn/issues/15119).
-            }
-
-            EnableResolution(request.Process, request);
+            EnableResolution(request.Process, request, OnFunctionResolved(workList));
         }
 
         void IDkmModuleInstanceLoadNotification.OnModuleInstanceLoad(DkmModuleInstance moduleInstance, DkmWorkList workList, DkmEventDescriptorS eventDescriptor)
         {
-            var module = moduleInstance as DkmClrModuleInstance;
-            Debug.Assert(module != null); // <Filter><RuntimeId RequiredValue="DkmRuntimeId.Clr"/></Filter> should ensure this.
-            if (module == null)
-            {
-                // Only interested in managed modules.
-                return;
-            }
-
-            OnModuleLoad(module.Process, module);
+            OnModuleLoad(moduleInstance, workList);
         }
 
         void IDkmModuleInstanceUnloadNotification.OnModuleInstanceUnload(DkmModuleInstance moduleInstance, DkmWorkList workList, DkmEventDescriptor eventDescriptor)
@@ -67,7 +49,31 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // caller from modifying modules while binding.
         }
 
-        internal override bool ShouldEnableFunctionResolver(DkmProcess process)
+        void IDkmModuleSymbolsLoadedNotification.OnModuleSymbolsLoaded(DkmModuleInstance moduleInstance, DkmModule module, bool isReload, DkmWorkList workList, DkmEventDescriptor eventDescriptor)
+        {
+            OnModuleLoad(moduleInstance, workList);
+        }
+
+        private void OnModuleLoad(DkmModuleInstance moduleInstance, DkmWorkList workList)
+        {
+            var module = moduleInstance as DkmClrModuleInstance;
+            Debug.Assert(module != null); // <Filter><RuntimeId RequiredValue="DkmRuntimeId.Clr"/></Filter> should ensure this.
+            if (module == null)
+            {
+                // Only interested in managed modules.
+                return;
+            }
+
+            if (module.Module == null)
+            {
+                // Only resolve breakpoints if symbols have been loaded.
+                return;
+            }
+
+            OnModuleLoad(module.Process, module, OnFunctionResolved(workList));
+        }
+
+        internal sealed override bool ShouldEnableFunctionResolver(DkmProcess process)
         {
             var dataItem = process.GetDataItem<FunctionResolverDataItem>();
             if (dataItem == null)
@@ -79,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return dataItem.Enabled;
         }
 
-        internal override IEnumerable<DkmClrModuleInstance> GetAllModules(DkmProcess process)
+        internal sealed override IEnumerable<DkmClrModuleInstance> GetAllModules(DkmProcess process)
         {
             foreach (var runtimeInstance in process.GetRuntimeInstances())
             {
@@ -100,12 +106,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal override string GetModuleName(DkmClrModuleInstance module)
+        internal sealed override string GetModuleName(DkmClrModuleInstance module)
         {
             return module.Name;
         }
 
-        internal override MetadataReader GetModuleMetadata(DkmClrModuleInstance module)
+        internal sealed override MetadataReader GetModuleMetadata(DkmClrModuleInstance module)
         {
             uint length;
             IntPtr ptr;
@@ -124,31 +130,39 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal override DkmRuntimeFunctionResolutionRequest[] GetRequests(DkmProcess process)
+        internal sealed override DkmRuntimeFunctionResolutionRequest[] GetRequests(DkmProcess process)
         {
             return process.GetRuntimeFunctionResolutionRequests();
         }
 
-        internal override string GetRequestModuleName(DkmRuntimeFunctionResolutionRequest request)
+        internal sealed override string GetRequestModuleName(DkmRuntimeFunctionResolutionRequest request)
         {
             return request.ModuleName;
         }
 
-        internal override void OnFunctionResolved(
-            DkmClrModuleInstance module,
-            DkmRuntimeFunctionResolutionRequest request,
-            int token,
-            int version,
-            int ilOffset)
+        internal sealed override Guid GetLanguageId(DkmRuntimeFunctionResolutionRequest request)
         {
-            var address = DkmClrInstructionAddress.Create(
-                module.RuntimeInstance,
-                module,
-                new DkmClrMethodId(Token: token, Version: (uint)version),
-                NativeOffset: uint.MaxValue,
-                ILOffset: (uint)ilOffset,
-                CPUInstruction: null);
-            request.OnFunctionResolved(address);
+            return request.CompilerId.LanguageId;
+        }
+
+        private static OnFunctionResolvedDelegate<DkmClrModuleInstance, DkmRuntimeFunctionResolutionRequest> OnFunctionResolved(DkmWorkList workList)
+        {
+            return (DkmClrModuleInstance module,
+                        DkmRuntimeFunctionResolutionRequest request,
+                        int token,
+                        int version,
+                        int ilOffset) =>
+            {
+                var address = DkmClrInstructionAddress.Create(
+                    module.RuntimeInstance,
+                    module,
+                    new DkmClrMethodId(Token: token, Version: (uint)version),
+                    NativeOffset: 0,
+                    ILOffset: (uint)ilOffset,
+                    CPUInstruction: null);
+                // Use async overload of OnFunctionResolved to avoid deadlock.
+                request.OnFunctionResolved(workList, address, result => { });
+            };
         }
 
         private static readonly Guid s_messageSourceId = new Guid("ac353c9b-c599-427b-9424-cbe1ad19f81e");

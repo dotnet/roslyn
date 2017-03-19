@@ -1,7 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
@@ -17,13 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         {
             private const string FormatVersion = "1";
 
-            protected override string StateName
-            {
-                get
-                {
-                    return "<TodoComments>";
-                }
-            }
+            protected override string StateName => "<TodoComments>";
 
             protected override int GetCount(Data data)
             {
@@ -32,33 +24,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
-                var list = SharedPools.Default<List<TodoItem>>().AllocateAndClear();
-                try
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
-                    using (var reader = new ObjectReader(stream))
+                    if (reader != null)
                     {
                         var format = reader.ReadString();
-                        if (!string.Equals(format, FormatVersion))
+                        if (string.Equals(format, FormatVersion))
                         {
-                            return null;
+                            var textVersion = VersionStamp.ReadFrom(reader);
+                            var dataVersion = VersionStamp.ReadFrom(reader);
+
+                            var list = ArrayBuilder<TodoItem>.GetInstance();
+                            AppendItems(reader, value, list, cancellationToken);
+
+                            return new Data(textVersion, dataVersion, list.ToImmutableAndFree());
                         }
-
-                        var textVersion = VersionStamp.ReadFrom(reader);
-                        var dataVersion = VersionStamp.ReadFrom(reader);
-
-                        AppendItems(reader, value, list, cancellationToken);
-
-                        return new Data(textVersion, dataVersion, list.ToImmutableArray<TodoItem>());
                     }
                 }
-                catch (Exception)
-                {
-                    return null;
-                }
-                finally
-                {
-                    SharedPools.Default<List<TodoItem>>().ClearAndFree(list);
-                }
+
+                return null;
             }
 
             protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
@@ -96,8 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             public ImmutableArray<TodoItem> GetItems_TestingOnly(DocumentId documentId)
             {
-                CacheEntry entry;
-                if (this.DataCache.TryGetValue(documentId, out entry) && entry.HasCachedData)
+                if (this.DataCache.TryGetValue(documentId, out var entry) && entry.HasCachedData)
                 {
                     return entry.Data.Items;
                 }
@@ -105,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 return ImmutableArray<TodoItem>.Empty;
             }
 
-            private void AppendItems(ObjectReader reader, Document document, List<TodoItem> list, CancellationToken cancellationToken)
+            private void AppendItems(ObjectReader reader, Document document, ArrayBuilder<TodoItem> list, CancellationToken cancellationToken)
             {
                 var count = reader.ReadInt32();
                 for (var i = 0; i < count; i++)

@@ -72,13 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(
             TypeSymbol metadataType,
-            EntityHandle targetSymbolToken,
+            EntityHandle targetHandle,
             PEModuleSymbol containingModule)
         {
             ImmutableArray<string> elementNames;
             var hasTupleElementNamesAttribute = containingModule
                 .Module
-                .HasTupleElementNamesAttribute(targetSymbolToken, out elementNames);
+                .HasTupleElementNamesAttribute(targetHandle, out elementNames);
 
             // If we have the TupleElementNamesAttribute, but no names, that's
             // bad metadata
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (typeArgsChanged || containerChanged)
             {
                 var newTypeArgs = type.HasTypeArgumentsCustomModifiers
-                    ? decodedArgs.ZipAsArray(type.TypeArgumentsCustomModifiers, (t, m) => new TypeWithModifiers(t, m))
+                    ? decodedArgs.SelectAsArray((t, i, m) => new TypeWithModifiers(t, m.GetTypeArgumentCustomModifiers(i)), type)
                     : decodedArgs.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers);
 
                 if (containerChanged)

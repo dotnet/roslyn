@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
     public abstract class AbstractXmlTagCompletionTests
     {
         internal abstract ICommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory);
-        protected abstract Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup);
+        protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
 
-        public async Task VerifyAsync(string initialMarkup, string expectedMarkup, char typeChar)
+        public void Verify(string initialMarkup, string expectedMarkup, char typeChar)
         {
-            using (var workspace = await CreateTestWorkspaceAsync(initialMarkup))
+            using (var workspace = CreateTestWorkspace(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
                 var view = testDocument.GetTextView();
@@ -32,10 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                 var nextHandler = CreateInsertTextHandler(view, typeChar.ToString());
 
                 commandHandler.ExecuteCommand(args, nextHandler);
-
-                string expectedCode;
-                int expectedPosition;
-                MarkupTestFile.GetPosition(expectedMarkup, out expectedCode, out expectedPosition);
+                MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
 
                 Assert.Equal(expectedCode, view.TextSnapshot.GetText());
 

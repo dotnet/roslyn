@@ -51,9 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             _offset = sourceSpan.Start - textLine.Start;
 
             var spanInSecondaryBuffer = text.GetVsTextSpanForLineOffset(_lineNumber, _offset);
-
-            VsTextSpan spanInPrimaryBuffer;
-            var succeeded = spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(_workspace, _documentId, out spanInPrimaryBuffer);
+            var succeeded = spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(_workspace, _documentId, out var spanInPrimaryBuffer);
 
             _mappedLineNumber = succeeded ? spanInPrimaryBuffer.iStartLine : _lineNumber;
             _mappedOffset = succeeded ? spanInPrimaryBuffer.iStartIndex : _offset;

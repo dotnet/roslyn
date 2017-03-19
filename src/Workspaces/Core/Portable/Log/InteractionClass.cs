@@ -34,9 +34,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             _interactionClass = interactionClass;
         }
 
-        public InteractionClass InteractionClass
-        {
-            get { return _interactionClass; }
-        }
+        public InteractionClass InteractionClass => _interactionClass;
     }
 }

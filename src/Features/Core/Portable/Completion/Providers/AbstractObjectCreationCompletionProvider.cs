@@ -18,40 +18,32 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractObjectCreationCompletionProvider : AbstractSymbolCompletionProvider
     {
-        /// <summary>
-        /// Return null if not in object creation type context.
-        /// </summary>
-        protected abstract SyntaxNode GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken);
-
-        private static readonly ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.ObjectCreation);
-
         private readonly AbstractSymbolCompletionFormat _completionFormat;
 
         protected AbstractObjectCreationCompletionProvider(AbstractSymbolCompletionFormat format)
         {
-            if (format == null)
-            {
-                throw new ArgumentNullException(nameof(format));
-            }
-
-            _completionFormat = format;
+            _completionFormat = format ?? throw new ArgumentNullException(nameof(format));
         }
+
+        /// <summary>
+        /// Return null if not in object creation type context.
+        /// </summary>
+        protected abstract SyntaxNode GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
         protected override CompletionItem CreateItem(
             string displayText, string insertionText, List<ISymbol> symbols,
             SyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
-            return SymbolCompletionItem.Create(
+            return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
+                symbols: symbols,
+                // Always preselect
+                rules: GetCompletionItemRules(symbols).WithMatchPriority(MatchPriority.Preselect),
+                contextPosition: context.Position,
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
-                contextPosition: context.Position,
-                symbols: symbols,
-                supportedPlatforms: supportedPlatformData,
-                matchPriority: MatchPriority.Preselect, // Always preselect
-                tags: s_Tags,
-                rules: GetCompletionItemRules(symbols, context));
+                supportedPlatforms: supportedPlatformData);
         }
 
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)

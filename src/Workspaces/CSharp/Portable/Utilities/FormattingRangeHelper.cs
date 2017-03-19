@@ -122,7 +122,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 (parent is FieldDeclarationSyntax) ||
                 (parent is EventFieldDeclarationSyntax) ||
                 (parent is MethodDeclarationSyntax) ||
-                (parent is PropertyDeclarationSyntax))
+                (parent is PropertyDeclarationSyntax) ||
+                (parent is ConstructorDeclarationSyntax) ||
+                (parent is DestructorDeclarationSyntax) ||
+                (parent is OperatorDeclarationSyntax))
             {
                 return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
             }
@@ -291,8 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         public static bool AreTwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
         {
             var tree = token1.SyntaxTree;
-            var text = default(SourceText);
-            if (tree != null && tree.TryGetText(out text))
+            if (tree != null && tree.TryGetText(out var text))
             {
                 return text.AreOnSameLine(token1, token2);
             }

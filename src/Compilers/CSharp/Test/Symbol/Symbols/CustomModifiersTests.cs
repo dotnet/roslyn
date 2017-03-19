@@ -55,6 +55,101 @@ class Module1
 ";
             var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
 
+            var test = compilation.GetTypeByMetadataName("Test1").GetMember<MethodSymbol>("Test");
+            var type = (INamedTypeSymbol)test.Parameters.First().Type;
+            Assert.Equal("System.Int32 modopt(System.Runtime.CompilerServices.IsLong)?", type.ToTestDisplayString());
+            Assert.Equal("System.Runtime.CompilerServices.IsLong", type.GetTypeArgumentCustomModifiers(0).Single().Modifier.ToTestDisplayString());
+            Assert.Throws<System.IndexOutOfRangeException>(() => type.GetTypeArgumentCustomModifiers(1));
+            Assert.Throws<System.IndexOutOfRangeException>(() => type.GetTypeArgumentCustomModifiers(-1));
+
+            var nullable = type.OriginalDefinition;
+            Assert.Equal("System.Nullable<T>", nullable.ToTestDisplayString());
+            Assert.True(nullable.GetTypeArgumentCustomModifiers(0).IsEmpty);
+            Assert.Throws<System.IndexOutOfRangeException>(() => nullable.GetTypeArgumentCustomModifiers(1));
+            Assert.Throws<System.IndexOutOfRangeException>(() => nullable.GetTypeArgumentCustomModifiers(-1));
+
+            var i = (INamedTypeSymbol)type.TypeArguments.First();
+            Assert.Equal("System.Int32", i.ToTestDisplayString());
+            Assert.Throws<System.IndexOutOfRangeException>(() => i.GetTypeArgumentCustomModifiers(0));
+
+            nullable = nullable.Construct(i);
+            Assert.Equal("System.Int32?", nullable.ToTestDisplayString());
+            Assert.True(nullable.GetTypeArgumentCustomModifiers(0).IsEmpty);
+            Assert.Throws<System.IndexOutOfRangeException>(() => nullable.GetTypeArgumentCustomModifiers(1));
+            Assert.Throws<System.IndexOutOfRangeException>(() => nullable.GetTypeArgumentCustomModifiers(-1));
+
+            CompileAndVerify(compilation, expectedOutput: "Test");
+        }
+
+        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        public void ModifiedTypeArgument_02()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit Test1
+       extends[mscorlib] System.Object
+        {
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+        {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call instance void[mscorlib]
+        System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+    } // end of method Test1::.ctor
+
+  .method public hidebysig static void Test(class [mscorlib] System.Collections.Generic.Dictionary`2<int32, int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong) modopt([mscorlib]System.Runtime.CompilerServices.IsConst)> x) cil managed
+    {
+    // Code size       11 (0xb)
+    .maxstack  1
+    IL_0000:  ldstr      ""Test""
+    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000a:  ret
+    } // end of method Test1::Test
+
+} // end of class Test1
+";
+
+            var source = @"
+class Module1
+{
+     static void Main()
+    {
+        Test1.Test(null);
+    }
+}
+";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+
+            var test = compilation.GetTypeByMetadataName("Test1").GetMember<MethodSymbol>("Test");
+            var type = (INamedTypeSymbol)test.Parameters.First().Type;
+            Assert.Equal("System.Collections.Generic.Dictionary<System.Int32, System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)>", 
+                         type.ToTestDisplayString());
+            Assert.True(type.GetTypeArgumentCustomModifiers(0).IsEmpty);
+            var modifiers = type.GetTypeArgumentCustomModifiers(1);
+            Assert.Equal(2, modifiers.Length);
+            Assert.Equal("System.Runtime.CompilerServices.IsConst", modifiers.First().Modifier.ToTestDisplayString());
+            Assert.Equal("System.Runtime.CompilerServices.IsLong", modifiers.Last().Modifier.ToTestDisplayString());
+            Assert.Throws<System.IndexOutOfRangeException>(() => type.GetTypeArgumentCustomModifiers(2));
+            Assert.Throws<System.IndexOutOfRangeException>(() => type.GetTypeArgumentCustomModifiers(-1));
+
+            var dictionary = type.OriginalDefinition;
+            Assert.Equal("System.Collections.Generic.Dictionary<TKey, TValue>", dictionary.ToTestDisplayString());
+            Assert.True(dictionary.GetTypeArgumentCustomModifiers(0).IsEmpty);
+            Assert.True(dictionary.GetTypeArgumentCustomModifiers(1).IsEmpty);
+            Assert.Throws<System.IndexOutOfRangeException>(() => dictionary.GetTypeArgumentCustomModifiers(2));
+            Assert.Throws<System.IndexOutOfRangeException>(() => dictionary.GetTypeArgumentCustomModifiers(-1));
+
+            var i = type.TypeArguments.First();
+            dictionary = dictionary.Construct(i, i);
+            Assert.Equal("System.Collections.Generic.Dictionary<System.Int32, System.Int32>", dictionary.ToTestDisplayString());
+            Assert.True(dictionary.GetTypeArgumentCustomModifiers(0).IsEmpty);
+            Assert.True(dictionary.GetTypeArgumentCustomModifiers(1).IsEmpty);
+            Assert.Throws<System.IndexOutOfRangeException>(() => dictionary.GetTypeArgumentCustomModifiers(2));
+            Assert.Throws<System.IndexOutOfRangeException>(() => dictionary.GetTypeArgumentCustomModifiers(-1));
+
             CompileAndVerify(compilation, expectedOutput: "Test");
         }
 
@@ -1381,7 +1476,7 @@ class Module1
             Assert.Equal("void Module1.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsLong)? x)", test.ToTestDisplayString());
 
             Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First().Type.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation1.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsCustomModifiers.First().First().Modifier.ContainingAssembly);
+            Assert.Same(compilation1.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type).GetTypeArgumentCustomModifiers(0).First().Modifier.ContainingAssembly);
 
             var compilation2 = CreateCompilationWithMscorlib45(new SyntaxTree[] { }, references: new[] { new CSharpCompilationReference(compilation1) });
 
@@ -1390,7 +1485,7 @@ class Module1
 
             Assert.IsType<CSharp.Symbols.Retargeting.RetargetingAssemblySymbol>(test.ContainingAssembly);
             Assert.Same(compilation2.SourceModule.CorLibrary(), test.Parameters.First().Type.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation2.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsCustomModifiers.First().First().Modifier.ContainingAssembly);
+            Assert.Same(compilation2.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type).GetTypeArgumentCustomModifiers(0).First().Modifier.ContainingAssembly);
 
             Assert.NotSame(compilation1.SourceModule.CorLibrary(), compilation2.SourceModule.CorLibrary());
         }

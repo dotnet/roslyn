@@ -11,9 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 
         private void VerifyWorker(string markup, bool validLocation, CSharpParseOptions options = null)
         {
-            string code;
-            int position;
-            MarkupTestFile.GetPosition(markup, out code, out position);
+            MarkupTestFile.GetPosition(markup, out var code, out int position);
 
             VerifyAtPosition(code, position, validLocation, options: options);
             VerifyInFrontOfComment(code, position, validLocation, options: options);
@@ -136,6 +134,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
     " + text +
 @"  }
 }";
+        }
+
+        protected string AddInsideClass(string text)
+        {
+            return
+@"class C
+{
+    " + text +
+@"}";
         }
     }
 }

@@ -82,9 +82,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_UnreferencedAssemblyEvent3 = 30005
         ERR_UnreferencedModuleEvent3 = 30006
         ' ERR_UnreferencedAssemblyBase3 = 30007
-        ERR_UnreferencedModuleBase3 = 30008
+        ' ERR_UnreferencedModuleBase3 = 30008           - This has been superceded by ERR_UnreferencedModuleEvent3
         ' ERR_UnreferencedAssemblyImplements3 = 30009
-        ERR_UnreferencedModuleImplements3 = 30010
+        'ERR_UnreferencedModuleImplements3 = 30010      - This has been superceded by ERR_UnreferencedModuleEvent3
 
         'ERR_CodegenError = 30011
         ERR_LbExpectedEndIf = 30012
@@ -753,7 +753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         'ERR_UnableToCreateMetaDataAPI = 31024
         'ERR_UnableToOpenFile1 = 31027
         ERR_EventHandlerSignatureIncompatible2 = 31029
-        ERR_ProjectCCError1 = 31030
+        ERR_ConditionalCompilationConstantNotValid = 31030
         'ERR_ProjectCCError0 = 31031
         ERR_InterfaceImplementedTwice1 = 31033
         ERR_InterfaceNotImplemented1 = 31035
@@ -1627,9 +1627,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_PartialMethodParamArrayMismatch2 = 37204
 
         ERR_NetModuleNameMismatch = 37205
-        ERR_BadCompilationOption = 37206
+        ERR_BadModuleName = 37206
         ERR_CmdOptionConflictsSource = 37207
-        ' unused 37208   
+        ERR_TypeForwardedToMultipleAssemblies = 37208
         ERR_InvalidSignaturePublicKey = 37209
         ERR_CollisionWithPublicTypeInModule = 37210
         ERR_ExportedTypeConflictsWithDeclaration = 37211
@@ -1721,6 +1721,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_NewWithTupleTypeSyntax = 37280
         ERR_PredefinedValueTupleTypeMustBeStruct = 37281
+        ERR_PublicSignNetModule = 37282
+        ERR_BadAssemblyName = 37283
+
+        ERR_Merge_conflict_marker_encountered = 37284
+
+        ERR_BadSourceCodeKind = 37285
+        ERR_BadDocumentationMode = 37286
+        ERR_BadLanguageVersion = 37287
+        ERR_InvalidPreprocessorConstantType = 37288
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -1941,7 +1950,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_NoAnalyzerInAssembly = 42377
         WRN_UnableToLoadAnalyzer = 42378
 
-        ' // AVAILABLE                             42379 - 49998
+        WRN_AttributeIgnoredWhenPublicSigning = 42379
+
+        ' // AVAILABLE                             42380 - 49998
         ERRWRN_Last = WRN_UnableToLoadAnalyzer + 1
 
         '// HIDDENS AND INFOS BEGIN HERE
@@ -1962,7 +1973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         IDS_LogoLine1 = 56007
         IDS_LogoLine2 = 56008
         IDS_VBCHelp = 56009
-        IDS_InvalidPreprocessorConstantType = 56010
+        ' available: 56010
         IDS_ToolName = 56011
 
         ' Feature codes

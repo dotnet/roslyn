@@ -20,7 +20,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         public async Task<ReferenceCount> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults,
             CancellationToken cancellationToken)
         {
-            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (syntaxNode == null)
+            {
+                return null;
+            }
+
+            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (remoteHostClient == null)
             {
                 // remote host is not running. this can happen if remote host is disabled.
@@ -28,16 +33,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
 
             // TODO: send telemetry on session
-            using (var session = await remoteHostClient.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
-            {
-                return await session.InvokeAsync<ReferenceCount>(WellKnownServiceHubServices.CodeAnalysisService_GetReferenceCountAsync, new CodeLensArguments(documentId, syntaxNode), maxSearchResults).ConfigureAwait(false);
-            }
+            return await remoteHostClient.RunCodeAnalysisServiceOnRemoteHostAsync<ReferenceCount>(
+                solution, WellKnownServiceHubServices.CodeAnalysisService_GetReferenceCountAsync,
+                new object[] { new CodeLensArguments(documentId, syntaxNode), maxSearchResults }, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             CancellationToken cancellationToken)
         {
-            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (syntaxNode == null)
+            {
+                return null;
+            }
+
+            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (remoteHostClient == null)
             {
                 // remote host is not running. this can happen if remote host is disabled.
@@ -45,16 +54,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
 
             // TODO: send telemetry on session
-            using (var session = await remoteHostClient.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
-            {
-                return await session.InvokeAsync<IEnumerable<ReferenceLocationDescriptor>>(WellKnownServiceHubServices.CodeAnalysisService_FindReferenceLocationsAsync, new CodeLensArguments(documentId, syntaxNode)).ConfigureAwait(false);
-            }
+            return await remoteHostClient.RunCodeAnalysisServiceOnRemoteHostAsync<IEnumerable<ReferenceLocationDescriptor>>(
+                solution, WellKnownServiceHubServices.CodeAnalysisService_FindReferenceLocationsAsync,
+                new CodeLensArguments(documentId, syntaxNode), cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             CancellationToken cancellationToken)
         {
-            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (syntaxNode == null)
+            {
+                return null;
+            }
+
+            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (remoteHostClient == null)
             {
                 // remote host is not running. this can happen if remote host is disabled.
@@ -62,16 +75,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
 
             // TODO: send telemetry on session
-            using (var session = await remoteHostClient.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
-            {
-                return await session.InvokeAsync<IEnumerable<ReferenceMethodDescriptor>>(WellKnownServiceHubServices.CodeAnalysisService_FindReferenceMethodsAsync, new CodeLensArguments(documentId, syntaxNode)).ConfigureAwait(false);
-            }
+            return await remoteHostClient.RunCodeAnalysisServiceOnRemoteHostAsync<IEnumerable<ReferenceMethodDescriptor>>(
+                solution, WellKnownServiceHubServices.CodeAnalysisService_FindReferenceMethodsAsync,
+                new CodeLensArguments(documentId, syntaxNode), cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             CancellationToken cancellationToken)
         {
-            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (syntaxNode == null)
+            {
+                return null;
+            }
+
+            var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (remoteHostClient == null)
             {
                 // remote host is not running. this can happen if remote host is disabled.
@@ -79,10 +96,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
 
             // TODO: send telemetry on session
-            using (var session = await remoteHostClient.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
-            {
-                return await session.InvokeAsync<string>(WellKnownServiceHubServices.CodeAnalysisService_GetFullyQualifiedName, new CodeLensArguments(documentId, syntaxNode)).ConfigureAwait(false);
-            }
+            return await remoteHostClient.RunCodeAnalysisServiceOnRemoteHostAsync<string>(
+                solution, WellKnownServiceHubServices.CodeAnalysisService_GetFullyQualifiedName,
+                new CodeLensArguments(documentId, syntaxNode), cancellationToken).ConfigureAwait(false);
         }
     }
 }

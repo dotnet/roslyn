@@ -355,9 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(symbol, _solution, _cancellationToken).ConfigureAwait(false);
                         symbol = sourceDefinition ?? symbol;
 
-                        if (symbol is INamedTypeSymbol)
+                        if (symbol is INamedTypeSymbol namedTypeSymbol)
                         {
-                            var namedTypeSymbol = (INamedTypeSymbol)symbol;
                             if (namedTypeSymbol.IsImplicitlyDeclared &&
                                 namedTypeSymbol.IsDelegateType() &&
                                 namedTypeSymbol.AssociatedSymbol != null)
@@ -562,8 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     if (oldIdentifier != _renamedSymbol.Name)
                     {
-                        string withoutSuffix;
-                        if (currentNewIdentifier.TryGetWithoutAttributeSuffix(out withoutSuffix))
+                        if (currentNewIdentifier.TryGetWithoutAttributeSuffix(out var withoutSuffix))
                         {
                             currentNewIdentifier = withoutSuffix;
                         }
@@ -1236,9 +1234,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     nodeToSpeculate = ((TypeConstraintSyntax)node).Type;
                 }
-                else if (node is BaseTypeSyntax)
+                else if (node is BaseTypeSyntax baseType)
                 {
-                    nodeToSpeculate = ((BaseTypeSyntax)node).Type;
+                    nodeToSpeculate = baseType.Type;
                 }
                 else
                 {

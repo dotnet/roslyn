@@ -54,6 +54,7 @@ namespace Roslyn.Test.Utilities
                         }
                     }
                 });
+                thread.Name = $"{nameof(StaTaskScheduler)} thread";
                 thread.IsBackground = true;
                 thread.SetApartmentState(ApartmentState.STA);
                 return thread;

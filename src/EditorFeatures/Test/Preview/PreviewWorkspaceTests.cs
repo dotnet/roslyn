@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTagger()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync("class { }", exportProvider: EditorServicesUtil.ExportProvider))
+            using (var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider))
             using (var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution))
             {
                 //// preview workspace and owner of the solution now share solution and its underlying text buffer
@@ -190,19 +190,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 //// enable preview diagnostics
                 previewWorkspace.EnableDiagnostic();
 
-                var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpans(workspace);
+                var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<IErrorTag>(workspace);
                 const string AnalzyerCount = "Analyzer Count: ";
                 Assert.Equal(AnalzyerCount + 1, AnalzyerCount + diagnosticsAndErrorsSpans.Item1.Length);
 
                 const string SquigglesCount = "Squiggles Count: ";
-                Assert.Equal(SquigglesCount + 1, SquigglesCount + diagnosticsAndErrorsSpans.Item2.Count);
+                Assert.Equal(SquigglesCount + 1, SquigglesCount + diagnosticsAndErrorsSpans.Item2.Length);
             }
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/14444")]
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync("class { }", exportProvider: EditorServicesUtil.ExportProvider))
+            using (var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider))
             {
                 // set up listener to wait until diagnostic finish running
                 var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>() as DiagnosticService;

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             return SpecializedTasks.EmptyTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, 
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
@@ -76,7 +76,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             // We're going to be continually editing this tree.  Track all the nodes we
             // care about so we can find them across each edit.
-            var currentRoot = originalRoot.TrackNodes(originalObjectCreationNodes);
+            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes));
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             while (originalObjectCreationNodes.Count > 0)
             {
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
                 var analyzer = new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>(
-                    syntaxFacts, objectCreation);
+                    semanticModel, syntaxFacts, objectCreation, cancellationToken);
                 var matches = analyzer.Analyze();
                 if (matches == null || matches.Value.Length == 0)
                 {
@@ -92,9 +94,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 }
 
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
-                var newStatement = statement.ReplaceNode(
-                    objectCreation,
-                    GetNewObjectCreation(objectCreation, matches.Value)).WithAdditionalAnnotations(Formatter.Annotation);
+                var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
+                    .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var subEditor = new SyntaxEditor(currentRoot, workspace);
 
@@ -104,15 +105,16 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     subEditor.RemoveNode(match);
                 }
 
-                currentRoot = subEditor.GetChangedRoot();
+                document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
+                semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
             editor.ReplaceNode(originalRoot, currentRoot);
-            return SpecializedTasks.EmptyTask;
         }
 
-        protected abstract TObjectCreationExpressionSyntax GetNewObjectCreation(
-            TObjectCreationExpressionSyntax objectCreation,
+        protected abstract TStatementSyntax GetNewStatement(
+            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, 
             ImmutableArray<TExpressionStatementSyntax> matches);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

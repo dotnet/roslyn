@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>
-    </RootNamespace>
     <AssemblyName>Roslyn.Services.Test.Utilities2</AssemblyName>
     <OptionStrict>Off</OptionStrict>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
@@ -33,6 +33,10 @@
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
+      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
+      <Name>TestUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\VisualStudio\VisualBasic\Impl\BasicVisualStudio.vbproj">
       <Project>{d49439d7-56d2-450f-a4f0-74cb95d620e6}</Project>
@@ -90,24 +94,13 @@
       <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
       <Name>BasicCompilerTestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
     <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
       <Name>ServicesTestUtilities</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />

@@ -20,13 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public abstract Workspace Workspace { get; }
 
-        public bool SupportGetDiagnostics
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool SupportGetDiagnostics => false;
 
         public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
@@ -115,8 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ClearAnalyzerDiagnostics(DiagnosticAnalyzer analyzer, ProjectId projectId)
         {
-            ImmutableHashSet<DiagnosticData> existing;
-            if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out existing))
+            if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out var existing))
             {
                 return;
             }
@@ -166,8 +159,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal ImmutableHashSet<DiagnosticData> TestOnly_GetReportedDiagnostics(DiagnosticAnalyzer analyzer)
         {
-            ImmutableHashSet<DiagnosticData> diagnostics;
-            if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out diagnostics))
+            if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out var diagnostics))
             {
                 diagnostics = ImmutableHashSet<DiagnosticData>.Empty;
             }

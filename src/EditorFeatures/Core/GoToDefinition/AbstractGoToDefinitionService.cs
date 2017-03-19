@@ -16,16 +16,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {
-        private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _presenters;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
 
         protected abstract ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation);
 
         protected AbstractGoToDefinitionService(
-            IEnumerable<Lazy<INavigableItemsPresenter>> presenters,
             IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
         {
-            _presenters = presenters;
             _streamingPresenters = streamingPresenters;
         }
 
@@ -53,13 +50,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return FindRelatedExplicitlyDeclaredSymbol(symbol, semanticModel.Compilation);
         }
 
-        public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(
+            Document document, int position, CancellationToken cancellationToken)
         {
             var symbol = await FindSymbolAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             // Try to compute source definitions from symbol.
             var items = symbol != null
-                ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol, displayTaggedParts: null)
+                ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol, displayTaggedParts: null, cancellationToken: cancellationToken)
                 : null;
 
             // realize the list here so that the consumer await'ing the result doesn't lazily cause
@@ -80,7 +78,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             return GoToDefinitionHelpers.TryGoToDefinition(symbol,
                 document.Project,
-                _presenters,
                 _streamingPresenters,
                 thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
                 throwOnHiddenDefinition: true,

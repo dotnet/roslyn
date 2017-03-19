@@ -1,10 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <!-- dynamic -->
     <Nonshipping>true</Nonshipping>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{6A3B538F-247F-456C-A763-91991ABEB324}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -37,14 +39,6 @@
       <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Dependencies\VisualStudioText\VisualStudioText.csproj">
-      <Project>{c25768b3-2fe1-4d6d-8c17-a6acd56f8389}</Project>
-      <Name>VisualStudioText</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Dependencies\VisualStudio\VisualStudio.csproj">
-      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
-      <Name>VisualStudio</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
@@ -62,10 +56,8 @@
       <Name>ImplementNotifyPropertyChangedCS</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />

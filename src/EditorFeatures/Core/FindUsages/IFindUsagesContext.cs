@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// <summary>
         /// Set the title of the window that results are displayed in.
         /// </summary>
-        void SetSearchLabel(string displayName);
+        void SetSearchTitle(string title);
 
         Task OnDefinitionFoundAsync(DefinitionItem definition);
         Task OnReferenceFoundAsync(SourceReferenceItem reference);

@@ -207,47 +207,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Is this expression composed only of declaration expressions nested in tuple expressions?
+        /// Returns true if the expression on the left-hand-side of an assignment causes the assignment to be a deconstruction.
         /// </summary>
-        private static bool IsDeconstructionDeclarationLeft(this ExpressionSyntax self)
+        internal static bool IsDeconstructionLeft(this ExpressionSyntax node)
         {
-            switch (self.Kind())
+            switch (node.Kind())
             {
-                case SyntaxKind.DeclarationExpression:
-                    return true;
                 case SyntaxKind.TupleExpression:
-                    var tuple = (TupleExpressionSyntax)self;
-                    return tuple.Arguments.All(a => IsDeconstructionDeclarationLeft(a.Expression));
+                    return true;
+                case SyntaxKind.DeclarationExpression:
+                    return ((DeclarationExpressionSyntax)node).Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation;
                 default:
                     return false;
             }
         }
 
-        /// <summary>
-        /// Returns true if the expression is composed only of nested tuple and declaration expressions.
-        /// </summary>
-        internal static bool IsDeconstructionDeclarationLeft(this Syntax.InternalSyntax.ExpressionSyntax node)
+        internal static bool IsDeconstruction(this AssignmentExpressionSyntax self)
         {
-            switch (node.Kind)
-            {
-                case SyntaxKind.TupleExpression:
-                    var arguments = ((Syntax.InternalSyntax.TupleExpressionSyntax)node).Arguments;
-                    for (int i = 0; i < arguments.Count; i++)
-                    {
-                        if (!IsDeconstructionDeclarationLeft(arguments[i].Expression)) return false;
-                    }
-
-                    return true;
-                case SyntaxKind.DeclarationExpression:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        internal static bool IsDeconstructionDeclaration(this AssignmentExpressionSyntax self)
-        {
-            return self.Left.IsDeconstructionDeclarationLeft();
+            return self.Left.IsDeconstructionLeft();
         }
 
         private static bool IsInContextWhichNeedsDynamicAttribute(CSharpSyntaxNode node)
@@ -352,6 +329,63 @@ namespace Microsoft.CodeAnalysis.CSharp
                 block,
                 default(ArrowExpressionClauseSyntax),
                 semicolonToken);
+        }
+
+        /// <summary>
+        /// If this declaration or identifier is part of a deconstruction, find the deconstruction.
+        /// If found, returns either an assignment expression or a foreach variable statement.
+        /// Returns null otherwise.
+        /// </summary>
+        internal static CSharpSyntaxNode GetContainingDeconstruction(this ExpressionSyntax expr)
+        {
+            var kind = expr.Kind();
+            if (kind != SyntaxKind.TupleExpression && kind != SyntaxKind.DeclarationExpression && kind != SyntaxKind.IdentifierName)
+            {
+                return null;
+            }
+
+            while (true)
+            {
+                Debug.Assert(expr.Kind() == SyntaxKind.TupleExpression || expr.Kind() == SyntaxKind.DeclarationExpression || expr.Kind() == SyntaxKind.IdentifierName);
+                var parent = expr.Parent;
+                if (parent == null) { return null; }
+
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.Argument:
+                        if (parent.Parent?.Kind() == SyntaxKind.TupleExpression)
+                        {
+                            expr = (TupleExpressionSyntax)parent.Parent;
+                            continue;
+                        }
+                        return null;
+                    case SyntaxKind.SimpleAssignmentExpression:
+                        if ((object)((AssignmentExpressionSyntax)parent).Left == expr)
+                        {
+                            return parent;
+                        }
+                        return null;
+                    case SyntaxKind.ForEachVariableStatement:
+                        if ((object)((ForEachVariableStatementSyntax)parent).Variable == expr)
+                        {
+                            return parent;
+                        }
+                        return null;
+                    default:
+                        return null;
+                }
+            }
+        }
+
+        internal static bool IsOutDeclaration(this DeclarationExpressionSyntax p)
+        {
+            return p.Parent?.Kind() == SyntaxKind.Argument
+                && ((ArgumentSyntax)p.Parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword;
+        }
+
+        internal static bool IsOutVarDeclaration(this DeclarationExpressionSyntax p)
+        {
+            return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation && p.IsOutDeclaration();
         }
     }
 }

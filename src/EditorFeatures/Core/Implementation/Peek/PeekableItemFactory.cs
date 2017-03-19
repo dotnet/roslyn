@@ -25,7 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }
 
-        public async Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(ISymbol symbol, Project project, IPeekResultFactory peekResultFactory, CancellationToken cancellationToken)
+        public async Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(
+            ISymbol symbol, Project project,
+            IPeekResultFactory peekResultFactory, 
+            CancellationToken cancellationToken)
         {
             if (symbol == null)
             {
@@ -55,13 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 project = originatingProject ?? project;
             }
 
-            string filePath;
-            int lineNumber;
-            int charOffset;
-
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
 
-            if (symbolNavigationService.WouldNavigateToSymbol(symbol, solution, out filePath, out lineNumber, out charOffset))
+            if (symbolNavigationService.WouldNavigateToSymbol(
+                    symbol, solution, cancellationToken,
+                    out var filePath, out var lineNumber, out var charOffset))
             {
                 var position = new LinePosition(lineNumber, charOffset);
                 results.Add(new ExternalFilePeekableItem(new FileLinePositionSpan(filePath, position, position), PredefinedPeekRelationships.Definitions, peekResultFactory));

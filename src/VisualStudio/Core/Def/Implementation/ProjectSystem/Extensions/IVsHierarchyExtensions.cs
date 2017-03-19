@@ -9,8 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         public static bool TryGetItemProperty<T>(this IVsHierarchy hierarchy, uint itemId, int propertyId, out T value)
         {
-            object property;
-            if (ErrorHandler.Failed(hierarchy.GetProperty(itemId, propertyId, out property)) ||
+            if (ErrorHandler.Failed(hierarchy.GetProperty(itemId, propertyId, out var property)) ||
                 !(property is T))
             {
                 value = default(T);

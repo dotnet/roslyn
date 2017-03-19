@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Debugging;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -143,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 Cci.IImportScope Cci.IMethodBody.ImportScope => null;
 
-                ImmutableArray<Cci.StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes =>
-                    default(ImmutableArray<Cci.StateMachineHoistedLocalScope>);
+                ImmutableArray<StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes =>
+                    default(ImmutableArray<StateMachineHoistedLocalScope>);
 
                 string Cci.IMethodBody.StateMachineTypeName => null;
 
@@ -284,11 +285,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return StaticCast<Cci.IParameterTypeInformation>.From(_parameters);
             }
 
+            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers =>
+                UnderlyingMethodSignature.RefCustomModifiers;
+
             ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers =>
                 UnderlyingMethodSignature.ReturnValueCustomModifiers;
-
-            ushort Cci.ISignature.CountOfCustomModifiersPrecedingByRef =>
-                UnderlyingMethodSignature.CountOfCustomModifiersPrecedingByRef;
 
             bool Cci.ISignature.ReturnValueIsByRef => UnderlyingMethodSignature.ReturnValueIsByRef;
 

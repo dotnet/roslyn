@@ -222,12 +222,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _overriddenAccessor.ReturnTypeCustomModifiers;
             }
         }
-
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
-                return _overriddenAccessor.CountOfCustomModifiersPrecedingByRef;
+                return _overriddenAccessor.RefCustomModifiers;
             }
         }
 

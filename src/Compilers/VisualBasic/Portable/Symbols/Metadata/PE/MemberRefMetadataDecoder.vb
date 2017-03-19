@@ -218,7 +218,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return False
             End If
 
-            If Not CustomModifiersMatch(candidateParam.CustomModifiers, targetParam.CustomModifiers) Then
+            If Not CustomModifiersMatch(candidateParam.CustomModifiers, targetParam.CustomModifiers) OrElse
+               Not CustomModifiersMatch(candidateParam.RefCustomModifiers, targetParam.RefCustomModifiers) Then
                 Return False
             End If
 
@@ -235,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             If Not CustomModifiersMatch(candidateMethod.ReturnTypeCustomModifiers, targetReturnParam.CustomModifiers) OrElse
-               candidateMethod.CountOfCustomModifiersPrecedingByRef <> targetReturnParam.CountOfCustomModifiersPrecedingByRef Then
+               Not CustomModifiersMatch(candidateMethod.RefCustomModifiers, targetReturnParam.RefCustomModifiers) Then
                 Return False
             End If
 

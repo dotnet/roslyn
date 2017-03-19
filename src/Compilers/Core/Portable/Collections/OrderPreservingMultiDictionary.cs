@@ -88,8 +88,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         public void Add(K k, V v)
         {
-            ValueSet valueSet;
-            if (!this.IsEmpty && _dictionary.TryGetValue(k, out valueSet))
+            if (!this.IsEmpty && _dictionary.TryGetValue(k, out var valueSet))
             {
                 Debug.Assert(valueSet.Count >= 1);
                 // Have to re-store the ValueSet in case we upgraded the existing ValueSet from 
@@ -126,8 +125,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             get
             {
-                ValueSet valueSet;
-                if (!this.IsEmpty && _dictionary.TryGetValue(k, out valueSet))
+                if (!this.IsEmpty && _dictionary.TryGetValue(k, out var valueSet))
                 {
                     Debug.Assert(valueSet.Count >= 1);
                     return valueSet.Items;
@@ -139,9 +137,8 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public bool Contains(K key, V value)
         {
-            ValueSet valueSet;
             return !this.IsEmpty &&
-                _dictionary.TryGetValue(key, out valueSet) &&
+                _dictionary.TryGetValue(key, out var valueSet) &&
                 valueSet.Contains(value);
         }
 

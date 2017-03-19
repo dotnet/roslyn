@@ -55,8 +55,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return codeElement.AddArgument(data.Value, data.Name, data.Position)
         End Function
 
-        Protected Async Function TestAttributeArguments(code As XElement, ParamArray expectedAttributeArguments() As Action(Of Object)) As Tasks.Task
-            Await TestElement(code,
+        Protected Sub TestAttributeArguments(code As XElement, ParamArray expectedAttributeArguments() As Action(Of Object))
+            TestElement(code,
                 Sub(codeElement)
                     Dim attributes = GetAttributeArguments(codeElement)
                     Assert.Equal(expectedAttributeArguments.Length, attributes.Count)
@@ -65,15 +65,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         expectedAttributeArguments(i - 1)(attributes.Item(i))
                     Next
                 End Sub)
-        End Function
+        End Sub
 
-        Protected Async Function TestTarget(code As XElement, expectedTarget As String) As Tasks.Task
-            Await TestElement(code,
+        Protected Sub TestTarget(code As XElement, expectedTarget As String)
+            TestElement(code,
                 Sub(codeElement)
                     Dim target = GetTarget(codeElement)
                     Assert.Equal(expectedTarget, target)
                 End Sub)
-        End Function
+        End Sub
 
         Protected Async Function TestSetTarget(code As XElement, expectedCode As XElement, target As String) As Tasks.Task
             Await TestElementUpdate(code, expectedCode,
@@ -82,13 +82,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Async Function TestValue(code As XElement, expectedValue As String) As Tasks.Task
-            Await TestElement(code,
+        Protected Sub TestValue(code As XElement, expectedValue As String)
+            TestElement(code,
                 Sub(codeElement)
                     Dim target = GetValue(codeElement)
                     Assert.Equal(expectedValue, target)
                 End Sub)
-        End Function
+        End Sub
 
         Protected Async Function TestSetValue(code As XElement, expectedCode As XElement, value As String) As Tasks.Task
             Await TestElementUpdate(code, expectedCode,
@@ -137,8 +137,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub
         End Function
 
-        Protected Async Function TestAttributeArgumentStartPoint(code As XElement, index As Integer, ParamArray expectedParts() As Action(Of Func(Of EnvDTE.vsCMPart, EnvDTE.TextPoint))) As Tasks.Task
-            Await TestElement(code,
+        Protected Sub TestAttributeArgumentStartPoint(code As XElement, index As Integer, ParamArray expectedParts() As Action(Of Func(Of EnvDTE.vsCMPart, EnvDTE.TextPoint)))
+            TestElement(code,
                 Sub(codeElement)
                     Dim arg = CType(codeElement.Arguments.Item(index), EnvDTE80.CodeAttributeArgument)
 
@@ -148,10 +148,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         action(startPointGetter)
                     Next
                 End Sub)
-        End Function
+        End Sub
 
-        Protected Async Function TestAttributeArgumentEndPoint(code As XElement, index As Integer, ParamArray expectedParts() As Action(Of Func(Of EnvDTE.vsCMPart, EnvDTE.TextPoint))) As Tasks.Task
-            Await TestElement(code,
+        Protected Sub TestAttributeArgumentEndPoint(code As XElement, index As Integer, ParamArray expectedParts() As Action(Of Func(Of EnvDTE.vsCMPart, EnvDTE.TextPoint)))
+            TestElement(code,
                 Sub(codeElement)
                     Dim arg = CType(codeElement.Arguments.Item(index), EnvDTE80.CodeAttributeArgument)
 
@@ -161,7 +161,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         action(endPointGetter)
                     Next
                 End Sub)
-        End Function
+        End Sub
 
     End Class
 End Namespace

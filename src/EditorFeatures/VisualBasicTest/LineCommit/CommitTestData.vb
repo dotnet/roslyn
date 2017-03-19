@@ -24,8 +24,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Private ReadOnly _formatter As FormatterMock
         Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
-        Public Shared Async Function CreateAsync(test As XElement) As Task(Of CommitTestData)
-            Dim workspace = Await TestWorkspace.CreateAsync(test)
+        Public Shared Function Create(test As XElement) As CommitTestData
+            Dim workspace = TestWorkspace.Create(test)
             Return New CommitTestData(workspace)
         End Function
 
@@ -121,13 +121,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 _testWorkspace = testWorkspace
             End Sub
 
-            Public Async Function CommitRegionAsync(spanToFormat As SnapshotSpan,
+            Public Sub CommitRegion(spanToFormat As SnapshotSpan,
                                     isExplicitFormat As Boolean,
                                     useSemantics As Boolean,
                                     dirtyRegion As SnapshotSpan,
                                     baseSnapshot As ITextSnapshot,
                                     baseTree As SyntaxTree,
-                                    cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
+                                    cancellationToken As CancellationToken) Implements ICommitFormatter.CommitRegion
                 GotCommit = True
                 UsedSemantics = useSemantics
 
@@ -140,8 +140,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 End If
 
                 Dim realCommitFormatter As New CommitFormatter()
-                Await realCommitFormatter.CommitRegionAsync(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken)
-            End Function
+                realCommitFormatter.CommitRegion(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken)
+            End Sub
         End Class
     End Class
 End Namespace

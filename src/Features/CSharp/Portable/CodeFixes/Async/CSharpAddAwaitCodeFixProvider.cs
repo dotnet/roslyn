@@ -92,14 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         private static bool DoesExpressionReturnTask(ExpressionSyntax expression, SemanticModel semanticModel)
         {
-            INamedTypeSymbol taskType = null;
-            if (!TryGetTaskType(semanticModel, out taskType))
+            if (!TryGetTaskType(semanticModel, out var taskType))
             {
                 return false;
             }
 
-            INamedTypeSymbol returnType = null;
-            return TryGetExpressionType(expression, semanticModel, out returnType) &&
+            return TryGetExpressionType(expression, semanticModel, out var returnType) &&
             semanticModel.Compilation.ClassifyConversion(taskType, returnType).Exists;
         }
 
@@ -110,10 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 return false;
             }
 
-            INamedTypeSymbol taskType = null;
-            INamedTypeSymbol rightSideType = null;
-            if (!TryGetTaskType(semanticModel, out taskType) ||
-                !TryGetExpressionType(expression, semanticModel, out rightSideType))
+            if (!TryGetTaskType(semanticModel, out var taskType) ||
+                !TryGetExpressionType(expression, semanticModel, out var rightSideType))
             {
                 return false;
             }

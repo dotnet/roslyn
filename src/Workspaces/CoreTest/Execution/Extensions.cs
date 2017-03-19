@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
                 await syncObject.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
-                using (var reader = new ObjectReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     // deserialize bits to object
                     var serializer = syncService.Serializer_TestOnly;

@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         Dim asLong = CType(ConvertToULong(value), Long)
                         Return "&B" + Convert.ToString(asLong, 2)
                     Case Else
-                        Throw ExceptionUtilities.Unreachable
+                        Throw ExceptionUtilities.UnexpectedValue(base)
                 End Select
             End Function
 
@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Case SyntaxKind.IntegerLiteralToken
                         Return token.CopyAnnotationsTo(SyntaxFactory.IntegerLiteralToken(leading, newValueString, token.GetBase().Value, token.GetTypeCharacter(), DirectCast(newValue, ULong), trailing))
                     Case Else
-                        Throw ExceptionUtilities.Unreachable
+                        Throw ExceptionUtilities.UnexpectedValue(token.Kind)
                 End Select
             End Function
 

@@ -6,9 +6,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -219,6 +218,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest(string testSrc)
         {
             return GetSemanticInfoForTest<ExpressionSyntax>(testSrc);
+        }
+
+        protected string GetOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation)
+            where TSyntaxNode: SyntaxNode
+        {
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
+            if (syntaxNode == null)
+            {
+                return null;
+            }
+
+            var operation = model.GetOperationInternal(syntaxNode);
+            return operation != null ? OperationTreeVerifier.GetOperationTree(operation) : null;
+        }
+
+        protected string GetOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpParseOptions parseOptions = null)
+            where TSyntaxNode : SyntaxNode
+        {
+            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef }, parseOptions: parseOptions);
+            return GetOperationTreeForTest<TSyntaxNode>(compilation);
+        }
+
+        protected void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree)
+            where TSyntaxNode : SyntaxNode
+        {
+            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(compilation);
+            OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
+        }
+
+        protected void VerifyOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpParseOptions parseOptions = null)
+            where TSyntaxNode : SyntaxNode
+        {
+            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, expectedOperationTree, parseOptions);
+            OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
     }
 }

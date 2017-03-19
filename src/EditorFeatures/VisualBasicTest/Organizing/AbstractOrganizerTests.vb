@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
     Public MustInherit Class AbstractOrganizerTests
 
         Protected Async Function CheckAsync(initial As XElement, final As XElement) As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initial.NormalizedValue)
+            Using workspace = TestWorkspace.CreateVisualBasic(initial.NormalizedValue)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Dim newRoot = Await (Await OrganizingService.OrganizeAsync(document)).GetSyntaxRootAsync()
                 Assert.Equal(final.NormalizedValue, newRoot.ToFullString())

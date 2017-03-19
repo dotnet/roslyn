@@ -24,26 +24,95 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public event EventHandler<bool> ConnectionChanged;
 
+        [Obsolete("use TryCreateServiceSessionAsync instead")]
+        public Task<Session> CreateServiceSessionAsync(string serviceName, CancellationToken cancellationToken)
+        {
+            return CreateServiceSessionAsync(serviceName, callbackTarget: null, cancellationToken: cancellationToken);
+        }
+
+        [Obsolete("use TryCreateServiceSessionAsync instead")]
+        public Task<Session> CreateServiceSessionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        {
+            return TryCreateServiceSessionAsync(serviceName, snapshot: null, callbackTarget: callbackTarget, cancellationToken: cancellationToken);
+        }
+
+        [Obsolete("use TryCreateServiceSessionAsync instead")]
         public Task<Session> CreateServiceSessionAsync(string serviceName, Solution solution, CancellationToken cancellationToken)
         {
             return CreateServiceSessionAsync(serviceName, solution, callbackTarget: null, cancellationToken: cancellationToken);
         }
 
-        public async Task<Session> CreateServiceSessionAsync(string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
+        [Obsolete("use TryCreateServiceSessionAsync instead")]
+        public Task<Session> CreateServiceSessionAsync(string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(solution.Workspace == _workspace);
+            return TryCreateServiceSessionAsync(serviceName, solution, callbackTarget, cancellationToken);
+        }
 
-            var service = _workspace.Services.GetService<ISolutionSynchronizationService>();
-            var snapshot = await service.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+        /// <summary>
+        /// Create <see cref="RemoteHostClient.Session"/> for the <paramref name="serviceName"/> if possible.
+        /// otherwise, return null.
+        /// 
+        /// Creating session could fail if remote host is not available. one of example will be user killing
+        /// remote host.
+        /// </summary>
+        public Task<Session> TryCreateServiceSessionAsync(string serviceName, CancellationToken cancellationToken)
+        {
+            return TryCreateServiceSessionAsync(serviceName, callbackTarget: null, cancellationToken: cancellationToken);
+        }
 
-            return await CreateServiceSessionAsync(serviceName, snapshot, callbackTarget, cancellationToken).ConfigureAwait(false);
+        /// <summary>
+        /// Create <see cref="RemoteHostClient.Session"/> for the <paramref name="serviceName"/> if possible.
+        /// otherwise, return null.
+        /// 
+        /// Creating session could fail if remote host is not available. one of example will be user killing
+        /// remote host.
+        /// </summary>
+        public Task<Session> TryCreateServiceSessionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        {
+            return TryCreateServiceSessionAsync(serviceName, snapshot: null, callbackTarget: callbackTarget, cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        /// Create <see cref="RemoteHostClient.Session"/> for the <paramref name="serviceName"/> if possible.
+        /// otherwise, return null.
+        /// 
+        /// Creating session could fail if remote host is not available. one of example will be user killing
+        /// remote host.
+        /// </summary>
+        public Task<Session> TryCreateServiceSessionAsync(string serviceName, Solution solution, CancellationToken cancellationToken)
+        {
+            return TryCreateServiceSessionAsync(serviceName, solution, callbackTarget: null, cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        /// Create <see cref="RemoteHostClient.Session"/> for the <paramref name="serviceName"/> if possible.
+        /// otherwise, return null.
+        /// 
+        /// Creating session could fail if remote host is not available. one of example will be user killing
+        /// remote host.
+        /// </summary>
+        public async Task<Session> TryCreateServiceSessionAsync(string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
+        {
+            var snapshot = await GetPinnedScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+            return await TryCreateServiceSessionAsync(serviceName, snapshot, callbackTarget, cancellationToken).ConfigureAwait(false);
         }
 
         protected abstract void OnConnected();
 
         protected abstract void OnDisconnected();
 
-        protected abstract Task<Session> CreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken);
+        [Obsolete]
+        protected virtual Task<Session> CreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.Default<Session>();
+        }
+
+        protected virtual Task<Session> TryCreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
+        {
+#pragma warning disable CS0612 // leave it for now to not break backward compatibility
+            return CreateServiceSessionAsync(serviceName, snapshot, callbackTarget, cancellationToken);
+#pragma warning restore CS0612 // Type or member is obsolete
+        }
 
         internal void Shutdown()
         {
@@ -70,10 +139,23 @@ namespace Microsoft.CodeAnalysis.Remote
             ConnectionChanged?.Invoke(this, connected);
         }
 
+        private async Task<PinnedRemotableDataScope> GetPinnedScopeAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            if (solution == null)
+            {
+                return null;
+            }
+
+            Contract.ThrowIfFalse(solution.Workspace == _workspace);
+
+            var service = _workspace.Services.GetService<ISolutionSynchronizationService>();
+            return await service.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+        }
+
         // TODO: make this to not exposed to caller. abstract all of these under Request and Response mechanism
         public abstract class Session : IDisposable
         {
-            protected readonly PinnedRemotableDataScope PinnedScope;
+            protected readonly PinnedRemotableDataScope PinnedScopeOpt;
             protected readonly CancellationToken CancellationToken;
 
             private bool _disposed;
@@ -82,18 +164,22 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 _disposed = false;
 
-                PinnedScope = scope;
+                PinnedScopeOpt = scope;
                 CancellationToken = cancellationToken;
             }
 
             public abstract Task InvokeAsync(string targetName, params object[] arguments);
+
             public abstract Task<T> InvokeAsync<T>(string targetName, params object[] arguments);
+
             public abstract Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync);
+
             public abstract Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync);
 
             public void AddAdditionalAssets(CustomAsset asset)
             {
-                PinnedScope.AddAdditionalAsset(asset, CancellationToken);
+                Contract.ThrowIfNull(PinnedScopeOpt);
+                PinnedScopeOpt.AddAdditionalAsset(asset, CancellationToken);
             }
 
             protected virtual void OnDisposed()
@@ -112,7 +198,31 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 OnDisposed();
 
-                PinnedScope.Dispose();
+                PinnedScopeOpt?.Dispose();
+            }
+        }
+
+        public class NoOpClient : RemoteHostClient
+        {
+            public NoOpClient(Workspace workspace) :
+                base(workspace)
+            {
+            }
+
+            protected override Task<Session> TryCreateServiceSessionAsync(
+                string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
+            {
+                return SpecializedTasks.Default<Session>();
+            }
+
+            protected override void OnConnected()
+            {
+                // do nothing
+            }
+
+            protected override void OnDisconnected()
+            {
+                // do nothing
             }
         }
     }

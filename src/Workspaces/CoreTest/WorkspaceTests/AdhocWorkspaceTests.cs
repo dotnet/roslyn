@@ -271,18 +271,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var ws = new AdhocWorkspace())
             {
                 ws.AddProject(projInfo);
-
-                SourceText currentText;
-                VersionStamp currentVersion;
-
                 var doc = ws.CurrentSolution.GetDocument(docInfo.Id);
-                Assert.Equal(false, doc.TryGetText(out currentText));
+                Assert.Equal(false, doc.TryGetText(out var currentText));
 
                 ws.OpenDocument(docInfo.Id);
 
                 doc = ws.CurrentSolution.GetDocument(docInfo.Id);
                 Assert.Equal(true, doc.TryGetText(out currentText));
-                Assert.Equal(true, doc.TryGetTextVersion(out currentVersion));
+                Assert.Equal(true, doc.TryGetTextVersion(out var currentVersion));
                 Assert.Same(text, currentText);
                 Assert.Equal(version, currentVersion);
 
@@ -311,18 +307,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var ws = new AdhocWorkspace())
             {
                 ws.AddProject(projInfo);
-
-                SourceText currentText;
-                VersionStamp currentVersion;
-
                 var doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
-                Assert.Equal(false, doc.TryGetText(out currentText));
+                Assert.Equal(false, doc.TryGetText(out var currentText));
 
                 ws.OpenAdditionalDocument(docInfo.Id);
 
                 doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
                 Assert.Equal(true, doc.TryGetText(out currentText));
-                Assert.Equal(true, doc.TryGetTextVersion(out currentVersion));
+                Assert.Equal(true, doc.TryGetTextVersion(out var currentVersion));
                 Assert.Same(text, currentText);
                 Assert.Equal(version, currentVersion);
 
@@ -370,13 +362,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var ws = new AdhocWorkspace())
             {
                 ws.AddProject(projInfo);
-
-                SourceText currentText;
-                VersionStamp currentVersion;
-
                 var doc = ws.CurrentSolution.GetDocument(docInfo.Id);
-                Assert.Equal(false, doc.TryGetText(out currentText));
-                Assert.Equal(false, doc.TryGetTextVersion(out currentVersion));
+                Assert.Equal(false, doc.TryGetText(out var currentText));
+                Assert.Equal(false, doc.TryGetTextVersion(out var currentVersion));
 
                 // cause text to load and show that TryGet now works for text and version
                 currentText = await doc.GetTextAsync();
@@ -501,6 +489,176 @@ namespace Microsoft.CodeAnalysis.UnitTests
             public void SetParseOptions(ProjectId id, ParseOptions options)
             {
                 base.OnParseOptionsChanged(id, options);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestChangeDocumentName_TryApplyChanges()
+        {
+            using (var ws = new AdhocWorkspace())
+            {
+                var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
+                var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
+                Assert.Equal(originalDoc.Name, "TestDocument");
+
+                var newName = "ChangedName";
+                var changedDoc = originalDoc.WithName(newName);
+                Assert.Equal(newName, changedDoc.Name);
+
+                var tcs = new TaskCompletionSource<bool>();
+                ws.WorkspaceChanged += (s, args) =>
+                {
+                    if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
+                        && args.DocumentId == originalDoc.Id)
+                    {
+                        tcs.SetResult(true);
+                    }
+                };
+
+                Assert.True(ws.TryApplyChanges(changedDoc.Project.Solution));
+
+                var appliedDoc = ws.CurrentSolution.GetDocument(originalDoc.Id);
+                Assert.Equal(newName, appliedDoc.Name);
+
+                await Task.WhenAny(tcs.Task, Task.Delay(1000));
+                Assert.True(tcs.Task.IsCompleted && tcs.Task.Result);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestChangeDocumentFolders_TryApplyChanges()
+        {
+            using (var ws = new AdhocWorkspace())
+            {
+                var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
+                var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
+
+                Assert.Equal(0, originalDoc.Folders.Count);
+
+                var changedDoc = originalDoc.WithFolders(new[] { "A", "B" });
+                Assert.Equal(2, changedDoc.Folders.Count);
+                Assert.Equal("A", changedDoc.Folders[0]);
+                Assert.Equal("B", changedDoc.Folders[1]);
+
+                var tcs = new TaskCompletionSource<bool>();
+                ws.WorkspaceChanged += (s, args) =>
+                {
+                    if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
+                        && args.DocumentId == originalDoc.Id)
+                    {
+                        tcs.SetResult(true);
+                    }
+                };
+
+                Assert.True(ws.TryApplyChanges(changedDoc.Project.Solution));
+
+                var appliedDoc = ws.CurrentSolution.GetDocument(originalDoc.Id);
+                Assert.Equal(2, appliedDoc.Folders.Count);
+                Assert.Equal("A", appliedDoc.Folders[0]);
+                Assert.Equal("B", appliedDoc.Folders[1]);
+
+                await Task.WhenAny(tcs.Task, Task.Delay(1000));
+                Assert.True(tcs.Task.IsCompleted && tcs.Task.Result);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestChangeDocumentFilePath_TryApplyChanges()
+        {
+            using (var ws = new AdhocWorkspace())
+            {
+                var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
+
+                var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
+                Assert.Null(originalDoc.FilePath);
+
+                var newPath = @"\foo\TestDocument.cs";
+                var changedDoc = originalDoc.WithFilePath(newPath);
+                Assert.Equal(newPath, changedDoc.FilePath);
+
+                var tcs = new TaskCompletionSource<bool>();
+                ws.WorkspaceChanged += (s, args) =>
+                {
+                    if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
+                        && args.DocumentId == originalDoc.Id)
+                    {
+                        tcs.SetResult(true);
+                    }
+                };
+
+                Assert.True(ws.TryApplyChanges(changedDoc.Project.Solution));
+
+                var appliedDoc = ws.CurrentSolution.GetDocument(originalDoc.Id);
+                Assert.Equal(newPath, appliedDoc.FilePath);
+
+                await Task.WhenAny(tcs.Task, Task.Delay(1000));
+                Assert.True(tcs.Task.IsCompleted && tcs.Task.Result);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestChangeDocumentSourceCodeKind_TryApplyChanges()
+        {
+            using (var ws = new AdhocWorkspace())
+            {
+                var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
+
+                var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
+                Assert.Equal(SourceCodeKind.Regular, originalDoc.SourceCodeKind);
+
+                var changedDoc = originalDoc.WithSourceCodeKind(SourceCodeKind.Script);
+                Assert.Equal(SourceCodeKind.Script, changedDoc.SourceCodeKind);
+
+                var tcs = new TaskCompletionSource<bool>();
+                ws.WorkspaceChanged += (s, args) =>
+                {
+                    if (args.Kind == WorkspaceChangeKind.DocumentInfoChanged
+                        && args.DocumentId == originalDoc.Id)
+                    {
+                        tcs.SetResult(true);
+                    }
+                };
+
+                Assert.True(ws.TryApplyChanges(changedDoc.Project.Solution));
+
+                var appliedDoc = ws.CurrentSolution.GetDocument(originalDoc.Id);
+                Assert.Equal(SourceCodeKind.Script, appliedDoc.SourceCodeKind);
+
+                await Task.WhenAny(tcs.Task, Task.Delay(1000));
+                Assert.True(tcs.Task.IsCompleted && tcs.Task.Result);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestChangeDocumentInfo_TryApplyChanges()
+        {
+            using (var ws = new AdhocWorkspace())
+            {
+                var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
+
+                var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
+                Assert.Equal(originalDoc.Name, "TestDocument");
+                Assert.Equal(0, originalDoc.Folders.Count);
+                Assert.Null(originalDoc.FilePath);
+
+                var newName = "ChangedName";
+                var newPath = @"\A\B\ChangedName.cs";
+                var changedDoc = originalDoc.WithName(newName).WithFolders(new[] { "A", "B" }).WithFilePath(newPath);
+
+                Assert.Equal(newName, changedDoc.Name);
+                Assert.Equal(2, changedDoc.Folders.Count);
+                Assert.Equal("A", changedDoc.Folders[0]);
+                Assert.Equal("B", changedDoc.Folders[1]);
+                Assert.Equal(newPath, changedDoc.FilePath);
+
+                Assert.True(ws.TryApplyChanges(changedDoc.Project.Solution));
+
+                var appliedDoc = ws.CurrentSolution.GetDocument(originalDoc.Id);
+                Assert.Equal(newName, appliedDoc.Name);
+                Assert.Equal(2, appliedDoc.Folders.Count);
+                Assert.Equal("A", appliedDoc.Folders[0]);
+                Assert.Equal("B", appliedDoc.Folders[1]);
+                Assert.Equal(newPath, appliedDoc.FilePath);
             }
         }
     }

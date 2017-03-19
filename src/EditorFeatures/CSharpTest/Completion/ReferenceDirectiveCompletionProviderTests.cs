@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task IsTextualTriggerCharacterTest()
+        public void IsTextualTriggerCharacterTest()
         {
             var validMarkupList = new[]
             {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 
             foreach (var markup in validMarkupList)
             {
-                await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
             }
 
             var invalidMarkupList = new[]
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 
             foreach (var markup in invalidMarkupList)
             {
-                await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
             }
         }
 

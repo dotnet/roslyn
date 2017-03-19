@@ -8,15 +8,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseCol
     Public Class UseCollectionInitializerTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                New VisualBasicUseCollectionInitializerDiagnosticAnalyzer(),
-                New VisualBasicUseCollectionInitializerCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New VisualBasicUseCollectionInitializerDiagnosticAnalyzer(),
+                    New VisualBasicUseCollectionInitializerCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestOnVariableDeclarator() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -34,12 +33,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestDoNotRemoveNonEmptyArgumentList() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -57,12 +56,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestOnVariableDeclarator2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -80,12 +79,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestOnAssignmentExpression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -105,12 +104,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMissingOnNamedArg() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -123,7 +122,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMissingOnZeroArgs() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -136,7 +135,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMissingOnNoArgs() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -149,7 +148,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMissingOnOmittedArg() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -162,7 +161,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestComplexInitializer() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -186,12 +185,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMultipleArgs() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -209,12 +208,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMissingWithExistingInitializer() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -229,7 +228,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestFixAllInDocument() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -262,12 +261,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestTrivia1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System.Collections.Generic
 Class C
@@ -287,7 +286,37 @@ Class C
             }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(15528, "https://github.com/dotnet/roslyn/pull/15528")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        Public Async Function TestTrivia2() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim c = [||]New List(Of Integer)()
+        ' Foo
+        c.Add(1)
+        ' Bar
+        c.Add(2)
+    End Sub
+End Class",
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        ' Foo
+        ' Bar
+        Dim c = New List(Of Integer) From {
+            1,
+            2
+        }
+    End Sub
+End Class",
+ignoreTrivia:=False)
         End Function
     End Class
 End Namespace

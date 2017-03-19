@@ -2020,5 +2020,30 @@ class C
 
             await TestAsync(text, "global::C", testNode: false);
         }
+
+        [WorkItem(15468, "https://github.com/dotnet/roslyn/issues/15468")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestDeconstruction()
+        {
+            await TestInMethodAsync(
+@"[|(int i, _)|] =", "global::System.Object");
+        }
+
+        [WorkItem(13402, "https://github.com/dotnet/roslyn/issues/13402")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestObjectCreationBeforeBlock()
+        {
+            var text =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Program p = new [||] 
+        { }
+    }
+}";
+
+            await TestAsync(text, "global::Program", testNode: false);
+        }
     }
 }

@@ -2279,11 +2279,13 @@ Public Interface I(Of W As Structure) : End Interface
                                  flags And GenericParameterAttributes.DefaultConstructorConstraint)
 
 
-                    Dim constraints = metadata.GetGenericParamConstraintsOrThrow(tp.Handle)
-                    Assert.Equal(1, constraints.Length)
+                    Dim metadataReader = metadata.MetadataReader
+                    Dim constraints = metadataReader.GetGenericParameter(tp.Handle).GetConstraints()
+                    Assert.Equal(1, constraints.Count)
 
                     Dim tokenDecoder = New MetadataDecoder(DirectCast([module], PEModuleSymbol), typeI)
-                    Dim typeSymbol = tokenDecoder.GetTypeOfToken(constraints(0))
+                    Dim constraintTypeHandle = metadataReader.GetGenericParameterConstraint(constraints(0)).Type
+                    Dim typeSymbol = tokenDecoder.GetTypeOfToken(constraintTypeHandle)
                     Assert.Equal(SpecialType.System_ValueType, typeSymbol.SpecialType)
                 End Sub
 

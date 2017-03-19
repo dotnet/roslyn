@@ -305,9 +305,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             if (name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
                 name.IsFoundUnder<FieldDeclarationSyntax>(d => d.Declaration.Type))
             {
-                var speculativeBinding = context.SemanticModel.GetSpeculativeSymbolInfo(name.SpanStart, name, SpeculativeBindingOption.BindAsExpression);
-                var container = context.SemanticModel.GetSpeculativeTypeInfo(name.SpanStart, name, SpeculativeBindingOption.BindAsExpression).Type;
-                return GetSymbolsOffOfBoundExpression(context, name, name, speculativeBinding, container, cancellationToken);
+                var speculativeBinding = context.SemanticModel.GetSpeculativeSymbolInfo(
+                    name.SpanStart, name, SpeculativeBindingOption.BindAsExpression);
+
+                var container = context.SemanticModel.GetSpeculativeTypeInfo(
+                    name.SpanStart, name, SpeculativeBindingOption.BindAsExpression).Type;
+
+                var speculativeResult = GetSymbolsOffOfBoundExpression(
+                    context, name, name, speculativeBinding, container, cancellationToken);
+
+                return speculativeResult;
             }
 
             // We're in a name-only context, since if we were an expression we'd be a
@@ -394,9 +401,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var leftHandBinding = context.SemanticModel.GetSymbolInfo(expression, cancellationToken);
 
             var container = context.SemanticModel.GetTypeInfo(expression, cancellationToken).Type;
-            if (container is IPointerTypeSymbol)
+            if (container is IPointerTypeSymbol pointerType)
             {
-                container = ((IPointerTypeSymbol)container).PointedAtType;
+                container = pointerType.PointedAtType;
             }
 
             return GetSymbolsOffOfBoundExpression(context, originalExpression, expression, leftHandBinding, container, cancellationToken);
@@ -436,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var useBaseReferenceAccessibility = false;
             var excludeInstance = false;
             var excludeStatic = false;
-            var symbol = leftHandBinding.GetBestOrAllSymbols().FirstOrDefault();
+            var symbol = leftHandBinding.GetAnySymbol();
 
             if (symbol != null)
             {

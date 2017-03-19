@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -286,23 +287,20 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        internal unsafe class DirectMemoryAccessStreamReader : TextReader
+        internal unsafe class DirectMemoryAccessStreamReader : TextReaderWithLength
         {
             private char* _position;
             private readonly char* _end;
 
-            public DirectMemoryAccessStreamReader(char* src, int length)
+            public DirectMemoryAccessStreamReader(char* src, int length) :
+                base(length)
             {
                 Debug.Assert(src != null);
                 Debug.Assert(length >= 0);
 
                 _position = src;
                 _end = _position + length;
-
-                Length = length;
             }
-
-            public int Length { get; }
 
             public override int Peek()
             {

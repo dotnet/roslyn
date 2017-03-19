@@ -271,11 +271,11 @@
         <summary>Gets the type of the tuple element.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Name" Type="IdentifierNameSyntax" Optional="true">
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the name of the tuple element.</summary>
       </PropertyComment>
-      <Kind Name="IdentifierName"/>
+      <Kind Name="IdentifierToken"/>
     </Field>
   </Node>
   <Node Name="OmittedTypeArgumentSyntax" Base="TypeSyntax">
@@ -1712,8 +1712,9 @@
   <Node Name="DeclarationPatternSyntax" Base="PatternSyntax">
     <Kind Name="DeclarationPattern" />
     <Field Name="Type" Type="TypeSyntax" />
-    <Field Name="Identifier" Type="SyntaxToken">
-      <Kind Name="IdentifierToken"/>
+    <Field Name="Designation" Type="VariableDesignationSyntax">
+      <Kind Name="SingleVariableDesignation"/>
+      <Kind Name="DiscardDesignation"/>
     </Field>
   </Node>
   <Node Name="ConstantPatternSyntax" Base="PatternSyntax">
@@ -1848,6 +1849,12 @@
     <Kind Name="SingleVariableDesignation"/>
     <Field Name="Identifier" Type="SyntaxToken">
       <Kind Name="IdentifierToken"/>
+    </Field>
+  </Node>
+  <Node Name="DiscardDesignationSyntax" Base="VariableDesignationSyntax">
+    <Kind Name="DiscardDesignation"/>
+    <Field Name="UnderscoreToken" Type="SyntaxToken">
+      <Kind Name="UnderscoreToken"/>
     </Field>
   </Node>
   <Node Name="ParenthesizedVariableDesignationSyntax" Base="VariableDesignationSyntax">
@@ -2111,8 +2118,14 @@
       <Kind Name="OpenParenToken"/>
     </Field>
     <Field Name="Variable" Type="ExpressionSyntax">
-      <Kind Name="DeclarationExpression"/>
-      <Kind Name="TupleExpression"/>
+      <PropertyComment>
+        <summary>
+           The variable(s) of the loop. In correct code this is a tuple
+           literal, declaration expression with a tuple designator, or
+           a wildcard syntax in the form of a simple identifier. In broken
+           code it could be something else.
+        </summary>
+      </PropertyComment>
     </Field>
     <Field Name="InKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="InKeyword"/>

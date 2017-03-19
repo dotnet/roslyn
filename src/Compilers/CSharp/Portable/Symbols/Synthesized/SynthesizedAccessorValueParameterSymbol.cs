@@ -35,11 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
-                return 0; // since RefKind is always None.
+                return ImmutableArray<CustomModifier>.Empty; // since RefKind is always None.
             }
         }
 

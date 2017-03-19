@@ -669,11 +669,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend NotOverridable Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-                Get
-                    Return CreateEmptyTypeArgumentsCustomModifiers(Arity)
-                End Get
-            End Property
+            Public NotOverridable Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+                Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+            End Function
 
             Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
                 Get
@@ -844,11 +842,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend NotOverridable Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-                Get
-                    Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
-                End Get
-            End Property
+            Public NotOverridable Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+                Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+            End Function
 
             Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
                 Get
@@ -950,15 +946,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend NotOverridable Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-                Get
-                    If _hasTypeArgumentsCustomModifiers Then
-                        Return _substitution.GetTypeArgumentsCustomModifiersFor(OriginalDefinition)
-                    End If
+            Public NotOverridable Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+                If _hasTypeArgumentsCustomModifiers Then
+                    Return _substitution.GetTypeArgumentsCustomModifiersFor(OriginalDefinition.TypeParameters(ordinal))
+                End If
 
-                    Return CreateEmptyTypeArgumentsCustomModifiers(Arity)
-                End Get
-            End Property
+                Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+            End Function
 
             Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
                 Get
@@ -1012,11 +1006,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
 
                 If _hasTypeArgumentsCustomModifiers Then
-                    Dim modifiers = TypeArgumentsCustomModifiers
-                    Dim otherModifiers = other.TypeArgumentsCustomModifiers
-
                     For i As Integer = 0 To count - 1 Step 1
-                        If Not modifiers(i).SequenceEqual(otherModifiers(i)) Then
+                        If Not GetTypeArgumentCustomModifiers(i).SequenceEqual(other.GetTypeArgumentCustomModifiers(i)) Then
                             Return False
                         End If
                     Next
@@ -1030,8 +1021,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                   GetUnificationUseSiteDiagnosticRecursive(_typeArguments, owner, checkedTypes))
 
                 If result Is Nothing AndAlso _hasTypeArgumentsCustomModifiers Then
-                    For Each modifiers In Me.TypeArgumentsCustomModifiers
-                        result = GetUnificationUseSiteDiagnosticRecursive(modifiers, owner, checkedTypes)
+                    For i As Integer = 0 To Me.Arity - 1
+                        result = GetUnificationUseSiteDiagnosticRecursive(Me.GetTypeArgumentCustomModifiers(i), owner, checkedTypes)
 
                         If result IsNot Nothing Then
                             Exit For

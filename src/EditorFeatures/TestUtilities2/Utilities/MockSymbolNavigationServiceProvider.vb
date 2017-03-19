@@ -45,14 +45,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return True
             End Function
 
-            Public Function TrySymbolNavigationNotify(symbol As ISymbol, solution As Solution) As Boolean Implements ISymbolNavigationService.TrySymbolNavigationNotify
+            Public Function TrySymbolNavigationNotify(symbol As ISymbol,
+                                                      solution As Solution,
+                                                      cancellationToken As CancellationToken) As Boolean Implements ISymbolNavigationService.TrySymbolNavigationNotify
                 Me.TrySymbolNavigationNotifyProvidedSymbol = symbol
                 Me.TrySymbolNavigationNotifyProvidedSolution = solution
 
                 Return TrySymbolNavigationNotifyReturnValue
             End Function
 
-            Public Function WouldNavigateToSymbol(symbol As ISymbol, solution As Solution, ByRef filePath As String, ByRef lineNumber As Integer, ByRef charOffset As Integer) As Boolean Implements ISymbolNavigationService.WouldNavigateToSymbol
+            Public Function WouldNavigateToSymbol(symbol As ISymbol,
+                                                  solution As Solution,
+                                                  cancellationToken As CancellationToken,
+                                                  ByRef filePath As String, ByRef lineNumber As Integer, ByRef charOffset As Integer) As Boolean Implements ISymbolNavigationService.WouldNavigateToSymbol
                 Me.WouldNavigateToSymbolProvidedSymbol = symbol
                 Me.WouldNavigateToSymbolProvidedSolution = solution
 

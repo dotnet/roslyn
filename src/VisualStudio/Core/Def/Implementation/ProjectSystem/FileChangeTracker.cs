@@ -72,9 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _fileChangeCookie = new Lazy<uint>(() =>
             {
-                uint newCookie;
                 Marshal.ThrowExceptionForHR(
-                    _fileChangeService.AdviseFileChange(_filePath, FileChangeFlags, this, out newCookie));
+                    _fileChangeService.AdviseFileChange(_filePath, FileChangeFlags, this, out var newCookie));
                 return newCookie;
             }, LazyThreadSafetyMode.ExecutionAndPublication);
 

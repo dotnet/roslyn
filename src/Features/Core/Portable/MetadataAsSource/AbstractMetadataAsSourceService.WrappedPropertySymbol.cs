@@ -27,101 +27,31 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            public IMethodSymbol GetMethod
-            {
-                get
-                {
-                    return _symbol.GetMethod;
-                }
-            }
+            public IMethodSymbol GetMethod => _symbol.GetMethod;
 
-            public bool IsIndexer
-            {
-                get
-                {
-                    return _symbol.IsIndexer;
-                }
-            }
+            public bool IsIndexer => _symbol.IsIndexer;
 
-            public bool IsReadOnly
-            {
-                get
-                {
-                    return _symbol.IsReadOnly;
-                }
-            }
+            public bool IsReadOnly => _symbol.IsReadOnly;
 
-            public bool IsWithEvents
-            {
-                get
-                {
-                    return _symbol.IsWithEvents;
-                }
-            }
+            public bool IsWithEvents => _symbol.IsWithEvents;
 
-            public bool IsWriteOnly
-            {
-                get
-                {
-                    return _symbol.IsWriteOnly;
-                }
-            }
+            public bool IsWriteOnly => _symbol.IsWriteOnly;
 
-            public bool ReturnsByRef
-            {
-                get
-                {
-                    return _symbol.ReturnsByRef;
-                }
-            }
+            public bool ReturnsByRef => _symbol.ReturnsByRef;
 
-            public IPropertySymbol OverriddenProperty
-            {
-                get
-                {
-                    return _symbol.OverriddenProperty;
-                }
-            }
+            public IPropertySymbol OverriddenProperty => _symbol.OverriddenProperty;
 
-            public ImmutableArray<IParameterSymbol> Parameters
-            {
-                get
-                {
-                    return _symbol.Parameters;
-                }
-            }
+            public ImmutableArray<IParameterSymbol> Parameters => _symbol.Parameters;
 
-            public IMethodSymbol SetMethod
-            {
-                get
-                {
-                    return _symbol.SetMethod;
-                }
-            }
+            public IMethodSymbol SetMethod => _symbol.SetMethod;
 
-            public ITypeSymbol Type
-            {
-                get
-                {
-                    return _symbol.Type;
-                }
-            }
+            public ITypeSymbol Type => _symbol.Type;
 
-            public ImmutableArray<CustomModifier> TypeCustomModifiers
-            {
-                get
-                {
-                    return _symbol.TypeCustomModifiers;
-                }
-            }
+            public ImmutableArray<CustomModifier> RefCustomModifiers => _symbol.RefCustomModifiers;
 
-            ISymbol ISymbol.OriginalDefinition
-            {
-                get
-                {
-                    return _symbol.OriginalDefinition;
-                }
-            }
+            public ImmutableArray<CustomModifier> TypeCustomModifiers => _symbol.TypeCustomModifiers;
+
+            ISymbol ISymbol.OriginalDefinition => _symbol.OriginalDefinition;
 
             public new IPropertySymbol OriginalDefinition
             {

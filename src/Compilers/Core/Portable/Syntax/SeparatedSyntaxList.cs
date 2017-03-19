@@ -282,6 +282,19 @@ namespace Microsoft.CodeAnalysis
             return _list.Any();
         }
 
+        internal bool Any(Func<TNode, bool> predicate)
+        {
+            for (int i = 0; i < this.Count; i++)
+            {
+                if (predicate(this[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public SyntaxNodeOrTokenList GetWithSeparators()
         {
             return _list;

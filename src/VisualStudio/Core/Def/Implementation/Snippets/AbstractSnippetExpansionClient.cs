@@ -62,7 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             // Formatting a snippet isn't cancellable.
             var cancellationToken = CancellationToken.None;
-
             // At this point, the $selection$ token has been replaced with the selected text and
             // declarations have been replaced with their default text. We need to format the 
             // inserted snippet text while carefully handling $end$ position (where the caret goes
@@ -86,9 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             //     {
             //         $end$
             //     }
-
-            SnapshotSpan snippetSpan;
-            if (!TryGetSubjectBufferSpan(tsInSurfaceBuffer[0], out snippetSpan))
+            if (!TryGetSubjectBufferSpan(tsInSurfaceBuffer[0], out var snippetSpan))
             {
                 return VSConstants.S_OK;
             }
@@ -137,17 +134,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             if (endTrackingSpan != null)
             {
-                SnapshotSpan endSpanInSurfaceBuffer;
                 if (!TryGetSpanOnHigherBuffer(
                     endTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot),
                     TextView.TextBuffer,
-                    out endSpanInSurfaceBuffer))
+                    out var endSpanInSurfaceBuffer))
                 {
                     return;
                 }
 
-                int endLine, endColumn;
-                TextView.TextSnapshot.GetLineAndColumn(endSpanInSurfaceBuffer.Start.Position, out endLine, out endColumn);
+                TextView.TextSnapshot.GetLineAndColumn(endSpanInSurfaceBuffer.Start.Position, out var endLine, out var endColumn);
                 ExpansionSession.SetEndSpan(new VsTextSpan
                 {
                     iStartLine = endLine,
@@ -200,8 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// </summary>
         private static bool SetEndPositionIfNoneSpecified(IVsExpansionSession pSession)
         {
-            XElement snippetNode;
-            if (!TryGetSnippetNode(pSession, out snippetNode))
+            if (!TryGetSnippetNode(pSession, out var snippetNode))
             {
                 return false;
             }
@@ -250,9 +244,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 // released before leaving this method. Otherwise, a second invocation of the same
                 // snippet may cause an AccessViolationException.
                 var session = (IVsExpansionSessionInternal)pSession;
-
-                IntPtr pNode;
-                if (session.GetSnippetNode(null, out pNode) != VSConstants.S_OK)
+                if (session.GetSnippetNode(null, out var pNode) != VSConstants.S_OK)
                 {
                     return false;
                 }
@@ -276,15 +268,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // empty line and indented, then we have already removed the white space on that line
             // and the navigation location will be at column 0 on a blank line. We must now
             // position the caret in virtual space.
-
-            int lineLength;
-            pBuffer.GetLengthOfLine(ts[0].iStartLine, out lineLength);
-
-            string endLineText;
-            pBuffer.GetLineText(ts[0].iStartLine, 0, ts[0].iStartLine, lineLength, out endLineText);
-
-            int endLinePosition;
-            pBuffer.GetPositionOfLine(ts[0].iStartLine, out endLinePosition);
+            pBuffer.GetLengthOfLine(ts[0].iStartLine, out var lineLength);
+            pBuffer.GetLineText(ts[0].iStartLine, 0, ts[0].iStartLine, lineLength, out var endLineText);
+            pBuffer.GetPositionOfLine(ts[0].iStartLine, out var endLinePosition);
 
             PositionCaretForEditingInternal(endLineText, endLinePosition);
 
@@ -378,20 +364,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            int startLine = 0;
-            int startIndex = 0;
-            int endLine = 0;
-            int endIndex = 0;
-
             // The expansion itself needs to be created in the data buffer, so map everything up
             var startPointInSubjectBuffer = SubjectBuffer.CurrentSnapshot.GetPoint(startPositionInSubjectBuffer);
             var endPointInSubjectBuffer = SubjectBuffer.CurrentSnapshot.GetPoint(endPositionInSubjectBuffer);
-
-            SnapshotSpan dataBufferSpan;
             if (!TryGetSpanOnHigherBuffer(
                 SubjectBuffer.CurrentSnapshot.GetSpan(startPositionInSubjectBuffer, endPositionInSubjectBuffer - startPositionInSubjectBuffer),
                 textViewModel.DataBuffer,
-                out dataBufferSpan))
+                out var dataBufferSpan))
             {
                 return false;
             }
@@ -403,8 +382,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            buffer.GetLineIndexOfPosition(dataBufferSpan.Start.Position, out startLine, out startIndex);
-            buffer.GetLineIndexOfPosition(dataBufferSpan.End.Position, out endLine, out endIndex);
+            buffer.GetLineIndexOfPosition(dataBufferSpan.Start.Position, out var startLine, out var startIndex);
+            buffer.GetLineIndexOfPosition(dataBufferSpan.End.Position, out var endLine, out var endIndex);
 
             var textSpan = new VsTextSpan
             {
@@ -502,13 +481,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             var vsTextView = EditorAdaptersFactoryService.GetViewAdapter(TextView);
             vsTextView.GetCaretPos(out caretLine, out caretColumn);
-
-            IVsTextLines textLines;
-            vsTextView.GetBuffer(out textLines);
-
+            vsTextView.GetBuffer(out var textLines);
             // Handle virtual space (e.g, see Dev10 778675)
-            int lineLength;
-            textLines.GetLengthOfLine(caretLine, out lineLength);
+            textLines.GetLengthOfLine(caretLine, out var lineLength);
             if (caretColumn > lineLength)
             {
                 caretColumn = lineLength;
@@ -520,8 +495,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             int position,
             CancellationToken cancellationToken)
         {
-            XElement snippetNode;
-            if (!TryGetSnippetNode(pSession, out snippetNode))
+            if (!TryGetSnippetNode(pSession, out var snippetNode))
             {
                 return;
             }

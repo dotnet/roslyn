@@ -16,16 +16,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
-    internal partial class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
+    internal partial class DiagnosticIncrementalAnalyzer
     {
-        public override async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> result, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> result, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             var blockForData = false;
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(this, document, range, blockForData, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
             return await getter.TryGetAsync(result, cancellationToken).ConfigureAwait(false);
         }
 
-        public override async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             var blockForData = true;
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(this, document, range, blockForData, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
@@ -204,8 +204,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     _projectResultCache = await _owner._executor.ComputeDiagnosticsAsync(_analyzerDriverOpt, _project, _stateSets, cancellationToken).ConfigureAwait(false);
                 }
 
-                DiagnosticAnalysisResult result;
-                if (!_projectResultCache.TryGetValue(analyzer, out result))
+                if (!_projectResultCache.TryGetValue(analyzer, out var result))
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
                 }

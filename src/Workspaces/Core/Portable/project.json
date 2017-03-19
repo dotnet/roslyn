@@ -1,11 +1,12 @@
-﻿{
+{
   "dependencies": {
     "Microsoft.Composition": "1.0.27",
-    "System.Diagnostics.Contracts": "4.0.1",
-    "System.Linq.Parallel": "4.0.1",
-    "System.ObjectModel": "4.0.10",
-    "System.Text.RegularExpressions": "4.1.0",
-    "System.Threading.Tasks.Parallel": "4.0.1"
+    "System.Diagnostics.Contracts": "4.3.0",
+    "System.Linq.Parallel": "4.3.0",
+    "System.ObjectModel": "4.3.0",
+    "System.Text.RegularExpressions": "4.3.0",
+    "System.Threading.Tasks.Parallel": "4.3.0",
+    "System.Threading.Thread": "4.3.0"
   },
   "frameworks": {
     "netstandard1.3": {

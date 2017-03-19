@@ -123,7 +123,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 string proxyMemberFullNamePrefix = null;
                 if (childFullNamePrefix != null)
                 {
-                    proxyMemberFullNamePrefix = resultProvider.FullNameProvider.GetClrObjectCreationExpression(inspectionContext, proxyTypeAndInfo.ClrType, proxyTypeAndInfo.Info, childFullNamePrefix);
+                    proxyMemberFullNamePrefix = resultProvider.FullNameProvider.GetClrObjectCreationExpression(
+                        inspectionContext,
+                        proxyTypeAndInfo.ClrType,
+                        proxyTypeAndInfo.Info,
+                        new[] { childFullNamePrefix });
                 }
                 _proxyItem = new EvalResult(
                     ExpansionKind.Default,

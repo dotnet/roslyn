@@ -27,11 +27,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // currently it can't be checked since it is not exposed to common layer yet.
             // once exposed, this method itself will make sure it use original semantic model
             aliasSymbol = null;
-
-            TreeMap treeMap;
-            SymbolMap symbolMap;
-            if (!s_treeAliasMap.TryGetValue(semanticModel.Compilation, out treeMap) ||
-                !treeMap.TryGetValue((semanticModel.SyntaxTree, namespaceId), out symbolMap))
+            if (!s_treeAliasMap.TryGetValue(semanticModel.Compilation, out var treeMap) ||
+                !treeMap.TryGetValue((semanticModel.SyntaxTree, namespaceId), out var symbolMap))
             {
                 return false;
             }

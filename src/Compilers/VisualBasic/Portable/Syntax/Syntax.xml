@@ -5112,7 +5112,7 @@ Unify Enum declarations with other block type declarations.
 
       <node-kind name="NamedTupleElement"></node-kind>
 
-      <child name="Identifier" kind="IdentifierName">
+      <child name="Identifier" kind="IdentifierToken">
         <description>The name of the element.</description>
       </child>
 
@@ -9393,6 +9393,9 @@ Unify Enum declarations with other block type declarations.
       </node-kind>
       <node-kind name="CommentTrivia">
         <description>Represents a comment.</description>
+      </node-kind>
+      <node-kind name="ConflictMarkerTrivia">
+        <description>Trivia created when merge conflict markers (like "&lt;&lt;&lt;&lt;&lt;&lt;&lt;") are detected in source code.</description>
       </node-kind>
       <node-kind name="LineContinuationTrivia" token-text="_&#13;&#10;">
         <description>Represents an explicit line continuation character at the end of a line, i.e., _</description>

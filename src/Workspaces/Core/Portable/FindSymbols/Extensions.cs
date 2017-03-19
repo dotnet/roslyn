@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<SyntaxToken>> GetConstructorInitializerTokensAsync(this Document document, CancellationToken cancellationToken)
         {
             // model should exist already
-            SemanticModel model;
-            if (!document.TryGetSemanticModel(out model))
+            if (!document.TryGetSemanticModel(out var model))
             {
                 return Contract.FailWithReturn<IEnumerable<SyntaxToken>>("we should never reach here");
             }
@@ -38,8 +37,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this Document document, string identifier, CancellationToken cancellationToken)
         {
             // model should exist already
-            SemanticModel model;
-            if (!document.TryGetSemanticModel(out model))
+            if (!document.TryGetSemanticModel(out var model))
             {
                 return Contract.FailWithReturn<ImmutableArray<SyntaxToken>>("we should never reach here");
             }

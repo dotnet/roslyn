@@ -87,6 +87,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             PredefinedType predefinedType,
             CancellationToken cancellationToken)
         {
+            if (predefinedType == PredefinedType.None)
+            {
+                return SpecializedTasks.EmptyImmutableArray<Document>();
+            }
+
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
                 var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
@@ -94,7 +99,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }, cancellationToken);
         }
 
-        protected async Task<ImmutableArray<Document>> FindDocumentsAsync(
+        protected Task<ImmutableArray<Document>> FindDocumentsAsync(
             Project project,
             IImmutableSet<Document> documents,
             PredefinedOperator op,
@@ -102,14 +107,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             if (op == PredefinedOperator.None)
             {
-                return ImmutableArray<Document>.Empty;
+                return SpecializedTasks.EmptyImmutableArray<Document>();
             }
 
-            return await FindDocumentsAsync(project, documents, async (d, c) =>
+            return FindDocumentsAsync(project, documents, async (d, c) =>
             {
                 var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsPredefinedOperator(op);
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
         protected static bool IdentifiersMatch(ISyntaxFactsService syntaxFacts, string name, SyntaxToken token)
@@ -343,11 +348,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
                     symbol, aliasSymbol.Name, document, findParentNode, cancellationToken).ConfigureAwait(false);
                 allAliasReferences.AddRange(aliasReferences);
-
                 // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
                 // shortened name as well (e.g. using FooAttribute = MyNamespace.FooAttribute; [Foo] class C1 {})
-                string simpleName;
-                if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, syntaxFactsService, out simpleName))
+                if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, syntaxFactsService, out var simpleName))
                 {
                     aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
                         symbol, simpleName, document, cancellationToken).ConfigureAwait(false);
@@ -371,11 +374,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(aliasSymbol.Name, document, symbolsMatch, cancellationToken).ConfigureAwait(false);
                 allAliasReferences.AddRange(aliasReferences);
-
                 // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
                 // shortened name as well (e.g. using FooAttribute = MyNamespace.FooAttribute; [Foo] class C1 {})
-                string simpleName;
-                if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, syntaxFactsService, out simpleName))
+                if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, syntaxFactsService, out var simpleName))
                 {
                     aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(simpleName, document, symbolsMatch, cancellationToken).ConfigureAwait(false);
                     allAliasReferences.AddRange(aliasReferences);

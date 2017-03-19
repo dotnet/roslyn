@@ -17,10 +17,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             _title = title;
         }
 
-        public override string Title
-        {
-            get { return _title; }
-        }
+        public override string Title => _title;
 
         protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
         {

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // already in soft select mode.
                 var softSelect = includeBuilder || model.IsSoftSelection;
 
-                if (model.SelectedItem == model.SuggestionModeItem &&
+                if (model.SelectedItemOpt == model.SuggestionModeItem &&
                     !includeBuilder)
                 {
                     // Use had the builder selected, but turned off the builder.  Switch to the

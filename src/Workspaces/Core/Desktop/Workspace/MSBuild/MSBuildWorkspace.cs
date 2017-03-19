@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             return this.CurrentSolution.Projects
                 .Where(p => !string.IsNullOrEmpty(p.FilePath))
-                .ToImmutableDictionary(p => p.FilePath, p => p.Id);
+                .ToImmutableDictionary(p => p.FilePath, p => p.Id, PathUtilities.Comparer);
         }
 
         #endregion

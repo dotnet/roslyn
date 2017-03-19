@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 AssertKey(key);
 
                 entry = default(CacheEntry);
-
-                ConcurrentDictionary<object, CacheEntry> analyzerMap;
-                if (!s_map.TryGetValue(analyzer, out analyzerMap) ||
+                if (!s_map.TryGetValue(analyzer, out var analyzerMap) ||
                     !analyzerMap.TryGetValue(key, out entry))
                 {
                     return false;
@@ -43,16 +41,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public static void Remove(DiagnosticAnalyzer analyzer, object key)
             {
                 AssertKey(key);
-
                 // remove the entry
-                ConcurrentDictionary<object, CacheEntry> analyzerMap;
-                if (!s_map.TryGetValue(analyzer, out analyzerMap))
+                if (!s_map.TryGetValue(analyzer, out var analyzerMap))
                 {
                     return;
                 }
 
-                CacheEntry entry;
-                analyzerMap.TryRemove(key, out entry);
+                analyzerMap.TryRemove(key, out var entry);
 
                 if (analyzerMap.IsEmpty)
                 {
@@ -63,8 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public static void DropCache(DiagnosticAnalyzer analyzer)
             {
                 // drop any cache related to given analyzer
-                ConcurrentDictionary<object, CacheEntry> analyzerMap;
-                s_map.TryRemove(analyzer, out analyzerMap);
+                s_map.TryRemove(analyzer, out var analyzerMap);
             }
 
             // make sure key is either documentId or projectId

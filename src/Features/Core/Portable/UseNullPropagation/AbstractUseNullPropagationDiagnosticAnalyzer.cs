@@ -33,16 +33,29 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         {
         }
 
+        public override bool OpenFileOnly(Workspace workspace) => false;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+
         protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract bool IsEquals(TBinaryExpressionSyntax condition);
         protected abstract bool IsNotEquals(TBinaryExpressionSyntax condition);
         protected abstract bool ShouldAnalyze(ParseOptions options);
 
-        protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
+        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISemanticFactsService GetSemanticFactsService();
 
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+        protected override void InitializeWorker(AnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(startContext =>
+            {
+                var expressionTypeOpt = startContext.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+                startContext.RegisterSyntaxNodeAction(
+                    c => AnalyzeSyntax(c, expressionTypeOpt), GetSyntaxKindToAnalyze());
+            });
+
+        }
+
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, INamedTypeSymbol expressionTypeOpt)
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
             if (!ShouldAnalyze(conditionalExpression.SyntaxTree.Options))
@@ -50,7 +63,14 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            var optionSet = context.Options.GetOptionSet();
+            var syntaxTree = conditionalExpression.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
             var option = optionSet.GetOption(CodeStyleOptions.PreferNullPropagation, conditionalExpression.Language);
             if (!option.Value)
             {
@@ -58,10 +78,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
 
             var syntaxFacts = this.GetSyntaxFactsService();
-
-            SyntaxNode conditionNode, whenTrueNode, whenFalseNode;
             syntaxFacts.GetPartsOfConditionalExpression(
-                conditionalExpression, out conditionNode, out whenTrueNode, out whenFalseNode);
+                conditionalExpression, out var conditionNode, out var whenTrueNode, out var whenFalseNode);
 
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
 
@@ -78,9 +96,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            SyntaxNode conditionLeft;
-            SyntaxNode conditionRight;
-            syntaxFacts.GetPartsOfBinaryExpression(condition, out conditionLeft, out conditionRight);
+            syntaxFacts.GetPartsOfBinaryExpression(condition, out var conditionLeft, out var conditionRight);
 
             var conditionLeftIsNull = syntaxFacts.IsNullLiteralExpression(conditionLeft);
             var conditionRightIsNull = syntaxFacts.IsNullLiteralExpression(conditionRight);
@@ -96,11 +112,32 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
+            // Needs to be of the form:
+            //      x == null ? null : ...    or
+            //      x != null ? ...  : null;
+            if (isEquals && !syntaxFacts.IsNullLiteralExpression(whenTrueNode))
+            {
+                return;
+            }
+
+            if (isNotEquals && !syntaxFacts.IsNullLiteralExpression(whenFalseNode))
+            {
+                return;
+            }
+
             var conditionPartToCheck = conditionRightIsNull ? conditionLeft : conditionRight;
             var whenPartToCheck = isEquals ? whenFalseNode : whenTrueNode;
 
             var whenPartMatch = GetWhenPartMatch(syntaxFacts, conditionPartToCheck, whenPartToCheck);
             if (whenPartMatch == null)
+            {
+                return;
+            }
+
+            // ?. is not available in expression-trees.  Disallow the fix in that case.
+            var semanticFacts = GetSemanticFactsService();
+            var semanticModel = context.SemanticModel;
+            if (semanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, cancellationToken))
             {
                 return;
             }
@@ -111,7 +148,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 whenPartToCheck.GetLocation());
 
             context.ReportDiagnostic(Diagnostic.Create(
-                this.CreateDescriptorWithSeverity(option.Notification.Value),
+                this.GetDescriptorWithSeverity(option.Notification.Value),
                 conditionalExpression.GetLocation(),
                 locations));
         }
@@ -143,26 +180,22 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
         private static SyntaxNode Unwrap(ISyntaxFactsService syntaxFacts, SyntaxNode node)
         {
-            var invocation = node as TInvocationExpression;
-            if (invocation != null)
+            if (node is TInvocationExpression invocation)
             {
                 return syntaxFacts.GetExpressionOfInvocationExpression(invocation);
             }
 
-            var memberAccess = node as TMemberAccessExpression;
-            if (memberAccess != null)
+            if (node is TMemberAccessExpression memberAccess)
             {
                 return syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess);
             }
 
-            var conditionalAccess = node as TConditionalAccessExpression;
-            if (conditionalAccess != null)
+            if (node is TConditionalAccessExpression conditionalAccess)
             {
                 return syntaxFacts.GetExpressionOfConditionalAccessExpression(conditionalAccess);
             }
 
-            var elementAccess = node as TElementAccessExpression;
-            if (elementAccess != null)
+            if (node is TElementAccessExpression elementAccess)
             {
                 return syntaxFacts.GetExpressionOfElementAccessExpression(elementAccess);
             }

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -21,48 +20,42 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract class AbstractDiagnosticProviderBasedUserDiagnosticTest : AbstractUserDiagnosticTest
     {
-        private readonly ConcurrentDictionary<Workspace, Tuple<DiagnosticAnalyzer, CodeFixProvider>> _analyzerAndFixerMap =
-            new ConcurrentDictionary<Workspace, Tuple<DiagnosticAnalyzer, CodeFixProvider>>();
+        private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap =
+            new ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)>();
 
-        internal abstract Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
+        internal abstract (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace);
 
-        internal virtual Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(
-            Workspace workspace, object fixProviderData)
+        internal virtual (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace, TestParameters parameters)
+            => CreateDiagnosticProviderAndFixer(workspace);
+
+        private (DiagnosticAnalyzer, CodeFixProvider) GetOrCreateDiagnosticProviderAndFixer(
+            Workspace workspace, TestParameters parameters)
         {
-            return CreateDiagnosticProviderAndFixer(workspace);
-        }
-
-        private Tuple<DiagnosticAnalyzer, CodeFixProvider> GetOrCreateDiagnosticProviderAndFixer(
-            Workspace workspace, object fixProviderData)
-        {
-            return fixProviderData == null
+            return parameters.fixProviderData == null
                 ? _analyzerAndFixerMap.GetOrAdd(workspace, CreateDiagnosticProviderAndFixer)
-                : CreateDiagnosticProviderAndFixer(workspace, fixProviderData);
+                : CreateDiagnosticProviderAndFixer(workspace, parameters);
         }
 
         internal async override Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-            TestWorkspace workspace, object fixProviderData = null)
+            TestWorkspace workspace, TestParameters parameters)
         {
-            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, fixProviderData);
+            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
 
             var provider = providerAndFixer.Item1;
-            TextSpan span;
-            var document = GetDocumentAndSelectSpan(workspace, out span);
+            var document = GetDocumentAndSelectSpan(workspace, out var span);
             var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, span);
             AssertNoAnalyzerExceptionDiagnostics(allDiagnostics);
             return allDiagnostics;
         }
 
         internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(
-            TestWorkspace workspace, string fixAllActionId, object fixProviderData)
+            TestWorkspace workspace, TestParameters parameters)
         {
-            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, fixProviderData);
+            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
 
             var provider = providerAndFixer.Item1;
-            Document document;
-            TextSpan span;
             string annotation = null;
-            if (!TryGetDocumentAndSelectSpan(workspace, out document, out span))
+            if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))
             {
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }
@@ -75,7 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var fixer = providerAndFixer.Item2;
                 var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
                 var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
-                return await GetDiagnosticAndFixesAsync(dxs, provider, fixer, testDriver, document, span, annotation, fixAllActionId);
+                return await GetDiagnosticAndFixesAsync(
+                    dxs, provider, fixer, testDriver, document, span, annotation, parameters.fixAllActionEquivalenceKey);
             }
         }
 
@@ -99,11 +93,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity)
         {
-            using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
+            var testOptions = new TestParameters(parseOptions, compilationOptions, options);
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))
             {
-                workspace.ApplyOptions(options);
-
-                var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == diagnosticId);
+                var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).Where(d => d.Id == diagnosticId);
                 Assert.Equal(diagnosticCount, diagnostics.Count());
                 Assert.Equal(diagnosticSeverity, diagnostics.Single().Severity);
             }

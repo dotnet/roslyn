@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -22,9 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertAttribute(
-                    document, IsBatchOpen, insertionIndex, containerNode, attributeNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, attributeNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -34,9 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertAttributeArgument(
-                    document, IsBatchOpen, insertionIndex, containerNode, attributeArgumentNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, attributeArgumentNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -46,9 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertImport(
-                    document, IsBatchOpen, insertionIndex, containerNode, importNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, importNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -58,9 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertMember(
-                    document, IsBatchOpen, insertionIndex, containerNode, memberNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, memberNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -70,9 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertParameter(
-                    document, IsBatchOpen, insertionIndex, containerNode, parameterNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, parameterNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -108,10 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (itemOrArray != null && itemOrArray != DBNull.Value && itemOrArray != Type.Missing)
             {
-                if (itemOrArray is Array)
+                if (itemOrArray is Array realArray)
                 {
-                    var realArray = (Array)itemOrArray;
-
                     if (realArray.Rank != 1)
                     {
                         throw Exceptions.ThrowEInvalidArg();
@@ -214,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 CodeModelService.GetUnescapedName(name),
                 access,
                 baseType: baseTypeSymbol,
-                implementedInterfaces: implementedInterfaceSymbols);
+                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -347,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 TypeKind.Interface,
                 CodeModelService.GetUnescapedName(name),
                 access,
-                implementedInterfaces: implementedInterfaceSymbols);
+                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -410,7 +404,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 TypeKind.Struct,
                 CodeModelService.GetUnescapedName(name),
                 access,
-                implementedInterfaces: implementedInterfaceSymbols);
+                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -656,9 +650,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 realPosition = 0;
             }
-            else if (position is int)
+            else if (position is int i)
             {
-                realPosition = (int)position;
+                realPosition = i;
 
                 // -1 means "add to the end". We'll null for that.
                 if (realPosition == -1)

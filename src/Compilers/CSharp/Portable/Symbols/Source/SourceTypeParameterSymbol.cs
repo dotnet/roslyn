@@ -3,11 +3,10 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -162,7 +161,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetAttributesBag().Attributes;
         }
 
-        internal override CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
+        /// <summary>
+        /// Returns a bag of applied custom attributes and data decoded from well-known attributes. Returns null if there are no attributes applied on the symbol.
+        /// </summary>
+        /// <remarks>
+        /// Forces binding and decoding of attributes.
+        /// </remarks>
+        internal virtual CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
             if (_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed)
             {
@@ -171,7 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
                 if ((object)sourceMethod == null || (object)sourceMethod.SourcePartialDefinition == null)
                 {
-                    lazyAttributesStored = LoadAndValidateAttributes(OneOrMany.Create(this.MergedAttributeDeclarationSyntaxLists), ref _lazyCustomAttributesBag);
+                    lazyAttributesStored = LoadAndValidateAttributes(
+                        OneOrMany.Create(this.MergedAttributeDeclarationSyntaxLists),
+                        ref _lazyCustomAttributesBag);
                 }
                 else
                 {
@@ -439,60 +446,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
+    // TODO: https://github.com/dotnet/roslyn/issues/17244 This type is probably not necessary
     internal sealed class LocalFunctionTypeParameterSymbol : SourceTypeParameterSymbolBase
     {
         private readonly LocalFunctionSymbol _owner;
 
-        public LocalFunctionTypeParameterSymbol(LocalFunctionSymbol owner, string name, int ordinal, ImmutableArray<Location> locations, ImmutableArray<SyntaxReference> syntaxRefs)
+        public LocalFunctionTypeParameterSymbol(
+            LocalFunctionSymbol owner,
+            string name,
+            int ordinal,
+            ImmutableArray<Location> locations,
+            ImmutableArray<SyntaxReference> syntaxRefs)
             : base(name, ordinal, locations, syntaxRefs)
         {
             _owner = owner;
         }
 
-        public override TypeParameterKind TypeParameterKind
-        {
-            get
-            {
-                return TypeParameterKind.Method;
-            }
-        }
+        internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
+            => _owner.AddDeclarationDiagnostics(diagnostics);
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _owner; }
-        }
+        public override TypeParameterKind TypeParameterKind => TypeParameterKind.Method;
+
+        public override Symbol ContainingSymbol => _owner;
 
         public override bool HasConstructorConstraint
-        {
-            get
-            {
-                var constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.Constructor) != 0;
-            }
-        }
+            => (GetDeclaredConstraints() & TypeParameterConstraintKind.Constructor) != 0;
 
         public override bool HasValueTypeConstraint
-        {
-            get
-            {
-                var constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.ValueType) != 0;
-            }
-        }
+            => (GetDeclaredConstraints() & TypeParameterConstraintKind.ValueType) != 0;
 
         public override bool HasReferenceTypeConstraint
-        {
-            get
-            {
-                var constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.ReferenceType) != 0;
-            }
-        }
+            => (GetDeclaredConstraints() & TypeParameterConstraintKind.ReferenceType) != 0;
 
-        protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters
-        {
-            get { return _owner.TypeParameters; }
-        }
+        protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters => _owner.TypeParameters;
 
         protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
         {
@@ -500,10 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, false, this.DeclaringCompilation, diagnostics);
         }
 
-        private TypeParameterConstraintKind GetDeclaredConstraints()
-        {
-            return _owner.GetTypeParameterConstraints(this.Ordinal);
-        }
+        private TypeParameterConstraintKind GetDeclaredConstraints() => _owner.GetTypeParameterConstraints(Ordinal);
     }
 
     /// <summary>

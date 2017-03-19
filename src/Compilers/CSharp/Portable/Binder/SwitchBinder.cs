@@ -223,6 +223,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundLabelExpression = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, ref boundLabelConstantOpt, tempDiagnosticBag);
                         break;
 
+                    case SyntaxKind.CasePatternSwitchLabel:
+                        // bind the pattern, to cause its pattern variables to be inferred if necessary
+                        var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
+                        var pattern = sectionBinder.BindPattern(
+                            matchLabel.Pattern, SwitchGoverningExpression, SwitchGoverningType, labelSyntax.HasErrors, tempDiagnosticBag, wasSwitchCase: true);
+                        break;
+
                     default:
                         // No constant value
                         break;
@@ -431,8 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // time, so it doesn't really matter.
                     if (switchGoverningType.SpecialType == SpecialType.System_Boolean)
                     {
-                        // GetLocation() so that it also works in speculative contexts.
-                        CheckFeatureAvailability(node.GetLocation(), MessageID.IDS_FeatureSwitchOnBool, diagnostics);
+                        CheckFeatureAvailability(node, MessageID.IDS_FeatureSwitchOnBool, diagnostics);
                     }
 
                     return switchExpression;

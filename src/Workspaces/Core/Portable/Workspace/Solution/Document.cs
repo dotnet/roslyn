@@ -36,12 +36,32 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The kind of source code this document contains.
         /// </summary>
-        public SourceCodeKind SourceCodeKind
+        public SourceCodeKind SourceCodeKind => DocumentState.SourceCodeKind;
+
+        /// <summary>
+        /// True if the info of the document change (name, folders, file path; not the content)
+        /// </summary>
+        internal bool HasInfoChanged(Document otherDocument)
         {
-            get
-            {
-                return DocumentState.SourceCodeKind;
-            }
+            return DocumentState.Info != otherDocument.DocumentState.Info
+                || DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
+        }
+
+        /// <summary>
+        /// Gets a <see cref="DocumentInfo"/> for this document w/o the content.
+        /// </summary>
+        internal DocumentInfo GetDocumentInfoWithoutContent()
+        {
+            return DocumentState.Info.WithSourceCodeKind(DocumentState.SourceCodeKind);
+        }
+
+        /// <summary>
+        /// True if the document content has potentially changed.
+        /// Does not compare actual text.
+        /// </summary>
+        internal bool HasContentChanged(Document otherDocument)
+        {
+            return DocumentState.HasContentChanged(otherDocument.DocumentState);
         }
 
         /// <summary>
@@ -80,9 +100,7 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetSyntaxVersion(out VersionStamp version)
         {
             version = default(VersionStamp);
-
-            VersionStamp textVersion;
-            if (!this.TryGetTextVersion(out textVersion))
+            if (!this.TryGetTextVersion(out var textVersion))
             {
                 return false;
             }
@@ -117,13 +135,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// If <code>false</code> then these methods will return <code>null</code> instead.
         /// </summary>
-        public bool SupportsSyntaxTree
-        {
-            get
-            {
-                return DocumentState.SupportsSyntaxTree;
-            }
-        }
+        public bool SupportsSyntaxTree => DocumentState.SupportsSyntaxTree;
 
         /// <summary>
         /// <code>true</code> if this Document supports providing data through the
@@ -155,10 +167,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return _syntaxTreeResultTask;
             }
-
             // check to see if we already have the tree before actually going async
-            SyntaxTree tree;
-            if (TryGetSyntaxTree(out tree))
+            if (TryGetSyntaxTree(out var tree))
             {
                 // stash a completed result task for this value for the next request (to reduce extraneous allocations of tasks)
                 // don't use the actual async task because it depends on a specific cancellation token
@@ -189,8 +199,7 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetSyntaxRoot(out SyntaxNode root)
         {
             root = null;
-            SyntaxTree tree;
-            return this.TryGetSyntaxTree(out tree) && tree.TryGetRoot(out root) && root != null;
+            return this.TryGetSyntaxTree(out var tree) && tree.TryGetRoot(out root) && root != null;
         }
 
         /// <summary>
@@ -246,8 +255,7 @@ namespace Microsoft.CodeAnalysis
                     return null;
                 }
 
-                SemanticModel semanticModel;
-                if (this.TryGetSemanticModel(out semanticModel))
+                if (this.TryGetSemanticModel(out var semanticModel))
                 {
                     return semanticModel;
                 }
@@ -308,6 +316,31 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new instance of this document updated to have the specified name.
+        /// </summary>
+        public Document WithName(string name)
+        {
+            return this.Project.Solution.WithDocumentName(this.Id, name).GetDocument(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this document updated to have the specified folders.
+        /// </summary>
+        public Document WithFolders(IEnumerable<string> folders)
+        {
+            return this.Project.Solution.WithDocumentFolders(this.Id, folders).GetDocument(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this document updated to have the specified file path.
+        /// </summary>
+        /// <param name="filePath"></param>
+        public Document WithFilePath(string filePath)
+        {
+            return this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetDocument(this.Id);
+        }
+
+        /// <summary>
         /// Get the text changes between this document and a prior version of the same document.
         /// The changes, when applied to the text of the old document, will produce the text of the current document.
         /// </summary>
@@ -330,10 +363,7 @@ namespace Microsoft.CodeAnalysis
 
                     // first try to see if text already knows its changes
                     IList<TextChange> textChanges = null;
-
-                    SourceText text;
-                    SourceText oldText;
-                    if (this.TryGetText(out text) && oldDocument.TryGetText(out oldText))
+                    if (this.TryGetText(out var text) && oldDocument.TryGetText(out var oldText))
                     {
                         if (text == oldText)
                         {

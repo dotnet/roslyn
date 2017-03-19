@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -30,18 +31,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         }
 
         public override DefinitionItem GetThirdPartyDefinitionItem(
-            Solution solution, ISymbol definition)
+            Solution solution, ISymbol definition, CancellationToken cancellationToken)
         {
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-            if (!symbolNavigationService.WouldNavigateToSymbol(definition, solution, out var filePath, out var lineNumber, out var charOffset))
+            if (!symbolNavigationService.WouldNavigateToSymbol(
+                    definition, solution, cancellationToken,
+                    out var filePath, out var lineNumber, out var charOffset))
             {
                 return null;
             }
 
             var displayParts = GetDisplayParts(filePath, lineNumber, charOffset);
             return new ExternalDefinitionItem(
-                GlyphTags.GetTags(definition.GetGlyph()),
-                displayParts, _serviceProvider, filePath, lineNumber, charOffset);
+                GlyphTags.GetTags(definition.GetGlyph()), displayParts,
+                _serviceProvider, filePath, lineNumber, charOffset);
         }
 
         private ImmutableArray<TaggedText> GetDisplayParts(
@@ -90,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 string filePath,
                 int lineNumber,
                 int charOffset) 
-                : base(tags, displayParts)
+                : base(tags, displayParts, ImmutableArray<TaggedText>.Empty)
             {
                 _serviceProvider = serviceProvider;
                 _filePath = filePath;

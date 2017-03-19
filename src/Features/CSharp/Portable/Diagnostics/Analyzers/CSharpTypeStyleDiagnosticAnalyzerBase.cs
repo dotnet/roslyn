@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
     internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase :
-        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+        AbstractCodeStyleDiagnosticAnalyzer
     {
         protected CSharpTypeStyleDiagnosticAnalyzerBase(
             string diagnosticId, LocalizableString title, LocalizableString message)
@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         {
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public bool OpenFileOnly(Workspace workspace)
+        public override bool OpenFileOnly(Workspace workspace)
         {
             var forIntrinsicTypesOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Notification;
             var whereApparentOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Notification;
@@ -54,9 +54,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             State state = null;
             var shouldAnalyze = false;
             var declarationStatement = context.Node;
-            var optionSet = context.Options.GetOptionSet();
-            var semanticModel = context.SemanticModel;
+            var options = context.Options;
+            var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+            
+            var semanticModel = context.SemanticModel;
 
             if (declarationStatement.IsKind(SyntaxKind.VariableDeclaration))
             {
@@ -88,13 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             if (shouldAnalyze)
             {
                 Debug.Assert(state != null, "analyzing a declaration and state is null.");
-
-                TextSpan diagnosticSpan;
-
-                if (TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken, out diagnosticSpan))
+                if (TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken, out var diagnosticSpan))
                 {
                     // The severity preference is not Hidden, as indicated by shouldAnalyze.
-                    var descriptor = CreateDescriptorWithSeverity(state.GetDiagnosticSeverityPreference());
+                    var descriptor = GetDescriptorWithSeverity(state.GetDiagnosticSeverityPreference());
                     context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, diagnosticSpan));
                 }
             }

@@ -15,17 +15,18 @@ Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     Public Class ErrorSquiggleProducerTests
-        Inherits AbstractSquiggleProducerTests
 
-        Private Async Function ProduceSquiggles(content As String) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
-                Return (Await GetDiagnosticsAndErrorSpans(workspace)).Item2
+        Private _producer As New DiagnosticTagProducer(Of IErrorTag)
+
+        Private Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
+            Using workspace = TestWorkspace.CreateVisualBasic(content)
+                Return (Await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2
             End Using
         End Function
 
-        Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), content As String) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
-                Return (Await GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
+        Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
+            Using workspace = TestWorkspace.CreateVisualBasic(content)
+                Return (Await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
             End Using
         End Function
 
@@ -98,7 +99,7 @@ End Class"
                         New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer()
                     })
 
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
+            Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Dim options As New Dictionary(Of OptionKey, Object)
                 Dim language = workspace.Projects.Single().Language
                 Dim preferIntrinsicPredefinedTypeOption = New OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language)
@@ -106,7 +107,7 @@ End Class"
                 options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue)
                 workspace.ApplyOptions(options)
 
-                Dim spans = (Await GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2.OrderBy(Function(s) s.Span.Span.Start).ToImmutableArray()
+                Dim spans = (Await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2.OrderBy(Function(s) s.Span.Span.Start).ToImmutableArray()
 
                 Assert.Equal(2, spans.Length)
                 Dim first = spans(0)

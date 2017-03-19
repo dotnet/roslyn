@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {
-            TypeDeclarationSyntax declaration;
-            return tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out declaration) ? declaration : null;
+            return tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out var declaration) ? declaration : null;
         }
 
         protected override Task<SyntaxContext> CreateSyntaxContextAsync(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
