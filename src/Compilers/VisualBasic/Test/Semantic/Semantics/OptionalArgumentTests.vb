@@ -422,11 +422,10 @@ End Structure
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
-            CompileAndVerify(source,
-     expectedOutput:=<![CDATA[
+            Dim expectedOutput = <![CDATA[
 False
-]]>).VerifyIL("m.main", <![CDATA[
+]]>
+            Dim expectedIL = <![CDATA[
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -437,7 +436,9 @@ False
   IL_0009:  call       "Sub m.X(Integer?)"
   IL_000e:  ret
 }
-]]>)
+]]>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            CompileAndVerify(source, expectedOutput).VerifyIL("m.main", expectedIL)
             ' Test Implict Default
             source =
 <compilation name="OptionalNullableInteger">
@@ -450,7 +451,7 @@ False
         Console.WriteLine("{0}", i.hasValue)
       End Sub
   
-    Sub main()
+    Sub main()e
         X()
     End Sub
   End Module
@@ -458,21 +459,9 @@ False
     </file>
 </compilation>
             comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
-            CompileAndVerify(source,
-     expectedOutput:=<![CDATA[
-False
-]]>).VerifyIL("m.main", <![CDATA[
-{
-  // Code size       15 (0xf)
-  .maxstack  1
-  .locals init (Integer? V_0)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    "Integer?"
-  IL_0008:  ldloc.0
-  IL_0009:  call       "Sub m.X(Integer?)"
-  IL_000e:  ret
-}
-]]>)
+
+            CompileAndVerify(source, expectedOutput).VerifyIL("m.main", expectedIL)
+
         End Sub
 
         <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
@@ -674,11 +663,19 @@ Public Class C
         Console.WriteLine(If(x, 1))
     End Sub
 
+    Public Shared Sub M1a(Optional x As Object)
+        Console.WriteLine(If(x, 1))
+    End Sub
+
     Public Shared Sub M2(<[Optional]> x As Object)
         Console.WriteLine(If(x, 2))
     End Sub
 
     Public Shared Sub M3(<IDispatchConstant> Optional x As Object = Nothing)
+        Console.WriteLine(If(x, 3))
+    End Sub
+
+    Public Shared Sub M3a(<IDispatchConstant> Optional x As Object)
         Console.WriteLine(If(x, 3))
     End Sub
 
@@ -690,11 +687,19 @@ Public Class C
         Console.WriteLine(If(x, 5))
     End Sub
 
+    Public Shared Sub M5a(<IUnknownConstant> Optional x As Object)
+        Console.WriteLine(If(x, 5))
+    End Sub
+
     Public Shared Sub M6(<IUnknownConstant> <[Optional]> x As Object) 
         Console.WriteLine(If(x, 6))
     End Sub
 
     Public Shared Sub M7(<IUnknownConstant> <IDispatchConstant> Optional x As Object = Nothing)
+        Console.WriteLine(If(x, 7))
+    End Sub
+
+    Public Shared Sub M7a(<IUnknownConstant> <IDispatchConstant> Optional x As Object)
         Console.WriteLine(If(x, 7))
     End Sub
 
@@ -715,12 +720,16 @@ Module Module1
 
     Sub Main()
         C.M1()
+        C.M1a()
         C.M2()
         C.M3()
+        C.M3a()
         C.M4()
         C.M5()
+        C.M5a()
         C.M6()
         C.M7()
+        C.M7a()
         C.M8()
     End Sub
 
@@ -742,11 +751,15 @@ End Module
             CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=<![CDATA[
 1
 System.Reflection.Missing
+System.Reflection.Missing
 3
+System.Runtime.InteropServices.DispatchWrapper
 System.Runtime.InteropServices.DispatchWrapper
 5
 System.Runtime.InteropServices.UnknownWrapper
+System.Runtime.InteropServices.UnknownWrapper
 7
+System.Runtime.InteropServices.DispatchWrapper
 System.Runtime.InteropServices.DispatchWrapper
 ]]>).VerifyDiagnostics()
         End Sub
@@ -774,6 +787,13 @@ Public Class C
         Console.WriteLine(If(x, 2))
     End Sub
 
+    Public Shared Sub M1a(<IDispatchConstant> Optional x As string)
+        Console.WriteLine(If(x, 1))
+    End Sub
+
+    Public Shared Sub M2a(<IUnknownConstant> Optional x As string)
+        Console.WriteLine(If(x, 2))
+    End Sub
 End Class
 
 End Namespace
@@ -792,6 +812,8 @@ Module Module1
     Sub Main()
         M1()
         M2()
+        M1a()
+        M2a()
     End Sub
 
 End Module
@@ -801,6 +823,8 @@ End Module
             Dim libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
             CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
+1
+2
 1
 2
 ]]>).VerifyDiagnostics()
@@ -1097,7 +1121,8 @@ Partial Class PC2 ' attributes on implementation
             expectedMember As String,
             Optional f A String = "",
             Optional l As Integer = -1,
-            Optional m As String = Nothing)
+            Optional m As String = Nothing,
+            Optional n As String)
     End Sub
 End Class
 Partial Class PC2
@@ -1107,8 +1132,9 @@ Partial Class PC2
             expectedMember As String,
             <CallerFilePath> Optional f As String = "",
             <CallerLineNumber> Optional l As Integer = -1,
-            <CallerMemberName> Optional m As String = Nothing)
-        Console.WriteLine("callerinfo: ({0}, {1}, {2})", "[...]", l, m)
+            <CallerMemberName> Optional m As String = Nothing,
+            <CallerMemberName> Optional n As String)
+        Console.WriteLine("callerinfo: ({0}, {1}, {2} {3})", "[...]", l, m, n)
     End Sub
  
 End Class
@@ -1129,9 +1155,11 @@ BC30002: Type 'CallerLineNumber' is not defined.
             <CallerLineNumber> Optional l As Integer = -1,
              ~~~~~~~~~~~~~~~~
 BC30002: Type 'CallerMemberName' is not defined.
-            <CallerMemberName> Optional m As String = Nothing)
+            <CallerMemberName> Optional m As String = Nothing,
              ~~~~~~~~~~~~~~~~
-]]></expected>)
+BC30002: Type 'CallerMemberName' is not defined.
+            <CallerMemberName> Optional n As String)
+             ~~~~~~~~~~~~~~~~]]></expected>)
         End Sub
 
         <Fact()>

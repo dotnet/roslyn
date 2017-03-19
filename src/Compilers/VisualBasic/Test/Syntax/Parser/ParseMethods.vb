@@ -26,6 +26,8 @@ Public Class ParseMethods
                 end sub
                 Sub Foo (byref i as long, optional j as integer = 0)
                 end sub
+                Sub Foo (byref i as long, optional j as integer)
+                end sub
                 Sub Foo (s as string, paramarray t as integer())
                 end sub
                 Sub Foo(of T1, T2, T3)(a as T1, b as T2, c as T3)
@@ -52,6 +54,8 @@ Public Class ParseMethods
                     end function
                     Function Foo(of T1, T2, T3)(a as T1, b as T2, c as T3) as integer
                     end function
+                    Function Foo (byref i as long, optional j as integer) as integer
+                    end function
                 End Module
         ]]>).
         TraverseAllNodes()
@@ -74,6 +78,8 @@ Public Class ParseMethods
                 Property Foo(ByRef i As Long, Optional ByVal j As Integer = 0) As Integer
                 End Property
                 Property Foo(ByVal s As String, ByVal ParamArray t As Integer()) As Integer
+                End Property
+                Property Foo(ByRef i As Long, Optional ByVal j As Integer) As Integer
                 End Property
             End Module
         ]]>)
@@ -133,6 +139,8 @@ Public Class ParseMethods
                     Operator +(ByRef i As Long, Optional ByVal j As Integer = 0) As Integer
                     End Operator
                     Operator +(ByVal s As String, ByVal ParamArray t As Integer()) As Integer
+                    End Operator
+                    Operator +(ByRef i As Long, Optional ByVal j As Integer) As Integer
                     End Operator
                 End Class
             End Module
@@ -278,6 +286,8 @@ Public Class ParseMethods
         ParseAndVerify(<![CDATA[
             Module Module1
                 Sub Method1(Optional ByVal x As Object = Nothing)
+                End Sub
+                Sub Method2(Optional ByVal x As Object)
                 End Sub
             End Module
         ]]>)
