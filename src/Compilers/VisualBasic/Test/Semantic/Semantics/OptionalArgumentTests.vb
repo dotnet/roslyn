@@ -906,8 +906,8 @@ End Class
 4
 5
 6
-System.Runtime.InteropServices.DispatchWrapper
-System.Runtime.InteropServices.DispatchWrapper
+7
+8
 ]]>
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
@@ -976,7 +976,7 @@ End Module
             libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
             CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
-System.Reflection.Missing
+nothing
 nothing
 0
 ]]>).VerifyDiagnostics()
@@ -1958,12 +1958,39 @@ End Class
 	]]>
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe)
-            CompileAndVerify(compilation,
-            <![CDATA[
+            Dim ExpectedOutput = <![CDATA[
 x: 14
 y: 15
-]]>)
+]]>
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, ExpectedOutput)
+            ' Check Implicit Default Optional Parameter
+            source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Class C
+    Function F() As C
+        Return Me
+    End Function
+    Default ReadOnly Property P(s As String, <CallerLineNumber> Optional line As Integer) As C
+        Get
+            Console.WriteLine("{0}: {1}", s, line)
+            Return Me
+        End Get
+    End Property
+    Shared Sub Main()
+        Dim c = (New C())!x.
+            F()!y
+    End Sub
+End Class
+	]]>
+    </file>
+</compilation>
+            compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, ExpectedOutput)
         End Sub
 
         <Fact()>
