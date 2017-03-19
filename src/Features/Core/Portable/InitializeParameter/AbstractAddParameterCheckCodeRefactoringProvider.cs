@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
             Document document, IParameterSymbol parameter, IBlockStatement blockStatement, CancellationToken cancellationToken)
         {
+            // Only should provide null-checks for reference types and nullable types.
             if (!parameter.Type.IsReferenceType &&
                 !parameter.Type.IsNullable())
             {
@@ -44,6 +45,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+            // Look for an existing null-check statement, or "p ?? throw" check.  If we already
+            // have one, we don't want to offer to generate a new null check.
+            //
+            // Note: we only check the top level statements of the block.  I think that's sufficient
+            // as this will catch the 90% case, while not being that bad an experience even when 
+            // people do strange things in their constructors.
             foreach (var statement in blockStatement.Statements)
             {
                 if (IsNullCheck(statement, parameter))
@@ -59,11 +66,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 }
             }
 
+            // Great.  There was no null check.  Offer to add one.
             var result = ArrayBuilder<CodeAction>.GetInstance();
             result.Add(new MyCodeAction(
                 FeaturesResources.Add_null_check,
                 c => AddNullCheckAsync(document, parameter, blockStatement, c)));
 
+            // Also, if this was a string, offer to add the special checks to 
+            // string.IsNullOrEmpty and string.IsNullOrWhitespace.
             if (parameter.Type.SpecialType == SpecialType.System_String)
             {
                 result.Add(new MyCodeAction(
