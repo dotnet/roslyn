@@ -451,7 +451,7 @@ False
         Console.WriteLine("{0}", i.hasValue)
       End Sub
   
-    Sub main()e
+    Sub main()
         X()
     End Sub
   End Module
@@ -459,7 +459,6 @@ False
     </file>
 </compilation>
             comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
-
             CompileAndVerify(source, expectedOutput).VerifyIL("m.main", expectedIL)
 
         End Sub
