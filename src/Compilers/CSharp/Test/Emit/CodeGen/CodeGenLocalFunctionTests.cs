@@ -30,6 +30,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
+        [Fact]
+        [WorkItem(17890, "https://github.com/dotnet/roslyn/issues/17890")]
+        public void Repro17890()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Class
+{
+   public class Item
+   {
+      public int Id { get; set; }
+   }
+
+   public class ItemsContainer : IDisposable
+   {
+      public List<Item> Items { get; set; }
+
+      public void Dispose()
+      {
+      }
+   }
+
+   public static void CompilerError()
+   {
+      using (var itemsContainer = new ItemsContainer())
+      {
+         Item item = null;
+
+         itemsContainer.Items.Where(x => x.Id == item.Id);
+
+         void Local1()
+         {
+            itemsContainer.Items = null;
+         }
+
+         void Local2()
+         {
+            Local1();
+         }
+      }
+   }
+}", references: new[] { LinqAssemblyRef });
+            CompileAndVerify(comp);
+        }
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16783")]
         [WorkItem(16783, "https://github.com/dotnet/roslyn/issues/16783")]
         public void GenericDefaultParams()
