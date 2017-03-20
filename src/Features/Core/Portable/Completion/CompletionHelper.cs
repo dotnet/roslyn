@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Completion
         public ImmutableArray<TextSpan> GetHighlightedSpans(
             string text, string pattern, CultureInfo culture)
         {
-            // Use the display text of the completion item 
             var match = GetMatch(text, pattern, includeMatchSpans: true, culture: culture);
             return match == null ? ImmutableArray<TextSpan>.Empty : match.Value.MatchedSpans;
         }

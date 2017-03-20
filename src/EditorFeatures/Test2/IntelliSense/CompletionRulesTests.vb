@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim helper = CompletionHelper.GetHelper(workspace, LanguageNames.CSharp)
             For Each word In wordsToMatch
                 Dim item = CompletionItem.Create(word)
-                Assert.True(helper.MatchesFilterText(item, v, culture), $"Expected item {word} does not match {v}")
+                Assert.True(helper.MatchesPattern(item.FilterText, v, culture), $"Expected item {word} does not match {v}")
             Next
         End Sub
 
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim helper = CompletionHelper.GetHelper(workspace, LanguageNames.CSharp)
             For Each word In wordsToNotMatch
                 Dim item = CompletionItem.Create(word)
-                Assert.False(helper.MatchesFilterText(item, v, culture), $"Unexpected item {word} matches {v}")
+                Assert.False(helper.MatchesPattern(item.FilterText, v, culture), $"Unexpected item {word} matches {v}")
             Next
         End Sub
     End Class
