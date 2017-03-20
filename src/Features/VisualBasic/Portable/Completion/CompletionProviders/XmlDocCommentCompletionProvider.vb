@@ -13,9 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Inherits AbstractDocCommentCompletionProvider(Of DocumentationCommentTriviaSyntax)
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
-            Return text(characterPosition) = "<"c OrElse text(characterPosition) = """"c OrElse
-                (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c) OrElse
-                IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
+            Dim isStartOfTag = text(characterPosition) = "<"c
+            Dim isClosingTag = (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c)
+            Dim isDoubleQuote = text(characterPosition) = """"c
+
+            Return isStartOfTag OrElse isClosingTag OrElse isDoubleQuote OrElse
+                   IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
 
         Public Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
@@ -88,7 +91,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
             End If
 
-            If trigger.Kind = CompletionTriggerKind.Insertion AndAlso Not trigger.Character = """"c AndAlso Not trigger.Character = "<"c Then
+            If trigger.Kind = CompletionTriggerKind.Insertion AndAlso
+                Not trigger.Character = """"c AndAlso
+                Not trigger.Character = "<"c Then
+                ' With the use of IsTriggerAfterSpaceOrStartOfWordCharacter, the code below is much
+                ' too aggressive at suggesting tags, so exit early before degrading the experience
                 Return items
             End If
 
@@ -277,6 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Function GetAttributeValue(attribute As XmlNodeSyntax) As String
             If TypeOf attribute Is XmlAttributeSyntax Then
+                ' Decode any XML enities and concatentate the results
                 Return DirectCast(DirectCast(attribute, XmlAttributeSyntax).Value, XmlStringSyntax).TextTokens.GetValueText()
             End If
 
