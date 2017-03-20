@@ -64,36 +64,15 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 {
                     var symbolName = _state.SelectedMembers[i].Name;
                     var parameter = _state.Parameters[i];
-                    var parameterName = parameter.Name;
 
-                    var shouldAddNullCheck = _addNullChecks && parameter.Type.CanAddNullCheck();
-                    if (shouldAddNullCheck && useThrowExpressions)
-                    {
-                        // Generate 'this.a = a ?? throw...
-                        assignStatements.Add(factory.CreateAssignWithNullCheckStatement(
-                            compilation, parameter,
-                            fieldAccess: factory.MemberAccessExpression(
-                                factory.ThisExpression(),
-                                factory.IdentifierName(symbolName))));
-                    }
-                    else
-                    {
-                        if (shouldAddNullCheck)
-                        {
-                            // generate: if (p == null) throw ...
-                            nullCheckStatements.Add(
-                                factory.CreateIfNullThrowStatement(compilation, parameter));
-                        }
+                    var fieldAccess = factory.MemberAccessExpression(
+                        factory.ThisExpression(),
+                        factory.IdentifierName(symbolName));
 
-                        // generate: this.p = p;
-                        assignStatements.Add(
-                            factory.ExpressionStatement(
-                                factory.AssignmentStatement(
-                                    factory.MemberAccessExpression(
-                                        factory.ThisExpression(),
-                                        factory.IdentifierName(symbolName)),
-                                    factory.IdentifierName(parameterName))));
-                    }
+                    factory.AddAssignmentStatements(
+                        compilation, parameter, fieldAccess,
+                        _addNullChecks, useThrowExpressions,
+                        nullCheckStatements, assignStatements);
                 }
 
                 var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

@@ -233,30 +233,50 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         var fieldAccess = factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(fieldName))
                                                  .WithAdditionalAnnotations(Simplifier.Annotation);
 
-                        var shouldAddNullCheck = addNullChecks && parameterType.CanAddNullCheck();
-                        if (shouldAddNullCheck && preferThrowExpression)
-                        {
-                            var statement = CreateAssignWithNullCheckStatement(factory, compilation, parameter, fieldAccess);
-                            assignStatements.Add(statement);
-                        }
-                        else
-                        {
-                            if (shouldAddNullCheck)
-                            {
-                                nullCheckStatements.Add(
-                                    factory.CreateIfNullThrowStatement(compilation, parameter));
-                            }
-
-                            var assignExpression = factory.AssignmentStatement(
-                                fieldAccess, factory.IdentifierName(parameterName));
-                            var statement = factory.ExpressionStatement(assignExpression);
-                            assignStatements.Add(statement);
-                        }
+                        factory.AddAssignmentStatements(
+                            compilation, parameter, fieldAccess,
+                            addNullChecks, preferThrowExpression,
+                            nullCheckStatements, assignStatements);
                     }
                 }
             }
 
             return nullCheckStatements.ToImmutableAndFree().Concat(assignStatements.ToImmutableAndFree());
+        }
+
+        public static void AddAssignmentStatements(
+             this SyntaxGenerator factory,
+             Compilation compilation,
+             IParameterSymbol parameter,
+             SyntaxNode fieldAccess,
+             bool addNullChecks,
+             bool preferThrowExpression,
+             ArrayBuilder<SyntaxNode> nullCheckStatements,
+             ArrayBuilder<SyntaxNode> assignStatements)
+        {
+            var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck();
+            if (shouldAddNullCheck && preferThrowExpression)
+            {
+                // Generate: this.x = x ?? throw ...
+                assignStatements.Add(CreateAssignWithNullCheckStatement(
+                    factory, compilation, parameter, fieldAccess));
+            }
+            else
+            {
+                if (shouldAddNullCheck)
+                {
+                    // generate: if (x == null) throw ...
+                    nullCheckStatements.Add(
+                        factory.CreateIfNullThrowStatement(compilation, parameter));
+                }
+
+                // generate: this.x = x;
+                assignStatements.Add(
+                    factory.ExpressionStatement(
+                        factory.AssignmentStatement(
+                            fieldAccess,
+                            factory.IdentifierName(parameter.Name))));
+            }
         }
 
         public static SyntaxNode CreateAssignWithNullCheckStatement(
