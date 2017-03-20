@@ -195,32 +195,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case "1":
+                case "1.0":
                 case "iso-1":
                     result = LanguageVersion.CSharp1;
                     return true;
 
                 case "2":
+                case "2.0":
                 case "iso-2":
                     result = LanguageVersion.CSharp2;
                     return true;
 
                 case "3":
+                case "3.0":
                     result = LanguageVersion.CSharp3;
                     return true;
 
                 case "4":
+                case "4.0":
                     result = LanguageVersion.CSharp4;
                     return true;
 
                 case "5":
+                case "5.0":
                     result = LanguageVersion.CSharp5;
                     return true;
 
                 case "6":
+                case "6.0":
                     result = LanguageVersion.CSharp6;
                     return true;
 
                 case "7":
+                case "7.0":
                     result = LanguageVersion.CSharp7;
                     return true;
 
