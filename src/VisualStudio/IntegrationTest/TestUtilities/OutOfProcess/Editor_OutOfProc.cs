@@ -73,6 +73,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.GetCurrentSignature();
         }
 
+        public string GetQuickInfo()
+        {
+            WaitForQuickInfo();
+            return _inProc.GetQuickInfo();
+        }
+
         public void ShowLightBulb()
             => _editorInProc.ShowLightBulb();
 
