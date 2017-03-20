@@ -19,6 +19,7 @@
                   @(EmbeddedFiles)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
+                   @(IntermediateRefAssembly);
                    @(_DebugSymbolsIntermediatePath);
                    $(NonExistentFile);
                    @(CustomAdditionalCompileOutputs)"
@@ -110,6 +111,7 @@
          Deterministic="$(Deterministic)"
          PublicSign="$(PublicSign)"
          OutputAssembly="@(IntermediateAssembly)"
+         OutputRefAssembly="@(IntermediateRefAssembly)"
          PdbFile="$(PdbFile)"
          Platform="$(PlatformTarget)"
          Prefer32Bit="$(Prefer32Bit)"
