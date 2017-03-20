@@ -370,6 +370,33 @@ public abstract class PublicClass
         }
 
         [Fact]
+        public void EmitMetadata_DisallowOutputtingNetModule()
+        {
+            CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true).WithOutputKind(OutputKind.NetModule));
+
+            using (var output = new MemoryStream())
+            using (var metadataPeOutput = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output, metadataPeStream: metadataPeOutput,
+                    options: EmitOptions.Default));
+            }
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_DisallowOutputtingNetModule()
+        {
+            CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true).WithOutputKind(OutputKind.NetModule));
+
+            using (var output = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output,
+                    options: EmitOptions.Default.WithEmitMetadataOnly(true)));
+            }
+        }
+
+        [Fact]
         public void EmitMetadata()
         {
             string source = @"

@@ -2072,6 +2072,18 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.MetadataPeStreamUnexpectedWhenEmittingMetadataOnly, nameof(metadataPeStream));
             }
 
+            if (this.Options.OutputKind == OutputKind.NetModule)
+            {
+                if (metadataPeStream != null)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.CannotTargetNetModuleWhenEmittingRefAssembly, nameof(metadataPeStream));
+                }
+                else if (options?.EmitMetadataOnly == true)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.CannotTargetNetModuleWhenEmittingRefAssembly, nameof(options.EmitMetadataOnly));
+                }
+            }
+
             if (win32Resources != null)
             {
                 if (!win32Resources.CanRead || !win32Resources.CanSeek)

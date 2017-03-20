@@ -270,6 +270,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot target net module when emitting ref assembly..
+        /// </summary>
+        internal static string CannotTargetNetModuleWhenEmittingRefAssembly {
+            get {
+                return ResourceManager.GetString("CannotTargetNetModuleWhenEmittingRefAssembly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t create a module reference to an assembly..
         /// </summary>
         internal static string CantCreateModuleReferenceToAssembly {

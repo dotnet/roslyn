@@ -2887,7 +2887,7 @@ namespace Microsoft.Cci
             UserStringHandle mvidStringHandle = default(UserStringHandle);
             Blob mvidStringFixup = default(Blob);
 
-            return SerializeMethodBody(
+            int offset = SerializeMethodBody(
                 encoder,
                 ThrowNullIL,
                 ThrowNullMaxStack,
@@ -2896,6 +2896,9 @@ namespace Microsoft.Cci
                 MethodBodyAttributes.None,
                 ref mvidStringHandle,
                 ref mvidStringFixup);
+
+            Debug.Assert(mvidStringHandle.Equals(default(UserStringHandle)) && mvidStringFixup.Equals(default(Blob)));
+            return offset;
         }
 
         private int SerializeMethodBody(
