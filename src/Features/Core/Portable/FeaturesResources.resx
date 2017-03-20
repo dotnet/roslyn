@@ -1232,4 +1232,7 @@ This version used in: {2}</value>
   <data name="Initialize_property_0" xml:space="preserve">
     <value>Initialize property '{0}'</value>
   </data>
+  <data name="Add_null_checks" xml:space="preserve">
+    <value>Add null checks</value>
+  </data>
 </root>

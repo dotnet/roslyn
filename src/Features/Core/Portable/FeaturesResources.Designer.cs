@@ -171,6 +171,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add null checks.
+        /// </summary>
+        internal static string Add_null_checks {
+            get {
+                return ResourceManager.GetString("Add_null_checks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add optional parameters to &apos;{0}&apos;.
         /// </summary>
         internal static string Add_optional_parameters_to_0 {
