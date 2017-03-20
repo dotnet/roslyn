@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetQuickInfo()
         {
             WaitForQuickInfo();
-            return _inProc.GetQuickInfo();
+            return _editorInProc.GetQuickInfo();
         }
 
         public void ShowLightBulb()
