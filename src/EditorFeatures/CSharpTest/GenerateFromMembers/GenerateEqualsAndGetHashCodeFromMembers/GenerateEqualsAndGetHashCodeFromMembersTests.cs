@@ -963,5 +963,119 @@ class Program
 chosenSymbols: null,
 ignoreTrivia: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateOperators1()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               s == program.s;
+    }
+
+    public static bool operator ==(Program program1, Program program2)
+    {
+        return EqualityComparer<Program>.Default.Equals(program1, program2);
+    }
+
+    public static bool operator !=(Program program1, Program program2)
+    {
+        return !(program1 == program2);
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => options[0].Value = true,
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateOperators2()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               s == program.s;
+    }
+
+    public static bool operator ==(Program program1, Program program2)
+        => EqualityComparer<Program>.Default.Equals(program1, program2);
+
+    public static bool operator !=(Program program1, Program program2)
+        => !(program1 == program2);
+}",
+chosenSymbols: null,
+optionsCallback: options => options[0].Value = true,
+parameters: new TestParameters(
+    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.TrueWithNoneEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateOperators3()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+
+    public static bool operator ==(Program program1, Program program2) => true;
+}",
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               s == program.s;
+    }
+
+    public static bool operator ==(Program program1, Program program2) => true;
+}",
+chosenSymbols: null,
+optionsCallback: options => Assert.Empty(options),
+ignoreTrivia: false);
+        }
     }
 }
