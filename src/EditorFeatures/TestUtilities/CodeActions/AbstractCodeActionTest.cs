@@ -113,21 +113,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected static Document GetDocument(TestWorkspace workspace)
-        {
-            return workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-        }
+            => workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
         private class TestPickMembersService : IPickMembersService
         {
             private readonly ImmutableArray<string> _memberNames;
+            private readonly Action<ImmutableArray<PickMembersOption>> _optionsCallback;
 
-            public TestPickMembersService(ImmutableArray<string> memberNames)
-                => _memberNames = memberNames;
+            public TestPickMembersService(
+                ImmutableArray<string> memberNames,
+                Action<ImmutableArray<PickMembersOption>> optionsCallback)
+            {
+                _memberNames = memberNames;
+                _optionsCallback = optionsCallback;
+            }
 
             public PickMembersResult PickMembers(
                 string title, ImmutableArray<ISymbol> members,
                 ImmutableArray<PickMembersOption> options)
             {
+                _optionsCallback?.Invoke(options);
                 return new PickMembersResult(
                     _memberNames.IsDefault
                         ? members
@@ -140,12 +145,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup,
             string expectedMarkup,
             string[] chosenSymbols,
+            Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
             int index = 0,
             bool ignoreTrivia = true,
             CodeActionPriority? priority = null,
             TestParameters parameters = default(TestParameters))
         {
-            var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull());
+            var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup,
                 index, ignoreTrivia, priority,
