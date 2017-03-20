@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp);
+            var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences);
             var rules = namingStyleOptions.CreateRules().NamingRules.Concat(s_BuiltInRules);
             var result = new Dictionary<string, SymbolKind>();
             foreach (var symbolKind in declarationInfo.PossibleSymbolKinds)
