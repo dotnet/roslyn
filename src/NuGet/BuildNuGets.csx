@@ -70,7 +70,7 @@ string GetExistingPackageVersion(string name)
     return null;
 }
 
-var IsCoreBuild = Directory.Exists(ToolsetPath);
+var IsCoreBuild = File.Exists(Path.Combine(ToolsetPath, "corerun"));
 
 #endregion
 

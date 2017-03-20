@@ -1070,7 +1070,7 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
 
             ' If the file is an exe, use corflags to mark it 32bitpref
             If Path.GetExtension(fileName) = ".exe" Then
-                Dim proc = Process.Start(corFlagsPath, "/force /32bitpref+")
+                Dim proc = Process.Start(corFlagsPath, $"/force /32bitpref+ {dstPath}")
                 proc.WaitForExit()
 
                 If proc.ExitCode <> 0 Then
