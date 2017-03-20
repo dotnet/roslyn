@@ -738,7 +738,7 @@ partial class C
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="C", isHardSelected:=True)
                 state.SendTypeChars(" ")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertCompletionSession()
             End Using
         End Function
 
@@ -1028,7 +1028,8 @@ class Foo
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Numeros", isHardSelected:=True)
                 state.SendTypeChars(c.ToString())
-                Await state.AssertNoCompletionSession()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.NotEqual("Numberos", state.CurrentCompletionPresenterSession.SelectedItem.DisplayText)
                 Assert.Contains(String.Format("Numeros num = Nu{0}", c), state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
