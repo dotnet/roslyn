@@ -954,7 +954,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            if (hostProject.Id != documentId.ProjectId)
+            if (hostProject?.Id != documentId.ProjectId)
             {
                 // While this documentId is associated with one of the head projects for this
                 // sharedHierarchy, it is not associated with the new context hierarchy. Another

@@ -317,8 +317,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsInRefContext(this ExpressionSyntax expression)
-            => expression.IsParentKind(SyntaxKind.RefExpression) ||
-               (expression?.Parent as ArgumentSyntax)?.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword;
+        {
+            return expression != null && (expression.IsParentKind(SyntaxKind.RefExpression) ||
+                                          (expression.Parent as ArgumentSyntax)?.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword);
+        }
 
         public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
         {
@@ -2166,7 +2168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var initializerType = semanticModel.GetTypeInfo(equalsValueClause.Value, cancellationToken).Type;
 
-            if (!type.Equals(initializerType))
+            if (type != null && !type.Equals(initializerType))
             {
                 return true;
             }

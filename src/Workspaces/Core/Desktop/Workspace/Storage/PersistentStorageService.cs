@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     // everything seems right, use what we have
                     if (storage?.WorkingFolderPath == workingFolderPath)
                     {
-                        storage.AddRefUnsafe();
+                        storage?.AddRefUnsafe();
                         return storage;
                     }
                 }
