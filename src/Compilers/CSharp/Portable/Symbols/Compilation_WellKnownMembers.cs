@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(flagsBuilder.Any());
                 Debug.Assert(flagsBuilder.Contains(true));
 
-                var result = flagsBuilder.SelectAsArray((constantType, flag) => new TypedConstant(booleanType, TypedConstantKind.Primitive, constantType), booleanType);
+                var result = flagsBuilder.SelectAsArray((flag, constantType) => new TypedConstant(constantType, TypedConstantKind.Primitive, flag), booleanType);
                 flagsBuilder.Free();
                 return result;
             }
