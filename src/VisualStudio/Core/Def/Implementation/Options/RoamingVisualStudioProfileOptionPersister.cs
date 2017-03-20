@@ -230,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 // We store these as strings, so serialize
                 var valueToSerialize = value as CodeStyleOption<bool>;
 
-                if (value != null)
+                if (valueToSerialize != null)
                 {
                     value = valueToSerialize.ToXElement().ToString();
                 }
@@ -240,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 // We store these as strings, so serialize
                 var valueToSerialize = value as NamingStylePreferences;
 
-                if (value != null)
+                if (valueToSerialize != null)
                 {
                     value = valueToSerialize.CreateXElement().ToString();
                 }
