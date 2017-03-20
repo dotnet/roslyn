@@ -24,19 +24,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly ImmutableArray<string> s_topLevelRepeatableTagNames = ImmutableArray.Create(ExceptionElementName, IncludeElementName, PermissionElementName);
         private static readonly ImmutableArray<string> s_topLevelSingleUseTagNames = ImmutableArray.Create(SummaryElementName, RemarksElementName, ExampleElementName, CompletionListElementName);
 
-        private static readonly Dictionary<string, string[]> s_tagMap =
-            new Dictionary<string, string[]>
+        private static readonly Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)> s_tagMap =
+            new Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)>
             {
-                //                                              Open                                     Before caret           $$  After caret                               Close
-                { ExceptionElementName,              new[] { $"<{ExceptionElementName}",              $" {CrefAttributeName}=\"",  "\"",                                      null } },
-                { IncludeElementName,                new[] { $"<{IncludeElementName}",                $" {FileAttributeName}=\'", $"\' {PathAttributeName}=\'[@name=\"\"]\'", "/>" } },
-                { PermissionElementName,             new[] { $"<{PermissionElementName}",             $" {CrefAttributeName}=\"",  "\"",                                      null } },
-                { SeeElementName,                    new[] { $"<{SeeElementName}",                    $" {CrefAttributeName}=\"",  "\"",                                      "/>" } },
-                { SeeAlsoElementName,                new[] { $"<{SeeAlsoElementName}",                $" {CrefAttributeName}=\"",  "\"",                                      "/>" } },
-                { ListElementName,                   new[] { $"<{ListElementName}",                   $" {TypeAttributeName}=\"",  "\"",                                      null } },
-                { ParameterReferenceElementName,     new[] { $"<{ParameterReferenceElementName}",     $" {NameAttributeName}=\"",  "\"",                                      "/>" } },
-                { TypeParameterReferenceElementName, new[] { $"<{TypeParameterReferenceElementName}", $" {NameAttributeName}=\"",  "\"",                                      "/>" } },
-                { CompletionListElementName,         new[] { $"<{CompletionListElementName}",         $" {CrefAttributeName}=\"",  "\"",                                      "/>" } },
+                //                                        tagOpen                                  textBeforeCaret       $$  textAfterCaret                            tagClose
+                { ExceptionElementName,              ($"<{ExceptionElementName}",              $" {CrefAttributeName}=\"",  "\"",                                      null) },
+                { IncludeElementName,                ($"<{IncludeElementName}",                $" {FileAttributeName}=\'", $"\' {PathAttributeName}=\'[@name=\"\"]\'", "/>") },
+                { PermissionElementName,             ($"<{PermissionElementName}",             $" {CrefAttributeName}=\"",  "\"",                                      null) },
+                { SeeElementName,                    ($"<{SeeElementName}",                    $" {CrefAttributeName}=\"",  "\"",                                      "/>") },
+                { SeeAlsoElementName,                ($"<{SeeAlsoElementName}",                $" {CrefAttributeName}=\"",  "\"",                                      "/>") },
+                { ListElementName,                   ($"<{ListElementName}",                   $" {TypeAttributeName}=\"",  "\"",                                      null) },
+                { ParameterReferenceElementName,     ($"<{ParameterReferenceElementName}",     $" {NameAttributeName}=\"",  "\"",                                      "/>") },
+                { TypeParameterReferenceElementName, ($"<{TypeParameterReferenceElementName}", $" {NameAttributeName}=\"",  "\"",                                      "/>") },
+                { CompletionListElementName,         ($"<{CompletionListElementName}",         $" {CrefAttributeName}=\"",  "\"",                                      "/>") },
             };
 
         private static readonly string[][] s_attributeMap =
@@ -80,20 +80,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract IEnumerable<string> GetExistingTopLevelAttributeValues(TSyntax syntax, string tagName, string attributeName);
 
-        private bool HasExistingTopLevelElement(TSyntax syntax, string name)
-        {
-            return GetExistingTopLevelElementNames(syntax).Contains(name);
-        }
+        private bool HasExistingTopLevelElement(TSyntax syntax, string name) =>
+            GetExistingTopLevelElementNames(syntax).Contains(name);
 
         private CompletionItem GetItem(string name)
         {
             if (s_tagMap.TryGetValue(name, out var values))
             {
                 return CreateCompletionItem(name,
-                    beforeCaretText: values[0] + values[1],
-                    afterCaretText: values[2] + values[3],
-                    beforeCaretTextOnSpace: values[0],
-                    afterCaretTextOnSpace: values[3]);
+                    beforeCaretText: values.tagOpen + values.textBeforeCaret,
+                    afterCaretText: values.textAfterCaret + values.tagClose,
+                    beforeCaretTextOnSpace: values.tagOpen,
+                    afterCaretTextOnSpace: values.tagClose);
             }
 
             return CreateCompletionItem(name);

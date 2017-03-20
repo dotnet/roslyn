@@ -818,6 +818,19 @@ End Class
             Await VerifyItemsAbsentAsync(text, "TClass", "i")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeParamNamesPartiallyTyped() As Task
+            Dim text = "
+Class C(Of TClass)
+    ''' <typeparam name=""T$$""
+    Sub Goo(Of TMethod)(i as TMethod)
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "TMethod")
+            Await VerifyItemsAbsentAsync(text, "TClass", "i")
+        End Function
+
         <WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTypeParamRefNames() As Task
@@ -826,6 +839,24 @@ Class Outer(Of TOuter)
     Class Inner(Of TInner)
         ''' <summary>
         ''' <typeparamref name=""$$""
+        ''' </summary>
+        Sub Goo(Of TMethod)(i as Integer)
+        End Sub
+    End Class
+End Class
+"
+            Await VerifyItemsExistAsync(text, "TOuter", "TInner", "TMethod")
+            Await VerifyItemsAbsentAsync(text, "i")
+        End Function
+
+        <WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeParamRefNamesPartiallyTyped() As Task
+            Dim text = "
+Class Outer(Of TOuter)
+    Class Inner(Of TInner)
+        ''' <summary>
+        ''' <typeparamref name=""T$$""
         ''' </summary>
         Sub Goo(Of TMethod)(i as Integer)
         End Sub

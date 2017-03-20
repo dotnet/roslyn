@@ -1203,7 +1203,26 @@ public class Outer<TOuter>
             await VerifyItemsExistAsync(text, "TOuter", "TInner", "TMethod");
         }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParamRefNamesPartiallyTyped()
+        {
+            var text = @"
+public class Outer<TOuter>
+{
+    public class Inner<TInner>
+    {
+        /// <summary>
+        /// <typeparamref name=""T$$""/>
+        /// </summary>
+        public int Method<TMethod>(T green) { }
+    }
+}";
+
+            await VerifyItemsExistAsync(text, "TOuter", "TInner", "TMethod");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParamNames()
         {
             var text = @"
@@ -1213,6 +1232,25 @@ public class Outer<TOuter>
     {
         /// <summary>
         /// <typeparam name=""$$""/>
+        /// </summary>
+        public int Method<TMethod>(T green) { }
+    }
+}";
+
+            await VerifyItemsExistAsync(text, "TMethod");
+            await VerifyItemsAbsentAsync(text, "TOuter", "TInner");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParamNamesPartiallyTyped()
+        {
+            var text = @"
+public class Outer<TOuter>
+{
+    public class Inner<TInner>
+    {
+        /// <summary>
+        /// <typeparam name=""T$$""/>
         /// </summary>
         public int Method<TMethod>(T green) { }
     }

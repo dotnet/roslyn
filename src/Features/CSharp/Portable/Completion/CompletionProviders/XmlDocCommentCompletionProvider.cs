@@ -62,21 +62,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            string elementName, attributeName;
-            if (!(trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == ' ') &&
-                IsAttributeValueContext(token, out elementName, out attributeName))
-            {
-                return GetAttributeValueItems(declaredSymbol, elementName, attributeName);
-            }
-
-            ISet<string> existingAttributes;
-            if (IsAttributeNameContext(token, position, out elementName, out existingAttributes))
+            if (IsAttributeNameContext(token, position, out string elementName, out ISet<string> existingAttributes))
             {
                 return GetAttributeItems(elementName, existingAttributes);
             }
 
+            var wasTriggeredAfterSpace = trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == ' ';
+            if (wasTriggeredAfterSpace)
+            {
+                // Nothing below this point should triggered by a space character
+                // (only attribute names should be triggered by <SPACE>)
+                return null;
+            }
+
+            if (IsAttributeValueContext(token, out elementName, out string attributeName))
+            {
+                return GetAttributeValueItems(declaredSymbol, elementName, attributeName);
+            }
+
             if (trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character != '<')
             {
+                // With the use of IsTriggerAfterSpaceOrStartOfWordCharacter, the code below is much
+                // too aggressive at suggesting tags, so exit early before degrading the experience
                 return null;
             }
 
@@ -158,26 +165,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // Handle the <elem$$ case by going back one token (the subsequent checks need to account for this)
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            SyntaxList<XmlAttributeSyntax> attributes = default(SyntaxList<XmlAttributeSyntax>);
+            var attributes = default(SyntaxList<XmlAttributeSyntax>);
 
-            if (token.IsKind(SyntaxKind.IdentifierToken) && token.IsParentKind(SyntaxKind.XmlName))
+            if (token.IsKind(SyntaxKind.IdentifierToken) && token.Parent.IsKind(SyntaxKind.XmlName))
             {
                 // <elem $$
                 // <elem attr$$
-                elementName = GetElementNameAndAttributes(token.Parent.Parent, out attributes);
+                (elementName, attributes) = GetElementNameAndAttributes(token.Parent.Parent);
             }
-            else if (token.IsParentKind(SyntaxKind.XmlCrefAttribute) ||
-                     token.IsParentKind(SyntaxKind.XmlNameAttribute) ||
-                     token.IsParentKind(SyntaxKind.XmlTextAttribute))
+            else if (token.Parent.IsKind(SyntaxKind.XmlCrefAttribute) ||
+                     token.Parent.IsKind(SyntaxKind.XmlNameAttribute) ||
+                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute))
             {
-                // <elem attr="" $$
-                // <elem attr="" $$attr	
-                // <elem attr="" attr$$
+                // In the following, 'attr1' may be a regular text attribute, or one of the special 'cref' or 'name' attributes
+                // <elem attr1="" $$
+                // <elem attr1="" $$attr2	
+                // <elem attr1="" attr2$$
                 var attributeSyntax = (XmlAttributeSyntax)token.Parent;
 
                 if (token == attributeSyntax.EndQuoteToken)
                 {
-                    elementName = GetElementNameAndAttributes(attributeSyntax.Parent, out attributes);
+                    (elementName, attributes) = GetElementNameAndAttributes(attributeSyntax.Parent);
                 }
             }
 
@@ -185,24 +193,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return elementName != null;
         }
 
-        private string GetElementNameAndAttributes(SyntaxNode node, out SyntaxList<XmlAttributeSyntax> attributes)
+        private (string name, SyntaxList<XmlAttributeSyntax> attributes) GetElementNameAndAttributes(SyntaxNode node)
         {
             XmlNameSyntax nameSyntax;
+            SyntaxList<XmlAttributeSyntax> attributes;
 
-            switch (node.Kind())
+            switch (node)
             {
-                case SyntaxKind.XmlEmptyElement:
-                    var emptyElementSyntax = (XmlEmptyElementSyntax)node;
+                // Self contained empty element <tag />
+                case XmlEmptyElementSyntax emptyElementSyntax:
                     nameSyntax = emptyElementSyntax.Name;
                     attributes = emptyElementSyntax.Attributes;
                     break;
 
-                case SyntaxKind.XmlElement:
-                    node = ((XmlElementSyntax)node).StartTag;
-                    goto case SyntaxKind.XmlElementStartTag;
+                // Parent node of a non-empty element: <tag></tag>
+                case XmlElementSyntax elementSyntax:
+                    // Defer to the start-tag logic
+                    return GetElementNameAndAttributes(elementSyntax.StartTag);
 
-                case SyntaxKind.XmlElementStartTag:
-                    var startTagSyntax = (XmlElementStartTagSyntax)node;
+                // Start tag of a non-empty element: <tag>
+                case XmlElementStartTagSyntax startTagSyntax:
                     nameSyntax = startTagSyntax.Name;
                     attributes = startTagSyntax.Attributes;
                     break;
@@ -213,34 +223,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     break;
             }
 
-            return nameSyntax?.LocalName.ValueText;
+            return (name: nameSyntax?.LocalName.ValueText, attributes: attributes);
         }
 
         private bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
         {
             XmlAttributeSyntax attributeSyntax = null;
 
-            if (token.IsParentKind(SyntaxKind.IdentifierName) && token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute))
+            if (token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute))
             {
-                // name="bar$$
+                // Handle the special 'name' attributes: name="bar$$
                 attributeSyntax = (XmlNameAttributeSyntax)token.Parent.Parent;
             }
-            else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) && token.IsParentKind(SyntaxKind.XmlTextAttribute))
+            else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) && token.Parent.IsKind(SyntaxKind.XmlTextAttribute))
             {
-                // foo="bar$$
+                // Handle the other general text attributes: foo="bar$$
                 attributeSyntax = (XmlTextAttributeSyntax)token.Parent;
             }
-            else if (token.IsParentKind(SyntaxKind.XmlNameAttribute) || token.IsParentKind(SyntaxKind.XmlTextAttribute))
+            else if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute) || token.Parent.IsKind(SyntaxKind.XmlTextAttribute))
             {
-                // name="$$
-                // foo="$$
+                // When there's no attribute value yet, the parent attribute is returned:
+                //     name="$$
+                //     foo="$$
                 attributeSyntax = (XmlAttributeSyntax)token.Parent;
                 if (token != attributeSyntax.StartQuoteToken)
                 {
                     attributeSyntax = null;
                 }
             }
-
 
             if (attributeSyntax != null)
             {
@@ -249,17 +259,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var emptyElement = attributeSyntax.GetAncestor<XmlEmptyElementSyntax>();
                 if (emptyElement != null)
                 {
+                    // Empty element tags: <tag attr=... />
                     tagName = emptyElement.Name.LocalName.Text;
                     return true;
                 }
-                else
+
+                var startTagSyntax = token.GetAncestor<XmlElementStartTagSyntax>();
+                if (startTagSyntax != null)
                 {
-                    var startTagSyntax = token.GetAncestor<XmlElementStartTagSyntax>();
-                    if (startTagSyntax != null)
-                    {
-                        tagName = startTagSyntax.Name.LocalName.Text;
-                        return true;
-                    }
+                    // Non-empty element start tags: <tag attr=... >
+                    tagName = startTagSyntax.Name.LocalName.Text;
+                    return true;
                 }
             }
 
@@ -268,15 +278,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        protected override IEnumerable<string> GetKeywordNames()
-        {
-            return SyntaxFacts.GetKeywordKinds().Select(SyntaxFacts.GetText);
-        }
+        protected override IEnumerable<string> GetKeywordNames() =>
+            SyntaxFacts.GetKeywordKinds().Select(SyntaxFacts.GetText);
 
-        protected override IEnumerable<string> GetExistingTopLevelElementNames(DocumentationCommentTriviaSyntax syntax)
-        {
-            return syntax.Content.Select(GetElementName);
-        }
+        protected override IEnumerable<string> GetExistingTopLevelElementNames(DocumentationCommentTriviaSyntax syntax) =>
+            syntax.Content.Select(GetElementName);
 
         protected override IEnumerable<string> GetExistingTopLevelAttributeValues(DocumentationCommentTriviaSyntax syntax, string elementName, string attributeName)
         {
@@ -284,8 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             foreach (var node in syntax.Content)
             {
-                SyntaxList<XmlAttributeSyntax> attributes;
-                if (GetElementNameAndAttributes(node, out attributes) == elementName)
+                (var name, var attributes) = GetElementNameAndAttributes(node);
+
+                if (name == elementName)
                 {
                     attributeValues = attributeValues.Concat(
                         attributes.Where(attribute => GetAttributeName(attribute) == attributeName)
@@ -296,22 +303,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return attributeValues;
         }
 
-        private string GetElementName(XmlNodeSyntax node)
-        {
-            SyntaxList<XmlAttributeSyntax> attributes;
-            return GetElementNameAndAttributes(node, out attributes);
-        }
+        private string GetElementName(XmlNodeSyntax node) => GetElementNameAndAttributes(node).name;
 
-        private string GetAttributeName(XmlAttributeSyntax attribute)
-        {
-            return attribute.Name.LocalName.ValueText;
-        }
+        private string GetAttributeName(XmlAttributeSyntax attribute) => attribute.Name.LocalName.ValueText;
 
         private string GetAttributeValue(XmlAttributeSyntax attribute)
         {
             switch (attribute)
             {
                 case XmlTextAttributeSyntax textAttribute:
+                    // Decode any XML enities and concatentate the results
                     return textAttribute.TextTokens.GetValueText();
 
                 case XmlNameAttributeSyntax nameAttribute:
