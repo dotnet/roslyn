@@ -270,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             If IsGenericType(symbols(0)) Then
                 Dim text = SymbolCompletionFormat.Default.GetInsertionTextAtInsertionTime(item, "("c)
-                item = item.WithProperties(ImmutableDictionary(Of String, String).Empty.Add(InsertionTextOnOpenParen, text))
+                item = item.AddProperty(InsertionTextOnOpenParen, text)
             End If
 
             Return item

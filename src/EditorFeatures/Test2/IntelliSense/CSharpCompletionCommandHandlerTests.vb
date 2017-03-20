@@ -738,7 +738,7 @@ partial class C
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="C", isHardSelected:=True)
                 state.SendTypeChars(" ")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertCompletionSession()
             End Using
         End Function
 
@@ -1028,7 +1028,8 @@ class Foo
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Numeros", isHardSelected:=True)
                 state.SendTypeChars(c.ToString())
-                Await state.AssertNoCompletionSession()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.NotEqual("Numberos", state.CurrentCompletionPresenterSession?.SelectedItem?.DisplayText)
                 Assert.Contains(String.Format("Numeros num = Nu{0}", c), state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -3042,6 +3043,35 @@ class C
                 state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
                 Await state.AssertSelectedCompletionItem("Red")
                 state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue", "Equals"})
+            End Using
+        End Function
+
+        <WorkItem(16236, "https://github.com/dotnet/roslyn/issues/16236")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NameCompletionSorting() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+interface ISyntaxFactsService {}
+class C
+{
+    void M()
+    {
+        ISyntaxFactsService $$
+    }
+} </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+
+                Dim expectedOrder =
+                    {
+                        "syntaxFactsService",
+                        "syntaxFacts",
+                        "factsService",
+                        "syntax",
+                        "service"
+                    }
+
+                state.AssertItemsInOrder(expectedOrder)
             End Using
         End Function
     End Class
