@@ -15,13 +15,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
         private static readonly char[] LineSeparators = { '\r', '\n' };
 
         protected readonly CSharpInteractiveWindow_OutOfProc InteractiveWindow;
-        protected readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
 
         protected AbstractInteractiveWindowTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+            : base(instanceFactory, visualStudio => visualStudio.Instance.CSharpInteractiveWindow)
         {
-            InteractiveWindow = VisualStudio.Instance.CSharpInteractiveWindow;
-            VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
+            InteractiveWindow = (CSharpInteractiveWindow_OutOfProc)TextViewWindow;
             ClearInteractiveWindow();
         }
 
@@ -82,12 +80,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             Assert.Equal(expectedReplInput, lastReplInput);
         }
 
-        protected void VerifyCaretPosition(int expectedCaretPosition)
-        {
-            var position = InteractiveWindow.GetCaretPosition();
-            Assert.Equal(expectedCaretPosition, position);
-        }
-
         protected void VerifyLastReplOutputContains(string expectedReplOutput)
         {
             var lastReplOutput = InteractiveWindow.GetLastReplOutput();
@@ -128,36 +120,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 Assert.DoesNotContain(output, replTextLine);
             }
         }
-
-        protected void VerifyCompletionItemExists(params string[] expectedItems)
-        {
-            var completionItems = InteractiveWindow.GetCompletionItems();
-            foreach (var expectedItem in expectedItems)
-            {
-                Assert.Contains(expectedItem, completionItems);
-            }
-        }
-
-        public void VerifyCurrentTokenType(string tokenType)
-        {
-            WaitForAsyncOperations(
-                FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService,
-                FeatureAttribute.Classification);
-            var actualTokenTypes = InteractiveWindow.GetCurrentClassifications();
-            Assert.Equal(actualTokenTypes.Length, 1);
-            Assert.Contains(tokenType, actualTokenTypes[0]);
-            Assert.NotEqual("text", tokenType);
-        }
-
-        protected void InvokeCompletionList()
-        {
-            ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
-            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-        }
-
-        protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
-            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";", featuresToWaitFor));
 
         protected void WaitForReplOutput(string outputText)
             => InteractiveWindow.WaitForReplOutput(outputText);

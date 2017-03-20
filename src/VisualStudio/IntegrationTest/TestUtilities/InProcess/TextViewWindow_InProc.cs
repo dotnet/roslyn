@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public int GetCaretPosition()
             => ExecuteOnActiveView(view =>
             {
-                var subjectBuffer = view.GetBufferContainingCaret();
+                var subjectBuffer = GetBufferContainingCaret(view);
                 var bufferPosition = view.Caret.Position.BufferPosition;
                 return bufferPosition.Position;
             });

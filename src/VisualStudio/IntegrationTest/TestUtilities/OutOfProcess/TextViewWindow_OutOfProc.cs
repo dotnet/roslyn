@@ -6,20 +6,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
     public abstract class TextViewWindow_OutOfProc : OutOfProcComponent
     {
-        public TextViewWindow_OutOfProc(VisualStudioInstance visualStudioInstance)
+        internal readonly TextViewWindow_InProc _textViewWindowInProc;
+
+        internal TextViewWindow_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
+            _textViewWindowInProc = CreateInProcComponent(visualStudioInstance);
         }
 
-        internal abstract TextViewWindow_InProc InProc { get; }
+        internal abstract TextViewWindow_InProc CreateInProcComponent(VisualStudioInstance visualStudioInstance);
 
         public int GetCaretPosition()
-            => InProc.GetCaretPosition();
+            => _textViewWindowInProc.GetCaretPosition();
 
         public string[] GetCompletionItems()
         {
             WaitForCompletionSet();
-            return InProc.GetCompletionItems();
+            return _textViewWindowInProc.GetCompletionItems();
         }
 
         public void PlaceCaret(
@@ -28,7 +31,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             int occurrence,
             bool extendSelection,
             bool selectBlock)
-            => InProc.PlaceCaret(
+            => _textViewWindowInProc.PlaceCaret(
                 marker,
                 charsOffset,
                 occurrence,
@@ -36,6 +39,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 selectBlock);
 
         public string[] GetCurrentClassifications()
-            => InProc.GetCurrentClassifications();
+            => _textViewWindowInProc.GetCurrentClassifications();
     }
 }

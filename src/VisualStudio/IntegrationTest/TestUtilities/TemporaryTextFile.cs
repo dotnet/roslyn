@@ -18,18 +18,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             _fileName = fileName;
             _content = content;
-            _path = Path.Combine(Path.GetTempPath(), "RoslynTests", "TemporaryTextFile");
+            _path = IntegrationHelper.CreateTemporaryPath();
             FullName = Path.Combine(_path, _fileName);
         }
 
         public void Create()
         {
-            Cleanup();
-
-            if (!Directory.Exists(_path))
-            {
-                Directory.CreateDirectory(_path);
-            }
+            IntegrationHelper.CreateDirectory(_path, deleteExisting: true);
 
             using (FileStream stream = File.Create(FullName))
             {
@@ -42,15 +37,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public void Dispose()
         {
-            Cleanup();
-        }
-
-        private void Cleanup()
-        {
-            if (File.Exists(FullName))
-            {
-                File.Delete(FullName);
-            }
+            IntegrationHelper.DeleteDirectoryRecursively(_path);
         }
     }
 }
