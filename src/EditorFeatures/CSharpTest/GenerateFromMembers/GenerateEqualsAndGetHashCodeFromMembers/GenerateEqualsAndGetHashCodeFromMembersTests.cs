@@ -1077,5 +1077,50 @@ chosenSymbols: null,
 optionsCallback: options => Assert.Empty(options),
 ignoreTrivia: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateOperators4()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+struct Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System.Collections.Generic;
+
+struct Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is Program))
+        {
+            return false;
+        }
+
+        var program = (Program)obj;
+        return s == program.s;
+    }
+
+    public static bool operator ==(Program program1, Program program2)
+    {
+        return program1.Equals(program2);
+    }
+
+    public static bool operator !=(Program program1, Program program2)
+    {
+        return !(program1 == program2);
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => options[0].Value = true,
+ignoreTrivia: false);
+        }
     }
 }
