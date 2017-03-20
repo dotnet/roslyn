@@ -102,49 +102,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _documentsWithReportedRudeEdits = new HashSet<DocumentId>();
         }
 
-        internal CancellationTokenSource Cancellation
-        {
-            get { return _cancellation; }
-        }
+        internal CancellationTokenSource Cancellation => _cancellation;
 
-        internal Solution BaseSolution
-        {
-            get
-            {
-                return _baseSolution;
-            }
-        }
+        internal Solution BaseSolution => _baseSolution;
 
-        internal IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> BaseActiveStatements
-        {
-            get
-            {
-                return _baseActiveStatements;
-            }
-        }
+        internal IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> BaseActiveStatements => _baseActiveStatements;
 
-        private Solution CurrentSolution
-        {
-            get
-            {
-                return _baseSolution.Workspace.CurrentSolution;
-            }
-        }
+        private Solution CurrentSolution => _baseSolution.Workspace.CurrentSolution;
 
-        public bool StoppedAtException
-        {
-            get { return _stoppedAtException; }
-        }
+        public bool StoppedAtException => _stoppedAtException;
 
-        public IReadOnlyDictionary<ProjectId, ProjectReadOnlyReason> Projects
-        {
-            get { return _projects; }
-        }
+        public IReadOnlyDictionary<ProjectId, ProjectReadOnlyReason> Projects => _projects;
 
         internal bool HasProject(ProjectId id)
         {
-            ProjectReadOnlyReason reason;
-            return Projects.TryGetValue(id, out reason);
+            return Projects.TryGetValue(id, out var reason);
         }
 
         private List<ValueTuple<DocumentId, AsyncLazy<DocumentAnalysisResults>>> GetChangedDocumentsAnalyses(Project baseProject, Project project)
@@ -203,16 +175,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Document document)
         {
-            Analysis analysis;
-            if (_analyses.TryGetValue(document.Id, out analysis) && analysis.Document == document)
+            if (_analyses.TryGetValue(document.Id, out var analysis) && analysis.Document == document)
             {
                 return analysis.Results;
             }
 
             var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
-
-            ImmutableArray<ActiveStatementSpan> activeStatements;
-            if (!_baseActiveStatements.TryGetValue(document.Id, out activeStatements))
+            if (!_baseActiveStatements.TryGetValue(document.Id, out var activeStatements))
             {
                 activeStatements = ImmutableArray.Create<ActiveStatementSpan>();
             }

@@ -20,10 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        protected override Task<TestWorkspace> CreateWorkspaceAsync(string fileContents)
-        {
-            return TestWorkspace.CreateCSharpAsync(fileContents);
-        }
+        protected override TestWorkspace CreateWorkspace(string fileContents)
+            => TestWorkspace.CreateCSharp(fileContents);
 
         internal override CompletionServiceWithProviders CreateCompletionService(
             Workspace workspace, ImmutableArray<CompletionProvider> exclusiveProviders)
@@ -132,7 +130,7 @@ text;
 
         protected async Task VerifySendEnterThroughToEnterAsync(string initialMarkup, string textTypedSoFar, EnterKeyRule sendThroughEnterOption, bool expected)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(initialMarkup))
+            using (var workspace = TestWorkspace.CreateCSharp(initialMarkup))
             {
                 var hostDocument = workspace.DocumentWithCursor;
                 var documentId = workspace.GetDocumentId(hostDocument);
@@ -145,14 +143,14 @@ text;
                     sendThroughEnterOption);
 
                 var service = GetCompletionService(workspace);
-                var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Default);
+                var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 Assert.Equal(expected, Controller.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar));
             }
         }
 
-        protected async Task TestCommonIsTextualTriggerCharacterAsync()
+        protected void TestCommonIsTextualTriggerCharacter()
         {
             var alwaysTriggerList = new[]
             {
@@ -161,7 +159,7 @@ text;
 
             foreach (var markup in alwaysTriggerList)
             {
-                await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
             }
 
             var triggerOnlyWithLettersList = new[]
@@ -172,7 +170,7 @@ text;
 
             foreach (var markup in triggerOnlyWithLettersList)
             {
-                await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
             }
 
             var neverTriggerList = new[]
@@ -183,7 +181,7 @@ text;
 
             foreach (var markup in neverTriggerList)
             {
-                await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
             }
         }
     }

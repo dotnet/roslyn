@@ -236,9 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 _selectedItemInfoTask.Wait(cancellationToken);
             }
 
-            IList<NavigationBarProjectItem> projectItems;
-            NavigationBarProjectItem selectedProjectItem;
-            GetProjectItems(out projectItems, out selectedProjectItem);
+            GetProjectItems(out var projectItems, out var selectedProjectItem);
 
             _presenter.PresentItems(
                 projectItems,
@@ -328,9 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 listOfLeft.Add(newLeft);
             }
 
-            IList<NavigationBarProjectItem> projectItems;
-            NavigationBarProjectItem selectedProjectItem;
-            GetProjectItems(out projectItems, out selectedProjectItem);
+            GetProjectItems(out var projectItems, out var selectedProjectItem);
 
             _presenter.PresentItems(
                 projectItems,

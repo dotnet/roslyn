@@ -216,6 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedVerbatimStringStartToken = 8484,    // $@"
 
         // Other
+        UnderscoreToken = 8491,
         OmittedTypeArgumentToken = 8492,
         OmittedArraySizeExpressionToken = 8493,
         EndOfDirectiveToken = 8494,
@@ -262,6 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ReferenceDirectiveTrivia = 8561,
         BadDirectiveTrivia = 8562,
         SkippedTokensTrivia = 8563,
+        ConflictMarkerTrivia = 8564,
 
         // xml nodes (for xml doc comment structure)
         XmlElement = 8574,
@@ -551,6 +553,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ConstantPattern = 9002,
         CasePatternSwitchLabel = 9009,
         WhenClause = 9013,
+        DiscardDesignation = 9014,
+
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
         // Please start with 9040 if you add more kinds below.
 

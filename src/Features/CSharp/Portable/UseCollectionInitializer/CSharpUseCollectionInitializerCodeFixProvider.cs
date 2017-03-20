@@ -23,7 +23,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax>
     {
-        protected override ObjectCreationExpressionSyntax GetNewObjectCreation(
+        protected override StatementSyntax GetNewStatement(
+            StatementSyntax statement,
+            ObjectCreationExpressionSyntax objectCreation,
+            ImmutableArray<ExpressionStatementSyntax> matches)
+        {
+            return statement.ReplaceNode(
+                objectCreation,
+                GetNewObjectCreation(objectCreation, matches));
+        }
+
+        private ObjectCreationExpressionSyntax GetNewObjectCreation(
             ObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
@@ -76,13 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
         private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
         {
-            if (expression is InvocationExpressionSyntax)
+            if (expression is InvocationExpressionSyntax invocation)
             {
-                return ConvertInvocation((InvocationExpressionSyntax)expression);
+                return ConvertInvocation(invocation);
             }
-            else if (expression is AssignmentExpressionSyntax)
+            else if (expression is AssignmentExpressionSyntax assignment)
             {
-                return ConvertAssignment((AssignmentExpressionSyntax)expression);
+                return ConvertAssignment(assignment);
             }
 
             throw new InvalidOperationException();

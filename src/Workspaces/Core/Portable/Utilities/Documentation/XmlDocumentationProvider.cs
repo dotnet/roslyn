@@ -90,8 +90,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                 }
             }
 
-            string docComment;
-            return _docComments.TryGetValue(documentationMemberID, out docComment) ? docComment : "";
+            return _docComments.TryGetValue(documentationMemberID, out var docComment) ? docComment : "";
         }
 
         private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()

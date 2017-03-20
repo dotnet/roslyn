@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             IVsThreadedWaitDialogFactory dialogFactory,
             string title,
             string message,
-            bool allowCancel, 
+            bool allowCancel,
             bool showProgress)
         {
             _title = title;
@@ -48,8 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         private IVsThreadedWaitDialog3 CreateDialog(
             IVsThreadedWaitDialogFactory dialogFactory, bool showProgress)
         {
-            IVsThreadedWaitDialog2 dialog2;
-            Marshal.ThrowExceptionForHR(dialogFactory.CreateInstance(out dialog2));
+            Marshal.ThrowExceptionForHR(dialogFactory.CreateInstance(out var dialog2));
             Contract.ThrowIfNull(dialog2);
 
             var dialog3 = (IVsThreadedWaitDialog3)dialog2;
@@ -112,7 +111,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         private void UpdateDialog()
         {
-            bool hasCancelled;
             _dialog.UpdateProgress(
                 _message,
                 szProgressText: null,
@@ -120,13 +118,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 iCurrentStep: this.ProgressTracker.CompletedItems,
                 iTotalSteps: this.ProgressTracker.TotalItems,
                 fDisableCancel: !_allowCancel,
-                pfCanceled: out hasCancelled);
+                pfCanceled: out var hasCancelled);
         }
 
         public void Dispose()
         {
-            int canceled;
-            _dialog.EndWaitDialog(out canceled);
+            _dialog.EndWaitDialog(out var canceled);
 
             if (canceled == 0)
             {

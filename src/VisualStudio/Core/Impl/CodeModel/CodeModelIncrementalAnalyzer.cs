@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -70,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             public void FireEvents(DocumentId documentId, CancellationToken cancellationToken)
             {
-                var project = _workspace.ProjectTracker.GetProject(documentId.ProjectId);
+                var project = _workspace.DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
                 if (project == null)
                 {
                     return;
@@ -88,8 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     return;
                 }
 
-                ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle;
-                if (!codeModelProvider.ProjectCodeModel.TryGetCachedFileCodeModel(filename, out fileCodeModelHandle))
+                if (!codeModelProvider.ProjectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
                 {
                     return;
                 }

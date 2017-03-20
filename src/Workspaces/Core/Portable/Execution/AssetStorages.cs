@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public CustomAsset GetGlobalAsset(object value, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            CustomAsset asset;
-            _globalAssets.TryGetValue(value, out asset);
+            _globalAssets.TryGetValue(value, out var asset);
 
             return asset;
         }
@@ -52,9 +50,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public void RemoveGlobalAsset(object value, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            CustomAsset asset;
-            _globalAssets.TryRemove(value, out asset);
+            _globalAssets.TryRemove(value, out var asset);
         }
 
         public Storage CreateStorage(SolutionState solutionState)
@@ -166,8 +162,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public void UnregisterSnapshot(PinnedRemotableDataScope snapshot)
         {
             // calling it multiple times for same snapshot is not allowed.
-            Storage dummy;
-            Contract.ThrowIfFalse(_storages.TryRemove(snapshot, out dummy));
+            Contract.ThrowIfFalse(_storages.TryRemove(snapshot, out var dummy));
         }
 
         private IEnumerable<Storage> GetStorages(PinnedRemotableDataScope scope)

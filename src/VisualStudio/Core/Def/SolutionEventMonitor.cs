@@ -13,7 +13,10 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     internal sealed class SolutionEventMonitor : IDisposable
     {
-        private GlobalOperationNotificationService _notificationService;
+        private const string SolutionBuilding = "Solution Building";
+        private const string SolutionOpening = "Solution Opening";
+
+        private IGlobalOperationNotificationService _notificationService;
         private Dictionary<string, GlobalOperationRegistration> _operations = new Dictionary<string, GlobalOperationRegistration>();
 
         public SolutionEventMonitor(VisualStudioWorkspace workspace)
@@ -21,8 +24,23 @@ namespace Microsoft.VisualStudio.LanguageServices
             var notificationService = workspace.Services.GetService<IGlobalOperationNotificationService>() as GlobalOperationNotificationService;
             if (notificationService != null)
             {
+                // subscribe to events only if it is normal service. if it is one from unit test or other, don't bother to subscribe
                 _notificationService = notificationService;
+
+                // make sure we set initial state correctly. otherwise, we can get into a race where we might miss the very first events
+                if (KnownUIContexts.SolutionBuildingContext.IsActive)
+                {
+                    ContextChanged(active: true, operation: SolutionBuilding);
+                }
+
                 KnownUIContexts.SolutionBuildingContext.UIContextChanged += SolutionBuildingContextChanged;
+
+                // make sure we set initial state correctly. otherwise, we can get into a race where we might miss the very first events
+                if (KnownUIContexts.SolutionOpeningContext.IsActive)
+                {
+                    ContextChanged(active: true, operation: SolutionOpening);
+                }
+
                 KnownUIContexts.SolutionOpeningContext.UIContextChanged += SolutionOpeningContextChanged;
             }
         }
@@ -46,15 +64,15 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void SolutionBuildingContextChanged(object sender, UIContextChangedEventArgs e)
         {
-            ContextChangedWorker(e, "Solution Building");
+            ContextChanged(e.Activated, SolutionBuilding);
         }
 
         private void SolutionOpeningContextChanged(object sender, UIContextChangedEventArgs e)
         {
-            ContextChangedWorker(e, "Solution Opening");
+            ContextChanged(e.Activated, SolutionOpening);
         }
 
-        private void ContextChangedWorker(UIContextChangedEventArgs e, string operation)
+        private void ContextChanged(bool active, string operation)
         {
             if (_notificationService == null)
             {
@@ -63,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             TryCancelPendingNotification(operation);
 
-            if (e.Activated)
+            if (active)
             {
                 _operations[operation] = _notificationService.Start(operation);
             }
@@ -71,11 +89,11 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void TryCancelPendingNotification(string operation)
         {
-            GlobalOperationRegistration globalOperation;
-            if (_operations.TryGetValue(operation, out globalOperation))
+            if (_operations.TryGetValue(operation, out var globalOperation))
             {
                 globalOperation.Done();
                 globalOperation.Dispose();
+
                 _operations.Remove(operation);
             }
         }

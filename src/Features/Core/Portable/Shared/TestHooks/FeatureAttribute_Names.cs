@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string ReferenceHighlighting = nameof(ReferenceHighlighting);
         public const string Rename = nameof(Rename);
         public const string RenameTracking = nameof(RenameTracking);
+        public const string RemoteHostClient = nameof(RemoteHostClient);
         public const string RuleSetEditor = nameof(RuleSetEditor);
         public const string SignatureHelp = nameof(SignatureHelp);
         public const string Snippets = nameof(Snippets);

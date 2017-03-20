@@ -14,9 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
     {
         [ImportingConstructor]
         public CSharpGoToDefinitionService(
-            [ImportMany]IEnumerable<Lazy<INavigableItemsPresenter>> presenters,
             [ImportMany]IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters) 
-            : base(presenters, streamingPresenters)
+            : base(streamingPresenters)
         {
         }
 

@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 ImmutableArray<TaggedText> displayParts,
                 ImmutableArray<TaggedText> originationParts,
                 bool displayIfNoReferences)
-                : base(tags, displayParts, originationParts, 
-                      ImmutableArray<DocumentSpan>.Empty,
+                : base(tags, displayParts, ImmutableArray<TaggedText>.Empty,
+                      originationParts, ImmutableArray<DocumentSpan>.Empty,
                       displayIfNoReferences)
             {
             }

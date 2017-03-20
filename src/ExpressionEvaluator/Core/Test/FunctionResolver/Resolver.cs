@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 
@@ -7,14 +8,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     internal sealed class Resolver : FunctionResolverBase<Process, Module, Request>
     {
+        internal static readonly Resolver CSharpResolver = CreateFrom(new Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.CSharpFunctionResolver());
+        internal static readonly Resolver VisualBasicResolver = CreateFrom(new Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicFunctionResolver());
+
+        private readonly bool _ignoreCase;
+        private readonly Guid _languageId;
         private readonly Dictionary<Process, List<Request>> _requests;
 
-        internal Resolver()
+        private static Resolver CreateFrom(FunctionResolver resolver)
         {
+            return new Resolver(resolver.IgnoreCase, resolver.LanguageId);
+        }
+
+        private Resolver(bool ignoreCase, Guid languageId)
+        {
+            _ignoreCase = ignoreCase;
+            _languageId = languageId;
             _requests = new Dictionary<Process, List<Request>>();
         }
 
-        internal new void EnableResolution(Process process, Request request)
+        internal void EnableResolution(Process process, Request request)
         {
             List<Request> requests;
             if (!_requests.TryGetValue(process, out requests))
@@ -23,7 +36,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 _requests.Add(process, requests);
             }
             requests.Add(request);
-            base.EnableResolution(process, request);
+            base.EnableResolution(process, request, OnFunctionResolved);
+        }
+
+        internal void OnModuleLoad(Process process, Module module)
+        {
+            base.OnModuleLoad(process, module, OnFunctionResolved);
         }
 
         internal override bool ShouldEnableFunctionResolver(Process process)
@@ -66,14 +84,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return request.Signature;
         }
 
-        internal override void OnFunctionResolved(Module module, Request request, int token, int version, int ilOffset)
+        internal override bool IgnoreCase => _ignoreCase;
+
+        internal override Guid GetLanguageId(Request request)
         {
-            request.OnFunctionResolved(module, token, version, ilOffset);
+            return request.LanguageId;
         }
 
-        private void OnModuleLoaded(object sender, Module e)
+        internal override Guid LanguageId => _languageId;
+
+        private static void OnFunctionResolved(Module module, Request request, int token, int version, int ilOffset)
         {
-            OnModuleLoad((Process)sender, e);
+            request.OnFunctionResolved(module, token, version, ilOffset);
         }
     }
 }

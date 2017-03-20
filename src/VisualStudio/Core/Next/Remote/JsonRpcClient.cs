@@ -25,7 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             var target = useThisAsCallback ? this : callbackTarget;
             _cancellationToken = cancellationToken;
 
-            _rpc = JsonRpc.Attach(stream, target);
+            _rpc = new JsonRpc(stream, stream, target);
+            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+
             _rpc.Disconnected += OnDisconnected;
         }
 
@@ -82,6 +84,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             OnDisposed();
 
             _rpc.Dispose();
+        }
+
+        protected void StartListening()
+        {
+            // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
+            // _rpc need to be explicitly started
+            _rpc.StartListening();
         }
 
         protected virtual void OnDisposed()

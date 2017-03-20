@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -404,12 +405,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
 
+            ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
+
             if (rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
                 !expanded &&
                 !isComReceiver)
             {
-                temps = default(ImmutableArray<LocalSymbol>);
+                temps = temporariesBuilder.ToImmutableAndFree();
                 return rewrittenArguments;
             }
 
@@ -478,7 +482,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Optimize away unnecessary temporaries.
             // Necessary temporaries have their store instructions merged into the appropriate 
             // argument expression.
-            ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             OptimizeTemporaries(actualArguments, refKinds, storesToTemps, temporariesBuilder);
 
             // Step two: If we have a params array, build the array and fill in the argument.
@@ -908,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // wrap it in a nullable ctor.
                     defaultValue = new BoundObjectCreationExpression(
                         syntax,
-                        GetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
+                        UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
                         defaultValue);
                 }
                 else
@@ -1016,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Finally, wrap it in a nullable ctor.
                 defaultValue = new BoundObjectCreationExpression(
                     syntax,
-                    GetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
+                    UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
                     defaultValue);
             }
             else if (defaultConstantValue.IsNull || defaultConstantValue.IsBad)

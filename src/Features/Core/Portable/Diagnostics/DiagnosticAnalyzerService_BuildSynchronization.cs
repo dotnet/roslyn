@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> diagnostics)
         {
-            BaseDiagnosticIncrementalAnalyzer analyzer;
-            if (_map.TryGetValue(workspace, out analyzer))
+            if (_map.TryGetValue(workspace, out var analyzer))
             {
                 return analyzer.SynchronizeWithBuildAsync(workspace, diagnostics);
             }

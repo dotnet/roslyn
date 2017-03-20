@@ -300,8 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private void AddClassifiedSpansForCurrentTree(
                 IEditorClassificationService classificationService, SnapshotSpan span, Document document, List<ClassifiedSpan> classifiedSpans)
             {
-                List<ClassifiedSpan> tempList;
-                if (!_lastLineCache.TryUseCache(span, out tempList))
+                if (!_lastLineCache.TryUseCache(span, out var tempList))
                 {
                     tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 

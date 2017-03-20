@@ -136,7 +136,7 @@ namespace Microsoft.Cci
             SerializeStateMachineLocalScopes(bodyOpt, methodHandle);
 
             // delta doesn't need this information - we use information recorded by previous generation emit
-            if (Context.Module.CommonCompilation.Options.EnableEditAndContinue && !IsFullMetadata)
+            if (Context.Module.CommonCompilation.Options.EnableEditAndContinue && IsFullMetadata)
             {
                 SerializeEncMethodDebugInformation(bodyOpt, methodHandle);
             }
@@ -159,7 +159,7 @@ namespace Microsoft.Cci
             SerializeCustomModifiers(encoder, localConstant.CustomModifiers);
 
             var type = localConstant.Type;
-            var typeCode = type.TypeCode(Context);
+            var typeCode = type.TypeCode;
 
             object value = localConstant.CompileTimeValue.Value;
 

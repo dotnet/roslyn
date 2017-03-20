@@ -8,11 +8,16 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal delegate BoundStatement GenerateMethodBody(EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals);
+    internal delegate BoundStatement GenerateMethodBody(
+        EEMethodSymbol method,
+        DiagnosticBag diagnostics,
+        out ImmutableArray<LocalSymbol> declaredLocals,
+        out ResultProperties properties);
 
     /// <summary>
     /// Synthesized expression evaluation method.
@@ -48,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// </summary>
         private readonly GenerateMethodBody _generateMethodBody;
         private TypeSymbol _lazyReturnType;
+        private ResultProperties _lazyResultProperties;
 
         // NOTE: This is only used for asserts, so it could be conditional on DEBUG.
         private readonly ImmutableArray<TypeParameterSymbol> _allTypeParameters;
@@ -171,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ParameterSymbol MakeParameterSymbol(int ordinal, string name, ParameterSymbol sourceParameter)
         {
-            return new SynthesizedParameterSymbol(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.CustomModifiers, sourceParameter.CountOfCustomModifiersPrecedingByRef);
+            return SynthesizedParameterSymbol.Create(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.CustomModifiers, sourceParameter.RefCustomModifiers);
         }
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -312,9 +318,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            get { return 0; }
+            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override Symbol AssociatedSymbol
@@ -405,10 +411,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
+        internal ResultProperties ResultProperties
+        {
+            get { return _lazyResultProperties; }
+        }
+
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             ImmutableArray<LocalSymbol> declaredLocalsArray;
-            var body = _generateMethodBody(this, diagnostics, out declaredLocalsArray);
+            var body = _generateMethodBody(this, diagnostics, out declaredLocalsArray, out _lazyResultProperties);
             var compilation = compilationState.Compilation;
 
             _lazyReturnType = CalculateReturnType(compilation, body);
@@ -442,7 +453,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 try
                 {
                     // Rewrite local declaration statement.
-                    body = (BoundStatement)LocalDeclarationRewriter.Rewrite(compilation, _container, declaredLocals, body, declaredLocalsArray);
+                    body = (BoundStatement)LocalDeclarationRewriter.Rewrite(
+                        compilation,
+                        _container,
+                        declaredLocals,
+                        body,
+                        declaredLocalsArray,
+                        diagnostics);
 
                     // Verify local declaration names.
                     foreach (var local in declaredLocals)
@@ -645,7 +662,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 case BoundKind.ExpressionStatement:
                 case BoundKind.LocalDeclaration:
                 case BoundKind.MultipleLocalDeclarations:
-                case BoundKind.LocalDeconstructionDeclaration:
                     return compilation.GetSpecialType(SpecialType.System_Void);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(bodyOpt.Kind);
@@ -661,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (returnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType, ReturnTypeCustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType, ReturnTypeCustomModifiers.Length + RefCustomModifiers.Length, RefKind));
             }
 
             if (returnType.ContainsTupleNames() && compilation.HasTupleNamesAttributes)

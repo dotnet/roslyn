@@ -29,6 +29,13 @@ namespace Microsoft.CodeAnalysis.Editing
             _changes = new List<Change>();
         }
 
+        internal SyntaxEditor(SyntaxNode root, SyntaxGenerator generator)
+        {
+            OriginalRoot = root ?? throw new ArgumentNullException(nameof(root));
+            _generator = generator;
+            _changes = new List<Change>();
+        }
+
         /// <summary>
         /// The <see cref="SyntaxNode"/> that was specified when the <see cref="SyntaxEditor"/> was constructed.
         /// </summary>
@@ -37,10 +44,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// A <see cref="SyntaxGenerator"/> to use to create and change <see cref="SyntaxNode"/>'s.
         /// </summary>
-        public SyntaxGenerator Generator
-        {
-            get { return _generator; }
-        }
+        public SyntaxGenerator Generator => _generator;
 
         /// <summary>
         /// Returns the changed root node.

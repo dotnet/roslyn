@@ -38,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _lazyUnderlyingDefinitionToMemberMap As SmallDictionary(Of Symbol, Symbol)
 
         Friend Const RestPosition As Integer = 8
+        Friend Const RestIndex As Integer = RestPosition - 1
 
         Friend Const TupleTypeName As String = "ValueTuple"
         Friend Const RestFieldName As String = "Rest"
@@ -190,11 +191,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-            Get
-                Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
-            End Get
-        End Property
+        Public Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+            Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+        End Function
 
         Friend Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
             Get
@@ -339,9 +338,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                      elementLocations As ImmutableArray(Of Location),
                                      elementNames As ImmutableArray(Of String),
                                      compilation As VisualBasicCompilation,
+                                     shouldCheckConstraints As Boolean,
                                      Optional syntax As SyntaxNode = Nothing,
                                      Optional diagnostics As DiagnosticBag = Nothing) As TupleTypeSymbol
-
+            Debug.Assert(Not shouldCheckConstraints OrElse syntax IsNot Nothing)
             Debug.Assert(elementNames.IsDefault OrElse elementTypes.Length = elementNames.Length)
             Dim length As Integer = elementTypes.Length
 
@@ -350,12 +350,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim tupleUnderlyingType As NamedTypeSymbol = TupleTypeSymbol.GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics)
-            If DirectCast(compilation.SourceModule, SourceModuleSymbol).AnyReferencedAssembliesAreLinked Then
+            If diagnostics IsNot Nothing AndAlso DirectCast(compilation.SourceModule, SourceModuleSymbol).AnyReferencedAssembliesAreLinked Then
                 ' Complain about unembeddable types from linked assemblies.
                 Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(tupleUnderlyingType, syntax, diagnostics)
             End If
 
-            Return TupleTypeSymbol.Create(locationOpt, tupleUnderlyingType, elementLocations, elementNames)
+            Dim constructedType = TupleTypeSymbol.Create(locationOpt, tupleUnderlyingType, elementLocations, elementNames)
+            If shouldCheckConstraints Then
+                constructedType.CheckConstraints(syntax, elementLocations, diagnostics)
+            End If
+
+            Return constructedType
         End Function
 
         Public Shared Function Create(tupleCompatibleType As NamedTypeSymbol) As TupleTypeSymbol
@@ -419,21 +424,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Shared Function ReplaceRestExtensionType(tupleCompatibleType As NamedTypeSymbol, typeArgumentsBuilder As ArrayBuilder(Of TypeWithModifiers), extensionTuple As TupleTypeSymbol) As NamedTypeSymbol
-            Dim modifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier)) = Nothing
             Dim hasTypeArgumentsCustomModifiers As Boolean = tupleCompatibleType.HasTypeArgumentsCustomModifiers
-
-            If hasTypeArgumentsCustomModifiers Then
-                modifiers = tupleCompatibleType.TypeArgumentsCustomModifiers
-            End If
 
             Dim typeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol) = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics
             typeArgumentsBuilder.Clear()
 
             For i As Integer = 0 To TupleTypeSymbol.RestPosition - 1 - 1
-                typeArgumentsBuilder.Add(New TypeWithModifiers(typeArgumentsNoUseSiteDiagnostics(i), GetModifiers(modifiers, i)))
+                typeArgumentsBuilder.Add(New TypeWithModifiers(typeArgumentsNoUseSiteDiagnostics(i),
+                                                               If(hasTypeArgumentsCustomModifiers, tupleCompatibleType.GetTypeArgumentCustomModifiers(i), Nothing)))
             Next
 
-            typeArgumentsBuilder.Add(New TypeWithModifiers(extensionTuple, GetModifiers(modifiers, TupleTypeSymbol.RestPosition - 1)))
+            typeArgumentsBuilder.Add(New TypeWithModifiers(extensionTuple,
+                                                           If(hasTypeArgumentsCustomModifiers, tupleCompatibleType.GetTypeArgumentCustomModifiers(TupleTypeSymbol.RestPosition - 1), Nothing)))
 
             Dim definition = tupleCompatibleType.ConstructedFrom
             Dim subst = TypeSubstitution.Create(definition, definition.TypeParameters, typeArgumentsBuilder.ToImmutable(), False)

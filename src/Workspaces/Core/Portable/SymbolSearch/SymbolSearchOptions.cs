@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Enabled)));
 
         public static readonly Option<bool> OutOfProcessAllowed = new Option<bool>(
-            nameof(SymbolSearchOptions), nameof(OutOfProcessAllowed), defaultValue: false,
+            nameof(SymbolSearchOptions), nameof(OutOfProcessAllowed), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)));
 
         public static PerLanguageOption<bool> SuggestForTypesInReferenceAssemblies =

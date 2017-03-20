@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
             else
             {
-                var projectIdsForHierarchy = workspace.ProjectTracker.ImmutableProjects
+                var projectIdsForHierarchy = (workspace.DeferredState?.ProjectTracker.ImmutableProjects ?? ImmutableArray<AbstractProject>.Empty)
                     .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
                     .Where(p => p.Hierarchy == projectHierarchyOpt)
                     .Select(p => workspace.CurrentSolution.GetProject(p.Id).Id)
@@ -500,8 +500,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var builder = ImmutableDictionary.CreateBuilder<DocumentId, List<DiagnosticData>>();
             foreach (var diagnosticData in diagnosticsToFix.Where(isDocumentDiagnostic))
             {
-                List<DiagnosticData> diagnosticsPerDocument;
-                if (!builder.TryGetValue(diagnosticData.DocumentId, out diagnosticsPerDocument))
+                if (!builder.TryGetValue(diagnosticData.DocumentId, out var diagnosticsPerDocument))
                 {
                     diagnosticsPerDocument = new List<DiagnosticData>();
                     builder[diagnosticData.DocumentId] = diagnosticsPerDocument;
@@ -550,8 +549,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     IEnumerable<DiagnosticData> documentDiagnosticsToFix;
                     if (filterStaleDiagnostics)
                     {
-                        ImmutableHashSet<DiagnosticData> latestDocumentDiagnostics;
-                        if (!latestDocumentDiagnosticsMapOpt.TryGetValue(document.Id, out latestDocumentDiagnostics))
+                        if (!latestDocumentDiagnosticsMapOpt.TryGetValue(document.Id, out var latestDocumentDiagnostics))
                         {
                             // Ignore stale diagnostics in error list.
                             latestDocumentDiagnostics = ImmutableHashSet<DiagnosticData>.Empty;
@@ -582,8 +580,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, List<DiagnosticData>>();
             foreach (var diagnosticData in diagnosticsToFix.Where(isProjectDiagnostic))
             {
-                List<DiagnosticData> diagnosticsPerProject;
-                if (!builder.TryGetValue(diagnosticData.ProjectId, out diagnosticsPerProject))
+                if (!builder.TryGetValue(diagnosticData.ProjectId, out var diagnosticsPerProject))
                 {
                     diagnosticsPerProject = new List<DiagnosticData>();
                     builder[diagnosticData.ProjectId] = diagnosticsPerProject;

@@ -26,8 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var webApplicationCtxSvc = this.SystemServiceProvider.GetService(typeof(SWebApplicationCtxSvc)) as IWebApplicationCtxSvc;
             if (webApplicationCtxSvc != null)
             {
-                VsServiceProvider webServiceProvider;
-                if (webApplicationCtxSvc.GetItemContext(hierarchy, itemid, out webServiceProvider) >= 0)
+                if (webApplicationCtxSvc.GetItemContext(hierarchy, itemid, out var webServiceProvider) >= 0)
                 {
                     var webFileCtxServiceGuid = typeof(IWebFileCtxService).GUID;
                     IntPtr service = IntPtr.Zero;
@@ -63,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return null;
             }
 
-            return this.Workspace.ProjectTracker.ImmutableProjects
+            return this.Workspace.DeferredState.ProjectTracker.ImmutableProjects
                 .Where(p => p.Hierarchy == hierarchy)
                 .Where(p => p.ProjectSystemName == projectName)
                 .SingleOrDefault();

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _escapedIdentifierFilter.WriteTo(writer);
             }
 
-            public static IdentifierInfo? ReadFrom(ObjectReader reader)
+            public static IdentifierInfo? TryReadFrom(ObjectReader reader)
             {
                 try
                 {

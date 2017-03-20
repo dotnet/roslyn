@@ -202,8 +202,7 @@ namespace Roslyn.Utilities
                         throw new InvalidOperationException();
                     }
 
-                    int childNodeIndex;
-                    if (TryGetChildIndex(currentNode, currentNodeIndex, editDistance, out childNodeIndex))
+                    if (TryGetChildIndex(currentNode, currentNodeIndex, editDistance, out var childNodeIndex))
                     {
                         // Edit distances collide.  Move to this child and add this word to it.
                         currentNodeIndex = childNodeIndex;

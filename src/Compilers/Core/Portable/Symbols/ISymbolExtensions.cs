@@ -88,5 +88,17 @@ namespace Microsoft.CodeAnalysis
             return field.IsTupleElement() && !field.IsImplicitlyDeclared ? field.Name : null;
         }
 
+        internal static INamespaceSymbol GetNestedNamespace(this INamespaceSymbol container, string name)
+        {
+            foreach (var sym in container.GetMembers(name))
+            {
+                if (sym.Kind == SymbolKind.Namespace)
+                {
+                    return (INamespaceSymbol)sym;
+                }
+            }
+
+            return null;
+        }
     }
 }

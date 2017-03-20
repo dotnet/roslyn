@@ -8,15 +8,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseObj
     Public Class UseObjectInitializerTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                New VisualBasicUseObjectInitializerDiagnosticAnalyzer(),
-                New VisualBasicUseObjectInitializerCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New VisualBasicUseObjectInitializerDiagnosticAnalyzer(),
+                    New VisualBasicUseObjectInitializerCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestOnVariableDeclarator() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -34,12 +33,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestOnVariableDeclarator2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -57,12 +56,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestOnAssignmentExpression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -82,12 +81,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestStopOnDuplicateMember() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -107,12 +106,12 @@ Class C
         c.i = 2
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestComplexInitializer() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -138,12 +137,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestNotOnCompoundAssignment() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -165,12 +164,12 @@ Class C
         c.j += 1
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestMissingWithExistingInitializer() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -187,7 +186,7 @@ End Class")
         <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestMissingIfImplicitMemberAccessWouldChange() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Class C
     Sub M()
@@ -202,7 +201,7 @@ End Class")
         <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestIfImplicitMemberAccessWouldNotChange() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "                            
 Class C
     Sub M()
@@ -225,12 +224,12 @@ Class C
                          End Sub()
         }
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestFixAllInDocument() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -265,12 +264,12 @@ Class C
         }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestTrivia1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim i As Integer
@@ -292,7 +291,64 @@ Class C
             }
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestTrivia2() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Class C
+    Sub M()
+        Dim XmlAppConfigReader As [||]New XmlTextReader(Reader)
+
+        ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
+        XmlAppConfigReader.DtdProcessing = DtdProcessing.Prohibit
+        XmlAppConfigReader.WhitespaceHandling = WhitespaceHandling.All
+    End Sub
+End Class",
+"
+Class C
+    Sub M()
+        ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
+        Dim XmlAppConfigReader As New XmlTextReader(Reader) With {
+            .DtdProcessing = DtdProcessing.Prohibit,
+            .WhitespaceHandling = WhitespaceHandling.All
+        }
+    End Sub
+End Class",
+ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestTrivia3() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Class C
+    Sub M()
+        Dim XmlAppConfigReader As [||]New XmlTextReader(Reader)
+
+        ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
+        XmlAppConfigReader.DtdProcessing = DtdProcessing.Prohibit
+
+        ' Bar
+        XmlAppConfigReader.WhitespaceHandling = WhitespaceHandling.All
+    End Sub
+End Class",
+"
+Class C
+    Sub M()
+        ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
+        ' Bar
+        Dim XmlAppConfigReader As New XmlTextReader(Reader) With {
+            .DtdProcessing = DtdProcessing.Prohibit,
+            .WhitespaceHandling = WhitespaceHandling.All
+        }
+    End Sub
+End Class",
+ignoreTrivia:=False)
         End Function
     End Class
 End Namespace

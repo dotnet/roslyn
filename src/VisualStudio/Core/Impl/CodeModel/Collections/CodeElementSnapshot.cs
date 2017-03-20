@@ -20,8 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             for (int i = 0; i < count; i++)
             {
                 // We use "i + 1" since CodeModel indices are 1-based
-                EnvDTE.CodeElement element;
-                if (ErrorHandler.Succeeded(codeElements.Item(i + 1, out element)))
+                if (ErrorHandler.Succeeded(codeElements.Item(i + 1, out var element)))
                 {
                     elementsBuilder.Add(element);
                 }

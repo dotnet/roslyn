@@ -8,9 +8,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -19,9 +21,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         public class RemoteHostClientService : ForegroundThreadAffinitizedObject, IRemoteHostClientService
         {
+            // OOP killed more info page link
+            private const string OOPKilledMoreInfoLink = "https://go.microsoft.com/fwlink/?linkid=842308";
+
+            /// <summary>
+            /// this hold onto last remoteHostClient to make debugging easier
+            /// </summary>
+            private static Task<RemoteHostClient> s_lastInstanceTask;
+
+            private readonly IAsynchronousOperationListener _listener;
             private readonly Workspace _workspace;
             private readonly IDiagnosticAnalyzerService _analyzerService;
-            private readonly IEditorOptions _globalEditorOptions;
 
             private readonly object _gate;
 
@@ -30,19 +40,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private Task<RemoteHostClient> _instanceTask;
 
             public RemoteHostClientService(
+                IAsynchronousOperationListener listener,
                 Workspace workspace,
-                IDiagnosticAnalyzerService analyzerService,
-                IEditorOptions globalEditorOptions) :
+                IDiagnosticAnalyzerService analyzerService) :
                 base()
             {
                 _gate = new object();
 
+                _listener = listener;
                 _workspace = workspace;
                 _analyzerService = analyzerService;
-                _globalEditorOptions = globalEditorOptions;
             }
 
             public Workspace Workspace => _workspace;
+            public IAsynchronousOperationListener Listener => _listener;
 
             public void Enable()
             {
@@ -120,6 +131,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             public Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
+                return TryGetRemoteHostClientAsync(cancellationToken);
+            }
+
+            public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
+            {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Task<RemoteHostClient> instanceTask;
@@ -139,8 +155,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private async Task<RemoteHostClient> EnableAsync(CancellationToken cancellationToken)
             {
-                AddGlobalAssets(cancellationToken);
-
                 // if we reached here, IRemoteHostClientFactory must exist.
                 // this will make VS.Next dll to be loaded
                 var instance = await _workspace.Services.GetRequiredService<IRemoteHostClientFactory>().CreateAsync(_workspace, cancellationToken).ConfigureAwait(false);
@@ -151,22 +165,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 instance.ConnectionChanged += OnConnectionChanged;
 
+                // set global assets on remote host
+                var checksums = AddGlobalAssets(cancellationToken);
+
+                // send over global asset
+                await instance.RunOnRemoteHostAsync(
+                    WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
+                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
+                    (object)checksums, cancellationToken).ConfigureAwait(false);
+
                 return instance;
             }
 
-            private void AddGlobalAssets(CancellationToken cancellationToken)
+            private Checksum[] AddGlobalAssets(CancellationToken cancellationToken)
             {
+                var builder = ArrayBuilder<Checksum>.GetInstance();
+
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
                 {
                     var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
-                    var assetBuilder = new CustomAssetBuilder(_workspace.CurrentSolution);
+                    var assetBuilder = new CustomAssetBuilder(_workspace);
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                     {
                         var asset = assetBuilder.Build(reference, cancellationToken);
+
+                        builder.Add(asset.Checksum);
                         snapshotService.AddGlobalAsset(reference, asset, cancellationToken);
                     }
                 }
+
+                return builder.ToArrayAndFree();
             }
 
             private void RemoveGlobalAssets()
@@ -190,17 +219,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return;
                 }
 
-                lock (_gate)
+                if (_shutdownCancellationTokenSource.IsCancellationRequested)
                 {
-                    if (_shutdownCancellationTokenSource.IsCancellationRequested)
+                    lock (_gate)
                     {
-                        // we are shutting down
-                        return;
+                        // RemoteHost has been disabled
+                        _instanceTask = null;
                     }
                 }
+                else
+                {
+                    lock (_gate)
+                    {
+                        // save last remoteHostClient
+                        s_lastInstanceTask = _instanceTask;
 
-                // crash right away when connection is closed
-                FatalError.Report(new Exception("Connection to remote host closed"));
+                        // save NoOpRemoteHostClient to instance so that all RemoteHost call becomes
+                        // No Op. this basically have same effect as disabling all RemoteHost features
+                        _instanceTask = Task.FromResult<RemoteHostClient>(new RemoteHostClient.NoOpClient(_workspace));
+                    }
+
+                    // s_lastInstanceTask info should be saved in the dump
+                    // report NFW when connection is closed unless it is proper shutdown
+                    FatalError.ReportWithoutCrash(new Exception("Connection to remote host closed"));
+
+                    // use info bar to show warning to users
+                    _workspace.Services.GetService<IErrorReportingService>().ShowGlobalErrorInfo(ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio,
+                        new ErrorReportingUI(ServicesVSResources.Learn_more, ErrorReportingUI.UIKind.HyperLink, () =>
+                            BrowserHelper.StartBrowser(new Uri(OOPKilledMoreInfoLink)), closeAfterAction: false));
+                }
             }
         }
     }

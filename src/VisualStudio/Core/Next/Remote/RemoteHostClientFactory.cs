@@ -16,18 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         public async Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            try
-            {
-                // this is the point where we can create different kind of remote host client in future (cloud or etc)
-                return await ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken).ConfigureAwait(false);
-            }
-            catch
-            {
-                // currently there is so many moving parts that cause, in some branch/drop,
-                // service hub not to work. in such places (ex, Jenkins), rather than crashing VS
-                // right away, let VS run without service hub enabled.
-                return null;
-            }
+            // this is the point where we can create different kind of remote host client in future (cloud or etc)
+            return await ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 const string T = nameof(T);
-                context.AddItem(CommonCompletionItem.Create(T, glyph: Glyph.TypeParameter));
+                context.AddItem(CommonCompletionItem.Create(
+                    T, CompletionItemRules.Default, glyph: Glyph.TypeParameter));
             }
         }
 
@@ -57,8 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken, semanticModel))
             {
                 // Walk out until we find the start of the partial written generic
-                SyntaxToken nameToken;
-                while (syntaxTree.IsInPartiallyWrittenGeneric(testPosition, cancellationToken, out nameToken))
+                while (syntaxTree.IsInPartiallyWrittenGeneric(testPosition, cancellationToken, out var nameToken))
                 {
                     testPosition = nameToken.SpanStart;
                 }

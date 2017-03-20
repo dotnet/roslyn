@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISymbol within,
             ITypeSymbol throughTypeOpt = null)
         {
-            if (within is IAssemblySymbol)
+            if (within is IAssemblySymbol assembly)
             {
-                return symbol.IsAccessibleWithin((IAssemblySymbol)within, throughTypeOpt);
+                return symbol.IsAccessibleWithin(assembly, throughTypeOpt);
             }
-            else if (within is INamedTypeSymbol)
+            else if (within is INamedTypeSymbol namedType)
             {
-                return symbol.IsAccessibleWithin((INamedTypeSymbol)within, throughTypeOpt);
+                return symbol.IsAccessibleWithin(namedType, throughTypeOpt);
             }
             else
             {
@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             IAssemblySymbol within,
             ITypeSymbol throughTypeOpt = null)
         {
-            bool failedThroughTypeCheck;
-            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck);
+            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out var failedThroughTypeCheck);
         }
 
         /// <summary>
@@ -50,8 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             INamedTypeSymbol within,
             ITypeSymbol throughTypeOpt = null)
         {
-            bool failedThroughTypeCheck;
-            return IsSymbolAccessible(symbol, within, throughTypeOpt, out failedThroughTypeCheck);
+            return IsSymbolAccessible(symbol, within, throughTypeOpt, out var failedThroughTypeCheck);
         }
 
         /// <summary>
@@ -106,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return IsNamedTypeAccessible((INamedTypeSymbol)symbol, within);
 
                 case SymbolKind.ErrorType:
+                case SymbolKind.Discard:
                     return true;
 
                 case SymbolKind.TypeParameter:
@@ -151,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return IsMemberAccessible(symbol.ContainingType, symbol.DeclaredAccessibility, within, throughTypeOpt, out failedThroughTypeCheck);
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
         }
 
@@ -222,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return withinAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(declaredAccessibility);
             }
         }
 
@@ -308,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return IsProtectedSymbolAccessible(withinNamedType, withinAssembly, throughTypeOpt, originalContainingType, out failedThroughTypeCheck);
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(declaredAccessibility);
             }
         }
 

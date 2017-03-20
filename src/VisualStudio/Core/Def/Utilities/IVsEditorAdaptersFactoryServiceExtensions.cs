@@ -33,8 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
                 var adapter = editorAdaptersFactoryService.GetBufferAdapter(subjectBuffer);
                 if (adapter != null)
                 {
-                    IOleUndoManager manager = null;
-                    if (ErrorHandler.Succeeded(adapter.GetUndoManager(out manager)))
+                    if (ErrorHandler.Succeeded(adapter.GetUndoManager(out var manager)))
                     {
                         return manager;
                     }

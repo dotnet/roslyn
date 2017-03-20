@@ -49,18 +49,6 @@ namespace Roslyn.Utilities
                 }
             }
 
-            private static class _RuntimeEnvironment
-            {
-                internal static readonly Type TypeOpt = ReflectionUtilities.TryGetType("System.Runtime.InteropServices.RuntimeEnvironment, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-
-                internal static readonly Func<string> GetRuntimeDirectoryOpt = TypeOpt?
-                    .GetTypeInfo()
-                    .GetDeclaredMethod("GetRuntimeDirectory", Array.Empty<Type>())?
-                    .CreateDelegate<Func<string>>();
-            }
-
-            internal static string TryGetRuntimeDirectory() => _RuntimeEnvironment.GetRuntimeDirectoryOpt?.Invoke();
-
             private static class _Assembly
             {
                 internal static readonly Type Type = typeof(Assembly);
@@ -69,6 +57,11 @@ namespace Roslyn.Utilities
                     .GetTypeInfo()
                     .GetDeclaredMethod("Load", typeof(byte[]))
                     .CreateDelegate<Func<byte[], Assembly>>();
+
+                internal static readonly Func<byte[], byte[], Assembly> Load_bytes_with_Pdb = Type
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("Load", typeof(byte[]), typeof(byte[]))
+                    .CreateDelegate<Func<byte[], byte[], Assembly>>();
 
                 internal static readonly Func<string, Assembly> LoadFile = Type
                     .GetTypeInfo()
@@ -135,6 +128,16 @@ namespace Roslyn.Utilities
                 }
 
                 return _Assembly.Load_bytes(peImage);
+            }
+
+            internal static Assembly LoadAssembly(byte[] peImage, byte[] pdbImage)
+            {
+                if (_Assembly.Load_bytes_with_Pdb == null)
+                {
+                    throw new PlatformNotSupportedException();
+                }
+
+                return _Assembly.Load_bytes_with_Pdb(peImage, pdbImage);
             }
 
             internal static Assembly LoadAssembly(string path)

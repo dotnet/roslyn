@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 private readonly PackageReference _reference;
 
-                internal override int? Glyph => (int)CodeAnalysis.Glyph.NuGet;
+                public override ImmutableArray<string> Tags => WellKnownTagArrays.NuGet;
 
                 // Adding a nuget reference is lower priority than other fixes..
                 internal override CodeActionPriority Priority => CodeActionPriority.Low;

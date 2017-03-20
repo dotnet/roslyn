@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -272,10 +273,11 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var newSemanticModel = await newDocument.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                 var enclosingNamespace = newSemanticModel.GetEnclosingNamespace(0, _cancellationToken);
 
-                var namespaceContainersAndUsings = GetNamespaceContainersAndAddUsingsOrImport(isDialog, folders, areFoldersValidIdentifiers, projectToBeUpdated, triggeringProject);
+                var namespaceContainersAndUsings = GetNamespaceContainersAndAddUsingsOrImport(
+                    isDialog, folders, areFoldersValidIdentifiers, projectToBeUpdated, triggeringProject);
 
-                var containers = namespaceContainersAndUsings.Item1;
-                var includeUsingsOrImports = namespaceContainersAndUsings.Item2;
+                var containers = namespaceContainersAndUsings.containers;
+                var includeUsingsOrImports = namespaceContainersAndUsings.usingOrImport;
 
                 var rootNamespaceOrType = namedType.GenerateRootNamespaceOrType(containers);
 
@@ -293,17 +295,28 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // 1: folders -> if triggered from Dialog
                 // 2: containers -> if triggered not from a Dialog but from QualifiedName
                 // 3: triggering document folder structure -> if triggered not from a Dialog and a SimpleName
-                var adjustedContainer = isDialog ? folders :
-                        _state.SimpleName != _state.NameOrMemberAccessExpression ? containers.ToList() : _document.Document.Folders.ToList();
+                var adjustedContainer = isDialog 
+                    ? folders 
+                    : _state.SimpleName != _state.NameOrMemberAccessExpression
+                        ? containers.ToList()
+                        : _document.Document.Folders.ToList();
 
                 // Now, take the code that would be generated and actually create an edit that would
                 // produce a document with that code in it.
+                var newRoot = await codeGenResult.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
+
+                if (newDocument.Project.Language == _document.Document.Project.Language)
+                {
+                    var syntaxFacts = _document.Document.GetLanguageService<ISyntaxFactsService>();
+                    var fileBanner = syntaxFacts.GetFileBanner(_document.Root);
+                    newRoot = newRoot.WithPrependedLeadingTrivia(fileBanner);
+                }
 
                 return await CreateAddDocumentAndUpdateUsingsOrImportsOperationsAsync(
                     projectToBeUpdated,
                     triggeringProject,
                     documentName,
-                    await codeGenResult.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false),
+                    newRoot,
                     _document.Document,
                     includeUsingsOrImports,
                     adjustedContainer,
@@ -437,7 +450,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return new CodeActionOperation[] { new ApplyChangesOperation(updatedSolution) };
             }
 
-            private Tuple<string[], string> GetNamespaceContainersAndAddUsingsOrImport(
+            private (string[] containers, string usingOrImport) GetNamespaceContainersAndAddUsingsOrImport(
                 bool isDialog,
                 IList<string> folders,
                 bool areFoldersValidIdentifiers,
@@ -467,18 +480,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 else
                 {
                     // Generated from the Dialog
-                    List<string> containerList = new List<string>();
+                    var containerList = new List<string>();
 
-                    string rootNamespaceOfTheProjectGeneratedInto;
-
-                    if (_targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange)
-                    {
-                        rootNamespaceOfTheProjectGeneratedInto = _service.GetRootNamespace(_generateTypeOptionsResult.Project.CompilationOptions).Trim();
-                    }
-                    else
-                    {
-                        rootNamespaceOfTheProjectGeneratedInto = _targetLanguageService.GetRootNamespace(_generateTypeOptionsResult.Project.CompilationOptions).Trim();
-                    }
+                    var rootNamespaceOfTheProjectGeneratedInto = 
+                        _targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange
+                            ? _service.GetRootNamespace(_generateTypeOptionsResult.Project.CompilationOptions).Trim()
+                            : _targetLanguageService.GetRootNamespace(_generateTypeOptionsResult.Project.CompilationOptions).Trim();
 
                     var projectManagementService = _document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
                     var defaultNamespace = _generateTypeOptionsResult.DefaultNamespace;
@@ -526,7 +533,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     Contract.Assert(includeUsingsOrImports != null);
                 }
 
-                return Tuple.Create(containers, includeUsingsOrImports);
+                return (containers, includeUsingsOrImports);
             }
 
             private async Task<IEnumerable<CodeActionOperation>> GetGenerateIntoTypeOperationsAsync(INamedTypeSymbol namedType)
@@ -599,16 +606,14 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 if (symbol != null && !symbol.IsStatic && parameterType.Language == symbol.Language)
                 {
-                    if (symbol is IFieldSymbol)
+                    if (symbol is IFieldSymbol field)
                     {
-                        var field = (IFieldSymbol)symbol;
                         return
                             !field.IsReadOnly &&
                             _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, field.Type);
                     }
-                    else if (symbol is IPropertySymbol)
+                    else if (symbol is IPropertySymbol property)
                     {
-                        var property = (IPropertySymbol)symbol;
                         return
                             property.Parameters.Length == 0 &&
                             property.SetMethod != null &&

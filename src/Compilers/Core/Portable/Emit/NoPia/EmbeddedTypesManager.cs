@@ -155,6 +155,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         protected abstract void OnGetTypesCompleted(ImmutableArray<TEmbeddedType> types, DiagnosticBag diagnostics);
         protected abstract void ReportNameCollisionBetweenEmbeddedTypes(TEmbeddedType typeA, TEmbeddedType typeB, DiagnosticBag diagnostics);
         protected abstract void ReportNameCollisionWithAlreadyDeclaredType(TEmbeddedType type, DiagnosticBag diagnostics);
+        protected abstract TAttributeData CreateCompilerGeneratedAttribute();
 
         private sealed class TypeComparer : IComparer<TEmbeddedType>
         {

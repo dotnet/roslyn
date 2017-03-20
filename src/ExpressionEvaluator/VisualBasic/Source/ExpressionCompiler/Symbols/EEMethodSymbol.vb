@@ -4,12 +4,16 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
-    Friend Delegate Function GenerateMethodBody(method As EEMethodSymbol, diagnostics As DiagnosticBag) As BoundStatement
+    Friend Delegate Function GenerateMethodBody(
+        method As EEMethodSymbol,
+        diagnostics As DiagnosticBag,
+        <Out> ByRef properties As ResultProperties) As BoundStatement
 
     Friend NotInheritable Class EEMethodSymbol
         Inherits MethodSymbol
@@ -37,6 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private ReadOnly _generateMethodBody As GenerateMethodBody
 
         Private _lazyReturnType As TypeSymbol
+        Private _lazyResultProperties As ResultProperties
 
         ' NOTE: This is only used for asserts, so it could be conditional on DEBUG.
         Private ReadOnly _allTypeParameters As ImmutableArray(Of TypeParameterSymbol)
@@ -167,14 +172,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Function MakeParameterSymbol(ordinal As Integer, name As String, sourceParameter As ParameterSymbol) As ParameterSymbol
-            Return New SynthesizedParameterSymbolWithCustomModifiers(
+            Return SynthesizedParameterSymbol.Create(
                 Me,
                 sourceParameter.Type,
                 ordinal,
                 sourceParameter.IsByRef,
                 name,
                 sourceParameter.CustomModifiers,
-                sourceParameter.CountOfCustomModifiersPrecedingByRef)
+                sourceParameter.RefCustomModifiers)
         End Function
 
         Public Overrides ReadOnly Property MethodKind As MethodKind
@@ -301,9 +306,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return 0
+                Return ImmutableArray(Of CustomModifier).Empty
             End Get
         End Property
 
@@ -427,6 +432,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
+        Friend ReadOnly Property ResultProperties As ResultProperties
+            Get
+                Return _lazyResultProperties
+            End Get
+        End Property
+
 #Disable Warning RS0010
         ''' <remarks>
         ''' The corresponding C# method, 
@@ -436,7 +447,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' </remarks>
 #Enable Warning RS0010
         Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out> ByRef Optional methodBodyBinder As Binder = Nothing) As BoundBlock
-            Dim body = _generateMethodBody(Me, diagnostics)
+            Dim body = _generateMethodBody(Me, diagnostics, _lazyResultProperties)
             Debug.Assert(body IsNot Nothing)
 
             _lazyReturnType = CalculateReturnType(body)

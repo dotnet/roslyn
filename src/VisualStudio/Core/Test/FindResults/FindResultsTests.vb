@@ -134,7 +134,7 @@ using System.Threading;
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml, exportProvider:=s_exportProvider)
+            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=s_exportProvider)
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If Not doc.CursorPosition.HasValue Then
@@ -150,7 +150,9 @@ using System.Threading;
                 Dim libraryManager = New LibraryManager(New MockServiceProvider(New MockComponentModel(workspace.ExportProvider)))
 
                 Dim factory = workspace.Services.GetService(Of IDefinitionsAndReferencesFactory)
-                Dim definitionsAndReferences = factory.CreateDefinitionsAndReferences(workspace.CurrentSolution, result)
+                Dim definitionsAndReferences = factory.CreateDefinitionsAndReferences(
+                    workspace.CurrentSolution, result,
+                    includeHiddenLocations:=False, cancellationToken:=CancellationToken.None)
                 Dim findReferencesTree = libraryManager.CreateFindReferencesItems(definitionsAndReferences)
 
                 ' We cannot control the ordering of top-level nodes in the Find Symbol References window, so do not consider ordering of these items here.

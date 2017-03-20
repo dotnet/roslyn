@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             return _classificationIdDescriptor;
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(s_fixableIdDescriptor, GetClassificationIdDescriptor());
 
         public bool OpenFileOnly(Workspace workspace) => true;
@@ -128,8 +128,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
     }
 }

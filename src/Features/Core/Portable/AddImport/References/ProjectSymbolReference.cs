@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -30,12 +32,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _project = project;
             }
 
-            protected override Glyph? GetGlyph(Document document)
+            protected override ImmutableArray<string> GetTags(Document document)
             {
                 return document.Project.Id == _project.Id
-                    ? default(Glyph?)
-                    : Glyph.AddReference;
+                    ? ImmutableArray<string>.Empty
+                    : WellKnownTagArrays.AddReference;
             }
+
+            /// <summary>
+            /// If we're adding a reference to another project, it's ok to still add, even if there
+            /// is an existing source-import in the file.  We won't add the import, but we'll still
+            /// add the project-reference.
+            /// </summary>
+            protected override bool ShouldAddWithExistingImport(Document document)
+                => document.Project.Id != _project.Id;
 
             protected override CodeActionPriority GetPriority(Document document)
             {
@@ -72,20 +82,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return newProject.Solution;
             }
 
-            protected override string TryGetDescription(
-                Document document, SyntaxNode node, 
+            protected override (string description, bool hasExistingImport) GetDescription(
+                Document document, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                var description = base.TryGetDescription(document, node, semanticModel, cancellationToken);
+                var (description, hasExistingImport) = base.GetDescription(document, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
-                    return null;
+                    return (null, false);
                 }
 
                 var project = document.Project;
-                return project.Id == _project.Id
+                description = project.Id == _project.Id
                     ? description
                     : string.Format(FeaturesResources.Add_reference_to_0, _project.Name);
+
+                return (description, hasExistingImport);
             }
 
             protected override Func<Workspace, bool> GetIsApplicableCheck(Project contextProject)
@@ -99,8 +111,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return workspace => workspace.CanAddProjectReference(contextProject.Id, _project.Id);
             }
 
-            protected override bool CheckForExistingImport(Project project) => project.Id == _project.Id;
-
             public override bool Equals(object obj)
             {
                 var reference = obj as ProjectSymbolReference;
@@ -109,9 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(_project.Id, base.GetHashCode());
-            }
+                => Hash.Combine(_project.Id, base.GetHashCode());
         }
     }
 }

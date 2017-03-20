@@ -13,6 +13,9 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -27,27 +30,17 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(VisualStudioWorkspaceImpl))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
-        private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemsPresenters;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
         private readonly IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> _referencedSymbolsPresenters;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
-            SVsServiceProvider serviceProvider,
-            SaveEventsService saveEventsService,
-            [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemsPresenters,
+            ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> referencedSymbolsPresenters,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
-            : base(
-                serviceProvider,
-                backgroundWork: WorkspaceBackgroundWork.ParseAndCompile)
+            : base(exportProvider.AsExportProvider())
         {
-            PrimaryWorkspace.Register(this);
-
-            InitializeStandardVisualStudioWorkspace(serviceProvider, saveEventsService);
-
-            _navigableItemsPresenters = navigableItemsPresenters;
             _streamingPresenters = streamingPresenters;
             _referencedSymbolsPresenters = referencedSymbolsPresenters;
 
@@ -64,7 +57,13 @@ namespace Microsoft.VisualStudio.LanguageServices
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            var project = ProjectTracker.GetProject(documentId.ProjectId);
+            if (DeferredState == null)
+            {
+                // We haven't gotten any projects added yet, so we don't know where this came from
+                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
+            }
+
+            var project = DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
             if (project == null)
             {
                 throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
@@ -96,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            var project = ProjectTracker.GetProject(documentId.ProjectId);
+            var project = DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
             if (project == null)
             {
                 return false;
@@ -133,17 +132,17 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         internal override IInvisibleEditor OpenInvisibleEditor(IVisualStudioHostDocument hostDocument)
         {
-            // We need to ensure the file is saved, only if a global undo transaction is open
             var globalUndoService = this.Services.GetService<IGlobalUndoService>();
-            var needsSave = globalUndoService.IsGlobalTransactionOpen(this);
-
             var needsUndoDisabled = false;
+
+            // Do not save the file if is open and there is not a global undo transaction.
+            var needsSave = globalUndoService.IsGlobalTransactionOpen(this) || !hostDocument.IsOpen;
             if (needsSave)
             {
                 if (this.CurrentSolution.ContainsDocument(hostDocument.Id))
                 {
                     // Disable undo on generated documents
-                    needsUndoDisabled = this.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode(this.CurrentSolution.GetDocument(hostDocument.Id));
+                    needsUndoDisabled = this.CurrentSolution.GetDocument(hostDocument.Id).IsGeneratedCode(CancellationToken.None);
                 }
                 else
                 {
@@ -152,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
-            return new InvisibleEditor(ServiceProvider, hostDocument.FilePath, needsSave, needsUndoDisabled);
+            return new InvisibleEditor(DeferredState.ServiceProvider, hostDocument.FilePath, needsSave, needsUndoDisabled);
         }
 
         private static bool TryResolveSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken, out ISymbol resolvedSymbol, out Project resolvedProject)
@@ -185,8 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public override bool TryGoToDefinition(
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!_navigableItemsPresenters.Any() &&
-                !_streamingPresenters.Any())
+            if (!_streamingPresenters.Any())
             {
                 return false;
             }
@@ -199,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             return GoToDefinitionHelpers.TryGoToDefinition(
                 searchSymbol, searchProject, 
-                _navigableItemsPresenters, _streamingPresenters, cancellationToken);
+                _streamingPresenters, cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
@@ -233,7 +231,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
             var service = this.Services.GetService<IDefinitionsAndReferencesFactory>();
-            var definitionsAndReferences = service.CreateDefinitionsAndReferences(solution, referencedSymbols);
+            var definitionsAndReferences = service.CreateDefinitionsAndReferences(
+                solution, referencedSymbols,
+                includeHiddenLocations: false, cancellationToken: CancellationToken.None);
 
             foreach (var presenter in _referencedSymbolsPresenters)
             {

@@ -159,9 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             object key,
             Func<TTextView, TProperty> valueCreator) where TTextView : ITextView
         {
-            TProperty value;
-
-            GetOrCreateAutoClosingProperty(textView, key, valueCreator, out value);
+            GetOrCreateAutoClosingProperty(textView, key, valueCreator, out var value);
             return value;
         }
 
@@ -186,8 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             object key,
             Func<TTextView, ITextBuffer, TProperty> valueCreator) where TTextView : class, ITextView
         {
-            TProperty value;
-            GetOrCreatePerSubjectBufferProperty(textView, subjectBuffer, key, valueCreator, out value);
+            GetOrCreatePerSubjectBufferProperty(textView, subjectBuffer, key, valueCreator, out var value);
 
             return value;
         }

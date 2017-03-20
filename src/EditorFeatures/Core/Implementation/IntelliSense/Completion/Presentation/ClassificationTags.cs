@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     return ClassificationTypeNames.Text;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(textTag);
             }
         }
     }

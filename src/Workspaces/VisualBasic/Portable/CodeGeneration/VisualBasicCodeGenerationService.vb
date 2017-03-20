@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Protected Overrides Function GetMemberComparer() As IComparer(Of SyntaxNode)
-            Return VisualBasicDeclarationComparer.Instance
+            Return VisualBasicDeclarationComparer.WithoutNamesInstance
         End Function
 
         Protected Overrides Function GetAvailableInsertionIndices(destination As SyntaxNode, cancellationToken As CancellationToken) As IList(Of Boolean)
@@ -483,8 +483,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim statementArray = statements.OfType(Of StatementSyntax).ToArray()
             Dim newBlock As SyntaxNode
             If options.BeforeThisLocation IsNot Nothing Then
-                Dim strippedTrivia As IEnumerable(Of SyntaxTrivia) = Nothing
-                Dim newStatement = oldStatement.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(strippedTrivia)
+                Dim strippedTrivia As ImmutableArray(Of SyntaxTrivia) = Nothing
+                Dim newStatement = VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(
+                    oldStatement, strippedTrivia)
 
                 statementArray(0) = statementArray(0).WithLeadingTrivia(strippedTrivia)
 

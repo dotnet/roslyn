@@ -53,18 +53,12 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// The original solution.
         /// </summary>
-        public Solution OriginalSolution
-        {
-            get { return _originalSolution; }
-        }
+        public Solution OriginalSolution => _originalSolution;
 
         /// <summary>
         /// The solution with the edits applied.
         /// </summary>
-        public Solution ChangedSolution
-        {
-            get { return _currentSolution; }
-        }
+        public Solution ChangedSolution => _currentSolution;
 
         /// <summary>
         /// The documents changed since the <see cref="SymbolEditor"/> was constructed.
@@ -140,8 +134,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     .ToImmutableDictionary(g => g.Key, g => ImmutableArray.CreateRange(g));
             }
 
-            ImmutableArray<ProjectId> projectIds;
-            if (!_assemblyNameToProjectIdMap.TryGetValue(assembly.Name, out projectIds))
+            if (!_assemblyNameToProjectIdMap.TryGetValue(assembly.Name, out var projectIds))
             {
                 projectIds = ImmutableArray<ProjectId>.Empty;
             }
@@ -239,9 +232,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
 
             CheckSymbolArgument(currentSymbol, symbol);
-
-            SyntaxNode declaration;
-            if (TryGetBestDeclarationForSingleEdit(currentSymbol, out declaration))
+            if (TryGetBestDeclarationForSingleEdit(currentSymbol, out var declaration))
             {
                 return await this.EditDeclarationAsync(currentSymbol, declaration, editAction, cancellationToken).ConfigureAwait(false);
             }

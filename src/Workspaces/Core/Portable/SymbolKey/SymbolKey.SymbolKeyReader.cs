@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis
             public bool IgnoreAssemblyKey { get; private set; }
             public SymbolEquivalenceComparer Comparer { get; private set; }
 
-            public IMethodSymbol CurrentMethod;
+            private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
 
             private SymbolKeyReader()
             {
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis
                 Compilation = null;
                 IgnoreAssemblyKey = false;
                 Comparer = null;
-                CurrentMethod = null;
+                _methodSymbolStack.Clear();
 
                 // Place us back in the pool for future use.
                 s_readerPool.Free(this);
@@ -360,10 +360,21 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            internal SyntaxTree GetSyntaxTree(string filePath)
+            public void PushMethod(IMethodSymbol methodOpt)
+                => _methodSymbolStack.Add(methodOpt);
+
+            public void PopMethod(IMethodSymbol methodOpt)
             {
-                return this.Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
+                Contract.ThrowIfTrue(_methodSymbolStack.Count == 0);
+                Contract.ThrowIfFalse(Equals(methodOpt, _methodSymbolStack.Last()));
+                _methodSymbolStack.RemoveAt(_methodSymbolStack.Count - 1);
             }
+
+            public IMethodSymbol ResolveMethod(int index)
+                => _methodSymbolStack[index];
+
+            internal SyntaxTree GetSyntaxTree(string filePath)
+                => this.Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
 
             #region Symbols
 

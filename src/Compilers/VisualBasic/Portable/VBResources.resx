@@ -285,18 +285,6 @@
   <data name="ERR_UnreferencedModuleEvent3" xml:space="preserve">
     <value>Reference required to module '{0}' containing the definition for event '{1}'. Add one to your project.</value>
   </data>
-  <data name="ERR_UnreferencedAssemblyBase3" xml:space="preserve">
-    <value>Reference required to assembly '{0}' containing the base class '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedModuleBase3" xml:space="preserve">
-    <value>Reference required to module '{0}' containing the base class '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedAssemblyImplements3" xml:space="preserve">
-    <value>Reference required to assembly '{0}' containing the implemented interface '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedModuleImplements3" xml:space="preserve">
-    <value>Reference required to module '{0}' containing the implemented interface '{1}'. Add one to your project.</value>
-  </data>
   <data name="ERR_LbExpectedEndIf" xml:space="preserve">
     <value>'#If' block must end with a matching '#End If'.</value>
   </data>
@@ -1869,8 +1857,8 @@
   <data name="ERR_EventHandlerSignatureIncompatible2" xml:space="preserve">
     <value>Method '{0}' cannot handle event '{1}' because they do not have a compatible signature.</value>
   </data>
-  <data name="ERR_ProjectCCError1" xml:space="preserve">
-    <value>Project-level conditional compilation constant '{1}' is not valid: {0}</value>
+  <data name="ERR_ConditionalCompilationConstantNotValid" xml:space="preserve">
+    <value>Conditional compilation constant '{1}' is not valid: {0}</value>
   </data>
   <data name="ERR_InterfaceImplementedTwice1" xml:space="preserve">
     <value>Interface '{0}' can be implemented only once by this type.</value>
@@ -4352,6 +4340,15 @@
   <data name="ERR_PublicSignNoKey" xml:space="preserve">
     <value>Public sign was specified and requires a public key, but no public key was specified</value>
   </data>
+  <data name="ERR_PublicSignNetModule" xml:space="preserve">
+    <value>Public signing is not supported for netmodules.</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning" xml:space="preserve">
+    <value>Attribute '{0}' is ignored when public signing is specified.</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning_Title" xml:space="preserve">
+    <value>Attribute is ignored when public signing is specified.</value>
+  </data>
   <data name="WRN_DelaySignButNoKey" xml:space="preserve">
     <value>Delay signing was specified and requires a public key, but no public key was specified.</value>
   </data>
@@ -4847,8 +4844,8 @@
   <data name="ERR_NetModuleNameMismatch" xml:space="preserve">
     <value>Module name '{0}' stored in '{1}' must match its filename.</value>
   </data>
-  <data name="ERR_BadCompilationOption" xml:space="preserve">
-    <value>{0}</value>
+  <data name="ERR_BadModuleName" xml:space="preserve">
+    <value>Invalid module name: {0}</value>
   </data>
   <data name="WRN_AssemblyAttributeFromModuleIsOverridden" xml:space="preserve">
     <value>Attribute '{0}' from module '{1}' will be ignored in favor of the instance appearing in source.</value>
@@ -5266,7 +5263,7 @@
   <data name="ERR_InvalidFormatSpecifier" xml:space="preserve">
     <value>'{0}' is not a valid format specifier</value>
   </data>
-  <data name="IDS_InvalidPreprocessorConstantType" xml:space="preserve">
+  <data name="ERR_InvalidPreprocessorConstantType" xml:space="preserve">
     <value>Preprocessor constant '{0}' of type '{1}' is not supported, only primitive types are allowed.</value>
   </data>
   <data name="ERR_ExpectedWarningKeyword" xml:space="preserve">
@@ -5460,5 +5457,23 @@
   </data>
   <data name="ERR_DocFileGen" xml:space="preserve">
     <value>Error writing to XML documentation file: {0}</value>
+  </data>
+  <data name="ERR_BadAssemblyName" xml:space="preserve">
+    <value>Invalid assembly name: {0}</value>
+  </data>
+  <data name="ERR_TypeForwardedToMultipleAssemblies" xml:space="preserve">
+    <value>Module '{0}' in assembly '{1}' is forwarding the type '{2}' to multiple assemblies: '{3}' and '{4}'.</value>
+  </data>
+  <data name="ERR_Merge_conflict_marker_encountered" xml:space="preserve">
+    <value>Merge conflict marker encountered</value>
+  </data>
+  <data name="ERR_BadDocumentationMode" xml:space="preserve">
+    <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_BadLanguageVersion" xml:space="preserve">
+    <value>Provided language version is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_BadSourceCodeKind" xml:space="preserve">
+    <value>Provided source code kind is unsupported or invalid: '{0}'</value>
   </data>
 </root>

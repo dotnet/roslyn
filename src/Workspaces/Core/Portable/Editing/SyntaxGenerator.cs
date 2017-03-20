@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Editing
         public static SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
+
+        internal abstract SyntaxTrivia EndOfLine(string text);
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
@@ -310,6 +313,16 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
+        /// Creates a statement that adds the given handler to the given event.
+        /// </summary>
+        public abstract SyntaxNode AddEventHandler(SyntaxNode @event, SyntaxNode handler);
+
+        /// <summary>
+        /// Creates a statement that removes the given handler from the given event.
+        /// </summary>
+        public abstract SyntaxNode RemoveEventHandler(SyntaxNode @event, SyntaxNode handler);
+
+        /// <summary>
         /// Creates an event declaration.
         /// </summary>
         public abstract SyntaxNode EventDeclaration(
@@ -351,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode> removeAccessorStatements = null)
         {
             var invoke = symbol.Type.GetMembers("Invoke").FirstOrDefault(m => m.Kind == SymbolKind.Method) as IMethodSymbol;
-            var parameters = invoke != null ? invoke.Parameters.Select(p => this.ParameterDeclaration(p)) : null;
+            var parameters = invoke?.Parameters.Select(p => this.ParameterDeclaration(p));
 
             return CustomEventDeclaration(
                 symbol.Name,
@@ -535,7 +548,7 @@ namespace Microsoft.CodeAnalysis.Editing
                                 accessibility: type.DeclaredAccessibility,
                                 modifiers: DeclarationModifiers.From(type),
                                 baseType: TypeExpression(type.BaseType),
-                                interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
+                                interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
                                 members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Struct:
@@ -543,14 +556,14 @@ namespace Microsoft.CodeAnalysis.Editing
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
                                 modifiers: DeclarationModifiers.From(type),
-                                interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
+                                interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
                                 members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Interface:
                             declaration = InterfaceDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
-                                interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
+                                interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
                                 members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Enum:
@@ -800,9 +813,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Removes all attributes from the declaration, including return attributes.
         /// </summary>
         public SyntaxNode RemoveAllAttributes(SyntaxNode declaration)
-        {
-            return this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
-        }
+            => this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
 
         internal SyntaxNode RemoveAllComments(SyntaxNode declaration)
         {
@@ -811,6 +822,11 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         internal abstract bool IsRegularOrDocComment(SyntaxTrivia trivia);
+
+        internal SyntaxNode RemoveAllTypeInheritance(SyntaxNode declaration)
+            => this.RemoveNodes(declaration, this.GetTypeInheritance(declaration));
+
+        internal abstract ImmutableArray<SyntaxNode> GetTypeInheritance(SyntaxNode declaration);
 
         /// <summary>
         /// Gets the attributes of a declaration, not including the return attributes.
@@ -1379,6 +1395,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode SwitchSection(IEnumerable<SyntaxNode> caseExpressions, IEnumerable<SyntaxNode> statements);
 
+        internal abstract SyntaxNode SwitchSectionFromLabels(IEnumerable<SyntaxNode> labels, IEnumerable<SyntaxNode> statements);
+
         /// <summary>
         /// Creates a single-case section a switch statement.
         /// </summary>
@@ -1414,6 +1432,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a statement that represents a using-block pattern.
         /// </summary>
         public abstract SyntaxNode UsingStatement(SyntaxNode expression, IEnumerable<SyntaxNode> statements);
+
+        /// <summary>
+        /// Creates a statement that represents a lock-block pattern.
+        /// </summary>
+        public abstract SyntaxNode LockStatement(SyntaxNode expression, IEnumerable<SyntaxNode> statements);
 
         /// <summary>
         /// Creates a try-catch or try-catch-finally statement.
@@ -1457,6 +1480,8 @@ namespace Microsoft.CodeAnalysis.Editing
         #endregion
 
         #region Expressions
+
+        internal abstract SyntaxToken NumericLiteralToken(string text, ulong value);
 
         internal abstract SyntaxToken InterpolatedStringTextToken(string content);
         internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
@@ -1612,6 +1637,19 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol);
 
         /// <summary>
+        /// Creates an expression that denotes a type. If addImport is false,
+        /// adds a <see cref="DoNotAddImportsAnnotation"/> which will prevent any
+        /// imports or usings from being added for the type.
+        /// </summary>
+        public SyntaxNode TypeExpression(ITypeSymbol typeSymbol, bool addImport)
+        {
+            var expression = TypeExpression(typeSymbol);
+            return addImport
+                ? expression
+                : expression.WithAdditionalAnnotations(DoNotAddImportsAnnotation.Annotation);
+        }
+
+        /// <summary>
         /// Creates an expression that denotes a special type name.
         /// </summary>
         public abstract SyntaxNode TypeExpression(SpecialType specialType);
@@ -1755,6 +1793,8 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         internal abstract SyntaxNode MemberAccessExpressionWorker(SyntaxNode expression, SyntaxNode memberName);
+
+        internal abstract SyntaxNode RefExpression(SyntaxNode expression);
 
         /// <summary>
         /// Creates a member access expression.

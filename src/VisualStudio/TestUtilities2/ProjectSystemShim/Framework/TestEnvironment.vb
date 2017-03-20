@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 AggregateAsynchronousOperationListener.CreateEmptyListener())
 
             Dim documentTrackingService = New VisualStudioDocumentTrackingService(_serviceProvider)
-            Dim documentProvider = New RoslynDocumentProvider(_projectTracker, _serviceProvider, documentTrackingService)
+            Dim documentProvider = New DocumentProvider(_projectTracker, _serviceProvider, documentTrackingService)
 
             _projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider)
 
@@ -59,12 +59,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
         Public Sub NotifySolutionAsFullyLoaded()
             _monitorSelectionMock.SolutionIsFullyLoaded = True
-            GetSolutionLoadEvents().OnAfterBackgroundSolutionLoadComplete()
+            _projectTracker.OnAfterBackgroundSolutionLoadComplete()
         End Sub
-
-        Public Function GetSolutionLoadEvents() As IVsSolutionLoadEvents
-            Return DirectCast(_projectTracker, IVsSolutionLoadEvents)
-        End Function
 
         Public ReadOnly Property ProjectTracker As VisualStudioProjectTracker
             Get

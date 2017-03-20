@@ -1691,9 +1691,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return _originalDefinition.CountOfCustomModifiersPrecedingByRef
+                Return _originalDefinition.RefCustomModifiers
             End Get
         End Property
 
@@ -1939,9 +1939,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
                 Get
-                    Return _originalDefinition.CountOfCustomModifiersPrecedingByRef
+                    Return _originalDefinition.RefCustomModifiers
                 End Get
             End Property
 

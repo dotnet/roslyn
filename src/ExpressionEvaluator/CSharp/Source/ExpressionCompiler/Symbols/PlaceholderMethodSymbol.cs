@@ -163,9 +163,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            get { return 0; }
+            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override ImmutableArray<TypeSymbol> TypeArguments

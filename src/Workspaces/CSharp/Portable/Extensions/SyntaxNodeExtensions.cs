@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -182,50 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return containingNamespace.GetAncestors<NamespaceDeclarationSyntax>().FirstOrDefault(n => n.Usings.Count > 0);
                 }
             }
-        }
-
-        // Matches the following:
-        //
-        // (whitespace* newline)+ 
-        private static readonly Matcher<SyntaxTrivia> s_oneOrMoreBlankLines;
-
-        // Matches the following:
-        // 
-        // (whitespace* (single-comment|multi-comment) whitespace* newline)+ OneOrMoreBlankLines
-        private static readonly Matcher<SyntaxTrivia> s_bannerMatcher;
-
-        // Used to match the following:
-        //
-        // <start-of-file> (whitespace* (single-comment|multi-comment) whitespace* newline)+ blankLine*
-        private static readonly Matcher<SyntaxTrivia> s_fileBannerMatcher;
-
-        static SyntaxNodeExtensions()
-        {
-            var whitespace = Matcher.Repeat(Match(SyntaxKind.WhitespaceTrivia, "\\b"));
-            var endOfLine = Match(SyntaxKind.EndOfLineTrivia, "\\n");
-            var singleBlankLine = Matcher.Sequence(whitespace, endOfLine);
-
-            var shebangComment = Match(SyntaxKind.ShebangDirectiveTrivia, "#!");
-            var singleLineComment = Match(SyntaxKind.SingleLineCommentTrivia, "//");
-            var multiLineComment = Match(SyntaxKind.MultiLineCommentTrivia, "/**/");
-            var anyCommentMatcher = Matcher.Choice(shebangComment, singleLineComment, multiLineComment);
-
-            var commentLine = Matcher.Sequence(whitespace, anyCommentMatcher, whitespace, endOfLine);
-
-            s_oneOrMoreBlankLines = Matcher.OneOrMore(singleBlankLine);
-            s_bannerMatcher =
-                Matcher.Sequence(
-                    Matcher.OneOrMore(commentLine),
-                    s_oneOrMoreBlankLines);
-            s_fileBannerMatcher =
-                Matcher.Sequence(
-                    Matcher.OneOrMore(commentLine),
-                    Matcher.Repeat(singleBlankLine));
-        }
-
-        private static Matcher<SyntaxTrivia> Match(SyntaxKind kind, string description)
-        {
-            return Matcher.Single<SyntaxTrivia>(t => t.Kind() == kind, description);
         }
 
         public static IEnumerable<SyntaxTrivia> GetAllPrecedingTriviaToPreviousToken(
@@ -557,113 +515,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return result;
         }
 
-        public static IEnumerable<SyntaxTrivia> GetLeadingBlankLines<TSyntaxNode>(
-            this TSyntaxNode node)
-            where TSyntaxNode : SyntaxNode
-        {
-            IEnumerable<SyntaxTrivia> blankLines;
-            node.GetNodeWithoutLeadingBlankLines(out blankLines);
-            return blankLines;
-        }
+        public static ImmutableArray<SyntaxTrivia> GetLeadingBlankLines<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.GetLeadingBlankLines(node);
 
-        public static TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(
-            this TSyntaxNode node)
-            where TSyntaxNode : SyntaxNode
-        {
-            IEnumerable<SyntaxTrivia> blankLines;
-            return node.GetNodeWithoutLeadingBlankLines(out blankLines);
-        }
+        public static TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.GetNodeWithoutLeadingBlankLines(node);
 
-        public static TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(
-            this TSyntaxNode node, out IEnumerable<SyntaxTrivia> strippedTrivia)
-            where TSyntaxNode : SyntaxNode
-        {
-            var leadingTriviaToKeep = new List<SyntaxTrivia>(node.GetLeadingTrivia());
+        public static TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(this TSyntaxNode node, out ImmutableArray<SyntaxTrivia> strippedTrivia) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.GetNodeWithoutLeadingBlankLines(node, out strippedTrivia);
 
-            var index = 0;
-            s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref index);
+        public static ImmutableArray<SyntaxTrivia> GetLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.GetLeadingBannerAndPreprocessorDirectives(node);
 
-            strippedTrivia = new List<SyntaxTrivia>(leadingTriviaToKeep.Take(index));
+        public static TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node);
 
-            return node.WithLeadingTrivia(leadingTriviaToKeep.Skip(index));
-        }
-
-        public static IEnumerable<SyntaxTrivia> GetLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(
-            this TSyntaxNode node)
-            where TSyntaxNode : SyntaxNode
-        {
-            IEnumerable<SyntaxTrivia> leadingTrivia;
-            node.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(out leadingTrivia);
-            return leadingTrivia;
-        }
-
-        public static TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(
-            this TSyntaxNode node)
-            where TSyntaxNode : SyntaxNode
-        {
-            IEnumerable<SyntaxTrivia> strippedTrivia;
-            return node.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(out strippedTrivia);
-        }
-
-        public static TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(
-            this TSyntaxNode node, out IEnumerable<SyntaxTrivia> strippedTrivia)
-            where TSyntaxNode : SyntaxNode
-        {
-            var leadingTrivia = node.GetLeadingTrivia();
-
-            // Rules for stripping trivia: 
-            // 1) If there is a pp directive, then it (and all preceding trivia) *must* be stripped.
-            //    This rule supersedes all other rules.
-            // 2) If there is a doc comment, it cannot be stripped.  Even if there is a doc comment,
-            //    followed by 5 new lines, then the doc comment still must stay with the node.  This
-            //    rule does *not* supersede rule 1.
-            // 3) Single line comments in a group (i.e. with no blank lines between them) belong to
-            //    the node *iff* there is no blank line between it and the following trivia.
-
-            List<SyntaxTrivia> leadingTriviaToStrip, leadingTriviaToKeep;
-
-            int ppIndex = -1;
-            for (int i = leadingTrivia.Count - 1; i >= 0; i--)
-            {
-                if (SyntaxFacts.IsPreprocessorDirective(leadingTrivia[i].Kind()))
-                {
-                    ppIndex = i;
-                    break;
-                }
-            }
-
-            if (ppIndex != -1)
-            {
-                // We have a pp directive.  it (and all previous trivia) must be stripped.
-                leadingTriviaToStrip = new List<SyntaxTrivia>(leadingTrivia.Take(ppIndex + 1));
-                leadingTriviaToKeep = new List<SyntaxTrivia>(leadingTrivia.Skip(ppIndex + 1));
-            }
-            else
-            {
-                leadingTriviaToKeep = new List<SyntaxTrivia>(leadingTrivia);
-                leadingTriviaToStrip = new List<SyntaxTrivia>();
-            }
-
-            // Now, consume as many banners as we can.  s_fileBannerMatcher will only be matched at
-            // the start of the file.
-            var index = 0;
-            while (
-                s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref index) ||
-                s_bannerMatcher.TryMatch(leadingTriviaToKeep, ref index) ||
-                (node.FullSpan.Start == 0 && s_fileBannerMatcher.TryMatch(leadingTriviaToKeep, ref index)))
-            {
-            }
-
-            leadingTriviaToStrip.AddRange(leadingTriviaToKeep.Take(index));
-
-            strippedTrivia = leadingTriviaToStrip;
-            return node.WithLeadingTrivia(leadingTriviaToKeep.Skip(index));
-        }
+        public static TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node, out ImmutableArray<SyntaxTrivia> strippedTrivia) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out strippedTrivia);
 
         public static bool IsAnyAssignExpression(this SyntaxNode node)
-        {
-            return SyntaxFacts.IsAssignmentExpression(node.Kind());
-        }
+            => SyntaxFacts.IsAssignmentExpression(node.Kind());
 
         public static bool IsCompoundAssignExpression(this SyntaxNode node)
         {
@@ -1123,6 +994,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return result;
+        }
+
+        public static bool IsInExpressionTree(
+            this SyntaxNode node, SemanticModel semanticModel,
+            INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+        {
+            if (expressionTypeOpt != null)
+            {
+                for (var current = node; current != null; current = current.Parent)
+                {
+                    if (current.IsAnyLambda())
+                    {
+                        var typeInfo = semanticModel.GetTypeInfo(current, cancellationToken);
+                        if (expressionTypeOpt.Equals(typeInfo.ConvertedType?.OriginalDefinition))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static SyntaxNode WithPrependedNonIndentationTriviaFrom(
+            this SyntaxNode to, SyntaxNode from)
+        {
+            // get all the preceding trivia from the 'from' node, not counting the leading
+            // indentation trivia is has.
+            var finalTrivia = from.GetLeadingTrivia().ToList();
+            while (finalTrivia.Count > 0 && finalTrivia.Last().Kind() == SyntaxKind.WhitespaceTrivia)
+            {
+                finalTrivia.RemoveAt(finalTrivia.Count - 1);
+            }
+
+            // Also, add on the trailing trivia if there are trailing comments.
+            var hasTrailingComments = from.GetTrailingTrivia().Any(t => t.IsRegularComment());
+            if (hasTrailingComments)
+            {
+                finalTrivia.AddRange(from.GetTrailingTrivia());
+            }
+
+            // Merge this trivia with the existing trivia on the node.  Format in case
+            // we added comments and need them indented properly.
+            return to.WithPrependedLeadingTrivia(finalTrivia)
+                     .WithAdditionalAnnotations(Formatter.Annotation);
         }
     }
 }

@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 get
                 {
-                    ImmutableArray<SyntaxToken> result;
-                    return _dictionary.TryGetValue(identifier, out result)
+                    return _dictionary.TryGetValue(identifier, out var result)
                         ? result
                         : ImmutableArray.Create<SyntaxToken>();
                 }

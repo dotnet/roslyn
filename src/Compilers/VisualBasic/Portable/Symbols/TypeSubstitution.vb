@@ -181,18 +181,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result.ToImmutableAndFree()
         End Function
 
-        Public Function GetTypeArgumentsCustomModifiersFor(originalDefinition As NamedTypeSymbol) As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+        Public Function GetTypeArgumentsCustomModifiersFor(originalDefinition As TypeParameterSymbol) As ImmutableArray(Of CustomModifier)
             Debug.Assert(originalDefinition IsNot Nothing)
             Debug.Assert(originalDefinition.IsDefinition)
-            Debug.Assert(originalDefinition.Arity > 0)
 
             Dim current As TypeSubstitution = Me
-            Dim result = ArrayBuilder(Of ImmutableArray(Of CustomModifier)).GetInstance(originalDefinition.Arity, ImmutableArray(Of CustomModifier).Empty)
 
             Do
-                If current.TargetGenericDefinition Is originalDefinition Then
+                If current.TargetGenericDefinition Is originalDefinition.ContainingSymbol Then
                     For Each p In current.Pairs
-                        result(p.Key.Ordinal) = p.Value.CustomModifiers
+                        If p.Key.Ordinal = originalDefinition.Ordinal Then
+                            Return p.Value.CustomModifiers
+                        End If
                     Next
 
                     Exit Do
@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 current = current.Parent
             Loop While current IsNot Nothing
 
-            Return result.ToImmutableAndFree()
+            Return ImmutableArray(Of CustomModifier).Empty
         End Function
 
         Public Function HasTypeArgumentsCustomModifiersFor(originalDefinition As NamedTypeSymbol) As Boolean

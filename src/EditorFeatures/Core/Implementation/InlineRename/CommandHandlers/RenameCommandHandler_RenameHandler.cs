@@ -24,9 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return nextHandler();
             }
 
-            Workspace workspace;
             var textContainer = args.SubjectBuffer.AsTextContainer();
-            if (!Workspace.TryGetWorkspace(textContainer, out workspace))
+            if (!Workspace.TryGetWorkspace(textContainer, out var workspace))
             {
                 return nextHandler();
             }
@@ -61,8 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void ExecuteRenameWorker(RenameCommandArgs args, CancellationToken cancellationToken)
         {
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(snapshot.AsText().Container, out workspace))
+            if (!Workspace.TryGetWorkspace(snapshot.AsText().Container, out var workspace))
             {
                 return;
             }
@@ -79,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 // Is the caret within any of the rename fields in this buffer?
                 // If so, focus the dashboard
-                SnapshotSpan editableSpan;
-                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out editableSpan))
+                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var editableSpan))
                 {
                     var dashboard = GetDashboard(args.TextView);
                     dashboard.Focus();

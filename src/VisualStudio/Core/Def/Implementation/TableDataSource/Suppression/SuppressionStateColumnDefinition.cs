@@ -41,8 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public override bool TryCreateToolTip(ITableEntryHandle entry, out object toolTip)
         {
-            object content;
-            if (entry.TryGetValue(ColumnName, out content) &&
+            if (entry.TryGetValue(ColumnName, out var content) &&
                 content as string == ServicesVSResources.NotApplicable)
             {
                 toolTip = ServicesVSResources.SuppressionNotSupportedToolTip;

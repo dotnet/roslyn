@@ -127,8 +127,7 @@ namespace Roslyn.Utilities
 
         public static bool AreSimilar(string originalText, string candidateText, bool substringsAreSimilar)
         {
-            double unused;
-            return AreSimilar(originalText, candidateText, substringsAreSimilar, out unused);
+            return AreSimilar(originalText, candidateText, substringsAreSimilar, out var unused);
         }
 
         public static bool AreSimilar(string originalText, string candidateText, out double similarityWeight)
@@ -158,8 +157,7 @@ namespace Roslyn.Utilities
 
         public bool AreSimilar(string candidateText)
         {
-            double similarityWeight;
-            return AreSimilar(candidateText, out similarityWeight);
+            return AreSimilar(candidateText, out var similarityWeight);
         }
 
         public bool AreSimilar(string candidateText, out double similarityWeight)

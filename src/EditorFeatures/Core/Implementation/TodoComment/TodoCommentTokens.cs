@@ -5,8 +5,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Globalization;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 {
@@ -47,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                     continue;
                 }
 
-                int priority;
-                if (!int.TryParse(pair[1], NumberStyles.None, CultureInfo.InvariantCulture, out priority))
+                if (!int.TryParse(pair[1], NumberStyles.None, CultureInfo.InvariantCulture, out var priority))
                 {
                     continue;
                 }

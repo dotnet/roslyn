@@ -15,12 +15,49 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal abstract class DecisionTree
     {
+        /// <summary>
+        /// The input expression to this branch of the decision tree.
+        /// </summary>
         public readonly BoundExpression Expression;
+
+        /// <summary>
+        /// The type of the input at this branch of the decision tree.
+        /// </summary>
         public readonly TypeSymbol Type;
+
+        /// <summary>
+        /// A temporary variable that is holding the computed input at this branch.
+        /// </summary>
         public LocalSymbol Temp;
+
+        /// <summary>
+        /// True if this decision tree fully handles all possible values of its input.
+        /// </summary>
         public bool MatchIsComplete;
 
-        public enum DecisionKind { ByType, ByValue, Guarded }
+        /// <summary>
+        /// The three different kinds of nodes in the decision tree.
+        /// </summary>
+        public enum DecisionKind {
+            /// <summary>
+            /// For the type <see cref="DecisionTree.ByType"/>
+            /// </summary>
+            ByType,
+
+            /// <summary>
+            /// For the type <see cref="DecisionTree.ByValue"/>
+            /// </summary>
+            ByValue,
+
+            /// <summary>
+            /// For the type <see cref="DecisionTree.Guarded"/>
+            /// </summary>
+            Guarded
+        }
+
+        /// <summary>
+        /// The kind of this node in the decision tree.
+        /// </summary>
         public abstract DecisionKind Kind { get; }
 
 #if DEBUG
@@ -41,6 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(this.Type != null);
         }
 
+        /// <summary>
+        /// Create a fresh decision tree for the given input expression of the given type.
+        /// </summary>
         public static DecisionTree Create(BoundExpression expression, TypeSymbol type, Symbol enclosingSymbol)
         {
             Debug.Assert(expression.Type == type);
@@ -53,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expression = new BoundLocal(expression.Syntax, temp, null, type);
             }
 
-            if (expression.Type.CanBeAssignedNull())
+            if (expression.Type.CanContainNull())
             {
                 // We need the ByType decision tree to separate null from non-null values.
                 // Note that, for the purpose of the decision tree (and subsumption), we
@@ -70,6 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// A decision tree node that branches based on (1) whether the input value is null, (2) the runtime
+        /// type of the input expression, and finally (3) a default decision tree if nothing in the previous
+        /// cases handles the input.
+        /// </summary>
         public class ByType : DecisionTree
         {
             public DecisionTree WhenNull;
@@ -103,10 +148,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
         }
 
+        /// <summary>
+        /// A decision tree that, given a non-null input of a type, dispatches based on the
+        /// value of that type. The <see cref="ValueAndDecision"/> map will be empty unless the type is a
+        /// built-in type because other types do not have constant values. In that case only the
+        /// <see cref="Default"/> part of the decision tree is used.
+        /// </summary>
         public class ByValue : DecisionTree
         {
+            /// <summary>
+            /// A map from the constant value to the decision that should be taken when the input has that value.
+            /// </summary>
             public readonly Dictionary<object, DecisionTree> ValueAndDecision =
                 new Dictionary<object, DecisionTree>();
+            /// <summary>
+            /// The default decision if no value matches, or the matched value's decision doesn't handle all inputs.
+            /// </summary>
             public DecisionTree Default;
             public override DecisionKind Kind => DecisionKind.ByValue;
             public ByValue(BoundExpression expression, TypeSymbol type, LocalSymbol temp) : base(expression, type, temp) { }
@@ -129,15 +186,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
         }
 
+        /// <summary>
+        /// A guarded decision tree, which simply binds a set of variables (this is used to assign to the
+        /// pattern variables of the switch case), optionally evaluates a Guard expression (which corresponds
+        /// to the `when` expression of a switch case), and the branches to a given label if the guard
+        /// is true (or there is no guard).
+        /// </summary>
         public class Guarded : DecisionTree
         {
-            // A sequence of bindings to be assigned before evaluation of the guard or jump to the label.
-            // Each one contains the source of the assignment and the destination of the assignment, in that order.
+            /// <summary>
+            /// A sequence of bindings to be assigned before evaluation of the guard or jump to the label.
+            /// Each one contains the source of the assignment and the destination of the assignment, in that order.
+            /// </summary>
             public readonly ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>> Bindings;
+            /// <summary>
+            /// The syntax node corresponding to the switch section.
+            /// </summary>
             public readonly SyntaxNode SectionSyntax;
+            /// <summary>
+            /// The (optional) guard expression.
+            /// </summary>
             public readonly BoundExpression Guard;
+            /// <summary>
+            /// The label to jump to if the guard is true (or there is no guard).
+            /// </summary>
             public readonly BoundPatternSwitchLabel Label;
-            public DecisionTree Default = null; // decision tree to use if the Guard is false
+            /// <summary>
+            /// The decision tree to use if the Guard evaluates to false.
+            /// </summary>
+            public DecisionTree Default = null;
             public override DecisionKind Kind => DecisionKind.Guarded;
             public Guarded(
                 BoundExpression expression,

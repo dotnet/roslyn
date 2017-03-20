@@ -128,9 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
-            internal override ushort CountOfCustomModifiersPrecedingByRef
+            public override ImmutableArray<CustomModifier> RefCustomModifiers
             {
-                get { return 0; }
+                get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
             internal override Microsoft.Cci.CallingConvention CallingConvention

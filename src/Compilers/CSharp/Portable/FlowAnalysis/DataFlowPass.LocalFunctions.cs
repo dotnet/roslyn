@@ -61,7 +61,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (reads[slot])
                 {
                     var symbol = variableBySlot[slot].Symbol;
-                    CheckAssigned(symbol, syntax, slot);
+                    CheckIfAssignedDuringLocalFunctionReplay(symbol, syntax, slot);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Check that the given variable is definitely assigned when replaying local function
+        /// reads. If not, produce an error.
+        /// </summary>
+        /// <remarks>
+        /// Specifying the slot manually may be necessary if the symbol is a field,
+        /// in which case <see cref="VariableSlot(Symbol, int)"/> will not know
+        /// which containing slot to look for.
+        /// </remarks>
+        private void CheckIfAssignedDuringLocalFunctionReplay(Symbol symbol, SyntaxNode node, int slot)
+        {
+            Debug.Assert(!IsConditionalState);
+            if ((object)symbol != null)
+            {
+                NoteRead(symbol);
+
+                if (this.State.Reachable)
+                {
+                    if (slot >= this.State.Assigned.Capacity)
+                    {
+                        Normalize(ref this.State);
+                    }
+
+                    if (slot > 0 && !this.State.IsAssigned(slot))
+                    {
+                        // Local functions can "call forward" to after a variable has
+                        // been declared but before it has been assigned, so we can never
+                        // consider the declaration location when reporting errors.
+                        ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration: false);
+                    }
                 }
             }
         }
@@ -159,7 +193,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(localFunc != null);
 
             var usages = GetOrCreateLocalFuncUsages(localFunc);
-            usages.ReadVars[slot] = true;
+
+            // If this slot is a struct with individually assignable
+            // fields we need to record each field assignment separately,
+            // since some fields may be assigned when this read is replayed
+            VariableIdentifier id = variableBySlot[slot];
+            var type = VariableType(id.Symbol);
+
+            Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
+            
+            if (EmptyStructTypeCache.IsTrackableStructType(type))
+            {
+                foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(type))
+                {
+                    int fieldSlot = GetOrCreateSlot(field, slot);
+                    if (fieldSlot > 0 && !State.IsAssigned(fieldSlot))
+                    {
+                        RecordReadInLocalFunction(fieldSlot);
+                    }
+                }
+            }
+            else
+            {
+                usages.ReadVars[slot] = true;
+            }
         }
 
         private bool RecordChangedVars(ref LocalState oldWrites,

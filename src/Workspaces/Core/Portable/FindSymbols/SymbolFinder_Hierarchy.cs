@@ -219,9 +219,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // A symbol can only have implementations if it's an interface or a
             // method/property/event from an interface.
             var symbol = symbolAndProjectId.Symbol;
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
-                var namedTypeSymbol = (INamedTypeSymbol)symbol;
                 var implementingTypes = await DependentTypeFinder.FindTransitivelyImplementingTypesAsync(namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
                 return implementingTypes.Select(s => (SymbolAndProjectId)s)
                                         .Where(IsAccessible)
@@ -356,8 +355,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return false;
             }
 
-            Compilation symbolToMatchCompilation = null;
-            if (!TryGetCompilation(symbolToMatch, solution, out symbolToMatchCompilation, cancellationToken))
+            if (!TryGetCompilation(symbolToMatch, solution, out var symbolToMatchCompilation, cancellationToken))
             {
                 return false;
             }

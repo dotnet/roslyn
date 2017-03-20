@@ -10,8 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
     {
         public static VsTextSpan GetVsTextSpanForSpan(this SourceText text, TextSpan textSpan)
         {
-            int startLine, startOffset, endLine, endOffset;
-            text.GetLinesAndOffsets(textSpan, out startLine, out startOffset, out endLine, out endOffset);
+            text.GetLinesAndOffsets(textSpan, out var startLine, out var startOffset, out var endLine, out var endOffset);
 
             return new VsTextSpan()
             {
@@ -35,8 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 
         public static VsTextSpan GetVsTextSpanForPosition(this SourceText text, int position, int virtualSpace)
         {
-            int lineNumber, offset;
-            text.GetLineAndOffset(position, out lineNumber, out offset);
+            text.GetLineAndOffset(position, out var lineNumber, out var offset);
 
             offset += virtualSpace;
 

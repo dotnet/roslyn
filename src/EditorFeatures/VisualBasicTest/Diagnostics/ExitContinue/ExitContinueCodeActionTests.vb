@@ -9,9 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ExitCo
     Public Class ExitContinueCodeActionTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing, New IncorrectExitContinueCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New IncorrectExitContinueCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -34,7 +33,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -61,7 +60,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -88,7 +87,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -115,7 +114,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -146,7 +145,7 @@ Class C
 Exit Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -177,7 +176,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -200,7 +199,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -223,7 +222,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -246,7 +245,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -273,7 +272,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -300,7 +299,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False, index:=0)
+            Await TestAsync(code, expected, ignoreTrivia:=False, index:=0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -327,7 +326,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -360,7 +359,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -383,7 +382,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -414,7 +413,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -444,7 +443,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -474,7 +473,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -504,7 +503,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -531,7 +530,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -558,7 +557,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -585,7 +584,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -612,7 +611,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -639,7 +638,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -666,7 +665,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False, index:=1)
+            Await TestAsync(code, expected, ignoreTrivia:=False, index:=1)
         End Function
 
         <WorkItem(547094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547094")>
@@ -702,7 +701,7 @@ Class C
     End Function
 End Class
 </File>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(547110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547110")>
@@ -741,13 +740,13 @@ Class C
     End Function
 End Class
 </File>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(547100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547100")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Async Function TestNotInValidCaseElse() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -818,7 +817,7 @@ Class C
     End Function
 End Class
 </File>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
@@ -847,7 +846,7 @@ Class C
     End Function
 End Class
 </File>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>

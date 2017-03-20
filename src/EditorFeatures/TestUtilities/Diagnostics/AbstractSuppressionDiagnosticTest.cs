@@ -23,12 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         protected Task TestAsync(string initial, string expected)
         {
-            return TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex, compareTokens: false);
-        }
-
-        protected Task TestMissingAsync(string initial)
-        {
-            return TestMissingAsync(initial, parseOptions: null);
+            return TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex, ignoreTrivia: false);
         }
 
         internal abstract Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
@@ -54,27 +49,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
-            TestWorkspace workspace, object fixProviderData)
+            TestWorkspace workspace, TestParameters parameters)
         {
             var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
 
             var provider = providerAndFixer.Item1;
-            TextSpan span;
-            var document = GetDocumentAndSelectSpan(workspace, out span);
+            var document = GetDocumentAndSelectSpan(workspace, out var span);
             var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, span);
             return FilterDiagnostics(diagnostics);
         }
 
         internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(
-            TestWorkspace workspace, string fixAllActionId, object fixProviderData)
+            TestWorkspace workspace, TestParameters parameters)
         {
             var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
 
             var provider = providerAndFixer.Item1;
-            Document document;
-            TextSpan span;
             string annotation = null;
-            if (!TryGetDocumentAndSelectSpan(workspace, out document, out span))
+            if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))
             {
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }
@@ -88,7 +80,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var filteredDiagnostics = FilterDiagnostics(diagnostics);
 
                 var wrapperCodeFixer = new WrapperCodeFixProvider(fixer, filteredDiagnostics.Select(d => d.Id));
-                return await GetDiagnosticAndFixesAsync(filteredDiagnostics, provider, wrapperCodeFixer, testDriver, document, span, annotation, fixAllActionId);
+                return await GetDiagnosticAndFixesAsync(
+                    filteredDiagnostics, provider, wrapperCodeFixer, testDriver, document, span, annotation, parameters.fixAllActionEquivalenceKey);
             }
         }
     }

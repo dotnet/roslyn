@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         internal void AddModifiedSpan(DocumentId documentId, TextSpan oldSpan, TextSpan newSpan)
         {
-            List<(TextSpan oldSpan, TextSpan newSpan)> spans;
-            if (!_documentToModifiedSpansMap.TryGetValue(documentId, out spans))
+            if (!_documentToModifiedSpansMap.TryGetValue(documentId, out var spans))
             {
                 spans = new List<(TextSpan oldSpan, TextSpan newSpan)>();
                 _documentToModifiedSpansMap[documentId] = spans;
@@ -45,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         internal void AddComplexifiedSpan(DocumentId documentId, TextSpan oldSpan, TextSpan newSpan, List<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans)
         {
-            List<ComplexifiedSpan> spans;
-            if (!_documentToComplexifiedSpansMap.TryGetValue(documentId, out spans))
+            if (!_documentToComplexifiedSpansMap.TryGetValue(documentId, out var spans))
             {
                 spans = new List<ComplexifiedSpan>();
                 _documentToComplexifiedSpansMap[documentId] = spans;
@@ -57,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         internal TextSpan GetAdjustedComplexifiedSpan(TextSpan originalComplexifiedSpan, DocumentId documentId)
         {
-            List<ComplexifiedSpan> complexifiedSpans;
-            if (!_documentToComplexifiedSpansMap.TryGetValue(documentId, out complexifiedSpans))
+            if (!_documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans))
             {
                 throw new ArgumentException("documentId");
             }

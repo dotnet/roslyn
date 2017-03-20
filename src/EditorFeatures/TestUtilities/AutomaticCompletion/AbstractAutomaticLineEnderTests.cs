@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 {
     public abstract class AbstractAutomaticLineEnderTests
     {
-        protected abstract Task<TestWorkspace> CreateWorkspaceAsync(string code);
+        protected abstract TestWorkspace CreateWorkspace(string code);
         protected abstract Action CreateNextHandler(TestWorkspace workspace);
 
         internal abstract ICommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations);
 
-        protected async Task TestAsync(string expected, string code, bool completionActive = false, bool assertNextHandlerInvoked = false)
+        protected void Test(string expected, string code, bool completionActive = false, bool assertNextHandlerInvoked = false)
         {
-            using (var workspace = await CreateWorkspaceAsync(code))
+            using (var workspace = CreateWorkspace(code))
             {
                 var view = workspace.Documents.Single().GetTextView();
                 var buffer = workspace.Documents.Single().GetTextBuffer();
@@ -59,9 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         private void Test(ITextView view, ITextBuffer buffer, string expectedWithAnnotations)
         {
-            string expected;
-            int expectedPosition;
-            MarkupTestFile.GetPosition(expectedWithAnnotations, out expected, out expectedPosition);
+            MarkupTestFile.GetPosition(expectedWithAnnotations, out var expected, out int expectedPosition);
 
             // Remove any virtual space from the expected text.
             var virtualPosition = view.Caret.Position.VirtualBufferPosition;

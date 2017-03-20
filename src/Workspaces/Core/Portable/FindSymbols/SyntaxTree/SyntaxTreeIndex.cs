@@ -9,21 +9,24 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal sealed partial class SyntaxTreeIndex : AbstractPersistableState, IObjectWritable
+    internal sealed partial class SyntaxTreeIndex
     {
         private readonly VersionStamp _version;
 
+        private readonly LiteralInfo _literalInfo;
         private readonly IdentifierInfo _identifierInfo;
         private readonly ContextInfo _contextInfo;
         private readonly DeclarationInfo _declarationInfo;
 
         private SyntaxTreeIndex(
             VersionStamp version,
+            LiteralInfo literalInfo,
             IdentifierInfo identifierInfo,
             ContextInfo contextInfo,
             DeclarationInfo declarationInfo)
-            : base(version)
         {
+            Version = version;
+            _literalInfo = literalInfo;
             _identifierInfo = identifierInfo;
             _contextInfo = contextInfo;
             _declarationInfo = declarationInfo;

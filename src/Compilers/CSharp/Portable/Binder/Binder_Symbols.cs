@@ -189,8 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isVar)
                 {
-                    // GetLocation() so that it also works in speculative contexts.
-                    CheckFeatureAvailability(syntax.GetLocation(), MessageID.IDS_FeatureImplicitLocal, diagnostics);
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureImplicitLocal, diagnostics);
                 }
 
                 return symbol;
@@ -426,22 +425,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argumentType = BindType(argumentSyntax.Type, diagnostics);
                 types.Add(argumentType);
 
-                if (argumentType.IsRestrictedType())
-                {
-                    Error(diagnostics, ErrorCode.ERR_FieldCantBeRefAny, argumentSyntax, argumentType);
-                }
-
                 string name =  null;
-                IdentifierNameSyntax nameSyntax = argumentSyntax.Name;
+                SyntaxToken nameToken = argumentSyntax.Identifier;
 
-                if (nameSyntax != null)
+                if (nameToken.Kind() == SyntaxKind.IdentifierToken)
                 {
-                    name = nameSyntax.Identifier.ValueText;
+                    name = nameToken.ValueText;
 
                     // validate name if we have one
                     hasExplicitNames = true;
-                    CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames);
-                    locations.Add(nameSyntax.Location);
+                    CheckTupleMemberName(name, i, nameToken, diagnostics, uniqueFieldNames);
+                    locations.Add(nameToken.GetLocation());
                 }
                 else
                 {
@@ -475,8 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (typesArray.Length < 2)
             {
-                elementNames?.Free();
-                return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_TupleTooFewElements, syntax.Location));
+                throw ExceptionUtilities.UnexpectedValue(typesArray.Length);
             }
 
             return TupleTypeSymbol.Create(syntax.Location,
@@ -486,6 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 default(ImmutableArray<string>) :
                                                 elementNames.ToImmutableAndFree(),
                                             this.Compilation,
+                                            this.ShouldCheckConstraints,
                                             syntax,
                                             diagnostics);
         }
@@ -513,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool CheckTupleMemberName(string name, int index, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, PooledHashSet<string> uniqueFieldNames)
+        private static bool CheckTupleMemberName(string name, int index, SyntaxNodeOrToken syntax, DiagnosticBag diagnostics, PooledHashSet<string> uniqueFieldNames)
         {
             int reserved = TupleTypeSymbol.IsElementNameReserved(name);
             if (reserved == 0)
@@ -1077,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ShouldCheckConstraints)
             {
-                type.CheckConstraints(this.Conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
+                type.CheckConstraintsForNonTuple(this.Conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
 
             type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);
@@ -1900,7 +1894,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // as a type forwarder.  We'll look for type forwarders in the containing and
             // referenced assemblies and report more specific diagnostics if they are found.
             AssemblySymbol forwardedToAssembly;
-            bool encounteredForwardingCycle;
             string fullName;
 
             // for attributes, suggest both, but not for verbatim name
@@ -1934,13 +1927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         fullName = qualifierOpt.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) + "." + fullName;
                     }
 
-                    forwardedToAssembly = GetForwardedToAssembly(fullName, arity, out encounteredForwardingCycle);
-
-                    if (encounteredForwardingCycle)
-                    {
-                        Debug.Assert((object)forwardedToAssembly != null, "How did we find a cycle if there was no forwarding?");
-                        diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedToAssembly.Name);
-                    }
+                    forwardedToAssembly = GetForwardedToAssembly(fullName, arity, diagnostics, location);
 
                     if (qualifierIsCompilationGlobalNamespace)
                     {
@@ -1979,13 +1966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(simpleName, arity);
-            forwardedToAssembly = GetForwardedToAssembly(fullName, arity, out encounteredForwardingCycle);
-
-            if (encounteredForwardingCycle)
-            {
-                Debug.Assert((object)forwardedToAssembly != null, "How did we find a cycle if there was no forwarding?");
-                diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedToAssembly.Name);
-            }
+            forwardedToAssembly = GetForwardedToAssembly(fullName, arity, diagnostics, location);
 
             return (object)forwardedToAssembly == null
                 ? diagnostics.Add(ErrorCode.ERR_SingleTypeNameNotFound, location, whereText)
@@ -1998,18 +1979,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="fullName">The metadata name of the (potentially) forwarded type, including the arity (if non-zero).</param>
         /// <param name="arity">The arity of the forwarded type.</param>
-        /// <param name="encounteredCycle">Set to true if a cycle was found in the type forwarders.</param>
+        /// <param name="diagnostics">Will be used to report non-fatal errors during look up.</param>
+        /// <param name="location">Location to report errors on.</param>
         /// <returns></returns>
         /// <remarks>
         /// Since this method is intended to be used for error reporting, it stops as soon as it finds
-        /// any type forwarder - it does not check other assemblies for consistency or better results.
+        /// any type forwarder (or an error to report). It does not check other assemblies for consistency or better results.
         /// </remarks>
-        private AssemblySymbol GetForwardedToAssembly(string fullName, int arity, out bool encounteredCycle)
+        private AssemblySymbol GetForwardedToAssembly(string fullName, int arity, DiagnosticBag diagnostics, Location location)
         {
             Debug.Assert(arity == 0 || fullName.EndsWith("`" + arity, StringComparison.Ordinal));
-
-            encounteredCycle = false;
-
+            
             // If we are in the process of binding assembly level attributes, we might get into an infinite cycle
             // if any of the referenced assemblies forwards type to this assembly. Since forwarded types
             // are specified through assembly level attributes, an attempt to resolve the forwarded type
@@ -2060,9 +2040,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (forwardedType.Kind == SymbolKind.ErrorType)
                 {
                     DiagnosticInfo diagInfo = ((ErrorTypeSymbol)forwardedType).ErrorInfo;
+
                     if (diagInfo.Code == (int)ErrorCode.ERR_CycleInTypeForwarder)
                     {
-                        encounteredCycle = true;
+                        Debug.Assert((object)forwardedType.ContainingAssembly != null, "How did we find a cycle if there was no forwarding?");
+                        diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedType.ContainingAssembly.Name);
+                    }
+                    else if (diagInfo.Code == (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies)
+                    {
+                        diagnostics.Add(diagInfo, location);
+                        return null; // Cannot determine a suitable forwarding assembly
                     }
                 }
 
@@ -2072,22 +2059,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static void CheckFeatureAvailability(Location location, MessageID feature, DiagnosticBag diagnostics)
+        internal static void CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location locationOpt = null)
         {
-            var options = (CSharpParseOptions)location.SourceTree.Options;
+            var options = (CSharpParseOptions)syntax.SyntaxTree.Options;
             if (options.IsFeatureEnabled(feature))
             {
                 return;
             }
 
+            var location = locationOpt ?? syntax.GetLocation();
             string requiredFeature = feature.RequiredFeature();
             if (requiredFeature != null)
             {
-                if (!options.IsFeatureEnabled(feature))
-                {
-                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize(), requiredFeature);
-                }
-
+                diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize(), requiredFeature);
                 return;
             }
 
@@ -2095,7 +2079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LanguageVersion requiredVersion = feature.RequiredVersion();
             if (requiredVersion > availableVersion)
             {
-                diagnostics.Add(availableVersion.GetErrorCode(), location, feature.Localize(), requiredVersion.Localize());
+                diagnostics.Add(availableVersion.GetErrorCode(), location, feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
             }
         }
     }

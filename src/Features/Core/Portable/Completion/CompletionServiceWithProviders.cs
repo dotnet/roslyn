@@ -188,10 +188,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal protected CompletionProvider GetProvider(CompletionItem item)
         {
-            string name;
             CompletionProvider provider = null;
 
-            if (item.Properties.TryGetValue("Provider", out name))
+            if (item.Properties.TryGetValue("Provider", out var name))
             {
                 lock (_gate)
                 {

@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsDelegateReturnTypeContext(position, leftToken, cancellationToken),
                 syntaxTree.IsTypeOfExpressionContext(position, leftToken, cancellationToken),
                 syntaxTree.GetPrecedingModifiers(position, leftToken, cancellationToken),
-                syntaxTree.IsInstanceContext(position, leftToken, cancellationToken),
+                syntaxTree.IsInstanceContext(targetToken, semanticModel, cancellationToken),
                 syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
                 syntaxTree.IsCatchFilterContext(position, leftToken),
                 isDestructorTypeContext,

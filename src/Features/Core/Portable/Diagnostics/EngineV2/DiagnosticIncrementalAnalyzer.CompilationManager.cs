@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return null;
                 }
 
-                CompilationWithAnalyzers analyzerDriverOpt;
-                if (_map.TryGetValue(project, out analyzerDriverOpt))
+                if (_map.TryGetValue(project, out var analyzerDriverOpt))
                 {
                     // we have cached one, return that.
                     AssertAnalyzers(analyzerDriverOpt, stateSets);
@@ -174,8 +173,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private void AssertCompilation(Project project, Compilation compilation1)
             {
                 // given compilation must be from given project.
-                Compilation compilation2;
-                Contract.ThrowIfFalse(project.TryGetCompilation(out compilation2));
+                Contract.ThrowIfFalse(project.TryGetCompilation(out var compilation2));
                 Contract.ThrowIfFalse(compilation1 == compilation2);
             }
 

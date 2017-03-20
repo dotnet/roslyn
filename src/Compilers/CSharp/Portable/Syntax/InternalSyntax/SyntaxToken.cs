@@ -66,11 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.flags |= NodeFlags.IsNotMissing;  //note: cleared by subclasses representing missing tokens
         }
 
-        internal override Func<ObjectReader, object> GetReader()
-        {
-            return r => new SyntaxToken(r);
-        }
-
         //====================
 
         public override bool IsToken => true;
@@ -147,6 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         static SyntaxToken()
         {
+            ObjectBinder.RegisterTypeReader(typeof(SyntaxToken), r => new SyntaxToken(r));
+
             for (var kind = FirstTokenWithWellKnownText; kind <= LastTokenWithWellKnownText; kind++)
             {
                 s_tokensWithNoTrivia[(int)kind].Value = new SyntaxToken(kind);
