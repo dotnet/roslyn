@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
-        public void GetTokenDiagnositcsWithoutSyntaxTree_WithDiagnositcs()
+        public void GetTokenDiagnosticsWithoutSyntaxTree_WithDiagnostics()
         {
             var tokens = SyntaxFactory.ParseTokens("1l").ToList();
             Assert.Equal(2, tokens.Count); // { "1l", "EOF" }
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
-        public void GetTokenDiagnositcsWithoutSyntaxTree_WithoutDiagnositcs()
+        public void GetTokenDiagnosticsWithoutSyntaxTree_WithoutDiagnostics()
         {
             var tokens = SyntaxFactory.ParseTokens("1L").ToList();
             Assert.Equal(2, tokens.Count); // { "1L", "EOF" }
@@ -411,20 +411,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
-        public void GetExpressionDiagnositcsWithoutSyntaxTree_WithDiagnositcs()
+        public void GetTokenDiagnosticsWithSyntaxTree_WithDiagnostics()
         {
-            var tokens = SyntaxFactory.ParseTokens("1l").ToList();
-            Assert.Equal(2, tokens.Count); // { "1l", "EOF" }
+            var expression = (LiteralExpressionSyntax)SyntaxFactory.ParseExpression("1l");
+            Assert.Equal("1l", expression.Token.Text);
+            Assert.NotNull(expression.Token.SyntaxTree);
 
-            var literal = tokens.First();
-            Assert.Equal("1l", literal.Text);
+            var expectedLocation = Location.Create(expression.Token.SyntaxTree, TextSpan.FromBounds(0, 2));
+            Assert.Equal(expectedLocation, expression.Token.GetLocation());
 
-            var expression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, literal);
-
-            var expectedLocation = Location.Create(expression.SyntaxTree, TextSpan.FromBounds(0, 2));
-            Assert.Equal(expectedLocation, expression.GetLocation());
-
-            expression.GetDiagnostics().Verify(
+            expression.Token.GetDiagnostics().Verify(
                 // (1,2): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
                 // 1l
                 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 2));
@@ -432,20 +428,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
-        public void GetExpressionDiagnositcsWithoutSyntaxTree_WithoutDiagnositcs()
+        public void GetTokenDiagnosticsWithSyntaxTree_WithoutDiagnostics()
         {
-            var tokens = SyntaxFactory.ParseTokens("1L").ToList();
-            Assert.Equal(2, tokens.Count); // { "1L", "EOF" }
+            var expression = (LiteralExpressionSyntax)SyntaxFactory.ParseExpression("1L");
+            Assert.Equal("1L", expression.Token.Text);
+            Assert.NotNull(expression.Token.SyntaxTree);
 
-            var literal = tokens.First();
-            Assert.Equal("1L", literal.Text);
+            var expectedLocation = Location.Create(expression.Token.SyntaxTree, TextSpan.FromBounds(0, 2));
+            Assert.Equal(expectedLocation, expression.Token.GetLocation());
 
-            var expression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, literal);
-
-            var expectedLocation = Location.Create(expression.SyntaxTree, TextSpan.FromBounds(0, 2));
-            Assert.Equal(expectedLocation, expression.GetLocation());
-
-            expression.GetDiagnostics().Verify();
+            expression.Token.GetDiagnostics().Verify();
         }
 
         [Fact]

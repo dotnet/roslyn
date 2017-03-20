@@ -20,9 +20,10 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public struct SyntaxToken : IEquatable<SyntaxToken>
     {
+        private static readonly Func<DiagnosticInfo, Diagnostic> CreateDiagnosticWithoutLocation = Diagnostic.Create;
+
         internal static readonly Func<SyntaxToken, bool> NonZeroWidth = t => t.Width > 0;
         internal static readonly Func<SyntaxToken, bool> Any = t => true;
-        internal static readonly Func<DiagnosticInfo, Diagnostic> CreateDiagnosticWithoutLocation = Diagnostic.Create;
 
         internal SyntaxToken(SyntaxNode parent, GreenNode token, int position, int index)
         {
