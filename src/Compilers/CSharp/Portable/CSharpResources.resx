@@ -855,12 +855,6 @@
   <data name="ERR_ArgsInvalid" xml:space="preserve">
     <value>The __arglist construct is valid only within a variable argument method</value>
   </data>
-  <data name="ERR_AssgReadonly" xml:space="preserve">
-    <value>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</value>
-  </data>
-  <data name="ERR_RefReadonly" xml:space="preserve">
-    <value>A readonly field cannot be used as a ref or out value (except in a constructor)</value>
-  </data>
   <data name="ERR_PtrExpected" xml:space="preserve">
     <value>The * or -&gt; operator must be applied to a pointer</value>
   </data>
@@ -2779,11 +2773,35 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_ExpectedVerbatimLiteral" xml:space="preserve">
     <value>Keyword, identifier, or string expected after verbatim specifier: @</value>
   </data>
-  <data name="ERR_AssgReadonly2" xml:space="preserve">
-    <value>Members of readonly field '{0}' cannot be modified (except in a constructor or a variable initializer)</value>
+  <data name="ERR_RefReadonly" xml:space="preserve">
+    <value>A readonly field cannot be used as a ref or out value (except in a constructor)</value>
   </data>
   <data name="ERR_RefReadonly2" xml:space="preserve">
     <value>Members of readonly field '{0}' cannot be used as a ref or out value (except in a constructor)</value>
+  </data>
+  <data name="ERR_AssgReadonly" xml:space="preserve">
+    <value>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</value>
+  </data>
+  <data name="ERR_AssgReadonly2" xml:space="preserve">
+    <value>Members of readonly field '{0}' cannot be modified (except in a constructor or a variable initializer)</value>
+  </data>
+  <data name="ERR_RefReadonlyNotField" xml:space="preserve">
+    <value>Cannot use {0} '{1}' as a ref or out value because it is a readonly variable</value>
+  </data>
+  <data name="ERR_RefReadonlyNotField2" xml:space="preserve">
+    <value>Members of {0} '{1}' cannot be used as a ref or out value because it is a readonly variable</value>
+  </data>
+  <data name="ERR_AssignReadonlyNotField" xml:space="preserve">
+    <value>Cannot assign to {0} '{1}' because it is a readonly variable</value>
+  </data>
+  <data name="ERR_AssignReadonlyNotField2" xml:space="preserve">
+    <value>Cannot assign to a member of {0} '{1}' because it is a readonly variable</value>
+  </data>
+  <data name="ERR_RefReturnReadonlyNotField" xml:space="preserve">
+    <value>Cannot return {0} '{1}' by reference because it is a readonly variable</value>
+  </data>
+  <data name="ERR_RefReturnReadonlyNotField2" xml:space="preserve">
+    <value>Members of {0} '{1}' cannot be returned by reference because it is a readonly variable</value>
   </data>
   <data name="ERR_AssgReadonlyStatic2" xml:space="preserve">
     <value>Fields of static readonly field '{0}' cannot be assigned to (except in a static constructor or a variable initializer)</value>
@@ -4796,7 +4814,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnParameter2" xml:space="preserve">
-    <value>Cannot return or a member of parameter '{0}' by reference because it is not a ref or out parameter</value>
+    <value>Cannot return by reference a member of parameter '{0}' by reference because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnLocal" xml:space="preserve">
     <value>Cannot return local '{0}' by reference because it is not a ref local</value>

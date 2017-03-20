@@ -1468,5 +1468,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefConditionalNeedsTwoRefs = 8402,
         ERR_RefConditionalDifferentTypes = 8403,
         ERR_BadParameterModifiers = 8404,
+
+        ERR_RefReadonlyNotField = 8406,
+        ERR_RefReadonlyNotField2 = 8407,
+        ERR_AssignReadonlyNotField = 8408,
+        ERR_AssignReadonlyNotField2 = 8409,
+        ERR_RefReturnReadonlyNotField = 8410,
+        ERR_RefReturnReadonlyNotField2 = 8411,
     }
 }

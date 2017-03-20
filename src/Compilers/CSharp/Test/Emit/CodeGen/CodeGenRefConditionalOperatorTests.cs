@@ -663,8 +663,10 @@ class C
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local1").WithArguments("local1").WithLocation(15, 27),
                 // (15,39): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
                 //         return ref b? ref local1: ref local2;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(15, 39)
-
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(15, 39),
+                // (15,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                //         return ref b? ref local1: ref local2;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b? ref local1: ref local2").WithLocation(15, 20)
                );
         }
 
@@ -695,7 +697,10 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (14,37): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
                 //         return ref b? ref val1: ref local2;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 37)
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 37),
+                // (14,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                //         return ref b? ref val1: ref local2;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b? ref val1: ref local2").WithLocation(14, 20)
                );
         }
 
@@ -731,7 +736,47 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (14,38): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
                 //         return ref (b? ref val1: ref local2).x;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 38)
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 38),
+                // (14,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                //         return ref (b? ref val1: ref local2).x;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(b? ref val1: ref local2).x").WithLocation(14, 20)
+               );
+        }
+
+        [Fact]
+        public void TestRefConditionalUnsafeToReturn4()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+
+    }
+
+    ref int Test()
+    {
+        S1 local2 = default(S1);
+        bool b = true;
+
+        ref var temp = ref (b? ref val1: ref local2).x;
+        return ref temp;
+    }
+
+    static S1 val1;
+
+    struct S1
+    {
+        public int x;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (15,20): error CS8157: Cannot return 'temp' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref temp;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "temp").WithArguments("temp").WithLocation(15, 20)
                );
         }
 
