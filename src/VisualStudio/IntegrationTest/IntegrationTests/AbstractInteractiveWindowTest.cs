@@ -1,6 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+<<<<<<< HEAD
+=======
+using System.Linq;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+>>>>>>> fb3a8c8a4c... Box selection and interactive directives tests
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Xunit;
@@ -53,6 +58,17 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void InsertCode(string text)
             => InteractiveWindow.InsertCode(text);
 
+<<<<<<< HEAD
+=======
+        protected void PlaceCaret(string text, int charsOffset = 0, int occurrence = 0, bool extendSelection = false, bool selectBlock = false)
+              => InteractiveWindow.PlaceCaret(
+                  text, 
+                  charsOffset, 
+                  occurrence, 
+                  extendSelection, 
+                  selectBlock);
+
+>>>>>>> fb3a8c8a4c... Box selection and interactive directives tests
         protected void VerifyLastReplOutput(string expectedReplOutput)
         {
             var lastReplOutput = InteractiveWindow.GetLastReplOutput();
@@ -63,6 +79,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var lastReplInput = InteractiveWindow.GetLastReplInput();
             Assert.Equal(expectedReplInput, lastReplInput);
+        }
+
+        protected void VerifyErrorCount(int expectedCount)
+        {
+            var errorTags = InteractiveWindow.GetErrorListErrorCount();
+            Assert.Equal(expectedCount, errorTags);
         }
 
         protected void VerifyCaretPosition(int expectedCaretPosition)
@@ -112,6 +134,48 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
+<<<<<<< HEAD
+=======
+        protected void VerifyCompletionItemExists(params string[] expectedItems)
+        {
+            var completionItems = InteractiveWindow.GetCompletionItems();
+            foreach (var expectedItem in expectedItems)
+            {
+                Assert.Contains(expectedItem, completionItems);
+            }
+        }
+
+        protected void VerifyCompletionUnexpectedItemDoesNotExist(params string[] unexpectedItems)
+        {
+            var completionItems = InteractiveWindow.GetCompletionItems();
+            foreach (var unexpectedItem in unexpectedItems)
+            {
+                Assert.DoesNotContain(unexpectedItem, completionItems);
+            }
+        }
+
+        public void VerifyCurrentTokenType(string tokenType)
+        {
+            WaitForAsyncOperations(
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.Classification);
+            var actualTokenTypes = InteractiveWindow.GetCurrentClassifications();
+            Assert.Equal(actualTokenTypes.Length, 1);
+            Assert.Contains(tokenType, actualTokenTypes[0]);
+            Assert.NotEqual("text", tokenType);
+        }
+
+        protected void InvokeCompletionList()
+        {
+            ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
+            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+        }
+
+        protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
+            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";", featuresToWaitFor));
+
+>>>>>>> fb3a8c8a4c... Box selection and interactive directives tests
         protected void WaitForReplOutput(string outputText)
             => InteractiveWindow.WaitForReplOutput(outputText);
     }

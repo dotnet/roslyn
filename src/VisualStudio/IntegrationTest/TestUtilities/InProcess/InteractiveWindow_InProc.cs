@@ -1,8 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using EnvDTE80;
 using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -16,6 +23,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         private const string ResetCommand = "InteractiveConsole.Reset";
         private const string CleanScreenCommand = "InteractiveConsole.ClearScreen";
+        private const string NewLineFollowedByReplSubmissionText = "\n. ";
         private const string ReplSubmissionText = ". ";
         private const string ReplPromptText = "> ";
 
@@ -81,7 +89,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
 
             replText = replText.Substring(lastPromptIndex, replText.Length - lastPromptIndex);
-            var lastSubmissionIndex = replText.LastIndexOf(ReplSubmissionText);
+            var lastSubmissionIndex = replText.LastIndexOf(NewLineFollowedByReplSubmissionText);
 
             if (lastSubmissionIndex > 0)
             {
@@ -108,23 +116,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// </summary>
         public string GetLastReplInput()
         {
-            // TODO: This may be flaky if the last submission contains ReplPromptText
-            // TODO: ReplSubmissionText is not yet supported
+            // TODO: This may be flaky if the last submission contains ReplPromptText or ReplSubmissionText
 
             var replText = GetReplText();
             var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
+            replText = replText.Substring(lastPromptIndex + ReplPromptText.Length);
 
-            replText = replText.Substring(lastPromptIndex, replText.Length - lastPromptIndex);
-            replText = replText.Substring(ReplPromptText.Length);
+            var lastSubmissionTextIndex = replText.LastIndexOf(NewLineFollowedByReplSubmissionText);
 
-            var firstNewLineIndex = replText.IndexOf(Environment.NewLine);
-
-            if (firstNewLineIndex <= 0)
+            int firstNewLineIndex;
+            if (lastSubmissionTextIndex < 0)
             {
-                return replText;
+                firstNewLineIndex = replText.IndexOf(Environment.NewLine);
+            }
+            else
+            {
+                firstNewLineIndex = replText.IndexOf(Environment.NewLine, lastSubmissionTextIndex);
             }
 
-            return replText.Substring(0, firstNewLineIndex);
+            string lastReplInputWithReplSubmissionText = (firstNewLineIndex <= 0) ? replText : replText.Substring(0, firstNewLineIndex);
+
+            return lastReplInputWithReplSubmissionText.Replace(ReplSubmissionText, string.Empty);
         }
 
         public void Reset(bool waitForPrompt = true)
@@ -193,6 +205,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void InsertCode(string text)
         {
             _interactiveWindow.InsertCode(text);
+        }
+
+        public IEnumerable<ITextSnapshotLine> GetErrorListErrorCount()
+        {
+            return _interactiveWindow.OutputBuffer.CurrentSnapshot.Lines;
         }
 
         private async Task WaitForReplOutputAsync(string outputText)
