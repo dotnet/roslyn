@@ -64,16 +64,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IEnumerable<ISymbol> CreateFieldDelegatingConstructor(
             this SyntaxGenerator factory,
+            Compilation compilation,
             string typeName,
             INamedTypeSymbol containingTypeOpt,
             ImmutableArray<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
             IDictionary<string, string> parameterToNewFieldMap,
+            bool addNullChecks,
+            bool preferThrowExpression,
             CancellationToken cancellationToken)
         {
             var fields = factory.CreateFieldsForParameters(parameters, parameterToNewFieldMap);
-            var statements = factory.CreateAssignmentStatements(parameters, parameterToExistingFieldMap, parameterToNewFieldMap)
-                                    .Select(s => s.WithAdditionalAnnotations(Simplifier.Annotation));
+            var statements = factory.CreateAssignmentStatements(
+                compilation, parameters, parameterToExistingFieldMap, parameterToNewFieldMap, 
+                addNullChecks, preferThrowExpression).SelectAsArray(
+                    s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
             foreach (var field in fields)
             {
@@ -86,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 modifiers: new DeclarationModifiers(),
                 typeName: typeName,
                 parameters: parameters,
-                statements: statements.ToImmutableArray(),
+                statements: statements,
                 thisConstructorArguments: GetThisConstructorArguments(containingTypeOpt, parameterToExistingFieldMap));
         }
 
@@ -164,12 +169,44 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static IEnumerable<SyntaxNode> CreateAssignmentStatements(
+        public static SyntaxNode CreateThrowArgumentNullExpression(
             this SyntaxGenerator factory,
+            Compilation compilation,
+            IParameterSymbol parameter)
+        {
+            return factory.ThrowExpression(
+                factory.ObjectCreationExpression(
+                    compilation.GetTypeByMetadataName("System.ArgumentNullException"),
+                    factory.NameOfExpression(
+                        factory.IdentifierName(parameter.Name))));
+        }
+
+        public static SyntaxNode CreateIfNullThrowStatement(
+            this SyntaxGenerator factory,
+            Compilation compilation,
+            IParameterSymbol parameter)
+        {
+            return factory.IfStatement(
+                factory.ReferenceEqualsExpression(
+                    factory.IdentifierName(parameter.Name),
+                    factory.NullLiteralExpression()),
+                SpecializedCollections.SingletonEnumerable(
+                    factory.ExpressionStatement(
+                        factory.CreateThrowArgumentNullExpression(compilation, parameter))));
+        }
+
+        public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(
+            this SyntaxGenerator factory,
+            Compilation compilation,
             IList<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
-            IDictionary<string, string> parameterToNewFieldMap)
+            IDictionary<string, string> parameterToNewFieldMap,
+            bool addNullChecks,
+            bool preferThrowExpression)
         {
+            var nullCheckStatements = ArrayBuilder<SyntaxNode>.GetInstance();
+            var assignStatements = ArrayBuilder<SyntaxNode>.GetInstance();
+
             foreach (var parameter in parameters)
             {
                 var refKind = parameter.RefKind;
@@ -179,12 +216,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 if (refKind == RefKind.Out)
                 {
                     // If it's an out param, then don't create a field for it.  Instead, assign
-                    // assign the default value for that type (i.e. "default(...)") to it.
+                    // the default value for that type (i.e. "default(...)") to it.
                     var assignExpression = factory.AssignmentStatement(
                         factory.IdentifierName(parameterName),
                         factory.DefaultExpression(parameterType));
                     var statement = factory.ExpressionStatement(assignExpression);
-                    yield return statement;
+                    assignStatements.Add(statement);
                 }
                 else
                 {
@@ -195,13 +232,41 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         var fieldAccess = factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(fieldName))
                                                  .WithAdditionalAnnotations(Simplifier.Annotation);
-                        var assignExpression = factory.AssignmentStatement(
-                            fieldAccess, factory.IdentifierName(parameterName));
-                        var statement = factory.ExpressionStatement(assignExpression);
-                        yield return statement;
+
+                        var shouldAddNullCheck = addNullChecks && parameterType.CanAddNullCheck();
+                        if (shouldAddNullCheck && preferThrowExpression)
+                        {
+                            var statement = CreateAssignWithNullCheckStatement(factory, compilation, parameter, fieldAccess);
+                            assignStatements.Add(statement);
+                        }
+                        else
+                        {
+                            if (shouldAddNullCheck)
+                            {
+                                nullCheckStatements.Add(
+                                    factory.CreateIfNullThrowStatement(compilation, parameter));
+                            }
+
+                            var assignExpression = factory.AssignmentStatement(
+                                fieldAccess, factory.IdentifierName(parameterName));
+                            var statement = factory.ExpressionStatement(assignExpression);
+                            assignStatements.Add(statement);
+                        }
                     }
                 }
             }
+
+            return nullCheckStatements.ToImmutableAndFree().Concat(assignStatements.ToImmutableAndFree());
+        }
+
+        public static SyntaxNode CreateAssignWithNullCheckStatement(
+            this SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter, SyntaxNode fieldAccess)
+        {
+            return factory.ExpressionStatement(factory.AssignmentStatement(
+                fieldAccess,
+                factory.CoalesceExpression(
+                    factory.IdentifierName(parameter.Name),
+                    factory.CreateThrowArgumentNullExpression(compilation, parameter))));
         }
 
         public static async Task<IPropertySymbol> OverridePropertyAsync(

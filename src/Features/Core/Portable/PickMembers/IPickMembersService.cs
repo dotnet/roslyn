@@ -14,12 +14,14 @@ namespace Microsoft.CodeAnalysis.PickMembers
 
     internal class PickMembersOption
     {
-        public PickMembersOption(string title, bool value = false)
+        public PickMembersOption(string id, string title, bool value)
         {
+            Id = id;
             Title = title;
             Value = value;
         }
 
+        public string Id { get; }
         public string Title { get; }
         public bool Value { get; set; }
     }
