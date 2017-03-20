@@ -45,21 +45,9 @@ function Ensure-MSBuild([switch]$xcopy = $false) {
     $both = Get-MSBuildKindAndDir -xcopy:$xcopy
     $msbuildDir = $both[1]
     switch ($both[0]) {
-        "xcopy" {
-            $p = Get-PackageDir "RoslynTools.ReferenceAssemblies"
-            ${env:TargetFrameworkRootPath} = Join-Path $p "tools\Framework"
-            break;
-        }
-        "vscmd" {
-            # Nothing to do here as the VS Dev CMD should set all appropriate environment
-            # variables.
-            break;
-        }
-        "vsinstall" {
-            # Nothing to do here as the VS Dev CMD should set all appropriate environment
-            # variables.
-            break;
-        }
+        "xcopy" { break; }
+        "vscmd" { break; }
+        "vsinstall" { break; }
         default {
             throw "Unknown MSBuild installation type $($both[0])"
         }
