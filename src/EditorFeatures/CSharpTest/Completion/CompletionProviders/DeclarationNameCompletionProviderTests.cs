@@ -403,7 +403,7 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void NptAfterVoid()
+        public async void NotAfterVoid()
         {
             var markup = @"
 public class C
