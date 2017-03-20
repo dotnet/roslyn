@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,7 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestWorkspace workspace)
         {
             var document = GetDocument(workspace);
-            var span = workspace.Documents.Single(d => !d.IsLinkFile && d.SelectedSpans.Count == 1).SelectedSpans.Single();
+            var documents = workspace.Documents.SingleOrDefault(d => !d.IsLinkFile && d.SelectedSpans.Count == 1);
+            Debug.Assert(documents != null, "There must be exactly one selection, marked with [|...|]");
+            var span = documents.SelectedSpans.Single();
             var actions = ArrayBuilder<CodeAction>.GetInstance();
             var context = new CodeRefactoringContext(document, span, actions.Add, CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);

@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add #define {0}.
+        /// </summary>
+        internal static string Add_define_0 {
+            get {
+                return ResourceManager.GetString("Add_define_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add &apos;this.&apos;.
         /// </summary>
         internal static string Add_this {
