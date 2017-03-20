@@ -945,7 +945,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public ReadOnly Property Children As ImmutableArray(Of IOperation) Implements IInvalidStatement.Children
             Get
-                Dim builder As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
+                Dim builder As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance(Me.ChildBoundNodes.Length)
                 For Each childNode In Me.ChildBoundNodes
                     Dim operation = TryCast(childNode, IOperation)
                     If operation IsNot Nothing Then

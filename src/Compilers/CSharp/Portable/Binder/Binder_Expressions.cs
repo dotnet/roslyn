@@ -4412,8 +4412,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
 
             BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
-
-            BoundExpression result = new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(type), BuildArgumentsForErrorRecovery(analyzedArguments), type);
+            ImmutableArray<BoundExpression> childNodes = BuildArgumentsForErrorRecovery(analyzedArguments);
+            BoundExpression result = new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(type), childNodes, type);
             analyzedArguments.Free();
             return result;
         }

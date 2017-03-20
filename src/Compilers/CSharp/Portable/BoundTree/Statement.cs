@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var builder = ArrayBuilder<IOperation>.GetInstance();
+                var builder = ArrayBuilder<IOperation>.GetInstance(this.ChildBoundNodes.Length);
                 foreach (var childNode in this.ChildBoundNodes)
                 {
                     var operation = childNode as IOperation;

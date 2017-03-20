@@ -202,23 +202,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static IOperation CreateParamArray(IParameterSymbol parameter, ImmutableArray<BoundExpression> boundArguments, int firstArgumentElementIndex, SyntaxNode invocationSyntax)
         {
-            ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
-            for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
-            {
-                builder.Add(boundArguments[index]);
-            }
-
-            var paramArrayArguments = builder.ToImmutableAndFree();
-
             if (parameter.Type.TypeKind == TypeKind.Array)
             {
                 IArrayTypeSymbol arrayType = (IArrayTypeSymbol)parameter.Type;
-                
+                ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
+                for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
+                {
+                    builder.Add(boundArguments[index]);
+                }
+
+                var paramArrayArguments = builder.ToImmutableAndFree();
+
+
                 // Use the invocation syntax node if there is no actual syntax available for the argument (because the paramarray is empty.)
                 return new ArrayCreation(arrayType, paramArrayArguments, paramArrayArguments.Length > 0 ? paramArrayArguments[0].Syntax : invocationSyntax);
             }
 
-            return new InvalidExpression(invocationSyntax, paramArrayArguments);
+            return new InvalidExpression(invocationSyntax, ImmutableArray<IOperation>.Empty);
         }
 
         internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParametersOpt, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ISymbol targetMethod, ImmutableArray<Symbols.ParameterSymbol> parameters, IParameterSymbol parameter, SyntaxNode invocationSyntax)
