@@ -107,22 +107,22 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8208: Cannot assign to method 'Program.M()' because it is a readonly variable
+                // (6,9): error CS8408: Cannot assign to method 'Program.M()' because it is a readonly variable
                 //         M() = 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "M()").WithArguments("method", "Program.M()").WithLocation(6, 9),
-                // (7,9): error CS8209: Cannot assign to a member of method 'Program.M1()' because it is a readonly variable
+                // (7,9): error CS8409: Cannot assign to a member of method 'Program.M1()' because it is a readonly variable
                 //         M1().Alice = 2;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "M1().Alice").WithArguments("method", "Program.M1()").WithLocation(7, 9),
-                // (9,9): error CS8208: Cannot assign to method 'Program.M()' because it is a readonly variable
+                // (9,9): error CS8408: Cannot assign to method 'Program.M()' because it is a readonly variable
                 //         M() ++;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "M()").WithArguments("method", "Program.M()").WithLocation(9, 9),
-                // (10,9): error CS8209: Cannot assign to a member of method 'Program.M1()' because it is a readonly variable
+                // (10,9): error CS8409: Cannot assign to a member of method 'Program.M1()' because it is a readonly variable
                 //         M1().Alice --;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "M1().Alice").WithArguments("method", "Program.M1()").WithLocation(10, 9),
-                // (12,9): error CS8208: Cannot assign to method 'Program.M()' because it is a readonly variable
+                // (12,9): error CS8408: Cannot assign to method 'Program.M()' because it is a readonly variable
                 //         M() += 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "M()").WithArguments("method", "Program.M()").WithLocation(12, 9),
-                // (13,9): error CS8209: Cannot assign to a member of method 'Program.M1()' because it is a readonly variable
+                // (13,9): error CS8409: Cannot assign to a member of method 'Program.M1()' because it is a readonly variable
                 //         M1().Alice -= 2;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "M1().Alice").WithArguments("method", "Program.M1()").WithLocation(13, 9)
             );
@@ -153,22 +153,22 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8208: Cannot assign to property 'Program.P' because it is a readonly variable
+                // (6,9): error CS8408: Cannot assign to property 'Program.P' because it is a readonly variable
                 //         P = 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "P").WithArguments("property", "Program.P").WithLocation(6, 9),
-                // (7,9): error CS8209: Cannot assign to a member of property 'Program.P1' because it is a readonly variable
+                // (7,9): error CS8409: Cannot assign to a member of property 'Program.P1' because it is a readonly variable
                 //         P1.Alice = 2;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "P1.Alice").WithArguments("property", "Program.P1").WithLocation(7, 9),
-                // (9,9): error CS8208: Cannot assign to property 'Program.P' because it is a readonly variable
+                // (9,9): error CS8408: Cannot assign to property 'Program.P' because it is a readonly variable
                 //         P ++;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "P").WithArguments("property", "Program.P").WithLocation(9, 9),
-                // (10,9): error CS8209: Cannot assign to a member of property 'Program.P1' because it is a readonly variable
+                // (10,9): error CS8409: Cannot assign to a member of property 'Program.P1' because it is a readonly variable
                 //         P1.Alice --;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "P1.Alice").WithArguments("property", "Program.P1").WithLocation(10, 9),
-                // (12,9): error CS8208: Cannot assign to property 'Program.P' because it is a readonly variable
+                // (12,9): error CS8408: Cannot assign to property 'Program.P' because it is a readonly variable
                 //         P += 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "P").WithArguments("property", "Program.P").WithLocation(12, 9),
-                // (13,9): error CS8209: Cannot assign to a member of property 'Program.P1' because it is a readonly variable
+                // (13,9): error CS8409: Cannot assign to a member of property 'Program.P1' because it is a readonly variable
                 //         P1.Alice -= 2;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "P1.Alice").WithArguments("property", "Program.P1").WithLocation(13, 9)
             );
@@ -197,16 +197,16 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,25): error CS8206: Cannot use method 'Program.M()' as a ref or out value because it is a readonly variable
+                // (6,25): error CS8406: Cannot use method 'Program.M()' as a ref or out value because it is a readonly variable
                 //         ref var y = ref M();
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "M()").WithArguments("method", "Program.M()").WithLocation(6, 25),
                 // (7,25): error CS0119: 'Program.M1()' is a method, which is not valid in the given context
                 //         ref int a = ref M1.Alice;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "M1").WithArguments("Program.M1()", "method").WithLocation(7, 25),
-                // (8,26): error CS8206: Cannot use property 'Program.P' as a ref or out value because it is a readonly variable
+                // (8,26): error CS8406: Cannot use property 'Program.P' as a ref or out value because it is a readonly variable
                 //         ref var y1 = ref P;
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "P").WithArguments("property", "Program.P").WithLocation(8, 26),
-                // (9,26): error CS8207: Members of property 'Program.P1' cannot be used as a ref or out value because it is a readonly variable
+                // (9,26): error CS8407: Members of property 'Program.P1' cannot be used as a ref or out value because it is a readonly variable
                 //         ref int a1 = ref P1.Alice;
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "P1.Alice").WithArguments("property", "Program.P1").WithLocation(9, 26)
             );
@@ -323,16 +323,16 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (12,28): error CS8206: Cannot use method 'Program.M()' as a ref or out value because it is a readonly variable
+                // (12,28): error CS8406: Cannot use method 'Program.M()' as a ref or out value because it is a readonly variable
                 //                 return ref M();
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "M()").WithArguments("method", "Program.M()").WithLocation(12, 28),
-                // (16,28): error CS8207: Members of method 'Program.M1()' cannot be used as a ref or out value because it is a readonly variable
+                // (16,28): error CS8407: Members of method 'Program.M1()' cannot be used as a ref or out value because it is a readonly variable
                 //                 return ref M1().Alice;
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "M1().Alice").WithArguments("method", "Program.M1()").WithLocation(16, 28),
-                // (23,28): error CS8206: Cannot use property 'Program.P' as a ref or out value because it is a readonly variable
+                // (23,28): error CS8406: Cannot use property 'Program.P' as a ref or out value because it is a readonly variable
                 //                 return ref P;
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "P").WithArguments("property", "Program.P").WithLocation(23, 28),
-                // (27,28): error CS8207: Members of property 'Program.P1' cannot be used as a ref or out value because it is a readonly variable
+                // (27,28): error CS8407: Members of property 'Program.P1' cannot be used as a ref or out value because it is a readonly variable
                 //                 return ref P1.Alice;
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "P1.Alice").WithArguments("property", "Program.P1").WithLocation(27, 28)
             );

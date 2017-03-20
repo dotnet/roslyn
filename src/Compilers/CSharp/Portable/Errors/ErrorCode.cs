@@ -1462,18 +1462,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_Merge_conflict_marker_encountered = 8300,
 
-        ERR_RefReadonlyNotField = 8206,
-        ERR_RefReadonlyNotField2 = 8207,
-        ERR_AssignReadonlyNotField = 8208,
-        ERR_AssignReadonlyNotField2 = 8209,
-        ERR_RefReturnReadonlyNotField = 8210,
-        ERR_RefReturnReadonlyNotField2 = 8211,
-
         //PROTOTYPE(ReadonlyRefs): make err IDs contiguous before merging to master. 
         //                         For now it is more convenient to have a gap to avoid conflicts with other added errors
         ERR_RefConditionalAndAwait = 8401,
         ERR_RefConditionalNeedsTwoRefs = 8402,
         ERR_RefConditionalDifferentTypes = 8403,
         ERR_BadParameterModifiers = 8404,
+
+        ERR_RefReadonlyNotField = 8406,
+        ERR_RefReadonlyNotField2 = 8407,
+        ERR_AssignReadonlyNotField = 8408,
+        ERR_AssignReadonlyNotField2 = 8409,
+        ERR_RefReturnReadonlyNotField = 8410,
+        ERR_RefReturnReadonlyNotField2 = 8411,
     }
 }
