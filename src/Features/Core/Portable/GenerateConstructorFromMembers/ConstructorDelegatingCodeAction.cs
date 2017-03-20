@@ -45,11 +45,11 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
                 var project = _document.Project;
-                var provider = project.Solution.Workspace.Services.GetLanguageServices(_state.ContainingType.Language);
+                var languageServices = project.Solution.Workspace.Services.GetLanguageServices(_state.ContainingType.Language);
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var factory = provider.GetService<SyntaxGenerator>();
-                var codeGenerationService = provider.GetService<ICodeGenerationService>();
+                var factory = languageServices.GetService<SyntaxGenerator>();
+                var codeGenerationService = languageServices.GetService<ICodeGenerationService>();
 
                 var thisConstructorArguments = factory.CreateArguments(
                     _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length).ToImmutableArray());
