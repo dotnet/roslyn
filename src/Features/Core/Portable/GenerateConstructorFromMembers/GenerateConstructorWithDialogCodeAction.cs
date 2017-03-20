@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
@@ -64,6 +62,9 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var addNullChecksOption = result.Options.FirstOrDefault(o => o.Id == AddNullChecksId);
                 if (addNullChecksOption != null)
                 {
+                    // If we presented the 'Add null check' option, then persist whatever value
+                    // the user chose.  That way we'll keep that as the default for the next time
+                    // the user opens the dialog.
                     var workspace = _document.Project.Solution.Workspace;
                     workspace.Options = workspace.Options.WithChangedOption(
                         GenerateConstructorFromMembersOptions.AddNullChecks,
