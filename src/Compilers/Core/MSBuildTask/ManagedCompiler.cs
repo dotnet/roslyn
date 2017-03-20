@@ -592,13 +592,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private void LogErrorOutput(string output)
         {
+            LogErrorOutput(output, Log);
+        }
+
+        internal static void LogErrorOutput(string output, TaskLoggingHelper log)
+        {
             string[] lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
             {
                 string trimmedMessage = line.Trim();
                 if (trimmedMessage != "")
                 {
-                    Log.LogError(trimmedMessage);
+                    log.LogError(trimmedMessage);
                 }
             }
         }
