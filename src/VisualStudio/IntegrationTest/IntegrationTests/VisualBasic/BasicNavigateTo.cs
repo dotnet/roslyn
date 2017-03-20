@@ -21,7 +21,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void NavigateTo()
         {
-            AddFile("test1.vb", open:false, contents: @"
+            AddFile("test1.vb", open: false, contents: @"
 Class FirstClass
     Sub FirstMethod()
     End Sub
@@ -31,13 +31,11 @@ End Class");
             AddFile("test2.vb", open: true, contents: @"
 ");
 
-            InvokeNavigateToAndPressEnter("FirstClass");
-            Editor.WaitForActiveView("test1.vb");
-            Assert.Equal("FirstClass", Editor.GetSelectedText());
             InvokeNavigateToAndPressEnter("FirstMethod");
             Editor.WaitForActiveView("test1.vb");
             Assert.Equal("FirstMethod", Editor.GetSelectedText());
 
+            // Verify C# files are found when navigating from VB
             VisualStudio.Instance.SolutionExplorer.AddProject("CSProject", WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
             VisualStudio.Instance.SolutionExplorer.AddFile("CSProject", "csfile.cs", open: true);
 

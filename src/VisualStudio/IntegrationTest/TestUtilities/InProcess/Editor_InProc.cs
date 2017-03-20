@@ -117,6 +117,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return GetDTE().ActiveDocument.Name;
         }
 
+        public void WaitForActiveView(string expectedView)
+        {
+            Retry(GetActiveBufferName, (actual) => actual == expectedView, TimeSpan.FromMilliseconds(100));
+        }
+
         public void Activate()
             => GetDTE().ActiveDocument.Activate();
 
