@@ -915,5 +915,34 @@ partial class Outer
                     w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, false);
                 });
         }
+
+        [WorkItem(16282, "https://github.com/dotnet/roslyn/issues/16282")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveTypeRemoveOuterInheritanceTypes()
+        {
+            var code =
+@"
+class Outer : IComparable { 
+    [||]class Inner : IWhatever {
+        DateTime d;
+    }
+}";
+            var codeAfterMove =
+@"
+partial class Outer : IComparable { 
+}";
+
+            var expectedDocumentName = "Inner.cs";
+            var destinationDocumentText =
+@"
+partial class Outer { 
+    class Inner : IWhatever {
+        DateTime d;
+    }
+}";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
     }
 }

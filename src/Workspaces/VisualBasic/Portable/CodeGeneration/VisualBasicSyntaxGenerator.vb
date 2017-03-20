@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
@@ -1487,6 +1488,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Overloads Function WithNoTarget(attr As AttributeSyntax) As AttributeSyntax
             Return attr.WithTarget(Nothing)
+        End Function
+
+        Friend Overrides Function GetTypeInheritance(declaration As SyntaxNode) As ImmutableArray(Of SyntaxNode)
+            Dim typeDecl = TryCast(declaration, TypeBlockSyntax)
+            If typeDecl Is Nothing Then
+                Return ImmutableArray(Of SyntaxNode).Empty
+            End If
+
+            Dim builder = ArrayBuilder(Of SyntaxNode).GetInstance()
+            builder.AddRange(typeDecl.Inherits)
+            builder.AddRange(typeDecl.Implements)
+            Return builder.ToImmutableAndFree()
         End Function
 
         Public Overrides Function GetAttributes(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)

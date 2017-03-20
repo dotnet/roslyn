@@ -25,6 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void ClearInteractiveWindow()
         {
             InteractiveWindow.Initialize();
+            InteractiveWindow.ClearScreen();
             InteractiveWindow.ShowWindow();
             InteractiveWindow.Reset();
         }
@@ -44,10 +45,30 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void SubmitText(string text, bool waitForPrompt = true)
             => InteractiveWindow.SubmitText(text, waitForPrompt);
 
+        protected void SendKeys(params object[] input)
+        {
+            VisualStudio.Instance.SendKeys.Send(input);
+        }
+
+        protected void InsertCode(string text)
+            => InteractiveWindow.InsertCode(text);
+
         protected void VerifyLastReplOutput(string expectedReplOutput)
         {
             var lastReplOutput = InteractiveWindow.GetLastReplOutput();
             Assert.Equal(expectedReplOutput, lastReplOutput);
+        }
+
+        protected void VerifyLastReplInput(string expectedReplInput)
+        {
+            var lastReplInput = InteractiveWindow.GetLastReplInput();
+            Assert.Equal(expectedReplInput, lastReplInput);
+        }
+
+        protected void VerifyCaretPosition(int expectedCaretPosition)
+        {
+            var position = InteractiveWindow.GetCaretPosition();
+            Assert.Equal(expectedCaretPosition, position);
         }
 
         protected void VerifyLastReplOutputContains(string expectedReplOutput)

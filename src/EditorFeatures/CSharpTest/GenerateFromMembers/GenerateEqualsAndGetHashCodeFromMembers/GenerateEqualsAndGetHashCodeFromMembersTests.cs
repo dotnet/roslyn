@@ -936,5 +936,32 @@ class Program
 chosenSymbols: new string[] { },
 ignoreTrivia: false);
         }
+
+        [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialogNoBackingFields()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Program
+{
+    public int F { get; set; }
+    [||]
+}",
+@"
+class Program
+{
+    public int F { get; set; }
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               F == program.F;
+    }
+}",
+chosenSymbols: null,
+ignoreTrivia: false);
+        }
     }
 }

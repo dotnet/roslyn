@@ -117,25 +117,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         private static async Task<GraphNodeId> GetPartialForTypeAsync(ITypeSymbol symbol, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken, bool isInGenericArguments = false)
         {
-            if (symbol is IArrayTypeSymbol)
+            if (symbol is IArrayTypeSymbol arrayType)
             {
-                return await GetPartialForArrayTypeAsync((IArrayTypeSymbol)symbol, nodeName, solution, cancellationToken).ConfigureAwait(false);
+                return await GetPartialForArrayTypeAsync(arrayType, nodeName, solution, cancellationToken).ConfigureAwait(false);
             }
-            else if (symbol is INamedTypeSymbol)
+            else if (symbol is INamedTypeSymbol namedType)
             {
-                return await GetPartialForNamedTypeAsync((INamedTypeSymbol)symbol, nodeName, solution, cancellationToken, isInGenericArguments).ConfigureAwait(false);
+                return await GetPartialForNamedTypeAsync(namedType, nodeName, solution, cancellationToken, isInGenericArguments).ConfigureAwait(false);
             }
-            else if (symbol is IPointerTypeSymbol)
+            else if (symbol is IPointerTypeSymbol pointerType)
             {
-                return await GetPartialForPointerTypeAsync((IPointerTypeSymbol)symbol, nodeName, solution, cancellationToken).ConfigureAwait(false);
+                return await GetPartialForPointerTypeAsync(pointerType, nodeName, solution, cancellationToken).ConfigureAwait(false);
             }
-            else if (symbol is ITypeParameterSymbol)
+            else if (symbol is ITypeParameterSymbol typeParameter)
             {
-                return await GetPartialForTypeParameterSymbolAsync((ITypeParameterSymbol)symbol, nodeName, solution, cancellationToken).ConfigureAwait(false);
+                return await GetPartialForTypeParameterSymbolAsync(typeParameter, nodeName, solution, cancellationToken).ConfigureAwait(false);
             }
-            else if (symbol is IDynamicTypeSymbol)
+            else if (symbol is IDynamicTypeSymbol dynamicType)
             {
-                return GetPartialForDynamicType((IDynamicTypeSymbol)symbol, nodeName);
+                return GetPartialForDynamicType(dynamicType, nodeName);
             }
 
             throw ExceptionUtilities.Unreachable;

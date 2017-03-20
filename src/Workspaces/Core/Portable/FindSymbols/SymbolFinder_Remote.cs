@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken)
         {
-            var client = await solution.Workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 await FindReferencesInCurrentProcessAsync(
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IStreamingFindLiteralReferencesProgress progress,
             CancellationToken cancellationToken)
         {
-            var client = await solution.Workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return false;
