@@ -70,10 +70,14 @@ namespace Microsoft.CodeAnalysis
         internal readonly WeakList<IAssemblySymbol> CachedSymbols = new WeakList<IAssemblySymbol>();
 
         // creates a copy
-        private AssemblyMetadata(AssemblyMetadata other)
+        private AssemblyMetadata(AssemblyMetadata other, bool shareCachedSymbols)
             : base(isImageOwner: false, id: other.Id)
         {
-            this.CachedSymbols = other.CachedSymbols;
+            if (shareCachedSymbols)
+            {
+                this.CachedSymbols = other.CachedSymbols;
+            }
+
             _lazyData = other._lazyData;
             _moduleFactoryOpt = other._moduleFactoryOpt;
             _initialModules = other._initialModules;
@@ -250,7 +254,12 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal new AssemblyMetadata Copy()
         {
-            return new AssemblyMetadata(this);
+            return new AssemblyMetadata(this, shareCachedSymbols: true);
+        }
+
+        internal AssemblyMetadata CopyWithoutSharingCachedSymbols()
+        {
+            return new AssemblyMetadata(this, shareCachedSymbols: false);
         }
 
         protected override Metadata CommonCopy()

@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -58,6 +59,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return _lazySpecialTypes[(int)type];
+        }
+
+        internal override bool RuntimeSupportsDefaultInterfaceImplementation
+        {
+            get
+            {
+                // For now we assume that it is not supported by default
+                Debug.Assert((object)CorLibrary == this);
+                return false;
+            }
+            set
+            {
+                Debug.Assert((object)CorLibrary == this);
+                throw ExceptionUtilities.Unreachable;
+            }
         }
     }
 }
