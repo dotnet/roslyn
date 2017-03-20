@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
-            PdbToXmlOptions options = 0,
+            PdbValidationOptions options = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
-            PdbToXmlOptions options = 0,
+            PdbValidationOptions options = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
-            PdbToXmlOptions options = 0,
+            PdbValidationOptions options = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
-            PdbToXmlOptions options = 0,
+            PdbValidationOptions options = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName,
             string expectedPdb,
             DebugInformationFormat format,
-            PdbToXmlOptions options,
+            PdbValidationOptions options,
             int expectedValueSourceLine,
             string expectedValueSourcePath,
             bool expectedIsXmlLiteral)
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Compilation compilation,
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
-            PdbToXmlOptions options = 0,
+            PdbValidationOptions options = 0,
             string qualifiedMethodName = "",
             bool portable = false)
         {
@@ -372,8 +372,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     pdbbits.Position = 0;
                     exebits.Position = 0;
 
-                    options |= PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.IncludeEmbeddedSources | PdbToXmlOptions.ThrowOnError;
-                    actual = PdbToXmlConverter.ToXml(pdbbits, exebits, options, methodName: qualifiedMethodName);
+                    actual = PdbToXmlConverter.ToXml(pdbbits, exebits, options.ToPdbToXmlOptions(), methodName: qualifiedMethodName);
 
                     ValidateDebugDirectory(exebits, portable ? pdbbits : null, compilation.AssemblyName + ".pdb", compilation.IsEmitDeterministic);
                 }
