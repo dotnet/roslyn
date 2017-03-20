@@ -190,7 +190,9 @@
     <Compile Include="Formatting\Rules\TokenBasedFormattingRule.cs" />
     <Compile Include="Formatting\Rules\WrappingFormattingRule.cs" />
     <Compile Include="LanguageServices\CSharpCompilationFactoryService.cs" />
+    <Compile Include="LanguageServices\CSharpParseOptionsService.cs" />
     <Compile Include="LanguageServices\CSharpSemanticFactsService.cs" />
+    <Compile Include="LanguageServices\CSharpSemanticFactsServiceFactory.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDeclarationService.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxFactsServiceFactory.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxFactsService.cs" />
@@ -223,7 +225,6 @@
     <Compile Include="Simplification\CSharpSimplificationService.cs" />
     <Compile Include="Simplification\CSharpSimplificationService.Expander.cs" />
     <Compile Include="Simplification\CSharpSimplificationService.NodesAndTokensToReduceComputer.cs" />
-    <Compile Include="Utilities\CompilationOptionsConversion.cs" />
     <Compile Include="Utilities\FormattingRangeHelper.cs" />
     <Compile Include="Utilities\NameSyntaxComparer.cs" />
     <Compile Include="Utilities\NameSyntaxIterator.cs" />

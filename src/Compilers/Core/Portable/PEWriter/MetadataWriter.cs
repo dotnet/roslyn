@@ -1233,11 +1233,6 @@ namespace Microsoft.Cci
             return result;
         }
 
-        internal PrimitiveTypeCode GetConstantTypeCode(ILocalDefinition constant)
-        {
-            return constant.CompileTimeValue.Type.TypeCode;
-        }
-
         private BlobHandle GetPermissionSetBlobHandle(ImmutableArray<ICustomAttribute> permissionSet)
         {
             var writer = PooledBlobBuilder.GetInstance();
@@ -3341,7 +3336,7 @@ namespace Microsoft.Cci
 
         private void SerializeMetadataExpression(LiteralEncoder encoder, IMetadataExpression expression, ITypeReference targetType)
         {
-            IMetadataCreateArray a = expression as IMetadataCreateArray;
+            var a = expression as MetadataCreateArray;
             if (a != null)
             {
                 ITypeReference targetElementType;
@@ -3355,7 +3350,7 @@ namespace Microsoft.Cci
 
                     CustomAttributeArrayTypeEncoder arrayTypeEncoder;
                     encoder.TaggedVector(out arrayTypeEncoder, out vectorEncoder);
-                    SerializeCustomAttributeArrayType(arrayTypeEncoder, (IArrayTypeReference)a.Type);
+                    SerializeCustomAttributeArrayType(arrayTypeEncoder, a.ArrayType);
 
                     targetElementType = a.ElementType;
                 }
@@ -3369,7 +3364,7 @@ namespace Microsoft.Cci
                     targetElementType = targetArrayType.GetElementType(this.Context);
                 }
 
-                var literalsEncoder = vectorEncoder.Count((int)a.ElementCount);
+                var literalsEncoder = vectorEncoder.Count(a.Elements.Length);
 
                 foreach (IMetadataExpression elemValue in a.Elements)
                 {
@@ -3379,7 +3374,7 @@ namespace Microsoft.Cci
             else
             {
                 ScalarEncoder scalarEncoder;
-                IMetadataConstant c = expression as IMetadataConstant;
+                MetadataConstant c = expression as MetadataConstant;
 
                 if (this.module.IsPlatformType(targetType, PlatformType.SystemObject))
                 {
@@ -3416,7 +3411,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    scalarEncoder.SystemType(((IMetadataTypeOf)expression).TypeToGet.GetSerializedTypeName(Context));
+                    scalarEncoder.SystemType(((MetadataTypeOf)expression).TypeToGet.GetSerializedTypeName(Context));
                 }
             }
         }
@@ -3655,9 +3650,6 @@ namespace Microsoft.Cci
         {
             while (true)
             {
-                // BYREF is specified directly in RetType, Param, LocalVarSig signatures
-                Debug.Assert(!(typeReference is IManagedPointerTypeReference));
-
                 // TYPEDREF is only allowed in RetType, Param, LocalVarSig signatures
                 Debug.Assert(!module.IsPlatformType(typeReference, PlatformType.SystemTypedReference));
 

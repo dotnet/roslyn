@@ -36,12 +36,32 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The kind of source code this document contains.
         /// </summary>
-        public SourceCodeKind SourceCodeKind
+        public SourceCodeKind SourceCodeKind => DocumentState.SourceCodeKind;
+
+        /// <summary>
+        /// True if the info of the document change (name, folders, file path; not the content)
+        /// </summary>
+        internal bool HasInfoChanged(Document otherDocument)
         {
-            get
-            {
-                return DocumentState.SourceCodeKind;
-            }
+            return DocumentState.Info != otherDocument.DocumentState.Info
+                || DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
+        }
+
+        /// <summary>
+        /// Gets a <see cref="DocumentInfo"/> for this document w/o the content.
+        /// </summary>
+        internal DocumentInfo GetDocumentInfoWithoutContent()
+        {
+            return DocumentState.Info.WithSourceCodeKind(DocumentState.SourceCodeKind);
+        }
+
+        /// <summary>
+        /// True if the document content has potentially changed.
+        /// Does not compare actual text.
+        /// </summary>
+        internal bool HasContentChanged(Document otherDocument)
+        {
+            return DocumentState.HasContentChanged(otherDocument.DocumentState);
         }
 
         /// <summary>
@@ -55,6 +75,7 @@ namespace Microsoft.CodeAnalysis
             if (_syntaxTreeResultTask != null)
             {
                 syntaxTree = _syntaxTreeResultTask.Result;
+                return true;
             }
 
             if (!DocumentState.TryGetSyntaxTree(out syntaxTree))
@@ -115,13 +136,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// If <code>false</code> then these methods will return <code>null</code> instead.
         /// </summary>
-        public bool SupportsSyntaxTree
-        {
-            get
-            {
-                return DocumentState.SupportsSyntaxTree;
-            }
-        }
+        public bool SupportsSyntaxTree => DocumentState.SupportsSyntaxTree;
 
         /// <summary>
         /// <code>true</code> if this Document supports providing data through the
@@ -299,6 +314,31 @@ namespace Microsoft.CodeAnalysis
         public Document WithSyntaxRoot(SyntaxNode root)
         {
             return this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetDocument(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this document updated to have the specified name.
+        /// </summary>
+        public Document WithName(string name)
+        {
+            return this.Project.Solution.WithDocumentName(this.Id, name).GetDocument(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this document updated to have the specified folders.
+        /// </summary>
+        public Document WithFolders(IEnumerable<string> folders)
+        {
+            return this.Project.Solution.WithDocumentFolders(this.Id, folders).GetDocument(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this document updated to have the specified file path.
+        /// </summary>
+        /// <param name="filePath"></param>
+        public Document WithFilePath(string filePath)
+        {
+            return this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetDocument(this.Id);
         }
 
         /// <summary>

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindReferences
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             }
 
             // Otherwise, either the language doesn't support streaming results,
-            // or the host has no way to present results in a sreaming manner.
+            // or the host has no way to present results in a streaming manner.
             // Fall back to the old non-streaming approach to finding and presenting 
             // results.
             if (synchronousService != null)
@@ -123,18 +122,25 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             {
                 using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferences)))
                 {
-                    // Let the presented know we're starging a search.  It will give us back
+                    // Let the presented know we're starting a search.  It will give us back
                     // the context object that the FAR service will push results into.
                     var context = presenter.StartSearch(
-                        EditorFeaturesResources.Find_References, alwaysShowDeclarations: false);
-                    await findUsagesService.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
+                        EditorFeaturesResources.Find_References, supportsReferences: true);
 
-                    // Note: we don't need to put this in a finally.  The only time we might not hit
-                    // this is if cancellation or another error gets thrown.  In the former case,
-                    // that means that a new search has started.  We don't care about telling the
-                    // context it has completed.  In the latter case somethign wrong has happened
-                    // and we don't want to run any more code code in this particular context.
-                    await context.OnCompletedAsync().ConfigureAwait(false);
+                    using (Logger.LogBlock(
+                        FunctionId.CommandHandler_FindAllReference,
+                        KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
+                        context.CancellationToken))
+                    {
+                        await findUsagesService.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
+
+                        // Note: we don't need to put this in a finally.  The only time we might not hit
+                        // this is if cancellation or another error gets thrown.  In the former case,
+                        // that means that a new search has started.  We don't care about telling the
+                        // context it has completed.  In the latter case something wrong has happened
+                        // and we don't want to run any more code in this particular context.
+                        await context.OnCompletedAsync().ConfigureAwait(false);
+                    }
                 }
             }
             catch (OperationCanceledException)
@@ -153,7 +159,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 message: EditorFeaturesResources.Finding_references,
                 action: context =>
                 {
-                    using (Logger.LogBlock(FunctionId.CommandHandler_FindAllReference, context.CancellationToken))
+                    using (Logger.LogBlock(
+                        FunctionId.CommandHandler_FindAllReference,
+                        KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "legacy"),
+                        context.CancellationToken))
                     {
                         if (!service.TryFindReferences(document, caretPosition, context))
                         {

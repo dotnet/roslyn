@@ -18,21 +18,75 @@ namespace Microsoft.CodeAnalysis.Options
 
         private Func<string, Type, object> _parseValue;
 
-        private Func<IReadOnlyDictionary<string, object>, Type, (object result, bool succeeded)> _tryParseDictionary;
+        private static Func<string, Type, object> _cachedParseValue = (s, type) =>
+        {
+            if (type == typeof(int))
+            {
+                var value = 0;
+                return int.TryParse(s, out value) ? (object)value : null;
+            }
+            else if (type == typeof(bool))
+            {
+                var value = false;
+                return bool.TryParse(s, out value) ? (object)value : null;
+            }
+            else if (type == typeof(CodeStyleOption<bool>))
+            {
+                var value = CodeStyleOption<bool>.Default;
+                return TryParseEditorConfigCodeStyleOption(s, out value) ? value : null;
+            }
+            else
+            {
+                throw new NotSupportedException(WorkspacesResources.Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function);
+            }
+        };
 
-        public bool TryParseReadonlyDictionary(IReadOnlyDictionary<string, object> allRawConventions, Type type, out object result)
+        private Func<object, IReadOnlyDictionary<string, object>, Type, (object result, bool succeeded)> _tryParseDictionary;
+
+        private static Func<object, IReadOnlyDictionary<string, object>, Type, (object result, bool succeeded)> _cachedTryParseDictionary = (underlyingOption, dictionary, type) =>
+        {
+            if (type == typeof(NamingStylePreferences))
+            {
+                var editorconfigNamingStylePreferences = EditorConfigNamingStyleParser.GetNamingStylesFromDictionary(dictionary);
+
+                if (!editorconfigNamingStylePreferences.NamingRules.Any() &&
+                    !editorconfigNamingStylePreferences.NamingStyles.Any() &&
+                    !editorconfigNamingStylePreferences.SymbolSpecifications.Any())
+                {
+                    // We were not able to parse any rules from editorconfig, tell the caller that the parse failed
+                    return (result: editorconfigNamingStylePreferences, succeeded: false);
+                }
+
+                var workspaceNamingStylePreferences = underlyingOption as NamingStylePreferences;
+                if (workspaceNamingStylePreferences != null)
+                {
+                    // We parsed naming styles from editorconfig, append them to our existing styles
+                    var combinedNamingStylePreferences = workspaceNamingStylePreferences.PrependNamingStylePreferences(editorconfigNamingStylePreferences);
+                    return (result: (object)combinedNamingStylePreferences, succeeded: true);
+                }
+
+                // no existing naming styles were passed so just return the set of styles that were parsed from editorconfig
+                return (result: editorconfigNamingStylePreferences, succeeded: true);
+            }
+            else
+            {
+                throw new NotSupportedException(WorkspacesResources.Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function);
+            }
+        };
+
+        public bool TryGetOption(object underlyingOption, IReadOnlyDictionary<string, object> allRawConventions, Type type, out object result)
         {
             if (_parseValue != null && KeyName != null)
             {
                 if (allRawConventions.TryGetValue(KeyName, out object value))
                 {
                     result = _parseValue(value.ToString(), type);
-                    return true;
+                    return result != null;
                 }
             }
             else if (_tryParseDictionary != null)
             {
-                var tuple = _tryParseDictionary(allRawConventions, type);
+                var tuple = _tryParseDictionary(underlyingOption, allRawConventions, type);
                 result = tuple.result;
                 return tuple.succeeded;
             }
@@ -44,26 +98,7 @@ namespace Microsoft.CodeAnalysis.Options
         public EditorConfigStorageLocation(string keyName)
         {
             KeyName = keyName;
-
-            _parseValue = (s, type) =>
-            {
-                if (type == typeof(int))
-                {
-                    return int.Parse(s);
-                }
-                else if (type == typeof(bool))
-                {
-                    return bool.Parse(s);
-                }
-                else if (type == typeof(CodeStyleOption<bool>))
-                {
-                    return ParseEditorConfigCodeStyleOption(s);
-                }
-                else
-                {
-                    throw new NotSupportedException(WorkspacesResources.Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function);
-                }
-            };
+            _parseValue = _cachedParseValue;
         }
 
         public EditorConfigStorageLocation(string keyName, Func<string, object> parseValue)
@@ -77,31 +112,13 @@ namespace Microsoft.CodeAnalysis.Options
         public EditorConfigStorageLocation()
         {
             // If the user didn't pass a keyName assume we need to parse the entire dictionary
-            _tryParseDictionary = (dictionary, type) =>
-            {
-                if (type == typeof(NamingStylePreferences))
-                {
-                    var result = EditorConfigNamingStyleParser.GetNamingStylesFromDictionary(dictionary);
-                    if (!result.NamingRules.Any() &&
-                        !result.NamingStyles.Any() &&
-                        !result.SymbolSpecifications.Any())
-                    {
-                        return (result: result, succeeded: false);
-                    }
-
-                    return (result: result, succeeded: true);
-                }
-                else
-                {
-                    throw new NotSupportedException(WorkspacesResources.Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function);
-                }
-            };
+            _tryParseDictionary = _cachedTryParseDictionary;
         }
 
-        public EditorConfigStorageLocation(Func<IReadOnlyDictionary<string, object>, (object result, bool succeeded)> tryParseDictionary)
+        public EditorConfigStorageLocation(Func<object, IReadOnlyDictionary<string, object>, (object result, bool succeeded)> tryParseDictionary)
         {
             // If we're explicitly given a parsing function we can throw away the type when parsing
-            _tryParseDictionary = (dictionary, type) => tryParseDictionary(dictionary);
+            _tryParseDictionary = (underlyingOption, dictionary, type) => tryParseDictionary(underlyingOption, dictionary);
         }
     }
 }

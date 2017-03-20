@@ -279,6 +279,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert &apos;if&apos; to &apos;switch&apos;.
+        /// </summary>
+        internal static string Convert_if_to_switch {
+            get {
+                return ResourceManager.GetString("Convert_if_to_switch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to deconstruction.
         /// </summary>
         internal static string deconstruction {
@@ -783,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove &amp;and Sort Usings.
+        ///   Looks up a localized string similar to R&amp;emove and Sort Usings.
         /// </summary>
         internal static string Remove_and_Sort_Usings {
             get {
@@ -1042,6 +1051,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string unchecked_statement {
             get {
                 return ResourceManager.GetString("unchecked_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upgrade all C# projects to language version &apos;{0}&apos;.
+        /// </summary>
+        internal static string Upgrade_all_csharp_projects_to_language_version_0 {
+            get {
+                return ResourceManager.GetString("Upgrade_all_csharp_projects_to_language_version_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upgrade this project to C# language version &apos;{0}&apos;.
+        /// </summary>
+        internal static string Upgrade_this_project_to_csharp_language_version_0 {
+            get {
+                return ResourceManager.GetString("Upgrade_this_project_to_csharp_language_version_0", resourceCulture);
             }
         }
         

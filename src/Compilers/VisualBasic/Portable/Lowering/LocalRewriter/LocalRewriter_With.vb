@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim instrument As Boolean = Me.Instrument(node) AndAlso syntax.Kind = SyntaxKind.WithBlock
 
             If instrument Then
-                Dim prologue = _instrumenter.CreateWithStatementPrologue(node)
+                Dim prologue = _instrumenterOpt.CreateWithStatementPrologue(node)
                 If prologue IsNot Nothing Then
                     initStatements.Add(prologue)
                 End If
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             RemovePlaceholderReplacement(placeholder)
 
             If instrument Then
-                Dim epilogue = _instrumenter.CreateWithStatementEpilogue(node)
+                Dim epilogue = _instrumenterOpt.CreateWithStatementEpilogue(node)
                 If epilogue IsNot Nothing Then
                     initStatements.Add(epilogue)
                 End If

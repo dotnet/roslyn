@@ -22,11 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // does not need sequence points added here since it would be done later (presumably during Async rewrite).
             if (this.Instrument &&
                 (!node.WasCompilerGenerated ||
-                 (node.ExpressionOpt != null ? 
+                 (node.ExpressionOpt != null ?
                         IsLambdaOrExpressionBodiedMember :
                         (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentMethod?.IsAsync == false))))
             {
                 rewritten = _instrumenter.InstrumentReturnStatement(node, rewritten);
+            }
+            else if (node.WasCompilerGenerated && _factory.CurrentMethod?.IsAsync == true)
+            {
+                rewritten = new BoundSequencePoint(null, rewritten);
             }
 
             return rewritten;

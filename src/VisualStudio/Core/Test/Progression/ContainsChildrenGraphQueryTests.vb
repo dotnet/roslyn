@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class ContainsChildrenGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function ContainsChildrenForDocument() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -41,7 +41,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function ContainsChildrenForEmptyDocument() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -71,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         <WorkItem(794846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/794846")>
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function ContainsChildrenForNotYetLoadedSolution() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -110,7 +110,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         <WorkItem(165369, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/165369")>
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function ContainsChildrenForNodeWithRelativeUriPath() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">

@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(lambda.Kind());
             }
         }
 
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return true;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(leftBlock.Parent.Kind());
             }
         }
 

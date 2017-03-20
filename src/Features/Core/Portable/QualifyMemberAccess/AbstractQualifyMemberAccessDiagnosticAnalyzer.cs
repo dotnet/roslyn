@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 case SymbolKind.Event:
                     return CodeStyleOptions.QualifyEventAccess;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(symbolKind);
             }
         }
     }

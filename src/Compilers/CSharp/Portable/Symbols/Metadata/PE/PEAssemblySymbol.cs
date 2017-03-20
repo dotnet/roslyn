@@ -130,39 +130,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         /// <summary>
-        /// Look up the assembly to which the given metadata type is forwarded.
+        /// Look up the assemblies to which the given metadata type is forwarded.
         /// </summary>
         /// <param name="emittedName"></param>
         /// <returns>
-        /// The assembly to which the given type is forwarded or null, if there isn't one.
+        /// The assemblies to which the given type is forwarded.
         /// </returns>
         /// <remarks>
-        /// The returned assembly may also forward the type.
+        /// The returned assemblies may also forward the type.
         /// </remarks>
-        internal AssemblySymbol LookupAssemblyForForwardedMetadataType(ref MetadataTypeName emittedName)
+        internal (AssemblySymbol FirstSymbol, AssemblySymbol SecondSymbol) LookupAssembliesForForwardedMetadataType(ref MetadataTypeName emittedName)
         {
             // Look in the type forwarders of the primary module of this assembly, clr does not honor type forwarder
             // in non-primary modules.
 
             // Examine the type forwarders, but only from the primary module.
-            return this.PrimaryModule.GetAssemblyForForwardedType(ref emittedName);
+            return this.PrimaryModule.GetAssembliesForForwardedType(ref emittedName);
         }
 
         internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
         {
             // Check if it is a forwarded type.
-            var forwardedToAssembly = LookupAssemblyForForwardedMetadataType(ref emittedName);
-            if ((object)forwardedToAssembly != null)
+            (AssemblySymbol firstSymbol, AssemblySymbol secondSymbol) = LookupAssembliesForForwardedMetadataType(ref emittedName);
+
+            if ((object)firstSymbol != null)
             {
+                if ((object)secondSymbol != null)
+                {
+                    // Report the main module as that is the only one checked. clr does not honor type forwarders in non-primary modules.
+                    return CreateMultipleForwardingErrorTypeSymbol(ref emittedName, this.PrimaryModule, firstSymbol, secondSymbol);
+                }
+                
                 // Don't bother to check the forwarded-to assembly if we've already seen it.
-                if (visitedAssemblies != null && visitedAssemblies.Contains(forwardedToAssembly))
+                if (visitedAssemblies != null && visitedAssemblies.Contains(firstSymbol))
                 {
                     return CreateCycleInTypeForwarderErrorTypeSymbol(ref emittedName);
                 }
                 else
                 {
                     visitedAssemblies = new ConsList<AssemblySymbol>(this, visitedAssemblies ?? ConsList<AssemblySymbol>.Empty);
-                    return forwardedToAssembly.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
+                    return firstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
                 }
             }
 

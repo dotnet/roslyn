@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
 
             return document.GetLanguageService<ISimplificationService>().ReduceAsync(
-                document, spans, optionSet, cancellationToken: cancellationToken);
+                document, spans.ToImmutableArrayOrEmpty(), optionSet, cancellationToken: cancellationToken);
         }
 
         internal static async Task<Document> ReduceAsync(
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await document.Project.LanguageServices.GetService<ISimplificationService>()
-                .ReduceAsync(document, SpecializedCollections.SingletonEnumerable(root.FullSpan), optionSet, 
+                .ReduceAsync(document, ImmutableArray.Create(root.FullSpan), optionSet, 
                              reducers, cancellationToken).ConfigureAwait(false);
         }
     }

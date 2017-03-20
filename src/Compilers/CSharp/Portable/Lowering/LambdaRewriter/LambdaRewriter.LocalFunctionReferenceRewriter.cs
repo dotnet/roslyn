@@ -88,31 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return base.VisitDelegateCreationExpression(node);
             }
-
-            public override BoundNode VisitConversion(BoundConversion conversion)
-            {
-                if (conversion.ConversionKind == ConversionKind.MethodGroup &&
-                    conversion.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
-                {
-                    BoundExpression receiver;
-                    MethodSymbol method;
-                    var arguments = default(ImmutableArray<BoundExpression>);
-                    _lambdaRewriter.RemapLocalFunction(
-                        conversion.Syntax,
-                        conversion.SymbolOpt,
-                        out receiver,
-                        out method,
-                        ref arguments);
-
-                    return new BoundDelegateCreationExpression(
-                        conversion.Syntax,
-                        receiver,
-                        method,
-                        isExtensionMethod: false,
-                        type: conversion.Type);
-                }
-                return base.VisitConversion(conversion);
-            }
         }
 
         /// <summary>

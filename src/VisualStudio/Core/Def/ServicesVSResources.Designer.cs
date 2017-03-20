@@ -1458,6 +1458,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pick members.
+        /// </summary>
+        internal static string Pick_members {
+            get {
+                return ResourceManager.GetString("Pick_members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer braces.
         /// </summary>
         internal static string Prefer_braces {
@@ -2056,6 +2065,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule {
             get {
                 return ResourceManager.GetString("This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This workspace does not support updating Visual Basic parse options..
+        /// </summary>
+        internal static string This_workspace_does_not_support_updating_Visual_Basic_parse_options {
+            get {
+                return ResourceManager.GetString("This_workspace_does_not_support_updating_Visual_Basic_parse_options", resourceCulture);
             }
         }
         

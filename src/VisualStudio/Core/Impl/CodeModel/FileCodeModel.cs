@@ -226,9 +226,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         var element = ComAggregate.TryGetManagedObject<AbstractCodeElement>(codeElement);
                         if (element.IsValidNode())
                         {
-                            if (codeElement is T)
+                            if (codeElement is T tcodeElement)
                             {
-                                return (T)codeElement;
+                                return tcodeElement;
                             }
 
                             throw new InvalidOperationException($"Found a valid code element for {nodeKey}, but it is not of type, {typeof(T).ToString()}");

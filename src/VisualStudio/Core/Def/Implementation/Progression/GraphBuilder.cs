@@ -483,9 +483,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 node[Properties.IsAnonymous] = true;
             }
-            else if (symbol is IMethodSymbol)
+            else if (symbol is IMethodSymbol methodSymbol)
             {
-                UpdateMethodPropertiesForNode((IMethodSymbol)symbol, node);
+                UpdateMethodPropertiesForNode(methodSymbol, node);
             }
         }
 
@@ -589,7 +589,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(namedType.TypeKind);
             }
 
             node[DgmlNodeProperties.Icon] = IconHelper.GetIconName(iconGroupName, namedType.DeclaredAccessibility);

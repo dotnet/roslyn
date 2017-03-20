@@ -382,8 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // or if we have default(T) (to do box just once)
             var nullCheckOnCopy = LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
-                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol)) ||
-                                   (receiver.IsDefaultValue() && unconstrainedReceiver);
+                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
 
             // ===== RECEIVER
             if (nullCheckOnCopy)
@@ -492,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 Debug.Assert(receiverTemp == null);
                 receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: unconstrainedReceiver);
-                Debug.Assert(receiverTemp == null);
+                Debug.Assert(receiverTemp == null || receiver.IsDefaultValue());
             }
 
             EmitExpression(expression.WhenNotNull, used);
@@ -634,8 +633,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitDelegateCreationExpression(BoundDelegateCreationExpression expression, bool used)
         {
-            var mg = expression.Argument as BoundMethodGroup;
-            var receiver = mg != null ? mg.ReceiverOpt : expression.Argument;
+            Debug.Assert(expression.Argument?.Kind != BoundKind.MethodGroup);
+            var receiver = expression.Argument;
             var meth = expression.MethodOpt ?? receiver.Type.DelegateInvokeMethod();
             Debug.Assert((object)meth != null);
             EmitDelegateCreation(expression, receiver, expression.IsExtensionMethod, meth, expression.Type, used);
@@ -1270,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                         case ConversionKind.MethodGroup:
                         case ConversionKind.AnonymousFunction:
-                            return true;
+                            throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
 
                         case ConversionKind.ExplicitReference:
                         case ConversionKind.ImplicitReference:
@@ -3011,9 +3010,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var conversion = (BoundConversion)expr;
                     var conversionKind = conversion.ConversionKind;
                     if (conversionKind.IsImplicitConversion() &&
-                        conversionKind != ConversionKind.MethodGroup &&
                         conversionKind != ConversionKind.NullLiteral)
                     {
+                        Debug.Assert(conversionKind != ConversionKind.MethodGroup);
                         return StackMergeType(conversion.Operand);
                     }
                     break;

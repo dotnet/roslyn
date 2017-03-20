@@ -26,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _cancellationToken = cancellationToken;
 
             _rpc = new JsonRpc(stream, stream, target);
+            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             _rpc.Disconnected += OnDisconnected;
         }

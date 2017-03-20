@@ -10,7 +10,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
     Public Class EncapsulateFieldCommandHandlerTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Public Async Function PrivateField() As System.Threading.Tasks.Task
+        Public Sub PrivateField()
             Dim text = <File>
 Class C
     Private foo$$ As Integer
@@ -38,13 +38,13 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Using state = Await EncapsulateFieldTestState.CreateAsync(text)
+            Using state = EncapsulateFieldTestState.Create(text)
                 state.AssertEncapsulateAs(expected)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Public Async Function NonPrivateField() As System.Threading.Tasks.Task
+        Public Sub NonPrivateField()
             Dim text = <File>
 Class C
     Protected foo$$ As Integer
@@ -72,14 +72,14 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Using state = Await EncapsulateFieldTestState.CreateAsync(text)
+            Using state = EncapsulateFieldTestState.Create(text)
                 state.AssertEncapsulateAs(expected)
             End Using
-        End Function
+        End Sub
 
         <WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Public Async Function EncapsulateTwoFields() As System.Threading.Tasks.Task
+        Public Sub EncapsulateTwoFields()
             Dim text = "
 Class Program
     [|Shared A As Integer = 1
@@ -121,19 +121,19 @@ Class Program
 End Class
 "
 
-            Using state = Await EncapsulateFieldTestState.CreateAsync(text)
+            Using state = EncapsulateFieldTestState.Create(text)
                 state.AssertEncapsulateAs(expected)
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function EncapsulateFieldCommandDisabledInSubmission() As System.Threading.Tasks.Task
+        Public Sub EncapsulateFieldCommandDisabledInSubmission()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C
@@ -161,6 +161,6 @@ End Class
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace

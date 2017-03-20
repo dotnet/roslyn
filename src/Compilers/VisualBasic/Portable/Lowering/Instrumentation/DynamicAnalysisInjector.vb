@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim mvid As BoundExpression = _methodBodyFactory.ModuleVersionId(isLValue:=False)
                 Dim methodToken As BoundExpression = _methodBodyFactory.MethodDefIndex(_method)
                 Dim fileIndex As BoundExpression = _methodBodyFactory.SourceDocumentIndex(GetSourceDocument(_methodBody.Syntax))
-                Dim payloadSlot As BoundExpression = _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=False, indices:=ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method)))
+                Dim payloadSlot As BoundExpression = _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=True, indices:=ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method)))
                 Dim createPayloadCall As BoundStatement = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload, isLValue:=True), _methodBodyFactory.Call(Nothing, _createPayload, mvid, methodToken, fileIndex, payloadSlot, _methodBodyFactory.Literal(_dynamicAnalysisSpans.Length)))
 
                 Dim payloadNullTest As BoundExpression = _methodBodyFactory.Binary(BinaryOperatorKind.Equals, _methodBodyFactory.SpecialType(SpecialType.System_Boolean), _methodBodyFactory.Local(_methodPayload, False), _methodBodyFactory.Null(_payloadType))

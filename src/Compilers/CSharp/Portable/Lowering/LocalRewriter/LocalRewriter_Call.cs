@@ -911,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // wrap it in a nullable ctor.
                     defaultValue = new BoundObjectCreationExpression(
                         syntax,
-                        GetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
+                        UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
                         defaultValue);
                 }
                 else
@@ -1019,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Finally, wrap it in a nullable ctor.
                 defaultValue = new BoundObjectCreationExpression(
                     syntax,
-                    GetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
+                    UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
                     defaultValue);
             }
             else if (defaultConstantValue.IsNull || defaultConstantValue.IsBad)

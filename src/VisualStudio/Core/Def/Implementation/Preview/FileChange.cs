@@ -219,9 +219,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             // If these are documents from a VS workspace, then attempt to get the right display
             // data from the underlying VSHierarchy and itemids for the document.
             var workspace = document.Project.Solution.Workspace;
-            if (workspace is VisualStudioWorkspaceImpl)
+            if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
-                if (((VisualStudioWorkspaceImpl)workspace).TryGetImageListAndIndex(_imageService, document.Id, out pData[0].hImageList, out pData[0].Image))
+                if (vsWorkspace.TryGetImageListAndIndex(_imageService, document.Id, out pData[0].hImageList, out pData[0].Image))
                 {
                     pData[0].SelectedImage = pData[0].Image;
                     return;

@@ -706,9 +706,9 @@ End Class"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function IsTextualTriggerCharacterTest() As Task
-            Await TestCommonIsTextualTriggerCharacterAsync()
-        End Function
+        Public Sub IsTextualTriggerCharacterTest()
+            TestCommonIsTextualTriggerCharacter()
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SendEnterThroughToEditorTest() As Task
@@ -7662,7 +7662,7 @@ End Namespace
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(input)
+            Using workspace = TestWorkspace.Create(input)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
