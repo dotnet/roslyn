@@ -93,17 +93,40 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                         generator.TypeExpression(constructed));
                 }
 
+                var newDocument = await UpdateDocumentAndAddImportsAsync(
+                    oldType, newType, cancellationToken).ConfigureAwait(false);
+
+                var formattedDocument = await FormatDocumentAsync(
+                    newDocument, cancellationToken).ConfigureAwait(false);
+
+                return formattedDocument;
+            }
+
+            private async Task<Document> UpdateDocumentAndAddImportsAsync(SyntaxNode oldType, SyntaxNode newType, CancellationToken cancellationToken)
+            {
                 var oldRoot = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var newDocument = _document.WithSyntaxRoot(
                     oldRoot.ReplaceNode(oldType, newType));
 
+                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
+
+                var codeGenService = _document.GetLanguageService<ICodeGenerationService>();
+                newDocument = await codeGenService.AddImportsAsync(
+                    newDocument,
+                    new CodeGenerationOptions(placeSystemNamespaceFirst: placeSystemNamespaceFirst),
+                    cancellationToken).ConfigureAwait(false);
+                return newDocument;
+            }
+
+            private async Task<Document> FormatDocumentAsync(Document newDocument, CancellationToken cancellationToken)
+            {
                 var rules = new List<IFormattingRule> { new FormatLargeBinaryExpressionRule(_document.GetLanguageService<ISyntaxFactsService>()) };
                 rules.AddRange(Formatter.GetDefaultFormattingRules(_document));
 
                 var formattedDocument = await Formatter.FormatAsync(
                     newDocument, s_specializedFormattingAnnotation,
                     options: null, rules: rules, cancellationToken: cancellationToken).ConfigureAwait(false);
-
                 return formattedDocument;
             }
 

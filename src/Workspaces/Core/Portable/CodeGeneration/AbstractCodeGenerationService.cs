@@ -198,10 +198,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (options.AddImports)
             {
-                var adder = this.CreateImportsAdder(newDocument);
-                newDocument = await adder.AddAsync(members, options.PlaceSystemNamespaceFirst, options, cancellationToken).ConfigureAwait(false);
+                newDocument = await AddImportsAsync(
+                    newDocument, options, cancellationToken).ConfigureAwait(false);
             }
 
+            return newDocument;
+        }
+
+        public async Task<Document> AddImportsAsync(Document document, CodeGenerationOptions options, CancellationToken cancellationToken)
+        {
+            options = options ?? CodeGenerationOptions.Default;
+            var adder = this.CreateImportsAdder(document);
+            var newDocument = await adder.AddAsync(options.PlaceSystemNamespaceFirst, options, cancellationToken).ConfigureAwait(false);
             return newDocument;
         }
 

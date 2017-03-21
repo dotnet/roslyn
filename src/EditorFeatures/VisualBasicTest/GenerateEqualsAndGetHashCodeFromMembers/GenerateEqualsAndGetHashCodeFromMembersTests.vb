@@ -209,28 +209,29 @@ ignoreTrivia:=False)
         Public Async Function TestImplementIEquatable1() As Task
             Await TestWithPickMembersDialogAsync(
 "
-imports System.Collections.Generic
+Imports System.Collections.Generic
 
 structure Program
-    public s as string
+    Public s As String
     [||]
-end structure",
+End structure",
 "
-imports System.Collections.Generic
+Imports System
+Imports System.Collections.Generic
 
-structure Program
-    Implements System.IEquatable(Of Program)
+Structure Program
+    Implements IEquatable(Of Program)
 
-    public s as string
+    Public s As String
 
     Public Overrides Function Equals(obj As Object) As Boolean
         Return (TypeOf obj Is Program) AndAlso Equals(DirectCast(obj, Program))
     End Function
 
-    Public Function Equals(other As Program) As Boolean Implements System.IEquatable(Of Program).Equals
+    Public Function Equals(other As Program) As Boolean Implements IEquatable(Of Program).Equals
         Return s = other.s
     End Function
-end structure",
+End Structure",
 chosenSymbols:=Nothing,
 optionsCallback:=Sub(Options) EnableOption(Options, ImplementIEquatableId),
 ignoreTrivia:=False)
@@ -240,29 +241,30 @@ ignoreTrivia:=False)
         Public Async Function TestImplementIEquatable2() As Task
             Await TestWithPickMembersDialogAsync(
 "
-imports System.Collections.Generic
+Imports System.Collections.Generic
 
-class Program
-    public s as string
+Class Program
+    Public s As String
     [||]
-end class",
+End Class",
 "
-imports System.Collections.Generic
+Imports System
+Imports System.Collections.Generic
 
-class Program
-    Implements System.IEquatable(Of Program)
+Class Program
+    Implements IEquatable(Of Program)
 
-    public s as string
+    Public s As String
 
     Public Overrides Function Equals(obj As Object) As Boolean
         Return Equals(TryCast(obj, Program))
     End Function
 
-    Public Function Equals(other As Program) As Boolean Implements System.IEquatable(Of Program).Equals
+    Public Function Equals(other As Program) As Boolean Implements IEquatable(Of Program).Equals
         Return other IsNot Nothing AndAlso
                s = other.s
     End Function
-end class",
+End Class",
 chosenSymbols:=Nothing,
 optionsCallback:=Sub(Options) EnableOption(Options, ImplementIEquatableId),
 ignoreTrivia:=False)
