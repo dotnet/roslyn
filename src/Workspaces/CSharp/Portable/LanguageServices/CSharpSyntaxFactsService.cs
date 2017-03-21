@@ -1989,5 +1989,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan)
             => ImmutableArray<SyntaxNode>.CastUp(root.GetMembersInSpan(textSpan));
+
+        protected override bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
+            => token.ContainsInterleavedDirective(span, cancellationToken);
     }
 }
