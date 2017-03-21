@@ -1252,7 +1252,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate &apos;Equals(object) and GetHashCode()&apos;.
+        ///   Looks up a localized string similar to Generate Equals and GetHashCode.
         /// </summary>
         internal static string Generate_Equals_and_GetHashCode {
             get {
@@ -1261,7 +1261,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate &apos;Equals(object)&apos;.
+        ///   Looks up a localized string similar to Generate Equals(object).
         /// </summary>
         internal static string Generate_Equals_object {
             get {
@@ -1288,7 +1288,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate &apos;GetHashCode()&apos;.
+        ///   Looks up a localized string similar to Generate GetHashCode().
         /// </summary>
         internal static string Generate_GetHashCode {
             get {

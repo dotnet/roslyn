@@ -196,8 +196,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         private ImmutableArray<CodeAction> CreateActions(
             Document document, TextSpan textSpan, INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> selectedMembers, ImmutableArray<PickMembersOption> pickMembersOptions,
-            bool hasEquals, bool hasGetHashCode,
-            bool withDialog)
+            bool hasEquals, bool hasGetHashCode, bool withDialog)
         {
             var result = ArrayBuilder<CodeAction>.GetInstance();
 
@@ -210,7 +209,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 // Don't bother offering to just "Generate GetHashCode" as it's very unlikely 
                 // the user would need to bother just generating that member without also 
                 // generating 'Equals' as well.
-                result.Add(CreateCodeAction(document, textSpan, containingType, 
+                result.Add(CreateCodeAction(document, textSpan, containingType,
                     selectedMembers, pickMembersOptions,
                     generateEquals: true, generateGetHashCode: false, withDialog: withDialog));
                 result.Add(CreateCodeAction(document, textSpan, containingType, 
