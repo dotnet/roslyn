@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             // TODO: send telemetry on session
             return await remoteHostClient.RunCodeAnalysisServiceOnRemoteHostAsync<ReferenceCount>(
                 solution, WellKnownServiceHubServices.CodeAnalysisService_GetReferenceCountAsync,
-                new object[] { new CodeLensArguments(documentId, syntaxNode), maxSearchResults }, cancellationToken).ConfigureAwait(false);
+                new object[] { documentId, syntaxNode.Span, maxSearchResults }, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             // TODO: send telemetry on session
             return await remoteHostClient.RunCodeAnalysisServiceOnRemoteHostAsync<IEnumerable<ReferenceLocationDescriptor>>(
                 solution, WellKnownServiceHubServices.CodeAnalysisService_FindReferenceLocationsAsync,
-                new CodeLensArguments(documentId, syntaxNode), cancellationToken).ConfigureAwait(false);
+                new object[] { documentId, syntaxNode.Span }, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             // TODO: send telemetry on session
             return await remoteHostClient.RunCodeAnalysisServiceOnRemoteHostAsync<IEnumerable<ReferenceMethodDescriptor>>(
                 solution, WellKnownServiceHubServices.CodeAnalysisService_FindReferenceMethodsAsync,
-                new CodeLensArguments(documentId, syntaxNode), cancellationToken).ConfigureAwait(false);
+                new object[] { documentId, syntaxNode.Span }, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             // TODO: send telemetry on session
             return await remoteHostClient.RunCodeAnalysisServiceOnRemoteHostAsync<string>(
                 solution, WellKnownServiceHubServices.CodeAnalysisService_GetFullyQualifiedName,
-                new CodeLensArguments(documentId, syntaxNode), cancellationToken).ConfigureAwait(false);
+                new object[] { documentId, syntaxNode.Span }, cancellationToken).ConfigureAwait(false);
         }
     }
 }
