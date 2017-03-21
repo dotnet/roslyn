@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
         protected static bool TryGetTaskType(SemanticModel semanticModel, out INamedTypeSymbol taskType)
         {
             var compilation = semanticModel.Compilation;
-            taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
+            taskType = compilation.TaskType();
             return taskType != null;
         }
 

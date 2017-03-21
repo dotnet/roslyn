@@ -128,9 +128,9 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             SyntaxNode node, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
-            var taskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
-            var valueTaskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+            var taskType = compilation.TaskType();
+            var taskOfTType = compilation.TaskOfTType();
+            var valueTaskOfTType = compilation.ValueTaskOfTType();
 
             var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, taskType, taskOfTType, valueTaskOfTType)
                 .WithAdditionalAnnotations(Formatter.Annotation);

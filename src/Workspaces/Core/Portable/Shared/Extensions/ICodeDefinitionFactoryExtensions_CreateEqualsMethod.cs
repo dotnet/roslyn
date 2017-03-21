@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             IEnumerable<ISymbol> members,
             CancellationToken cancellationToken)
         {
-            var iequatableType = compilation.GetTypeByMetadataName("System.IEquatable`1");
+            var iequatableType = compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
             // Come up with a good name for the local variable we're going to compare against.
