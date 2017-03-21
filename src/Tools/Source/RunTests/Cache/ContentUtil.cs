@@ -17,6 +17,13 @@ namespace RunTests.Cache
         private readonly MD5 _hash = MD5.Create();
         private readonly Dictionary<string, string> _fileToChecksumMap = new Dictionary<string, string>();
 
+        /// <summary>
+        /// Stores a map between a unit test assembly and the reference section of the content file.  For 
+        /// a number of assemblies the reference section is calculated multiple times.  That is a non-trivial
+        /// cost due to the IO and processing
+        /// </summary>
+        private readonly Dictionary<string, (string content, bool isError)> _referenceSectionMap = new Dictionary<string, (string content, bool isError)>();
+
         internal ContentUtil(TestExecutionOptions options)
         {
             _options = options;
@@ -57,6 +64,22 @@ namespace RunTests.Cache
         }
 
         private void AppendReferences(StringBuilder builder, string unitTestAssemblyPath)
+        {
+            if (!_referenceSectionMap.TryGetValue(unitTestAssemblyPath, out var tuple))
+            {
+                tuple = GetReferenceSectionCore(unitTestAssemblyPath);
+                _referenceSectionMap[unitTestAssemblyPath] = tuple;
+            }
+
+            if (tuple.isError)
+            {
+                throw new Exception(tuple.content);
+            }
+
+            builder.AppendLine(tuple.content);
+        }
+
+        private (string content, bool isError) GetReferenceSectionCore(string unitTestAssemblyPath)
         {
             // This map is used for diagnostics and tracks the set of assemblies which bring in a given
             // name as a reference.
@@ -118,16 +141,21 @@ namespace RunTests.Cache
                 }
             }
 
-            builder.AppendLine("References:");
-            references.Sort((x, y) => x.Item1.CompareTo(y.Item1));
-            foreach (var pair in references)
+            if (missingSet.Count == 0)
             {
-                builder.AppendLine($"\t{pair.Item1} {pair.Item2}");
-            }
+                var builder = new StringBuilder();
+                builder.AppendLine("References:");
+                references.Sort((x, y) => x.Item1.CompareTo(y.Item1));
+                foreach (var pair in references)
+                {
+                    builder.AppendLine($"\t{pair.Item1} {pair.Item2}");
+                }
 
-            // Error if there are any referenced assemblies that we were unable to resolve.
-            if (missingSet.Count > 0)
-            {
+                return (builder.ToString(), isError: false);
+            }
+            else
+            { 
+                // Error if there are any referenced assemblies that we were unable to resolve.
                 var errorBuilder = new StringBuilder();
                 errorBuilder.AppendLine($"Unable to resolve {missingSet.Count} referenced assemblies");
                 foreach (var item in missingSet.OrderBy(x => x))
@@ -140,7 +168,7 @@ namespace RunTests.Cache
                     }
                 }
 
-                throw new Exception(errorBuilder.ToString());
+                return (errorBuilder.ToString(), isError: true);
             }
         }
 
