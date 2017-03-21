@@ -56,17 +56,43 @@ namespace RunTests.Cache
             return builder.ToString();
         }
 
-        private void AppendReferences(StringBuilder builder, string assemblyPath)
+        private void AppendReferences(StringBuilder builder, string unitTestAssemblyPath)
         {
-            builder.AppendLine("References:");
+            // This map is used for diagnostics and tracks the set of assemblies which bring in a given
+            // name as a reference.
+            var referenceMap = new Dictionary<string, List<AssemblyName>>();
+            void noteReference(AssemblyName source, AssemblyName referenced)
+            {
+                var key = referenced.FullName;
+                if (!referenceMap.TryGetValue(key, out var list))
+                {
+                    list = new List<AssemblyName>();
+                    referenceMap[key] = list;
+                }
 
-            var binariesPath = Path.GetDirectoryName(assemblyPath);
+                list.Add(source);
+            }
+
+            var unitTestAssemblyName = AssemblyName.GetAssemblyName(unitTestAssemblyPath);
+            var binariesPath = Path.GetDirectoryName(unitTestAssemblyPath);
             var assemblyUtil = new AssemblyUtil(binariesPath);
-            var visitedSet = new HashSet<string>();
-            var missingSet = new HashSet<string>();
-            var toVisit = new Queue<AssemblyName>(assemblyUtil.GetReferencedAssemblies(assemblyPath));
-            var references = new List<Tuple<string, string>>();
 
+            var toVisit = new Queue<AssemblyName>();
+            void enqueueReferences(string assemblyPath)
+            {
+                var assemblyName = AssemblyName.GetAssemblyName(assemblyPath);
+                foreach (var current in assemblyUtil.GetReferencedAssemblies(assemblyPath))
+                {
+                    noteReference(assemblyName, current);
+                    toVisit.Enqueue(current);
+                }
+            }
+
+            enqueueReferences(unitTestAssemblyPath);
+
+            var missingSet = new HashSet<string>();
+            var visitedSet = new HashSet<string>();
+            var references = new List<(string assemblyName, string assemblyHash)>();
             while (toVisit.Count > 0)
             {
                 var current = toVisit.Dequeue();
@@ -78,17 +104,13 @@ namespace RunTests.Cache
                 string currentPath;
                 if (assemblyUtil.TryGetAssemblyPath(current, out currentPath))
                 {
-                    foreach (var name in assemblyUtil.GetReferencedAssemblies(currentPath))
-                    {
-                        toVisit.Enqueue(name);
-                    }
-
+                    enqueueReferences(currentPath);
                     var currentHash = GetFileChecksum(currentPath);
-                    references.Add(Tuple.Create(current.Name, currentHash));
+                    references.Add((current.Name, currentHash));
                 }
                 else if (assemblyUtil.IsKnownMissingAssembly(current))
                 {
-                    references.Add(Tuple.Create(current.Name, "<missing light up reference>"));
+                    references.Add((current.Name, "<missing light up reference>"));
                 }
                 else
                 {
@@ -96,6 +118,7 @@ namespace RunTests.Cache
                 }
             }
 
+            builder.AppendLine("References:");
             references.Sort((x, y) => x.Item1.CompareTo(y.Item1));
             foreach (var pair in references)
             {
@@ -109,8 +132,14 @@ namespace RunTests.Cache
                 errorBuilder.AppendLine($"Unable to resolve {missingSet.Count} referenced assemblies");
                 foreach (var item in missingSet.OrderBy(x => x))
                 {
-                    errorBuilder.AppendLine($"\t{item}");
+                    errorBuilder.AppendLine($"\t{item} referenced from");
+                    var list = referenceMap[item];
+                    foreach (var source in list.OrderBy(x => x))
+                    {
+                        errorBuilder.AppendLine($"\t\t{source.Name}");
+                    }
                 }
+
                 throw new Exception(errorBuilder.ToString());
             }
         }
