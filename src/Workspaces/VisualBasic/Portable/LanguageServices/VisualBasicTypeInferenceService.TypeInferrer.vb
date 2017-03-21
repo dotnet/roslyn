@@ -406,8 +406,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim types = InferTypes(awaitExpression, filterUnusable:=False)
 
-                Dim task = Me.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task")
-                Dim taskOfT = Me.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1")
+                Dim task = Me.Compilation.GetTypeByMetadataName(GetType(Task).FullName)
+                Dim taskOfT = Me.Compilation.GetTypeByMetadataName(GetType(Task(Of)).FullName)
 
                 If task Is Nothing OrElse taskOfT Is Nothing Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
