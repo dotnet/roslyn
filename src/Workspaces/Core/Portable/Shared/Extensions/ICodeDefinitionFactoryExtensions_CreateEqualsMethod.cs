@@ -62,17 +62,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 factory, compilation, containingType, symbols, cancellationToken);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
-            return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
-                accessibility: Accessibility.Public,
-                modifiers: new DeclarationModifiers(),
-                returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
-                returnsByRef: false,
-                explicitInterfaceSymbol: null,
-                name: EqualsName,
-                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
-                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(containingType, OtherName)),
-                statements: statements);
+            var equatableType = compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+            var constructed = equatableType.Construct(containingType);
+            var methodSymbol = constructed.GetMembers(EqualsName)
+                                          .OfType<IMethodSymbol>()
+                                          .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
+
+            if (factory.RequiresExplicitImplementationForInterfaceMembers)
+            {
+                return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                    methodSymbol,
+                    modifiers: new DeclarationModifiers(),
+                    explicitInterfaceSymbol: methodSymbol,
+                    statements: statements);
+            }
+            else
+            {
+                return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                    methodSymbol,
+                    modifiers: new DeclarationModifiers(),
+                    statements: statements);
+            }
         }
 
         private static ImmutableArray<SyntaxNode> CreateEqualsMethodStatements(

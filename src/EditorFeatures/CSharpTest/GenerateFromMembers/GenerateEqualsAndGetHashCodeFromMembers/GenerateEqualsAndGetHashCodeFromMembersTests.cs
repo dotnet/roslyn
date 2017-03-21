@@ -1,7 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -16,6 +14,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHashCodeFromMembers
 {
+    using static GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider;
+
     public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -1003,25 +1003,8 @@ class Program
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOptions(options, generateOperators: true),
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 ignoreTrivia: false);
-        }
-
-        private void EnableOptions(
-            ImmutableArray<PickMembersOption> options,
-            bool generateOperators = false, bool implementIEquatable = false)
-        {
-            var option = options.FirstOrDefault(i => i.Id == GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId);
-            if (option != null)
-            {
-                option.Value = generateOperators;
-            }
-
-            option = options.FirstOrDefault(i => i.Id == GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId);
-            if (option != null)
-            {
-                option.Value = implementIEquatable;
-            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1057,7 +1040,7 @@ class Program
         => !(program1 == program2);
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOptions(options, generateOperators: true),
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 parameters: new TestParameters(
     options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.TrueWithNoneEnforcement)));
         }
@@ -1093,7 +1076,7 @@ class Program
     public static bool operator ==(Program program1, Program program2) => true;
 }",
 chosenSymbols: null,
-optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId)),
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)),
 ignoreTrivia: false);
         }
 
@@ -1138,12 +1121,12 @@ struct Program
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOptions(options, generateOperators: true),
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestImplementIEqutable1()
+        public async Task TestImplementIEquatable1()
         {
             await TestWithPickMembersDialogAsync(
 @"
@@ -1172,12 +1155,12 @@ struct Program : System.IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOptions(options, implementIEquatable: true),
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
 ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestImplementIEqutable2()
+        public async Task TestImplementIEquatable2()
         {
             await TestWithPickMembersDialogAsync(
 @"
@@ -1207,12 +1190,12 @@ class Program : System.IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOptions(options, implementIEquatable: true),
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
 ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestImplementIEqutable3()
+        public async Task TestImplementIEquatable3()
         {
             await TestWithPickMembersDialogAsync(
 @"
@@ -1238,7 +1221,7 @@ class Program : System.IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId)),
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)),
 ignoreTrivia: false);
         }
     }
