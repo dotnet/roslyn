@@ -9209,10 +9209,10 @@ CS0151ERR_IntegralTypeValueExpected}
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //         (int, int) x = (1, 1);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int, int)").WithArguments("tuples", "7").WithLocation(6, 9),
-                // (6,24): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,24): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //         (int, int) x = (1, 1);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 1)").WithArguments("tuples", "7").WithLocation(6, 24),
                 // (8,36): error CS1519: Invalid token '}' in class, struct, or interface member declaration

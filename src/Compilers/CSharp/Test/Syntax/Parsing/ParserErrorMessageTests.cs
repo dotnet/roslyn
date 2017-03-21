@@ -2191,7 +2191,7 @@ namespace x
                 // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
-                // (9,21): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (9,21): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(9, 21),
                 // (9,22): error CS8124: Tuple must contain at least two elements.
@@ -2333,7 +2333,7 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(4, 41),
                 // (4,42): error CS8124: Tuple must contain at least two elements.
@@ -3870,7 +3870,7 @@ public class MainClass
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-                // (3,41): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (3,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7").WithLocation(3, 41),
                 // (3,47): error CS8124: Tuple must contain at least two elements.
@@ -4598,7 +4598,7 @@ partial class C
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (2,1): error CS8022: Feature 'partial types' is not available in C# 1.  Please use language version 2 or greater.
+                // (2,1): error CS8022: Feature 'partial types' is not available in C# 1. Please use language version 2 or greater.
                 // partial class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "partial").WithArguments("partial types", "2"));
         }
@@ -4617,7 +4617,7 @@ class C
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (4,5): error CS8023: Feature 'partial method' is not available in C# 2.  Please use language version 3 or greater.
+                // (4,5): error CS8023: Feature 'partial method' is not available in C# 2. Please use language version 3 or greater.
                 //     partial int Foo() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "partial").WithArguments("partial method", "3"));
         }
@@ -4640,10 +4640,10 @@ class C
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,17): error CS8023: Feature 'query expression' is not available in C# 2.  Please use language version 3 or greater.
+                // (6,17): error CS8023: Feature 'query expression' is not available in C# 2. Please use language version 3 or greater.
                 //         var q = from a in b
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "from a in b").WithArguments("query expression", "3"),
-                // (6,17): error CS8023: Feature 'query expression' is not available in C# 2.  Please use language version 3 or greater.
+                // (6,17): error CS8023: Feature 'query expression' is not available in C# 2. Please use language version 3 or greater.
                 //         var q = from a in b
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "from").WithArguments("query expression", "3"));
         }
@@ -4665,7 +4665,7 @@ class C
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,17): error CS8023: Feature 'anonymous types' is not available in C# 2.  Please use language version 3 or greater.
+                // (6,17): error CS8023: Feature 'anonymous types' is not available in C# 2. Please use language version 3 or greater.
                 //         var q = new { };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "new").WithArguments("anonymous types", "3"));
         }
@@ -4687,7 +4687,7 @@ class C
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,17): error CS8023: Feature 'implicitly typed array' is not available in C# 2.  Please use language version 3 or greater.
+                // (6,17): error CS8023: Feature 'implicitly typed array' is not available in C# 2. Please use language version 3 or greater.
                 //         var q = new [] { };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "new").WithArguments("implicitly typed array", "3"));
         }
@@ -4709,7 +4709,7 @@ class C
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,25): error CS8023: Feature 'object initializer' is not available in C# 2.  Please use language version 3 or greater.
+                // (6,25): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
                 //         var q = new Foo { };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3"));
         }
@@ -4731,7 +4731,7 @@ class C
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,19): error CS8023: Feature 'lambda expression' is not available in C# 2.  Please use language version 3 or greater.
+                // (6,19): error CS8023: Feature 'lambda expression' is not available in C# 2. Please use language version 3 or greater.
                 //         var q = a => b;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "=>").WithArguments("lambda expression", "3"));
         }
@@ -4746,7 +4746,7 @@ class C
  }";
 
             ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.CSharp2),
-                // (4,37): error CS8023: Feature 'extension method' is not available in C# 2.  Please use language version 3 or greater.
+                // (4,37): error CS8023: Feature 'extension method' is not available in C# 2. Please use language version 3 or greater.
                 //      public static void DoSomething(this int x) { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "this").WithArguments("extension method", "3").WithLocation(4, 37));
 
@@ -4770,7 +4770,7 @@ public class C
 
             tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetDiagnostics().Verify(
-    // (6,23): error CS8026: Feature 'exception filter' is not available in C# 5.  Please use language version 6 or greater.
+    // (6,23): error CS8026: Feature 'exception filter' is not available in C# 5. Please use language version 6 or greater.
     //         try { } catch when (true) {}
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "when").WithArguments("exception filter", "6").WithLocation(6, 23)
                 );
@@ -4936,7 +4936,7 @@ partial class X
 }
 ";
             CreateCompilationWithMscorlib(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).VerifyDiagnostics(
-                // (4,5): error CS8023: Feature 'partial method' is not available in C# 2.  Please use language version 3 or greater.
+                // (4,5): error CS8023: Feature 'partial method' is not available in C# 2. Please use language version 3 or greater.
                 //     partial void M();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "partial").WithArguments("partial method", "3"));
         }
@@ -4955,7 +4955,7 @@ class C
 
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,16): error CS8026: Feature 'interpolated strings' is not available in C# 5.  Please use language version 6 or greater.
+                // (6,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
                 //         return $"hello";
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello""").WithArguments("interpolated strings", "6").WithLocation(6, 16));
         }
@@ -4975,7 +4975,7 @@ class C
 
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-            // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5.  Please use language version 6 or greater.
+            // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
             //         return $"hello + {other}";
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello + {other}""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
         }
@@ -4995,7 +4995,7 @@ class C
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (4,5): error CS8024: Feature 'async function' is not available in C# 3.  Please use language version 5 or greater.
+                // (4,5): error CS8024: Feature 'async function' is not available in C# 3. Please use language version 5 or greater.
                 //     async void M() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "async").WithArguments("async function", "5"));
         }
@@ -5015,7 +5015,7 @@ class C
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (4,5): error CS8024: Feature 'async function' is not available in C# 3.  Please use language version 5 or greater.
+                // (4,5): error CS8024: Feature 'async function' is not available in C# 3. Please use language version 5 or greater.
                 //     async static void M() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "async").WithArguments("async function", "5"));
         }
@@ -5037,7 +5037,7 @@ class C
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,34): error CS8025: Feature 'async function' is not available in C# 4.  Please use language version 5 or greater.
+                // (6,34): error CS8025: Feature 'async function' is not available in C# 4. Please use language version 5 or greater.
                 //         Func<int, Task<int>> f = async x => x;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "async").WithArguments("async function", "5"));
         }
@@ -5059,7 +5059,7 @@ class C
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,34): error CS8025: Feature 'async function' is not available in C# 4.  Please use language version 5 or greater.
+                // (6,34): error CS8025: Feature 'async function' is not available in C# 4. Please use language version 5 or greater.
                 //         Func<int, Task<int>> f = async delegate (int x) { return x; };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "async").WithArguments("async function", "5"));
         }
@@ -5079,10 +5079,10 @@ class C
 ";
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4)).GetDiagnostics().Verify();
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify(
-                // (2,7): error CS8024: Feature 'named argument' is not available in C# 3.  Please use language version 4 or greater.
+                // (2,7): error CS8024: Feature 'named argument' is not available in C# 3. Please use language version 4 or greater.
                 // [Attr(x:1)]
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "x:").WithArguments("named argument", "4"),
-                // (7,11): error CS8024: Feature 'named argument' is not available in C# 3.  Please use language version 4 or greater.
+                // (7,11): error CS8024: Feature 'named argument' is not available in C# 3. Please use language version 4 or greater.
                 //         M(y:2);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "y:").WithArguments("named argument", "4"));
         }
@@ -5097,7 +5097,7 @@ class C : global::B
 ";
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify(
-                // (2,11): error CS8022: Feature 'namespace alias qualifier' is not available in C# 1.  Please use language version 2 or greater.
+                // (2,11): error CS8022: Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.
                 // class C : global::B
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "global").WithArguments("namespace alias qualifier", "2"));
         }
@@ -5112,7 +5112,7 @@ class C : A::B
 ";
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify(
-                // (2,11): error CS8022: Feature 'namespace alias qualifier' is not available in C# 1.  Please use language version 2 or greater.
+                // (2,11): error CS8022: Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.
                 // class C : A::B
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "A").WithArguments("namespace alias qualifier", "2"));
         }
@@ -5128,7 +5128,7 @@ class C
 ";
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4)).GetDiagnostics().Verify();
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify(
-                // (4,18): error CS8024: Feature 'optional parameter' is not available in C# 3.  Please use language version 4 or greater.
+                // (4,18): error CS8024: Feature 'optional parameter' is not available in C# 3. Please use language version 4 or greater.
                 //     void M(int x = 1) { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion3, "= 1").WithArguments("optional parameter", "4"));
         }
@@ -5147,7 +5147,7 @@ class C
 ";
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify(
-                // (6,22): error CS8023: Feature 'object initializer' is not available in C# 2.  Please use language version 3 or greater.
+                // (6,22): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
                 //         return new C { Foo = 1 }; 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3"));
         }
@@ -5166,7 +5166,7 @@ class C
 ";
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify(
-                // (6,22): error CS8023: Feature 'collection initializer' is not available in C# 2.  Please use language version 3 or greater.
+                // (6,22): error CS8023: Feature 'collection initializer' is not available in C# 2. Please use language version 3 or greater.
                 //         return new C { 1, 2, 3 }; 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("collection initializer", "3"));
         }
@@ -5186,9 +5186,9 @@ class C
                 // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'C{T}'
                 // /// <see cref='C{T}'/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "C{T}").WithArguments("C{T}"),
-                // (2,17): warning CS1658: Feature 'generics' is not available in C# 1.  Please use language version 2 or greater.. See also error CS8022.
+                // (2,17): warning CS1658: Feature 'generics' is not available in C# 1. Please use language version 2 or greater.. See also error CS8022.
                 // /// <see cref='C{T}'/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "{").WithArguments("Feature 'generics' is not available in C# 1.  Please use language version 2 or greater.", "8022"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "{").WithArguments("Feature 'generics' is not available in C# 1. Please use language version 2 or greater.", "8022"));
         }
 
         [Fact]
@@ -5205,15 +5205,15 @@ class C { }
                 // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'Alias::Foo'
                 // /// <see cref='Alias::Foo'/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "Alias::Foo").WithArguments("Alias::Foo"),
-                // (2,16): warning CS1658: Feature 'namespace alias qualifier' is not available in C# 1.  Please use language version 2 or greater.. See also error CS8022.
+                // (2,16): warning CS1658: Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.. See also error CS8022.
                 // /// <see cref='Alias::Foo'/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "Alias").WithArguments("Feature 'namespace alias qualifier' is not available in C# 1.  Please use language version 2 or greater.", "8022"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "Alias").WithArguments("Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.", "8022"),
                 // (3,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'global::Foo'
                 // /// <see cref='global::Foo'/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "global::Foo").WithArguments("global::Foo"),
-                // (3,16): warning CS1658: Feature 'namespace alias qualifier' is not available in C# 1.  Please use language version 2 or greater.. See also error CS8022.
+                // (3,16): warning CS1658: Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.. See also error CS8022.
                 // /// <see cref='global::Foo'/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "global").WithArguments("Feature 'namespace alias qualifier' is not available in C# 1.  Please use language version 2 or greater.", "8022"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "global").WithArguments("Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.", "8022"));
         }
 
         [Fact]
@@ -5226,10 +5226,10 @@ class C { }
 ";
             SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
             SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify(
-                // (2,2): error CS8022: Feature '#pragma' is not available in C# 1.  Please use language version 2 or greater.
+                // (2,2): error CS8022: Feature '#pragma' is not available in C# 1. Please use language version 2 or greater.
                 // #pragma warning disable 1584
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "pragma").WithArguments("#pragma", "2"),
-                // (3,2): error CS8022: Feature '#pragma' is not available in C# 1.  Please use language version 2 or greater.
+                // (3,2): error CS8022: Feature '#pragma' is not available in C# 1. Please use language version 2 or greater.
                 // #pragma checksum "file.txt" "{00000000-0000-0000-0000-000000000000}" "2453"
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "pragma").WithArguments("#pragma", "2"));
         }
@@ -5300,31 +5300,31 @@ class C
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)).GetDiagnostics().Verify();
 
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).GetDiagnostics().Verify(
-    // (3,20): error CS8026: Feature 'auto property initializer' is not available in C# 5.  Please use language version 6 or greater.
+    // (3,20): error CS8026: Feature 'auto property initializer' is not available in C# 5. Please use language version 6 or greater.
     //     int L { get; } = 12; // auto property initializer
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "= 12").WithArguments("auto property initializer", "6").WithLocation(3, 20),
-    // (5,13): error CS8026: Feature 'expression-bodied method' is not available in C# 5.  Please use language version 6 or greater.
+    // (5,13): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
     //     int M() => 12; // expression-bodied method
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied method", "6").WithLocation(5, 13),
-    // (7,11): error CS8026: Feature 'expression-bodied property' is not available in C# 5.  Please use language version 6 or greater.
+    // (7,11): error CS8026: Feature 'expression-bodied property' is not available in C# 5. Please use language version 6 or greater.
     //     int N => 12; // expression-bodied property
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> 12").WithArguments("expression-bodied property", "6").WithLocation(7, 11),
-    // (9,21): error CS8026: Feature 'expression-bodied indexer' is not available in C# 5.  Please use language version 6 or greater.
+    // (9,21): error CS8026: Feature 'expression-bodied indexer' is not available in C# 5. Please use language version 6 or greater.
     //     int this[int a] => a + 1; // expression-bodied indexer
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> a + 1").WithArguments("expression-bodied indexer", "6").WithLocation(9, 21),
-    // (11,48): error CS8026: Feature 'expression-bodied method' is not available in C# 5.  Please use language version 6 or greater.
+    // (11,48): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
     //     public static int operator +(Foo a, Foo b) => null; // expression-bodied operator
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
-    // (13,49): error CS8026: Feature 'expression-bodied method' is not available in C# 5.  Please use language version 6 or greater.
+    // (13,49): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
     //     public static explicit operator bool(Foo a) => false; // expression-bodied conversion operator
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> false").WithArguments("expression-bodied method", "6").WithLocation(13, 49),
-    // (18,32): error CS8026: Feature 'exception filter' is not available in C# 5.  Please use language version 6 or greater.
+    // (18,32): error CS8026: Feature 'exception filter' is not available in C# 5. Please use language version 6 or greater.
     //         } catch (Exception ex) when (ex.ToString() == null) { // exception filter
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "when").WithArguments("exception filter", "6").WithLocation(18, 32),
-    // (21,17): error CS8026: Feature 'null propagating operator' is not available in C# 5.  Please use language version 6 or greater.
+    // (21,17): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
     //         var s = o?.ToString(); // null propagating operator
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "o?.ToString()").WithArguments("null propagating operator", "6").WithLocation(21, 17),
-    // (22,17): error CS8026: Feature 'interpolated strings' is not available in C# 5.  Please use language version 6 or greater.
+    // (22,17): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
     //         var x = $"hello world";
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello world""").WithArguments("interpolated strings", "6").WithLocation(22, 17)
                 );
