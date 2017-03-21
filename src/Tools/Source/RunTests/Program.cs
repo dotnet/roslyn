@@ -13,6 +13,7 @@ using Newtonsoft.Json.Linq;
 using RestSharp;
 using System.Collections.Immutable;
 using Newtonsoft.Json;
+using System.Reflection;
 
 namespace RunTests
 {
@@ -80,7 +81,7 @@ namespace RunTests
 
         private static void WriteLogFile(Options options)
         {
-            var fileName = Path.Combine(Path.GetDirectoryName(options.Assemblies.First()), "runtests.log");
+            var fileName = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().CodeBase), "runtests.log");
             using (var writer = new StreamWriter(fileName, append: false))
             {
                 Logger.WriteTo(writer);
