@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class IOperationTests : SemanticModelTestBase
     {
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void SimpleVariableDeclaration()
+        public void SingleVariableDeclaration()
         {
             string source = @"
 class Program
