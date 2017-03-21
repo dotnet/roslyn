@@ -11,5 +11,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             nameof(GenerateOperators), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation(
                 $"TextEditor.%LANGUAGE%.Specific.{nameof(GenerateEqualsAndGetHashCodeFromMembersOptions)}.{nameof(GenerateOperators)}"));
+
+        public static readonly PerLanguageOption<bool> ImplementIEquatable = new PerLanguageOption<bool>(
+            nameof(GenerateEqualsAndGetHashCodeFromMembersOptions),
+            nameof(ImplementIEquatable), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation(
+                $"TextEditor.%LANGUAGE%.Specific.{nameof(GenerateEqualsAndGetHashCodeFromMembersOptions)}.{nameof(ImplementIEquatable)}"));
     }
 }

@@ -178,9 +178,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             options = options ?? CodeGenerationOptions.Default;
 
-            var result = await this.FindMostRelevantDeclarationAsync(solution, destination, options, cancellationToken).ConfigureAwait(false);
-            SyntaxNode destinationDeclaration = result.Item1;
-            IList<bool> availableIndices = result.Item2;
+            var (destinationDeclaration, availableIndices) =
+                await this.FindMostRelevantDeclarationAsync(solution, destination, options, cancellationToken).ConfigureAwait(false);
 
             if (destinationDeclaration == null)
             {

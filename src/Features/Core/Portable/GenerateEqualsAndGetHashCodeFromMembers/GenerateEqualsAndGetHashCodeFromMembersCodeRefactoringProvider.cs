@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
     internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
-        private const string GenerateOperatorsId = nameof(GenerateOperatorsId);
+        public const string GenerateOperatorsId = nameof(GenerateOperatorsId);
+        public const string ImplementIEquatableId = nameof(ImplementIEquatableId);
 
         private const string EqualsName = nameof(object.Equals);
         private const string GetHashCodeName = nameof(object.GetHashCode);
@@ -105,6 +106,23 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 containingType, out var hasEquals, out var hasGetHashCode);
 
             var pickMembersOptions = ArrayBuilder<PickMembersOption>.GetInstance();
+
+            var equatableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+            var constructedType = equatableType.Construct(containingType);
+            if (!containingType.AllInterfaces.Contains(constructedType))
+            {
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable);
+
+                var displayName = constructedType.ToDisplayString(new SymbolDisplayFormat(
+                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters));
+
+                pickMembersOptions.Add(new PickMembersOption(
+                    ImplementIEquatableId,
+                    string.Format(FeaturesResources.Implement_0, displayName),
+                    value));
+            }
 
             if (!HasOperators(containingType))
             {
@@ -231,7 +249,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 return new GenerateEqualsAndGetHashCodeAction(
                     this, document, textSpan, containingType, members,
-                    generateEquals, generateGetHashCode, generateOperators: false);
+                    generateEquals, generateGetHashCode,
+                    implementIEquatable: false, generateOperators: false);
             }
         }
     }

@@ -1450,6 +1450,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement {0}.
+        /// </summary>
+        internal static string Implement_0 {
+            get {
+                return ResourceManager.GetString("Implement_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement Abstract Class.
         /// </summary>
         internal static string Implement_Abstract_Class {

@@ -1217,4 +1217,7 @@ This version used in: {2}</value>
   <data name="Generate_operators" xml:space="preserve">
     <value>Generate operators</value>
   </data>
+  <data name="Implement_0" xml:space="preserve">
+    <value>Implement {0}</value>
+  </data>
 </root>
