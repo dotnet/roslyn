@@ -2358,8 +2358,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(!moduleBuilder.EmitOptions.EmitMetadataOnly);
-
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             var resourceDiagnostics = DiagnosticBag.GetInstance();
 

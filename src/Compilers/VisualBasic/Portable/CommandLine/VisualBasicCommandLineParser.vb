@@ -96,6 +96,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim noStdLib As Boolean = False
             Dim utf8output As Boolean = False
             Dim outputFileName As String = Nothing
+            Dim outputRefFileName As String = Nothing
+            Dim metadataOnly As Boolean = False
             Dim outputDirectory As String = baseDirectory
             Dim documentationPath As String = Nothing
             Dim errorLogPath As String = Nothing
@@ -454,6 +456,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ParseOutputFile(value, diagnostics, baseDirectory, outputFileName, outputDirectory)
                             End If
                             Continue For
+
+                        Case "refout"
+                            Dim unquoted = RemoveQuotesAndSlashes(value)
+                            If String.IsNullOrEmpty(unquoted) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file>")
+                            Else
+                                outputRefFileName = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory)
+                            End If
+                            Continue For
+
+                        Case "refonly", "refonly+"
+                            If value IsNot Nothing Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "refonly")
+                            End If
+
+                            metadataOnly = True
+                            Continue For
+
 
                         Case "t", "target"
                             value = RemoveQuotesAndSlashes(value)
@@ -1194,6 +1214,14 @@ lVbRuntimePlus:
                 specificDiagnosticOptions(item.Key) = item.Value
             Next
 
+            If metadataOnly AndAlso outputRefFileName IsNot Nothing Then
+                AddDiagnostic(diagnostics, ERRID.ERR_NoRefOutWhenRefOnly)
+            End If
+
+            If outputKind = OutputKind.NetModule AndAlso (metadataOnly OrElse outputRefFileName IsNot Nothing) Then
+                AddDiagnostic(diagnostics, ERRID.ERR_NoNetModuleOutputWhenRefOutOrRefOnly)
+            End If
+
             If Not IsScriptRunner AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() Then
                 ' VB displays help when there is nothing specified on the command line
                 If flattenedArgs.Any Then
@@ -1344,7 +1372,7 @@ lVbRuntimePlus:
                 reportSuppressedDiagnostics:=reportSuppressedDiagnostics)
 
             Dim emitOptions = New EmitOptions(
-                metadataOnly:=False,
+                metadataOnly:=metadataOnly,
                 debugInformationFormat:=debugInformationFormat,
                 pdbFilePath:=Nothing, ' to be determined later
                 outputNameOverride:=Nothing,  ' to be determined later
@@ -1376,6 +1404,7 @@ lVbRuntimePlus:
                 .Utf8Output = utf8output,
                 .CompilationName = compilationName,
                 .OutputFileName = outputFileName,
+                .OutputRefFilePath = outputRefFileName,
                 .OutputDirectory = outputDirectory,
                 .DocumentationPath = documentationPath,
                 .ErrorLogPath = errorLogPath,
@@ -1403,7 +1432,7 @@ lVbRuntimePlus:
                 .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
                 .TouchedFilesPath = touchedFilesPath,
                 .OutputLevel = outputLevel,
-                .EmitPdb = emitPdb,
+                .EmitPdb = emitPdb AndAlso Not metadataOnly,
                 .SourceLink = sourceLink,
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,

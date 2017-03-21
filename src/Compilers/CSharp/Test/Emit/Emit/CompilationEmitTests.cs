@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -40,7 +41,7 @@ class X
             EmitResult emitResult;
             using (var output = new MemoryStream())
             {
-                emitResult = compilation.Emit(output, null, null, null);
+                emitResult = compilation.Emit(output, pdbStream: null, xmlDocumentationStream: null, win32Resources: null);
             }
 
             emitResult.Diagnostics.Verify(
@@ -148,7 +149,7 @@ namespace N.Foo;
             EmitResult emitResult;
             using (var output = new MemoryStream())
             {
-                emitResult = comp.Emit(output, null, null, null);
+                emitResult = comp.Emit(output, pdbStream: null, xmlDocumentationStream: null, win32Resources: null);
             }
 
             Assert.False(emitResult.Success);
@@ -234,6 +235,194 @@ class Test2
                 emitResult.Diagnostics.Verify();
                 Assert.True(output.ToArray().Length > 0, "no metadata emitted");
             }
+        }
+
+        [Theory]
+        [InlineData("public int M() { return 1; }", "public int M() { return 2; }", true)]
+        [InlineData("public int M() { return 1; }", "public int M() { error(); }", true)]
+        [InlineData("", "private void M() { }", false)] // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+        [InlineData("internal void M() { }", "", false)]
+        [InlineData("public struct S { private int i; }", "public struct S { }", false)]
+        public void RefAssembly_InvariantToSomeChanges(string change1, string change2, bool expectMatch)
+        {
+            string sourceTemplate = @"
+public class C
+{
+    CHANGE
+}
+";
+            string name = GetUniqueName();
+            string source1 = sourceTemplate.Replace("CHANGE", change1);
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib(Parse(source1),
+                options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+            ImmutableArray<byte> image1 = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true));
+
+            var source2 = sourceTemplate.Replace("CHANGE", change2);
+            Compilation comp2 = CreateCompilationWithMscorlib(Parse(source2),
+                options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+            ImmutableArray<byte> image2 = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true));
+
+            if (expectMatch)
+            {
+                AssertEx.Equal(image1, image2);
+            }
+            else
+            {
+                AssertEx.NotEqual(image1, image2);
+            }
+        }
+
+        [Theory]
+        [InlineData("public int M() { error(); }", true)]
+        [InlineData("public int M() { error() }", false)] // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+        [InlineData("public Error M() { return null; }", false)] // This may get relaxed. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+        public void RefAssembly_IgnoresSomeDiagnostics(string change, bool expectSuccess)
+        {
+            string sourceTemplate = @"
+public class C
+{
+    CHANGE
+}
+";
+            string source = sourceTemplate.Replace("CHANGE", change);
+            string name = GetUniqueName();
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib(Parse(source),
+                options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+
+            using (var output = new MemoryStream())
+            {
+                var emitResult = comp1.Emit(output, options: EmitOptions.Default.WithEmitMetadataOnly(true));
+                Assert.Equal(expectSuccess, emitResult.Success);
+                Assert.Equal(!expectSuccess, emitResult.Diagnostics.Any());
+            }
+        }
+
+        [Fact]
+        public void VerifyRefAssembly()
+        {
+            string source = @"
+public abstract class PublicClass
+{
+    public void PublicMethod() { System.Console.Write(""Hello""); }
+    private void PrivateMethod() { System.Console.Write(""Hello""); }
+    protected void ProtectedMethod() { System.Console.Write(""Hello""); }
+    internal void InternalMethod() { System.Console.Write(""Hello""); }
+    public abstract void AbstractMethod();
+}
+";
+            CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
+
+            var verifier = CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+
+            // verify metadata (types, members, attributes)
+            var image = comp.EmitToImageReference(emitRefOnly);
+            var comp2 = CreateCompilation("", references: new[] { MscorlibRef, image },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            AssemblySymbol assembly = comp2.SourceModule.GetReferencedAssemblySymbols().Last();
+            var members = assembly.GlobalNamespace.GetMembers();
+            AssertEx.SetEqual(members.Select(m => m.ToDisplayString()),
+                new[] { "<Module>", "PublicClass" });
+
+            AssertEx.SetEqual(
+                ((NamedTypeSymbol)assembly.GlobalNamespace.GetMember("PublicClass")).GetMembers()
+                    .Select(m => m.ToTestDisplayString()),
+                new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
+                    "void PublicClass.InternalMethod()", "void PublicClass.ProtectedMethod()",
+                    "void PublicClass.AbstractMethod()", "PublicClass..ctor()" });
+
+            AssertEx.SetEqual(assembly.GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()),
+                new[] { "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute" });
+
+            var peImage = comp.EmitToArray(emitRefOnly);
+            MetadataReaderUtils.VerifyMethodBodies(peImage, expectEmptyOrThrowNull: true);
+        }
+        [Fact]
+        public void EmitMetadataOnly_DisallowPdbs()
+        {
+            CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            using (var output = new MemoryStream())
+            using (var pdbOutput = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output, pdbOutput,
+                    options: EmitOptions.Default.WithEmitMetadataOnly(true)));
+            }
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_DisallowMetadataPeStream()
+        {
+            CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            using (var output = new MemoryStream())
+            using (var metadataPeOutput = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output, metadataPeStream: metadataPeOutput,
+                    options: EmitOptions.Default.WithEmitMetadataOnly(true)));
+            }
+        }
+
+        [Fact]
+        public void EmitMetadata_DisallowOutputtingNetModule()
+        {
+            CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true).WithOutputKind(OutputKind.NetModule));
+
+            using (var output = new MemoryStream())
+            using (var metadataPeOutput = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output, metadataPeStream: metadataPeOutput,
+                    options: EmitOptions.Default));
+            }
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_DisallowOutputtingNetModule()
+        {
+            CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true).WithOutputKind(OutputKind.NetModule));
+
+            using (var output = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output,
+                    options: EmitOptions.Default.WithEmitMetadataOnly(true)));
+            }
+        }
+
+        [Fact]
+        public void EmitMetadata()
+        {
+            string source = @"
+public abstract class PublicClass
+{
+    public void PublicMethod() { System.Console.Write(""Hello""); }
+}
+";
+            CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            using (var output = new MemoryStream())
+            using (var pdbOutput = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
+            {
+                var result = comp.Emit(output, pdbOutput, metadataPeStream: metadataOutput);
+                Assert.True(result.Success);
+                Assert.NotEqual(0, output.Position);
+                Assert.NotEqual(0, pdbOutput.Position);
+                Assert.NotEqual(0, metadataOutput.Position);
+                MetadataReaderUtils.VerifyMethodBodies(ImmutableArray.CreateRange(output.GetBuffer()), expectEmptyOrThrowNull: false);
+                MetadataReaderUtils.VerifyMethodBodies(ImmutableArray.CreateRange(metadataOutput.GetBuffer()), expectEmptyOrThrowNull: true);
+            }
+
+            var peImage = comp.EmitToArray();
+            MetadataReaderUtils.VerifyMethodBodies(peImage, expectEmptyOrThrowNull: false);
         }
 
         /// <summary>
@@ -939,7 +1128,7 @@ public class Test
             EmitResult emitResult;
             using (var output = new MemoryStream())
             {
-                emitResult = compilation.Emit(output, null, null, null);
+                emitResult = compilation.Emit(output, pdbStream: null, xmlDocumentationStream: null, win32Resources: null);
             }
 
             Assert.False(emitResult.Success);
@@ -972,7 +1161,7 @@ class C
             EmitResult emitResult;
             using (var output = new MemoryStream())
             {
-                emitResult = compilation.Emit(output, null, null, null);
+                emitResult = compilation.Emit(output, pdbStream: null, xmlDocumentationStream: null, win32Resources: null);
             }
 
             Assert.True(emitResult.Success);
@@ -1010,7 +1199,7 @@ class C
             EmitResult emitResult;
             using (var output = new MemoryStream())
             {
-                emitResult = compilation.Emit(output, null, null, null);
+                emitResult = compilation.Emit(output, pdbStream: null, xmlDocumentationStream: null, win32Resources: null);
             }
 
             Assert.True(emitResult.Success);
@@ -2726,7 +2915,7 @@ class C
             var output = new MemoryStream();
             var pdb = new BrokenStream();
             pdb.BreakHow = BrokenStream.BreakHowType.ThrowOnSetLength;
-            var result = compilation.Emit(output, pdb);
+            var result = compilation.Emit(output, pdbStream: pdb);
 
             // error CS0041: Unexpected error writing debug information -- 'Exception from HRESULT: 0x806D0004'
             var err = result.Diagnostics.Single();
@@ -2737,7 +2926,7 @@ class C
             Assert.Equal(ioExceptionMessage, (string)err.Arguments[0]);
 
             pdb.Dispose();
-            result = compilation.Emit(output, pdb);
+            result = compilation.Emit(output, pdbStream: pdb);
 
             // error CS0041: Unexpected error writing debug information -- 'Exception from HRESULT: 0x806D0004'
             err = result.Diagnostics.Single();

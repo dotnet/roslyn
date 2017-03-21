@@ -330,6 +330,15 @@
   <data name="PdbStreamUnexpectedWhenEmbedding" xml:space="preserve">
     <value>PDB stream should not be given when embedding PDB into the PE stream.</value>
   </data>
+  <data name="PdbStreamUnexpectedWhenEmittingMetadataOnly" xml:space="preserve">
+    <value>PDB stream should not be given when emitting metadata only.</value>
+  </data>
+  <data name="MetadataPeStreamUnexpectedWhenEmittingMetadataOnly" xml:space="preserve">
+    <value>Metadata PE stream should not be given when emitting metadata only.</value>
+  </data>
+  <data name="CannotTargetNetModuleWhenEmittingRefAssembly" xml:space="preserve">
+    <value>Cannot target net module when emitting ref assembly.</value>
+  </data>
   <data name="InvalidHash" xml:space="preserve">
     <value>Invalid hash.</value>
   </data>

@@ -1461,5 +1461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion more stragglers for C# 7
 
         ERR_Merge_conflict_marker_encountered = 8300,
+        ERR_NoRefOutWhenRefOnly = 8301,
+        ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8302,
     }
 }

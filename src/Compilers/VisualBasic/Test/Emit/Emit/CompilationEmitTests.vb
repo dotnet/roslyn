@@ -260,7 +260,7 @@ End Namespace
     </file>
 </compilation>)
 
-            Dim emitResult As emitResult
+            Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
 
             Using output = New MemoryStream()
@@ -295,6 +295,208 @@ End Class
                 CompilationUtils.AssertNoErrors(emitResult.Diagnostics)
                 Assert.True(output.ToArray().Length > 0, "no metadata emitted")
             End Using
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_InvariantToSomeChanges()
+
+            RefAssembly_InvariantToSomeChanges(
+"Public Function M() As Integer
+    Return 1
+End Function",
+"Public Function M() As Integer
+    Return 2
+End Function", True)
+
+            RefAssembly_InvariantToSomeChanges(
+"Public Function M() As Integer
+    Return 1
+End Function",
+"Public Function M() As Integer
+End Function", True)
+
+            RefAssembly_InvariantToSomeChanges(
+"",
+"Private Sub M()
+End Sub", False) ' Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+
+            RefAssembly_InvariantToSomeChanges(
+"Friend Sub M()
+End Sub",
+"", False)
+
+            RefAssembly_InvariantToSomeChanges(
+"Public Structure S
+    Private Dim i As Integer
+End Structure",
+"Public Structure S
+End Structure", False)
+
+        End Sub
+
+        Private Sub RefAssembly_InvariantToSomeChanges(change1 As String, change2 As String, expectMatch As Boolean)
+            Dim sourceTemplate As String = "
+Public Class C
+    CHANGE
+End Class"
+
+            Dim name As String = GetUniqueName()
+            Dim source1 As String = sourceTemplate.Replace("CHANGE", change1)
+            Dim comp1 = CreateCompilationWithMscorlib(source1,
+                options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
+            Dim image1 As ImmutableArray(Of Byte) = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True))
+
+            Dim source2 = sourceTemplate.Replace("CHANGE", change2)
+            Dim comp2 = CreateCompilationWithMscorlib(source2,
+                            options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
+            Dim image2 As ImmutableArray(Of Byte) = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True))
+
+            If expectMatch Then
+                AssertEx.Equal(image1, image2)
+            Else
+                AssertEx.NotEqual(image1, image2)
+            End If
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_IgnoresSomeDiagnostics()
+
+            RefAssembly_IgnoresSomeDiagnostics(
+"Public Function M() As Integer
+End Function", True)
+
+            RefAssembly_IgnoresSomeDiagnostics(
+"Public Function M() As Integer
+    Error(
+End Function", False) ' Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+
+            RefAssembly_IgnoresSomeDiagnostics(
+"Public Function M() As Error
+End Function", False) ' This may get relaxed. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+        End Sub
+
+        Private Sub RefAssembly_IgnoresSomeDiagnostics(change As String, expectSuccess As Boolean)
+            Dim sourceTemplate As String = "
+Public Class C
+    CHANGE
+End Class"
+
+            Dim name As String = GetUniqueName()
+            Dim source As String = sourceTemplate.Replace("CHANGE", change)
+            Dim comp = CreateCompilationWithMscorlib(source,
+                options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
+
+            Using output As New MemoryStream()
+                Dim EmitResult = comp.Emit(output, options:=EmitOptions.Default.WithEmitMetadataOnly(True))
+                Assert.Equal(expectSuccess, EmitResult.Success)
+                Assert.Equal(Not expectSuccess, EmitResult.Diagnostics.Any())
+            End Using
+
+        End Sub
+
+        <Fact>
+        Public Sub VerifyRefAssembly()
+            Dim source = "
+Public MustInherit Class PublicClass
+    Public Sub PublicMethod()
+        System.Console.Write(""Hello"")
+    End Sub
+    Private Sub PrivateMethod()
+        System.Console.Write(""Hello"")
+    End Sub
+    Protected Sub ProtectedMethod()
+        System.Console.Write(""Hello"")
+    End Sub
+    Friend Sub InternalMethod()
+        System.Console.Write(""Hello"")
+    End Sub
+    Public MustOverride Sub AbstractMethod()
+End Class"
+            Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True)
+
+            Dim verifier = CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+
+            ' verify metadata (types, members, attributes)
+            Dim image = comp.EmitToImageReference(emitRefOnly)
+            Dim comp2 = CreateCompilation("", references:={MscorlibRef, image},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim assembly As AssemblySymbol = comp2.SourceModule.GetReferencedAssemblySymbols().Last()
+            Dim members = assembly.GlobalNamespace.GetMembers()
+            AssertEx.SetEqual(members.Select(Function(m) m.ToDisplayString()),
+                {"<Module>", "PublicClass"})
+
+            AssertEx.SetEqual(
+                DirectCast(assembly.GlobalNamespace.GetMember("PublicClass"), NamedTypeSymbol).GetMembers().
+                                Select(Function(m) m.ToTestDisplayString()),
+                            {"Sub PublicClass.PublicMethod()", "Sub PublicClass.PrivateMethod()",
+                                "Sub PublicClass.InternalMethod()", "Sub PublicClass.ProtectedMethod()",
+                                "Sub PublicClass.AbstractMethod()", "Sub PublicClass..ctor()"})
+
+            AssertEx.SetEqual(assembly.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()),
+                {"System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute"})
+
+            Dim peImage = comp.EmitToArray(emitRefOnly)
+            MetadataReaderUtils.VerifyMethodBodies(peImage, expectEmptyOrThrowNull:=True)
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_DisallowPdbs()
+            Dim comp = CreateCompilation("", references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Using output As New MemoryStream()
+                Using pdbOutput = New MemoryStream()
+                    Assert.Throws(Of ArgumentException)(Function() comp.Emit(output, pdbOutput,
+                                        options:=EmitOptions.Default.WithEmitMetadataOnly(True)))
+                End Using
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_DisallowMetadataPeStream()
+            Dim comp = CreateCompilation("", references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Using output As New MemoryStream()
+                Using metadataPeOutput As New MemoryStream()
+                    Assert.Throws(Of ArgumentException)(Function() comp.Emit(output, metadataPeStream:=metadataPeOutput,
+                                        options:=EmitOptions.Default.WithEmitMetadataOnly(True)))
+                End Using
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadata()
+            Dim source =
+"Public MustInherit Class PublicClass
+    Public Sub PublicMethod
+        System.Console.Write(""Hello"")
+    End Sub
+End Class "
+            Dim comp = CreateCompilation(source, references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Using output As New MemoryStream()
+                Using pdbOutput As New MemoryStream()
+                    Using metadataOutput As New MemoryStream()
+                        Dim result = comp.Emit(output, pdbOutput, metadataPeStream:=metadataOutput)
+                        Assert.True(result.Success)
+                        Assert.NotEqual(0, output.Position)
+                        Assert.NotEqual(0, pdbOutput.Position)
+                        Assert.NotEqual(0, metadataOutput.Position)
+                        MetadataReaderUtils.VerifyMethodBodies(ImmutableArray.CreateRange(output.GetBuffer()), expectEmptyOrThrowNull:=False)
+                        MetadataReaderUtils.VerifyMethodBodies(ImmutableArray.CreateRange(metadataOutput.GetBuffer()), expectEmptyOrThrowNull:=True)
+                    End Using
+                End Using
+            End Using
+
+            Dim peImage = comp.EmitToArray()
+            MetadataReaderUtils.VerifyMethodBodies(peImage, expectEmptyOrThrowNull:=False)
         End Sub
 
         <WorkItem(4344, "DevDiv_Projects/Roslyn")>
@@ -573,21 +775,21 @@ End Module
             </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=Nothing)
-            Dim peHeaders = New peHeaders(compilation.EmitToStream())
+            Dim peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags)
 
             compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X86))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(CorFlags.ILOnly Or CorFlags.Requires32Bit, peHeaders.CorHeader.Flags)
 
             compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X64))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags)
             Assert.True(peHeaders.Requires64Bits)
             Assert.True(peHeaders.RequiresAmdInstructionSet)
 
             compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu32BitPreferred))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.False(peHeaders.Requires64Bits)
             Assert.False(peHeaders.RequiresAmdInstructionSet)
             Assert.Equal(CorFlags.ILOnly Or CorFlags.Requires32Bit Or CorFlags.Prefers32Bit, peHeaders.CorHeader.Flags)
@@ -606,7 +808,7 @@ End Module
             </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.AnyCpu))
-            Dim peHeaders = New peHeaders(compilation.EmitToStream())
+            Dim peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
             Assert.False(peHeaders.Requires64Bits)
@@ -631,7 +833,7 @@ End Module
 
             ' test an exe as well:
             compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
             Assert.False(peHeaders.Requires64Bits)
@@ -667,7 +869,7 @@ End Module
             </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.Arm))
-            Dim peHeaders = New peHeaders(compilation.EmitToStream())
+            Dim peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
             Assert.False(peHeaders.Requires64Bits)
@@ -692,7 +894,7 @@ End Module
 
             ' test an exe as well:
             compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
             Assert.False(peHeaders.Requires64Bits)
@@ -728,7 +930,7 @@ End Module
             </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X64))
-            Dim peHeaders = New peHeaders(compilation.EmitToStream())
+            Dim peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
             Assert.True(peHeaders.Requires64Bits)
@@ -748,7 +950,7 @@ End Module
 
             ' test an exe as well:
             compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X64))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
             Assert.True(peHeaders.Requires64Bits)
@@ -804,7 +1006,7 @@ End Module
             </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.WindowsRuntimeApplication))
-            Dim peHeaders = New peHeaders(compilation.EmitToStream())
+            Dim peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(CType(&H9540, UShort), peHeaders.PEHeader.DllCharacteristics)  'DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE | HIGH_ENTROPY_VA (0x20)
         End Sub
 
@@ -837,15 +1039,15 @@ End Module
 
             ' default for 32 bit
             compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithPlatform(Platform.X86))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(&H400000UL, peHeaders.PEHeader.ImageBase)
 
             compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithPlatform(Platform.X64))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(&H140000000UL, peHeaders.PEHeader.ImageBase)
 
             compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithPlatform(Platform.X64))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(&H180000000UL, peHeaders.PEHeader.ImageBase)
 
         End Sub
@@ -867,7 +1069,7 @@ End Module
             Assert.Equal(1024, peHeaders.PEHeader.FileAlignment)
 
             compilation = CreateCompilationWithMscorlib(source)
-            peHeaders = New peHeaders(compilation.EmitToStream(options:=New EmitOptions(fileAlignment:=4096)))
+            peHeaders = New PEHeaders(compilation.EmitToStream(options:=New EmitOptions(fileAlignment:=4096)))
             Assert.Equal(4096, peHeaders.PEHeader.FileAlignment)
         End Sub
 
@@ -1743,7 +1945,7 @@ end namespace
                     Dim sourceAssembly = DirectCast(assembly, SourceAssemblySymbol)
                     Dim compilation = sourceAssembly.DeclaringCompilation
 
-                    Dim emitOptions = New emitOptions(outputNameOverride:=sourceAssembly.Name)
+                    Dim emitOptions = New EmitOptions(outputNameOverride:=sourceAssembly.Name)
 
                     Dim assemblyBuilder = New PEAssemblyBuilder(sourceAssembly, emitOptions, OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable(Of ResourceDescription), Nothing)
                     Dim assemblySecurityAttributes As IEnumerable(Of Cci.SecurityAttribute) = assemblyBuilder.GetSourceAssemblySecurityAttributes()

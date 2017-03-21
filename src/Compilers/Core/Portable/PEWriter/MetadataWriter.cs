@@ -65,11 +65,13 @@ namespace Microsoft.Cci
         private readonly int _numTypeDefsEstimate;
         private readonly bool _deterministic;
 
-        // If true, it is allowed to have methods not have bodies (for emitting metadata-only assembly)
-        internal readonly bool allowMissingMethodBodies;
+        internal readonly bool MetadataOnly;
 
         // A map of method body before token translation to RVA. Used for deduplication of small bodies.
         private readonly Dictionary<ImmutableArray<byte>, int> _smallMethodBodies;
+
+        private static readonly ImmutableArray<byte> ThrowNullIL = ImmutableArray.Create((byte)ILOpCode.Ldnull, (byte)ILOpCode.Throw);
+        private const int ThrowNullMaxStack = 1;
 
         protected MetadataWriter(
             MetadataBuilder metadata,
@@ -77,13 +79,13 @@ namespace Microsoft.Cci
             DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
             EmitContext context,
             CommonMessageProvider messageProvider,
-            bool allowMissingMethodBodies,
+            bool metadataOnly,
             bool deterministic,
             CancellationToken cancellationToken)
         {
             this.module = context.Module;
             _deterministic = deterministic;
-            this.allowMissingMethodBodies = allowMissingMethodBodies;
+            this.MetadataOnly = metadataOnly;
 
             // EDMAURER provide some reasonable size estimates for these that will avoid
             // much of the reallocation that would occur when growing these from empty.
@@ -2831,22 +2833,30 @@ namespace Microsoft.Cci
 
                 if (method.HasBody())
                 {
-                    body = method.GetBody(Context);
-                    Debug.Assert(body != null || allowMissingMethodBodies);
-
-                    if (body != null)
+                    if (MetadataOnly)
                     {
-                        localSignatureHandleOpt = this.SerializeLocalVariablesSignature(body);
-
-                        // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
-                        bodyOffset = SerializeMethodBody(encoder, body, localSignatureHandleOpt, ref mvidStringHandle, ref mvidStringFixup);
-
-                        nativePdbWriterOpt?.SerializeDebugInfo(body, localSignatureHandleOpt, customDebugInfoWriter);
+                        bodyOffset = SerializeThrowNullMethodBody(encoder);
+                        localSignatureHandleOpt = default(StandaloneSignatureHandle);
+                        body = null;
                     }
                     else
                     {
-                        bodyOffset = 0;
-                        localSignatureHandleOpt = default(StandaloneSignatureHandle);
+                        body = method.GetBody(Context);
+
+                        if (body != null)
+                        {
+                            localSignatureHandleOpt = this.SerializeLocalVariablesSignature(body);
+
+                            // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
+                            bodyOffset = SerializeMethodBody(encoder, body, localSignatureHandleOpt, ref mvidStringHandle, ref mvidStringFixup);
+
+                            nativePdbWriterOpt?.SerializeDebugInfo(body, localSignatureHandleOpt, customDebugInfoWriter);
+                        }
+                        else
+                        {
+                            bodyOffset = 0;
+                            localSignatureHandleOpt = default(StandaloneSignatureHandle);
+                        }
                     }
                 }
                 else
@@ -2863,7 +2873,7 @@ namespace Microsoft.Cci
                 }
 
                 _dynamicAnalysisDataWriterOpt?.SerializeMethodDynamicAnalysisData(body);
-                
+
                 bodyOffsets[methodRid - 1] = bodyOffset;
 
                 methodRid++;
@@ -2872,40 +2882,84 @@ namespace Microsoft.Cci
             return bodyOffsets;
         }
 
-        private int SerializeMethodBody(MethodBodyStreamEncoder encoder, IMethodBody methodBody, StandaloneSignatureHandle localSignatureHandleOpt, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
+        private int SerializeThrowNullMethodBody(MethodBodyStreamEncoder encoder)
         {
-            int ilLength = methodBody.IL.Length;
-            var exceptionRegions = methodBody.ExceptionRegions;
-            bool isSmallBody = ilLength < 64 && methodBody.MaxStack <= 8 && localSignatureHandleOpt.IsNil && exceptionRegions.Length == 0;
+            UserStringHandle mvidStringHandle = default(UserStringHandle);
+            Blob mvidStringFixup = default(Blob);
 
-            // Check if an identical method body has already been serialized. 
+            int offset = SerializeMethodBody(
+                encoder,
+                ThrowNullIL,
+                ThrowNullMaxStack,
+                ImmutableArray<ExceptionHandlerRegion>.Empty,
+                default(StandaloneSignatureHandle),
+                MethodBodyAttributes.None,
+                ref mvidStringHandle,
+                ref mvidStringFixup);
+
+            Debug.Assert(mvidStringHandle.Equals(default(UserStringHandle)) && mvidStringFixup.Equals(default(Blob)));
+            return offset;
+        }
+
+        private int SerializeMethodBody(
+            MethodBodyStreamEncoder encoder,
+            IMethodBody methodBody,
+            StandaloneSignatureHandle localSignatureHandleOpt,
+            ref UserStringHandle mvidStringHandle,
+            ref Blob mvidStringFixup)
+        {
+            return SerializeMethodBody(
+                encoder,
+                methodBody.IL,
+                methodBody.MaxStack,
+                methodBody.ExceptionRegions,
+                localSignatureHandleOpt,
+                (methodBody.LocalsAreZeroed ? MethodBodyAttributes.InitLocals : MethodBodyAttributes.None),
+                ref mvidStringHandle,
+                ref mvidStringFixup);
+        }
+
+        private int SerializeMethodBody(
+            MethodBodyStreamEncoder encoder,
+            ImmutableArray<byte> il,
+            ushort maxStack,
+            ImmutableArray<ExceptionHandlerRegion> exceptionRegions,
+            StandaloneSignatureHandle localSignatureHandleOpt,
+            MethodBodyAttributes methodBodyAttributes,
+            ref UserStringHandle mvidStringHandle,
+            ref Blob mvidStringFixup)
+        {
+            int ilLength = il.Length;
+            bool isSmallBody = ilLength < 64 && maxStack <= 8 && localSignatureHandleOpt.IsNil && exceptionRegions.Length == 0;
+
+            // Check if an identical method body has already been serialized.
             // If so, use the RVA of the already serialized one.
             // Note that we don't need to rewrite the fake tokens in the body before looking it up.
 
             // Don't do small body method caching during deterministic builds until this issue is fixed
             // https://github.com/dotnet/roslyn/issues/7595
             int bodyOffset;
-            if (!_deterministic && isSmallBody && _smallMethodBodies.TryGetValue(methodBody.IL, out bodyOffset))
+            if (!_deterministic && isSmallBody && _smallMethodBodies.TryGetValue(il, out bodyOffset))
             {
                 return bodyOffset;
             }
 
             var encodedBody = encoder.AddMethodBody(
-                codeSize: methodBody.IL.Length, 
-                maxStack: methodBody.MaxStack, 
-                exceptionRegionCount: exceptionRegions.Length, 
+                codeSize: ilLength,
+                maxStack: maxStack,
+                exceptionRegionCount: exceptionRegions.Length,
                 hasSmallExceptionRegions: MayUseSmallExceptionHeaders(exceptionRegions),
-                localVariablesSignature: localSignatureHandleOpt, 
-                attributes: (methodBody.LocalsAreZeroed ? MethodBodyAttributes.InitLocals : 0));
+                localVariablesSignature: localSignatureHandleOpt,
+                attributes: methodBodyAttributes);
 
             // Don't do small body method caching during deterministic builds until this issue is fixed
             // https://github.com/dotnet/roslyn/issues/7595
             if (isSmallBody && !_deterministic)
             {
-                _smallMethodBodies.Add(methodBody.IL, encodedBody.Offset);
+                _smallMethodBodies.Add(il, encodedBody.Offset);
             }
 
-            WriteInstructions(encodedBody.Instructions, methodBody.IL, ref mvidStringHandle, ref mvidStringFixup);
+            WriteInstructions(encodedBody.Instructions, il, ref mvidStringHandle, ref mvidStringFixup);
             SerializeMethodBodyExceptionHandlerTable(encodedBody.ExceptionRegions, exceptionRegions);
 
             return encodedBody.Offset;
