@@ -59,23 +59,34 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     return ImmutableArray<CodeActionOperation>.Empty;
                 }
 
+                // If we presented the user any options, then persist whatever values
+                // the user chose.  That way we'll keep that as the default for the 
+                // next time the user opens the dialog.
+                var workspace = _document.Project.Solution.Workspace;
+                var implementIEqutableOption = result.Options.FirstOrDefault(o => o.Id == ImplementIEquatableId);
+                if (implementIEqutableOption != null)
+                {
+                    workspace.Options = workspace.Options.WithChangedOption(
+                        GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable,
+                        _document.Project.Language,
+                        implementIEqutableOption.Value);
+                }
+
                 var generateOperatorsOption = result.Options.FirstOrDefault(o => o.Id == GenerateOperatorsId);
                 if (generateOperatorsOption != null)
                 {
-                    // If we presented the 'Generate operators' option, then persist whatever value
-                    // the user chose.  That way we'll keep that as the default for the next time
-                    // the user opens the dialog.
-                    var workspace = _document.Project.Solution.Workspace;
                     workspace.Options = workspace.Options.WithChangedOption(
                         GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators,
                         _document.Project.Language,
                         generateOperatorsOption.Value);
                 }
 
+                var implementIEquatable = (implementIEqutableOption?.Value).GetValueOrDefault();
                 var generatorOperators = (generateOperatorsOption?.Value).GetValueOrDefault();
+
                 var action = new GenerateEqualsAndGetHashCodeAction(
                     _service, _document, _textSpan, _containingType, result.Members, 
-                    _generateEquals, _generateGetHashCode, generatorOperators);
+                    _generateEquals, _generateGetHashCode, implementIEquatable, generatorOperators);
                 return await action.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             }
 

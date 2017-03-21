@@ -9,6 +9,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructo
     Public Class GenerateEqualsAndGetHashCodeFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
+        Private Const GenerateOperatorsId = GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId
+        Private Const ImplementIEquatableId = GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId
+
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(
                 DirectCast(parameters.fixProviderData, IPickMembersService))
@@ -127,7 +130,7 @@ Class Program
     End Operator
 End Class",
 chosenSymbols:=Nothing,
-optionsCallback:=Sub(options) options(0).Value = True)
+optionsCallback:=Sub(options) EnableOption(options, GenerateOperatorsId))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
@@ -161,7 +164,7 @@ Class Program
     End Operator
 End Class",
 chosenSymbols:=Nothing,
-optionsCallback:=Sub(Options) Assert.Empty(Options))
+optionsCallback:=Sub(Options) Assert.Null(Options.FirstOrDefault(Function(o) o.Id = GenerateOperatorsId)))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
@@ -198,7 +201,72 @@ Structure Program
     End Operator
 End Structure",
 chosenSymbols:=Nothing,
-optionsCallback:=Sub(options) options(0).Value = True,
+optionsCallback:=Sub(options) EnableOption(options, GenerateOperatorsId),
+ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestImplementIEquatable1() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Imports System.Collections.Generic
+
+structure Program
+    Public s As String
+    [||]
+End structure",
+"
+Imports System
+Imports System.Collections.Generic
+
+Structure Program
+    Implements IEquatable(Of Program)
+
+    Public s As String
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Return (TypeOf obj Is Program) AndAlso Equals(DirectCast(obj, Program))
+    End Function
+
+    Public Function Equals(other As Program) As Boolean Implements IEquatable(Of Program).Equals
+        Return s = other.s
+    End Function
+End Structure",
+chosenSymbols:=Nothing,
+optionsCallback:=Sub(Options) EnableOption(Options, ImplementIEquatableId),
+ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestImplementIEquatable2() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Imports System.Collections.Generic
+
+Class Program
+    Public s As String
+    [||]
+End Class",
+"
+Imports System
+Imports System.Collections.Generic
+
+Class Program
+    Implements IEquatable(Of Program)
+
+    Public s As String
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Return Equals(TryCast(obj, Program))
+    End Function
+
+    Public Function Equals(other As Program) As Boolean Implements IEquatable(Of Program).Equals
+        Return other IsNot Nothing AndAlso
+               s = other.s
+    End Function
+End Class",
+chosenSymbols:=Nothing,
+optionsCallback:=Sub(Options) EnableOption(Options, ImplementIEquatableId),
 ignoreTrivia:=False)
         End Function
     End Class

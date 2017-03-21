@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
     internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
-        private const string GenerateOperatorsId = nameof(GenerateOperatorsId);
+        public const string GenerateOperatorsId = nameof(GenerateOperatorsId);
+        public const string ImplementIEquatableId = nameof(ImplementIEquatableId);
 
         private const string EqualsName = nameof(object.Equals);
         private const string GetHashCodeName = nameof(object.GetHashCode);
@@ -106,6 +107,23 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             var pickMembersOptions = ArrayBuilder<PickMembersOption>.GetInstance();
 
+            var equatableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+            var constructedType = equatableType.Construct(containingType);
+            if (!containingType.AllInterfaces.Contains(constructedType))
+            {
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable);
+
+                var displayName = constructedType.ToDisplayString(new SymbolDisplayFormat(
+                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters));
+
+                pickMembersOptions.Add(new PickMembersOption(
+                    ImplementIEquatableId,
+                    string.Format(FeaturesResources.Implement_0, displayName),
+                    value));
+            }
+
             if (!HasOperators(containingType))
             {
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -178,8 +196,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         private ImmutableArray<CodeAction> CreateActions(
             Document document, TextSpan textSpan, INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> selectedMembers, ImmutableArray<PickMembersOption> pickMembersOptions,
-            bool hasEquals, bool hasGetHashCode,
-            bool withDialog)
+            bool hasEquals, bool hasGetHashCode, bool withDialog)
         {
             var result = ArrayBuilder<CodeAction>.GetInstance();
 
@@ -192,7 +209,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 // Don't bother offering to just "Generate GetHashCode" as it's very unlikely 
                 // the user would need to bother just generating that member without also 
                 // generating 'Equals' as well.
-                result.Add(CreateCodeAction(document, textSpan, containingType, 
+                result.Add(CreateCodeAction(document, textSpan, containingType,
                     selectedMembers, pickMembersOptions,
                     generateEquals: true, generateGetHashCode: false, withDialog: withDialog));
                 result.Add(CreateCodeAction(document, textSpan, containingType, 
@@ -231,7 +248,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 return new GenerateEqualsAndGetHashCodeAction(
                     this, document, textSpan, containingType, members,
-                    generateEquals, generateGetHashCode, generateOperators: false);
+                    generateEquals, generateGetHashCode,
+                    implementIEquatable: false, generateOperators: false);
             }
         }
     }
