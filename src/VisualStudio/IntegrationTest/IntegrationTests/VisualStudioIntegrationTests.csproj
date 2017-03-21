@@ -32,6 +32,8 @@
     <Compile Include="CSharp\CSharpIntelliSense.cs" />
     <Compile Include="CSharp\CSharpInteractive.cs" />
     <Compile Include="AbstractEditorTest.cs" />
+    <Compile Include="CSharp\CSharpInteractiveCommands.cs" />
+    <Compile Include="CSharp\CSharpQuickInfo.cs" />
     <Compile Include="CSharp\CSharpSignatureHelp.cs" />
     <Compile Include="CSharp\CSharpWinForms.cs" />
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
@@ -48,6 +50,7 @@
     <Compile Include="VisualBasic\BasicIntelliSense.cs" />
     <Compile Include="VisualBasic\BasicSignatureHelp.cs" />
     <Compile Include="VisualBasic\BasicWinForms.cs" />
+    <Compile Include="VisualBasic\BasicQuickInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

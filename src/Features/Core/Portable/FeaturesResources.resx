@@ -1211,4 +1211,10 @@ This version used in: {2}</value>
   <data name="Pick_members_to_override" xml:space="preserve">
     <value>Pick members to override</value>
   </data>
+  <data name="Add_null_checks" xml:space="preserve">
+    <value>Add null checks</value>
+  </data>
+  <data name="Generate_operators" xml:space="preserve">
+    <value>Generate operators</value>
+  </data>
 </root>

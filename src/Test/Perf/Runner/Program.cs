@@ -47,6 +47,8 @@ namespace Runner
                 {
                     return -1;
                 }
+
+                Benchview.SetConfiguration(submissionType, branch);
             }
 
             Cleanup();
@@ -60,7 +62,7 @@ namespace Runner
             if (shouldReportBenchview)
             {
                 Log("Uploading results to benchview");
-                Benchview.UploadBenchviewReport(submissionType, submissionName, branch);
+                Benchview.UploadBenchviewReport(submissionName);
             }
 
             if (shouldUploadTrace)

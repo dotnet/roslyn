@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             IEnumerable<ISymbol> members,
             CancellationToken cancellationToken)
         {
-            var iequatableType = compilation.GetTypeByMetadataName("System.IEquatable`1");
+            var iequatableType = compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
             // Come up with a good name for the local variable we're going to compare against.
@@ -59,17 +59,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //
             //      var order = obj as CustomerOrder;
 
-            var parts = StringBreaker.BreakIntoWordParts(containingType.Name);
-            var localName = "v";
-            for (var i = parts.Count - 1; i >= 0; i--)
-            {
-                var p = parts[i];
-                if (char.IsLetter(containingType.Name[p.Start]))
-                {
-                    localName = containingType.Name.Substring(p.Start, p.Length).ToCamelCase();
-                    break;
-                }
-            }
+            var localName = GetLocalName(containingType);
 
             var localNameExpression = factory.IdentifierName(localName);
 
@@ -176,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 expressions.Add(factory.InvocationExpression(
                         factory.MemberAccessExpression(
-                            GetDefaultEqualityComparer(factory, compilation, member),
+                            GetDefaultEqualityComparer(factory, compilation, GetType(compilation, member)),
                             factory.IdentifierName(EqualsName)),
                         thisSymbol,
                         otherSymbol));
@@ -191,6 +181,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 expressions.Aggregate(factory.LogicalAndExpression)));
 
             return statements.ToImmutableAndFree();
+        }
+
+        public static string GetLocalName(this INamedTypeSymbol containingType)
+        {
+            var parts = StringBreaker.BreakIntoWordParts(containingType.Name);
+            for (var i = parts.Count - 1; i >= 0; i--)
+            {
+                var p = parts[i];
+                if (char.IsLetter(containingType.Name[p.Start]))
+                {
+                    return containingType.Name.Substring(p.Start, p.Length).ToCamelCase();
+                }
+            }
+
+            return "v";
         }
 
         private static bool ImplementsIEquatable(ITypeSymbol memberType, INamedTypeSymbol iequatableType)
@@ -238,13 +243,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        private static SyntaxNode GetDefaultEqualityComparer(
-            SyntaxGenerator factory,
+        public static SyntaxNode GetDefaultEqualityComparer(
+            this SyntaxGenerator factory,
             Compilation compilation,
-            ISymbol member)
+            ITypeSymbol type)
         {
             var equalityComparerType = compilation.EqualityComparerOfTType();
-            var constructedType = equalityComparerType.Construct(GetType(compilation, member));
+            var constructedType = equalityComparerType.Construct(type);
             return factory.MemberAccessExpression(
                 factory.TypeExpression(constructedType),
                 factory.IdentifierName(DefaultName));
