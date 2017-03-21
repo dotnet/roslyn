@@ -100,14 +100,6 @@ namespace RunTests
                 Console.WriteLine(ex);
             }
 
-            // This is deliberately being checked in on a temporary basis.  Need to see how this data behaves in the commit
-            // queue and the easiest way is to dump to the console.  Once the commit queue behavior is verified this will
-            // be deleted.
-            if (Constants.IsJenkinsRun)
-            {
-                Logger.WriteTo(Console.Out);
-            }
-
             Logger.Clear();
         }
 
