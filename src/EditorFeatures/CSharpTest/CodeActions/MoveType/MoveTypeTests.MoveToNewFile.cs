@@ -944,5 +944,57 @@ partial class Outer {
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
+
+        [WorkItem(17930, "https://github.com/dotnet/roslyn/issues/17930")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveTypeWithDirectives1()
+        {
+            var code =
+@"using System;
+
+namespace N
+{
+    class Program
+    {
+        static void Main()
+        {
+        }
+    }
+}
+
+#if true
+public class [||]Inner
+{
+
+}
+#endif";
+var codeAfterMove =
+@"using System;
+
+namespace N
+{
+    class Program
+    {
+        static void Main()
+        {
+        }
+    }
+}
+
+#if true
+#endif";
+
+            var expectedDocumentName = "Inner.cs";
+            var destinationDocumentText =
+@"#if true
+public class Inner
+{
+
+}
+#endif";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText, ignoreTrivia: false);
+        }
     }
 }
