@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-<<<<<<< HEAD
-=======
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
->>>>>>> fb3a8c8a4c... Box selection and interactive directives tests
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Xunit;
@@ -21,9 +19,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected readonly CSharpInteractiveWindow_OutOfProc InteractiveWindow;
 
         protected AbstractInteractiveWindowTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+            : base(instanceFactory, visualStudio => visualStudio.Instance.CSharpInteractiveWindow)
         {
-            InteractiveWindow = VisualStudio.Instance.CSharpInteractiveWindow;
+            InteractiveWindow = (CSharpInteractiveWindow_OutOfProc)TextViewWindow;
             ClearInteractiveWindow();
         }
 
@@ -44,6 +42,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.Instance.ExecuteCommand(Edit_SelectionCancelCommand);
         }
 
+        protected void DisableSuggestionMode()
+            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
+
+        protected void EnableSuggestionMode()
+            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
+
         protected void Reset(bool waitForPrompt = true)
             => InteractiveWindow.Reset(waitForPrompt: true);
 
@@ -58,8 +62,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void InsertCode(string text)
             => InteractiveWindow.InsertCode(text);
 
-<<<<<<< HEAD
-=======
         protected void PlaceCaret(string text, int charsOffset = 0, int occurrence = 0, bool extendSelection = false, bool selectBlock = false)
               => InteractiveWindow.PlaceCaret(
                   text, 
@@ -68,7 +70,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
                   extendSelection, 
                   selectBlock);
 
->>>>>>> fb3a8c8a4c... Box selection and interactive directives tests
         protected void VerifyLastReplOutput(string expectedReplOutput)
         {
             var lastReplOutput = InteractiveWindow.GetLastReplOutput();
@@ -92,7 +93,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             var position = InteractiveWindow.GetCaretPosition();
             Assert.Equal(expectedCaretPosition, position);
         }
-
         protected void VerifyLastReplOutputContains(string expectedReplOutput)
         {
             var lastReplOutput = InteractiveWindow.GetLastReplOutput();
@@ -134,8 +134,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
-<<<<<<< HEAD
-=======
         protected void VerifyCompletionItemExists(params string[] expectedItems)
         {
             var completionItems = InteractiveWindow.GetCompletionItems();
@@ -175,7 +173,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
             => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";", featuresToWaitFor));
 
->>>>>>> fb3a8c8a4c... Box selection and interactive directives tests
         protected void WaitForReplOutput(string outputText)
             => InteractiveWindow.WaitForReplOutput(outputText);
     }
