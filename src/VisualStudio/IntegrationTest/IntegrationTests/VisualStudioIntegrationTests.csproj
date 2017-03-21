@@ -35,6 +35,7 @@
     <Compile Include="AbstractEditorTest.cs" />
     <Compile Include="CSharp\CSharpInteractiveCommands.cs" />
     <Compile Include="CSharp\CSharpInteractiveDirectives.cs" />
+    <Compile Include="CSharp\CSharpInteractiveFormsAndWpf.cs" />
     <Compile Include="CSharp\CSharpReplIntellisense.cs" />
     <Compile Include="CSharp\CSharpReplClassification.cs" />
     <Compile Include="CSharp\CSharpQuickInfo.cs" />

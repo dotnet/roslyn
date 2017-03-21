@@ -87,7 +87,7 @@ var g = new Grid();
 g.Children.Add(b);
 w.Content = g;");
 
-            await VisualStudio.Instance.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
+            await AutomationElementHelper.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
 
             WaitForReplOutput("Hello, World!");
             VerifyLastReplOutput("Hello, World!");
