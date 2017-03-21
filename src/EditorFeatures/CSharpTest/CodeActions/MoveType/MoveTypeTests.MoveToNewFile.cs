@@ -84,7 +84,7 @@ class Class2 { }
             var destinationDocumentText = @"class Class1 { }";
 
             await TestMoveTypeToNewFileAsync(
-                code, codeAfterMove, expectedDocumentName, 
+                code, codeAfterMove, expectedDocumentName,
                 destinationDocumentText, destinationDocumentContainers: ImmutableArray.Create("A", "B"));
         }
 
@@ -115,7 +115,7 @@ class Class2 { }";
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveTypeWithNoContainerNamespace()
         {
-            var code = 
+            var code =
 @"[||]class Class1 { }
 class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
@@ -143,7 +143,7 @@ using System;
 class Class2 { }";
 
             var expectedDocumentName = "Class1.cs";
-            var destinationDocumentText = 
+            var destinationDocumentText =
 @"class Class1 { }";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
@@ -968,8 +968,8 @@ public class [||]Inner
 
 }
 #endif";
-var codeAfterMove =
-@"using System;
+            var codeAfterMove =
+            @"using System;
 
 namespace N
 {
@@ -992,6 +992,64 @@ public class Inner
 
 }
 #endif";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText, ignoreTrivia: false);
+        }
+
+        [WorkItem(17930, "https://github.com/dotnet/roslyn/issues/17930")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveTypeWithDirectives2()
+        {
+            var code =
+@"using System;
+
+namespace N
+{
+    class Program
+    {
+        static void Main()
+        {
+        }
+
+#if true
+        public class [||]Inner
+        {
+
+        }
+#endif
+    }
+}";
+            var codeAfterMove =
+            @"using System;
+
+namespace N
+{
+    partial class Program
+    {
+        static void Main()
+        {
+        }
+
+#if true
+#endif
+    }
+}";
+
+            var expectedDocumentName = "Inner.cs";
+            var destinationDocumentText =
+@"namespace N
+{
+    partial class Program
+    {
+#if true
+        public class Inner
+        {
+
+        }
+#endif
+    }
+}";
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText, ignoreTrivia: false);
