@@ -81,10 +81,23 @@ namespace RunTests
 
         private static void WriteLogFile(Options options)
         {
-            var fileName = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().CodeBase), "runtests.log");
-            using (var writer = new StreamWriter(fileName, append: false))
+            var logFilePath = options.LogFilePath;
+            if (string.IsNullOrEmpty(logFilePath))
             {
-                Logger.WriteTo(writer);
+                return;
+            }
+
+            try
+            {
+                using (var writer = new StreamWriter(logFilePath, append: false))
+                {
+                    Logger.WriteTo(writer);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error writing log file {logFilePath}");
+                Console.WriteLine(ex);
             }
 
             // This is deliberately being checked in on a temporary basis.  Need to see how this data behaves in the commit
