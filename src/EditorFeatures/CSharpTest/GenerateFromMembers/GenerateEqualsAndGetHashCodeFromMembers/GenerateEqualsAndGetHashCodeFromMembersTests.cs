@@ -1126,7 +1126,7 @@ ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestImplementIEquatable1()
+        public async Task TestImplementIEquatableOnStruct()
         {
             await TestWithPickMembersDialogAsync(
 @"
@@ -1161,7 +1161,7 @@ ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestImplementIEquatable2()
+        public async Task TestImplementIEquatableOnClass()
         {
             await TestWithPickMembersDialogAsync(
 @"
@@ -1197,7 +1197,7 @@ ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestImplementIEquatable3()
+        public async Task TestDoNotOfferIEquatableIfTypeAlreadyImplementsIt()
         {
             await TestWithPickMembersDialogAsync(
 @"
