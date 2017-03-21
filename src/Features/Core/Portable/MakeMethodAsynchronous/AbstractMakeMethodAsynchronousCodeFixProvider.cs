@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
         private (INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTTypeOpt) GetTaskTypes(Compilation compilation)
         {
-            var taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
-            var taskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
-            var valueTaskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+            var taskType = compilation.TaskType();
+            var taskOfTType = compilation.TaskOfTType();
+            var valueTaskOfTType = compilation.ValueTaskOfTType();
 
             return (taskType, taskOfTType, valueTaskOfTType);
         }
