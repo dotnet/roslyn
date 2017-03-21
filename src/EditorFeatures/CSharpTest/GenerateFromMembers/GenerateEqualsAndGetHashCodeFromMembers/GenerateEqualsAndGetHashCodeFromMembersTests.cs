@@ -1138,9 +1138,10 @@ struct Program
     [||]
 }",
 @"
+using System;
 using System.Collections.Generic;
 
-struct Program : System.IEquatable<Program>
+struct Program : IEquatable<Program>
 {
     public string s;
 
@@ -1172,9 +1173,10 @@ class Program
     [||]
 }",
 @"
+using System;
 using System.Collections.Generic;
 
-class Program : System.IEquatable<Program>
+class Program : IEquatable<Program>
 {
     public string s;
 
