@@ -142,10 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         return UnwrapType(namedType.TypeArguments[0], compilation);
                 }
 
-                var taskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
-                var valueTaskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
-                if (originalDefinition == taskOfTType
-                    || originalDefinition == valueTaskType)
+                var taskOfTType = compilation.TaskOfTType();
+                var valueTaskType = compilation.ValueTaskOfTType();
+
+                if (originalDefinition == taskOfTType ||
+                    originalDefinition == valueTaskType)
                 {
                     return UnwrapType(namedType.TypeArguments[0], compilation);
                 }
