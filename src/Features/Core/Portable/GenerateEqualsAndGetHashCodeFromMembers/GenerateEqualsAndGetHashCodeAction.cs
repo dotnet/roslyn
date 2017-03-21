@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             private readonly bool _generateEquals;
             private readonly bool _generateGetHashCode;
+            private readonly bool _generateOperators;
             private readonly GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
@@ -35,8 +36,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
                 ImmutableArray<ISymbol> selectedMembers,
-                bool generateEquals = false,
-                bool generateGetHashCode = false)
+                bool generateEquals,
+                bool generateGetHashCode,
+                bool generateOperators)
             {
                 _service = service;
                 _document = document;
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 _textSpan = textSpan;
                 _generateEquals = generateEquals;
                 _generateGetHashCode = generateGetHashCode;
+                _generateOperators = generateOperators;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -61,6 +64,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 {
                     var member = await CreateGetHashCodeMethodAsync(cancellationToken).ConfigureAwait(false);
                     members.Add(member);
+                }
+
+                if (_generateOperators)
+                {
+                    await AddOperatorsAsync(members, cancellationToken).ConfigureAwait(false);
                 }
 
                 var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -80,6 +88,66 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     options: null, rules: rules, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 return formattedDocument;
+            }
+
+            private async Task AddOperatorsAsync(List<ISymbol> members, CancellationToken cancellationToken)
+            {
+                var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                var generator = _document.GetLanguageService<SyntaxGenerator>();
+
+                var localName = _containingType.GetLocalName();
+                var left = localName + "1";
+                var right = localName + "2";
+
+                var parameters = ImmutableArray.Create(
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType, left),
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType, right));
+
+                members.Add(CreateEqualityOperator(compilation, generator, left, right, parameters));
+                members.Add(CreateInequalityOperator(compilation, generator, left, right, parameters));
+            }
+
+            private IMethodSymbol CreateEqualityOperator(Compilation compilation, SyntaxGenerator generator, string left, string right, ImmutableArray<IParameterSymbol> parameters)
+            {
+                var expression = _containingType.IsValueType
+                    ? generator.InvocationExpression(
+                        generator.MemberAccessExpression(
+                            generator.IdentifierName(left),
+                            generator.IdentifierName(EqualsName)),
+                        generator.IdentifierName(right))
+                    : generator.InvocationExpression(
+                        generator.MemberAccessExpression(
+                            generator.GetDefaultEqualityComparer(compilation, _containingType),
+                            generator.IdentifierName(EqualsName)),
+                        generator.IdentifierName(left),
+                        generator.IdentifierName(right));
+
+                return CodeGenerationSymbolFactory.CreateOperatorSymbol(
+                    default(ImmutableArray<AttributeData>),
+                    Accessibility.Public,
+                    new DeclarationModifiers(isStatic: true),
+                    compilation.GetSpecialType(SpecialType.System_Boolean),
+                    CodeGenerationOperatorKind.Equality,
+                    parameters,
+                    ImmutableArray.Create(generator.ReturnStatement(expression)));
+            }
+
+            private IMethodSymbol CreateInequalityOperator(Compilation compilation, SyntaxGenerator generator, string left, string right, ImmutableArray<IParameterSymbol> parameters)
+            {
+                var expression = generator.LogicalNotExpression(
+                    generator.ValueEqualsExpression(
+                        generator.IdentifierName(left),
+                        generator.IdentifierName(right)));
+
+                return CodeGenerationSymbolFactory.CreateOperatorSymbol(
+                    default(ImmutableArray<AttributeData>),
+                    Accessibility.Public,
+                    new DeclarationModifiers(isStatic: true),
+                    compilation.GetSpecialType(SpecialType.System_Boolean),
+                    CodeGenerationOperatorKind.Inequality,
+                    parameters,
+                    ImmutableArray.Create(generator.ReturnStatement(expression)));
             }
 
             private async Task<IMethodSymbol> CreateGetHashCodeMethodAsync(CancellationToken cancellationToken)
