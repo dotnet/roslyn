@@ -99,6 +99,14 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return;
             }
 
+            var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
+            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
+            var syntaxFacts = GetSyntaxFactsService();
+            if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
+            {
+                return;
+            }
+
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
             var severity = option.Notification.Value;
