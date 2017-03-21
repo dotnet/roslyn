@@ -342,13 +342,21 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
       ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null)")
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:=
-"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid)")
+"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid)
+  IOperation:  (OperationKind.None)
+  IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid)
+  ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null)")
 
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:=
-"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid)")
+"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid)
+  IOperation:  (OperationKind.None)
+  IOperation:  (OperationKind.None)")
 
             comp.VerifyOperationTree(nodes(3), expectedOperationTree:=
-"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid)")
+"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid)
+  IOperation:  (OperationKind.None)
+  IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid)
+  IOperation:  (OperationKind.None)")
         End Sub
     End Class
 End Namespace
