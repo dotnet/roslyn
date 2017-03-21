@@ -13,6 +13,7 @@ using Newtonsoft.Json.Linq;
 using RestSharp;
 using System.Collections.Immutable;
 using Newtonsoft.Json;
+using System.Reflection;
 
 namespace RunTests
 {
@@ -80,18 +81,23 @@ namespace RunTests
 
         private static void WriteLogFile(Options options)
         {
-            var fileName = Path.Combine(Path.GetDirectoryName(options.Assemblies.First()), "runtests.log");
-            using (var writer = new StreamWriter(fileName, append: false))
+            var logFilePath = options.LogFilePath;
+            if (string.IsNullOrEmpty(logFilePath))
             {
-                Logger.WriteTo(writer);
+                return;
             }
 
-            // This is deliberately being checked in on a temporary basis.  Need to see how this data behaves in the commit
-            // queue and the easiest way is to dump to the console.  Once the commit queue behavior is verified this will
-            // be deleted.
-            if (Constants.IsJenkinsRun)
+            try
             {
-                Logger.WriteTo(Console.Out);
+                using (var writer = new StreamWriter(logFilePath, append: false))
+                {
+                    Logger.WriteTo(writer);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error writing log file {logFilePath}");
+                Console.WriteLine(ex);
             }
 
             Logger.Clear();
