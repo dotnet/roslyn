@@ -155,6 +155,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
             WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
         }
 
+        protected void InvokeQuickInfo()
+        {
+            ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
+            WaitForAsyncOperations(FeatureAttribute.QuickInfo);
+        }
+
         protected void InvokeCodeActionList()
         {
             WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);

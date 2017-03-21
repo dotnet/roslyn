@@ -126,11 +126,38 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add a naming rule.
+        /// </summary>
+        internal static string Add_a_naming_rule {
+            get {
+                return ResourceManager.GetString("Add_a_naming_rule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add a reference to &apos;{0}&apos;.
         /// </summary>
         internal static string Add_a_reference_to_0 {
             get {
                 return ResourceManager.GetString("Add_a_reference_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add a symbol specification.
+        /// </summary>
+        internal static string Add_a_symbol_specification {
+            get {
+                return ResourceManager.GetString("Add_a_symbol_specification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add item.
+        /// </summary>
+        internal static string Add_item {
+            get {
+                return ResourceManager.GetString("Add_item", resourceCulture);
             }
         }
         
@@ -556,6 +583,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string DocumentPath_is_illegal {
             get {
                 return ResourceManager.GetString("DocumentPath_is_illegal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit item.
+        /// </summary>
+        internal static string Edit_item {
+            get {
+                return ResourceManager.GetString("Edit_item", resourceCulture);
             }
         }
         
@@ -1725,11 +1761,38 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove item.
+        /// </summary>
+        internal static string Remove_item {
+            get {
+                return ResourceManager.GetString("Remove_item", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove naming rule.
+        /// </summary>
+        internal static string Remove_naming_rule {
+            get {
+                return ResourceManager.GetString("Remove_naming_rule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove suppressions.
         /// </summary>
         internal static string Remove_suppressions {
             get {
                 return ResourceManager.GetString("Remove_suppressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove symbol specification.
+        /// </summary>
+        internal static string Remove_symbol_specification {
+            get {
+                return ResourceManager.GetString("Remove_symbol_specification", resourceCulture);
             }
         }
         

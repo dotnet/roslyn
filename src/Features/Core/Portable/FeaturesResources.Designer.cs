@@ -1378,6 +1378,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate operators.
+        /// </summary>
+        internal static string Generate_operators {
+            get {
+                return ResourceManager.GetString("Generate_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate overrides....
         /// </summary>
         internal static string Generate_overrides {
