@@ -541,7 +541,7 @@ class Program
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
 
             comp.VerifyDiagnostics(
-                // (4,24): error CS8026: Feature 'nameof operator' is not available in C# 5.  Please use language version 6 or greater.
+                // (4,24): error CS8026: Feature 'nameof operator' is not available in C# 5. Please use language version 6 or greater.
                 //     Program(string s = nameof(Program))
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "nameof(Program)").WithArguments("nameof operator", "6").WithLocation(4, 24)
                 );
@@ -679,7 +679,7 @@ class Program
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
-                    // (7,9): error CS8026: Feature 'nameof operator' is not available in C# 5.  Please use language version 6 or greater.
+                    // (7,9): error CS8026: Feature 'nameof operator' is not available in C# 5. Please use language version 6 or greater.
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "nameof(N)").WithArguments("nameof operator", "6").WithLocation(7, 9),
                     // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
