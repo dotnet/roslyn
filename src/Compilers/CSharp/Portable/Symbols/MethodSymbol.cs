@@ -597,18 +597,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Checks if the method has an entry point compatible signature, i.e.
-        /// - the return type is either void or int
+        /// - the return type is either void, int, Task, or Task&lt;int&gt;
         /// - has either no parameter or a single parameter of type string[]
         /// </summary>
-        internal bool HasEntryPointSignature()
+        internal bool HasEntryPointSignature(CSharpCompilation compilation)
         {
-            if (this.IsVararg)
+
+            bool IsAsyncMainReturnType(TypeSymbol type)
+            {
+                var namedType = type as NamedTypeSymbol;
+                if (namedType == null)
+                {
+                    return false;
+                }
+                // Change this to `namedType.IsNonGenericTaskType` if you want to support "task-like" objects.
+                else if (namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))
+                {
+                    return true;
+                }
+                // Change this to `namedType.IsGenericTaskType` if you want to support "task-like" objects.
+                else if (namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+                {
+                    return namedType.TypeArguments[0].SpecialType == SpecialType.System_Int32;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            if (IsVararg)
             {
                 return false;
             }
 
             TypeSymbol returnType = ReturnType;
-            if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void)
+            if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void && !IsAsyncMainReturnType(returnType))
+            {
+                return false;
+            }
+
+            if (!IsAsyncMainReturnType(returnType) && IsAsync)
             {
                 return false;
             }
