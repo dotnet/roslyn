@@ -1783,6 +1783,92 @@ True
         }
 
         [Fact]
+        public void IteratorCoverage()
+        {
+            string source = @"
+using System;                 
+
+public class Program
+{
+    public static void Main(string[] args)                                  // Method 1
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void TestMain()                                                  // Method 2
+    {
+        foreach (var i in Foo())
+        {    
+            Console.WriteLine(i);
+        }  
+        foreach (var i in Foo())
+        {    
+            Console.WriteLine(i);
+        }
+    }
+
+    public static System.Collections.Generic.IEnumerable<int> Foo()
+    {
+        for (int i = 0; i < 5; ++i)
+        {
+            yield return i;
+        }
+    }
+}
+";
+            string expectedOutput = @"0
+1
+2
+3
+4
+0
+1
+2
+3
+4
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+True
+True
+Method 3
+File 1
+True
+True
+True
+True
+Method 6
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TestFieldInitializerCoverage()
         {
             string source = @"

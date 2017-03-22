@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Structure
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            if (node is TSyntaxNode)
+            if (node is TSyntaxNode tSyntax)
             {
-                CollectBlockSpans((TSyntaxNode)node, spans, options, cancellationToken);
+                CollectBlockSpans(tSyntax, spans, options, cancellationToken);
             }
         }
 

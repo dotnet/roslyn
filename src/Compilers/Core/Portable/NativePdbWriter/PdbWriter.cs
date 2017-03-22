@@ -306,7 +306,8 @@ namespace Microsoft.Cci
                 return;
             }
 
-            int methodToken = MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(methodBody.MethodDefinition));
+            var methodHandle = (MethodDefinitionHandle)_metadataWriter.GetMethodHandle(methodBody.MethodDefinition);
+            int methodToken = MetadataTokens.GetToken(methodHandle);
 
             OpenMethod(methodToken, methodBody.MethodDefinition);
 
@@ -324,7 +325,7 @@ namespace Microsoft.Cci
             if (!isIterator && methodBody.ImportScope != null)
             {
                 IMethodDefinition forwardToMethod;
-                if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodToken, out forwardToMethod))
+                if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodHandle, out forwardToMethod))
                 {
                     if (forwardToMethod != null)
                     {
@@ -339,7 +340,7 @@ namespace Microsoft.Cci
             }
 
             DefineLocalScopes(localScopes, localSignatureHandleOpt);
-            ArrayBuilder<Cci.SequencePoint> sequencePoints = ArrayBuilder<Cci.SequencePoint>.GetInstance();
+            ArrayBuilder<SequencePoint> sequencePoints = ArrayBuilder<SequencePoint>.GetInstance();
             methodBody.GetSequencePoints(sequencePoints);
             EmitSequencePoints(sequencePoints);
             sequencePoints.Free();
@@ -359,13 +360,13 @@ namespace Microsoft.Cci
 
             // We need to avoid emitting CDI DynamicLocals = 5 and EditAndContinueLocalSlotMap = 6 for files processed by WinMDExp until 
             // bug #1067635 is fixed and available in SDK.
-            bool suppressNewCustomDebugInfo = !compilationOptions.ExtendedCustomDebugInformation ||
-                (compilationOptions.OutputKind == OutputKind.WindowsRuntimeMetadata);
+            bool suppressNewCustomDebugInfo = compilationOptions.OutputKind == OutputKind.WindowsRuntimeMetadata;
 
-            bool emitEncInfo = compilationOptions.EnableEditAndContinue && !_metadataWriter.IsFullMetadata;
+            // delta doesn't need this information - we use information recorded by previous generation emit
+            bool emitEncInfo = compilationOptions.EnableEditAndContinue && _metadataWriter.IsFullMetadata;
 
             bool emitExternNamespaces;
-            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodToken, emitEncInfo, suppressNewCustomDebugInfo, out emitExternNamespaces);
+            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodHandle, emitEncInfo, suppressNewCustomDebugInfo, out emitExternNamespaces);
             if (blob != null)
             {
                 DefineCustomMetadata("MD2", blob);
@@ -373,7 +374,7 @@ namespace Microsoft.Cci
 
             if (emitExternNamespaces)
             {
-                this.DefineAssemblyReferenceAliases();
+                DefineAssemblyReferenceAliases();
             }
 
             CloseMethod(methodBody.IL.Length);
@@ -591,7 +592,6 @@ namespace Microsoft.Cci
         {
             Debug.Assert(!(typeReference is IArrayTypeReference));
             Debug.Assert(!(typeReference is IPointerTypeReference));
-            Debug.Assert(!(typeReference is IManagedPointerTypeReference));
             Debug.Assert(!typeReference.IsTypeSpecification());
 
             var result = PooledStringBuilder.GetInstance();
@@ -718,7 +718,7 @@ namespace Microsoft.Cci
                 var signatureHandle = _metadataWriter.SerializeLocalConstantStandAloneSignature(scopeConstant);
                 if (!_metadataWriter.IsLocalNameTooLong(scopeConstant))
                 {
-                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, _metadataWriter.GetConstantTypeCode(scopeConstant), signatureHandle);
+                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, scopeConstant.CompileTimeValue.Type.TypeCode, signatureHandle);
                 }
             }
 

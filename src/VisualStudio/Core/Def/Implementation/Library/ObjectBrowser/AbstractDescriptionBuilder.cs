@@ -279,17 +279,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             AddIndent();
             AddText(left);
 
-            if (containingSymbol is IAssemblySymbol)
+            if (containingSymbol is IAssemblySymbol assemblySymbol)
             {
-                AddAssemblyLink((IAssemblySymbol)containingSymbol);
+                AddAssemblyLink(assemblySymbol);
             }
-            else if (containingSymbol is ITypeSymbol)
+            else if (containingSymbol is ITypeSymbol typeSymbol)
             {
-                AddTypeLink((ITypeSymbol)containingSymbol, LinkFlags.SplitNamespaceAndType | LinkFlags.ExpandPredefinedTypes);
+                AddTypeLink(typeSymbol, LinkFlags.SplitNamespaceAndType | LinkFlags.ExpandPredefinedTypes);
             }
-            else if (containingSymbol is INamespaceSymbol)
+            else if (containingSymbol is INamespaceSymbol namespaceSymbol)
             {
-                AddNamespaceLink((INamespaceSymbol)containingSymbol);
+                AddNamespaceLink(namespaceSymbol);
             }
 
             AddText(right);

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         }
 
         /// <exception cref="CompilationErrorException">Compilation has errors.</exception>
-        internal Func<object[], Task<T>> CreateExecutor<T>(ScriptCompiler compiler, Compilation compilation, CancellationToken cancellationToken)
+        internal Func<object[], Task<T>> CreateExecutor<T>(ScriptCompiler compiler, Compilation compilation, bool emitDebugInformation, CancellationToken cancellationToken)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             try
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
                 diagnostics.Clear();
 
-                var executor = Build<T>(compilation, diagnostics, cancellationToken);
+                var executor = Build<T>(compilation, diagnostics, emitDebugInformation, cancellationToken);
 
                 // emit can fail due to compilation errors or because there is nothing to emit:
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
@@ -115,20 +115,29 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         private Func<object[], Task<T>> Build<T>(
             Compilation compilation,
-            DiagnosticBag diagnostics,
+            DiagnosticBag diagnostics, 
+            bool emitDebugInformation,
             CancellationToken cancellationToken)
         {
             var entryPoint = compilation.GetEntryPoint(cancellationToken);
 
             using (var peStream = new MemoryStream())
+            using (var pdbStreamOpt = emitDebugInformation ? new MemoryStream() : null)
             {
+                var emitOptions = EmitOptions.Default;
+
+                if (emitDebugInformation)
+                {
+                    emitOptions = emitOptions.WithDebugInformationFormat(PdbHelpers.GetPlatformSpecificDebugInformationFormat());
+                }
+
                 var emitResult = compilation.Emit(
                     peStream: peStream,
-                    pdbStream: null,
+                    pdbStream: pdbStreamOpt,
                     xmlDocumentationStream: null,
                     win32Resources: null,
                     manifestResources: null,
-                    options: EmitOptions.Default,
+                    options: emitOptions,
                     cancellationToken: cancellationToken);
 
                 diagnostics.AddRange(emitResult.Diagnostics);
@@ -152,7 +161,12 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                 peStream.Position = 0;
 
-                var assembly = _assemblyLoader.LoadAssemblyFromStream(peStream, pdbStream: null);
+                if (pdbStreamOpt != null)
+                {
+                    pdbStreamOpt.Position = 0;
+                }
+
+                var assembly = _assemblyLoader.LoadAssemblyFromStream(peStream, pdbStreamOpt);
                 var runtimeEntryPoint = GetEntryPointRuntimeMethod(entryPoint, assembly, cancellationToken);
 
                 return runtimeEntryPoint.CreateDelegate<Func<object[], Task<T>>>();

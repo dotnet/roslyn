@@ -113,8 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var textChange = new TextChange(TextSpan.FromBounds(caretPoint - 1, caretPoint), string.Empty);
             workspace.ApplyTextChanges(documentId, textChange, CancellationToken.None);
             this.StartNewModelComputation(
-                completionService, new CompletionTrigger(CompletionTriggerKind.Snippets),
-                filterItems: false, dismissIfEmptyAllowed: true);
+                completionService, new CompletionTrigger(CompletionTriggerKind.Snippets));
             return true;
         }
 

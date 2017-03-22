@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -28,7 +30,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TExpressionStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
-        public bool OpenFileOnly(Workspace workspace) => false;
+        public override bool OpenFileOnly(Workspace workspace) => false;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
-            var ienumerableType = context.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable") as INamedTypeSymbol;
+            var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
             if (ienumerableType != null)
             {
                 context.RegisterSyntaxNodeAction(
@@ -61,10 +64,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return;
             }
 
+            var semanticModel = context.SemanticModel;
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
             var syntaxTree = objectCreationExpression.SyntaxTree;
             var cancellationToken = context.CancellationToken;
+
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
@@ -87,9 +92,17 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             var analyzer = new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>(
-                GetSyntaxFactsService(), objectCreationExpression);
+                semanticModel, GetSyntaxFactsService(), objectCreationExpression, cancellationToken);
             var matches = analyzer.Analyze();
             if (matches == null || matches.Value.Length == 0)
+            {
+                return;
+            }
+
+            var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
+            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
+            var syntaxFacts = GetSyntaxFactsService();
+            if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             {
                 return;
             }

@@ -174,6 +174,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 value = longValue != 0;
                 return true;
             }
+            else if (optionKey.Option.Type == typeof(bool?))
+            {
+                // code uses object to hold onto any value which will use boxing on value types.
+                // see boxing on nullable types - https://msdn.microsoft.com/en-us/library/ms228597.aspx
+                return (value is bool) || (value == null);
+            }
             else if (value != null && optionKey.Option.Type != value.GetType())
             {
                 // We got something back different than we expected, so fail to deserialize

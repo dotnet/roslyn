@@ -279,6 +279,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert &apos;if&apos; to &apos;switch&apos;.
+        /// </summary>
+        internal static string Convert_if_to_switch {
+            get {
+                return ResourceManager.GetString("Convert_if_to_switch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to deconstruction.
         /// </summary>
         internal static string deconstruction {
@@ -648,6 +657,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;Name&gt;.
+        /// </summary>
+        internal static string Name {
+            get {
+                return ResourceManager.GetString("Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name can be simplified.
         /// </summary>
         internal static string Name_can_be_simplified {
@@ -783,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove &amp;and Sort Usings.
+        ///   Looks up a localized string similar to R&amp;emove and Sort Usings.
         /// </summary>
         internal static string Remove_and_Sort_Usings {
             get {
@@ -1046,6 +1064,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Upgrade all C# projects to language version &apos;{0}&apos;.
+        /// </summary>
+        internal static string Upgrade_all_csharp_projects_to_language_version_0 {
+            get {
+                return ResourceManager.GetString("Upgrade_all_csharp_projects_to_language_version_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upgrade this project to C# language version &apos;{0}&apos;.
+        /// </summary>
+        internal static string Upgrade_this_project_to_csharp_language_version_0 {
+            get {
+                return ResourceManager.GetString("Upgrade_this_project_to_csharp_language_version_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use explicit type.
         /// </summary>
         internal static string Use_explicit_type {
@@ -1132,6 +1168,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Warning_colon_Declaration_changes_scope_and_may_change_meaning {
             get {
                 return ResourceManager.GetString("Warning_colon_Declaration_changes_scope_and_may_change_meaning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Extracting a local function reference may produce invalid code.
+        /// </summary>
+        internal static string Warning_Extracting_a_local_function_reference_may_produce_invalid_code {
+            get {
+                return ResourceManager.GetString("Warning_Extracting_a_local_function_reference_may_produce_invalid_code", resourceCulture);
             }
         }
         

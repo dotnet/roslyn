@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -19,34 +18,84 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly static InfoBarButton s_enableItem = new InfoBarButton(ServicesVSResources.Enable);
         private readonly static InfoBarButton s_enableAndIgnoreItem = new InfoBarButton(ServicesVSResources.Enable_and_ignore_future_errors);
 
-        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly IServiceProvider _serviceProvider;
         private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;
 
         public VisualStudioErrorReportingService(
-            VisualStudioWorkspaceImpl workspace, IForegroundNotificationService foregroundNotificationService, IAsynchronousOperationListener listener)
+            SVsServiceProvider serviceProvider, IForegroundNotificationService foregroundNotificationService, IAsynchronousOperationListener listener)
         {
-            _workspace = workspace;
+            _serviceProvider = serviceProvider;
             _foregroundNotificationService = foregroundNotificationService;
             _listener = listener;
         }
 
-        public void ShowErrorInfo(string message, params ErrorReportingUI[] items)
+        public void ShowErrorInfoInActiveView(string message, params ErrorReportingUI[] items)
+        {
+            ShowErrorInfo(activeView: true, message: message, items: items);
+        }
+
+        public void ShowGlobalErrorInfo(string message, params ErrorReportingUI[] items)
+        {
+            ShowErrorInfo(activeView: false, message: message, items: items);
+        }
+
+        public void ShowErrorInfo(bool activeView, string message, params ErrorReportingUI[] items)
         {
             // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
             _foregroundNotificationService.RegisterNotification(() =>
             {
-                if (_workspace.TryGetInfoBarData(out var frame, out var factory))
+                if (TryGetInfoBarData(activeView, out var infoBarHost))
                 {
-                    CreateInfoBar(factory, frame, message, items);
+                    CreateInfoBar(infoBarHost, message, items);
                 }
             }, _listener.BeginAsyncOperation("Show InfoBar"));
         }
 
-        private void CreateInfoBar(IVsInfoBarUIFactory factory, IVsWindowFrame frame, string message, ErrorReportingUI[] items)
+        private bool TryGetInfoBarData(bool activeView, out IVsInfoBarHost infoBarHost)
         {
-            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out var unknown)))
+            infoBarHost = null;
+
+            if (activeView)
             {
+                var monitorSelectionService = _serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
+
+                // We want to get whichever window is currently in focus (including toolbars) as we could have had an exception thrown from the error list 
+                // or interactive window
+                if (monitorSelectionService == null ||
+                    ErrorHandler.Failed(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out var value)))
+                {
+                    return false;
+                }
+
+                var frame = value as IVsWindowFrame;
+                if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out var activeViewInfoBar)))
+                {
+                    return false;
+                }
+
+                infoBarHost = activeViewInfoBar as IVsInfoBarHost;
+                return infoBarHost != null;
+            }
+
+            // global error info, show it on main window info bar
+            var shell = _serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
+            if (shell == null ||
+                ErrorHandler.Failed(shell.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out var globalInfoBar)))
+            {
+                return false;
+            }
+
+            infoBarHost = globalInfoBar as IVsInfoBarHost;
+            return infoBarHost != null;
+        }
+
+        private void CreateInfoBar(IVsInfoBarHost infoBarHost, string message, ErrorReportingUI[] items)
+        {
+            var factory = _serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
+            if (factory == null)
+            {
+                // no info bar factory, don't do anything
                 return;
             }
 
@@ -80,6 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 actionItems.ToArray(),
                 KnownMonikers.StatusInformation,
                 isCloseButtonVisible: true);
+
             if (!TryCreateInfoBarUI(factory, infoBarModel, out var infoBarUI))
             {
                 return;
@@ -96,11 +146,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     infoBarUI.Unadvise(infoBarCookie.Value);
                 }
             });
+
             infoBarUI.Advise(eventSink, out var cookie);
             infoBarCookie = cookie;
 
-            var host = (IVsInfoBarHost)unknown;
-            host.AddInfoBar(infoBarUI);
+            infoBarHost.AddInfoBar(infoBarUI);
         }
 
         private class InfoBarEvents : IVsInfoBarUIEvents

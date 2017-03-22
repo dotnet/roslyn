@@ -14,25 +14,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         protected const string MSBuildNamespace = "http://schemas.microsoft.com/developer/msbuild/2003";
 
-        protected void AssertOptions<T>(T expected, Func<Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions, T> actual)
+        protected void AssertCSCompilationOptions<T>(T expected, Func<Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions, T> actual)
         {
             var options = LoadCSharpCompilationOptions();
             Assert.Equal(expected, actual(options));
         }
 
-        protected void AssertOptions<T>(T expected, Func<Microsoft.CodeAnalysis.CSharp.CSharpParseOptions, T> actual)
+        protected void AssertCSParseOptions<T>(T expected, Func<Microsoft.CodeAnalysis.CSharp.CSharpParseOptions, T> actual)
         {
             var options = LoadCSharpParseOptions();
             Assert.Equal(expected, actual(options));
         }
 
-        protected void AssertVBOptions<T>(T expected, Func<Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions, T> actual)
+        protected void AssertVBCompilationOptions<T>(T expected, Func<Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions, T> actual)
         {
             var options = LoadVisualBasicCompilationOptions();
             Assert.Equal(expected, actual(options));
         }
 
-        protected void AssertVBOptions<T>(T expected, Func<Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions, T> actual)
+        protected void AssertVBParseOptions<T>(T expected, Func<Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions, T> actual)
         {
             var options = LoadVisualBasicParseOptions();
             Assert.Equal(expected, actual(options));

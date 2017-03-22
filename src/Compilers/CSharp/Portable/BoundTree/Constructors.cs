@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt: default(ImmutableArray<int>),
                     resultKind: LookupResultKind.Viable,
                     type: method.ReturnType,
-                    hasErrors: false
+                    hasErrors: method.OriginalDefinition is ErrorMethodSymbol
                 )
             { WasCompilerGenerated = true };
         }

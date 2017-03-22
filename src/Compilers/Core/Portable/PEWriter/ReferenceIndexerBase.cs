@@ -452,10 +452,5 @@ namespace Microsoft.Cci
             this.typeReferenceNeedsToken = false;
             return true;
         }
-
-        public override void Visit(IManagedPointerTypeReference managedPointerTypeReference)
-        {
-            Debug.Assert(false, "Unexpected ref type!");
-        }
     }
 }

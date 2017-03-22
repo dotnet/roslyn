@@ -61,7 +61,7 @@ Namespace System
     End Class
 End Namespace";
 
-                using (var context = await TestContext.CreateAsync(LanguageNames.VisualBasic))
+                using (var context = TestContext.Create(LanguageNames.VisualBasic))
                 {
                     await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected);
                 }

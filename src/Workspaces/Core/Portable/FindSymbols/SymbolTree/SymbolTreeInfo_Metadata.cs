@@ -187,20 +187,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _rootNode = MetadataNode.Allocate(name: "");
             }
 
-            private static IEnumerable<ModuleMetadata> GetModuleMetadata(Metadata metadata)
+            private static ImmutableArray<ModuleMetadata> GetModuleMetadata(Metadata metadata)
             {
-                if (metadata is AssemblyMetadata)
+                try
                 {
-                    return ((AssemblyMetadata)metadata).GetModules();
+                    if (metadata is AssemblyMetadata assembly)
+                    {
+                        return assembly.GetModules();
+                    }
+                    else if (metadata is ModuleMetadata module)
+                    {
+                        return ImmutableArray.Create(module);
+                    }
                 }
-                else if (metadata is ModuleMetadata)
+                catch (BadImageFormatException)
                 {
-                    return SpecializedCollections.SingletonEnumerable((ModuleMetadata)metadata);
+                    // Trying to get the modules of an assembly can throw.  For example, if 
+                    // there is an invalid public-key defined for the assembly.  See:
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems?id=234447
                 }
-                else
-                {
-                    return SpecializedCollections.EmptyEnumerable<ModuleMetadata>();
-                }
+
+                return ImmutableArray<ModuleMetadata>.Empty;
             }
 
             internal SymbolTreeInfo Create()
@@ -220,7 +227,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // map accordingly.
                     GenerateMetadataNodes();
 
-                    // Now, once we populated the inital map, go and get all the inheritance 
+                    // Now, once we populated the initial map, go and get all the inheritance 
                     // information for all the types in the metadata.  This may refer to 
                     // types that we haven't seen yet.  We'll add those types to the parentToChildren
                     // map accordingly.
@@ -455,7 +462,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                         // The parent/child map may not know about this base-type yet (for example,
                         // if the base type is a reference to a type outside of this assembly).
-                        // Add the base type to our map so we'll be able ot resolve it later if 
+                        // Add the base type to our map so we'll be able to resolve it later if 
                         // requested. 
                         EnsureParentsAndChildren(baseTypeNameParts);
                     }

@@ -27,28 +27,35 @@ namespace RunTests.Cache
 
         /// <summary>
         /// There are some DLLs whose abscence is expected and should not be considered an error.  These
-        /// are assemblies which are used as light up functionality. 
+        /// are assemblies which are either light up components or are a part of the VS reference graph
+        /// which are never deployed for our tests.
+        ///
+        /// The key here though is to be very explicit about DLLs which are okay to be absent.  In the past
+        /// we had build issues which failed to properly deploy important binaries like MS.CA and hence 
+        /// produced bad content cache keys.
         /// </summary>
-        internal bool IsKnownLightUpAssembly(AssemblyName name)
+        internal bool IsKnownMissingAssembly(AssemblyName name)
         {
             switch (name.Name)
             {
-                // This light up probing is done by the scripting layer. 
                 case "System.Runtime.Loader":
+                    // This light up probing is done by the scripting layer. 
                     return true;
-                case "Microsoft.VisualStudio.GraphModel":
-                    // This dependency needs to be better rationalized in our model. 
-                    // https://github.com/dotnet/roslyn/issues/16201
+                case "Microsoft.Diagnostics.Tracing.EventSource":
+                    // Part of ETW tracing and not used by suites at this time.
                     return true;
+                case "Microsoft.VisualStudio.CodeAnalysis":
+                case "Microsoft.VisualStudio.CodeAnalysis.Sdk":
                 case "Microsoft.VisualStudio.TeamSystem.Common":
-                    // The MS.VS.CA.Sdk.UI dependency needs to properly list this as a reference and it 
-                    // needs to be included in our model. 
-                    // https://github.com/dotnet/roslyn/issues/16202
-                    return true;
                 case "Microsoft.VisualStudio.Repository":
-                    // This is not represented in our compile graph nor is it properly a part of our 
-                    // build output in Dev15 builds.
-                    // https://github.com/dotnet/roslyn/issues/16206
+                case "Microsoft.VisualStudio.DeveloperTools":
+                case "Microsoft.VisualStudio.Diagnostics.Assert":
+                case "Microsoft.VisualStudio.Diagrams.View.Interfaces":
+                case "Microsoft.VisualStudio.Shell.ViewManager":
+                case "Microsoft.VisualStudio.VCProjectEngine":
+                case "Microsoft.VisualStudio.VirtualTreeGrid":
+                    // These are assemblies which are a part of the tranisitive build graph but are known to
+                    // not be a part of our testing code.
                     return true;
                 default:
                     return false;
