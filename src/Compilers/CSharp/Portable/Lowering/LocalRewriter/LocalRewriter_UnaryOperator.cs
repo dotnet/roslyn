@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundAssignmentOperator tempAssignment;
             BoundLocal boundTemp = _factory.StoreToTemp(loweredOperand, out tempAssignment);
-            MethodSymbol getValueOrDefault = GetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             // temp.HasValue
             BoundExpression condition = MakeNullableHasValue(syntax, boundTemp);
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression GetLiftedUnaryOperatorConsequence(UnaryOperatorKind kind, SyntaxNode syntax, MethodSymbol method, TypeSymbol type, BoundExpression nonNullOperand)
         {
-            MethodSymbol ctor = GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
+            MethodSymbol ctor = UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
 
             // OP(temp.GetValueOrDefault())
             BoundExpression unliftedOp = MakeUnaryOperator(
@@ -620,8 +620,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundAssignmentOperator tempAssignment;
             BoundLocal boundTemp = _factory.StoreToTemp(rewrittenArgument, out tempAssignment);
 
-            MethodSymbol getValueOrDefault = GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_GetValueOrDefault);
-            MethodSymbol ctor = GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
+            MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            MethodSymbol ctor = UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
 
             // temp.HasValue
             BoundExpression condition = MakeNullableHasValue(node.Syntax, boundTemp);
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (binaryOperatorKind.IsLifted())
             {
                 binaryOperandType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(binaryOperandType);
-                MethodSymbol ctor = GetNullableMethod(node.Syntax, binaryOperandType, SpecialMember.System_Nullable_T__ctor);
+                MethodSymbol ctor = UnsafeGetNullableMethod(node.Syntax, binaryOperandType, SpecialMember.System_Nullable_T__ctor);
                 boundOne = new BoundObjectCreationExpression(node.Syntax, ctor, boundOne);
             }
 
@@ -790,8 +790,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // This method assumes that operand is already a temporary and so there is no need to copy it again.
             MethodSymbol method = GetDecimalIncDecOperator(oper);
-            MethodSymbol getValueOrDefault = GetNullableMethod(syntax, operand.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
-            MethodSymbol ctor = GetNullableMethod(syntax, operand.Type, SpecialMember.System_Nullable_T__ctor);
+            MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, operand.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            MethodSymbol ctor = UnsafeGetNullableMethod(syntax, operand.Type, SpecialMember.System_Nullable_T__ctor);
 
             // x.HasValue
             BoundExpression condition = MakeNullableHasValue(syntax, operand);

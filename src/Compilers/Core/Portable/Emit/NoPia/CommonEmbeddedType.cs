@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract bool IsSealed { get; }
             protected abstract TypeLayout? GetTypeLayoutIfStruct();
             protected abstract System.Runtime.InteropServices.CharSet StringFormat { get; }
-            protected abstract TAttributeData CreateCompilerGeneratedAttribute();
             protected abstract TAttributeData CreateTypeIdentifierAttribute(bool hasGuid, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
             protected abstract void EmbedDefaultMembers(string defaultMember, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
             protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TModuleCompilationState compilationState);
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 // Put the CompilerGenerated attribute on the NoPIA types we define so that 
                 // static analysis tools (e.g. fxcop) know that they can be skipped
-                builder.AddOptional(CreateCompilerGeneratedAttribute());
+                builder.AddOptional(TypeManager.CreateCompilerGeneratedAttribute());
 
                 // Copy some of the attributes.
 

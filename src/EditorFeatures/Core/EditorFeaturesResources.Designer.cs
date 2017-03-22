@@ -189,6 +189,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An inline rename session is active.
+        /// </summary>
+        internal static string An_inline_rename_session_is_active {
+            get {
+                return ResourceManager.GetString("An_inline_rename_session_is_active", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Apply.
         /// </summary>
         internal static string Apply1 {

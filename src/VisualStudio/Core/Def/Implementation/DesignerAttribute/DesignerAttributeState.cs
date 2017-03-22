@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
-    internal abstract partial class AbstractDesignerAttributeIncrementalAnalyzer : IIncrementalAnalyzer
+    internal partial class DesignerAttributeIncrementalAnalyzer : IIncrementalAnalyzer
     {
         private class DesignerAttributeState : AbstractDocumentAnalyzerState<Data>
         {
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     if (reader != null)
                     {
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
             {
-                using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                 {
                     writer.WriteString(FormatVersion);
                     data.TextVersion.WriteTo(writer);

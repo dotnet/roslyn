@@ -158,12 +158,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return UnderlyingNamedType.GetCustomAttributesToEmit(compilationState)
         End Function
 
-        Protected Overrides Function CreateCompilerGeneratedAttribute() As VisualBasicAttributeData
-            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
-            Dim compilation = TypeManager.ModuleBeingBuilt.Compilation
-            Return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor)
-        End Function
-
         Protected Overrides Function CreateTypeIdentifierAttribute(hasGuid As Boolean, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
             Dim member = If(hasGuid,
                 WellKnownMember.System_Runtime_InteropServices_TypeIdentifierAttribute__ctor,

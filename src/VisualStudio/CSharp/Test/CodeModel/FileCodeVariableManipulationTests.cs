@@ -19,21 +19,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         {
         }
 
-        private async Task<CodeVariable> GetCodeVariableAsync(params object[] path)
+        private CodeVariable GetCodeVariable(params object[] path)
         {
-            return (CodeVariable)await GetCodeElementAsync(path);
+            return (CodeVariable)GetCodeElement(path);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task DeleteField()
+        public void DeleteField()
         {
-            CodeClass c = (CodeClass)await GetCodeElementAsync("Foo");
+            CodeClass c = (CodeClass)GetCodeElement("Foo");
             c.RemoveMember(c.Members.Item("bar"));
 
             Assert.Equal(@"class Foo
 {
-}", await GetFileTextAsync());
+}", GetFileText());
         }
     }
 }

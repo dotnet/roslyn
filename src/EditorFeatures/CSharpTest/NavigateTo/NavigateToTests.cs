@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
     {
         protected override string Language => "csharp";
 
-        protected override Task<TestWorkspace> CreateWorkspace(string content, ExportProvider exportProvider)
-            => TestWorkspace.CreateCSharpAsync(content, exportProvider: exportProvider);
+        protected override TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider)
+            => TestWorkspace.CreateCSharp(content, exportProvider: exportProvider);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task NoItemsForEmptyFile()
@@ -1033,7 +1033,7 @@ class D
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task NavigateToGeneratedFiles()
         {
-            using (var workspace = await TestWorkspace.CreateAsync(@"
+            using (var workspace = TestWorkspace.Create(@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"">
         <Document FilePath=""File1.cs"">

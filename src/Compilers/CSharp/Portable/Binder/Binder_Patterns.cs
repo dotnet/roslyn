@@ -54,60 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
-        /// <summary>
-        /// Is a user-defined `operator is` applicable? At the use site, we ignore those that are not.
-        /// </summary>
-        private bool ApplicableOperatorIs(MethodSymbol candidate, CSharpSyntaxNode node, DiagnosticBag diagnostics)
-        {
-            // must be a user-defined operator, and requires at least one parameter
-            if (candidate.MethodKind != MethodKind.UserDefinedOperator || candidate.ParameterCount == 0)
-            {
-                return false;
-            }
-
-            // must be static.
-            if (!candidate.IsStatic)
-            {
-                return false;
-            }
-
-            // the first parameter must be a value. The remaining parameters must be out.
-            foreach (var parameter in candidate.Parameters)
-            {
-                if (parameter.RefKind != ((parameter.Ordinal == 0) ? RefKind.None : RefKind.Out))
-                {
-                    return false;
-                }
-            }
-
-            // must return void or bool
-            switch (candidate.ReturnType.SpecialType)
-            {
-                case SpecialType.System_Void:
-                case SpecialType.System_Boolean:
-                    break;
-                default:
-                    return false;
-            }
-
-            // must not be generic
-            if (candidate.Arity != 0)
-            {
-                return false;
-            }
-
-            // it should be accessible
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            bool isAccessible = this.IsAccessible(candidate, ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
-            if (!isAccessible)
-            {
-                return false;
-            }
-
-            // all requirements are satisfied
-            return true;
-        }
 
         private BoundConstantPattern BindConstantPattern(
             ConstantPatternSyntax node,
@@ -182,6 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return convertedExpression;
         }
 
+        /// <summary>
+        /// Check that the pattern type is valid for the operand. Return true if an error was reported.
+        /// </summary>
         private bool CheckValidPatternType(
             CSharpSyntaxNode typeSyntax,
             BoundExpression operand,
@@ -193,6 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)operandType != null);
             Debug.Assert((object)patternType != null);
+
+            // Because we do not support recursive patterns, we always have an operand
+            Debug.Assert((object)operand != null);
+            // Once we support recursive patterns that will be relaxed.
+
             if (operandType.IsErrorType() || patternType.IsErrorType())
             {
                 return false;
@@ -210,6 +164,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (!isVar)
             {
+                if (patternType.IsDynamic())
+                {
+                    Error(diagnostics, ErrorCode.ERR_PatternDynamicType, typeSyntax);
+                    return true;
+                }
+
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 Conversion conversion =
                     operand != null
@@ -218,6 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(typeSyntax, useSiteDiagnostics);
                 switch (conversion.Kind)
                 {
+                    case ConversionKind.ExplicitDynamic:
+                    case ConversionKind.ImplicitDynamic:
+                        // Since the input was `dynamic`, which is equivalent to `object`, there must also
+                        // exist some unboxing, identity, or reference conversion as well, making the conversion legal.
                     case ConversionKind.Boxing:
                     case ConversionKind.ExplicitNullable:
                     case ConversionKind.ExplicitReference:
@@ -292,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (localSymbol != (object)null)
             {
-                if (InConstructorInitializer || InFieldInitializer)
+                if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                 {
                     Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
                 }

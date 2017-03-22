@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -161,12 +162,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return rule;
-        }
-
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context)
-        {
-            // Unused
-            throw new NotImplementedException();
         }
 
         protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior => CompletionItemSelectionBehavior.HardSelection;

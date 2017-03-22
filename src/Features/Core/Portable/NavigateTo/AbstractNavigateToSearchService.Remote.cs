@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -15,16 +16,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var solution = document.Project.Solution;
 
-            using (var session = await client.CreateCodeAnalysisServiceSessionAsync(
-                solution, cancellationToken).ConfigureAwait(false))
-            {
-                var serializableResults = await session.InvokeAsync<SerializableNavigateToSearchResult[]>(
-                    nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
-                    SerializableDocumentId.Dehydrate(document),
-                    searchPattern).ConfigureAwait(false);
+            var serializableResults = await client.RunCodeAnalysisServiceOnRemoteHostAsync<SerializableNavigateToSearchResult[]>(
+                solution, nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
+                new object[] { document.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
 
-                return serializableResults.Select(r => r.Rehydrate(solution)).ToImmutableArray();
-            }
+            serializableResults = serializableResults ?? Array.Empty<SerializableNavigateToSearchResult>();
+            return serializableResults.Select(r => r.Rehydrate(solution)).ToImmutableArray();
         }
 
         private async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInRemoteProcessAsync(
@@ -32,16 +29,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var solution = project.Solution;
 
-            using (var session = await client.CreateCodeAnalysisServiceSessionAsync(
-                solution, cancellationToken).ConfigureAwait(false))
-            {
-                var serializableResults = await session.InvokeAsync<SerializableNavigateToSearchResult[]>(
-                    nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
-                    SerializableProjectId.Dehydrate(project.Id),
-                    searchPattern).ConfigureAwait(false);
+            var serializableResults = await client.RunCodeAnalysisServiceOnRemoteHostAsync<SerializableNavigateToSearchResult[]>(
+                solution, nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
+                new object[] { project.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
 
-                return serializableResults.Select(r => r.Rehydrate(solution)).ToImmutableArray();
-            }
+            serializableResults = serializableResults ?? Array.Empty<SerializableNavigateToSearchResult>();
+            return serializableResults.Select(r => r.Rehydrate(solution)).ToImmutableArray();
         }
 
         private static async Task<RemoteHostClient> GetRemoteHostClientAsync(Project project, CancellationToken cancellationToken)
@@ -52,7 +45,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return null;
             }
 
-            return await project.Solution.Workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            return await project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

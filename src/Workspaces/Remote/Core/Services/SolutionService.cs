@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private readonly AssetService _assetService;
 
-        // TODO: make this simple cache better
-        // this simple cache hold onto the last solution created
+        // this simple cache hold onto the last and primary solution created
+        private volatile static Tuple<Checksum, Solution> s_primarySolution;
         private volatile static Tuple<Checksum, Solution> s_lastSolution;
 
         public SolutionService(AssetService assetService)
@@ -31,30 +31,22 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
-            var currentSolution = s_primaryWorkspace.CurrentSolution;
-
-            var primarySolutionChecksum = await currentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-            if (primarySolutionChecksum == solutionChecksum)
+            var currentSolution = GetAvailableSolution(solutionChecksum);
+            if (currentSolution != null)
             {
-                // nothing changed
                 return currentSolution;
-            }
-
-            var lastSolution = s_lastSolution;
-            if (lastSolution?.Item1 == solutionChecksum)
-            {
-                return lastSolution.Item2;
             }
 
             // make sure there is always only one that creates a new solution
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (s_lastSolution?.Item1 == solutionChecksum)
+                currentSolution = GetAvailableSolution(solutionChecksum);
+                if (currentSolution != null)
                 {
-                    return s_lastSolution.Item2;
+                    return currentSolution;
                 }
 
-                var solution = await CreateSolution_NoLockAsync(solutionChecksum, currentSolution, cancellationToken).ConfigureAwait(false);
+                var solution = await CreateSolution_NoLockAsync(solutionChecksum, s_primaryWorkspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
                 s_lastSolution = Tuple.Create(solutionChecksum, solution);
 
                 return solution;
@@ -63,13 +55,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            if (optionSet == null)
-            {
-                return await GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-            }
-
             // get solution
             var baseSolution = await GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            if (optionSet == null)
+            {
+                return baseSolution;
+            }
 
             // since options belong to workspace, we can't share solution
             // create temporary workspace
@@ -95,20 +86,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var updater = new SolutionCreator(_assetService, currentSolution, cancellationToken);
-
-                if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
-                {
-                    // solution has updated
-                    s_primaryWorkspace.UpdateSolution(await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false));
-                    return;
-                }
-
-                // new solution. bulk sync all asset for the solution
-                await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-                s_primaryWorkspace.ClearSolution();
-                s_primaryWorkspace.AddSolution(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
+                var solution = await UpdatePrimaryWorkspace_NoLockAsync(solutionChecksum, currentSolution, cancellationToken).ConfigureAwait(false);
+                s_primarySolution = Tuple.Create(solutionChecksum, solution);
             }
         }
 
@@ -138,6 +117,46 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var workspace = new TemporaryWorkspace(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
             return workspace.CurrentSolution;
+        }
+
+        private async Task<Solution> UpdatePrimaryWorkspace_NoLockAsync(Checksum solutionChecksum, Solution baseSolution, CancellationToken cancellationToken)
+        {
+            var updater = new SolutionCreator(_assetService, baseSolution, cancellationToken);
+
+            if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
+            {
+                // solution has updated
+                s_primaryWorkspace.UpdateSolution(await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false));
+
+                return s_primaryWorkspace.CurrentSolution;
+            }
+
+            // new solution. bulk sync all asset for the solution
+            await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+            s_primaryWorkspace.ClearSolution();
+            s_primaryWorkspace.AddSolution(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
+
+            return s_primaryWorkspace.CurrentSolution;
+        }
+
+        private static Solution GetAvailableSolution(Checksum solutionChecksum)
+        {
+            var currentSolution = s_primarySolution;
+            if (currentSolution?.Item1 == solutionChecksum)
+            {
+                // asked about primary solution
+                return currentSolution.Item2;
+            }
+
+            var lastSolution = s_lastSolution;
+            if (lastSolution?.Item1 == solutionChecksum)
+            {
+                // asked about last solution
+                return lastSolution.Item2;
+            }
+
+            return null;
         }
     }
 }

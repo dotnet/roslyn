@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNoReferences()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +42,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestIdentifierReferenceInTypeContext()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,7 +68,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestGenericReferenceInTypeContext()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,7 +94,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMultipleReferences()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -123,7 +123,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestExtensionMethodReference()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -153,7 +153,7 @@ class Program
             // NOTE: Intentionally not running this test with Script options, because in Script,
             // NOTE: class "Foo" is placed inside the script class, and can't be seen by the extension
             // NOTE: method Select, which is not inside the script class.
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections;
 using SomeNS;
@@ -190,7 +190,7 @@ namespace SomeNS
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAliasQualifiedAliasReference()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using G = System.Collections.Generic;
 using System.Linq;
@@ -216,7 +216,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestQualifiedAliasReference()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using G = System.Collections.Generic;
 
@@ -241,7 +241,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUnusedUsings()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -275,7 +275,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUsedUsings()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -322,7 +322,7 @@ class F
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUsedUsings2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -369,7 +369,7 @@ class F
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAttribute()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using SomeNamespace;
 
 [SomeAttr]
@@ -388,7 +388,7 @@ namespace SomeNamespace
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAttributeArgument()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using foo;
 
 [SomeAttribute(typeof(SomeClass))]
@@ -417,7 +417,7 @@ namespace foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveAllWithSurroundingPreprocessor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"#if true
 
 [|using System;
@@ -442,13 +442,13 @@ class Program
     {
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveFirstWithSurroundingPreprocessor()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"#if true
 
 [|using System;
@@ -476,13 +476,13 @@ class Program
         List<int> list;
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveAllWithSurroundingPreprocessor2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|namespace N
 {
 #if true
@@ -513,13 +513,13 @@ compareTokens: false);
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveOneWithSurroundingPreprocessor2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|namespace N
 {
 #if true
@@ -553,14 +553,14 @@ compareTokens: false);
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestComments8718()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using Foo; using System.Collections.Generic; /*comment*/ using Foo2;
 
 class Program
@@ -610,14 +610,14 @@ namespace Foo2
     {
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(528609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528609")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestComments()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"//c1
 /*c2*/
 [|using/*c3*/ System/*c4*/; //c5
@@ -635,13 +635,13 @@ class Program
 {
 }
 ",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUnusedUsing()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System.Collections.Generic;
 
 class Program
@@ -656,14 +656,14 @@ class Program
     {
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestSimpleQuery()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -732,7 +732,7 @@ namespace SomeNS
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUsingStaticClassAccessField2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using static SomeNS.Foo;
 
 class Program
@@ -800,7 +800,7 @@ namespace SomeNS
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUsingStaticClassAccessMethod2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using static SomeNS.Foo;
 
 class Program
@@ -827,7 +827,7 @@ namespace SomeNS
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUnusedTypeImportIsRemoved()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using SomeNS.Foo;
 
 class Program
@@ -862,7 +862,7 @@ namespace SomeNS
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveTrailingComment()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System.Collections.Generic; // comment
 
 class Program
@@ -881,14 +881,14 @@ class Program
 }
 
 ",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemovingUnbindableUsing()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using gibberish;
 
 public static class Program
@@ -903,7 +903,7 @@ public static class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAliasInUse()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using GIBBERISH = Foo.Bar;
 
 class Program
@@ -926,7 +926,7 @@ namespace Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveUnboundUsing()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using gibberish;
 
 public static class Program
@@ -941,7 +941,7 @@ public static class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestLeadingNewlines1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -960,14 +960,14 @@ class Program
 
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveLeadingNewLines2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|namespace N
 {
     using System;
@@ -992,14 +992,14 @@ compareTokens: false);
         }
     }
 }",
-compareTokens: false);
+ignoreTrivia: false);
         }
 
         [WorkItem(542134, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542134")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestImportedTypeUsedAsGenericTypeArgument()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using GenericThingie;
 
 public class GenericType<T>
@@ -1056,18 +1056,13 @@ namespace Foo
     {
         Bar b;
     }
-}|]",
-parseOptions: null);
+}|]");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestSpan()
         {
             await TestSpansAsync(
-@"[|namespace N
-{
-    using System;
-}|]",
 @"namespace N
 {
     [|using System;|]
@@ -1078,7 +1073,7 @@ parseOptions: null);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMissingWhenErrorsWouldBeGenerated()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using System;
 using X;
 using Y;
@@ -1128,7 +1123,7 @@ namespace Y
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMissingWhenMeaningWouldChangeInLambda()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using System;
 using X;
 using Y;
@@ -1184,7 +1179,7 @@ namespace Y
             // used even though it isn't in the final bind, and could be removed.  However, as we do
             // not know if it was necessary to eliminate a speculative lambda bind, we must leave
             // it.
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using System;
 using X;
 using Y;
@@ -1226,7 +1221,7 @@ namespace Y
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestCasesWithLambdas2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using System;
 using N; // Falsely claimed as unnecessary
 
@@ -1279,7 +1274,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMissingOnAliasedVar()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using var = var;
 
 class var
@@ -1299,7 +1294,7 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestBrokenCode()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"[|using System.Linq;
 
 public class QueryExpressionTest
@@ -1322,7 +1317,7 @@ public class QueryExpressionTest
         public async Task TestReferenceInCref()
         {
             // parsing doc comments as simple trivia; System is unnecessary
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"[|using System;
 /// <summary><see cref=""String"" /></summary>
 class C
@@ -1339,14 +1334,14 @@ class C
 /// <summary><see cref=""String"" /></summary>
 class C
 {
-}|]", Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
+}|]", new TestParameters(Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose)));
         }
 
         [WorkItem(751283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751283")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUnusedUsingOverLinq()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 [|using System.Linq;
 using System.Threading.Tasks;|]

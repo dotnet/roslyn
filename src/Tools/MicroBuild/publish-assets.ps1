@@ -40,8 +40,10 @@ try
 
     switch ($branchName)
     {
-        "dev15-rc2" { } 
+        "dev15.0.x" { } 
+        "dev15.1.x" { } 
         "master" { } 
+        "dev_pilchie_Fix389698" { }
         default
         {
             if (-not $test)

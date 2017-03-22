@@ -4,32 +4,57 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteSymbolFinder
     {
-        public async Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, SerializableDocumentId[] documentArgs)
+        public async Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs)
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
 
             var symbolAndProjectId = await symbolAndProjectIdArg.RehydrateAsync(
                 solution, CancellationToken).ConfigureAwait(false);
-            var documents = documentArgs?.Select(a => a.Rehydrate())
-                                         .Select(solution.GetDocument)
+            var documents = documentArgs?.Select(solution.GetDocument)
                                          .ToImmutableHashSet();
 
-            var progressCallback = new ProgressCallback(this);
+            var progressCallback = new FindReferencesProgressCallback(this);
             await SymbolFinder.FindReferencesInCurrentProcessAsync(
                 symbolAndProjectId, solution, progressCallback, documents, CancellationToken).ConfigureAwait(false);
         }
 
-        private class ProgressCallback : IStreamingFindReferencesProgress
+        public async Task FindLiteralReferencesAsync(object value)
+        {
+            var solution = await GetSolutionAsync().ConfigureAwait(false);
+
+            var progressCallback = new FindLiteralReferencesProgressCallback(this);
+            await SymbolFinder.FindLiteralReferencesInCurrentProcessAsync(
+                value, solution, progressCallback, CancellationToken).ConfigureAwait(false);
+        }
+
+        private class FindLiteralReferencesProgressCallback : IStreamingFindLiteralReferencesProgress
         {
             private readonly CodeAnalysisService _service;
 
-            public ProgressCallback(CodeAnalysisService service)
+            public FindLiteralReferencesProgressCallback(CodeAnalysisService service)
+            {
+                _service = service;
+            }
+
+            public Task ReportProgressAsync(int current, int maximum)
+                => _service.Rpc.InvokeAsync(nameof(ReportProgressAsync), current, maximum);
+
+            public Task OnReferenceFoundAsync(Document document, TextSpan span)
+                => _service.Rpc.InvokeAsync(nameof(OnReferenceFoundAsync), document.Id, span);
+        }
+
+        private class FindReferencesProgressCallback : IStreamingFindReferencesProgress
+        {
+            private readonly CodeAnalysisService _service;
+
+            public FindReferencesProgressCallback(CodeAnalysisService service)
             {
                 _service = service;
             }
@@ -44,12 +69,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 => _service.Rpc.InvokeAsync(nameof(ReportProgressAsync), current, maximum);
 
             public Task OnFindInDocumentStartedAsync(Document document)
-                => _service.Rpc.InvokeAsync(nameof(OnFindInDocumentStartedAsync),
-                    SerializableDocumentId.Dehydrate(document));
+                => _service.Rpc.InvokeAsync(nameof(OnFindInDocumentStartedAsync), document.Id);
 
             public Task OnFindInDocumentCompletedAsync(Document document)
-                => _service.Rpc.InvokeAsync(nameof(OnFindInDocumentCompletedAsync),
-                    SerializableDocumentId.Dehydrate(document));
+                => _service.Rpc.InvokeAsync(nameof(OnFindInDocumentCompletedAsync), document.Id);
 
             public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
                 => _service.Rpc.InvokeAsync(nameof(OnDefinitionFoundAsync),
@@ -63,6 +86,5 @@ namespace Microsoft.CodeAnalysis.Remote
                     SerializableReferenceLocation.Dehydrate(reference));
             }
         }
-
     }
 }

@@ -28,6 +28,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetLastReplOutput()
             => _inProc.GetLastReplOutput();
 
+        /// <summary>
+        /// Gets the last input from the REPL.
+        /// </summary>
+        public string GetLastReplInput()
+            => _inProc.GetLastReplInput();
+
+        public int GetCaretPosition()
+            => _inProc.GetCaretPosition();
+
         public string GetReplText()
             => _inProc.GetReplText();
 
@@ -52,7 +61,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForReplOutputContains(string outputText)
             => _inProc.WaitForReplOutputContains(outputText);
 
-        public void CleanUpInteractiveWindow()
+        public void CloseInteractiveWindow()
             => _inProc.CloseWindow();
+
+        public void ClearScreen()
+            => _inProc.ClearScreen();
+
+        public void InsertCode(string text)
+            => _inProc.InsertCode(text);
     }
 }

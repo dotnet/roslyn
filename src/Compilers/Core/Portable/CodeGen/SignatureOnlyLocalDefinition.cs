@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _slot = slot;
         }
 
-        public Cci.IMetadataConstant CompileTimeValue
+        public MetadataConstant CompileTimeValue
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
