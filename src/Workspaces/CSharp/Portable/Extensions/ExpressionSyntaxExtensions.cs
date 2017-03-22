@@ -317,10 +317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsInRefContext(this ExpressionSyntax expression)
-        {
-            return expression != null && (expression.IsParentKind(SyntaxKind.RefExpression) ||
-                                          (expression.Parent as ArgumentSyntax)?.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword);
-        }
+            => expression?.IsParentKind(SyntaxKind.RefExpression) == true ||
+               (expression?.Parent as ArgumentSyntax)?.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword;
 
         public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
         {
