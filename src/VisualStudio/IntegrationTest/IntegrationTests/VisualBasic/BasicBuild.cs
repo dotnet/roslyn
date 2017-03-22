@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -16,7 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             VisualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Build)]
         public void BuildProject()
         {
             var editorText = @"Module Program
