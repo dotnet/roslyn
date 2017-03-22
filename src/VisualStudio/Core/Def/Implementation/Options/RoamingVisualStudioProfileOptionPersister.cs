@@ -228,9 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (optionKey.Option.Type == typeof(CodeStyleOption<bool>))
             {
                 // We store these as strings, so serialize
-                var valueToSerialize = value as CodeStyleOption<bool>;
-
-                if (valueToSerialize != null)
+                if (value is CodeStyleOption<bool> valueToSerialize)
                 {
                     value = valueToSerialize.ToXElement().ToString();
                 }
@@ -238,9 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             else if (optionKey.Option.Type == typeof(NamingStylePreferences))
             {
                 // We store these as strings, so serialize
-                var valueToSerialize = value as NamingStylePreferences;
-
-                if (valueToSerialize != null)
+                if (value is NamingStylePreferences valueToSerialize)
                 {
                     value = valueToSerialize.CreateXElement().ToString();
                 }
