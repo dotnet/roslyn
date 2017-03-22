@@ -2315,6 +2315,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread..
+        /// </summary>
+        internal static string VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread {
+            get {
+                return ResourceManager.GetString("VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to When inserting properties, events and methods, place them:.
         /// </summary>
         internal static string When_inserting_properties_events_and_methods_place_them {
