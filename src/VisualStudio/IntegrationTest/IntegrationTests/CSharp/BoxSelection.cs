@@ -17,7 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         public new void Dispose()
         {
-            ExecuteCommand("Edit.SelectionCancel");
+            ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
             base.Dispose();
         }
 

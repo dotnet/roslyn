@@ -16,6 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected readonly VisualStudioInstanceContext VisualStudio;
         protected readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
         protected readonly TextViewWindow_OutOfProc TextViewWindow;
+        protected readonly string ProjectName = "TestProj";
 
         protected AbstractIntegrationTest(
             VisualStudioInstanceFactory instanceFactory, 
@@ -85,5 +86,38 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
             => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";", featuresToWaitFor));
+
+        protected void AddFile(string fileName, string contents = null, bool open = false)
+            => VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, fileName, contents, open);
+
+        protected void OpenFile(string projectName, string fileName)
+            => VisualStudio.Instance.SolutionExplorer.OpenFile(projectName, fileName);
+
+        protected void OpenFileWithDesigner(string projectName, string fileName)
+            => VisualStudio.Instance.SolutionExplorer.OpenFileWithDesigner(projectName, fileName);
+
+        protected void CloseFile(string projectName, string fileName, bool saveFile = true)
+            => VisualStudio.Instance.SolutionExplorer.CloseFile(projectName, fileName, saveFile);
+
+        protected void SaveFile(string projectName, string fileName)
+            => VisualStudio.Instance.SolutionExplorer.SaveFile(projectName, fileName);
+
+        protected void AddReference(string projectName, string fullyQualifiedAssemblyName)
+        {
+            VisualStudio.Instance.SolutionExplorer.AddReference(projectName, fullyQualifiedAssemblyName);
+        }
+
+        protected void VerifyAssemblyReferencePresent(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken)
+        {
+            var assemblyReferences = VisualStudio.Instance.SolutionExplorer.GetAssemblyReferences(projectName);
+            var expectedAssemblyReference = assemblyName + "," + assemblyVersion + "," + assemblyPublicKeyToken.ToUpper();
+            Assert.Contains(expectedAssemblyReference, assemblyReferences);
+        }
+
+        protected void VerifyProjectReferencePresent(string projectName, string referencedProjectName)
+        {
+            var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
+            Assert.Contains(referencedProjectName, projectReferences);
+        }
     }
 }

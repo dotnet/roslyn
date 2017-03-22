@@ -55,7 +55,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => GetDTE().Commands.Item(commandName).IsAvailable;
 
         protected static void ExecuteCommand(string commandName, string args = "")
-            => GetDTE().ExecuteCommand(commandName, args);
+        {
+            GetDTE().ExecuteCommand(commandName, args);
+            WaitForApplicationIdle();
+        }
 
         /// <summary>
         /// Waiting for the application to 'idle' means that it is done pumping messages (including WM_PAINT).

@@ -135,10 +135,13 @@ Process.GetCurrentProcess().ProcessName");
         {
             SubmitText("#foo");
             VerifyLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
-            VerifyErrorCount(1);
+            // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
+            // VerifyErrorCount(1);
+            
             SubmitText("#bar");
             VerifyLastReplOutput("(1,/2): error CS1024: Preprocessor directive expected");
-            VerifyErrorCount(2);
+            // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
+            // VerifyErrorCount(2);
         }
 
         [Fact]
@@ -166,14 +169,16 @@ Script directives:
   #r                   Add a metadata reference to specified assembly and all its dependencies, e.g. #r ""myLib.dll"".
   #load                Load specified script file and execute it, e.g. #load ""myScript.csx"".");
 
-            VerifyErrorCount(0);
+            // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
+            // VerifyErrorCount(0);
         }
 
         [Fact]
         public void VerifyHashCls()
         {
             SubmitText("#cls");
-            VerifyErrorCount(0);
+            // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
+            // VerifyErrorCount(0);
         }
 
         [Fact]
@@ -184,7 +189,8 @@ Script directives:
             SubmitText("#reset");
             VerifyLastReplOutputContains(@"Resetting execution engine.
 Loading context from");
-            VerifyErrorCount(0);
+            // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
+            // VerifyErrorCount(0);
         }
 
         [Fact]
@@ -193,7 +199,8 @@ Loading context from");
             SubmitText("#reset /help");
             VerifyLastReplOutputContains(@"Usage:
   #reset [noconfig]");
-            VerifyErrorCount(0);
+            // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
+            // VerifyErrorCount(0);
             SubmitText("#load /help");
             VerifyLastReplOutputContains("CS7010: Quoted file name expected");
         }
@@ -239,7 +246,8 @@ public static void Main(string[] args)
             VerifyCurrentTokenType(tokenType: "identifier");
             PlaceCaret("Environment");
             VerifyCurrentTokenType(tokenType: "class name");
-            VerifyErrorCount(0);
+            // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
+            // VerifyErrorCount(0);
         }
 
         [Fact]

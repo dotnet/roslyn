@@ -67,11 +67,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void InsertCode(string text)
             => _interactiveWindowInProc.InsertCode(text);
-
-        public int GetErrorListErrorCount()
-        {
-            var errors = _interactiveWindowInProc.GetErrorListErrorCount();
-            return errors.Count();
-        }
     }
 }

@@ -95,21 +95,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void CutDeletePasteSelectAll()
         {
             SendKeys("Text");
-            ExecuteCommand("Edit.LineStart");
-            ExecuteCommand("Edit.LineEnd");
-            ExecuteCommand("Edit.LineStartExtend");
-            ExecuteCommand("Edit.SelectionCancel");
-            ExecuteCommand("Edit.LineEndExtend");
-            ExecuteCommand("Edit.SelectAll");
-            ExecuteCommand("Edit.SelectAll");
-            ExecuteCommand("Edit.Copy");
-            ExecuteCommand("Edit.Cut");
-            ExecuteCommand("Edit.Paste");
-            ExecuteCommand("Edit.Delete");
-            ExecuteCommand("Edit.LineUp");
-            ExecuteCommand("Edit.LineDown");
-            ExecuteCommand("Edit.Paste");
-            ExecuteCommand("Edit.Paste");
+            ExecuteCommand(WellKnownCommandNames.Edit_LineStart);
+            ExecuteCommand(WellKnownCommandNames.Edit_LineEnd);
+            ExecuteCommand(WellKnownCommandNames.Edit_LineStartExtend);
+            ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
+            ExecuteCommand(WellKnownCommandNames.Edit_LineEndExtend);
+            ExecuteCommand(WellKnownCommandNames.Edit_SelectAll);
+            ExecuteCommand(WellKnownCommandNames.Edit_SelectAll);
+            ExecuteCommand(WellKnownCommandNames.Edit_Copy);
+            ExecuteCommand(WellKnownCommandNames.Edit_Cut);
+            ExecuteCommand(WellKnownCommandNames.Edit_Paste);
+            ExecuteCommand(WellKnownCommandNames.Edit_Delete);
+            ExecuteCommand(WellKnownCommandNames.Edit_LineUp);
+            ExecuteCommand(WellKnownCommandNames.Edit_LineDown);
+            ExecuteCommand(WellKnownCommandNames.Edit_Paste);
+            ExecuteCommand(WellKnownCommandNames.Edit_Paste);
             SendKeys(VirtualKey.Escape);
         }
 

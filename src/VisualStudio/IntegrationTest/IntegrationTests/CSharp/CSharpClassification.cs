@@ -120,13 +120,13 @@ namespace ClassLibrary1
     }
 }
 ");
-            ExecuteCommand("Build.SolutionConfigurations", argument: "Debug");
+            ExecuteCommand(WellKnownCommandNames.Build_SolutionConfigurations, argument: "Debug");
             PlaceCaret("Foo");
             VerifyCurrentTokenType(tokenType: "identifier");
             PlaceCaret("Bar");
             VerifyCurrentTokenType(tokenType: "excluded code");
             Editor.MoveCaret(0);
-            ExecuteCommand("Build.SolutionConfigurations", argument: "Release");
+            ExecuteCommand(WellKnownCommandNames.Build_SolutionConfigurations, argument: "Release");
             PlaceCaret("Foo");
             VerifyCurrentTokenType(tokenType: "excluded code");
             PlaceCaret("Bar");

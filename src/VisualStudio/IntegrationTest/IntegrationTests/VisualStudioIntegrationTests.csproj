@@ -39,6 +39,7 @@
     <Compile Include="CSharp\CSharpReplIntellisense.cs" />
     <Compile Include="CSharp\CSharpReplClassification.cs" />
     <Compile Include="CSharp\CSharpQuickInfo.cs" />
+    <Compile Include="CSharp\CSharpSendToInteractive.cs" />
     <Compile Include="CSharp\CSharpSignatureHelp.cs" />
     <Compile Include="CSharp\CSharpWinForms.cs" />
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />

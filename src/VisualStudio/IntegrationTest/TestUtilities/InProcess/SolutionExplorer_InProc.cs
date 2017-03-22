@@ -171,6 +171,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             ((VSProject)project.Object).References.AddProject(projectToReference);
         }
 
+        public void AddReference(string projectName, string fullyQualifiedAssemblyName)
+        {
+            var project = GetProject(projectName);
+            ((VSProject)project.Object).References.Add(fullyQualifiedAssemblyName);
+        }
+
         public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
         {
             var dte = GetDTE();
@@ -388,7 +394,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var buildOutputWindowPane = outputWindow.OutputWindowPanes.Item("Build");
             buildOutputWindowPane.Clear();
 
-            ExecuteCommand("Build.BuildSolution");
+            ExecuteCommand(WellKnownCommandNames.Build_BuildSolution);
 
             if (waitForBuildToFinish)
             {
@@ -467,7 +473,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var filePath = GetFilePath(projectName, relativeFilePath);
             var fileName = Path.GetFileName(filePath);
 
-            ExecuteCommand("File.OpenFile", filePath);
+            ExecuteCommand(WellKnownCommandNames.File_OpenFile, filePath);
 
             var dte = GetDTE();
             while (!dte.ActiveWindow.Caption.Contains(fileName))
@@ -540,22 +546,30 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void RestoreNuGetPackages()
-            => ExecuteCommand("ProjectAndSolutionContextMenus.Solution.RestoreNuGetPackages");
+            => ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages);
 
         public void SaveAll()
-            => ExecuteCommand("File.SaveAll");
+            => ExecuteCommand(WellKnownCommandNames.File_SaveAll);
 
         public void ShowErrorList()
-            => ExecuteCommand("View.ErrorList");
+            => ExecuteCommand(WellKnownCommandNames.View_ErrorList);
 
         public void ShowOutputWindow()
-            => ExecuteCommand("View.Output");
+            => ExecuteCommand(WellKnownCommandNames.View_Output);
 
         public void UnloadProject(string projectName)
         {
             var project = _solution.Projects.Item(projectName);
             _solution.Remove(project);
         }
+
+        public void SelectItem(string itemName)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+            var item = solutionExplorer.GetItem(itemName);
+            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+         }
 
         public void WaitForNoErrorsInErrorList()
         {

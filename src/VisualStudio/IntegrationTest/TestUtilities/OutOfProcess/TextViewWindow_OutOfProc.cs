@@ -27,10 +27,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void PlaceCaret(
             string marker,
-            int charsOffset,
-            int occurrence,
-            bool extendSelection,
-            bool selectBlock)
+            int charsOffset = 0,
+            int occurrence = 0,
+            bool extendSelection = false,
+            bool selectBlock = false)
             => _textViewWindowInProc.PlaceCaret(
                 marker,
                 charsOffset,

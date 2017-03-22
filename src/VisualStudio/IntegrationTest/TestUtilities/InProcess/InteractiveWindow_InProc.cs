@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -17,8 +16,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// </remarks>
     internal abstract class InteractiveWindow_InProc : TextViewWindow_InProc
     {
-        private const string ResetCommand = "InteractiveConsole.Reset";
-        private const string CleanScreenCommand = "InteractiveConsole.ClearScreen";
         private const string NewLineFollowedByReplSubmissionText = "\n. ";
         private const string ReplSubmissionText = ". ";
         private const string ReplPromptText = "> ";
@@ -137,7 +134,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void Reset(bool waitForPrompt = true)
         {
-            ExecuteCommand(ResetCommand);
+            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_Reset);
 
             if (waitForPrompt)
             {
@@ -195,17 +192,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ClearScreen()
         {
-            ExecuteCommand(CleanScreenCommand);
+            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_CleanScreen);
         }
 
         public void InsertCode(string text)
         {
             _interactiveWindow.InsertCode(text);
-        }
-
-        public IEnumerable<ITextSnapshotLine> GetErrorListErrorCount()
-        {
-            return _interactiveWindow.OutputBuffer.CurrentSnapshot.Lines;
         }
 
         private async Task WaitForReplOutputAsync(string outputText)

@@ -37,6 +37,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void AddProjectReference(string fromProjectName, string toProjectName)
             => _inProc.AddProjectReference(fromProjectName, toProjectName);
 
+        public void AddReference(string projectName, string fullyQualifiedAssemblyName)
+            => _inProc.AddReference(projectName, fullyQualifiedAssemblyName);
+
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
 
@@ -93,5 +96,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public string[] GetAssemblyReferences(string projectName)
             => _inProc.GetAssemblyReferences(projectName);
+
+        public void SelectItem(string itemName)
+            => _inProc.SelectItem(itemName);
     }
 }

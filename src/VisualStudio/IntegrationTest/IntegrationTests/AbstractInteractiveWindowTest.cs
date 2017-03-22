@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Xunit;
@@ -12,8 +9,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractInteractiveWindowTest : AbstractIntegrationTest
     {
-        private const string Edit_SelectionCancelCommand = "Edit.SelectionCancel";
-
         private static readonly char[] LineSeparators = { '\r', '\n' };
 
         protected readonly CSharpInteractiveWindow_OutOfProc InteractiveWindow;
@@ -36,10 +31,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void ClearReplText()
         {
             // Dismiss the pop-up (if any)
-            VisualStudio.Instance.ExecuteCommand(Edit_SelectionCancelCommand);
+            VisualStudio.Instance.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
 
             // Clear the line
-            VisualStudio.Instance.ExecuteCommand(Edit_SelectionCancelCommand);
+            VisualStudio.Instance.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_CleanScreen);
         }
 
         protected void DisableSuggestionMode()
@@ -82,17 +77,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             Assert.Equal(expectedReplInput, lastReplInput);
         }
 
-        protected void VerifyErrorCount(int expectedCount)
-        {
-            var errorTags = InteractiveWindow.GetErrorListErrorCount();
-            Assert.Equal(expectedCount, errorTags);
-        }
-
-        protected void VerifyCaretPosition(int expectedCaretPosition)
-        {
-            var position = InteractiveWindow.GetCaretPosition();
-            Assert.Equal(expectedCaretPosition, position);
-        }
         protected void VerifyLastReplOutputContains(string expectedReplOutput)
         {
             var lastReplOutput = InteractiveWindow.GetLastReplOutput();
@@ -134,15 +118,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
-        protected void VerifyCompletionItemExists(params string[] expectedItems)
-        {
-            var completionItems = InteractiveWindow.GetCompletionItems();
-            foreach (var expectedItem in expectedItems)
-            {
-                Assert.Contains(expectedItem, completionItems);
-            }
-        }
-
         protected void VerifyCompletionUnexpectedItemDoesNotExist(params string[] unexpectedItems)
         {
             var completionItems = InteractiveWindow.GetCompletionItems();
@@ -151,27 +126,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 Assert.DoesNotContain(unexpectedItem, completionItems);
             }
         }
-
-        public void VerifyCurrentTokenType(string tokenType)
-        {
-            WaitForAsyncOperations(
-                FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService,
-                FeatureAttribute.Classification);
-            var actualTokenTypes = InteractiveWindow.GetCurrentClassifications();
-            Assert.Equal(actualTokenTypes.Length, 1);
-            Assert.Contains(tokenType, actualTokenTypes[0]);
-            Assert.NotEqual("text", tokenType);
-        }
-
-        protected void InvokeCompletionList()
-        {
-            ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
-            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-        }
-
-        protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
-            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";", featuresToWaitFor));
 
         protected void WaitForReplOutput(string outputText)
             => InteractiveWindow.WaitForReplOutput(outputText);
