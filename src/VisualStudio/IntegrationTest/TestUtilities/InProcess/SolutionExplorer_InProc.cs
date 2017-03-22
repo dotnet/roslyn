@@ -61,19 +61,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void AddMetadataReference(string assemblyName, string projectName)
         {
-            var referenceAssemblyFullPath = System.Reflection.Assembly.Load(assemblyName).Location;
             var project = GetProject(projectName);
-            ((VSProject)project.Object).References.Add(referenceAssemblyFullPath);
+            var vsproject = ((VSProject)project.Object);
+            vsproject.References.Add(assemblyName);
         }
 
         public void RemoveMetadataReference(string assemblyName, string projectName)
         {
             var project = GetProject(projectName);
-            if (project.Object is VSProject vsproject)
-            {
-                var reference = vsproject.References.Cast<Reference>().Where(x => x.Name == assemblyName).First();
-                reference.Remove();
-            }
+            var reference = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.Name == assemblyName).First();
+            reference.Remove();
         }
 
         public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
@@ -121,6 +118,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 .Where(x => x.SourceProject == null)
                 .Select(x => x.Name + "," + x.Version + "," + x.PublicKeyToken).ToArray();
             return references;
+        }
+
+        public void EditProjectFile(string projectName)
+        {
+            var solutionExplorer = ((DTE2)GetDTE()).ToolWindows.SolutionExplorer;
+            solutionExplorer.Parent.Activate();
+            var rootHierarchyItems = solutionExplorer.UIHierarchyItems.Cast<EnvDTE.UIHierarchyItem>();
+            var solution = rootHierarchyItems.First();
+            var solutionHierarchyItems = solution.UIHierarchyItems.Cast<EnvDTE.UIHierarchyItem>();
+            var project = solutionHierarchyItems.Where(x => x.Name == projectName).FirstOrDefault();
+            if (project == null)
+            {
+                throw new ArgumentException($"Could not find project file, current hierarchy items '{string.Join(", ", rootHierarchyItems.Select(x => x.Name))}'");
+            }
+            project.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+            ExecuteCommand("Project.EditProjectFile");
         }
 
         public string[] GetProjectReferences(string projectName)
@@ -188,11 +201,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             ((VSProject)project.Object).References.AddProject(projectToReference);
         }
 
-        public void RemoveProjectReference(string projectReferenceName, string projectName)
+        public void RemoveProjectReference(string projectName, string projectReferenceName)
         {
             var project = GetProject(projectName);
             var vsproject = (VSProject)project.Object;
-            var reference = vsproject.References.Find(projectReferenceName);
+            var references = vsproject.References.Cast<Reference>();
+            var reference = references.Where(x => x.ContainingProject != null && x.Name == projectReferenceName).FirstOrDefault();
+            if (reference == null)
+            {
+                var projectReference = references.Where(x => x.ContainingProject != null).Select(x => x.Name);
+                throw new ArgumentException($"reference to project {projectReferenceName} not found, references: '{string.Join(", ", projectReference)}'");
+            }
             reference.Remove();
         }
 
@@ -204,7 +223,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 CloseSolution(saveExistingSolutionIfExists);
             }
-
             dte.Solution.Open(path);
 
             _solution = (EnvDTE80.Solution2)dte.Solution;
@@ -267,7 +285,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 // cleanup any folders after the solution is closed.
                 foreach (EnvDTE.Project project in dte.Solution.Projects)
                 {
-                    directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
+                    if (!string.IsNullOrEmpty(project.FullName))
+                    {
+                        directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
+                    }
                 }
 
                 // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.

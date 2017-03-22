@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -27,7 +29,7 @@ Class Program
     End Sub
 End Class");
             InvokeQuickInfo();
-            VerifyQuickInfo("Class\u200e System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.");
+            Assert.Equal("Class\u200e System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", Editor.GetQuickInfo());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -43,8 +45,8 @@ Class العربية123
     End Sub
 End Class");
             InvokeQuickInfo();
-            VerifyQuickInfo(@"Class" + '\u200e' + @" TestProj.العربية123
-This is an XML doc comment defined in code.");
+            Assert.Equal(@"Class" + '\u200e' + @" TestProj.العربية123
+This is an XML doc comment defined in code.", Editor.GetQuickInfo());
         }
     }
 }

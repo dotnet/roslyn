@@ -42,8 +42,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void AddProjectReference(string fromProjectName, string toProjectName)
             => _inProc.AddProjectReference(fromProjectName, toProjectName);
 
-        public void RemoveProjectReference(string projectReferenceName, string projectName)
-            => _inProc.RemoveProjectReference(projectReferenceName, projectName);
+        public void RemoveProjectReference(string projectName, string projectReferenceName)
+            => _inProc.RemoveProjectReference(projectName, projectReferenceName);
 
         public void AddMetadataReference(string assemblyName, string projectName)
             => _inProc.AddMetadataReference(assemblyName, projectName);
@@ -107,5 +107,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public string[] GetAssemblyReferences(string projectName)
             => _inProc.GetAssemblyReferences(projectName);
+
+        public void EditProjectFile(string projectName)
+            => _inProc.EditProjectFile(projectName);
     }
 }

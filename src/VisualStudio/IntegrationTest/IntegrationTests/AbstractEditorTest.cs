@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -56,6 +57,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected abstract string LanguageName { get; }
 
+        protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
+            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";", featuresToWaitFor));
+
         protected void ClearEditor()
             => SetUpEditor("$$");
 
@@ -89,17 +93,32 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void AddFile(string fileName, string projectName = null, string contents = null, bool open = false)
             => VisualStudio.Instance.SolutionExplorer.AddFile(projectName ?? ProjectName, fileName, contents, open);
 
-        protected void AddMetadataReference(string referenceName, string projectName = null)
-            => VisualStudio.Instance.SolutionExplorer.AddMetadataReference(referenceName, projectName ?? ProjectName);
+        protected void AddMetadataReference(ProjectUtils.AssemblyReference referenceName, ProjectUtils.Project projectName = null)
+        {
+            projectName = projectName ?? new ProjectUtils.Project(ProjectName);
+            VisualStudio.Instance.SolutionExplorer.AddMetadataReference(referenceName.Name, projectName.Name);
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
 
-        protected void RemoveMetadataReference(string referenceName, string projectName = null)
-            => VisualStudio.Instance.SolutionExplorer.RemoveMetadataReference(referenceName, projectName ?? ProjectName);
+        protected void RemoveMetadataReference(ProjectUtils.AssemblyReference referenceName, ProjectUtils.Project projectName = null)
+        {
+            projectName = projectName ?? new ProjectUtils.Project(ProjectName);
+            VisualStudio.Instance.SolutionExplorer.RemoveMetadataReference(referenceName.Name, projectName.Name);
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
 
-        protected void AddProjectReference(string fromProjectName, string toProjectName)
-            => VisualStudio.Instance.SolutionExplorer.AddProjectReference(fromProjectName, toProjectName);
+        protected void AddProjectReference(ProjectUtils.Project fromProjectName, ProjectUtils.ProjectReference toProjectName)
+        {
+            VisualStudio.Instance.SolutionExplorer.AddProjectReference(fromProjectName.Name, toProjectName.Name);
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
 
-        protected void RemoveProjectReference(string projectReferenceName, string projectName = null)
-            => VisualStudio.Instance.SolutionExplorer.RemoveProjectReference(projectReferenceName, projectName ?? ProjectName);
+        protected void RemoveProjectReference(ProjectUtils.ProjectReference projectReferenceName, ProjectUtils.Project projectName = null)
+        {
+            projectName = projectName ?? new ProjectUtils.Project(ProjectName);
+            VisualStudio.Instance.SolutionExplorer.RemoveProjectReference(projectName.Name, projectReferenceName.Name);
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
 
         protected void OpenFile(string fileName, string projectName = null)
             => VisualStudio.Instance.SolutionExplorer.OpenFile(projectName ?? ProjectName, fileName);
@@ -112,6 +131,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void SaveFile(string fileName, string projectName = null)
             => VisualStudio.Instance.SolutionExplorer.SaveFile(projectName ?? ProjectName, fileName);
+
+        protected void SaveAll()
+            => VisualStudio.Instance.SolutionExplorer.SaveAll();
 
         protected void AddWinFormButton(string buttonName)
             => VisualStudio.Instance.Editor.AddWinFormButton(buttonName);
@@ -153,38 +175,34 @@ namespace Roslyn.VisualStudio.IntegrationTests
             => Editor.SendKeys(keys);
 
         protected void DisableSuggestionMode()
-        {
-            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
-        }
+            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
 
         protected void EnableSuggestionMode()
-        {
-            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
-        }
+            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
 
         protected void EnableQuickInfo()
         {
-            VisualStudioWorkspaceOutOfProc.EnableQuickInfo(true);
+            VisualStudioWorkspaceOutOfProc.SetQuickInfo(true);
             WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
         protected void DisableQuickInfo()
         {
-            VisualStudioWorkspaceOutOfProc.EnableQuickInfo(false);
+            VisualStudioWorkspaceOutOfProc.SetQuickInfo(false);
             WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
-        protected void EnableOptionInfer()
+        protected void EnableOptionInfer(string projectName = null)
         {
-            VisualStudioWorkspaceOutOfProc.SetOptionInfer(true);
+            projectName = projectName ?? ProjectName;
+            VisualStudioWorkspaceOutOfProc.SetOptionInfer(projectName, true);
             WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
-        protected void DisableOptionInfer()
+        protected void DisableOptionInfer(string projectName = null)
         {
-            VisualStudioWorkspaceOutOfProc.SetOptionInfer(false);
+            projectName = projectName ?? ProjectName;
+            VisualStudioWorkspaceOutOfProc.SetOptionInfer(projectName, false);
             WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
@@ -210,12 +228,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
             WaitForAsyncOperations(FeatureAttribute.QuickInfo);
-        }
-
-        protected void VerifyQuickInfo(string expectedQuickInfo)
-        {
-            var actualQuickInfo = Editor.GetQuickInfo();
-            Assert.Equal(expectedQuickInfo, actualQuickInfo);
         }
 
         protected void InvokeCodeActionList()
@@ -256,6 +268,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 feature: "ServiceFeaturesOnOff",
                 language: LanguageNames.VisualBasic,
                 value: "false");
+        }
+
+        protected void EditProjectFile(string projectName)
+        {
+            VisualStudio.Instance.SolutionExplorer.EditProjectFile(projectName);
         }
 
         private void VerifyCurrentLineTextAndAssertCaretPosition(string expectedText, bool trimWhitespace)
