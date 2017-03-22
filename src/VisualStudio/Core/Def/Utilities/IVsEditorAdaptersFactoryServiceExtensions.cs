@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
             CancellationToken cancellationToken)
         {
             var document = workspace.CurrentSolution.GetDocument(contextDocumentId);
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var text = document?.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
             var textBuffer = textSnapshot?.TextBuffer;
             return editorAdaptersFactoryService.TryGetUndoManager(textBuffer);
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
         {
             if (subjectBuffer != null)
             {
-                var adapter = editorAdaptersFactoryService.GetBufferAdapter(subjectBuffer);
+                var adapter = editorAdaptersFactoryService?.GetBufferAdapter(subjectBuffer);
                 if (adapter != null)
                 {
                     if (ErrorHandler.Succeeded(adapter.GetUndoManager(out var manager)))
