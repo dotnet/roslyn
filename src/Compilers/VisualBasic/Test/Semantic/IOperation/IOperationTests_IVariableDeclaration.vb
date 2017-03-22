@@ -121,7 +121,7 @@ IVariableDeclarationStatement (3 variables) (OperationKind.VariableDeclarationSt
 
 
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/17913"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/17917"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub UsingStatementDeclarationAsNew()
             Dim source = <![CDATA[
 Module Program
@@ -149,7 +149,7 @@ IUsingStatement (OperationKind.UsingStatement)
             VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/17913"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/17917"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub UsingStatementDeclaration()
             Dim source = <![CDATA[
 Module Program
