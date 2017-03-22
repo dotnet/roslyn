@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var emitResult = compilation.Emit(
                 peStream: peStream,
-                metadataPeStream: null,
+                metadataPEStream: null,
                 pdbStream: pdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: null,

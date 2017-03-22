@@ -441,7 +441,7 @@ End Class"
                     "System.Diagnostics.DebuggableAttribute"})
 
             Dim peImage = comp.EmitToArray(emitRefOnly)
-            MetadataReaderUtils.VerifyMethodBodies(peImage, expectEmptyOrThrowNull:=True)
+            MetadataReaderUtils.AssertEmptyOrThrowNull(peImage)
         End Sub
 
         <Fact>
@@ -464,7 +464,7 @@ End Class"
 
             Using output As New MemoryStream()
                 Using metadataPeOutput As New MemoryStream()
-                    Assert.Throws(Of ArgumentException)(Function() comp.Emit(output, metadataPeStream:=metadataPeOutput,
+                    Assert.Throws(Of ArgumentException)(Function() comp.Emit(output, metadataPEStream:=metadataPeOutput,
                                         options:=EmitOptions.Default.WithEmitMetadataOnly(True)))
                 End Using
             End Using
@@ -484,19 +484,19 @@ End Class "
             Using output As New MemoryStream()
                 Using pdbOutput As New MemoryStream()
                     Using metadataOutput As New MemoryStream()
-                        Dim result = comp.Emit(output, pdbOutput, metadataPeStream:=metadataOutput)
+                        Dim result = comp.Emit(output, pdbOutput, metadataPEStream:=metadataOutput)
                         Assert.True(result.Success)
                         Assert.NotEqual(0, output.Position)
                         Assert.NotEqual(0, pdbOutput.Position)
                         Assert.NotEqual(0, metadataOutput.Position)
-                        MetadataReaderUtils.VerifyMethodBodies(ImmutableArray.CreateRange(output.GetBuffer()), expectEmptyOrThrowNull:=False)
-                        MetadataReaderUtils.VerifyMethodBodies(ImmutableArray.CreateRange(metadataOutput.GetBuffer()), expectEmptyOrThrowNull:=True)
+                        MetadataReaderUtils.AssertNotThrowNull(ImmutableArray.CreateRange(output.GetBuffer()))
+                        MetadataReaderUtils.AssertEmptyOrThrowNull(ImmutableArray.CreateRange(metadataOutput.GetBuffer()))
                     End Using
                 End Using
             End Using
 
             Dim peImage = comp.EmitToArray()
-            MetadataReaderUtils.VerifyMethodBodies(peImage, expectEmptyOrThrowNull:=False)
+            MetadataReaderUtils.AssertNotThrowNull(peImage)
         End Sub
 
         <WorkItem(4344, "DevDiv_Projects/Roslyn")>

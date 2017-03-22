@@ -1987,7 +1987,7 @@ namespace Microsoft.CodeAnalysis
                 debugEntryPoint,
                 sourceLinkStream,
                 embeddedTexts,
-                metadataPeStream: null,
+                metadataPEStream: null,
                 cancellationToken: cancellationToken);
         }
 
@@ -1995,7 +1995,7 @@ namespace Microsoft.CodeAnalysis
         /// Emit the IL for the compiled source code into the specified stream.
         /// </summary>
         /// <param name="peStream">Stream to which the compilation will be written.</param>
-        /// <param name="metadataPeStream">Stream to which the metadata-only output will be written.</param>
+        /// <param name="metadataPEStream">Stream to which the metadata-only output will be written.</param>
         /// <param name="pdbStream">Stream to which the compilation's debug info will be written.  Null to forego PDB generation.</param>
         /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
         /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
@@ -2036,7 +2036,7 @@ namespace Microsoft.CodeAnalysis
             IMethodSymbol debugEntryPoint = null,
             Stream sourceLinkStream = null,
             IEnumerable<EmbeddedText> embeddedTexts = null,
-            Stream metadataPeStream = null,
+            Stream metadataPEStream = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (peStream == null)
@@ -2067,16 +2067,22 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (metadataPeStream != null && options?.EmitMetadataOnly == true)
+            if (metadataPEStream != null && options?.EmitMetadataOnly == true)
             {
-                throw new ArgumentException(CodeAnalysisResources.MetadataPeStreamUnexpectedWhenEmittingMetadataOnly, nameof(metadataPeStream));
+                throw new ArgumentException(CodeAnalysisResources.MetadataPeStreamUnexpectedWhenEmittingMetadataOnly, nameof(metadataPEStream));
+            }
+
+            if (options?.DebugInformationFormat == DebugInformationFormat.Embedded &&
+                (metadataPEStream != null || options?.EmitMetadataOnly == true))
+            {
+                throw new ArgumentException(CodeAnalysisResources.EmbeddingPdbUnexpectedWhenEmittingMetadata, nameof(metadataPEStream));
             }
 
             if (this.Options.OutputKind == OutputKind.NetModule)
             {
-                if (metadataPeStream != null)
+                if (metadataPEStream != null)
                 {
-                    throw new ArgumentException(CodeAnalysisResources.CannotTargetNetModuleWhenEmittingRefAssembly, nameof(metadataPeStream));
+                    throw new ArgumentException(CodeAnalysisResources.CannotTargetNetModuleWhenEmittingRefAssembly, nameof(metadataPEStream));
                 }
                 else if (options?.EmitMetadataOnly == true)
                 {
@@ -2119,7 +2125,7 @@ namespace Microsoft.CodeAnalysis
 
             return Emit(
                 peStream,
-                metadataPeStream,
+                metadataPEStream,
                 pdbStream,
                 xmlDocumentationStream,
                 win32Resources,
@@ -2138,7 +2144,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal EmitResult Emit(
             Stream peStream,
-            Stream metadataPeStream,
+            Stream metadataPEStream,
             Stream pdbStream,
             Stream xmlDocumentationStream,
             Stream win32Resources,
@@ -2206,7 +2212,7 @@ namespace Microsoft.CodeAnalysis
                     success = SerializeToPeStream(
                         moduleBeingBuilt,
                         new SimpleEmitStreamProvider(peStream),
-                        (metadataPeStream != null) ? new SimpleEmitStreamProvider(metadataPeStream) : null,
+                        (metadataPEStream != null) ? new SimpleEmitStreamProvider(metadataPEStream) : null,
                         (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
                         testData?.SymWriterFactory,
                         diagnostics,
@@ -2373,7 +2379,7 @@ namespace Microsoft.CodeAnalysis
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,
             EmitStreamProvider peStreamProvider,
-            EmitStreamProvider metadataPeStreamProvider,
+            EmitStreamProvider metadataPEStreamProvider,
             EmitStreamProvider pdbStreamProvider,
             Func<object> testSymWriterFactory,
             DiagnosticBag diagnostics,
@@ -2487,7 +2493,7 @@ namespace Microsoft.CodeAnalysis
                 };
 
                 Func<Stream> getRefPeStream;
-                if (metadataPeStreamProvider != null)
+                if (metadataPEStreamProvider != null)
                 {
                     getRefPeStream = () =>
                     {
@@ -2496,7 +2502,7 @@ namespace Microsoft.CodeAnalysis
                             return null;
                         }
 
-                        refPeStream = metadataPeStreamProvider.GetOrCreateStream(metadataDiagnostics);
+                        refPeStream = metadataPEStreamProvider.GetOrCreateStream(metadataDiagnostics);
                         Debug.Assert(refPeStream != null || metadataDiagnostics.HasAnyErrors());
                         return refPeStream;
                     };
@@ -2508,7 +2514,7 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
-                    if (Cci.PeWriter.WritePeToStream(
+                    if (SerializePeToStream(
                         new EmitContext(moduleBeingBuilt, null, metadataDiagnostics),
                         this.MessageProvider,
                         getPeStream,
@@ -2586,6 +2592,55 @@ namespace Microsoft.CodeAnalysis
                 signingInputStream?.Dispose();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
+            }
+
+            return true;
+        }
+
+        internal static bool SerializePeToStream(
+             EmitContext context,
+             CommonMessageProvider messageProvider,
+             Func<Stream> getPeStream,
+             Func<Stream> getMetadataPeStreamOpt,
+             Func<Stream> getPortablePdbStreamOpt,
+             Cci.PdbWriter nativePdbWriterOpt,
+             string pdbPathOpt,
+             bool metadataOnly,
+             bool isDeterministic,
+             CancellationToken cancellationToken)
+        {
+            if (!Cci.PeWriter.WritePeToStream(
+                context,
+                messageProvider,
+                getPeStream,
+                getPortablePdbStreamOpt,
+                nativePdbWriterOpt,
+                pdbPathOpt,
+                metadataOnly,
+                isDeterministic,
+                cancellationToken))
+            {
+                return false;
+            }
+
+            // produce the secondary output (ref assembly) if needed
+            if (getMetadataPeStreamOpt != null)
+            {
+                Debug.Assert(!metadataOnly);
+
+                if (!Cci.PeWriter.WritePeToStream(
+                    context,
+                    messageProvider,
+                    getMetadataPeStreamOpt,
+                    getPortablePdbStreamOpt: null,
+                    nativePdbWriterOpt: null,
+                    pdbPathOpt: null,
+                    metadataOnly: true,
+                    isDeterministic: isDeterministic,
+                    cancellationToken: cancellationToken))
+                {
+                    return false;
+                }
             }
 
             return true;
