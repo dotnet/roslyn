@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
-            var ienumerableType = context.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable") as INamedTypeSymbol;
+            var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
             if (ienumerableType != null)
             {
                 context.RegisterSyntaxNodeAction(
@@ -94,6 +95,14 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 semanticModel, GetSyntaxFactsService(), objectCreationExpression, cancellationToken);
             var matches = analyzer.Analyze();
             if (matches == null || matches.Value.Length == 0)
+            {
+                return;
+            }
+
+            var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
+            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
+            var syntaxFacts = GetSyntaxFactsService();
+            if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             {
                 return;
             }
