@@ -3,7 +3,6 @@
     "EnvDTE": "8.0.0",
     "EnvDTE80": "8.0.0",
     "ManagedEsent": "1.9.4",
-    "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
     "Microsoft.VisualStudio.Telemetry": "15.0.722-masterBFDFE2B0",
     "Microsoft.VisualStudio.RemoteControl": "14.0.249-master2E2DC10C",
     "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
