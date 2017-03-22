@@ -33,6 +33,8 @@
     <Compile Include="CSharp\CSharpInteractive.cs" />
     <Compile Include="AbstractEditorTest.cs" />
     <Compile Include="CSharp\CSharpInteractiveCommands.cs" />
+    <Compile Include="CSharp\CSharpReplClassification.cs" />
+    <Compile Include="CSharp\CSharpReplIntellisense.cs" />
     <Compile Include="CSharp\CSharpQuickInfo.cs" />
     <Compile Include="CSharp\CSharpSignatureHelp.cs" />
     <Compile Include="CSharp\CSharpWinForms.cs" />
