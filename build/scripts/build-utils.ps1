@@ -27,11 +27,45 @@ function Ensure-NuGet() {
     return $nuget
 }
 
+# Ensure a basic tool used for building our Repo is installed and 
+# return the path to it.
+function Ensure-BasicTool([string]$name, [string]$version) {
+    $p = Join-Path (Get-PackagesDir) "$($name).$($version)"
+    if (-not (Test-Path $p)) {
+        $nuget = Ensure-NuGet
+        Exec { & $nuget install $name -OutputDirectory (Get-PackagesDir) -Version $version }
+    }
+    
+    return $p
+}
+
 # Ensure that MSBuild is installed and return the path to the
 # executable to use.
-function Ensure-MSBuild() {
-    $p = Get-MSBuildDir
-    $p = Join-Path $p "msbuild.exe"
+function Ensure-MSBuild([switch]$xcopy = $false) {
+    $both = Get-MSBuildKindAndDir -xcopy:$xcopy
+    $msbuildDir = $both[1]
+    switch ($both[0]) {
+        "xcopy" {
+            $p = Get-PackageDir "RoslynTools.ReferenceAssemblies"
+            ${env:TargetFrameworkRootPath} = Join-Path $p "tools\Framework"
+            break;
+        }
+        "vscmd" {
+            # Nothing to do here as the VS Dev CMD should set all appropriate environment
+            # variables.
+            break;
+        }
+        "vsinstall" {
+            # Nothing to do here as the VS Dev CMD should set all appropriate environment
+            # variables.
+            break;
+        }
+        default {
+            throw "Unknown MSBuild installation type $($both[0])"
+        }
+    }
+
+    $p = Join-Path $msbuildDir "msbuild.exe"
     return $p
 }
 
@@ -41,6 +75,7 @@ function Create-Directory([string]$dir) {
 
 # Return the version of the NuGet package as used in this repo
 function Get-PackageVersion([string]$name) {
+    $name = $name.Replace(".", "")
     $deps = Join-Path $repoDir "build\Targets\Dependencies.props"
     $nodeName = "$($name)Version"
     $x = [xml](Get-Content -raw $deps)
@@ -54,7 +89,7 @@ function Get-PackageVersion([string]$name) {
 
 # Locate the directory where our NuGet packages will be deployed.  Needs to be kept in sync
 # with the logic in Version.props
-function Get-PackagesDir {
+function Get-PackagesDir() {
     $d = $null
     if ($env:NUGET_PACKAGES -ne $null) {
         $d = $env:NUGET_PACKAGES
@@ -67,15 +102,35 @@ function Get-PackagesDir {
     return $d
 }
 
+# Locate the directory of a specific NuGet package which is restored via our main 
+# toolset values.
+function Get-PackageDir([string]$name, [string]$version = "") {
+    if ($version -eq "") {
+        $version = Get-PackageVersion $name
+    }
+
+    $p = Get-PackagesDir
+    $p = Join-Path $p $name
+    $p = Join-Path $p $version
+    return $p
+}
+
 # The intent of this script is to locate and return the path to the MSBuild directory that
 # we should use for bulid operations.  The preference order for MSBuild to use is as 
 # follows
 #
 #   1. MSBuild from an active VS command prompt
 #   2. MSBuild from a machine wide VS install
+#   3. MSBuild from the xcopy toolset 
 #
 # This function will return two values: the kind of MSBuild chosen and the MSBuild directory.
-function Get-MSBuildKindAndDir() {
+function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
+
+    if ($xcopy) { 
+        Write-Output "xcopy"
+        Write-Output (Get-MSBuildDirXCopy)
+        return
+    }
 
     # MSBuild from an active VS command prompt.  
     if (${env:VSINSTALLDIR} -ne $null) {
@@ -102,24 +157,29 @@ function Get-MSBuildKindAndDir() {
         # machine.
     }
 
-    throw "Unable to find MSBuild"
+    Write-Output "xcopy"
+    Write-Output (Get-MSBuildDirXCopy)
+    return
 }
 
-function Get-MSBuildDir() {
-    $both = Get-MSBuildKindAndDir
+# Locate the xcopy version of MSBuild
+function Get-MSBuildDirXCopy() {
+    $version = "0.1.2"
+    $name = "RoslynTools.MSBuild"
+    $p = Ensure-BasicTool $name $version
+    $p = Join-Path $p "tools\msbuild"
+    return $p
+}
+
+function Get-MSBuildDir([switch]$xcopy = $false) {
+    $both = Get-MSBuildKindAndDir -xcopy:$xcopy
     return $both[1]
 }
 
 # Get the directory of the first Visual Studio which meets our minimal 
 # requirements for the Roslyn repo
 function Get-VisualStudioDir() {
-    $vswhereVersion = "1.0.50"
-    $vswhere = Join-Path (Get-PackagesDir) "vswhere\$($vswhereVersion)\tools\vswhere.exe"
-    if (-not (Test-path $vswhere)) {
-        $nuget = Ensure-NuGet
-        Exec { & $nuget install "vswhere" -OutputDirectory (Get-PackagesDir) -Version $vswhereVersion }
-    }
-
+    $vswhere = Join-Path (Ensure-BasicTool "vswhere" "1.0.50") "tools\vswhere.exe"
     $output = & $vswhere -requires Microsoft.Component.MSBuild -format json | Out-String
     if (-not $?) {
         throw "Could not locate a valid Visual Studio"

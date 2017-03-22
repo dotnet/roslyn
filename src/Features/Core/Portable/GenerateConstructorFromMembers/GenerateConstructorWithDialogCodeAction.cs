@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -22,6 +21,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             private readonly GenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly TextSpan _textSpan;
             private readonly ImmutableArray<ISymbol> _viableMembers;
+            private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
 
             public override string Title => FeaturesResources.Generate_constructor;
 
@@ -29,21 +29,25 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 GenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document, TextSpan textSpan,
                 INamedTypeSymbol containingType,
-                ImmutableArray<ISymbol> viableMembers)
+                ImmutableArray<ISymbol> viableMembers,
+                ImmutableArray<PickMembersOption> pickMembersOptions)
             {
                 _service = service;
                 _document = document;
                 _textSpan = textSpan;
                 _containingType = containingType;
                 _viableMembers = viableMembers;
+                _pickMembersOptions = pickMembersOptions;
             }
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 var workspace = _document.Project.Solution.Workspace;
                 var service = _service._pickMembersService_forTesting ?? workspace.Services.GetService<IPickMembersService>();
+
                 return service.PickMembers(
-                    FeaturesResources.Pick_members_to_be_used_as_constructor_parameters, _viableMembers);
+                    FeaturesResources.Pick_members_to_be_used_as_constructor_parameters,
+                    _viableMembers, _pickMembersOptions);
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
@@ -55,6 +59,20 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     return ImmutableArray<CodeActionOperation>.Empty;
                 }
 
+                var addNullChecksOption = result.Options.FirstOrDefault(o => o.Id == AddNullChecksId);
+                if (addNullChecksOption != null)
+                {
+                    // If we presented the 'Add null check' option, then persist whatever value
+                    // the user chose.  That way we'll keep that as the default for the next time
+                    // the user opens the dialog.
+                    var workspace = _document.Project.Solution.Workspace;
+                    workspace.Options = workspace.Options.WithChangedOption(
+                        GenerateConstructorFromMembersOptions.AddNullChecks,
+                        _document.Project.Language,
+                        addNullChecksOption.Value);
+                }
+
+                var addNullChecks = (addNullChecksOption?.Value).GetValueOrDefault();
                 var state = State.TryGenerate(
                     _service, _document, _textSpan, _containingType, 
                     result.Members, cancellationToken);
@@ -66,7 +84,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 {
                     if (state.MatchingConstructor.IsImplicitlyDeclared)
                     {
-                        var codeAction = new FieldDelegatingCodeAction(_service, _document, state);
+                        var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks);
                         return await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                     }
 
@@ -80,8 +98,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 else
                 {
                     var codeAction = state.DelegatedConstructor != null
-                        ? new ConstructorDelegatingCodeAction(_service, _document, state)
-                        : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state);
+                        ? new ConstructorDelegatingCodeAction(_service, _document, state, addNullChecks)
+                        : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state, addNullChecks);
 
                     return await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                 }

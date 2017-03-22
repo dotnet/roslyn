@@ -119,6 +119,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         TDeclarationNode AddStatements<TDeclarationNode>(TDeclarationNode destination, IEnumerable<SyntaxNode> statements, CodeGenerationOptions options = null, CancellationToken cancellationToken = default(CancellationToken)) where TDeclarationNode : SyntaxNode;
 
+        Task<Document> AddImportsAsync(Document document, CodeGenerationOptions options, CancellationToken cancellationToken);
+
         /// <summary>
         /// Adds a field with the provided signature into destination.
         /// </summary>
