@@ -7,16 +7,13 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicBuild
+    public class BasicBuild : AbstractIntegrationTest
     {
-        private readonly VisualStudioInstanceContext _visualStudio;
-
         public BasicBuild(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
-            _visualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
-
-            _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(BasicBuild));
-            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
+            VisualStudio.Instance.SolutionExplorer.CreateSolution(nameof(BasicBuild));
+            VisualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
         [Fact]
@@ -30,7 +27,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
 End Module";
 
-            _visualStudio.Instance.Editor.SetText(editorText);
+            VisualStudio.Instance.Editor.SetText(editorText);
 
             // TODO: Validate build works as expected
         }

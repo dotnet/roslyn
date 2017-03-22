@@ -8,21 +8,13 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpBuild : IDisposable
+    public class CSharpBuild : AbstractIntegrationTest
     {
-        private readonly VisualStudioInstanceContext _visualStudio;
-
         public CSharpBuild(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
-            _visualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
-
-            _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
-            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);
-        }
-
-        public void Dispose()
-        {
-            _visualStudio.Dispose();
+            VisualStudio.Instance.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
+            VisualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);
         }
 
         [Fact]
@@ -38,7 +30,7 @@ class Program
     }
 }";
 
-            _visualStudio.Instance.Editor.SetText(editorText);
+            VisualStudio.Instance.Editor.SetText(editorText);
 
             // TODO: Validate build works as expected
         }
