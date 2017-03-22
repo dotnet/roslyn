@@ -12,12 +12,14 @@ namespace Microsoft.CodeAnalysis.Navigation
             return false;
         }
 
-        public bool TrySymbolNavigationNotify(ISymbol symbol, Solution solution)
+        public bool TrySymbolNavigationNotify(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             return false;
         }
 
-        public bool WouldNavigateToSymbol(ISymbol symbol, Solution solution, out string filePath, out int lineNumber, out int charOffset)
+        public bool WouldNavigateToSymbol(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken,
+            out string filePath, out int lineNumber, out int charOffset)
         {
             filePath = null;
             lineNumber = 0;

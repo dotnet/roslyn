@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         public static async Task<RazorLangaugeServiceClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
         {
             var clientFactory = workspace.Services.GetRequiredService<IRemoteHostClientService>();
-            var client = await clientFactory.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await clientFactory.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             return client == null ? null : new RazorLangaugeServiceClient(client);
         }
     }

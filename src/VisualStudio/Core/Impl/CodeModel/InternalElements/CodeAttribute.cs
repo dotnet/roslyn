@@ -138,9 +138,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             {
                 name = null;
             }
-            else if (nameObj is string)
+            else if (nameObj is string s)
             {
-                name = (string)nameObj;
+                name = s;
             }
             else
             {

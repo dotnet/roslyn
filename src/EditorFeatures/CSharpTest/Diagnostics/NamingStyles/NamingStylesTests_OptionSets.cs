@@ -18,6 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         private IDictionary<OptionKey, object> MethodNamesArePascalCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), MethodNamesArePascalCaseOption());
 
+        private IDictionary<OptionKey, object> ParameterNamesAreCamelCase =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), ParameterNamesAreCamelCaseOption());
+
+		private IDictionary<OptionKey, object> PropertyNamesArePascalCase =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), PropertyNamesArePascalCaseOption());
+
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
             var options = new Dictionary<OptionKey, object>
@@ -80,6 +86,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 NamingStyleID = namingStyle.ID,
                 EnforcementLevel = DiagnosticSeverity.Error
             };
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+
+            return info;
+        }
+
+        private NamingStylePreferences ParameterNamesAreCamelCaseOption()
+        {
+            var symbolSpecification = new SymbolSpecification(
+                null,
+                "Name",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                ImmutableArray<Accessibility>.Empty,
+                ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
+
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.CamelCase,
+                name: "Name",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
+
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = DiagnosticSeverity.Error
+            };
+			
+			var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+
+            return info;
+		}
+
+        private NamingStylePreferences PropertyNamesArePascalCaseOption()
+        {
+            var symbolSpecification = new SymbolSpecification(
+                null,
+                "Name",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property)),
+                ImmutableArray<Accessibility>.Empty,
+                ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
+
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.PascalCase,
+                name: "Name",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
+
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = DiagnosticSeverity.Error
+            };
+
             var info = new NamingStylePreferences(
                 ImmutableArray.Create(symbolSpecification),
                 ImmutableArray.Create(namingStyle),

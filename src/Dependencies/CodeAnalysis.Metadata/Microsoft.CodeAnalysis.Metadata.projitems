@@ -11,6 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoConstants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoEncoder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoRecord.cs" />

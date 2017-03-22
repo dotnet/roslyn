@@ -26,10 +26,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        public override void Initialize(AnalysisContext context)
+        public sealed override void Initialize(AnalysisContext context)
         {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.RegisterSyntaxNodeAction(
-                (nodeContext) =>
+                nodeContext =>
                     {
                         if (TryRemoveCastExpression(nodeContext.SemanticModel, nodeContext.Node, out var diagnostic, nodeContext.CancellationToken))
                         {
@@ -49,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
         private bool TryRemoveCastExpression(
             SemanticModel model, SyntaxNode node, out Diagnostic diagnostic, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             diagnostic = default(Diagnostic);
 
             if (!IsUnnecessaryCast(model, node, cancellationToken))
@@ -68,8 +71,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

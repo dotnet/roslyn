@@ -3218,9 +3218,6 @@ parse_member_name:;
                 var builder = _pool.Allocate<AccessorDeclarationSyntax>();
                 try
                 {
-                    bool hasGetOrAdd = false;
-                    bool hasSetOrRemove = false;
-
                     while (true)
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
@@ -3229,7 +3226,7 @@ parse_member_name:;
                         }
                         else if (this.IsPossibleAccessor())
                         {
-                            var acc = this.ParseAccessorDeclaration(isEvent, ref hasGetOrAdd, ref hasSetOrRemove);
+                            var acc = this.ParseAccessorDeclaration(isEvent);
                             builder.Add(acc);
                         }
                         else if (this.SkipBadAccessorListTokens(ref openBrace, builder,
@@ -3502,12 +3499,9 @@ parse_member_name:;
             }
         }
 
-        private AccessorDeclarationSyntax ParseAccessorDeclaration(
-            bool isEvent,
-            ref bool hasGetOrAdd,
-            ref bool hasSetOrRemove)
+        private AccessorDeclarationSyntax ParseAccessorDeclaration(bool isEvent)
         {
-            if (this.IsIncrementalAndFactoryContextMatches && CanReuseAccessorDeclaration(isEvent))
+            if (this.IsIncrementalAndFactoryContextMatches && CanReuseAccessorDeclaration())
             {
                 return (AccessorDeclarationSyntax)this.EatNode();
             }
@@ -3527,114 +3521,91 @@ parse_member_name:;
                     }
                 }
 
-                bool validAccName;
-                SyntaxToken accessorName;
-                SyntaxKind accessorKind;
+                var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
+                    isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
+                var accessorKind = GetAccessorKind(accessorName);
 
-                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                // Only convert the identifier to a keyword if it's a valid one.  Otherwise any
+                // other contextual keyword (like 'partial') will be converted into a keyword
+                // and will be invalid.
+                if (accessorKind == SyntaxKind.UnknownAccessorDeclaration)
                 {
-                    accessorName = this.EatToken();
-
-                    // Only convert the identifier to a keyword if it's a valid one.  Otherwise any
-                    // other contextual keyword (like 'partial') will be converted into a keyword
-                    // and will be invalid.
-                    switch (accessorName.ContextualKind)
+                    // We'll have an UnknownAccessorDeclaration either because we didn't have
+                    // an IdentifierToken or because we have an IdentifierToken which is not
+                    // add/remove/get/set.  In the former case, we'll already have reported
+                    // an error and will have a missing token.  But in the latter case we need 
+                    // to report that the identifier is incorrect.
+                    if (!accessorName.IsMissing)
                     {
-                        case SyntaxKind.GetKeyword:
-                        case SyntaxKind.SetKeyword:
-                        case SyntaxKind.AddKeyword:
-                        case SyntaxKind.RemoveKeyword:
-                            accessorName = ConvertToKeyword(accessorName);
-                            break;
-                    }
-
-                    if (isEvent)
-                    {
-                        bool isAdd = IsNameAdd(accessorName);
-                        bool isRemove = IsNameRemove(accessorName);
-                        validAccName = isAdd || isRemove;
-                        if (!validAccName)
-                        {
-                            accessorName = this.AddError(accessorName, ErrorCode.ERR_AddOrRemoveExpected);
-                            accessorKind = SyntaxKind.UnknownAccessorDeclaration;
-                        }
-                        else
-                        {
-                            if ((isAdd && hasGetOrAdd) || (isRemove && hasSetOrRemove))
-                            {
-                                accessorName = this.AddError(accessorName, ErrorCode.ERR_DuplicateAccessor);
-                            }
-
-                            hasGetOrAdd |= isAdd;
-                            hasSetOrRemove |= isRemove;
-                            accessorKind = isRemove ? SyntaxKind.RemoveAccessorDeclaration : SyntaxKind.AddAccessorDeclaration;
-                        }
+                        accessorName = this.AddError(accessorName,
+                            isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
                     }
                     else
                     {
-                        // Regular property
-                        bool isGet = IsNameGet(accessorName);
-                        bool isSet = IsNameSet(accessorName);
-                        validAccName = isGet || isSet;
-                        if (!validAccName)
-                        {
-                            accessorName = this.AddError(accessorName, ErrorCode.ERR_GetOrSetExpected);
-                            accessorKind = SyntaxKind.UnknownAccessorDeclaration;
-                        }
-                        else
-                        {
-                            if ((isGet && hasGetOrAdd) || (isSet && hasSetOrRemove))
-                            {
-                                accessorName = this.AddError(accessorName, ErrorCode.ERR_DuplicateAccessor);
-                            }
-
-                            hasGetOrAdd |= isGet;
-                            hasSetOrRemove |= isSet;
-                            accessorKind = isSet ? SyntaxKind.SetAccessorDeclaration : SyntaxKind.GetAccessorDeclaration;
-                        }
+                        Debug.Assert(accessorName.ContainsDiagnostics);
                     }
                 }
                 else
                 {
-                    validAccName = false;
-                    accessorName = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
-                    accessorName = this.AddError(accessorName, isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
-                    accessorKind = SyntaxKind.UnknownAccessorDeclaration;
+                    accessorName = ConvertToKeyword(accessorName);
                 }
 
                 BlockSyntax blockBody = null;
                 ArrowExpressionClauseSyntax expressionBody = null;
-
                 SyntaxToken semicolon = null;
+
                 bool currentTokenIsSemicolon = this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
                 bool currentTokenIsArrow = this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken;
                 bool currentTokenIsOpenBraceToken = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
 
-                if (!currentTokenIsArrow && !currentTokenIsSemicolon && !currentTokenIsOpenBraceToken && validAccName && !IsTerminator())
+                if (currentTokenIsOpenBraceToken || currentTokenIsArrow)
                 {
-                    // if there is no body, we "expect" a block for an accessor.
-                    blockBody = this.ParseBlock(isMethodBody: true, isAccessorBody: true);
+                    this.ParseBlockAndExpressionBodiesWithSemicolon(
+                        out blockBody, out expressionBody, out semicolon,
+                        requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedAccessor);
                 }
-                else if (currentTokenIsOpenBraceToken || currentTokenIsArrow)
+                else if (currentTokenIsSemicolon)
                 {
-                    this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon,
-                                                                    requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedAccessor);
-                }
-                else if (currentTokenIsSemicolon || validAccName)
-                {
-                    semicolon = this.EatToken(SyntaxKind.SemicolonToken,
-                                        IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
-                                            ? ErrorCode.ERR_SemiOrLBraceOrArrowExpected
-                                            : ErrorCode.ERR_SemiOrLBraceExpected
-                                );
+                    semicolon = EatAccessorSemicolon();
 
-                    if (isEvent)
+                    if (accessorKind == SyntaxKind.AddAccessorDeclaration ||
+                        accessorKind == SyntaxKind.RemoveAccessorDeclaration)
                     {
                         semicolon = this.AddError(semicolon, ErrorCode.ERR_AddRemoveMustHaveBody);
                     }
                 }
+                else
+                {
+                    // We didn't get something we recognized.  If we got an accessor type we 
+                    // recognized (i.e. get/set/add/remove) then try to parse out a block.
+                    // Only do this if it doesn't seem like we're at the end of the accessor/property.
+                    // for example, if we have "get set", don't actually try to parse out the 
+                    // block.  Otherwise we'll consume the 'set'.  In that case, just end the
+                    // current accessor with a semicolon so we can properly consume the next
+                    // in the calling method's loop.
+                    if (accessorKind != SyntaxKind.UnknownAccessorDeclaration)
+                    {
+                        if (!IsTerminator())
+                        {
+                            blockBody = this.ParseBlock(isMethodBody: true, isAccessorBody: true);
+                        }
+                        else
+                        {
+                            semicolon = EatAccessorSemicolon();
+                        }
+                    }
+                    else
+                    {
+                        // Don't bother eating anything if we didn't even have a valid accessor.
+                        // It will just lead to more errors.  Note: we will have already produced
+                        // a good error by now.
+                        Debug.Assert(accessorName.ContainsDiagnostics);
+                    }
+                }
 
-                return _syntaxFactory.AccessorDeclaration(accessorKind, accAttrs, accMods.ToList(), accessorName, blockBody, expressionBody, semicolon);
+                return _syntaxFactory.AccessorDeclaration(
+                    accessorKind, accAttrs, accMods.ToList(), accessorName,
+                    blockBody, expressionBody, semicolon);
             }
             finally
             {
@@ -3643,27 +3614,34 @@ parse_member_name:;
             }
         }
 
-        private bool CanReuseAccessorDeclaration(bool isEvent)
+        private SyntaxToken EatAccessorSemicolon()
+            => this.EatToken(SyntaxKind.SemicolonToken,
+                IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
+                    ? ErrorCode.ERR_SemiOrLBraceOrArrowExpected
+                    : ErrorCode.ERR_SemiOrLBraceExpected);
+
+        private SyntaxKind GetAccessorKind(SyntaxToken accessorName)
         {
-            var parent = GetOldParent(this.CurrentNode);
+            switch (accessorName.ContextualKind)
+            {
+                case SyntaxKind.GetKeyword: return SyntaxKind.GetAccessorDeclaration;
+                case SyntaxKind.SetKeyword: return SyntaxKind.SetAccessorDeclaration;
+                case SyntaxKind.AddKeyword: return SyntaxKind.AddAccessorDeclaration;
+                case SyntaxKind.RemoveKeyword: return SyntaxKind.RemoveAccessorDeclaration;
+            }
+
+            return SyntaxKind.UnknownAccessorDeclaration;
+        }
+
+        private bool CanReuseAccessorDeclaration()
+        {
             switch (this.CurrentNodeKind)
             {
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                    if (isEvent && parent != null && parent.Kind() == SyntaxKind.EventDeclaration)
-                    {
-                        return true;
-                    }
-
-                    break;
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
-                    if (!isEvent && parent != null && parent.Kind() == SyntaxKind.PropertyDeclaration)
-                    {
-                        return true;
-                    }
-
-                    break;
+                    return true;
             }
 
             return false;
@@ -4047,7 +4025,14 @@ tryAgain:
         {
             while (IsParameterModifier(this.CurrentToken.Kind))
             {
-                modifiers.Add(this.EatToken());
+                var modifier = this.EatToken();
+
+                if (modifier.Kind == SyntaxKind.ThisKeyword)
+                {
+                    modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExtensionMethod);
+                }
+
+                modifiers.Add(modifier);
             }
         }
 
@@ -4105,7 +4090,7 @@ tryAgain:
             }
         }
 
-        private MemberDeclarationSyntax ParseEventDeclarationWithAccessors(
+        private EventDeclarationSyntax ParseEventDeclarationWithAccessors(
             SyntaxListBuilder<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             SyntaxToken eventToken,
@@ -4228,7 +4213,7 @@ tryAgain:
             }
         }
 
-        private MemberDeclarationSyntax ParseEventFieldDeclaration(
+        private EventFieldDeclarationSyntax ParseEventFieldDeclaration(
             SyntaxListBuilder<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             SyntaxToken eventToken,
@@ -5035,8 +5020,11 @@ tryAgain:
             InExpression = 1 << 0, // Used to influence parser ambiguity around "<" and generics vs. expressions. Used in ParseSimpleName.
             InTypeList = 1 << 1, // Allows attributes to appear within the generic type argument list. Used during ParseInstantiation.
             PossiblePattern = 1 << 2, // Used to influence parser ambiguity around "<" and generics vs. expressions on the right of 'is'
-            AfterIsOrCaseOrOutOrTupleComma = 1 << 3,
-            FirstElementOfPossibleTupleLiteral = 1 << 4,
+            AfterIs = 1 << 3,
+            AfterCase = 1 << 4,
+            AfterOut = 1 << 5,
+            AfterTupleComma = 1 << 6,
+            FirstElementOfPossibleTupleLiteral = 1 << 7,
         }
 
         /// <summary>
@@ -5296,10 +5284,13 @@ tryAgain:
                     // contexts are where the sequence of tokens being disambiguated is immediately preceded by one
                     // of the keywords is, case, or out, or arises while parsing the first element of a tuple literal
                     // (in which case the tokens are preceded by `(` and the identifier is followed by a `,`) or a
-                    // subsequent element of a tuple literal.
+                    // subsequent element of a tuple literal (in which case the tokens are preceded by `,` and the
+                    // identifier is followed by a `,` or `)`).
                     // Note that we treat query contextual keywords (which appear here as identifiers) as disambiguating tokens as well.
-                    if ((options & NameOptions.AfterIsOrCaseOrOutOrTupleComma) != 0 ||
-                        (options & NameOptions.FirstElementOfPossibleTupleLiteral) != 0 && this.PeekToken(1).Kind == SyntaxKind.CommaToken)
+                    if ((options & (NameOptions.AfterIs | NameOptions.AfterCase | NameOptions.AfterOut)) != 0 ||
+                        (options & NameOptions.AfterTupleComma) != 0 && (this.PeekToken(1).Kind == SyntaxKind.CommaToken || this.PeekToken(1).Kind == SyntaxKind.CloseParenToken) ||
+                        (options & NameOptions.FirstElementOfPossibleTupleLiteral) != 0 && this.PeekToken(1).Kind == SyntaxKind.CommaToken
+                        )
                     {
                         // we allow 'G<T,U> x' as a pattern-matching operation and a declaration expression in a tuple.
                         return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
@@ -5328,13 +5319,16 @@ tryAgain:
                 case SyntaxKind.AmpersandToken:          // e.g. `e is A<B> & e`
                 case SyntaxKind.OpenBracketToken:        // e.g. `e is A<B>[]`
                 case SyntaxKind.LessThanToken:           // e.g. `e is A<B> < C`
-                case SyntaxKind.GreaterThanToken:        // e.g. `e is A<B> > C`
                 case SyntaxKind.LessThanEqualsToken:     // e.g. `e is A<B> <= C`
                 case SyntaxKind.GreaterThanEqualsToken:  // e.g. `e is A<B> >= C`
+                case SyntaxKind.GreaterThanToken when this.PeekToken(1).Kind != SyntaxKind.GreaterThanToken: // not >>
+                                                         // e.g. `e is A<B> > C`
                 case SyntaxKind.IsKeyword:               // e.g. `e is A<B> is bool`
                 case SyntaxKind.AsKeyword:               // e.g. `e is A<B> as bool`
-                    // These tokens are added to 7.5.4.2 Grammar Ambiguities in C#7
-                    return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
+                    // These tokens are added to 7.5.4.2 Grammar Ambiguities in C#7 for a possible type following the `is` keyword
+                    return ((options & NameOptions.AfterIs) != 0)
+                        ? ScanTypeArgumentListKind.DefiniteTypeArgumentList
+                        : ScanTypeArgumentListKind.PossibleTypeArgumentList;
 
                 case SyntaxKind.EndOfFileToken:          // e.g. `e is A<B>`
                     // This is useful for parsing expressions in isolation
@@ -6152,7 +6146,8 @@ tryAgain:
         {
             Normal,
             Parameter,
-            AfterIsOrCase,
+            AfterIs,
+            AfterCase,
             AfterOut,
             AfterTupleComma,
             AsExpression,
@@ -6180,16 +6175,21 @@ tryAgain:
             ParseTypeMode mode,
             bool expectSizes)
         {
-            var isOrAs = mode == ParseTypeMode.AsExpression || mode == ParseTypeMode.AfterIsOrCase;
+            var isOrAs = mode == ParseTypeMode.AsExpression || mode == ParseTypeMode.AfterIs;
             NameOptions nameOptions;
             switch (mode)
             {
-                case ParseTypeMode.AfterIsOrCase:
-                    nameOptions = NameOptions.InExpression | NameOptions.AfterIsOrCaseOrOutOrTupleComma | NameOptions.PossiblePattern;
+                case ParseTypeMode.AfterIs:
+                    nameOptions = NameOptions.InExpression | NameOptions.AfterIs | NameOptions.PossiblePattern;
+                    break;
+                case ParseTypeMode.AfterCase:
+                    nameOptions = NameOptions.InExpression | NameOptions.AfterCase | NameOptions.PossiblePattern;
                     break;
                 case ParseTypeMode.AfterOut:
+                    nameOptions = NameOptions.InExpression | NameOptions.AfterOut;
+                    break;
                 case ParseTypeMode.AfterTupleComma:
-                    nameOptions = NameOptions.InExpression | NameOptions.AfterIsOrCaseOrOutOrTupleComma;
+                    nameOptions = NameOptions.InExpression | NameOptions.AfterTupleComma;
                     break;
                 case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
                     nameOptions = NameOptions.InExpression | NameOptions.FirstElementOfPossibleTupleLiteral;
@@ -6208,7 +6208,7 @@ tryAgain:
 
             if (this.CurrentToken.Kind == SyntaxKind.QuestionToken &&
                 // we do not permit nullable types in a declaration pattern
-                (mode != ParseTypeMode.AfterIsOrCase || !IsTrueIdentifier(this.PeekToken(1))))
+                (mode != ParseTypeMode.AfterIs && mode != ParseTypeMode.AfterCase || !IsTrueIdentifier(this.PeekToken(1))))
             {
                 var resetPoint = this.GetResetPoint();
                 try
@@ -6235,7 +6235,8 @@ tryAgain:
             // Check for pointer types (only if pType is NOT an array type)
             switch (mode)
             {
-                case ParseTypeMode.AfterIsOrCase:
+                case ParseTypeMode.AfterIs:
+                case ParseTypeMode.AfterCase:
                 case ParseTypeMode.AfterTupleComma:
                 case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
                     // these contexts do not permit a pointer type.
@@ -6482,7 +6483,7 @@ tryAgain:
         public StatementSyntax ParseStatement()
         {
             return ParseWithStackGuard(
-                ParseStatementCore,
+                () => ParseStatementCore() ?? ParseExpressionStatement(),
                 () => SyntaxFactory.EmptyStatement(SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken)));
         }
 
@@ -7348,14 +7349,34 @@ tryAgain:
                 statement = SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
             }
 
-            // An "embedded" statement is simply a statement that is not a labelled
-            // statement or a declaration statement.
             switch (statement.Kind)
             {
+                // An "embedded" statement is simply a statement that is not a labelled
+                // statement or a declaration statement.
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.LocalFunctionStatement:
                     statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
+                    break;
+                // In scripts, stand-alone expression statements may not be followed by semicolons.
+                // ParseExpressionStatement hides the error.
+                // However, embedded expression statements are required to be followed by semicolon. 
+                case SyntaxKind.ExpressionStatement:
+                    if (IsScript)
+                    {
+                        var expressionStatementSyntax = (ExpressionStatementSyntax)statement;
+                        var semicolonToken = expressionStatementSyntax.SemicolonToken;
+
+                        // Do not add a new error if the same error was already added.
+                        if (semicolonToken.IsMissing  
+                            && (!semicolonToken.ContainsDiagnostics
+                            || !semicolonToken.GetDiagnostics()
+                            .Contains(diagnosticInfo => (ErrorCode)diagnosticInfo.Code == ErrorCode.ERR_SemicolonExpected)))
+                        {
+                            semicolonToken = this.AddError(semicolonToken, ErrorCode.ERR_SemicolonExpected);
+                            statement = expressionStatementSyntax.Update(expressionStatementSyntax.Expression, semicolonToken);
+                        }
+                    }
                     break;
             }
 
@@ -7995,7 +8016,7 @@ tryAgain:
                         }
                         else
                         {
-                            var node = ParseExpressionOrPattern(whenIsKeyword: true);
+                            var node = ParseExpressionOrPatternForCase();
                             if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword && node is ExpressionSyntax)
                             {
                                 // if there is a 'where' token, we treat a case expression as a constant pattern.
@@ -8267,6 +8288,10 @@ tryAgain:
             {
                 var openParen = this.EatToken(SyntaxKind.OpenParenToken);
                 var listOfDesignations = _pool.AllocateSeparated<VariableDesignationSyntax>();
+
+                listOfDesignations.Add(ParseDesignation());
+                listOfDesignations.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+
                 while (true)
                 {
                     listOfDesignations.Add(ParseDesignation());
@@ -8279,6 +8304,7 @@ tryAgain:
                         break;
                     }
                 }
+
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
                 result = _syntaxFactory.ParenthesizedVariableDesignation(openParen, listOfDesignations, closeParen);
                 _pool.Free(listOfDesignations);
@@ -9382,7 +9408,7 @@ tryAgain:
                         // there is a new declaration on the next line.
                         if (this.CurrentToken.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia) &&
                             this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
-                            this.PeekToken(2).Kind == SyntaxKind.IdentifierToken)
+                            this.PeekToken(2).ContextualKind == SyntaxKind.IdentifierToken)
                         {
                             expr = _syntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(),

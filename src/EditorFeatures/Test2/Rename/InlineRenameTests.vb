@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Await VerifyTagsAreCorrect(workspace, replacementText)
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/13186")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700921")>
         Public Async Function RenameOverloadsCSharp() As Task
@@ -806,7 +806,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/15225")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VerifyRenameTrackingWorksAfterInlineRenameCommit() As Task
             Using workspace = CreateWorkspaceWithWaiter(

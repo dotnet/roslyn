@@ -53,10 +53,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var displayAndInsertionText = GetDisplayAndInsertionText(symbol, context);
 
-            return SymbolCompletionItem.Create(
+            return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayAndInsertionText.Item1,
                 insertionText: displayAndInsertionText.Item2,
-                symbol: symbol,
+                symbols: ImmutableArray.Create(symbol),
                 contextPosition: context.Position,
                 properties: GetProperties(symbol, context),
                 rules: CompletionItemRules.Default);

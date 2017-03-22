@@ -125,7 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         return null;
                     }
 
-                    return SyntaxFactory.EqualsValueClause(GenerateEqualsValueClauseWorker(parameter, defaultValue));
+                    return SyntaxFactory.EqualsValueClause(
+                        GenerateEqualsValueClauseWorker(parameter, defaultValue));
                 }
             }
 

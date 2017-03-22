@@ -79,12 +79,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return codeElement.AddAttribute(data.Name, data.Value, data.Position)
         End Function
 
-        Protected Async Function TestIsPropertyStyleEvent(code As XElement, expected As Boolean) As Task
-            Await TestElement(code,
+        Protected Sub TestIsPropertyStyleEvent(code As XElement, expected As Boolean)
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, codeElement.IsPropertyStyleEvent)
                 End Sub)
-        End Function
+        End Sub
 
     End Class
 End Namespace

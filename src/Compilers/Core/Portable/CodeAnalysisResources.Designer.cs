@@ -929,6 +929,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Name cannot be null..
+        /// </summary>
+        internal static string NameCannotBeNull {
+            get {
+                return ResourceManager.GetString("NameCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name cannot start with whitespace..
         /// </summary>
         internal static string NameCannotStartWithWhitespace {

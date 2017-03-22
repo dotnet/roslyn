@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal abstract class AbstractCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer
+    internal abstract class AbstractCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         protected readonly string DescriptorId;
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// Diagnostic descriptor for code you want to fade out and do *not* want to have a smart-tag
         /// appear for.  This is uncommon but useful in some cases.  For example, if you are fading
         /// out pieces of code before/after another piece of code *on the same line*, then you will
-        /// only want one usafe of <see cref="UnnecessaryWithSuggestionDescriptor"/> and multiple
+        /// only want one usage of <see cref="UnnecessaryWithSuggestionDescriptor"/> and multiple
         /// usages of <see cref="UnnecessaryWithoutSuggestionDescriptor"/>.
         /// 
         /// That's because if you use <see cref="UnnecessaryWithSuggestionDescriptor"/> for all the
@@ -104,5 +104,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         protected abstract void InitializeWorker(AnalysisContext context);
+
+        public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
+        public abstract bool OpenFileOnly(Workspace workspace);
     }
 }

@@ -17,8 +17,9 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private static int s_instanceId;
 
-        private readonly int _instanceId;
         private readonly CancellationTokenSource _cancellationTokenSource;
+
+        protected readonly int InstanceId;
 
         protected readonly JsonRpc Rpc;
         protected readonly TraceSource Logger;
@@ -29,9 +30,10 @@ namespace Microsoft.CodeAnalysis.Remote
         private Checksum _solutionChecksumOpt;
         private RoslynServices _lazyRoslynServices;
 
+        [Obsolete("For backward compatibility. this will be removed once all callers moved to new ctor")]
         protected ServiceHubServiceBase(Stream stream, IServiceProvider serviceProvider)
         {
-            _instanceId = Interlocked.Add(ref s_instanceId, 1);
+            InstanceId = Interlocked.Add(ref s_instanceId, 1);
 
             // in unit test, service provider will return asset storage, otherwise, use the default one
             AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
@@ -43,10 +45,33 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken = _cancellationTokenSource.Token;
 
             Rpc = JsonRpc.Attach(stream, this);
+            Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+
             Rpc.Disconnected += OnRpcDisconnected;
         }
 
-        protected string DebugInstanceString => $"{GetType()} ({_instanceId})";
+        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream)
+        {
+            InstanceId = Interlocked.Add(ref s_instanceId, 1);
+
+            // in unit test, service provider will return asset storage, otherwise, use the default one
+            AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
+
+            Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
+            Logger.TraceInformation($"{DebugInstanceString} Service instance created");
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            CancellationToken = _cancellationTokenSource.Token;
+
+            // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
+            // all sub type must explicitly start JsonRpc once everything is
+            // setup
+            Rpc = new JsonRpc(stream, stream, this);
+            Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+            Rpc.Disconnected += OnRpcDisconnected;
+        }
+
+        protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
 
         protected RoslynServices RoslynServices
         {
@@ -80,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected void LogError(string message)
         {
-            Logger.TraceEvent(TraceEventType.Error, 0, $"{DebugInstanceString} : " + message);
+            Log(TraceEventType.Error, message);
         }
 
         public virtual void Initialize(int sessionId, byte[] solutionChecksum)
@@ -107,6 +132,11 @@ namespace Microsoft.CodeAnalysis.Remote
             // do nothing
         }
 
+        protected void Log(TraceEventType errorType, string message)
+        {
+            Logger.TraceEvent(errorType, 0, $"{DebugInstanceString} : " + message);
+        }
+
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             // raise cancellation
@@ -116,7 +146,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (e.Reason != DisconnectedReason.Disposed)
             {
-                LogError($"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
+                // this is common for us since we close connection forcefully when operation
+                // is cancelled. use Warning level so that by default, it doesn't write out to
+                // servicehub\log files. one can still make this to write logs by opting in.
+                Log(TraceEventType.Warning, $"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
             }
         }
     }

@@ -321,13 +321,13 @@ class C
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (9,24): error CS4010: Cannot convert async lambda expression to delegate type 'System.Func<int>'. An async lambda expression may return void, Task or Task<T>, none of which are convertible to 'System.Func<int>'.
+                // (9,33): error CS4010: Cannot convert async lambda expression to delegate type 'Func<int>'. An async lambda expression may return void, Task or Task<T>, none of which are convertible to 'Func<int>'.
                 //         Func<int> f1 = async () => await Task.Factory.StartNew(() => 1);
-                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "async () => await Task.Factory.StartNew(() => 1)").WithArguments("lambda expression", "System.Func<int>").WithLocation(9, 24),
-                // (10,24): error CS4010: Cannot convert async lambda expression to delegate type 'System.Func<int>'. An async lambda expression may return void, Task or Task<T>, none of which are convertible to 'System.Func<int>'.
+                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "=>").WithArguments("lambda expression", "System.Func<int>").WithLocation(9, 33),
+                // (10,33): error CS4010: Cannot convert async lambda expression to delegate type 'Func<int>'. An async lambda expression may return void, Task or Task<T>, none of which are convertible to 'Func<int>'.
                 //         Func<int> f2 = async () => { return await Task.Factory.StartNew(() => 1); };
-                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "async () => { return await Task.Factory.StartNew(() => 1); }").WithArguments("lambda expression", "System.Func<int>").WithLocation(10, 24)
-            );
+                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "=>").WithArguments("lambda expression", "System.Func<int>").WithLocation(10, 33)
+                );
         }
 
         [Fact]
@@ -3631,13 +3631,13 @@ class C
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,23): error CS4010: Cannot convert async anonymous method to delegate type 'System.Func<int>'. An async anonymous method may return void, Task or Task<T>, none of which are convertible to 'System.Func<int>'.
+                // (6,29): error CS4010: Cannot convert async anonymous method to delegate type 'Func<int>'. An async anonymous method may return void, Task or Task<T>, none of which are convertible to 'Func<int>'.
                 //         Func<int> x = async delegate { throw null; };
-                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "async delegate { throw null; }").WithArguments("anonymous method", "System.Func<int>").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "delegate").WithArguments("anonymous method", "System.Func<int>").WithLocation(6, 29),
                 // (6,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         Func<int> x = async delegate { throw null; };
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "async delegate { throw null; }").WithLocation(6, 23)
-           );
+                );
         }
 
         [WorkItem(588706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588706")]

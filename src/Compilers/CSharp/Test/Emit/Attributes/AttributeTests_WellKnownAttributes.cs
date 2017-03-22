@@ -5936,55 +5936,58 @@ public class SomeAttr1: Attribute
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (7,15): warning CS0618: 'Test.F1' is obsolete: 'F1 is obsolete'
                 //     [SomeAttr(F1)]
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F1").WithArguments("Test.F1", "F1 is obsolete"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F1").WithArguments("Test.F1", "F1 is obsolete").WithLocation(7, 15),
                 // (15,15): error CS0619: 'Test.F2' is obsolete: 'F2 is obsolete'
                 //     [SomeAttr(F2)]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "F2").WithArguments("Test.F2", "F2 is obsolete"),
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "F2").WithArguments("Test.F2", "F2 is obsolete").WithLocation(15, 15),
                 // (11,15): warning CS0618: 'Test.F3' is obsolete: 'F3 is obsolete'
                 //     [SomeAttr(F3)]
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F3").WithArguments("Test.F3", "F3 is obsolete"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F3").WithArguments("Test.F3", "F3 is obsolete").WithLocation(11, 15),
                 // (18,15): error CS0619: 'Test.F4' is obsolete: 'blah'
                 //     [Obsolete(F4, true)]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "F4").WithArguments("Test.F4", "blah"),
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "F4").WithArguments("Test.F4", "blah").WithLocation(18, 15),
                 // (21,15): error CS0120: An object reference is required for the non-static field, method, or property 'Test.F5'
                 //     [Obsolete(F5)]
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "F5").WithArguments("Test.F5"),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F5").WithArguments("Test.F5").WithLocation(21, 15),
                 // (24,15): error CS0120: An object reference is required for the non-static field, method, or property 'Test.P1'
                 //     [Obsolete(P1, true)]
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "P1").WithArguments("Test.P1"),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "P1").WithArguments("Test.P1").WithLocation(24, 15),
                 // (28,15): warning CS0612: 'Test.P2' is obsolete
                 //     [SomeAttr(P2, true)]
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "P2").WithArguments("Test.P2"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "P2").WithArguments("Test.P2").WithLocation(28, 15),
                 // (28,15): error CS0120: An object reference is required for the non-static field, method, or property 'Test.P2'
                 //     [SomeAttr(P2, true)]
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "P2").WithArguments("Test.P2"),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "P2").WithArguments("Test.P2").WithLocation(28, 15),
+                // (28,6): error CS1729: 'SomeAttr' does not contain a constructor that takes 2 arguments
+                //     [SomeAttr(P2, true)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "SomeAttr(P2, true)").WithArguments("SomeAttr", "2").WithLocation(28, 6),
                 // (31,15): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
                 //     [Obsolete(Method1)]
-                Diagnostic(ErrorCode.ERR_BadArgType, "Method1").WithArguments("1", "method group", "string"),
+                Diagnostic(ErrorCode.ERR_BadArgType, "Method1").WithArguments("1", "method group", "string").WithLocation(31, 15),
                 // (35,16): warning CS0612: 'Test.Method2()' is obsolete
                 //     [SomeAttr1(Method2)]
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Method2").WithArguments("Test.Method2()"),
-                // (35,6): error CS0181: Attribute constructor parameter 'x' has type 'System.Action', which is not a valid attribute parameter type
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Method2").WithArguments("Test.Method2()").WithLocation(35, 16),
+                // (35,6): error CS0181: Attribute constructor parameter 'x' has type 'Action', which is not a valid attribute parameter type
                 //     [SomeAttr1(Method2)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "SomeAttr1").WithArguments("x", "System.Action"),
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "SomeAttr1").WithArguments("x", "System.Action").WithLocation(35, 6),
                 // (43,15): error CS0619: 'Test.F7' is obsolete: 'F7 is obsolete'
                 //     [Obsolete(F7, true)]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "F7").WithArguments("Test.F7", "F7 is obsolete"),
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "F7").WithArguments("Test.F7", "F7 is obsolete").WithLocation(43, 15),
                 // (44,15): warning CS0618: 'Test.F6' is obsolete: 'F6 is obsolete'
                 //     [SomeAttr(F6)]
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F6").WithArguments("Test.F6", "F6 is obsolete"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F6").WithArguments("Test.F6", "F6 is obsolete").WithLocation(44, 15),
                 // (45,15): error CS0619: 'Test.F7' is obsolete: 'F7 is obsolete'
                 //     [SomeAttr(F7)]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "F7").WithArguments("Test.F7", "F7 is obsolete"),
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "F7").WithArguments("Test.F7", "F7 is obsolete").WithLocation(45, 15),
                 // (38,15): warning CS0618: 'Test.F6' is obsolete: 'F6 is obsolete'
                 //     [Obsolete(F6)]
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F6").WithArguments("Test.F6", "F6 is obsolete"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F6").WithArguments("Test.F6", "F6 is obsolete").WithLocation(38, 15),
                 // (39,15): warning CS0618: 'Test.F6' is obsolete: 'F6 is obsolete'
                 //     [SomeAttr(F6)]
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F6").WithArguments("Test.F6", "F6 is obsolete"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F6").WithArguments("Test.F6", "F6 is obsolete").WithLocation(39, 15),
                 // (40,15): error CS0619: 'Test.F7' is obsolete: 'F7 is obsolete'
                 //     [SomeAttr(F7)]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "F7").WithArguments("Test.F7", "F7 is obsolete"));
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "F7").WithArguments("Test.F7", "F7 is obsolete").WithLocation(40, 15));
         }
 
         [WorkItem(546064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546064")]
@@ -8405,6 +8408,121 @@ class MyAttribute : System.Attribute
             };
 
             CompileAndVerify(source, symbolValidator: attributeValidator);
+        }
+
+        [Fact, WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")]
+        public void UsingStaticDirectiveDoesNotIgnoreObsoleteAttribute_DifferentSeverity()
+        {
+            var source = @"
+using System;
+using static TestError;
+using static TestWarning;
+
+[Obsolete (""Broken Error Class"", true)]
+static class TestError
+{
+    public static void TestErrorFunc()
+    {
+
+    }
+}
+
+[Obsolete (""Broken Warning Class"", false)]
+static class TestWarning
+{
+    public static void TestWarningFunc()
+    {
+
+    }
+}
+
+class Test
+{
+    public static void Main()
+    {
+        TestErrorFunc();
+        TestWarningFunc();
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,14): error CS0619: 'TestError' is obsolete: 'Broken Error Class'
+                // using static TestError;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "TestError").WithArguments("TestError", "Broken Error Class").WithLocation(3, 14),
+                // (4,14): warning CS0618: 'TestWarning' is obsolete: 'Broken Warning Class'
+                // using static TestWarning;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "TestWarning").WithArguments("TestWarning", "Broken Warning Class").WithLocation(4, 14));
+        }
+
+        [Fact, WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")]
+        public void UsingStaticDirectiveDoesNotIgnoreObsoleteAttribute_NestedClasses()
+        {
+            var source = @"
+using System;
+using static ActiveParent.ObsoleteChild;
+using static ObsoleteParent.ActiveChild;
+using static BothObsoleteParent.BothObsoleteChild;
+
+static class ActiveParent
+{
+    [Obsolete]
+    public static class ObsoleteChild
+    {
+        public static void ObsoleteChildFunc()
+        {
+
+        }
+    }
+}
+
+[Obsolete]
+static class ObsoleteParent
+{
+    public static class ActiveChild
+    {
+        public static void ActiveChildFunc()
+        {
+
+        }
+    }
+}
+
+[Obsolete]
+static class BothObsoleteParent
+{
+    [Obsolete]
+    public static class BothObsoleteChild
+    {
+        public static void BothObsoleteFunc()
+        {
+
+        }
+    }
+}
+
+class Test
+{
+    public static void Main()
+    {
+        ObsoleteChildFunc();
+        ActiveChildFunc();
+        BothObsoleteFunc();
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,14): warning CS0612: 'ActiveParent.ObsoleteChild' is obsolete
+                // using static ActiveParent.ObsoleteChild;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ActiveParent.ObsoleteChild").WithArguments("ActiveParent.ObsoleteChild").WithLocation(3, 14),
+                // (4,14): warning CS0612: 'ObsoleteParent' is obsolete
+                // using static ObsoleteParent.ActiveChild;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteParent").WithArguments("ObsoleteParent").WithLocation(4, 14),
+                // (5,14): warning CS0612: 'BothObsoleteParent' is obsolete
+                // using static BothObsoleteParent.BothObsoleteChild;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "BothObsoleteParent").WithArguments("BothObsoleteParent").WithLocation(5, 14),
+                // (5,14): warning CS0612: 'BothObsoleteParent.BothObsoleteChild' is obsolete
+                // using static BothObsoleteParent.BothObsoleteChild;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "BothObsoleteParent.BothObsoleteChild").WithArguments("BothObsoleteParent.BothObsoleteChild").WithLocation(5, 14));
         }
     }
 }
