@@ -675,7 +675,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IIndexedPropertyReferenceExpression));
 
             LogString($": {operation.Property.ToTestDisplayString()}");
-            LogCommonPropertiesAndNewLine(operation);
 
             VisitMemberReferenceExpressionCommon(operation);
         }
@@ -905,6 +904,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitArrayInitializer(IArrayInitializer operation)
         {
             LogString(nameof(IArrayInitializer));
+            LogString($" ({operation.ElementValues.Length} elements)");
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitArrayInitializer(operation);
