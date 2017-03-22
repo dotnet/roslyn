@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
@@ -42,7 +43,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var solution = workspace.CurrentSolution;
 
@@ -71,7 +72,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var solution = workspace.CurrentSolution;
 
@@ -100,7 +101,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var project = workspace.CurrentSolution.Projects.First();
 
@@ -114,7 +115,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var source = new TestAssetSource(storage, sessionId, map);
 
                 var service = new AssetService(sessionId, storage);
-                await service.SynchronizeProjectAssetsAsync(await project.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
+                await service.SynchronizeProjectAssetsAsync(SpecializedCollections.SingletonEnumerable(await project.State.GetChecksumAsync(CancellationToken.None)), CancellationToken.None);
 
                 object data;
                 foreach (var kv in map)

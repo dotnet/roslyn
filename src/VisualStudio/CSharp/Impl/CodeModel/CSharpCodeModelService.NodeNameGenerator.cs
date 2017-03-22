@@ -60,9 +60,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             private static void AppendTypeName(StringBuilder builder, TypeSyntax type)
             {
-                if (type is NameSyntax)
+                if (type is NameSyntax name)
                 {
-                    AppendName(builder, (NameSyntax)type);
+                    AppendName(builder, name);
                 }
                 else
                 {

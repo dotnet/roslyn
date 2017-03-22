@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 ' if there is no overlapping spans, no need to walk down this node
                 ' use full span to include structured trivia
                 Return node IsNot Nothing AndAlso
-                    _spans.GetOverlappingIntervals(node.FullSpan.Start, node.FullSpan.Length).Any()
+                    _spans.GetIntervalsThatOverlapWith(node.FullSpan.Start, node.FullSpan.Length).Any()
             End Function
 
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode

@@ -329,7 +329,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>
         /// Override the dynamic operation context type for all dynamic calls in the module.
         /// </summary>
-        internal virtual NamedTypeSymbol DynamicOperationContextType => null;
+        internal virtual NamedTypeSymbol GetDynamicOperationContextType(NamedTypeSymbol contextType)
+        {
+            return contextType;
+        }
 
         internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
@@ -557,7 +560,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
                 var stack = ArrayBuilder<(NamedTypeSymbol type, int parentIndex)>.GetInstance();
 
-                foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
+                // Hashset enumeration is not guaranteed to be deterministic. Emitting in the order of fully qualified names.
+                var orderedForwardedTypes = wellKnownAttributeData.ForwardedTypes.OrderBy(t => t.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
+
+                foreach (NamedTypeSymbol forwardedType in orderedForwardedTypes)
                 {
                     NamedTypeSymbol originalDefinition = forwardedType.OriginalDefinition;
                     Debug.Assert((object)originalDefinition.ContainingType == null, "How did a nested type get forwarded?");
@@ -788,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(!needDeclaration);
                 namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType;
-                CheckTupleUnderlying(namedTypeSymbol, syntaxNodeOpt, diagnostics);
+                CheckTupleUnderlyingType(namedTypeSymbol, syntaxNodeOpt, diagnostics);
             }
 
             // Substitute error types with a special singleton object.
@@ -889,21 +895,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return namedTypeSymbol;
         }
 
-        private void CheckTupleUnderlying(NamedTypeSymbol namedTypeSymbol, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        private void CheckTupleUnderlyingType(NamedTypeSymbol namedTypeSymbol, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             // check that underlying type of a ValueTuple is indeed a value type (or error)
             // this should never happen, in theory,
             // but if it does happen we should make it a failure.
             // NOTE: declaredBase could be null for interfaces
             var declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
-            if (declaredBase == null || declaredBase.SpecialType != SpecialType.System_ValueType)
+            if ((object)declaredBase != null && declaredBase.SpecialType == SpecialType.System_ValueType)
             {
-                // Try to decrease noise by not complaining about the same type over and over again.
-                if (_reportedErrorTypesMap.Add(namedTypeSymbol))
+                return;
+            }
+
+            // Try to decrease noise by not complaining about the same type over and over again.
+            if (!_reportedErrorTypesMap.Add(namedTypeSymbol))
+            {
+                return;
+            }
+
+            var location = syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location;
+            if ((object)declaredBase != null)
+            {
+                var diagnosticInfo = declaredBase.GetUseSiteDiagnostic();
+                if (diagnosticInfo != null && diagnosticInfo.Severity == DiagnosticSeverity.Error)
                 {
-                    diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, namedTypeSymbol.MetadataName), syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location));
+                    diagnostics.Add(diagnosticInfo, location);
+                    return;
                 }
             }
+
+            diagnostics.Add(
+                new CSDiagnostic(
+                    new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, namedTypeSymbol.MetadataName),
+                    location));
         }
 
         public static bool IsGenericType(NamedTypeSymbol toCheck)

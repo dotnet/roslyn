@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim tupleUnderlyingType As NamedTypeSymbol = TupleTypeSymbol.GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics)
-            If DirectCast(compilation.SourceModule, SourceModuleSymbol).AnyReferencedAssembliesAreLinked Then
+            If diagnostics IsNot Nothing AndAlso DirectCast(compilation.SourceModule, SourceModuleSymbol).AnyReferencedAssembliesAreLinked Then
                 ' Complain about unembeddable types from linked assemblies.
                 Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(tupleUnderlyingType, syntax, diagnostics)
             End If

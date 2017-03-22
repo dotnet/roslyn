@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         protected abstract bool IsMethodOrAnonymousFunction(SyntaxNode node);
         protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
-            INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType);
+            INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -34,6 +34,19 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
 
             var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
+
+            // Find the symbols for Task, Task<T> and ValueTask<T>.  Note that the first
+            // two are mandatory (since we need them to generate the return types for our
+            // method if we convert it.  The last is optional.  It is only needed to know
+            // if our member is already Task-Like, and that functionality recognizes
+            // ValueTask if it is available, but does not care if it is not.
+            var (taskType, taskOfTType, valueTaskOfTTypeOpt) = GetTaskTypes(compilation);
+            if (taskType == null || taskOfTType == null)
+            {
+                return;
+            }
+
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
 
             // If it's a void returning method, offer to keep the void return type, or convert to 
@@ -58,6 +71,15 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                         context.Document, diagnostic, keepVoid: false, cancellationToken: c)),
                     context.Diagnostics);
             }
+        }
+
+        private (INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTTypeOpt) GetTaskTypes(Compilation compilation)
+        {
+            var taskType = compilation.TaskType();
+            var taskOfTType = compilation.TaskOfTType();
+            var valueTaskOfTType = compilation.ValueTaskOfTType();
+
+            return (taskType, taskOfTType, valueTaskOfTType);
         }
 
         protected abstract string GetMakeAsyncTaskFunctionResource();
@@ -128,10 +150,9 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             SyntaxNode node, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
-            var taskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
+            var (taskType, taskOfTType, valueTaskOfTType) = GetTaskTypes(compilation);
 
-            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, taskType, taskOfTType)
+            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, taskType, taskOfTType, valueTaskOfTType)
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -142,7 +163,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         }
 
         protected static bool IsTaskLike(
-            ITypeSymbol returnType, ITypeSymbol taskType, INamedTypeSymbol taskOfTType)
+            ITypeSymbol returnType, INamedTypeSymbol taskType,
+            INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType)
         {
             if (returnType.Equals(taskType))
             {
@@ -154,10 +176,15 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                 return true;
             }
 
-            if (returnType.IsErrorType() &&
-                returnType.Name.Equals("Task"))
+            if (returnType.OriginalDefinition.Equals(valueTaskOfTType))
             {
                 return true;
+            }
+
+            if (returnType.IsErrorType())
+            {
+                return returnType.Name.Equals("Task") ||
+                       returnType.Name.Equals("ValueTask");
             }
 
             return false;

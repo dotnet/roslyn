@@ -183,6 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            EmitOptions emitOptions = null,
             bool verify = true)
         {
             return base.CompileAndVerify(
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 Translate2(symbolValidator),
                 expectedSignatures,
                 expectedOutput,
-                null,
+                emitOptions,
                 verify);
         }
     }

@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                     Locations = locations;
                 }
 
-                public ImmutableArray<InlineRenameLocation> Locations { get; }
+                public IList<InlineRenameLocation> Locations { get; }
 
                 public bool IsReplacementTextValid(string replacementText)
                 {

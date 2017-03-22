@@ -246,7 +246,7 @@ class G<T>
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml)
                 Dim doc = workspace.Documents.Single()
 
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)

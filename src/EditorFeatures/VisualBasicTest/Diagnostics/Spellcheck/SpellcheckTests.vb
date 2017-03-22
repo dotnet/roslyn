@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Spellc
             Return (Nothing, New VisualBasicSpellCheckCodeFixProvider())
         End Function
 
-        Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
+        Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
             Return FlattenActions(actions)
         End Function
 
@@ -466,7 +467,7 @@ End Class</File>
         <WorkItem(908322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908322")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestObjectConstruction() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class AwesomeClass
     Sub M()
         Dim foo = New [|AwesomeClas()|]
@@ -476,20 +477,19 @@ End Class",
     Sub M()
         Dim foo = New AwesomeClass()
     End Sub
-End Class",
-index:=0)
+End Class")
         End Function
 
         <WorkItem(6338, "https://github.com/dotnet/roslyn/issues/6338")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestTestMissingName() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "<Assembly: Microsoft.CodeAnalysis.[||]>")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestTrivia1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class AwesomeClass
     Sub M()
         Dim foo = New [|AwesomeClas|] ' trailing trivia
@@ -500,7 +500,7 @@ End Class",
         Dim foo = New AwesomeClass ' trailing trivia
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider
@@ -514,7 +514,7 @@ compareTokens:=False)
             <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
             Public Async Function TestIncompleteStatement() As Task
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
 "Class AwesomeClass
     Inherits System.Attribute
 End Class
@@ -526,8 +526,7 @@ End Module",
 End Class
 Module Program
     <AwesomeClass>
-End Module",
-index:=0)
+End Module")
             End Function
         End Class
     End Class

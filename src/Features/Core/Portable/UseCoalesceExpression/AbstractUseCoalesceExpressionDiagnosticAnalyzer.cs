@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,6 +24,9 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
+
+        public override bool OpenFileOnly(Workspace workspace) => false;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
         protected abstract ISyntaxFactsService GetSyntaxFactsService();

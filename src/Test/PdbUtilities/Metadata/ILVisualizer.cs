@@ -338,8 +338,17 @@ namespace Roslyn.Test.MetadataUtilities
                     string marker;
                     if (markers != null && markers.TryGetValue(ilOffset, out marker))
                     {
-                        sb.Append(indent.Substring(0, indent.Length - marker.Length));
-                        sb.Append(marker);
+                        if (marker.StartsWith("//"))
+                        {
+                            sb.Append(indent);
+                            sb.AppendLine(marker);
+                            sb.Append(indent);
+                        }
+                        else
+                        {
+                            sb.Append(indent.Substring(0, indent.Length - marker.Length));
+                            sb.Append(marker);
+                        }
                     }
                     else
                     {

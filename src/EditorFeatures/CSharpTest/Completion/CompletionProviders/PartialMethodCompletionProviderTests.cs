@@ -244,15 +244,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     partial $$
 }";
 
-            var expectedCodeAfterCommit = @"using System;
-
-partial class c
+            var expectedCodeAfterCommit = @"partial class c
 {
     partial void foo();
 
     partial void foo()
     {
-        throw new NotImplementedException();$$
+        throw new System.NotImplementedException();$$
     }
 }";
 
@@ -269,15 +267,13 @@ partial class c
     partial $$
 }";
 
-            var expectedCodeAfterCommit = @"using System;
-
-partial class c<T>
+            var expectedCodeAfterCommit = @"partial class c<T>
 {
     partial void foo(T bar);
 
     partial void foo(T bar)
     {
-        throw new NotImplementedException();$$
+        throw new System.NotImplementedException();$$
     }
 }";
 
@@ -294,15 +290,13 @@ partial class c<T>
     private partial $$
 }";
 
-            var expectedCodeAfterCommit = @"using System;
-
-partial class c
+            var expectedCodeAfterCommit = @"partial class c
 {
     partial void foo();
 
     partial void foo()
     {
-        throw new NotImplementedException();$$
+        throw new System.NotImplementedException();$$
     }
 }";
 
@@ -322,9 +316,7 @@ partial class c
     partial $$
 }";
 
-            var expectedCodeAfterCommit = @"using System;
-
-partial class c
+            var expectedCodeAfterCommit = @"partial class c
 {
     partial void foo();
 }
@@ -333,7 +325,7 @@ partial class c
 {
     partial void foo()
     {
-        throw new NotImplementedException();$$
+        throw new System.NotImplementedException();$$
     }
 }";
 
@@ -350,15 +342,13 @@ partial class c
     partial $$
 }";
 
-            var expectedCodeAfterCommit = @"using System;
-
-partial struct c
+            var expectedCodeAfterCommit = @"partial struct c
 {
     partial void foo();
 
     partial void foo()
     {
-        throw new NotImplementedException();$$
+        throw new System.NotImplementedException();$$
     }
 }";
 
@@ -469,9 +459,7 @@ partial class Bar
 }
 ";
 
-            var expected = @"using System;
-
-namespace PartialClass
+            var expected = @"namespace PartialClass
 {
     partial class PClass
     {
@@ -479,7 +467,7 @@ namespace PartialClass
 
         partial void PMethod(int i)
         {
-            throw new NotImplementedException();$$
+            throw new System.NotImplementedException();$$
         }
     }
 }

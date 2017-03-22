@@ -256,8 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 documentationMode = DocumentationMode.Diagnose;
             }
 
-            var languageVersion = CompilationOptionsConversion.GetLanguageVersion(GetStringOption(CompilerOptions.OPTID_COMPATIBILITY, defaultValue: ""))
-                                  ?? CSharpParseOptions.Default.LanguageVersion;
+            GetStringOption(CompilerOptions.OPTID_COMPATIBILITY, defaultValue: "").TryParse(out var languageVersion);
 
             return options.WithKind(SourceCodeKind.Regular)
                 .WithLanguageVersion(languageVersion)

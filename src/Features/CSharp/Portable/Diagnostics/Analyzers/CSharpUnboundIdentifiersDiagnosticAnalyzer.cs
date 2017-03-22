@@ -18,13 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
 
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.IncompleteMember, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression);
 
-        protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
-        {
-            get
-            {
-                return s_kindsOfInterest;
-            }
-        }
+        protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest => s_kindsOfInterest;
 
         protected override DiagnosticDescriptor DiagnosticDescriptor => GetDiagnosticDescriptor(NameNotInContext, _nameNotInContextMessageFormat);
 

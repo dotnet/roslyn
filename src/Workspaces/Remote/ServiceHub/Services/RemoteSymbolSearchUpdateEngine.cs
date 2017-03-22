@@ -13,10 +13,12 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly SymbolSearchUpdateEngine _updateEngine;
 
         public RemoteSymbolSearchUpdateEngine(Stream stream, IServiceProvider serviceProvider)
-            : base(stream, serviceProvider)
+            : base(serviceProvider, stream)
         {
             _updateEngine = new SymbolSearchUpdateEngine(
                 new LogService(this), updateCancellationToken: this.CancellationToken);
+
+            Rpc.StartListening();
         }
 
         public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)

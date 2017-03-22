@@ -68,9 +68,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         protected abstract bool IsPredefinedTypeReplaceableWithFrameworkType(TPredefinedTypeSyntax node);
         protected abstract bool IsInMemberAccessOrCrefReferenceContext(TExpressionSyntax node);
 
-        public override void Initialize(AnalysisContext context)
+        public sealed override void Initialize(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest);
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         }
 
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)

@@ -9,7 +9,7 @@ usage()
     echo "Options"
     echo "  --debug               Build Debug (default)"
     echo "  --release             Build Release"
-    echo "  --skiptests           Do not run tests"
+    echo "  --skiptest            Do not run tests"
     echo "  --skipcrossgen        Do not crossgen the bootstrapped compiler"
     echo "  --skipcommitprinting  Do not print commit information"
     echo "  --nocache       Force download of toolsets"

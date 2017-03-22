@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
             {
                 using (var storage = service.GetStorage(project.Solution))
                 using (var stream = storage.ReadStreamAsync(keyName, CancellationToken.None).WaitAndGetResult(CancellationToken.None))
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     if (reader != null)
                     {
@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
             IPersistentStorage storage, string keyName, VersionStamp projectVersion, VersionStamp semanticVersion, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 writer.WriteInt32(SerializationFormat);
                 projectVersion.WriteTo(writer);

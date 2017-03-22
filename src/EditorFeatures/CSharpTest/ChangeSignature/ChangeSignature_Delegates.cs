@@ -14,16 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ChangeSignatureCodeRefactoringProvider();
 
         protected override string GetLanguage()
             => LanguageNames.CSharp;
 
-        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
-        {
-            return TestWorkspace.CreateCSharpAsync(definition, (CSharpParseOptions)parseOptions, (CSharpCompilationOptions)compilationOptions);
-        }
+        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
+            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_ImplicitInvokeCalls()

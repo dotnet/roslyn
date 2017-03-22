@@ -16,14 +16,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
-    internal partial class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
+    internal partial class DiagnosticIncrementalAnalyzer
     {
-        public override Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+        public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             return AnalyzeDocumentForKindAsync(document, AnalysisKind.Syntax, cancellationToken);
         }
 
-        public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+        public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             return AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken);
         }
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
+        public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             try
             {
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override async Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+        public async Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
             {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override async Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+        public async Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentClose, GetResetLogMessage, document, cancellationToken))
             {
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
+        public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentReset, GetResetLogMessage, document, cancellationToken))
             {
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return SpecializedTasks.EmptyTask;
         }
 
-        public override void RemoveDocument(DocumentId documentId)
+        public void RemoveDocument(DocumentId documentId)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_RemoveDocument, GetRemoveLogMessage, documentId, CancellationToken.None))
             {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override void RemoveProject(ProjectId projectId)
+        public void RemoveProject(ProjectId projectId)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_RemoveProject, GetRemoveLogMessage, projectId, CancellationToken.None))
             {
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
+        public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
             // let other components knows about this event
             _compilationManager.OnNewSolution();

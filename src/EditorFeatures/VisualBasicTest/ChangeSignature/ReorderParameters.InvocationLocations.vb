@@ -616,7 +616,7 @@ End Class]]></Text>.NormalizedValue()
             Dim markup = <Text><![CDATA[
 Class C
     Sub Foo(x As Integer, y As Integer)
-        Foo([|1|], 2)
+        Foo([||]1, 2)
     End Sub
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {1, 0}

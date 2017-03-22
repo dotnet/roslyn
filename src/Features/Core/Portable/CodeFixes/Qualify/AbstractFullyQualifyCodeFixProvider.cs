@@ -248,9 +248,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             foreach (var symbolResult in symbols)
             {
                 var containingSymbol = symbolResult.Symbol.ContainingSymbol as INamespaceOrTypeSymbol;
-                if (containingSymbol is INamespaceSymbol)
+                if (containingSymbol is INamespaceSymbol namespaceSymbol)
                 {
-                    containingSymbol = compilation.GetCompilationNamespace((INamespaceSymbol)containingSymbol);
+                    containingSymbol = compilation.GetCompilationNamespace(namespaceSymbol);
                 }
 
                 if (containingSymbol != null)

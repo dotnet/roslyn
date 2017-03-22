@@ -5,8 +5,7 @@
     <description>
     .Net Compilers package. Referencing this package will cause the project to be built using the specific version of the C# and Visual Basic compilers contained in the package, as opposed to any system installed version.
 
-Supported Platforms:
-- .NET Framework 4.5
+    This package can be used to compile code targeting any platform, but can only be run using the desktop .NET 4.6+ Full Framework.
     </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
@@ -46,8 +45,14 @@ Supported Platforms:
     <file src="Dlls\MSbuildTask\Microsoft.CSharp.Core.targets" target="tools" />
     <file src="Dlls\MSbuildTask\Microsoft.VisualBasic.Core.targets" target="tools" />
 
-    <!-- The assemblies are not signed by us and any deployed copy can be used.  The Exes\Toolset
-         directory specifically has all of the assemblies we need -->
+    <!-- The assemblies are not signed by us and any deployed copy can be used.
+         The Exes\Toolset directory specifically has all of the assemblies we need.
+
+         N.B. This list of facades must be kept in-sync with the
+         other facades used by the compiler. Facades are listed in
+         the src/Setup/DevDivInsertionFiles/BuildDevDivInsertionFiles.vb file, the
+         src/Setup/DevDivVsix/CompilersPackage/Microsoft.CodeAnalysis.Compilers.swr file,
+         and src/Compilers/Extension/CompilerExtension.csproj file. -->
     <file src="Exes\Toolset\Microsoft.Win32.Primitives.dll" target="tools" />
     <file src="Exes\Toolset\System.AppContext.dll" target="tools" />
     <file src="Exes\Toolset\System.Console.dll" target="tools" />
@@ -61,7 +66,6 @@ Supported Platforms:
     <file src="Exes\Toolset\System.IO.FileSystem.Primitives.dll" target="tools" />
     <file src="Exes\Toolset\System.IO.Pipes.dll" target="tools" />
     <file src="Exes\Toolset\System.Reflection.Metadata.dll" target="tools" />
-    <file src="Exes\Toolset\System.Runtime.InteropServices.RuntimeInformation.dll" target="tools" />
     <file src="Exes\Toolset\System.Security.AccessControl.dll" target="tools" />
     <file src="Exes\Toolset\System.Security.Claims.dll" target="tools" />
     <file src="Exes\Toolset\System.Security.Cryptography.Algorithms.dll" target="tools" />
