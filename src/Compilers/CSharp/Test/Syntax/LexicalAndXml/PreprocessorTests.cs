@@ -185,7 +185,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             Assert.Equal(exp.Text, ((DefineDirectiveTriviaSyntax)dt).Name.ValueText); // Text
                         }
-
+                        break;
+                    case SyntaxKind.ErrorDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((ErrorDirectiveTriviaSyntax)dt).EndOfDirectiveToken.ToFullString());
+                        }
+                        break;
+                    case SyntaxKind.LoadDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((LoadDirectiveTriviaSyntax)dt).File.ValueText);
+                        }
+                        break;
+                    case SyntaxKind.UndefDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((UndefDirectiveTriviaSyntax)dt).Name.ValueText);
+                        }
+                        break;
+                    case SyntaxKind.ReferenceDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((ReferenceDirectiveTriviaSyntax)dt).File.ValueText);
+                        }
                         break;
                     case SyntaxKind.LineDirectiveTrivia:
                         var ld = dt as LineDirectiveTriviaSyntax;
@@ -220,7 +243,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             Assert.NotEqual(SyntaxKind.None, ld.File.Kind());
                             Assert.Equal(exp.Text, ld.File.Value);
                         }
-
+                        break;
+                    default:
+                        if (null != exp.Text)
+                        {
+                            Assert.True(false, String.Format("You are expecting some text in the directive, but this method doesn't know how to verify it for `{0}`.", exp.Kind));
+                        }
                         break;
                 } // switch
             }
@@ -2563,7 +2591,7 @@ class A { }
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "FOO(" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "FOO" });
         }
 
         [Fact]
@@ -2587,7 +2615,7 @@ class A { }
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_IdentifierExpected);
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "1234" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
         }
 
         [Fact]
@@ -2998,7 +3026,7 @@ class A { }
             {
                 Kind = SyntaxKind.ErrorDirectiveTrivia,
                 Status = NodeStatus.IsActive,
-                Text = "7.1"
+                Text = "version:7.1"
             });
 
             node.GetDiagnostics().Verify(
@@ -3021,7 +3049,7 @@ class A { }
             {
                 Kind = SyntaxKind.ErrorDirectiveTrivia,
                 Status = NodeStatus.IsActive,
-                Text = "A.B"
+                Text = "version:A.B"
             });
 
             node.GetDiagnostics().Verify(
