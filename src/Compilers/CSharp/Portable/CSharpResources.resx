@@ -5042,6 +5042,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A value of type 'void' may not be assigned.</value>
   </data>
   <data name="ERR_CompilerAndLanguageVersion" xml:space="preserve">
-    <value>Compiler version: '{0}'. Language version: '{1}'.</value>
+    <value>Compiler version: '{0}'. Language version: {1}.</value>
   </data>
 </root>

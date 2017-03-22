@@ -2852,7 +2852,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Compiler version: &apos;{0}&apos;. Language version: &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Compiler version: &apos;{0}&apos;. Language version: {1}..
         /// </summary>
         internal static string ERR_CompilerAndLanguageVersion {
             get {

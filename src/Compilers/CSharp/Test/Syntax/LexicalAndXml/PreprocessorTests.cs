@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     #endregion
 
-    public class PreprocessorTests
+    public class PreprocessorTests : TestBase
     {
         public PreprocessorTests()
         {
@@ -2982,7 +2982,7 @@ class A { }
                 // (1,8): error CS1029: #error: 'version'
                 // #error version
                 Diagnostic(ErrorCode.ERR_ErrorDirective, "version").WithArguments("version").WithLocation(1, 8),
-                // (1,8): error CS8304: Compiler version: '42.42.42.42424 (<developer build>)'. Language version: '4'.
+                // (1,8): error CS8304: Compiler version: '42.42.42.42424 (<developer build>)'. Language version: 4.
                 // #error version
                 Diagnostic(ErrorCode.ERR_CompilerAndLanguageVersion, "version").WithArguments(GetExpectedVersion(), "4").WithLocation(1, 8)
                 );
@@ -2991,7 +2991,7 @@ class A { }
         [Fact]
         public void TestErrorWithVersionNumber()
         {
-            var text = "#error 7.1";
+            var text = "#error version:7.1";
             var node = Parse(text, SourceCodeKind.Regular);
             TestRoundTripping(node, text, disallowErrors: false);
             VerifyDirectivesSpecial(node, new DirectiveInfo
@@ -3002,12 +3002,32 @@ class A { }
             });
 
             node.GetDiagnostics().Verify(
-                // (1,8): error CS1029: #error: '7.1'
-                // #error 7.1
-                Diagnostic(ErrorCode.ERR_ErrorDirective, "7.1").WithArguments("7.1").WithLocation(1, 8),
+                // (1,8): error CS1029: #error: 'version:7.1'
+                // #error version:7.1
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "version:7.1").WithArguments("version:7.1").WithLocation(1, 8),
                 // (1,8): error CS8302: Feature 'version' is not available in C# 7.1. Please use language version 7.1 or greater.
-                // #error 7.1
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "7.1").WithArguments("version", "7.1").WithLocation(1, 8)
+                // #error version:7.1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "version:7.1").WithArguments("version", "7.1").WithLocation(1, 8)
+                );
+        }
+
+        [Fact]
+        public void TestErrorWithInvalidVersion()
+        {
+            var text = "#error version:A.B";
+            var node = Parse(text, SourceCodeKind.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.ErrorDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "A.B"
+            });
+
+            node.GetDiagnostics().Verify(
+                // (1,8): error CS1029: #error: 'version:A.B'
+                // #error version:A.B
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "version:A.B").WithArguments("version:A.B").WithLocation(1, 8)
                 );
         }
         #endregion
@@ -3925,28 +3945,10 @@ class A
 
         private static string GetExpectedVersion()
         {
-            string fileVersion = typeof(CSharpCompiler).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-            string hash = CommonCompiler.ExtractShortCommitHash(typeof(CSharpCompiler).GetTypeInfo().Assembly.GetCustomAttribute<CommitHashAttribute>().Hash);
+            Assembly assembly = typeof(CSharpCompiler).GetTypeInfo().Assembly;
+            string fileVersion = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+            string hash = CommonCompiler.ExtractShortCommitHash(assembly.GetCustomAttribute<CommitHashAttribute>().Hash);
             return $"{fileVersion} ({hash})";
-        }
-
-        internal static DiagnosticDescription Diagnostic(
-            ErrorCode code,
-            string squiggledText = null,
-            object[] arguments = null,
-            LinePosition? startLocation = null,
-            Func<SyntaxNode, bool> syntaxNodePredicate = null,
-            bool argumentOrderDoesNotMatter = false)
-        {
-            return new DiagnosticDescription(
-                (object)(int)code,
-                false,
-                squiggledText,
-                arguments,
-                startLocation,
-                syntaxNodePredicate,
-                argumentOrderDoesNotMatter,
-                code.GetType());
         }
     }
 }

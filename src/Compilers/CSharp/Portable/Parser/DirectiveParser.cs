@@ -316,15 +316,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     if (errorText.Equals("version", StringComparison.Ordinal))
                     {
-                        Assembly assembly = typeof(DirectiveParser).GetTypeInfo().Assembly;
+                        Assembly assembly = typeof(CSharpCompiler).GetTypeInfo().Assembly;
                         string version = CommonCompiler.GetAssemblyFileVersion(assembly);
                         eod = this.AddError(eod, triviaOffset, triviaWidth, ErrorCode.ERR_CompilerAndLanguageVersion, version,
                             this.Options.SpecifiedLanguageVersion.ToDisplayString());
                     }
-                    else if (LanguageVersionFacts.TryParse(errorText, out var languageVersion))
+                    else
                     {
-                        ErrorCode error = languageVersion.GetErrorCode();
-                        eod = this.AddError(eod, triviaOffset, triviaWidth, error, "version", new CSharpRequiredLanguageVersion(languageVersion));
+                        const string versionMarker = "version:";
+                        if (errorText.StartsWith(versionMarker, StringComparison.Ordinal) &&
+                            LanguageVersionFacts.TryParse(errorText.Substring(versionMarker.Length), out var languageVersion))
+                        {
+                            ErrorCode error = languageVersion.GetErrorCode();
+                            eod = this.AddError(eod, triviaOffset, triviaWidth, error, "version", new CSharpRequiredLanguageVersion(languageVersion));
+                        }
                     }
                 }
             }

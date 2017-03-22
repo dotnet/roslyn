@@ -78,7 +78,7 @@ class Program
 @"
 class Program
 {
-#error [|7.1|]
+#error version:[|7.1|]
 }",
                 LanguageVersion.Latest,
                 new CSharpParseOptions(LanguageVersion.CSharp7));
@@ -91,7 +91,7 @@ class Program
 @"
 class Program
 {
-#error [|7.1|]
+#error [|version:7.1|]
 }",
                 LanguageVersion.CSharp7_1,
                 new CSharpParseOptions(LanguageVersion.CSharp7),
