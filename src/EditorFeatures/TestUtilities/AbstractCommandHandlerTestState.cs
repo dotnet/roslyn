@@ -264,6 +264,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             return SubjectBuffer.CurrentSnapshot.GetLineFromPosition(caretPosition).GetText();
         }
 
+        public (string TextBeforeCaret, string TextAfterCaret) GetLineTextAroundCaretPosition()
+        {
+            int bufferCaretPosition = GetCaretPoint().BufferPosition;
+            var line = SubjectBuffer.CurrentSnapshot.GetLineFromPosition(bufferCaretPosition);
+            var lineCaretPosition = bufferCaretPosition - line.Start.Position;
+
+            var text = line.GetText();
+            var textBeforeCaret = text.Substring(0, lineCaretPosition);
+            var textAfterCaret = text.Substring(lineCaretPosition, text.Length - lineCaretPosition);
+
+            return (textBeforeCaret, textAfterCaret);
+        }
+
         public string GetDocumentText()
         {
             return SubjectBuffer.CurrentSnapshot.GetText();
