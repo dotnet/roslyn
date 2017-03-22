@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitInvalidExpression(operation);
         }
 
-        public static void CheckOperationTrees(CSharpCompilation compilation)
+        public static void CheckCSharpOperationTrees(CSharpCompilation compilation)
         {
             var operationWalker = GetInstance();
             foreach (var tree in compilation.SyntaxTrees)
@@ -552,14 +552,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     var bodyNode = methodNode.Body;
                     if (bodyNode != null)
                     {
-                        var operation = semanticModel.GetOperation(bodyNode);
+                        var operation = semanticModel.GetOperationInternal(bodyNode);
                         operationWalker.Visit(operation);
                     }
                 }
             }
         }
 
-        public static void CheckOperationTrees(VisualBasicCompilation compilation)
+        public static void CheckBasicOperationTrees(VisualBasicCompilation compilation)
         {
             var operationWalker = GetInstance();
             foreach (var tree in compilation.SyntaxTrees)
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     // https://github.com/dotnet/roslyn/issues/8919
                     foreach(var statement in methodNode.Statements)
                     {
-                        var operation = semanticModel.GetOperation(statement);
+                        var operation = semanticModel.GetOperationInternal(statement);
                         operationWalker.Visit(operation);
                     }
                 }

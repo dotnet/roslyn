@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             get { return TestOptions.ReleaseDll; }
         }
 
-#region SyntaxTree Factories
+        #region SyntaxTree Factories
 
         public static SyntaxTree Parse(string text, string filename = "", CSharpParseOptions options = null)
         {
@@ -284,9 +284,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return tree;
         }
 
-#endregion
+        #endregion
 
-#region Compilation Factories
+        #region Compilation Factories
 
         public static CSharpCompilation CreateCompilationWithCustomILSource(
             string source,
@@ -570,9 +570,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 references,
                 options);
 
-#if TEST_IOPERATION_INTERFACE
-            SyntaxNodeGetOperationWalker.CheckSyntaxTrees(new CSharpSyntaxNodeGetOperationWalker(), createCompilation());
-#endif
+            ValidateIOperations(createCompilation);
+
             return createCompilation();
         }
 
@@ -584,11 +583,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpParseOptions parseOptions = null)
         {
             var trees = (sources == null) ? null : sources.Select(s => Parse(s, options: parseOptions)).ToArray();
-            Func<CSharpCompilation> createCompilation = 
+            Func<CSharpCompilation> createCompilation =
                 () => CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
-#if TEST_IOPERATION_INTERFACE
-            SyntaxNodeGetOperationWalker.CheckSyntaxTrees(new CSharpSyntaxNodeGetOperationWalker(), createCompilation());
-#endif
+
+            ValidateIOperations(createCompilation);
+
             var c = createCompilation();
             Assert.NotNull(c.Assembly); // force creation of SourceAssemblySymbol
 
@@ -605,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
            Type returnType = null,
            Type hostObjectType = null)
         {
-            Func<CSharpCompilation> createCompilation = 
+            Func<CSharpCompilation> createCompilation =
                 () => CSharpCompilation.CreateScriptCompilation(
                     GetUniqueName(),
                     references: references,
@@ -615,9 +614,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                     returnType: returnType,
                     globalsType: hostObjectType);
 
-#if TEST_IOPERATION_INTERFACE
-            SyntaxNodeGetOperationWalker.CheckSyntaxTrees(new CSharpSyntaxNodeGetOperationWalker(), createCompilation());
-#endif
+            ValidateIOperations(createCompilation);
+
             return createCompilation();
         }
 
@@ -630,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
            Type returnType = null,
            Type hostObjectType = null)
         {
-            Func<CSharpCompilation> createCompilation = 
+            Func<CSharpCompilation> createCompilation =
                 () => CSharpCompilation.CreateScriptCompilation(
                     GetUniqueName(),
                     references: (references != null) ? new[] { MscorlibRef_v4_0_30316_17626 }.Concat(references) : new[] { MscorlibRef_v4_0_30316_17626 },
@@ -640,10 +638,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                     returnType: returnType,
                     globalsType: hostObjectType);
 
-#if TEST_IOPERATION_INTERFACE
-                SyntaxNodeGetOperationWalker.CheckSyntaxTrees(new CSharpSyntaxNodeGetOperationWalker(), createCompilation());
-#endif
-                return createCompilation();
+            ValidateIOperations(createCompilation);
+
+            return createCompilation();
         }
 
         public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, string expectedOutput = null)
@@ -719,9 +716,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CompileAndVerify(comp);
         }
 
-#endregion
+        #endregion
 
-#region Semantic Model Helpers
+        #region Semantic Model Helpers
 
         public Tuple<TNode, SemanticModel> GetBindingNodeAndModel<TNode>(CSharpCompilation compilation, int treeIndex = 0) where TNode : SyntaxNode
         {
@@ -846,9 +843,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Assert.Equal(bindText, node.ToString());
             return ((TNode)node);
         }
-#endregion
+        #endregion
 
-#region Attributes
+        #region Attributes
 
         internal IEnumerable<string> GetAttributeNames(ImmutableArray<SynthesizedAttributeData> attributes)
         {
@@ -860,9 +857,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return attributes.Select(a => a.AttributeClass.Name);
         }
 
-#endregion
+        #endregion
 
-#region Documentation Comments
+        #region Documentation Comments
 
         internal static string GetDocumentationCommentText(CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
         {
@@ -924,9 +921,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
         }
 
-#endregion
+        #endregion
 
-#region IL Validation
+        #region IL Validation
 
         internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
         {
@@ -1060,6 +1057,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
         }
 
-#endregion
+        #endregion
+
+        #region IOperation verification
+
+        private static void ValidateIOperations(Func<CSharpCompilation> createCompilation)
+        {
+#if TEST_IOPERATION_INTERFACE
+            var compilation = createCompilation();
+            TestOperationWalker.CheckCSharpOperationTrees(compilation);
+            SyntaxNodeGetOperationWalker.CheckSyntaxTrees(new CSharpSyntaxNodeGetOperationWalker(), compilation);
+#endif
+        }
+
+        #endregion
     }
 }
