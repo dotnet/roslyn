@@ -66,11 +66,6 @@ Friend Module CompilationUtils
         Dim metadataReferences = If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references))
         assemblyName = If(assemblyName, GetUniqueName())
 
-#If Test_IOperation_Interface Then
-        Dim compilationForOperationWalking = VisualBasicCompilation.Create(assemblyName, sourceTrees, metadataReferences, options)
-        WalkOperationTrees(compilationForOperationWalking)
-#End If
-
         Return VisualBasicCompilation.Create(assemblyName, sourceTrees, metadataReferences, options)
     End Function
 
@@ -307,11 +302,6 @@ Friend Module CompilationUtils
             End If
         End If
 
-#If Test_IOperation_Interface Then
-        Dim compilationForOperationWalking = VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, references, options)
-        WalkOperationTrees(compilationForOperationWalking)
-#End If
-
         Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, references, options)
     End Function
 
@@ -341,27 +331,6 @@ Friend Module CompilationUtils
         DirectCast(c.Assembly, SourceAssemblySymbol).m_lazyIdentity = identity
         Return c
     End Function
-
-#If Test_IOperation_Interface Then
-    Private Sub WalkOperationTrees(compilation As VisualBasicCompilation)
-        Dim operationWalker = TestOperationWalker.GetInstance()
-
-        For Each tree In compilation.SyntaxTrees
-            Dim semanticModel = compilation.GetSemanticModel(tree)
-            Dim root = tree.GetRoot()
-
-            ' need to check other operation root as well (property, etc)
-            For Each methodNode As MethodBlockBaseSyntax In root.DescendantNodesAndSelf().OfType(Of MethodBlockBaseSyntax)
-                ' Have to iterate through statements because a bug:
-                ' https://github.com/dotnet/roslyn/issues/8919
-                For Each statement In methodNode.Statements
-                    Dim operation = semanticModel.GetOperation(statement)
-                    operationWalker.Visit(operation)
-                Next
-            Next
-        Next
-    End Sub
-#End If
 
     ''' <summary>
     ''' 
