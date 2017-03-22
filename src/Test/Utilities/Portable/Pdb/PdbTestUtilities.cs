@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
@@ -12,8 +15,28 @@ namespace Roslyn.Test.Utilities
 {
     internal static class PdbTestUtilities
     {
-        public static EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(this ISymUnmanagedReader3 symReader, MethodDefinitionHandle handle)
+        public unsafe static EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(this ISymUnmanagedReader3 symReader, MethodDefinitionHandle handle)
         {
+            const int S_OK = 0;
+
+            if (symReader is ISymUnmanagedReader4 symReader4)
+            {
+                int hr = symReader4.GetPortableDebugMetadata(out byte* metadata, out int size);
+                Marshal.ThrowExceptionForHR(hr);
+
+                if (hr == S_OK)
+                {
+                    var pdbReader = new MetadataReader(metadata, size);
+
+                    ImmutableArray<byte> GetCdiBytes(Guid kind) =>
+                        TryGetCustomDebugInformation(pdbReader, handle, kind, out var info) ? pdbReader.GetBlobContent(info.Value) : default(ImmutableArray<byte>);
+
+                    return EditAndContinueMethodDebugInformation.Create(
+                        compressedSlotMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLocalSlotMap),
+                        compressedLambdaMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap));
+                }
+            }
+
             var cdi = CustomDebugInfoUtilities.GetCustomDebugInfoBytes(symReader, handle, methodVersion: 1);
             if (cdi == null)
             {
@@ -21,6 +44,28 @@ namespace Roslyn.Test.Utilities
             }
 
             return GetEncMethodDebugInfo(cdi);
+        }
+
+        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
+        private static bool TryGetCustomDebugInformation(MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
+        {
+            bool foundAny = false;
+            customDebugInfo = default(CustomDebugInformation);
+            foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
+            {
+                var info = reader.GetCustomDebugInformation(infoHandle);
+                var id = reader.GetGuid(info.Kind);
+                if (id == kind)
+                {
+                    if (foundAny)
+                    {
+                        throw new BadImageFormatException();
+                    }
+                    customDebugInfo = info;
+                    foundAny = true;
+                }
+            }
+            return foundAny;
         }
 
         public static EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(byte[] customDebugInfoBlob)

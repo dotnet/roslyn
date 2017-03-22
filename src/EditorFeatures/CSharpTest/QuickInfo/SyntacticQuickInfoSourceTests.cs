@@ -329,7 +329,7 @@ if (true)
             string expectedDocumentationComment = null,
             CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, parseOptions))
+            using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions))
             {
                 var testDocument = workspace.Documents.Single();
                 var position = testDocument.CursorPosition.Value;

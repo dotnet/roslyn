@@ -260,7 +260,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="lazyCustomAttributesBag"></param>
         /// <param name="symbolPart">Specific part of the symbol to which the attributes apply, or <see cref="AttributeLocation.None"/> if the attributes apply to the symbol itself.</param>
         /// <param name="earlyDecodingOnly">Indicates that only early decoding should be performed.  WARNING: the resulting bag will not be sealed.</param>
-        /// <param name="addToDiagnostics">Diagnostic bag to report into. If null, diagnostics will be reported into <see cref="AddDeclarationDiagnostics"/></param>
         /// <param name="binderOpt">Binder to use. If null, <see cref="DeclaringCompilation"/> GetBinderFactory will be used.</param>
         /// <returns>Flag indicating whether lazyCustomAttributes were stored on this thread. Caller should check for this flag and perform NotePartComplete if true.</returns>
         internal bool LoadAndValidateAttributes(
@@ -268,7 +267,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag,
             AttributeLocation symbolPart = AttributeLocation.None,
             bool earlyDecodingOnly = false,
-            DiagnosticBag addToDiagnostics = null,
             Binder binderOpt = null)
         {
             var diagnostics = DiagnosticBag.GetInstance();
@@ -353,14 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lazyCustomAttributesBag.SetAttributes(boundAttributes))
             {
                 this.RecordPresenceOfBadAttributes(boundAttributes);
-                if (addToDiagnostics == null)
-                {
-                    this.AddDeclarationDiagnostics(diagnostics);
-                }
-                else
-                {
-                    addToDiagnostics.AddRange(diagnostics);
-                }
+                AddDeclarationDiagnostics(diagnostics);
                 lazyAttributesStoredOnThisThread = true;
                 if (lazyCustomAttributesBag.IsEmpty) lazyCustomAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
             }

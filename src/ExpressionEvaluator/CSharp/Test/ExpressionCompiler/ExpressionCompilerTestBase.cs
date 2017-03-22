@@ -50,19 +50,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         internal static void WithRuntimeInstance(Compilation compilation, Action<RuntimeInstance> validator)
         {
-            WithRuntimeInstance(compilation, null, true, validator);
+            WithRuntimeInstance(compilation, null, validator: validator);
         }
 
         internal static void WithRuntimeInstance(Compilation compilation, IEnumerable<MetadataReference> references, Action<RuntimeInstance> validator)
         {
-            WithRuntimeInstance(compilation, references, true, validator);
+            WithRuntimeInstance(compilation, references, includeLocalSignatures: true, includeIntrinsicAssembly: true, validator: validator);
         }
 
-        internal static void WithRuntimeInstance(Compilation compilation, IEnumerable<MetadataReference> references, bool includeLocalSignatures, Action<RuntimeInstance> validator)
+        internal static void WithRuntimeInstance(
+            Compilation compilation,
+            IEnumerable<MetadataReference> references,
+            bool includeLocalSignatures,
+            bool includeIntrinsicAssembly,
+            Action<RuntimeInstance> validator)
         {
             foreach (var debugFormat in new[] { DebugInformationFormat.Pdb, DebugInformationFormat.PortablePdb })
             {
-                using (var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures))
+                using (var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures, includeIntrinsicAssembly))
                 {
                     validator(instance);
                 }
@@ -82,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             DebugInformationFormat debugFormat = DebugInformationFormat.Pdb,
             bool includeLocalSignatures = true)
         {
-            var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures);
+            var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures, includeIntrinsicAssembly: true);
             _runtimeInstances.Add(instance);
             return instance;
         }

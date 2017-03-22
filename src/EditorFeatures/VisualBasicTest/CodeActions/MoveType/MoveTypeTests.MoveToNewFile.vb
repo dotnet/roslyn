@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
 End Class
 "
 
-            Await TestMissingAsync(code)
+            Await TestMissingInRegularAndScriptAsync(code)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
@@ -25,7 +25,7 @@ Class Outer
 End Class
 "
 
-            Await TestMissingAsync(code)
+            Await TestMissingInRegularAndScriptAsync(code)
     End Function
 
     <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
@@ -136,7 +136,7 @@ End Class
 "
             Await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                index:=1, compareTokens:=False)
+                index:=1, ignoreTrivia:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
@@ -178,6 +178,46 @@ Partial Class Outer
     End Class
 End Class
 "
+            Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
+        End Function
+
+        <WorkItem(16282, "https://github.com/dotnet/roslyn/issues/16282")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function TestTypeInheritance() As Task
+            Dim code =
+"
+Class Outer
+    Inherits Something
+    Implements ISomething
+
+    [||]Class Inner
+        Inherits Other
+        Implements IOther
+
+        Sub M(d as DateTime)
+        End Sub
+    End Class
+End Class
+"
+            Dim codeAfterMove =
+"
+Partial Class Outer
+    Inherits Something
+    Implements ISomething
+End Class"
+            Dim expectedDocumentName = "Inner.vb"
+
+            Dim destinationDocumentText =
+"
+Partial Class Outer
+    Class Inner
+        Inherits Other
+        Implements IOther
+
+        Sub M(d as DateTime)
+        End Sub
+    End Class
+End Class"
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
     End Class

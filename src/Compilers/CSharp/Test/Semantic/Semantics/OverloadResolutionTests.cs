@@ -1229,10 +1229,10 @@ using System;
 using System.Linq.Expressions;
 class p
 {
-    static void Foo<T>(ref Func<T,T> a) { }
+    static void Foo<T>(ref Func<T, T> a) { }
     static void Bar<T>(out Func<T, T> a) { a = null; }
 
-    static void Foo2<T>(ref Expression<Func<T,T>> a) { }
+    static void Foo2<T>(ref Expression<Func<T, T>> a) { }
     static void Bar2<T>(out Expression<Func<T, T>> a) { a = null; }
 
     static void Main()
@@ -1258,7 +1258,6 @@ class p
                 //         Bar2<string>(x => x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Linq.Expressions.Expression<System.Func<string, string>>").WithLocation(17, 22));
         }
-
 
         [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void TestOverloadResolutionTiebreaker()
@@ -1391,8 +1390,8 @@ class C
                 //         Test6<L<string>>(null);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test6<L<string>>").WithArguments("C.L<S>", "S", "string").WithLocation(58, 9));
         }
-        [Fact]
 
+        [Fact]
         public void TestBug9583()
         {
             var source =
@@ -1432,8 +1431,8 @@ class C
                 //         System.Console.WriteLine(VoidReturning());
                 Diagnostic(ErrorCode.ERR_BadArgType, "VoidReturning()").WithArguments("1", "void", "bool").WithLocation(8, 34));
         }
-        [Fact]
 
+        [Fact]
         public void TestBug6156()
         {
             TestOverloadResolutionWithDiff(
@@ -1478,10 +1477,8 @@ class Out2 : Ref2
     // C# says this overrides SLOT2
 }");
         }
+
         [Fact]
-
-
-
         public void TestGenericMethods()
         {
             TestOverloadResolutionWithDiff(
@@ -1503,9 +1500,8 @@ class C
     }
 }");
         }
+
         [Fact]
-
-
         public void TestDelegateBetterness()
         {
             TestOverloadResolutionWithDiff(
@@ -1566,8 +1562,8 @@ class C
 }
 ");
         }
-        [Fact]
 
+        [Fact]
         public void TestTieBreakers()
         {
             TestOverloadResolutionWithDiff(
@@ -1837,9 +1833,9 @@ class Test2
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"),
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
         }
+
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
-
         public void TestBaseAccessForAbstractMembers()
         {
             // Tests:
@@ -1892,9 +1888,9 @@ class Base4<U, V> : Base3<U, V>
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(x, y)").WithArguments("Base3<U, V>.Method(U, V)"),
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Property").WithArguments("Base3<U, V>.Property"));
         }
+
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
-
         public void TestBaseAccessForAbstractMembers1()
         {
             // Tests:
@@ -1919,9 +1915,9 @@ class Base2<A, B> : Base<A, B>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method").WithArguments("Base<A, B>.Method(A, B)"));
         }
+
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
-
         public void TestBaseAccessForAbstractMembers2()
         {
             var source = @"
@@ -7480,7 +7476,6 @@ class Program
 );
         }
 
-
         [Fact]
         [WorkItem(655409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655409")]
         public void TestBug655409()
@@ -9067,6 +9062,171 @@ public enum Something
 }";
             // should be NO errors.
             CompileAndVerify(source, expectedOutput: @"False");
+        }
+
+        [Fact, WorkItem(16478, "https://github.com/dotnet/roslyn/issues/16478")]
+        public void AmbiguousInference_01()
+        {
+            string source =
+@"
+using System;
+using System.Collections.Generic;
+
+public class Test
+{
+    public static void Assert<T>(T a, T b)
+    {
+        Console.WriteLine(""Non collection"");
+    }
+
+    public static void Assert<T>(IEnumerable<T> a, IEnumerable<T> b)
+    {
+        Console.WriteLine(""Collection"");
+    }
+    
+    public static void Main()
+    {
+        string[] a = new[] { ""A"" };
+        StringValues b = new StringValues();
+
+        Assert(a, b);
+        Assert(b, a);
+    }
+    
+    private class StringValues : List<string>
+    {
+        public static implicit operator StringValues(string[] values)
+        {
+            return new StringValues();
+        }
+        
+        public static implicit operator string[] (StringValues value)
+        {
+            return new string[0];
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"Collection
+Collection");
+        }
+
+        [Fact, WorkItem(16478, "https://github.com/dotnet/roslyn/issues/16478")]
+        public void AmbiguousInference_02()
+        {
+            string source =
+@"
+using System;
+using System.Collections.Generic;
+
+public class Test
+{
+    public static void Assert<T>(T a, T b)
+    {
+        Console.WriteLine(""Non collection"");
+    }
+    
+    public static void Main()
+    {
+        string[] a = new[] { ""A"" };
+        StringValues b = new StringValues();
+
+        Assert(a, b);
+        Assert(b, a);
+    }
+    
+    private class StringValues : List<string>
+    {
+        public static implicit operator StringValues(string[] values)
+        {
+            return new StringValues();
+        }
+        
+        public static implicit operator string[] (StringValues value)
+        {
+            return new string[0];
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (17,9): error CS0411: The type arguments for method 'Test.Assert<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Assert(a, b);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Assert").WithArguments("Test.Assert<T>(T, T)").WithLocation(17, 9),
+                // (18,9): error CS0411: The type arguments for method 'Test.Assert<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Assert(b, a);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Assert").WithArguments("Test.Assert<T>(T, T)").WithLocation(18, 9)
+                );
+        }
+
+        /// <summary>
+        /// Inapplicable extension methods with bad arguments, with overloads where
+        /// the instance argument can be converted to 'this' before overloads where the
+        /// instance argument cannot be converted. Overload resolution should choose
+        /// a method with convertible 'this', as with the native compiler.
+        /// </summary>
+        [Fact]
+        public void InapplicableExtensionMethods_1()
+        {
+            string source =
+@"using System;
+class A { }
+class B { }
+class C
+{
+    static void Main()
+    {
+        var a = new A();
+        a.F(o => {}, a);
+    }
+}
+static class E
+{
+    internal static void F(this A x, Action<object> y) { }
+    internal static void F(this A x, Action<object> y, B z) { }
+    internal static void F(this B x, Action<object> y) { }
+    internal static void F(this B x, Action<object> y, A z) { }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (9,22): error CS1503: Argument 3: cannot convert from 'A' to 'B'
+                //         a.F(o => {}, a);
+                Diagnostic(ErrorCode.ERR_BadArgType, "a").WithArguments("3", "A", "B").WithLocation(9, 22));
+        }
+
+        /// <summary>
+        /// Inapplicable extension methods with bad arguments, with overloads where
+        /// the instance argument can be converted to 'this' after overloads where the
+        /// instance argument cannot be converted. Overload resolution should choose
+        /// a method where non-convertible 'this', as with the native compiler.
+        /// </summary>
+        [Fact]
+        public void InapplicableExtensionMethods_2()
+        {
+            string source =
+@"using System;
+class A { }
+class B { }
+class C
+{
+    static void Main()
+    {
+        var a = new A();
+        a.F(o => {}, a);
+    }
+}
+static class E
+{
+    internal static void F(this B x, Action<object> y) { }
+    internal static void F(this B x, Action<object> y, A z) { }
+    internal static void F(this A x, Action<object> y) { }
+    internal static void F(this A x, Action<object> y, B z) { }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS1929: 'A' does not contain a definition for 'F' and the best extension method overload 'E.F(B, Action<object>, A)' requires a receiver of type 'B'
+                //         a.F(o => {}, a);
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("A", "F", "E.F(B, System.Action<object>, A)", "B").WithLocation(9, 9));
         }
     }
 }

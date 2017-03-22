@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
@@ -389,6 +390,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
 
                     builder.SetItem(local.GetSlot(), local.GetName());
+                }
+            }
+            return builder.ToImmutableAndFree();
+        }
+
+        internal static ImmutableArray<int> GetSynthesizedMethods(byte[] assembly, string methodName)
+        {
+            var builder = ArrayBuilder<int>.GetInstance();
+            using (var metadata = ModuleMetadata.CreateFromStream(new MemoryStream(assembly)))
+            {
+                var reader = metadata.MetadataReader;
+                foreach (var handle in reader.MethodDefinitions)
+                {
+                    var methodDef = reader.GetMethodDefinition(handle);
+                    if (reader.StringComparer.Equals(methodDef.Name, methodName))
+                    {
+                        builder.Add(reader.GetToken(handle));
+                    }
                 }
             }
             return builder.ToImmutableAndFree();

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public LocalConstantDefinition(
             string name,
             Location location,
-            Cci.IMetadataConstant compileTimeValue,
+            MetadataConstant compileTimeValue,
             ImmutableArray<TypedConstant> dynamicTransformFlags,
             ImmutableArray<TypedConstant> tupleElementNames)
         {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Location Location { get; }
 
-        public Cci.IMetadataConstant CompileTimeValue { get; }
+        public MetadataConstant CompileTimeValue { get; }
 
         public Cci.ITypeReference Type => CompileTimeValue.Type;
 

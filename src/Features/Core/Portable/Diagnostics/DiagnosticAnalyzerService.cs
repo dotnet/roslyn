@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 hostDiagnosticUpdateSource,
                 registrationService, new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService))
         {
+            // diagnosticAnalyzerProviderService and hostDiagnosticUpdateSource can only be null in test hardness otherwise, it should
+            // never be null
         }
 
         public IAsynchronousOperationListener Listener => _listener;

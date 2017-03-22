@@ -688,10 +688,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
         {
-            var mg = node.Argument as BoundMethodGroup;
-            if (mg != null)
+            if (node.Argument.Kind == BoundKind.MethodGroup)
             {
-                return DelegateCreation(mg.ReceiverOpt, node.MethodOpt, node.Type, node.MethodOpt.IsStatic && !mg.SearchExtensionMethods);
+                throw ExceptionUtilities.UnexpectedValue(BoundKind.MethodGroup);
+            }
+
+            if ((object)node.MethodOpt != null)
+            {
+                bool staticMember = node.MethodOpt.IsStatic && !node.IsExtensionMethod;
+                return DelegateCreation(node.Argument, node.MethodOpt, node.Type, staticMember);
             }
 
             var d = node.Argument.Type as NamedTypeSymbol;

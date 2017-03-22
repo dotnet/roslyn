@@ -2117,7 +2117,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     case EditKind.Move:
                         // Move is always a Rude Edit.
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(edit.Kind);
 
                     case EditKind.Delete:
                         {
@@ -2382,7 +2382,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(edit.Kind);
                 }
 
                 semanticEdits.Add(new SemanticEdit(editKind, oldSymbol, newSymbol, syntaxMapOpt, preserveLocalVariables: syntaxMapOpt != null));
@@ -2550,7 +2550,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (layoutAttribute == null)
             {
-                layoutAttribute = model.Compilation.GetTypeByMetadataName("System.Runtime.InteropServices.StructLayoutAttribute");
+                layoutAttribute = model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName);
                 if (layoutAttribute == null)
                 {
                     return false;

@@ -23,10 +23,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// The <see cref="Solution"/> that was specified when the <see cref="SolutionEditor"/> was constructed.
         /// </summary>
-        public Solution OriginalSolution
-        {
-            get { return _solution; }
-        }
+        public Solution OriginalSolution => _solution;
 
         /// <summary>
         /// Gets the <see cref="DocumentEditor"/> for the corresponding <see cref="DocumentId"/>.

@@ -23,23 +23,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// </summary>
         protected abstract SyntaxNode GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
-        private static readonly ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.ObjectCreation);
-
         protected override CompletionItem CreateItem(
             string displayText, string insertionText, List<ISymbol> symbols,
             SyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
-            return SymbolCompletionItem.Create(
+            return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
+                symbols: symbols,
+                // Always preselect
+                rules: GetCompletionItemRules(symbols).WithMatchPriority(MatchPriority.Preselect),
+                contextPosition: context.Position,
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
-                contextPosition: context.Position,
-                symbols: symbols,
-                supportedPlatforms: supportedPlatformData,
-                matchPriority: MatchPriority.Preselect, // Always preselect
-                tags: s_Tags,
-                rules: GetCompletionItemRules(symbols, context));
+                supportedPlatforms: supportedPlatformData);
         }
 
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)

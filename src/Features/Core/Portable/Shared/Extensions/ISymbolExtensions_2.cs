@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return Glyph.Label;
 
                 case SymbolKind.Local:
+                case SymbolKind.Discard:
                     return Glyph.Local;
 
                 case SymbolKind.NamedType:

@@ -22,7 +22,14 @@ namespace Microsoft.CodeAnalysis.Scripting
             Console.SetOut(_newOut);
         }
 
-        public string Output => _newOut.ToString();
+        public string Output
+        {
+            get
+            {
+                _newOut.Flush();
+                return _newOut.ToString();
+            }
+        }
 
         void IDisposable.Dispose()
         {

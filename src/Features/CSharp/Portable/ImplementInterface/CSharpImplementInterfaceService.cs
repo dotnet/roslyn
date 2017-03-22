@@ -58,21 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             return false;
         }
 
-        protected override bool CanImplementImplicitly
-        {
-            get
-            {
-                return true;
-            }
-        }
+        protected override bool CanImplementImplicitly => true;
 
-        protected override bool HasHiddenExplicitImplementation
-        {
-            get
-            {
-                return true;
-            }
-        }
+        protected override bool HasHiddenExplicitImplementation => true;
 
         private static ClassDeclarationSyntax GetClassDeclarationAt(SyntaxNode root, int position)
         {

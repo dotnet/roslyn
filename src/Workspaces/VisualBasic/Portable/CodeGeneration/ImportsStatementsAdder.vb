@@ -66,12 +66,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                  ToList()
         End Function
 
-        Public Overrides Async Function AddAsync(members As IEnumerable(Of ISymbol),
-                                      placeSystemNamespaceFirst As Boolean,
-                                      options As CodeGenerationOptions,
-                                      cancellationToken As CancellationToken) As Task(Of Document)
+        Public Overrides Async Function AddAsync(
+                placeSystemNamespaceFirst As Boolean,
+                options As CodeGenerationOptions,
+                cancellationToken As CancellationToken) As Task(Of Document)
 
-            Dim importsContainerToMissingNamespaces = Await DetermineNamespaceToImportAsync(members, options, cancellationToken).ConfigureAwait(False)
+            Dim importsContainerToMissingNamespaces = Await DetermineNamespaceToImportAsync(
+                options, cancellationToken).ConfigureAwait(False)
             If importsContainerToMissingNamespaces.Count = 0 Then
                 Return Me.Document
             End If

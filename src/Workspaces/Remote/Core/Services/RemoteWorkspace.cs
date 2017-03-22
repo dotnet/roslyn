@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -12,17 +13,33 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class RemoteWorkspace : Workspace
     {
-        public const string WorkspaceKind_RemoteWorkspace = "RemoteWorkspace";
+        private readonly ISolutionCrawlerRegistrationService _registrationService;
 
         // guard to make sure host API doesn't run concurrently
         private readonly object _gate = new object();
 
         public RemoteWorkspace()
-            : base(RoslynServices.HostServices, workspaceKind: RemoteWorkspace.WorkspaceKind_RemoteWorkspace)
+            : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteWorkspace)
         {
             PrimaryWorkspace.Register(this);
 
             Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+
+            _registrationService = Services.GetService<ISolutionCrawlerRegistrationService>();
+            _registrationService?.Register(this);
+        }
+
+        protected override void Dispose(bool finalize)
+        {
+            base.Dispose(finalize);
+
+            _registrationService?.Unregister(this);
+        }
+
+        // constructor for testing
+        public RemoteWorkspace(string workspaceKind)
+            : base(RoslynServices.HostServices, workspaceKind: workspaceKind)
+        {
         }
 
         // this workspace doesn't allow modification by calling TryApplyChanges.
@@ -57,7 +74,6 @@ namespace Microsoft.CodeAnalysis.Remote
             lock (_gate)
             {
                 this.OnSolutionAdded(solutionInfo);
-                this.UpdateReferencesAfterAdd();
 
                 return this.CurrentSolution;
             }
@@ -80,8 +96,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var newSolution = this.SetCurrentSolution(solution);
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
-
-                this.UpdateReferencesAfterAdd();
 
                 return this.CurrentSolution;
             }

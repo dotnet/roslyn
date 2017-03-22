@@ -23,21 +23,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public abstract ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name);
             public abstract ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name, int arity);
 
-            public bool IsNamespace
-            {
-                get
-                {
-                    return _symbol.IsNamespace;
-                }
-            }
+            public bool IsNamespace => _symbol.IsNamespace;
 
-            public bool IsType
-            {
-                get
-                {
-                    return _symbol.IsType;
-                }
-            }
+            public bool IsType => _symbol.IsType;
         }
     }
 }

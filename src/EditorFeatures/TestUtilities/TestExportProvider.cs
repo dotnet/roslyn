@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.VisualBasic.Simplification.VisualBasicSimplificationService),
                 typeof(CodeAnalysis.CSharp.Rename.CSharpRenameConflictLanguageService),
                 typeof(CodeAnalysis.VisualBasic.Rename.VisualBasicRenameRewriterLanguageServiceFactory),
-                typeof(CodeAnalysis.CSharp.CSharpSemanticFactsService),
-                typeof(CodeAnalysis.VisualBasic.VisualBasicSemanticFactsService),
+                typeof(CodeAnalysis.CSharp.CSharpSemanticFactsServiceFactory),
+                typeof(CodeAnalysis.VisualBasic.VisualBasicSemanticFactsServiceFactory),
                 typeof(CodeAnalysis.CSharp.CodeGeneration.CSharpSyntaxGenerator),
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicSyntaxGenerator),
                 typeof(CSharp.LanguageServices.CSharpContentTypeLanguageService),
@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         }
 
         /// <summary>
-        /// Create fresh ExportProvider that doesnt share anything with others. 
-        /// test can use this export provider to create all new MEF components not shared with others.
+        /// Create fresh ExportProvider that doesn't share anything with others. Tests can use this
+        /// export provider to create all new MEF components not shared with others.
         /// </summary>
         public static ExportProvider CreateExportProviderWithCSharpAndVisualBasic()
         {
@@ -98,8 +98,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         }
 
         /// <summary>
-        /// Create fresh ComposableCatalog that doesnt share anything with others.
-        /// everything under this catalog should have been created from scratch that doesnt share anything with others.
+        /// Create fresh ComposableCatalog that doest share anything with others. Everything under
+        /// this catalog should have been created from scratch that doesn't share anything with 
+        /// others.
         /// </summary>
         public static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()
         {

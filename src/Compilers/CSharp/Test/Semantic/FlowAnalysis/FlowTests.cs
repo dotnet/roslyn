@@ -1519,15 +1519,13 @@ class C
 " + suffix;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (53,15): error CS1643: Not all code paths return a value in anonymous method of type 'DI'
+                // (78,15): error CS1643: Not all code paths return a value in anonymous method of type 'DI'
                 //         ((DI)(delegate { if (x == 1) return 1; Console.WriteLine("Bug"); }))();
-                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, @"delegate { if (x == 1) return 1; Console.WriteLine(""Bug""); }").WithArguments("anonymous method", "DI"),
-
-                // CONSIDER: dev10 doesn't report this warning, but it seems reasonable.
-
-                // (53,9): warning CS0162: Unreachable code detected
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "DI").WithLocation(78, 15),
+                // (78,9): warning CS0162: Unreachable code detected
                 //         ((DI)(delegate { if (x == 1) return 1; Console.WriteLine("Bug"); }))();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "("));
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "(").WithLocation(78, 9)
+                );
         }
 
         [WorkItem(648107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648107")]

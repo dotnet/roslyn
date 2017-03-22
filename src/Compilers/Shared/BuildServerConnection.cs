@@ -4,18 +4,18 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.IO.Pipes;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
-using System.Reflection;
-using System.Security.AccessControl;
-using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Determines if the compiler server is supported in this environment.
         /// </summary>
         internal static bool IsCompilerServerSupported => 
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+            PlatformInformation.IsWindows &&
             GetRuntimeDirectoryOpt() != null &&
             GetPipeNameForPathOpt("") != null;
 

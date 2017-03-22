@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -61,10 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
 
         private void TestAll(string markup)
         {
-            int position;
-            IList<TextSpan> expectedSpans;
-            string source;
-            MarkupTestFile.GetPositionAndSpans(markup, out source, out position, out expectedSpans);
+            MarkupTestFile.GetPositionAndSpans(markup,
+                out var source, out var position, out ImmutableArray<TextSpan> expectedSpans);
 
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var root = tree.GetRoot();

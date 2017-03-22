@@ -82,35 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         out method,
                         ref arguments);
 
-                    var newType = _lambdaRewriter.VisitType(node.Type);
-
                     return new BoundDelegateCreationExpression(
-                        node.Syntax, receiver, method, isExtensionMethod: false, type: newType);
+                        node.Syntax, receiver, method, isExtensionMethod: false, type: node.Type);
                 }
 
                 return base.VisitDelegateCreationExpression(node);
-            }
-
-            public override BoundNode VisitConversion(BoundConversion conversion)
-            {
-                if (conversion.ConversionKind == ConversionKind.MethodGroup &&
-                    conversion.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
-                {
-                    BoundExpression receiver;
-                    MethodSymbol method;
-                    var arguments = default(ImmutableArray<BoundExpression>);
-                    _lambdaRewriter.RemapLocalFunction(
-                        conversion.Syntax,
-                        conversion.SymbolOpt,
-                        out receiver,
-                        out method,
-                        ref arguments);
-                    var newType = _lambdaRewriter.VisitType(conversion.Type);
-
-                    return new BoundDelegateCreationExpression(
-                        conversion.Syntax, receiver, method, isExtensionMethod: false, type: newType);
-                }
-                return base.VisitConversion(conversion);
             }
         }
 
@@ -284,6 +260,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // iteration of nesting will cause alpha-renaming of the captured
             // parameters, meaning that we must replace until there are no
             // more alpha-rename mappings.
+            //
+            // The method symbol references are different from all other
+            // substituted types in this context because the method symbol in
+            // local function references is not rewritten until all local
+            // functions have already been lowered. Everything else is rewritten
+            // by the visitors as the definition is lowered. This means that
+            // only one substition happens per lowering, but we need to do
+            // N substitutions all at once, where N is the number of lowerings.
 
             var builder = ArrayBuilder<TypeSymbol>.GetInstance();
             foreach (var typeArg in typeArguments)
