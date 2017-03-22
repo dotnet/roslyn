@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sourceLocation,
                         symbols,
                         arg + 1,
-                        refParm.ToArgumentDisplayString());
+                        refParm.ToParameterDisplayString());
                 }
             }
             else

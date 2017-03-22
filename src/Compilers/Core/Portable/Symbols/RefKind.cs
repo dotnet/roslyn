@@ -32,16 +32,6 @@ namespace Microsoft.CodeAnalysis
 
     internal static class RefKindExtensions
     {
-        internal static string ToReturnTypeDisplayString(this RefKind kind)
-        {
-            switch (kind)
-            {
-                case RefKind.Ref: return "ref";
-                case RefKind.RefReadOnly: return "ref readonly";
-                default: throw new ArgumentException($"Invalid RefKind for return types: {kind}");
-            }
-        }
-
         internal static string ToParameterDisplayString(this RefKind kind)
         {
             switch (kind)
