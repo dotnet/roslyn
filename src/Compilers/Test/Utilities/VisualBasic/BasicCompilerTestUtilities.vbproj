@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BasicTestBase.vb" />
+    <Compile Include="BasicSyntaxNodeGetOperationWalker.vb" />
     <Compile Include="BasicTrackingDiagnosticAnalyzer.vb" />
     <Compile Include="CompilationTestUtils.vb" />
     <Compile Include="DiagnosticExtensions.vb" />

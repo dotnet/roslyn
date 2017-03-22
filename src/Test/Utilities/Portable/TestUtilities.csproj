@@ -109,6 +109,7 @@
     <Compile Include="Compilation\IRuntimeEnvironment.cs" />
     <Compile Include="Compilation\OperationTreeVerifier.cs" />
     <Compile Include="Compilation\TestOperationWalker.cs" />
+    <Compile Include="Compilation\SyntaxNodelGetOperationWalker.cs" />
     <Compile Include="Compilation\VersionTestHelpers.cs" />
     <Compile Include="ConditionalFactAttribute.cs" />
     <Compile Include="Diagnostics\BoxingOperationAnalyzer.cs" />
