@@ -33,6 +33,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.ErrorSquiggles);
             VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.QuickInfo);
         }
-
     }
 }

@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
-using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -67,5 +64,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void InsertCode(string text)
             => _interactiveWindowInProc.InsertCode(text);
+
+        public bool IsRunning
+            => _interactiveWindowInProc.IsRunning;
     }
 }

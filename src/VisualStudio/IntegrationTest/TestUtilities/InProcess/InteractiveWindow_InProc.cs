@@ -166,6 +166,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
+        public bool IsRunning
+        {
+            get
+            {
+                return _interactiveWindow.IsRunning;
+            }
+        }
+
         public void ShowWindow(bool waitForPrompt = true)
         {
             ExecuteCommand(_viewCommand);
@@ -192,7 +200,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ClearScreen()
         {
-            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_CleanScreen);
+            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ClearScreen);
         }
 
         public void InsertCode(string text)

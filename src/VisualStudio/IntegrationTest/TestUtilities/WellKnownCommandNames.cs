@@ -29,11 +29,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string File_SaveAll = "File.SaveAll";
 
         public const string InteractiveConsole_Reset = "InteractiveConsole.Reset";
-        public const string InteractiveConsole_CleanScreen = "InteractiveConsole.ClearScreen";
+        public const string InteractiveConsole_ClearScreen = "InteractiveConsole.ClearScreen";
         public const string InteractiveConsole_ExecuteInInteractive = "InteractiveConsole.ExecuteInInteractive";
 
         public const string ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages = "ProjectAndSolutionContextMenus.Solution.RestoreNuGetPackages";
-        public const string ProjectandSolutionContextMenus_Project_ResetCSharpInteractiveFromProject = "ProjectandSolutionContextMenus.Project.ResetC#InteractivefromProject";
+        public const string ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject 
+            = "ProjectandSolutionContextMenus.Project.ResetC#InteractiveFromProject";
 
         public const string Refactor_Rename = "Refactor.Rename";
 

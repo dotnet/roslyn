@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Xunit;
@@ -34,7 +35,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.Instance.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
 
             // Clear the line
-            VisualStudio.Instance.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_CleanScreen);
+            VisualStudio.Instance.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
         }
 
         protected void DisableSuggestionMode()
@@ -124,6 +125,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
             foreach (var unexpectedItem in unexpectedItems)
             {
                 Assert.DoesNotContain(unexpectedItem, completionItems);
+            }
+        }
+
+        protected void WaitWhileInteractiveIsRunning()
+        {
+            while (InteractiveWindow.IsRunning)
+            {
+                Task.Delay(50);
             }
         }
 

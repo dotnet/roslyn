@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
@@ -53,12 +54,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected static bool IsCommandAvailable(string commandName)
             => GetDTE().Commands.Item(commandName).IsAvailable;
-
         protected static void ExecuteCommand(string commandName, string args = "")
-        {
-            GetDTE().ExecuteCommand(commandName, args);
-            WaitForApplicationIdle();
-        }
+            => GetDTE().ExecuteCommand(commandName, args);
 
         /// <summary>
         /// Waiting for the application to 'idle' means that it is done pumping messages (including WM_PAINT).

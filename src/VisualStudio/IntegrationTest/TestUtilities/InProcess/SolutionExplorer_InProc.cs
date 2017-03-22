@@ -567,9 +567,37 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var dte = (DTE2)GetDTE();
             var solutionExplorer = dte.ToolWindows.SolutionExplorer;
-            var item = solutionExplorer.GetItem(itemName);
+ 
+            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
             item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
-         }
+            solutionExplorer.Parent.Activate();
+        }
+
+        private static EnvDTE.UIHierarchyItem FindFirstItemRecursively(
+            EnvDTE.UIHierarchyItems currentItems, 
+            string itemName)
+        {
+            if (currentItems == null)
+            {
+                return null;
+            }
+
+            foreach (var item in currentItems.Cast<EnvDTE.UIHierarchyItem>())
+            {
+                if (item.Name == itemName)
+                {
+                    return item;
+                }
+
+                var result = FindFirstItemRecursively(item.UIHierarchyItems, itemName);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
+        }
 
         public void WaitForNoErrorsInErrorList()
         {

@@ -104,6 +104,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public void ExecuteCommand(string commandName, string argument = "")
             => _inProc.ExecuteCommand(commandName, argument);
 
+        public bool IsCommandAvailable(string commandName)
+            => _inProc.IsCommandAvailable(commandName);
+
+        public string[] GetAvailableCommands()
+            => _inProc.GetAvailableCommands();
+
         public bool IsRunning => !HostProcess.HasExited;
 
         public void CleanUp()

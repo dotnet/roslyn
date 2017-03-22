@@ -10,38 +10,36 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpSendToInteractive : AbstractInteractiveWindowTest
     {
+        private const string FileName = "test.cs";
         public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
-            VisualStudio.Instance.SolutionExplorer.CreateSolution(ProjectName);
+            VisualStudio.Instance.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.Instance.SolutionExplorer.AddProject(
-                ProjectName, 
-                WellKnownProjectTemplates.ConsoleApplication, 
+                ProjectName,
+                WellKnownProjectTemplates.ConsoleApplication,
                 LanguageNames.CSharp);
 
-            AddFile("test.cs", @"using System;
+            AddFile(FileName,
+                @"using System;
 
  namespace TestProj
  {
-     public class Program
+     public class Program1
      {
-         public static void Main(string[] args)
+         public static void Main1(string[] args)
          {
-             /* 1 */
-             int x = 1;/* 2 */
+            /* 1 */int x = 1;/* 2 */
+            
+            /* 3 */int y = 2;
+            int z = 3;/* 4 */
+            
+            /* 5 */     string a = ""alpha"";
+            string b = ""x *= 4;            "";/* 6 */
 
-             /* 3 */
-             int y = 2;
-             int z = 3;/* 4 */
-
-             /* 5 */
-             string a = ""alpha"";
-             string b = ""x *= 4;            "";/* 6 */
-
-             /* 7 */
-             int j = 7;/* 8 */
-         }
-     }
+            /* 7 */int j = 7;/* 8 */
+        }
+    }
 
      public class C
      {
@@ -59,11 +57,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void SendSingleLineSubmissionToInteractive()
         {
             InsertCode("// scenario 1");
-            OpenFile(ProjectName, "test.cs");
+            OpenFile(ProjectName, FileName);
             VisualStudio.Instance.Editor.PlaceCaret("/* 1 */", charsOffset: 1);
-            VisualStudio.Instance.Editor.PlaceCaret("/* 2 */",  charsOffset: -1, extendSelection: true);
+            VisualStudio.Instance.Editor.PlaceCaret("/* 2 */", charsOffset: -1, extendSelection: true);
             ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            Wait(seconds: 1); // TODO!!!!
+            WaitWhileInteractiveIsRunning();
             VerifyLastReplOutputContains("int x = 1;");
 
             ClearReplText();
@@ -74,15 +72,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void SendMultipleLineSubmissionToInteractive()
         {
+            // problem here
             InsertCode("// scenario 2");
-            OpenFile(ProjectName, "test.cs");
+            OpenFile(ProjectName, FileName);
             VisualStudio.Instance.Editor.PlaceCaret("/* 3 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 4 */", charsOffset: -1, extendSelection: true);
             ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            Wait(seconds: 1); // TODO!!!!
-
-            VerifyLastReplOutputContains(@"int y = 2;
-.             int z = 3;");
+            WaitWhileInteractiveIsRunning();
+            
+            VerifyLastReplOutputContains("int z = 3;");
             ClearReplText();
             SubmitText("y.ToString()");
             VerifyLastReplOutputContains("\"2\"");
@@ -94,11 +92,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void SendMultipleLineBlockSelectedSubmissionToInteractive()
         {
             InsertCode("// scenario 3");
-            OpenFile(ProjectName, "test.cs");
+            OpenFile(ProjectName, FileName);
             VisualStudio.Instance.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
             VisualStudio.Instance.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true);
             ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            Wait(seconds: 1); // TODO!!!!
+            WaitWhileInteractiveIsRunning();
             VerifyLastReplOutputContains(@"string a = ""alpha"";
 . x *= 4;");
 
@@ -112,10 +110,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact]
+
+
+
+
+
         public void SendToInteractiveWithKeyboardShortcut()
         {
             InsertCode("// scenario 4");
-            OpenFile(ProjectName, "test.cs");
+            OpenFile(ProjectName, FileName);
             VisualStudio.Instance.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
             SendKeys(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
@@ -130,11 +133,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void ExecuteSingleLineSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
             InsertCode("// scenario 5");
-            OpenFile(ProjectName, "test.cs");
+            OpenFile(ProjectName, FileName);
             VisualStudio.Instance.Editor.PlaceCaret("/* 1 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 2 */", charsOffset: -1, extendSelection: true);
             ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            Wait(seconds: 1); // TODO!!!!
+            WaitWhileInteractiveIsRunning();
 
             VerifyLastReplInput("// scenario 5");
             ClearReplText();
@@ -146,11 +149,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void ExecuteMultipleLineSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
             InsertCode("// scenario 6");
-            OpenFile(ProjectName, "test.cs");
+            OpenFile(ProjectName, FileName);
             VisualStudio.Instance.Editor.PlaceCaret("/* 3 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 4 */", charsOffset: -1, extendSelection: true);
             ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            Wait(seconds: 1); // TODO!!!!
+            WaitWhileInteractiveIsRunning();
             VerifyLastReplInput("// scenario 6");
 
             ClearReplText();
@@ -163,21 +166,23 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void ExecuteMultipleLineBlockSelectedSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
+            SubmitText("int x = 1;");
             InsertCode("// scenario 7");
-            OpenFile(ProjectName, "test.cs");
+            OpenFile(ProjectName, FileName);
             VisualStudio.Instance.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
             VisualStudio.Instance.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true, selectBlock: true);
             ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            Wait(seconds: 1); // TODO!!!!
+            WaitWhileInteractiveIsRunning();
             VerifyLastReplInput("// scenario 7");
 
             ClearReplText();
-            SubmitText("a");
+
+            SubmitText("a", waitForPrompt: false);
             VerifyLastReplOutput("\"alpha\"");
 
-            SubmitText("b");
+            SubmitText("b", waitForPrompt: false);
             VerifyLastReplOutputContains("CS0103");
-            SubmitText("x");
+            SubmitText("x", waitForPrompt: false);
             VerifyLastReplOutput("4");
         }
 
@@ -185,15 +190,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void ExecuteInInteractiveWithKeyboardShortcut()
         {
             InsertCode("// scenario 8");
-            OpenFile(ProjectName, "test.cs");
-            VisualStudio.Instance.Editor.PlaceCaret("/* 7 */", charsOffset: 6);
-            VisualStudio.Instance.Editor.PlaceCaret("/* 8 */", charsOffset: -3, extendSelection: true);
-            OpenFile(ProjectName, "test.cs");
-            SendKeys(Ctrl(VirtualKey.Enter));
+            OpenFile(ProjectName, FileName);
+            VisualStudio.Instance.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
+            VisualStudio.Instance.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
+            SendKeys(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
+            WaitWhileInteractiveIsRunning();
             VerifyLastReplInput("// scenario 8");
 
             ClearReplText();
-            SubmitText("j");
+            SubmitText("j", waitForPrompt: false);
             VerifyLastReplOutput("7");
         }
 
@@ -213,21 +218,22 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void ResetInteractiveFromProjectAndVerify()
         {
-            AddReference("TestProj", 
+            AddReference(ProjectName,
                 "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
 
             VisualStudio.Instance.SolutionExplorer.SelectItem(ProjectName);
-            ExecuteCommand(WellKnownCommandNames.ProjectandSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);
+            ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);
 
+            Wait(seconds: 10); // TODO
             SubmitText("x");
             VerifyLastReplOutputContains("CS0103");
 
             SubmitText("(new TestProj.C()).M()");
-            VerifyLastReplOutput("\"C.M()\")");
+            VerifyLastReplOutput("\"C.M()\"");
 
             SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"foo\";");
             SubmitText("f.Text");
-            VerifyLastReplOutput("foo");
+            VerifyLastReplOutput("\"foo\"");
         }
     }
 }

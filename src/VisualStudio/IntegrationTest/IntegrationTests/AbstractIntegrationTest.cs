@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -17,9 +18,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
         protected readonly TextViewWindow_OutOfProc TextViewWindow;
         protected readonly string ProjectName = "TestProj";
+        protected readonly string SolutionName = "TestSolution";
 
         protected AbstractIntegrationTest(
-            VisualStudioInstanceFactory instanceFactory, 
+            VisualStudioInstanceFactory instanceFactory,
             Func<VisualStudioInstanceContext, TextViewWindow_OutOfProc> textViewWindowBuilder)
         {
             VisualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
@@ -61,7 +63,22 @@ namespace Roslyn.VisualStudio.IntegrationTests
             => new KeyPress(virtualKey, ShiftState.Alt);
 
         protected void ExecuteCommand(string commandName, string argument = "")
-            => VisualStudio.Instance.ExecuteCommand(commandName, argument);
+        {
+            if (VisualStudio.Instance.IsCommandAvailable(commandName))
+            {
+                VisualStudio.Instance.ExecuteCommand(commandName, argument);
+            }
+            else
+            {
+                var commands = VisualStudio.Instance.GetAvailableCommands();
+                Assert.False(true,
+                    string.Format(@"Failed with executing command {0}. 
+The list of available commands: 
+{1}",
+              commandName,
+              string.Join(",", commands)));
+            }
+        }
 
         protected void InvokeCompletionList()
         {
