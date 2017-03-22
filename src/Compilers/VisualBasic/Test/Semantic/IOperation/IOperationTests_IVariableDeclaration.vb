@@ -139,11 +139,9 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingStatement (OperationKind.UsingStatement)
-  IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-    IVariableDeclaration: c1 As Program.C (OperationKind.VariableDeclaration)
-      Initializer: IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C)
-  IBlockStatement (0 statements) (OperationKind.BlockStatement)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
+  IVariableDeclaration: c1 As Program.C (OperationKind.VariableDeclaration)
+    Initializer: IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
@@ -167,11 +165,9 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUsingStatement (OperationKind.UsingStatement)
-  IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-    IVariableDeclaration: c1 As Program.C (OperationKind.VariableDeclaration)
-      Initializer: IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C)
-  IBlockStatement (0 statements) (OperationKind.BlockStatement)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
+  IVariableDeclaration: c1 As Program.C (OperationKind.VariableDeclaration)
+    Initializer: IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)

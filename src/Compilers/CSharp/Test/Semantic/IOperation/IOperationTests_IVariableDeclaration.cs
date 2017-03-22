@@ -48,7 +48,7 @@ IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationSt
             VerifyOperationTreeForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree);
         }
 
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementDeclaration()
         {
             string source = @"
@@ -69,18 +69,16 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IFixedStatement (OperationKind.FixedStatement)
-  IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-    IVariableDeclaration: System.Int32* p (OperationKind.VariableDeclaration)
-      Initializer: IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*)
-          IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32)
-            Instance Receiver: ILocalReferenceExpression: reference (OperationKind.LocalReferenceExpression, Type: Program)
-  IBlockStatement (0 statements) (OperationKind.BlockStatement)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
+  IVariableDeclaration: System.Int32* p (OperationKind.VariableDeclaration)
+    Initializer: IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*)
+        IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32)
+          Instance Receiver: ILocalReferenceExpression: reference (OperationKind.LocalReferenceExpression, Type: Program)
 ";
             VerifyOperationTreeForTest<VariableDeclarationSyntax>(source, expectedOperationTree);
         }
 
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementMultipleDeclaration()
         {
             string source = @"
@@ -101,17 +99,15 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IFixedStatement (OperationKind.FixedStatement)
-  IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-    IVariableDeclaration: System.Int32* p1 (OperationKind.VariableDeclaration)
-      Initializer: IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*)
-          IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32)
-            Instance Receiver: ILocalReferenceExpression: reference (OperationKind.LocalReferenceExpression, Type: Program)
-    IVariableDeclaration: System.Int32* p2 (OperationKind.VariableDeclaration)
-      Initializer: IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*)
-          IFieldReferenceExpression: System.Int32 Program.i2 (OperationKind.FieldReferenceExpression, Type: System.Int32)
-            Instance Receiver: ILocalReferenceExpression: reference (OperationKind.LocalReferenceExpression, Type: Program)
-  IBlockStatement (0 statements) (OperationKind.BlockStatement)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
+  IVariableDeclaration: System.Int32* p1 (OperationKind.VariableDeclaration)
+    Initializer: IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*)
+        IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32)
+          Instance Receiver: ILocalReferenceExpression: reference (OperationKind.LocalReferenceExpression, Type: Program)
+  IVariableDeclaration: System.Int32* p2 (OperationKind.VariableDeclaration)
+    Initializer: IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*)
+        IFieldReferenceExpression: System.Int32 Program.i2 (OperationKind.FieldReferenceExpression, Type: System.Int32)
+          Instance Receiver: ILocalReferenceExpression: reference (OperationKind.LocalReferenceExpression, Type: Program)
 ";
             VerifyOperationTreeForTest<VariableDeclarationSyntax>(source, expectedOperationTree);
         }
@@ -144,7 +140,7 @@ IUsingStatement (OperationKind.UsingStatement)
             VerifyOperationTreeForTest<VariableDeclarationSyntax>(source, expectedOperationTree);
         }
 
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarations()
         {
             string source = @"
@@ -163,18 +159,16 @@ class Program : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IUsingStatement (OperationKind.UsingStatement)
-  IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-    IVariableDeclaration: Program p1 (OperationKind.VariableDeclaration)
-      Initializer: IObjectCreationExpression (Constructor: Program..ctor()) (OperationKind.ObjectCreationExpression, Type: Program)
-    IVariableDeclaration: Program p2 (OperationKind.VariableDeclaration)
-      Initializer: IObjectCreationExpression (Constructor: Program..ctor()) (OperationKind.ObjectCreationExpression, Type: Program)
-  IBlockStatement (0 statements) (OperationKind.BlockStatement)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
+  IVariableDeclaration: Program p1 (OperationKind.VariableDeclaration)
+    Initializer: IObjectCreationExpression (Constructor: Program..ctor()) (OperationKind.ObjectCreationExpression, Type: Program)
+  IVariableDeclaration: Program p2 (OperationKind.VariableDeclaration)
+    Initializer: IObjectCreationExpression (Constructor: Program..ctor()) (OperationKind.ObjectCreationExpression, Type: Program)
 ";
             VerifyOperationTreeForTest<VariableDeclarationSyntax>(source, expectedOperationTree);
         }
 
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopDeclaration()
         {
             string source = @"
@@ -192,24 +186,14 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement)
-  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
-      Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32)
-      Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
-  Local_1: System.Int32 i
-  Before: IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-      IVariableDeclaration: System.Int32 i (OperationKind.VariableDeclaration)
-        Initializer: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
-  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement)
-      IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (BinaryOperationKind.IntegerAdd) (OperationKind.IncrementExpression, Type: System.Int32)
-        Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32)
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IBlockStatement (0 statements) (OperationKind.BlockStatement)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
+  IVariableDeclaration: System.Int32 i (OperationKind.VariableDeclaration)
+    Initializer: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
 ";
             VerifyOperationTreeForTest<VariableDeclarationSyntax>(source, expectedOperationTree);
         }
 
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopMultipleDeclarations()
         {
             string source = @"
@@ -226,22 +210,11 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement)
-  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
-      Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32)
-      Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
-  Local_1: System.Int32 i
-  Local_2: System.Int32 j
-  Before: IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-      IVariableDeclaration: System.Int32 i (OperationKind.VariableDeclaration)
-        Initializer: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
-      IVariableDeclaration: System.Int32 j (OperationKind.VariableDeclaration)
-        Initializer: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
-  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement)
-      IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (BinaryOperationKind.IntegerAdd) (OperationKind.IncrementExpression, Type: System.Int32)
-        Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32)
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IBlockStatement (0 statements) (OperationKind.BlockStatement)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
+  IVariableDeclaration: System.Int32 i (OperationKind.VariableDeclaration)
+    Initializer: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
+  IVariableDeclaration: System.Int32 j (OperationKind.VariableDeclaration)
+    Initializer: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
 ";
             VerifyOperationTreeForTest<VariableDeclarationSyntax>(source, expectedOperationTree);
         }
