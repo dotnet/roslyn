@@ -425,6 +425,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
             Assert.Contains(referencedProjectName, projectReferences);
+
+        }
+        protected void InvokeNavigateToAndPressEnter(string text)
+        {
+            ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);
+            Editor.NavigateToSendKeys(text);
+            WaitForAsyncOperations(FeatureAttribute.NavigateTo);
+            Editor.NavigateToSendKeys("{ENTER}");
         }
     }
 }

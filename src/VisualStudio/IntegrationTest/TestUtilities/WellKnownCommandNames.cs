@@ -4,6 +4,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class WellKnownCommandNames
     {
+        public const string Edit_GoToAll = "Edit.GoToAll";
         public const string Edit_ListMembers = "Edit.ListMembers";
         public const string Edit_ParameterInfo = "Edit.ParameterInfo";
         public const string Edit_QuickInfo = "Edit.QuickInfo";

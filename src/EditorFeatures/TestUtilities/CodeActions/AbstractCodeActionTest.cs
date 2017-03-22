@@ -141,6 +141,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
+        internal void EnableOptions(
+            ImmutableArray<PickMembersOption> options,
+            params string[] ids)
+        {
+            foreach (var id in ids)
+            {
+                EnableOption(options, id);
+            }
+        }
+
+        internal void EnableOption(ImmutableArray<PickMembersOption> options, string id)
+        {
+            var option = options.FirstOrDefault(o => o.Id == id);
+            if (option != null)
+            {
+                option.Value = true;
+            }
+        }
+
         internal Task TestWithPickMembersDialogAsync(
             string initialMarkup,
             string expectedMarkup,

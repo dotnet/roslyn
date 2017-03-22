@@ -37,6 +37,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetLineTextBeforeCaret()
             => _editorInProc.GetLineTextBeforeCaret();
 
+        public string GetSelectedText()
+            => _inProc.GetSelectedText();
+
         public string GetLineTextAfterCaret()
             => _editorInProc.GetLineTextAfterCaret();
 
@@ -140,5 +143,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void Undo()
             => _editorInProc.Undo();
+
+        public void NavigateToSendKeys(string keys)
+            => _editorInProc.SendKeysToNavigateTo(keys);
+
+        public void WaitForActiveView(string viewName)
+            => _editorInProc.WaitForActiveView(viewName);
     }
 }

@@ -21,7 +21,6 @@
       <group targetFramework="net46">
         <dependency id="ManagedEsent" version="$ManagedEsentVersion$" />
         <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
-        <dependency id="Microsoft.CodeAnalysis.Elfie" version="$MicrosoftCodeAnalysisElfieVersion$" />
         <dependency id="Microsoft.Composition" version="$MicrosoftCompositionVersion$" />
       </group>
     </dependencies>
