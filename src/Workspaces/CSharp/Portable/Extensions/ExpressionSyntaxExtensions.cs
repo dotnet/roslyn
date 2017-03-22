@@ -2166,7 +2166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var initializerType = semanticModel.GetTypeInfo(equalsValueClause.Value, cancellationToken).Type;
 
-            if (type != null && !type.Equals(initializerType))
+            if (!Equals(type, initializerType))
             {
                 return true;
             }
