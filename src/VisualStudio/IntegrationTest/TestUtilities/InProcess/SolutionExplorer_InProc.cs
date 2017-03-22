@@ -59,9 +59,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             };
         }
 
-        public string DirectoryName => Path.GetDirectoryName(FileName);
+        public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
 
-        public string FileName
+        public string SolutionFileFullPath
         {
             get
             {
