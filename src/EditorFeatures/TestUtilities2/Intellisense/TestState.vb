@@ -188,6 +188,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendCommitUniqueCompletionListItem(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
+        Public Overloads Sub SendSelectCompletionItem(displayText As String)
+            Dim item = CurrentCompletionPresenterSession.CompletionItems.FirstOrDefault(Function(i) i.DisplayText = displayText)
+            Assert.NotNull(item)
+            CurrentCompletionPresenterSession.SetSelectedItem(item)
+        End Sub
+
         Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
             CurrentCompletionPresenterSession.SetSelectedItem(item)
         End Sub
@@ -222,6 +228,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Async Function AssertCompletionSession() As Task
             Await WaitForAsynchronousOperationsAsync()
             Assert.NotNull(Me.CurrentCompletionPresenterSession)
+        End Function
+
+        Public Async Function AssertLineTextAroundCaret(expectedTextBeforeCaret As String, expectedTextAfterCaret As String) As Task
+            Await WaitForAsynchronousOperationsAsync()
+
+            Dim actual = GetLineTextAroundCaretPosition()
+
+            Assert.Equal(expectedTextBeforeCaret, actual.TextBeforeCaret)
+            Assert.Equal(expectedTextAfterCaret, actual.TextAfterCaret)
         End Function
 
         Public Function CompletionItemsContainsAll(displayText As String()) As Boolean
