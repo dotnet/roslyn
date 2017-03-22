@@ -958,5 +958,206 @@ goto Label;");
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[3]").WithLocation(1, 11)
                 );
         }
+
+        [Fact]
+        [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
+        public void Errors_01()
+        {
+            var code = "System.Console.WriteLine(1);";
+            var compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            var syntaxTree = compilationUnit.SyntaxTree;
+            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            var semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+            MemberAccessExpressionSyntax node5 = ErrorTestsGetNode(syntaxTree);
+            Assert.Equal("WriteLine", node5.Name.ToString());
+            Assert.Null(semanticModel.GetSymbolInfo(node5.Name).Symbol);
+
+            compilation.VerifyDiagnostics(
+                // (1,1): error CS7006: Expressions and statements can only occur in a method body
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_GlobalStatement, "System.Console.WriteLine(1);").WithLocation(1, 1)
+                );
+
+            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+            node5 = ErrorTestsGetNode(syntaxTree);
+            Assert.Equal("WriteLine", node5.Name.ToString());
+            Assert.Null(semanticModel.GetSymbolInfo(node5.Name).Symbol);
+
+            compilation.VerifyDiagnostics(
+                // (1,1): error CS7006: Expressions and statements can only occur in a method body
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_GlobalStatement, "System.Console.WriteLine(1);").WithLocation(1, 1),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+
+            syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe);
+            semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+            node5 = ErrorTestsGetNode(syntaxTree);
+            Assert.Equal("WriteLine", node5.Name.ToString());
+            Assert.Equal("void System.Console.WriteLine(System.Int32 value)", semanticModel.GetSymbolInfo(node5.Name).Symbol.ToTestDisplayString());
+
+            CompileAndVerify(compilation, expectedOutput:"1").VerifyDiagnostics();
+
+            syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+            node5 = ErrorTestsGetNode(syntaxTree);
+            Assert.Equal("WriteLine", node5.Name.ToString());
+            Assert.Equal("void System.Console.WriteLine(System.Int32 value)", semanticModel.GetSymbolInfo(node5.Name).Symbol.ToTestDisplayString());
+
+            CompileAndVerify(compilation, expectedOutput: "1").VerifyDiagnostics();
+
+            syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName(""));
+            semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+            node5 = ErrorTestsGetNode(syntaxTree);
+            Assert.Equal("WriteLine", node5.Name.ToString());
+            Assert.Equal("void System.Console.WriteLine(System.Int32 value)", semanticModel.GetSymbolInfo(node5.Name).Symbol.ToTestDisplayString());
+
+            compilation.VerifyDiagnostics(
+                // error CS7088: Invalid 'ScriptClassName' value: ''.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "").WithLocation(1, 1)
+                );
+
+            syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName(null));
+            semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+            node5 = ErrorTestsGetNode(syntaxTree);
+            Assert.Equal("WriteLine", node5.Name.ToString());
+            Assert.Equal("void System.Console.WriteLine(System.Int32 value)", semanticModel.GetSymbolInfo(node5.Name).Symbol.ToTestDisplayString());
+
+            compilation.VerifyDiagnostics(
+                // error CS7088: Invalid 'ScriptClassName' value: 'null'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "null")
+                );
+
+            syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("a\0b"));
+            semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+            node5 = ErrorTestsGetNode(syntaxTree);
+            Assert.Equal("WriteLine", node5.Name.ToString());
+            Assert.Equal("void System.Console.WriteLine(System.Int32 value)", semanticModel.GetSymbolInfo(node5.Name).Symbol.ToTestDisplayString());
+
+            compilation.VerifyDiagnostics(
+                // error CS7088: Invalid 'ScriptClassName' value: 'a\0b'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("ScriptClassName", "a\0b")
+                );
+        }
+
+        [Fact]
+        [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
+        public void Errors_02()
+        {
+            var compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit("\nSystem.Console.WriteLine(1);", options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            var syntaxTree1 = compilationUnit.SyntaxTree;
+            var syntaxTree2 = SyntaxFactory.ParseSyntaxTree("System.Console.WriteLine(2);", options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            MemberAccessExpressionSyntax node1 = ErrorTestsGetNode(syntaxTree1);
+            MemberAccessExpressionSyntax node2 = ErrorTestsGetNode(syntaxTree2);
+            Assert.Equal("WriteLine", node1.Name.ToString());
+            Assert.Equal("WriteLine", node2.Name.ToString());
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree1, syntaxTree2 });
+            var semanticModel1 = compilation.GetSemanticModel(syntaxTree1, true);
+            var semanticModel2 = compilation.GetSemanticModel(syntaxTree2, true);
+            Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol);
+            Assert.Equal("void System.Console.WriteLine(System.Int32 value)", semanticModel2.GetSymbolInfo(node2.Name).Symbol.ToTestDisplayString());
+
+            compilation.VerifyDiagnostics(
+                // (2,1): error CS7006: Expressions and statements can only occur in a method body
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_GlobalStatement, "System.Console.WriteLine(1);").WithLocation(2, 1)
+                );
+
+            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree2, syntaxTree1 });
+            semanticModel1 = compilation.GetSemanticModel(syntaxTree1, true);
+            semanticModel2 = compilation.GetSemanticModel(syntaxTree2, true);
+            Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol);
+            Assert.Equal("void System.Console.WriteLine(System.Int32 value)", semanticModel2.GetSymbolInfo(node2.Name).Symbol.ToTestDisplayString());
+
+            compilation.VerifyDiagnostics(
+                // (2,1): error CS7006: Expressions and statements can only occur in a method body
+                // System.Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_GlobalStatement, "System.Console.WriteLine(1);").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
+        public void Errors_03()
+        {
+            var code = "System.Console.WriteLine(out var x, x);";
+            var compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            var syntaxTree = compilationUnit.SyntaxTree;
+            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            var semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+            MemberAccessExpressionSyntax node5 = ErrorTestsGetNode(syntaxTree);
+            Assert.Equal("WriteLine", node5.Name.ToString());
+            Assert.Null(semanticModel.GetSymbolInfo(node5.Name).Symbol);
+            var x = syntaxTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+            Assert.Null(semanticModel.GetSymbolInfo(x).Symbol);
+
+            compilation.VerifyDiagnostics(
+                // (1,1): error CS7006: Expressions and statements can only occur in a method body
+                // System.Console.WriteLine(out var x, x);
+                Diagnostic(ErrorCode.ERR_GlobalStatement, "System.Console.WriteLine(out var x, x);").WithLocation(1, 1)
+                );
+
+            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script1"));
+            semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+            node5 = ErrorTestsGetNode(syntaxTree);
+            Assert.Equal("WriteLine", node5.Name.ToString());
+            Assert.Null(semanticModel.GetSymbolInfo(node5.Name).Symbol);
+
+            compilation.VerifyDiagnostics(
+                // (1,1): error CS7006: Expressions and statements can only occur in a method body
+                // System.Console.WriteLine(out var x, x);
+                Diagnostic(ErrorCode.ERR_GlobalStatement, "System.Console.WriteLine(out var x, x);").WithLocation(1, 1),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+
+            syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+            node5 = ErrorTestsGetNode(syntaxTree);
+            Assert.Equal("WriteLine", node5.Name.ToString());
+            Assert.Null(semanticModel.GetSymbolInfo(node5.Name).Symbol);
+            x = syntaxTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+            Assert.Equal("var Script.x", semanticModel.GetSymbolInfo(x).Symbol.ToTestDisplayString());
+
+            compilation.VerifyDiagnostics(
+                // (1,34): error CS7019: Type of 'x' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // System.Console.WriteLine(out var x, x);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x").WithArguments("x").WithLocation(1, 34)
+                );
+
+            syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script1"));
+            semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+            node5 = ErrorTestsGetNode(syntaxTree);
+            Assert.Equal("WriteLine", node5.Name.ToString());
+            Assert.Null(semanticModel.GetSymbolInfo(node5.Name).Symbol);
+            x = syntaxTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+            Assert.Equal("var Script1.x", semanticModel.GetSymbolInfo(x).Symbol.ToTestDisplayString());
+
+            compilation.VerifyDiagnostics(
+                // (1,34): error CS7019: Type of 'x' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // System.Console.WriteLine(out var x, x);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x").WithArguments("x").WithLocation(1, 34)
+                );
+        }
+
+        private static MemberAccessExpressionSyntax ErrorTestsGetNode(SyntaxTree syntaxTree)
+        {
+            var node1 = (CompilationUnitSyntax)syntaxTree.GetRoot();
+            var node2 = (GlobalStatementSyntax)node1.Members.First();
+            var node3 = (ExpressionStatementSyntax)node2.Statement;
+            var node4 = (InvocationExpressionSyntax)node3.Expression;
+            var node5 = (MemberAccessExpressionSyntax)node4.Expression;
+            return node5;
+        }
     }
 }

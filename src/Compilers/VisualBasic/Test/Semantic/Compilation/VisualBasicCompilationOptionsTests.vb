@@ -115,7 +115,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestProperty(Function(old, value) old.WithReportSuppressedDiagnostics(value), Function(opt) opt.ReportSuppressedDiagnostics, True)
 
             TestProperty(Function(old, value) old.WithConcurrentBuild(value), Function(opt) opt.ConcurrentBuild, False)
-            TestProperty(Function(old, value) old.WithExtendedCustomDebugInformation(value), Function(opt) opt.ExtendedCustomDebugInformation, False)
             TestProperty(Function(old, value) old.WithCurrentLocalTime(value), Function(opt) opt.CurrentLocalTime, #2015/1/1#)
             TestProperty(Function(old, value) old.WithDebugPlusMode(value), Function(opt) opt.DebugPlusMode, True)
 
@@ -126,6 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestProperty(Function(old, value) old.WithStrongNameProvider(value), Function(opt) opt.StrongNameProvider, New DesktopStrongNameProvider())
         End Sub
 
+        <Fact>
         Public Sub WithXxx()
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName(Nothing).Errors,
 <expected>
@@ -176,12 +176,12 @@ BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OutputKind'
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel(CType(Int32.MaxValue, OptimizationLevel)).Errors,
 <expected>
-BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'DebugInformationKind'
+BC2014: the value '<%= Int32.MaxValue %>' is invalid for option 'OptimizationLevel'
 </expected>)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel(CType(Int32.MinValue, OptimizationLevel)).Errors,
 <expected>
-BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'DebugInformationKind'
+BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'OptimizationLevel'
 </expected>)
 
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(CType(3, OptionStrict)).Errors,
@@ -202,38 +202,32 @@ BC2014: the value '<%= Int32.MinValue %>' is invalid for option 'Platform'
             Assert.Equal(Nothing, TestOptions.ReleaseDll.WithModuleName("foo").WithModuleName(Nothing).ModuleName)
             AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("").Errors,
 <expected>
-BC37206: Name cannot be empty.
-Parameter name: ModuleName
+BC37206: Invalid module name: Name cannot be empty.
 </expected>)
 
             AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a\0a").Errors,
 <expected>
-BC37206: Name contains invalid characters.
-Parameter name: ModuleName
+BC37206: Invalid module name: Name contains invalid characters.
 </expected>)
 
             AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a\uD800b").Errors,
 <expected>
-BC37206: Name contains invalid characters.
-Parameter name: ModuleName
+BC37206: Invalid module name: Name contains invalid characters.
 </expected>)
 
             AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a\\b").Errors,
 <expected>
-BC37206: Name contains invalid characters.
-Parameter name: ModuleName
+BC37206: Invalid module name: Name contains invalid characters.
 </expected>)
 
             AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a/b").Errors,
 <expected>
-BC37206: Name contains invalid characters.
-Parameter name: ModuleName
+BC37206: Invalid module name: Name contains invalid characters.
 </expected>)
 
             AssertTheseDiagnostics(TestOptions.ReleaseDll.WithModuleName("a:b").Errors,
 <expected>
-BC37206: Name contains invalid characters.
-Parameter name: ModuleName
+BC37206: Invalid module name: Name contains invalid characters.
 </expected>)
         End Sub
 
@@ -523,9 +517,9 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
         End Sub
 
         ''' <summary>
-        ''' If this test fails, please update the <see cref="CompilationOptions.GetHashCode" />
-        ''' And <see cref="CompilationOptions.Equals" /> methods to
-        ''' make sure they are doing the right thing with your New field And then update the baseline
+        ''' If this test fails, please update the <see cref="VisualBasicCompilationOptions.GetHashCode" />
+        ''' and <see cref="VisualBasicCompilationOptions.Equals" /> methods and <see cref="VisualBasicCompilationOptions.New"/> to
+        ''' make sure they are doing the right thing with your new field And then update the baseline
         ''' here.
         ''' </summary>
         <Fact>
@@ -541,7 +535,8 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
                 "OptionCompareText",
                 "EmbedVbCoreRuntime",
                 "SuppressEmbeddedDeclarations",
-                "ParseOptions")
+                "ParseOptions",
+                "IgnoreCorLibraryDuplicatedTypes")
         End Sub
 
         <Fact>
@@ -553,6 +548,24 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
 
             Assert.Same(options, options.WithCryptoPublicKey(Nothing))
             Assert.Same(options, options.WithCryptoPublicKey(ImmutableArray(Of Byte).Empty))
+        End Sub
+
+        <Fact>
+        Public Sub WithIgnoreCorLibraryDuplicatedTypes()
+            Dim optionFalse = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
+            Dim optionTrue = optionFalse.WithIgnoreCorLibraryDuplicatedTypes(True)
+
+            Assert.False(optionFalse.IgnoreCorLibraryDuplicatedTypes)
+            Assert.True(optionTrue.IgnoreCorLibraryDuplicatedTypes)
+
+            Assert.Same(optionFalse, optionFalse.WithIgnoreCorLibraryDuplicatedTypes(False))
+
+            Assert.True(optionTrue.Equals(optionFalse.WithIgnoreCorLibraryDuplicatedTypes(True)))
+            Assert.False(optionTrue.Equals(optionFalse))
+
+            Dim optionTrueClone = New VisualBasicCompilationOptions(optionTrue)
+            Assert.Equal(optionTrue, optionTrueClone)
+            Assert.NotEqual(optionFalse, optionTrueClone)
         End Sub
 
     End Class

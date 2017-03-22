@@ -111,13 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var workspace = document.Project.Solution.Workspace;
                 var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                var item = SymbolCompletionItem.Create(
+                var item = SymbolCompletionItem.CreateWithSymbolId(
                     displayText: displayText,
-                    insertionText: null,
-                    symbol: alias ?? type,
-                    contextPosition: position,
-                    matchPriority: MatchPriority.Preselect,
-                    rules: s_rules);
+                    symbols: ImmutableArray.Create(alias ?? type),
+                    rules: s_rules.WithMatchPriority(MatchPriority.Preselect),
+                    contextPosition: position);
 
                 context.AddItem(item);
             }

@@ -13,32 +13,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal class SymbolSpecification
     {
-        public static readonly SymbolSpecification All = new SymbolSpecification(
-            id: Guid.NewGuid(),
-            symbolSpecName: null,
-            symbolKindList: ImmutableArray.Create(
-                new SymbolKindOrTypeKind(SymbolKind.Namespace),
-                new SymbolKindOrTypeKind(TypeKind.Class),
-                new SymbolKindOrTypeKind(TypeKind.Struct),
-                new SymbolKindOrTypeKind(TypeKind.Interface),
-                new SymbolKindOrTypeKind(TypeKind.Delegate),
-                new SymbolKindOrTypeKind(TypeKind.Enum),
-                new SymbolKindOrTypeKind(TypeKind.Module),
-                new SymbolKindOrTypeKind(TypeKind.Pointer),
-                new SymbolKindOrTypeKind(TypeKind.TypeParameter),
-                new SymbolKindOrTypeKind(SymbolKind.Property),
-                new SymbolKindOrTypeKind(SymbolKind.Method),
-                new SymbolKindOrTypeKind(SymbolKind.Field),
-                new SymbolKindOrTypeKind(SymbolKind.Event)),
-            accessibilityList: ImmutableArray.Create(
-                Accessibility.Public,
-                Accessibility.Internal,
-                Accessibility.Private,
-                Accessibility.Protected,
-                Accessibility.ProtectedAndInternal,
-                Accessibility.ProtectedOrInternal),
-            modifiers: ImmutableArray<ModifierKind>.Empty);
-
         public Guid ID { get; }
         public string Name { get; }
 
@@ -59,11 +33,98 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             ApplicableSymbolKindList = symbolKindList;
         }
 
+        public static SymbolSpecification CreateDefaultSymbolSpecification()
+        {
+            // This is used to create new, empty symbol specifications for users to then customize.
+            // Since these customized specifications will eventually coexist with all the other
+            // existing specifications, always use a new, distinct guid.
+
+            return new SymbolSpecification(
+                id: Guid.NewGuid(),
+                symbolSpecName: null,
+                symbolKindList: ImmutableArray.Create(
+                    new SymbolKindOrTypeKind(SymbolKind.Namespace),
+                    new SymbolKindOrTypeKind(TypeKind.Class),
+                    new SymbolKindOrTypeKind(TypeKind.Struct),
+                    new SymbolKindOrTypeKind(TypeKind.Interface),
+                    new SymbolKindOrTypeKind(TypeKind.Delegate),
+                    new SymbolKindOrTypeKind(TypeKind.Enum),
+                    new SymbolKindOrTypeKind(TypeKind.Module),
+                    new SymbolKindOrTypeKind(TypeKind.Pointer),
+                    new SymbolKindOrTypeKind(TypeKind.TypeParameter),
+                    new SymbolKindOrTypeKind(SymbolKind.Property),
+                    new SymbolKindOrTypeKind(SymbolKind.Method),
+                    new SymbolKindOrTypeKind(SymbolKind.Field),
+                    new SymbolKindOrTypeKind(SymbolKind.Event),
+                    new SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                accessibilityList: ImmutableArray.Create(
+                    Accessibility.Public,
+                    Accessibility.Internal,
+                    Accessibility.Private,
+                    Accessibility.Protected,
+                    Accessibility.ProtectedAndInternal,
+                    Accessibility.ProtectedOrInternal),
+                modifiers: ImmutableArray<ModifierKind>.Empty);
+        }
+
         internal bool AppliesTo(ISymbol symbol)
         {
             return AnyMatches(this.ApplicableSymbolKindList, symbol) &&
                    AllMatches(this.RequiredModifierList, symbol) &&
                    AnyMatches(this.ApplicableAccessibilityList, symbol);
+        }
+
+        internal bool AppliesTo(SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility accessibility)
+        {
+            if (ApplicableSymbolKindList.Any() && !ApplicableSymbolKindList.Any(k => k.Equals(kind)))
+            {
+                return false;
+            }
+
+            var collapsedModifiers = CollapseModifiers(RequiredModifierList);
+            if ((modifiers & collapsedModifiers) != collapsedModifiers)
+            {
+                return false;
+            }
+
+            if (ApplicableAccessibilityList.Any() && accessibility != Accessibility.NotApplicable && !ApplicableAccessibilityList.Any(k => k == accessibility))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private DeclarationModifiers CollapseModifiers(ImmutableArray<ModifierKind> requiredModifierList)
+        {
+            if (requiredModifierList == default(ImmutableArray<ModifierKind>))
+            {
+                return new DeclarationModifiers();
+            }
+
+            DeclarationModifiers result = new DeclarationModifiers();
+            foreach (var modifier in requiredModifierList)
+            {
+                switch (modifier.ModifierKindWrapper)
+                {
+                    case ModifierKindEnum.IsAbstract:
+                        result = result.WithIsAbstract(true);
+                        break;
+                    case ModifierKindEnum.IsStatic:
+                        result = result.WithIsStatic(true);
+                        break;
+                    case ModifierKindEnum.IsAsync:
+                        result = result.WithAsync(true);
+                        break;
+                    case ModifierKindEnum.IsReadOnly:
+                        result = result.WithIsReadOnly(true);
+                        break;
+                    case ModifierKindEnum.IsConst:
+                        result = result.WithIsConst(true);
+                        break;
+                }
+            }
+            return result;
         }
 
         private bool AnyMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
@@ -343,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 => new XElement(nameof(ModifierKind), ModifierKindWrapper);
 
             internal static ModifierKind FromXElement(XElement modifierElement)
-                => new ModifierKind((ModifierKindEnum)(ModifierKindEnum)Enum.Parse((Type)typeof(ModifierKindEnum), (string)modifierElement.Value));
+                => new ModifierKind((ModifierKindEnum)Enum.Parse(typeof(ModifierKindEnum), modifierElement.Value));
         }
 
         public enum ModifierKindEnum
@@ -352,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             IsStatic,
             IsAsync,
             IsReadOnly,
-            IsConst
+            IsConst,
         }
     }
 }

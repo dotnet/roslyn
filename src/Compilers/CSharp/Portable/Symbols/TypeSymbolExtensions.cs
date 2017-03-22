@@ -27,6 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsReferenceType || type.IsPointerType() || type.IsNullableType();
         }
 
+        public static bool CanContainNull(this TypeSymbol type)
+        {
+            // unbound type parameters might contain null, even though they cannot be *assigned* null.
+            return !type.IsValueType || type.IsNullableType();
+        }
+
         public static bool CanBeConst(this TypeSymbol typeSymbol)
         {
             Debug.Assert((object)typeSymbol != null);
@@ -1314,7 +1320,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsCustomTaskType(this NamedTypeSymbol type, out object builderArgument)
         {
             Debug.Assert((object)type != null);
-            Debug.Assert(type.SpecialType != SpecialType.System_Void);
 
             var arity = type.Arity;
             if (arity < 2)

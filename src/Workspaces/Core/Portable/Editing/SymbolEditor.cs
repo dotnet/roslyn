@@ -53,18 +53,12 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// The original solution.
         /// </summary>
-        public Solution OriginalSolution
-        {
-            get { return _originalSolution; }
-        }
+        public Solution OriginalSolution => _originalSolution;
 
         /// <summary>
         /// The solution with the edits applied.
         /// </summary>
-        public Solution ChangedSolution
-        {
-            get { return _currentSolution; }
-        }
+        public Solution ChangedSolution => _currentSolution;
 
         /// <summary>
         /// The documents changed since the <see cref="SymbolEditor"/> was constructed.

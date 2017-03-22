@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
@@ -37,20 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
-            var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
-                                         .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
-            var initializer = SyntaxFactory.InitializerExpression(
-                SyntaxKind.CollectionInitializerExpression,
-                CreateExpressions(matches)).WithOpenBraceToken(openBrace);
-
-            if (objectCreation.ArgumentList != null &&
-                objectCreation.ArgumentList.Arguments.Count == 0)
-            {
-                objectCreation = objectCreation.WithType(objectCreation.Type.WithTrailingTrivia(objectCreation.ArgumentList.GetTrailingTrivia()))
-                                               .WithArgumentList(null);
-            }
-
-            return objectCreation.WithInitializer(initializer);
+            return UseInitializerHelpers.GetNewObjectCreation(
+                objectCreation, CreateExpressions(matches));
         }
 
         private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
@@ -86,13 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
         private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
         {
-            if (expression is InvocationExpressionSyntax)
+            if (expression is InvocationExpressionSyntax invocation)
             {
-                return ConvertInvocation((InvocationExpressionSyntax)expression);
+                return ConvertInvocation(invocation);
             }
-            else if (expression is AssignmentExpressionSyntax)
+            else if (expression is AssignmentExpressionSyntax assignment)
             {
-                return ConvertAssignment((AssignmentExpressionSyntax)expression);
+                return ConvertAssignment(assignment);
             }
 
             throw new InvalidOperationException();

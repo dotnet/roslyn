@@ -80,8 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             SyntaxToken arglistToken;
             _lazyParameters = ParameterHelpers.MakeParameters(
-                bodyBinder, this, parameterList, out arglistToken, diagnostics, 
-                allowRefOrOut: true, allowThis: false, beStrict: false);
+                bodyBinder, this, parameterList, out arglistToken,
+                allowRefOrOut: true,
+                allowThis: false,
+                diagnostics: diagnostics);
+
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             _lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
 

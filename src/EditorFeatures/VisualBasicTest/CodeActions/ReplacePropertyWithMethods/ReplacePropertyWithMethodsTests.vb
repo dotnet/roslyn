@@ -6,13 +6,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Replac
     Public Class ReplacePropertyWithMethodsTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New ReplacePropertyWithMethodsCodeRefactoringProvider()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestGetWithBody() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     readonly property [||]Prop as integer
         get 
@@ -29,7 +29,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestIndentation() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     readonly property [||]Prop As Integer
         get 
@@ -49,12 +49,12 @@ end class",
         next
         return count
     End Function
-end class", compareTokens:=False)
+end class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestPrivateProperty() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     private readonly property [||]Prop as integer
         get
@@ -71,7 +71,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestAnonyousType1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     public readonly property [||]Prop as integer 
         get
@@ -94,7 +94,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestAnonyousType2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     public readonly property [||]Prop as integer
         get
@@ -117,7 +117,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestPassedToRef1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     public readonly property [||]Prop as integer
         get
@@ -144,7 +144,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestUsedInAttribute1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 
@@ -180,7 +180,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestSetWithBody1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     writeonly property [||]Prop as integer 
         set
@@ -197,7 +197,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestSetWithBody2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     writeonly property [||]Prop as integer 
         set(val as integer)
@@ -214,7 +214,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestSetReference1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     writeonly property [||]Prop as integer 
         set(val as integer)
@@ -237,7 +237,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestGetterAndSetter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     property [||]Prop as integer
         get
@@ -260,7 +260,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestRecursiveGet() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     readonly property [||]Prop as integer
         get
@@ -277,7 +277,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestRecursiveSet() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     writeonly property [||]Prop as integer
         set
@@ -294,7 +294,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestAbstractProperty() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     public readonly mustoverride property [||]Prop as integer
     public sub M()
@@ -311,7 +311,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestVirtualProperty() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     public readonly overridable property [||]Prop as integer
         get
@@ -335,7 +335,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestInterfaceProperty1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "interface I
     readonly property [||]Prop as integer
 end interface",
@@ -346,7 +346,7 @@ end interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestInterfaceProperty2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "interface I
     writeonly property [||]Prop as integer
 end interface",
@@ -357,7 +357,7 @@ end interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestInterfaceProperty3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "interface I
     property [||]Prop as integer
 end interface",
@@ -369,7 +369,7 @@ end interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestAutoProperty1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     public readonly property [||]Prop as integer
 end class",
@@ -383,7 +383,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestAutoProperty2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     public readonly property [||]Prop as integer
     public sub new()
@@ -403,7 +403,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestAutoProperty4() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     public readonly property [||]Prop as integer = 1
 end class",

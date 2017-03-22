@@ -12,7 +12,6 @@
     <TargetFrameworkIdentifier />
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <RoslynProjectType>DeploymentTest</RoslynProjectType>
-    <OutDir>$(OutDir)UnitTests\Portable\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

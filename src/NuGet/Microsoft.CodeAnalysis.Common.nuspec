@@ -32,7 +32,6 @@
         <dependency id="System.Runtime"                                version="$SystemRuntimeVersion$"/>
         <dependency id="System.Runtime.Extensions"                     version="$SystemRuntimeExtensionsVersion$"/>
         <dependency id="System.Runtime.InteropServices"                version="$SystemRuntimeInteropServicesVersion$"/>
-        <dependency id="System.Runtime.InteropServices.RuntimeInformation" version="$SystemRuntimeInteropServicesRuntimeInformationVersion$"/>
         <dependency id="System.Runtime.Numerics"                       version="$SystemRuntimeNumericsVersion$"/>
         <dependency id="System.Security.Cryptography.Algorithms"       version="$SystemSecurityCryptographyAlgorithmsVersion$"/>
         <dependency id="System.Security.Cryptography.Encoding"         version="$SystemSecurityCryptographyEncodingVersion$"/>

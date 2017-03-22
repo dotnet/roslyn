@@ -100,13 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var moduleBuilder = this.ModuleBuilderOpt;
-                if (moduleBuilder == null)
-                {
-                    return null;
-                }
-
-                return moduleBuilder.DynamicOperationContextType ?? this.Type;
+                return this.ModuleBuilderOpt?.GetDynamicOperationContextType(this.Type);
             }
         }
 

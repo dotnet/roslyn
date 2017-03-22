@@ -76,9 +76,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
             foreach (var child in namespaceSymbol.GetMembers())
             {
-                if (child is INamespaceSymbol)
+                if (child is INamespaceSymbol namespaceChild)
                 {
-                    yield return (EnvDTE.CodeElement)ExternalCodeNamespace.Create(state, projectId, (INamespaceSymbol)child);
+                    yield return (EnvDTE.CodeElement)ExternalCodeNamespace.Create(state, projectId, namespaceChild);
                 }
                 else
                 {

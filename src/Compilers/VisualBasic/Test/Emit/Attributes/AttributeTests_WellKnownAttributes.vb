@@ -5208,5 +5208,113 @@ End Class
             CompileAndVerify(CreateCompilationWithMscorlib45AndVBRuntime(source), symbolValidator:=attributeValidator)
         End Sub
 
+        <Fact, WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")>
+        Public Sub UsingStaticDirectiveDoesNotIgnoreObsoleteAttribute_DifferentSeverity()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System
+Imports TestAssembly.TestError
+Imports TestAssembly.TestWarning
+
+<Obsolete("Broken Error Class", True)>
+Public Class TestError
+    Public Shared Sub TestErrorFunc()
+    End Sub
+End Class
+
+<Obsolete("Broken Warning Class", False)>
+Public Class TestWarning
+    Public Shared Sub TestWarningFunc()
+    End Sub
+End Class
+
+Public Module Test
+    Public Sub Main()
+        TestErrorFunc()
+        TestWarningFunc()
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:="TestAssembly")
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+
+            compilation.AssertTheseDiagnostics(<expected><![CDATA[
+BC30668: 'TestError' is obsolete: 'Broken Error Class'.
+Imports TestAssembly.TestError
+        ~~~~~~~~~~~~~~~~~~~~~~
+BC40000: 'TestWarning' is obsolete: 'Broken Warning Class'.
+Imports TestAssembly.TestWarning
+        ~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact, WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")>
+        Public Sub UsingStaticDirectiveDoesNotIgnoreObsoleteAttribute_NestedClasses()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System
+Imports TestAssembly.ActiveParent.ObsoleteChild
+Imports TestAssembly.ObsoleteParent.ActiveChild
+Imports TestAssembly.BothObsoleteParent.BothObsoleteChild
+
+Public Class ActiveParent
+    <Obsolete>
+    Public Class ObsoleteChild
+        Public Shared Sub ObsoleteChildFunc()
+        End Sub
+    End Class
+End Class
+
+<Obsolete>
+Public Class ObsoleteParent
+    Public Class ActiveChild
+        Public Shared Sub ActiveChildFunc()
+        End Sub
+    End Class
+End Class
+
+<Obsolete>
+Public Class BothObsoleteParent
+    <Obsolete>
+    Public Class BothObsoleteChild
+        Public Shared Sub BothObsoleteFunc()
+        End Sub
+    End Class
+End Class
+
+Public Module Test
+    Public Sub Main()
+        ObsoleteChildFunc()
+        ActiveChildFunc()
+        BothObsoleteFunc()
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:="TestAssembly")
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+
+            compilation.AssertTheseDiagnostics(<expected><![CDATA[
+BC40008: 'ActiveParent.ObsoleteChild' is obsolete.
+Imports TestAssembly.ActiveParent.ObsoleteChild
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC40008: 'ObsoleteParent' is obsolete.
+Imports TestAssembly.ObsoleteParent.ActiveChild
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC40008: 'BothObsoleteParent' is obsolete.
+Imports TestAssembly.BothObsoleteParent.BothObsoleteChild
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC40008: 'BothObsoleteParent.BothObsoleteChild' is obsolete.
+Imports TestAssembly.BothObsoleteParent.BothObsoleteChild
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
     End Class
 End Namespace

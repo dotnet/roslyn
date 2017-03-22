@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
     {
         protected static async Task RunCountTest(XElement input, int cap = 0)
         {
-            using (var workspace = await TestWorkspace.CreateAsync(input))
+            using (var workspace = TestWorkspace.Create(input))
             {
                 foreach (var annotatedDocument in workspace.Documents.Where(d => d.AnnotatedSpans.Any()))
                 {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
 
         protected static async Task RunReferenceTest(XElement input)
         {
-            using (var workspace = await TestWorkspace.CreateAsync(input))
+            using (var workspace = TestWorkspace.Create(input))
             {
                 foreach (var annotatedDocument in workspace.Documents.Where(d => d.AnnotatedSpans.Any()))
                 {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
 
         protected static async Task RunMethodReferenceTest(XElement input)
         {
-            using (var workspace = await TestWorkspace.CreateAsync(input))
+            using (var workspace = TestWorkspace.Create(input))
             {
                 foreach (var annotatedDocument in workspace.Documents.Where(d => d.AnnotatedSpans.Any()))
                 {

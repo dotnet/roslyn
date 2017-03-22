@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         public async Task TestCurlies()
         {
             var code = "public class C {\r\n}";
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, parseOptions: Options.Script))
+            using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: Options.Script))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         public async Task TestTouchingItems()
         {
             var code = "public class C {\r\n  public void Foo(){}\r\n}";
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, Options.Script))
+            using (var workspace = TestWorkspace.CreateCSharp(code, Options.Script))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         public async Task TestAngles()
         {
             var code = "/// <summary>Foo</summary>\r\npublic class C<T> {\r\n  void Foo() {\r\n    bool a = b < c;\r\n    bool d = e > f;\r\n  }\r\n} ";
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, parseOptions: Options.Script))
+            using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: Options.Script))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
@@ -168,7 +168,7 @@ class C
         }
     }
 } ";
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, parseOptions: Options.Script))
+            using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: Options.Script))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
 

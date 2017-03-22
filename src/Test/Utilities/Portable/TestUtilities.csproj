@@ -129,6 +129,7 @@
     <Compile Include="Diagnostics\TrackingDiagnosticAnalyzer.cs" />
     <Compile Include="ExceptionHelper.cs" />
     <Compile Include="CompilerTraitAttribute.cs" />
+    <Compile Include="Extensions\SemanticModelExtensions.cs" />
     <Compile Include="Extensions\SymbolExtensions.cs" />
     <Compile Include="FX\ConsoleOutput.cs" />
     <Compile Include="FX\CultureHelpers.cs" />

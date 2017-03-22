@@ -255,14 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable;
             }
 
-            public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
-            {
-                VisitList(node.LeftVariables);
-                Visit(node.Right);
-                // don't map the deconstruction, conversion or assignment steps
-                return null;
-            }
-
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
             {
                 return false;

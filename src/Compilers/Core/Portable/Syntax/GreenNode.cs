@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract class GreenNode : IObjectWritable, IObjectReadable
+    internal abstract class GreenNode : IObjectWritable
     {
         private string GetDebuggerDisplay()
         {
@@ -450,23 +450,16 @@ namespace Microsoft.CodeAnalysis
             if (hasDiagnostics || hasAnnotations)
             {
                 kindBits |= ExtendedSerializationInfoMask;
-            }
-
-            writer.WriteUInt16(kindBits);
-
-            if (hasDiagnostics || hasAnnotations)
-            {
+                writer.WriteUInt16(kindBits);
                 writer.WriteValue(hasDiagnostics ? this.GetDiagnostics() : null);
                 writer.WriteValue(hasAnnotations ? this.GetAnnotations() : null);
             }
+            else
+            {
+                writer.WriteUInt16(kindBits);
+            }
         }
 
-        Func<ObjectReader, object> IObjectReadable.GetReader()
-        {
-            return this.GetReader();
-        }
-
-        internal abstract Func<ObjectReader, object> GetReader();
         #endregion
 
         #region Annotations 

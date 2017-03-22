@@ -34,7 +34,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private ReadOnly _displayClassVariables As ImmutableDictionary(Of String, DisplayClassVariable)
         Private ReadOnly _hoistedParameterNames As ImmutableHashSet(Of String)
         Private ReadOnly _localsForBinding As ImmutableArray(Of LocalSymbol)
-        Private ReadOnly _syntax As ExecutableStatementSyntax
         Private ReadOnly _methodNotType As Boolean
         Private ReadOnly _voidType As NamedTypeSymbol
 
@@ -47,9 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             locals As ImmutableArray(Of LocalSymbol),
             inScopeHoistedLocals As InScopeHoistedLocals,
             methodDebugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol),
-            syntax As ExecutableStatementSyntax)
+            withSyntax As Boolean)
 
-            _syntax = syntax
             _currentFrame = currentFrame
 
             Debug.Assert(compilation.Options.RootNamespace = "") ' Default value.
@@ -57,8 +55,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim originalCompilation = compilation
 
-            If syntax IsNot Nothing Then
-                compilation = compilation.AddSyntaxTrees(syntax.SyntaxTree)
+            If withSyntax AndAlso
+                compilation.Options.SuppressEmbeddedDeclarations AndAlso
+                compilation.SyntaxTrees.IsEmpty Then
+                ' We need to add an empty tree to the compilation as 
+                ' a workaround for https://github.com/dotnet/roslyn/issues/16885.
+                compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.Dummy)
             End If
 
             Dim defaultNamespaceName As String = methodDebugInfo.DefaultNamespaceName
@@ -109,26 +111,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         Friend Function Compile(
+            syntax As ExecutableStatementSyntax,
             typeName As String,
             methodName As String,
             aliases As ImmutableArray(Of [Alias]),
             testData As Microsoft.CodeAnalysis.CodeGen.CompilationTestData,
             diagnostics As DiagnosticBag,
-            <Out> ByRef resultProperties As ResultProperties) As CommonPEModuleBuilder
+            <Out> ByRef synthesizedMethod As EEMethodSymbol) As CommonPEModuleBuilder
 
-            Dim properties As ResultProperties = Nothing
             Dim objectType = Me.Compilation.GetSpecialType(SpecialType.System_Object)
             Dim synthesizedType = New EENamedTypeSymbol(
                 Me.Compilation.SourceAssembly.GlobalNamespace,
                 objectType,
-                _syntax,
+                syntax,
                 _currentFrame,
                 typeName,
                 methodName,
                 Me,
-                Function(method, diags)
+                Function(method As EEMethodSymbol, diags As DiagnosticBag, ByRef properties As ResultProperties)
                     Dim hasDisplayClassMe = _displayClassVariables.ContainsKey(StringConstants.HoistedMeName)
-                    Dim bindAsExpression = _syntax.Kind = SyntaxKind.PrintStatement
+                    Dim bindAsExpression = syntax.Kind = SyntaxKind.PrintStatement
                     Dim binder = ExtendBinderChain(
                         aliases,
                         method,
@@ -137,8 +139,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         _methodNotType,
                         allowImplicitDeclarations:=Not bindAsExpression)
                     Return If(bindAsExpression,
-                        BindExpression(binder, DirectCast(_syntax, PrintStatementSyntax).Expression, diags, properties),
-                        BindStatement(binder, _syntax, diags, properties))
+                        BindExpression(binder, DirectCast(syntax, PrintStatementSyntax).Expression, diags, properties),
+                        BindStatement(binder, syntax, diags, properties))
                 End Function)
 
             Dim moduleBuilder = CreateModuleBuilder(
@@ -158,18 +160,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 cancellationToken:=CancellationToken.None)
 
             If diagnostics.HasAnyErrors() Then
-                resultProperties = Nothing
+                synthesizedMethod = Nothing
                 Return Nothing
             End If
 
-#If DEBUG Then
-            Dim m = synthesizedType.GetMembers()(0)
-            ' Should be no name mangling since the caller provided explicit names.
-            Debug.Assert(m.ContainingType.MetadataName = typeName)
-            Debug.Assert(m.MetadataName = methodName)
-#End If
-
-            resultProperties = properties
+            synthesizedMethod = DirectCast(synthesizedType.Methods(0), EEMethodSymbol)
             Return moduleBuilder
         End Function
 
@@ -202,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 typeVariablesType = New EENamedTypeSymbol(
                     Me.Compilation.SourceModule.GlobalNamespace,
                     objectType,
-                    _syntax,
+                    Nothing,
                     _currentFrame,
                     ExpressionCompilerConstants.TypeVariablesClassName,
                     Function(m, t)
@@ -218,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim synthesizedType As New EENamedTypeSymbol(
                 Me.Compilation.SourceModule.GlobalNamespace,
                 objectType,
-                _syntax,
+                Nothing,
                 _currentFrame,
                 typeName,
                 Function(m, container)
@@ -241,8 +236,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                                     container,
                                     methodName,
                                     syntax,
-                                    Function(method, diags)
+                                    Function(method As EEMethodSymbol, diags As DiagnosticBag, ByRef properties As ResultProperties)
                                         Dim expression = New BoundLocal(syntax, local, isLValue:=False, type:=local.Type)
+                                        properties = Nothing
                                         Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
                                     End Function)
                                 localBuilder.Add(MakeLocalAndMethod(local, aliasMethod, If(local.IsReadOnly, DkmClrCompilationResultFlags.ReadOnlyResult, DkmClrCompilationResultFlags.None)))
@@ -415,9 +411,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 container,
                 methodName,
                 syntax,
-                Function(method, diagnostics)
+                Function(method As EEMethodSymbol, diagnostics As DiagnosticBag, ByRef properties As ResultProperties)
                     Dim local = method.LocalsForBinding(localIndex)
                     Dim expression = New BoundLocal(syntax, local, isLValue:=False, type:=local.Type)
+                    properties = Nothing
                     Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
                 End Function)
         End Function
@@ -428,9 +425,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 container,
                 methodName,
                 syntax,
-                Function(method, diagnostics)
+                Function(method As EEMethodSymbol, diagnostics As DiagnosticBag, ByRef properties As ResultProperties)
                     Dim parameter = method.Parameters(parameterIndex)
                     Dim expression = New BoundParameter(syntax, parameter, isLValue:=False, type:=parameter.Type)
+                    properties = Nothing
                     Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
                 End Function)
         End Function
@@ -441,8 +439,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 container,
                 methodName,
                 syntax,
-                Function(method, diagnostics)
+                Function(method As EEMethodSymbol, diagnostics As DiagnosticBag, ByRef properties As ResultProperties)
                     Dim expression = New BoundMeReference(syntax, GetNonClosureOrStateMachineContainer(container.SubstitutedSourceType))
+                    properties = Nothing
                     Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
                 End Function)
         End Function
@@ -453,9 +452,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 container,
                 methodName,
                 syntax,
-                Function(method, diagnostics)
+                Function(method As EEMethodSymbol, diagnostics As DiagnosticBag, ByRef properties As ResultProperties)
                     Dim type = method.TypeMap.SubstituteNamedType(typeVariablesType)
                     Dim expression = New BoundObjectCreationExpression(syntax, type.InstanceConstructors(0), ImmutableArray(Of BoundExpression).Empty, Nothing, type)
+                    properties = Nothing
                     Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
                 End Function)
         End Function

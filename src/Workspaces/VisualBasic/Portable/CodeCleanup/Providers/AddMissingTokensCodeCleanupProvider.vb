@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 ' If previousToken has trailing WhitespaceTrivia, strip off the trailing WhitespaceTrivia from the lastToken.
                 Dim lastTrailingTrivia = lastToken.TrailingTrivia
                 If prevTrailingTrivia.Any(SyntaxKind.WhitespaceTrivia) Then
-                    lastTrailingTrivia = lastTrailingTrivia.WithoutLeadingWhitespace()
+                    lastTrailingTrivia = lastTrailingTrivia.WithoutLeadingWhitespaceOrEndOfLine()
                 End If
 
                 ' get the trivia and attach it to the last token
@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim span = originalNode.Span
 
                 If syntaxPredicate() AndAlso
-                   _spans.GetContainingIntervals(span.Start, span.Length).Any() AndAlso
+                   _spans.HasIntervalThatContains(span.Start, span.Length) AndAlso
                    CheckSkippedTriviaForMissingToken(originalNode, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken) Then
 
                     Dim transformedNode = transform(DirectCast(node, T))
@@ -445,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End If
 
                 Dim span = originalToken.Span
-                If Not _spans.GetContainingIntervals(span.Start, span.Length).Any() Then
+                If Not _spans.HasIntervalThatContains(span.Start, span.Length) Then
                     ' token is outside of the provided span
                     Return token
                 End If

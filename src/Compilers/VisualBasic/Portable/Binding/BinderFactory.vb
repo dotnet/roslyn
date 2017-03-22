@@ -342,6 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Select Case methodSyntax.Kind
                             Case SyntaxKind.SubNewStatement,
                                 SyntaxKind.FunctionStatement,
+                                SyntaxKind.OperatorStatement,
                                 SyntaxKind.SubStatement,
                                 SyntaxKind.DeclareFunctionStatement,
                                 SyntaxKind.DeclareSubStatement

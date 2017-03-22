@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
                     return CSharpFeaturesResources.Remove_this_qualification;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(diagnosticId);
             }
         }
 

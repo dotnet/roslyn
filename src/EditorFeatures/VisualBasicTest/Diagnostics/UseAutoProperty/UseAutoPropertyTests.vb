@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseAut
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestSingleGetter1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     readonly property P as integer
@@ -30,7 +30,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestSingleGetter2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     dim i as Integer
     [|readonly property P as integer
@@ -46,7 +46,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestSingleSetter() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -57,7 +57,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestGetterAndSetter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -76,7 +76,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestInitializer() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     dim i as Integer = 1
     [|readonly property P as integer
@@ -101,12 +101,12 @@ end class")
         end get
     end property
 end class",
-            VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic9))
+New TestParameters(VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic9)))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestReadOnlyField() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     [|readonly dim i as integer|]
     property P as integer
@@ -131,12 +131,12 @@ end class")
         end get
     end property
 end class",
-            VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+New TestParameters(VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12)))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestDifferentValueName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -155,7 +155,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestSingleGetterWithMe() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -171,7 +171,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestSingleSetterWithMe() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -184,7 +184,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestGetterAndSetterWithMe() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -202,7 +202,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestGetterWithMutipleStatements() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -216,7 +216,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestSetterWithMutipleStatements() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -230,7 +230,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestSetterWithMutipleStatementsAndGetterWithSingleStatement() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -248,7 +248,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestGetterAndSetterUseDifferentFields() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     dim j as Integer
@@ -265,7 +265,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestFieldAndPropertyHaveDifferentStaticInstance() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|shared i a integer|] 
  property P as Integer
@@ -277,7 +277,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestFieldUseInRefArgument1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -292,7 +292,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestFieldUseInRefArgument2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -306,7 +306,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestNotWithVirtualProperty() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     public virtual property P as Integer 
@@ -318,7 +318,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestNotWithConstField() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|const int i|] 
  property P as Integer
@@ -330,7 +330,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestFieldWithMultipleDeclarators1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     dim [|i|] as integer, j, k
     property P as Integer
@@ -346,7 +346,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestFieldWithMultipleDeclarators2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     dim i, [|j|] as integer, k
     property P as Integer
@@ -363,7 +363,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestFieldWithMultipleDeclarators3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     dim i, j, [|k|] as integer
     property P as Integer
@@ -380,7 +380,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestFieldWithMultipleDeclarators4() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     dim i as integer, [|k|] as integer
     property P as Integer
@@ -397,7 +397,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestFieldAndPropertyInDifferentParts() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "partial class Class1
     [|dim i as integer|]
 end class
@@ -416,7 +416,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestNotWithFieldWithAttribute() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|<A> dim i as integer|]
     property P as Integer
@@ -428,7 +428,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestUpdateReferences() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -450,7 +450,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestUpdateReferencesConflictResolution() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -471,7 +471,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestWriteInConstructor() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -493,7 +493,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestWriteInNotInConstructor1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     property P as Integer
@@ -508,7 +508,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestWriteInNotInConstructor2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     public property P as Integer
@@ -523,7 +523,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestWriteInNotInConstructor3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class1
     [|dim i as integer|]
     public property P as Integer
@@ -547,7 +547,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestAlreadyAutoProperty() As Task
-            Await TestMissingAsync("Class Class1
+            Await TestMissingInRegularAndScriptAsync("Class Class1
     Public Property [|P|] As Integer
 End Class")
         End Function
