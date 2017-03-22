@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
@@ -261,6 +262,31 @@ namespace Microsoft.CodeAnalysis.Serialization
                 // why I can't get text synchronously when async lazy support synchronous callback?
                 result[Text] = state;
             }
+        }
+    }
+
+    /// <summary>
+    /// hold onto object checksum that currently doesn't have a place to hold onto checksum
+    /// </summary>
+    internal static class ChecksumCache
+    {
+        private static readonly ConditionalWeakTable<object, object> s_cache = new ConditionalWeakTable<object, object>();
+
+        public static IReadOnlyList<T> GetOrCreate<T>(IReadOnlyList<T> unorderedList, ConditionalWeakTable<object, object>.CreateValueCallback orderedListGetter)
+        {
+            return (IReadOnlyList<T>)s_cache.GetValue(unorderedList, orderedListGetter);
+        }
+
+        public static Checksum GetOrCreate(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator)
+        {
+            // same key should always return same checksum
+            return (Checksum)s_cache.GetValue(value, checksumCreator);
+        }
+
+        public static T GetOrCreate<T>(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator) where T : IChecksummedObject
+        {
+            // same key should always return same checksum
+            return (T)s_cache.GetValue(value, checksumCreator);
         }
     }
 }

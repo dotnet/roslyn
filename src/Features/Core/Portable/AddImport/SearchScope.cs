@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -52,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 if (Exact)
                 {
                     // We did an exact, case insensitive, search.  Case sensitive matches should
-                    // be preffered though over insensitive ones.
-                    return symbols.SelectAsArray(s => 
+                    // be preferred though over insensitive ones.
+                    return symbols.SelectAsArray(s =>
                         SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1));
                 }
 
@@ -80,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public ProjectSearchScope(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 Project project,
-                bool ignoreCase,
+                bool exact,
                 CancellationToken cancellationToken)
-                : base(provider, ignoreCase, cancellationToken)
+                : base(provider, exact, cancellationToken)
             {
                 _project = project;
             }
@@ -104,9 +102,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public AllSymbolsProjectSearchScope(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 Project project,
-                bool ignoreCase,
+                bool exact,
                 CancellationToken cancellationToken)
-                : base(provider, project, ignoreCase, cancellationToken)
+                : base(provider, project, exact, cancellationToken)
             {
             }
 

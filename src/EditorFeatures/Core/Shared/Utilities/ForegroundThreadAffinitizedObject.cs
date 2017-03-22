@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     {
         private static readonly ForegroundThreadData s_fallbackForegroundThreadData;
         private static ForegroundThreadData s_currentForegroundThreadData;
-        private readonly ForegroundThreadData _foregroundThreadData;
+        private readonly ForegroundThreadData _foregroundThreadDataWhenCreated;
 
         internal static ForegroundThreadData CurrentForegroundThreadData
         {
@@ -66,20 +66,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        internal ForegroundThreadData ForegroundThreadData
-        {
-            get { return _foregroundThreadData; }
-        }
+        internal Thread ForegroundThread => _foregroundThreadDataWhenCreated.Thread;
 
-        internal Thread ForegroundThread
-        {
-            get { return _foregroundThreadData.Thread; }
-        }
-
-        internal TaskScheduler ForegroundTaskScheduler
-        {
-            get { return _foregroundThreadData.TaskScheduler; }
-        }
+        internal TaskScheduler ForegroundTaskScheduler => _foregroundThreadDataWhenCreated.TaskScheduler;
 
         // HACK: This is a dangerous way of establishing the 'foreground' thread affinity of an 
         // AppDomain.  This method should be deleted in favor of forcing derivations of this type
@@ -90,12 +79,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             s_fallbackForegroundThreadData = ForegroundThreadData.CreateDefault(Unknown);
         }
 
-        public ForegroundThreadAffinitizedObject(ForegroundThreadData foregroundThreadData = null, bool assertIsForeground = false)
+        public ForegroundThreadAffinitizedObject(bool assertIsForeground = false)
         {
-            _foregroundThreadData = foregroundThreadData ?? CurrentForegroundThreadData;
+            _foregroundThreadDataWhenCreated = CurrentForegroundThreadData;
 
-            // For sanity's sake, ensure that our idea of "foreground" is the same as WPF's
-            Contract.ThrowIfFalse(Application.Current == null || Application.Current.Dispatcher.Thread == ForegroundThread);
+            // For sanity's sake, ensure that our idea of "foreground" is the same as WPF's. But we won't assert
+            // anything if we haven't figured it out yet.
+            Contract.ThrowIfFalse(
+                CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown ||
+                Application.Current == null ||
+                Application.Current.Dispatcher.Thread == ForegroundThread);
 
             // ForegroundThreadAffinitizedObject might not necessarily be created on a foreground thread.
             // AssertIsForeground here only if the object must be created on a foreground thread.
@@ -108,15 +101,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         public bool IsForeground()
         {
             return Thread.CurrentThread == ForegroundThread;
-        }
-
-        /// <summary>
-        /// Ensure this is a supported scheduling context like Wpf or explicit STA scheduler.
-        /// </summary>
-        /// <returns></returns>
-        public bool IsValid()
-        {
-            return _foregroundThreadData.Kind != Unknown;
         }
 
         public void AssertIsForeground()

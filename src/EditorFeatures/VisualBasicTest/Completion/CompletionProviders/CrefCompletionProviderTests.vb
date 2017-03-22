@@ -416,7 +416,7 @@ Class C
     End Sub
 End Class]]></a>.Value.NormalizeLineEndings()
 
-            Using workspace = Await TestWorkspace.CreateAsync(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text})
+            Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text})
                 Dim called = False
 
                 Dim completionProvider = New CrefCompletionProvider(
@@ -435,7 +435,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Dim service = CreateCompletionService(
                     workspace,
                     ImmutableArray.Create(Of CompletionProvider)(completionProvider))
-                Dim completionList = Await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default)
+                Dim completionList = Await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Invoke)
 
                 Assert.True(called)
             End Using

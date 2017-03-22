@@ -136,14 +136,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.StaticCall(
                 _factory.SpecialType(SpecialType.System_Object),
                 "Equals",
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), input),
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), boundConstant)
+                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), boundConstant),
+                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), input)
                 );
         }
 
         BoundExpression MakeIsDeclarationPattern(SyntaxNode syntax, BoundExpression loweredInput, BoundExpression loweredTarget, bool requiresNullTest)
         {
             var type = loweredTarget.Type;
+
+            // The type here is not a Nullable<T> instance type, as that would have led to the semantic error:
+            // ERR_PatternNullableType: It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.
+            Debug.Assert(!type.IsNullableType());
 
             // a pattern match of the form "expression is Type identifier" is equivalent to
             // an invocation of one of these helpers:
@@ -169,20 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Null(type));
                 }
             }
-            else if (type.IsNullableType())
-            {
-                // While `(o is int?)` is statically an error in the binder, we can get here
-                // through generic substitution. Note that (null is int?) is false.
-
-                // bool Is<T>(object e, out T? t) where T : struct
-                // {
-                //     t = e as T?;
-                //     return t.HasValue;
-                // }
-                return _factory.Call(
-                    _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
-                    GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_get_HasValue));
-            }
             else if (type.IsValueType)
             {
                 // It is possible that the input value is already of the correct type, in which case the pattern
@@ -194,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Literal(true));
                 }
 
-                // It would be possible to improve this code by only assigning t when returning
+                // It may be possible to improve this code by only assigning t when returning
                 // true (avoid returning a new default value)
                 // bool Is<T>(object e, out T t) where T : struct // non-Nullable value type
                 // {
@@ -203,26 +193,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return tmp.HasValue;
                 // }
                 var tmpType = _factory.SpecialType(SpecialType.System_Nullable_T).Construct(type);
-                if (tmpType == loweredInput.Type)
-                {
-                    var value = _factory.Call(
-                        loweredInput,
-                        GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                    var asg2 = _factory.AssignmentExpression(loweredTarget, value);
-                    var result = requiresNullTest ? MakeNullableHasValue(syntax, loweredInput) : _factory.Literal(true);
-                    return _factory.MakeSequence(asg2, result);
-                }
-                else
-                {
-                    var tmp = _factory.SynthesizedLocal(tmpType, syntax);
-                    var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(loweredInput, tmpType));
-                    var value = _factory.Call(
-                        _factory.Local(tmp),
-                        GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                    var asg2 = _factory.AssignmentExpression(loweredTarget, value);
-                    var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
-                    return _factory.MakeSequence(tmp, asg1, asg2, result);
-                }
+                var tmp = _factory.SynthesizedLocal(tmpType, syntax);
+                var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), tmpType == loweredInput.Type ? loweredInput : _factory.As(loweredInput, tmpType));
+                var value = _factory.Call(
+                    _factory.Local(tmp),
+                    UnsafeGetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                var asg2 = _factory.AssignmentExpression(loweredTarget, value);
+                var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
+                return _factory.MakeSequence(tmp, asg1, asg2, result);
             }
             else // type parameter
             {

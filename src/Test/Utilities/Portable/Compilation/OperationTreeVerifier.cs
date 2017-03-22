@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Extensions;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -40,6 +42,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var walker = new OperationTreeVerifier(operation, initialIndent);
             walker.Visit(operation);
             return walker._builder.ToString();
+        }
+
+        public static void Verify(string expectedOperationTree, string actualOperationTree)
+        {
+            char[] newLineChars = Environment.NewLine.ToCharArray();
+            string actual = actualOperationTree.Trim(newLineChars);
+            expectedOperationTree = expectedOperationTree.Trim(newLineChars);
+            expectedOperationTree = Regex.Replace(expectedOperationTree, "([^\r])\n", "$1" + Environment.NewLine);
+            AssertEx.AreEqual(expectedOperationTree, actual);
         }
 
         #region Logging helpers
@@ -208,7 +219,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal override void VisitNoneOperation(IOperation operation)
         {
-            Assert.True(false, "Encountered an IOperation with `Kind == OperationKind.None` while walking the operation tree.");
+            LogString("IOperation: ");
+            LogCommonPropertiesAndNewLine(operation);
         }
 
         public override void VisitBlockStatement(IBlockStatement operation)
@@ -790,7 +802,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ILiteralExpression));
 
-            if (operation.ConstantValue.HasValue && operation.ConstantValue.Value.ToString() == operation.Text)
+            object value;
+            if (operation.ConstantValue.HasValue && ((value = operation.ConstantValue.Value) == null ? "null" : value.ToString()) == operation.Text)
             {
                 LogString($" (Text: {operation.Text})");
             }

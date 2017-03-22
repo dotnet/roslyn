@@ -15,6 +15,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     internal abstract class InteractiveWindow_InProc : InProcComponent
     {
         private const string ResetCommand = "InteractiveConsole.Reset";
+        private const string CleanScreenCommand = "InteractiveConsole.ClearScreen";
         private const string ReplSubmissionText = ". ";
         private const string ReplPromptText = "> ";
 
@@ -44,6 +45,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public string GetReplText()
             => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
+
+        public int GetCaretPosition()
+             => _interactiveWindow.TextView.Caret.Position.BufferPosition.Position;
 
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.
@@ -97,6 +101,30 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             firstNewLineIndex += Environment.NewLine.Length;
             return replText.Substring(firstNewLineIndex, replText.Length - firstNewLineIndex);
+        }
+
+        /// <summary>
+        /// Gets the last input from the REPL.
+        /// </summary>
+        public string GetLastReplInput()
+        {
+            // TODO: This may be flaky if the last submission contains ReplPromptText
+            // TODO: ReplSubmissionText is not yet supported
+
+            var replText = GetReplText();
+            var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
+
+            replText = replText.Substring(lastPromptIndex, replText.Length - lastPromptIndex);
+            replText = replText.Substring(ReplPromptText.Length);
+
+            var firstNewLineIndex = replText.IndexOf(Environment.NewLine);
+
+            if (firstNewLineIndex <= 0)
+            {
+                return replText;
+            }
+
+            return replText.Substring(0, firstNewLineIndex);
         }
 
         public void Reset(bool waitForPrompt = true)
@@ -156,6 +184,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void WaitForReplOutput(string outputText)
             => WaitForReplOutputAsync(outputText).Wait();
+
+        public void ClearScreen()
+        {
+            ExecuteCommand(CleanScreenCommand);
+        }
+
+        public void InsertCode(string text)
+        {
+            _interactiveWindow.InsertCode(text);
+        }
 
         private async Task WaitForReplOutputAsync(string outputText)
         {

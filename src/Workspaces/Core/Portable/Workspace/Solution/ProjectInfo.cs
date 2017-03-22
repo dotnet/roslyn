@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_lazyChecksum == null)
                     {
-                        _lazyChecksum = Checksum.Create(this, nameof(ProjectAttributes));
+                        _lazyChecksum = Checksum.Create(nameof(ProjectAttributes), this);
                     }
 
                     return _lazyChecksum;

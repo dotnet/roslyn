@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnLeft_Equals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -43,7 +43,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnLeft_NotEquals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -67,7 +67,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnRight_Equals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -91,7 +91,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnRight_NotEquals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -115,7 +115,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestComplexExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -139,7 +139,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestParens1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -163,7 +163,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestParens2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -187,7 +187,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestParens3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -211,7 +211,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestParens4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -235,7 +235,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestFixAll1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -261,7 +261,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestFixAll2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -285,7 +285,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestFixAll3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -310,7 +310,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestTrivia1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -332,7 +332,34 @@ class Program
 
         string y = x ?? string.Empty;
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestInExpressionOfT()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void Main(string s, string y)
+    {
+        Expression<Func<string>> e = () => [||]s != null ? s : y;
+    }
+}",
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void Main(string s, string y)
+    {
+        Expression<Func<string>> e = () => {|Warning:s ?? y|};
+    }
+}");
         }
     }
 }

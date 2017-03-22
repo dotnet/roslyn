@@ -808,11 +808,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Place open brace on new line for methods.
+        ///   Looks up a localized string similar to Place open brace on new line for methods and local functions.
         /// </summary>
-        internal static string Place_open_brace_on_new_line_for_methods {
+        internal static string Place_open_brace_on_new_line_for_methods_local_functions {
             get {
-                return ResourceManager.GetString("Place_open_brace_on_new_line_for_methods", resourceCulture);
+                return ResourceManager.GetString("Place_open_brace_on_new_line_for_methods_local_functions", resourceCulture);
             }
         }
         

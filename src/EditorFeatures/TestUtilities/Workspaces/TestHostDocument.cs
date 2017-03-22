@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public int? CursorPosition { get; }
         public IList<TextSpan> SelectedSpans { get; }
-        public IDictionary<string, IList<TextSpan>> AnnotatedSpans { get; }
+        public IDictionary<string, ImmutableArray<TextSpan>> AnnotatedSpans { get; }
 
         /// <summary>
         /// If a file exists in ProjectA and is added to ProjectB as a link, then this returns
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ITextBuffer textBuffer,
             string filePath,
             int? cursorPosition,
-            IDictionary<string, IList<TextSpan>> spans,
+            IDictionary<string, ImmutableArray<TextSpan>> spans,
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             IReadOnlyList<string> folders = null,
             bool isLinkFile = false)
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 this.SelectedSpans = spans[string.Empty];
             }
 
-            this.AnnotatedSpans = new Dictionary<string, IList<TextSpan>>();
+            this.AnnotatedSpans = new Dictionary<string, ImmutableArray<TextSpan>>();
             foreach (var namedSpanList in spans.Where(s => s.Key != string.Empty))
             {
                 this.AnnotatedSpans.Add(namedSpanList);

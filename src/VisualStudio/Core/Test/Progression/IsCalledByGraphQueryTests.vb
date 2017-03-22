@@ -9,7 +9,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class IsCalledByGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function IsCalledBySimpleTests() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">

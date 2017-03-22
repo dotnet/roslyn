@@ -43,19 +43,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         {
             _package = package ?? throw new ArgumentNullException(nameof(package));
 
-            var menuCommandService = ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
 
-            if (menuCommandService != null)
+            if (ServiceProvider.GetService(typeof(IMenuCommandService)) is OleMenuCommandService menuCommandService)
             {
                 var startMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidStartIntegrationTestService);
-                _startMenuCmd = new MenuCommand(StartServiceCallback, startMenuCmdId) {
+                _startMenuCmd = new MenuCommand(StartServiceCallback, startMenuCmdId)
+                {
                     Enabled = true,
                     Visible = true
                 };
                 menuCommandService.AddCommand(_startMenuCmd);
 
                 var stopMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidStopIntegrationTestService);
-                _stopMenuCmd = new MenuCommand(StopServiceCallback, stopMenuCmdId) {
+                _stopMenuCmd = new MenuCommand(StopServiceCallback, stopMenuCmdId)
+                {
                     Enabled = false,
                     Visible = false
                 };

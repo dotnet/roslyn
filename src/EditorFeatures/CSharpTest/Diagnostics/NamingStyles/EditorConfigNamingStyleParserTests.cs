@@ -185,6 +185,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
+        public static void TestParametersAreCamelCaseRule()
+        {
+            var dictionary = new Dictionary<string, object>()
+            {
+                ["dotnet_naming_rule.parameters_are_camel_case.severity"] = "suggestion",
+                ["dotnet_naming_rule.parameters_are_camel_case.symbols"] = "parameters",
+                ["dotnet_naming_rule.parameters_are_camel_case.style"] = "camel_case_style",
+                ["dotnet_naming_symbols.parameters.applicable_kinds"] = "parameter",
+                ["dotnet_naming_style.camel_case_style.capitalization"] = "camel_case",
+            };
+
+            var result = ParseDictionary(dictionary);
+            Assert.Single(result.NamingRules);
+            var namingRule = result.NamingRules.Single();
+            Assert.Single(result.NamingStyles);
+            var namingStyle = result.NamingStyles.Single();
+            Assert.Single(result.SymbolSpecifications);
+
+            var symbolSpec = result.SymbolSpecifications.Single();
+            Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
+            Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
+            Assert.Equal(DiagnosticSeverity.Info, namingRule.EnforcementLevel);
+
+            Assert.Equal("parameters", symbolSpec.Name);
+            var expectedApplicableSymbolKindList = new[] { new SymbolKindOrTypeKind(SymbolKind.Parameter) };
+            AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
+
+            Assert.Equal("camel_case_style", namingStyle.Name);
+            Assert.Equal("", namingStyle.Prefix);
+            Assert.Equal("", namingStyle.Suffix);
+            Assert.Equal("", namingStyle.WordSeparator);
+            Assert.Equal(Capitalization.CamelCase, namingStyle.CapitalizationScheme);
+        }
+
+        [Fact]
         public static void TestNoRulesAreReturned()
         {
             var dictionary = new Dictionary<string, object>()
@@ -197,6 +232,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Empty(result.NamingRules);
             Assert.Empty(result.NamingStyles);
             Assert.Empty(result.SymbolSpecifications);
+        }
+
+        [Fact]
+        public static void TestApplicableAccessibilitiesParse()
+        {
+            var charpRule = new Dictionary<string, object>()
+            {
+                ["dotnet_naming_rule.accessibilities_parse.severity"] = "error",
+                ["dotnet_naming_rule.accessibilities_parse.symbols"] = "accessibilities",
+                ["dotnet_naming_rule.accessibilities_parse.style"] = "pascal_case",
+                ["dotnet_naming_symbols.accessibilities.applicable_accessibilities"] = "internal,protected_internal",
+                ["dotnet_naming_style.pascal_case.capitalization "] = "pascal_case",
+            };
+            var vbRule = new Dictionary<string, object>()
+            {
+                ["dotnet_naming_rule.accessibilities_parse.severity"] = "error",
+                ["dotnet_naming_rule.accessibilities_parse.symbols"] = "accessibilities",
+                ["dotnet_naming_rule.accessibilities_parse.style"] = "pascal_case",
+                ["dotnet_naming_symbols.accessibilities.applicable_accessibilities"] = "friend,protected_friend",
+                ["dotnet_naming_style.pascal_case.capitalization "] = "pascal_case",
+            };
+
+            var csharpResult = ParseDictionary(charpRule);
+            var vbResult = ParseDictionary(vbRule);
+
+            Assert.Equal(csharpResult.SymbolSpecifications.SelectMany(x => x.ApplicableAccessibilityList),
+                         vbResult.SymbolSpecifications.SelectMany(x => x.ApplicableAccessibilityList));
+        }
+
+        [Fact]
+        public static void TestRequiredModifiersParse()
+        {
+            var charpRule = new Dictionary<string, object>()
+            {
+                ["dotnet_naming_rule.modifiers_parse.severity"] = "error",
+                ["dotnet_naming_rule.modifiers_parse.symbols"] = "modifiers",
+                ["dotnet_naming_rule.modifiers_parse.style"] = "pascal_case",
+                ["dotnet_naming_symbols.modifiers.required_modifiers"] = "abstract,static",
+                ["dotnet_naming_style.pascal_case.capitalization "] = "pascal_case",
+            };
+            var vbRule = new Dictionary<string, object>()
+            {
+                ["dotnet_naming_rule.modifiers_parse.severity"] = "error",
+                ["dotnet_naming_rule.modifiers_parse.symbols"] = "modifiers",
+                ["dotnet_naming_rule.modifiers_parse.style"] = "pascal_case",
+                ["dotnet_naming_symbols.modifiers.required_modifiers"] = "must_inherit,shared",
+                ["dotnet_naming_style.pascal_case.capitalization "] = "pascal_case",
+            };
+
+            var csharpResult = ParseDictionary(charpRule);
+            var vbResult = ParseDictionary(vbRule);
+
+            Assert.Equal(csharpResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.Modifier)),
+                         vbResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.Modifier)));
+            Assert.Equal(csharpResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.ModifierKindWrapper)),
+                         vbResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.ModifierKindWrapper)));
         }
     }
 }

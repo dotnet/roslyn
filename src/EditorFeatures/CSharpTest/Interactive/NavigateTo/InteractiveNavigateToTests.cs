@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
     {
         protected override string Language => "csharp";
 
-        protected override Task<TestWorkspace> CreateWorkspace(string content, ExportProvider exportProvider)
-            => TestWorkspace.CreateCSharpAsync(content, parseOptions: Options.Script);
+        protected override TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider)
+            => TestWorkspace.CreateCSharp(content, parseOptions: Options.Script);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task NoItemsForEmptyFile()

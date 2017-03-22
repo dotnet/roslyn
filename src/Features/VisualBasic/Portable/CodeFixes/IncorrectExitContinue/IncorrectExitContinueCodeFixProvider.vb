@@ -267,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
                 Case SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock
                     Return SyntaxKind.ExitPropertyStatement
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(blockKind)
             End Select
         End Function
 
@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
                 Case SyntaxKind.WhileBlock
                     Return SyntaxKind.ContinueWhileStatement
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(blockKind)
             End Select
         End Function
 

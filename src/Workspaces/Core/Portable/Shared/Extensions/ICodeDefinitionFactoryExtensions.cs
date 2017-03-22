@@ -15,28 +15,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ICodeDefinitionFactoryExtensions
     {
-        public static SyntaxNode CreateThrowNotImplementStatement(
+        public static SyntaxNode CreateThrowNotImplementedStatement(
             this SyntaxGenerator codeDefinitionFactory,
             Compilation compilation)
         {
             return codeDefinitionFactory.ThrowStatement(
-                codeDefinitionFactory.ObjectCreationExpression(
-                    compilation.NotImplementedExceptionType(),
-                    SpecializedCollections.EmptyList<SyntaxNode>()));
+               codeDefinitionFactory.ObjectCreationExpression(
+                   codeDefinitionFactory.TypeExpression(compilation.NotImplementedExceptionType(), addImport: false),
+                   SpecializedCollections.EmptyList<SyntaxNode>()));
         }
 
-        public static IList<SyntaxNode> CreateThrowNotImplementedStatementBlock(
-            this SyntaxGenerator codeDefinitionFactory,
-            Compilation compilation)
-        {
-            return new[] { CreateThrowNotImplementStatement(codeDefinitionFactory, compilation) };
-        }
+        public static ImmutableArray<SyntaxNode> CreateThrowNotImplementedStatementBlock(
+            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
+            => ImmutableArray.Create(CreateThrowNotImplementedStatement(codeDefinitionFactory, compilation));
 
-        public static IList<SyntaxNode> CreateArguments(
+        public static ImmutableArray<SyntaxNode> CreateArguments(
             this SyntaxGenerator factory,
             ImmutableArray<IParameterSymbol> parameters)
         {
-            return parameters.Select(p => CreateArgument(factory, p)).ToList();
+            return parameters.SelectAsArray(p => CreateArgument(factory, p));
         }
 
         private static SyntaxNode CreateArgument(
@@ -54,27 +51,34 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // Create a constructor that calls the base constructor.  Note: if there are no
             // parameters then don't bother writing out "base()" it's automatically implied.
             return CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 typeName: typeName,
                 parameters: constructor.Parameters,
-                statements: null,
-                baseConstructorArguments: constructor.Parameters.Length == 0 ? null : factory.CreateArguments(constructor.Parameters));
+                statements: default(ImmutableArray<SyntaxNode>),
+                baseConstructorArguments: constructor.Parameters.Length == 0
+                    ? default(ImmutableArray<SyntaxNode>)
+                    : factory.CreateArguments(constructor.Parameters));
         }
 
         public static IEnumerable<ISymbol> CreateFieldDelegatingConstructor(
             this SyntaxGenerator factory,
+            Compilation compilation,
             string typeName,
             INamedTypeSymbol containingTypeOpt,
-            IList<IParameterSymbol> parameters,
+            ImmutableArray<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
             IDictionary<string, string> parameterToNewFieldMap,
+            bool addNullChecks,
+            bool preferThrowExpression,
             CancellationToken cancellationToken)
         {
             var fields = factory.CreateFieldsForParameters(parameters, parameterToNewFieldMap);
-            var statements = factory.CreateAssignmentStatements(parameters, parameterToExistingFieldMap, parameterToNewFieldMap)
-                                    .Select(s => s.WithAdditionalAnnotations(Simplifier.Annotation));
+            var statements = factory.CreateAssignmentStatements(
+                compilation, parameters, parameterToExistingFieldMap, parameterToNewFieldMap, 
+                addNullChecks, preferThrowExpression).SelectAsArray(
+                    s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
             foreach (var field in fields)
             {
@@ -82,16 +86,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             yield return CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 typeName: typeName,
                 parameters: parameters,
-                statements: statements.ToList(),
+                statements: statements,
                 thisConstructorArguments: GetThisConstructorArguments(containingTypeOpt, parameterToExistingFieldMap));
         }
 
-        private static IList<SyntaxNode> GetThisConstructorArguments(
+        private static ImmutableArray<SyntaxNode> GetThisConstructorArguments(
             INamedTypeSymbol containingTypeOpt,
             IDictionary<string, ISymbol> parameterToExistingFieldMap)
         {
@@ -110,11 +114,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // We have less field assignments than actual fields.  Generate a call to the
                     // default constructor as well.
-                    return new List<SyntaxNode>();
+                    return ImmutableArray<SyntaxNode>.Empty;
                 }
             }
 
-            return null;
+            return default(ImmutableArray<SyntaxNode>);
         }
 
         public static IEnumerable<IFieldSymbol> CreateFieldsForParameters(
@@ -135,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (TryGetValue(parameterToNewFieldMap, parameterName, out var fieldName))
                     {
                         yield return CodeGenerationSymbolFactory.CreateFieldSymbol(
-                            attributes: null,
+                            attributes: default(ImmutableArray<AttributeData>),
                             accessibility: Accessibility.Private,
                             modifiers: default(DeclarationModifiers),
                             type: parameterType,
@@ -165,12 +169,44 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static IEnumerable<SyntaxNode> CreateAssignmentStatements(
+        public static SyntaxNode CreateThrowArgumentNullExpression(
             this SyntaxGenerator factory,
+            Compilation compilation,
+            IParameterSymbol parameter)
+        {
+            return factory.ThrowExpression(
+                factory.ObjectCreationExpression(
+                    compilation.GetTypeByMetadataName("System.ArgumentNullException"),
+                    factory.NameOfExpression(
+                        factory.IdentifierName(parameter.Name))));
+        }
+
+        public static SyntaxNode CreateIfNullThrowStatement(
+            this SyntaxGenerator factory,
+            Compilation compilation,
+            IParameterSymbol parameter)
+        {
+            return factory.IfStatement(
+                factory.ReferenceEqualsExpression(
+                    factory.IdentifierName(parameter.Name),
+                    factory.NullLiteralExpression()),
+                SpecializedCollections.SingletonEnumerable(
+                    factory.ExpressionStatement(
+                        factory.CreateThrowArgumentNullExpression(compilation, parameter))));
+        }
+
+        public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(
+            this SyntaxGenerator factory,
+            Compilation compilation,
             IList<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
-            IDictionary<string, string> parameterToNewFieldMap)
+            IDictionary<string, string> parameterToNewFieldMap,
+            bool addNullChecks,
+            bool preferThrowExpression)
         {
+            var nullCheckStatements = ArrayBuilder<SyntaxNode>.GetInstance();
+            var assignStatements = ArrayBuilder<SyntaxNode>.GetInstance();
+
             foreach (var parameter in parameters)
             {
                 var refKind = parameter.RefKind;
@@ -180,12 +216,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 if (refKind == RefKind.Out)
                 {
                     // If it's an out param, then don't create a field for it.  Instead, assign
-                    // assign the default value for that type (i.e. "default(...)") to it.
+                    // the default value for that type (i.e. "default(...)") to it.
                     var assignExpression = factory.AssignmentStatement(
                         factory.IdentifierName(parameterName),
                         factory.DefaultExpression(parameterType));
                     var statement = factory.ExpressionStatement(assignExpression);
-                    yield return statement;
+                    assignStatements.Add(statement);
                 }
                 else
                 {
@@ -196,13 +232,61 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         var fieldAccess = factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(fieldName))
                                                  .WithAdditionalAnnotations(Simplifier.Annotation);
-                        var assignExpression = factory.AssignmentStatement(
-                            fieldAccess, factory.IdentifierName(parameterName));
-                        var statement = factory.ExpressionStatement(assignExpression);
-                        yield return statement;
+
+                        factory.AddAssignmentStatements(
+                            compilation, parameter, fieldAccess,
+                            addNullChecks, preferThrowExpression,
+                            nullCheckStatements, assignStatements);
                     }
                 }
             }
+
+            return nullCheckStatements.ToImmutableAndFree().Concat(assignStatements.ToImmutableAndFree());
+        }
+
+        public static void AddAssignmentStatements(
+             this SyntaxGenerator factory,
+             Compilation compilation,
+             IParameterSymbol parameter,
+             SyntaxNode fieldAccess,
+             bool addNullChecks,
+             bool preferThrowExpression,
+             ArrayBuilder<SyntaxNode> nullCheckStatements,
+             ArrayBuilder<SyntaxNode> assignStatements)
+        {
+            var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck();
+            if (shouldAddNullCheck && preferThrowExpression)
+            {
+                // Generate: this.x = x ?? throw ...
+                assignStatements.Add(CreateAssignWithNullCheckStatement(
+                    factory, compilation, parameter, fieldAccess));
+            }
+            else
+            {
+                if (shouldAddNullCheck)
+                {
+                    // generate: if (x == null) throw ...
+                    nullCheckStatements.Add(
+                        factory.CreateIfNullThrowStatement(compilation, parameter));
+                }
+
+                // generate: this.x = x;
+                assignStatements.Add(
+                    factory.ExpressionStatement(
+                        factory.AssignmentStatement(
+                            fieldAccess,
+                            factory.IdentifierName(parameter.Name))));
+            }
+        }
+
+        public static SyntaxNode CreateAssignWithNullCheckStatement(
+            this SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter, SyntaxNode fieldAccess)
+        {
+            return factory.ExpressionStatement(factory.AssignmentStatement(
+                fieldAccess,
+                factory.CoalesceExpression(
+                    factory.IdentifierName(parameter.Name),
+                    factory.CreateThrowArgumentNullExpression(compilation, parameter))));
         }
 
         public static async Task<IPropertySymbol> OverridePropertyAsync(
@@ -223,16 +307,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (overriddenProperty.IsAbstract)
             {
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                getBody = codeFactory.CreateThrowNotImplementStatement(compilation);
-                setBody = getBody;
+                var statement = codeFactory.CreateThrowNotImplementedStatement(compilation);
+
+                getBody = statement;
+                setBody = statement;
             }
             else if (overriddenProperty.IsIndexer() && document.Project.Language == LanguageNames.CSharp)
             {
                 // Indexer: return or set base[]. Only in C#, since VB must refer to these by name.
+
                 getBody = codeFactory.ReturnStatement(
-                    codeFactory.ElementAccessExpression(
-                        codeFactory.BaseExpression(),
-                        codeFactory.CreateArguments(overriddenProperty.Parameters)));
+                    WrapWithRefIfNecessary(codeFactory, overriddenProperty,
+                        codeFactory.ElementAccessExpression(
+                            codeFactory.BaseExpression(),
+                            codeFactory.CreateArguments(overriddenProperty.Parameters))));
 
                 setBody = codeFactory.ExpressionStatement(
                     codeFactory.AssignmentStatement(
@@ -248,8 +336,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     && (await SymbolFinder.FindSourceDefinitionAsync(overriddenProperty, document.Project.Solution, cancellationToken).ConfigureAwait(false))
                         .Language == LanguageNames.VisualBasic)
                 {
-                    var getName = overriddenProperty.GetMethod != null ? overriddenProperty.GetMethod.Name : null;
-                    var setName = overriddenProperty.SetMethod != null ? overriddenProperty.SetMethod.Name : null;
+                    var getName = overriddenProperty.GetMethod?.Name;
+                    var setName = overriddenProperty.SetMethod?.Name;
 
                     getBody = getName == null
                         ? null
@@ -272,10 +360,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 else
                 {
                     getBody = codeFactory.ReturnStatement(
-                        codeFactory.InvocationExpression(
-                        codeFactory.MemberAccessExpression(
-                            codeFactory.BaseExpression(),
-                            codeFactory.IdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters)));
+                        WrapWithRefIfNecessary(codeFactory, overriddenProperty,
+                            codeFactory.InvocationExpression(
+                                codeFactory.MemberAccessExpression(
+                                    codeFactory.BaseExpression(),
+                                    codeFactory.IdentifierName(overriddenProperty.Name)), codeFactory.CreateArguments(overriddenProperty.Parameters))));
+
                     setBody = codeFactory.ExpressionStatement(
                         codeFactory.AssignmentStatement(
                             codeFactory.InvocationExpression(
@@ -288,10 +378,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             else
             {
                 // Regular property: return or set the base property
+
                 getBody = codeFactory.ReturnStatement(
-                    codeFactory.MemberAccessExpression(
-                        codeFactory.BaseExpression(),
-                        codeFactory.IdentifierName(overriddenProperty.Name)));
+                    WrapWithRefIfNecessary(codeFactory, overriddenProperty,
+                        codeFactory.MemberAccessExpression(
+                            codeFactory.BaseExpression(),
+                            codeFactory.IdentifierName(overriddenProperty.Name))));
+
                 setBody = codeFactory.ExpressionStatement(
                     codeFactory.AssignmentStatement(
                         codeFactory.MemberAccessExpression(
@@ -307,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessorGet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.GetMethod,
                     accessibility: getAccessibility,
-                    statements: new[] { getBody },
+                    statements: ImmutableArray.Create(getBody),
                     modifiers: modifiers);
             }
 
@@ -320,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessorSet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.SetMethod,
                     accessibility: setAccessibility,
-                    statements: new[] { setBody },
+                    statements: ImmutableArray.Create(setBody),
                     modifiers: modifiers);
             }
 
@@ -334,6 +427,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 setMethod: accessorSet);
         }
 
+        private static SyntaxNode WrapWithRefIfNecessary(SyntaxGenerator codeFactory, IPropertySymbol overriddenProperty, SyntaxNode body)
+            => overriddenProperty.ReturnsByRef
+                ? codeFactory.RefExpression(body)
+                : body;
+
         public static IEventSymbol OverrideEvent(
             this SyntaxGenerator codeFactory,
             IEventSymbol overriddenEvent,
@@ -342,14 +440,50 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return CodeGenerationSymbolFactory.CreateEventSymbol(
                 overriddenEvent,
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: overriddenEvent.ComputeResultantAccessibility(newContainingType),
                 modifiers: modifiers,
                 explicitInterfaceSymbol: null,
                 name: overriddenEvent.Name);
         }
 
-        public static async Task<IMethodSymbol> OverrideMethodAsync(
+        public static async Task<ISymbol> OverrideAsync(
+            this SyntaxGenerator generator,
+            ISymbol symbol,
+            INamedTypeSymbol containingType,
+            Document document,
+            DeclarationModifiers? modifiersOpt = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var modifiers = modifiersOpt ?? GetOverrideModifiers(symbol);
+
+            if (symbol is IMethodSymbol method)
+            {
+                return await generator.OverrideMethodAsync(method,
+                    modifiers, containingType, document, cancellationToken).ConfigureAwait(false);
+            }
+            else if (symbol is IPropertySymbol property)
+            {
+                return await generator.OverridePropertyAsync(property,
+                    modifiers, containingType, document, cancellationToken).ConfigureAwait(false);
+            }
+            else if (symbol is IEventSymbol ev)
+            {
+                return generator.OverrideEvent(ev, modifiers, containingType);
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private static DeclarationModifiers GetOverrideModifiers(ISymbol symbol)
+            => symbol.GetSymbolModifiers()
+                     .WithIsOverride(true)
+                     .WithIsAbstract(false)
+                     .WithIsVirtual(false);
+
+        private static async Task<IMethodSymbol> OverrideMethodAsync(
             this SyntaxGenerator codeFactory,
             IMethodSymbol overriddenMethod,
             DeclarationModifiers modifiers,
@@ -361,11 +495,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (overriddenMethod.IsAbstract)
             {
                 var compilation = await newDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var statement = codeFactory.CreateThrowNotImplementedStatement(compilation);
+
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenMethod,
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
-                    statements: new[] { codeFactory.CreateThrowNotImplementStatement(compilation) });
+                    statements: ImmutableArray.Create(statement));
             }
             else
             {
@@ -378,13 +514,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         : codeFactory.GenericName(overriddenMethod.Name, typeParams)),
                     codeFactory.CreateArguments(overriddenMethod.GetParameters()));
 
+                if (overriddenMethod.ReturnsByRef)
+                {
+                    body = codeFactory.RefExpression(body);
+                }
+
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     method: overriddenMethod,
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
                     statements: overriddenMethod.ReturnsVoid
-                        ? new SyntaxNode[] { codeFactory.ExpressionStatement(body) }
-                        : new SyntaxNode[] { codeFactory.ReturnStatement(body) });
+                        ? ImmutableArray.Create(codeFactory.ExpressionStatement(body))
+                        : ImmutableArray.Create(codeFactory.ReturnStatement(body)));
             }
         }
     }

@@ -117,21 +117,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return _workItemQueue.WaitAsync(cancellationToken);
                     }
 
-                    public Task Running
-                    {
-                        get
-                        {
-                            return _running;
-                        }
-                    }
+                    public Task Running => _running;
 
-                    public bool HasAnyWork
-                    {
-                        get
-                        {
-                            return _workItemQueue.HasAnyWork;
-                        }
-                    }
+                    public bool HasAnyWork => _workItemQueue.HasAnyWork;
 
                     protected override async Task ExecuteAsync()
                     {
@@ -330,6 +318,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 var cancellationToken = source.Token;
                                 var document = _processingSolution.GetDocument(documentId);
+
                                 if (document != null)
                                 {
                                     await TrackSemanticVersionsAsync(document, workItem, cancellationToken).ConfigureAwait(false);

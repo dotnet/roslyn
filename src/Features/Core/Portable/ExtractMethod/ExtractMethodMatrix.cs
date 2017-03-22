@@ -201,9 +201,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public override bool Equals(object obj)
             {
-                if (obj is Key)
+                if (obj is Key key)
                 {
-                    return Equals((Key)obj);
+                    return Equals(key);
                 }
 
                 return false;

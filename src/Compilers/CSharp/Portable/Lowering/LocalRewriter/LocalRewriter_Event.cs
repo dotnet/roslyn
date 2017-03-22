@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequence(syntax, tempSymbols, sideEffects.ToImmutableAndFree(), marshalCall, marshalCall.Type);
         }
 
-        private BoundExpression VisitWindowsRuntimeEventFieldAssignmentOperator(SyntaxNode syntax, BoundEventAccess left, BoundExpression right)
+        private BoundExpression VisitWindowsRuntimeEventFieldAssignmentOperator(SyntaxNode syntax, BoundEventAccess left, BoundExpression rewrittenRight)
         {
             Debug.Assert(left.IsUsableAsField);
 
@@ -181,7 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(eventSymbol.IsWindowsRuntimeEvent);
 
             BoundExpression rewrittenReceiverOpt = left.ReceiverOpt == null ? null : VisitExpression(left.ReceiverOpt);
-            BoundExpression rewrittenRight = VisitExpression(right);
 
             const bool isDynamic = false;
             return RewriteWindowsRuntimeEventAssignmentOperator(

@@ -279,6 +279,9 @@
   <data name="FileSizeExceedsMaximumAllowed" xml:space="preserve">
     <value>File size exceeds maximum allowed size of a valid metadata file.</value>
   </data>
+  <data name="NameCannotBeNull" xml:space="preserve">
+    <value>Name cannot be null.</value>
+  </data>
   <data name="NameCannotBeEmpty" xml:space="preserve">
     <value>Name cannot be empty.</value>
   </data>

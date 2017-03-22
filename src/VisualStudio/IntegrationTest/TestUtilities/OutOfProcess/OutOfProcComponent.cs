@@ -26,5 +26,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         protected void WaitForSignatureHelp()
             => VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
+
+        protected void WaitForQuickInfo()
+        {
+            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
+            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.ErrorSquiggles);
+            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.QuickInfo);
+        }
+
     }
 }

@@ -10,10 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 {
     internal class FormatCodeCleanupProvider : ICodeCleanupProvider
     {
-        public string Name
-        {
-            get { return PredefinedCodeCleanupProviderNames.Format; }
-        }
+        public string Name => PredefinedCodeCleanupProviderNames.Format;
 
         public async Task<Document> CleanupAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
         {

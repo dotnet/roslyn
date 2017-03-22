@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         protected override ISyntaxFactsService GetSyntaxFactsService()
             => CSharpSyntaxFactsService.Instance;
 
+        protected override ISemanticFactsService GetSemanticFactsService()
+            => CSharpSemanticFactsService.Instance;
+
         protected override SyntaxKind GetSyntaxKindToAnalyze()
             => SyntaxKind.ConditionalExpression;
 
