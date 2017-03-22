@@ -3,7 +3,7 @@ Quickstart guide for deconstructions (C# 7.0)
 ----------------------------------------------
 1. Install Visual Studio 2017 
 2. Start a C# project
-3. Add a reference to the `System.ValueTuple` package from NuGet
+3. Add a reference to the `System.ValueTuple` package from NuGet  
 ![Install the ValueTuple package](img/install-valuetuple.png)
 4. Use deconstructions:
 
