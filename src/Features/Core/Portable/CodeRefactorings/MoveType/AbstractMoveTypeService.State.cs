@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
@@ -12,24 +13,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
     {
         private class State
         {
-            private readonly TService _service;
             public SemanticDocument SemanticDocument { get; }
 
             public TTypeDeclarationSyntax TypeNode { get; set; }
             public string TypeName { get; set; }
-            public string DocumentName { get; set; }
+            public string DocumentNameWithoutExtension { get; set; }
             public bool IsDocumentNameAValidIdentifier { get; set; }
 
-            private State(TService service, SemanticDocument document)
+            private State(SemanticDocument document)
             {
-                this._service = service;
                 this.SemanticDocument = document;
             }
 
-            internal static State Generate(TService service, SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken)
+            internal static State Generate(
+                SemanticDocument document, TextSpan textSpan, 
+                TTypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
             {
-                var state = new State(service, document);
-                if (!state.TryInitialize(textSpan, cancellationToken))
+                var state = new State(document);
+                if (!state.TryInitialize(textSpan, typeDeclaration, cancellationToken))
                 {
                     return null;
                 }
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             private bool TryInitialize(
                 TextSpan textSpan,
+                TTypeDeclarationSyntax typeDeclaration,
                 CancellationToken cancellationToken)
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -48,13 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 var tree = this.SemanticDocument.SyntaxTree;
                 var root = this.SemanticDocument.Root;
-                var syntaxFacts = this.SemanticDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
-
-                var typeDeclaration = _service.GetNodeToAnalyze(root, textSpan) as TTypeDeclarationSyntax;
-                if (typeDeclaration == null)
-                {
-                    return false;
-                }
+                var syntaxFacts = this.SemanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
 
                 var typeSymbol = this.SemanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
 
@@ -69,14 +65,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 TypeNode = typeDeclaration;
                 TypeName = typeSymbol.Name;
-                DocumentName = Path.GetFileNameWithoutExtension(this.SemanticDocument.Document.Name);
-                IsDocumentNameAValidIdentifier = syntaxFacts.IsValidIdentifier(DocumentName);
+                DocumentNameWithoutExtension = Path.GetFileNameWithoutExtension(this.SemanticDocument.Document.Name);
+                IsDocumentNameAValidIdentifier = syntaxFacts.IsValidIdentifier(DocumentNameWithoutExtension);
 
                 // if type name matches document name, per style conventions, we have nothing to do.
-                return !_service.TypeMatchesDocumentName(
+                return !TypeMatchesDocumentName(
                     TypeNode,
                     TypeName,
-                    DocumentName,
+                    DocumentNameWithoutExtension,
                     SemanticDocument.SemanticModel,
                     cancellationToken);
             }

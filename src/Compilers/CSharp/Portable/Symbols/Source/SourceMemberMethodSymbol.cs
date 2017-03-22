@@ -135,6 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
                 }
             }
+
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
         public override bool ReturnsVoid
@@ -158,8 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             _lazyParameters = ParameterHelpers.MakeParameters(
-                signatureBinder, this, syntax.ParameterList, out arglistToken, diagnostics, 
-                allowRefOrOut: true, allowThis: true, beStrict: false);
+                signatureBinder, this, syntax.ParameterList, out arglistToken,
+                allowRefOrOut: true,
+                allowThis: true,
+                diagnostics: diagnostics);
+
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             RefKind refKind;
             var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);

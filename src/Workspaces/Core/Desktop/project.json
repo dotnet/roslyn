@@ -1,10 +1,8 @@
 {
   "dependencies": {
     "ManagedEsent": "1.9.4",
-    "Microsoft.Build": "14.3.0",
-    "Microsoft.Build.Tasks.Core": "14.3.0",
-    "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
-    "Microsoft.VisualStudio.RemoteControl": "14.0.249-master2E2DC10C"
+    "Microsoft.Build": "15.1.0-preview-000458-02",
+    "Microsoft.Build.Tasks.Core": "15.1.0-preview-000458-02"
   },
   "frameworks": {
     "net46": { }

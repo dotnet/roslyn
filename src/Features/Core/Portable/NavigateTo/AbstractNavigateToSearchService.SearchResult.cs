@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var declaredNavigableItem = navigableItem as NavigableItemFactory.DeclaredSymbolNavigableItem;
                 Debug.Assert(declaredNavigableItem != null);
 
-                _lazySummary = new Lazy<string>(() => declaredNavigableItem.Symbol?.GetDocumentationComment()?.SummaryText);
+                _lazySummary = new Lazy<string>(() => declaredNavigableItem.SymbolOpt?.GetDocumentationComment()?.SummaryText);
                 _lazyAdditionalInfo = new Lazy<string>(() =>
                 {
                     switch (declaredSymbolInfo.Kind)

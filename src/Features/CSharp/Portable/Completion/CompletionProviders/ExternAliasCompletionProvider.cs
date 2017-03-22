@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                     foreach (var alias in aliases)
                     {
-                        context.AddItem(CommonCompletionItem.Create(alias, glyph: Glyph.Namespace));
+                        context.AddItem(CommonCompletionItem.Create(
+                            alias, CompletionItemRules.Default, glyph: Glyph.Namespace));
                     }
                 }
             }

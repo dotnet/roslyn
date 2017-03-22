@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rewritten = RewriteAddRemoveHandler(node)
 
             If Instrument(node, rewritten) Then
-                rewritten = _instrumenter.InstrumentAddHandlerStatement(node, rewritten)
+                rewritten = _instrumenterOpt.InstrumentAddHandlerStatement(node, rewritten)
             End If
 
             Return rewritten
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rewritten = RewriteAddRemoveHandler(node)
 
             If Instrument(node, rewritten) Then
-                rewritten = _instrumenter.InstrumentRemoveHandlerStatement(node, rewritten)
+                rewritten = _instrumenterOpt.InstrumentRemoveHandlerStatement(node, rewritten)
             End If
 
             Return rewritten

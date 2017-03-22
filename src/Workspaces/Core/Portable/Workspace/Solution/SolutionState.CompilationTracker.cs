@@ -355,10 +355,10 @@ namespace Microsoft.CodeAnalysis
                             // we have full declaration, just use it.
                             return state.Compilation.GetValue(cancellationToken);
                         }
-                        else if (state is InProgressState)
+                        else if (state is InProgressState inProgress)
                         {
                             // We have an in progress compilation.  Build off of that.
-                            return await BuildDeclarationCompilationFromInProgressAsync(solution, state as InProgressState, compilation, cancellationToken).ConfigureAwait(false);
+                            return await BuildDeclarationCompilationFromInProgressAsync(solution, inProgress, compilation, cancellationToken).ConfigureAwait(false);
                         }
                         else
                         {
@@ -453,10 +453,10 @@ namespace Microsoft.CodeAnalysis
                     // We have a declaration compilation, use it to reconstruct the final compilation
                     return this.FinalizeCompilationAsync(solution, compilation, cancellationToken);
                 }
-                else if (state is InProgressState)
+                else if (state is InProgressState inProgress)
                 {
                     // We have an in progress compilation.  Build off of that.
-                    return BuildFinalStateFromInProgressStateAsync(solution, state as InProgressState, compilation, cancellationToken);
+                    return BuildFinalStateFromInProgressStateAsync(solution, inProgress, compilation, cancellationToken);
                 }
                 else
                 {

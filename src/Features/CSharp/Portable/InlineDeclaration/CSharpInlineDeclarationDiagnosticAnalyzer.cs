@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -36,17 +37,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         {
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        public bool OpenFileOnly(Workspace workspace) => false;
+        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 var compilation = compilationContext.Compilation;
-                var expressionTypeOpt = compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+                var expressionTypeOpt = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
                 compilationContext.RegisterSyntaxNodeAction(
                     syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionTypeOpt), SyntaxKind.Argument);
             });
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // If the local has an initializer, only allow the refactoring if it is initialized
             // with a simple literal or 'default' expression.  i.e. it's ok to inline "var v = 0"
             // since there are no side-effects of the initialization.  However something like
-            // "var v = M()" shoudl not be inlined as that could break program semantics.
+            // "var v = M()" should not be inlined as that could break program semantics.
             if (localDeclarator.Initializer != null)
             {
                 if (!(localDeclarator.Initializer.Value is LiteralExpressionSyntax) &&
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
-            if (IsInExpressionTree(semanticModel, argumentExpression, expressionTypeOpt, cancellationToken))
+            if (argumentExpression.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken))
             {
                 // out-vars are not allowed inside expression-trees.  So don't offer to
                 // fix if we're inside one.
@@ -193,12 +194,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // The variable is read or written from outside the block that the new variable
                 // would be scoped in.  This would cause a break.
                 //
-                // Note(cyrusn): We coudl still offer the refactoring, but just show an error in the
+                // Note(cyrusn): We could still offer the refactoring, but just show an error in the
                 // preview in this case.
                 return;
             }
 
-            // Make sure the variable isn't ever acessed before the usage in this out-var.
+            // Make sure the variable isn't ever accessed before the usage in this out-var.
             if (IsAccessed(semanticModel, outSymbol, enclosingBlockOfLocalStatement, 
                            localStatement, argumentNode, cancellationToken))
             {
@@ -232,28 +233,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 GetDescriptorWithSeverity(option.Notification.Value),
                 reportNode.GetLocation(),
                 additionalLocations: allLocations));
-        }
-
-        private bool IsInExpressionTree(
-            SemanticModel semanticModel, SyntaxNode argumentExpression,
-            INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
-        {
-            if (expressionTypeOpt != null)
-            {
-                for (var current = argumentExpression; current != null; current = current.Parent)
-                {
-                    if (current.IsAnyLambda())
-                    {
-                        var typeInfo = semanticModel.GetTypeInfo(current, cancellationToken);
-                        if (expressionTypeOpt.Equals(typeInfo.ConvertedType?.OriginalDefinition))
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
         }
 
         private bool WouldCauseDefiniteAssignmentErrors(
@@ -315,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             // NOTE: there is no current compiler API to determine if a variable is definitely
             // assigned or not.  So, for now, we just get diagnostics for this block and see if
-            // we get any definite assigment errors where we have a reference to the symbol. If
+            // we get any definite assignment errors where we have a reference to the symbol. If
             // so, then we don't offer the fix.
 
             rootWithoutInitializer = (CompilationUnitSyntax)rootWithoutInitializerTree.GetRoot(cancellationToken);
@@ -342,6 +321,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 {
                     // We were in a lambda.  The lambda body will be the new scope of the 
                     // out var.
+                    return current;
+                }
+
+                // Any loop construct defines a scope for out-variables.
+                if (current.Kind() == SyntaxKind.WhileStatement ||
+                    current.Kind() == SyntaxKind.DoStatement ||
+                    current.Kind() == SyntaxKind.ForStatement ||
+                    current.Kind() == SyntaxKind.ForEachStatement)
+                {
                     return current;
                 }
 

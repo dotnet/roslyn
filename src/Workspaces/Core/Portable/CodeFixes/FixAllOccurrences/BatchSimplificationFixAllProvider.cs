@@ -26,10 +26,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         protected BatchSimplificationFixAllProvider() { }
 
         protected override async Task AddDocumentFixesAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
-            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
+            // quick bail out
+            if (diagnostics.IsEmpty)
+            {
+                return;
+            }
+
             var changedDocument = await AddSimplifierAnnotationsAsync(
                 document, diagnostics, fixAllState, cancellationToken).ConfigureAwait(false);
             var title = GetFixAllTitle(fixAllState);
@@ -66,10 +72,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <see cref="AddSimplifierAnnotationsAsync(Document, ImmutableArray{Diagnostic}, FixAllState, CancellationToken)"/> will end up invoking <see cref="AddSimplifyAnnotationsAsync(Document, SyntaxNode, CancellationToken)"/> for each node to simplify.
         /// Ensure that you override <see cref="AddSimplifyAnnotationsAsync(Document, SyntaxNode, CancellationToken)"/> method when this property returns true.
         /// </summary>
-        protected virtual bool NeedsParentFixup { get { return false; } }
+        protected virtual bool NeedsParentFixup => false;
 
         private async Task<Document> AddSimplifierAnnotationsAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

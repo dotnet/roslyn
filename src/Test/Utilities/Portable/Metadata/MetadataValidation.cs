@@ -132,5 +132,17 @@ namespace Roslyn.Test.Utilities
                 yield return (ns.Length == 0) ? name : (ns + "." + name);
             }
         }
+
+        internal static IEnumerable<string> GetExportedTypesFullNames(MetadataReader metadataReader)
+        {
+            foreach (var typeDefHandle in metadataReader.ExportedTypes)
+            {
+                var typeDef = metadataReader.GetExportedType(typeDefHandle);
+                var ns = metadataReader.GetString(typeDef.Namespace);
+                var name = metadataReader.GetString(typeDef.Name);
+
+                yield return (ns.Length == 0) ? name : (ns + "." + name);
+            }
+        }
     }
 }

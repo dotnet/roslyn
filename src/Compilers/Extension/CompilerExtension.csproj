@@ -44,6 +44,13 @@
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.Native" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.Win32.Primitives" />
+    <!--
+      N.B. This list of facades must be kept in-sync with the
+      other facades used by the compiler. Facades are listed in
+      the src/Setup/DevDivInsertionFiles/BuildDevDivInsertionFiles.vb file, the
+      src/Setup/DevDivVsix/CompilersPackage/Microsoft.CodeAnalysis.Compilers.swr file,
+      and src/NuGet/Microsoft.Net.Compilers.nuspec file.
+    -->
     <NuGetPackageToIncludeInVsix Include="System.AppContext" />
     <NuGetPackageToIncludeInVsix Include="System.Collections" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Concurrent" />
@@ -65,7 +72,6 @@
     <NuGetPackageToIncludeInVsix Include="System.ObjectModel" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
-    <NuGetPackageToIncludeInVsix Include="System.Runtime.InteropServices.RuntimeInformation" />
     <NuGetPackageToIncludeInVsix Include="System.Runtime.Numerics" />
     <NuGetPackageToIncludeInVsix Include="System.Security.AccessControl" />
     <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Algorithms" />

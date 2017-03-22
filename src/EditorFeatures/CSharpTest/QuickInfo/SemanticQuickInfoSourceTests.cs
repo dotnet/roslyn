@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     {
         private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<object>[] expectedResults)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup, options))
+            using (var workspace = TestWorkspace.CreateCSharp(markup, options))
             {
                 await TestWithOptionsAsync(workspace, expectedResults);
             }
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     </Project>
 </Workspace>", SecurityElement.Escape(markup));
 
-            using (var workspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var workspace = TestWorkspace.Create(xmlString))
             {
                 var position = workspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
@@ -250,7 +250,7 @@ using System.Linq;
 
         private async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<object>[] expectedResults)
         {
-            using (var workspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var workspace = TestWorkspace.Create(xmlString))
             {
                 var position = workspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
@@ -2524,6 +2524,99 @@ class C
                 MainDescription("Foo"));
         }
 
+        [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestShortDiscardInAssignment()
+        {
+            await TestAsync(
+@"class C
+{
+    int M()
+    {
+        $$_ = M();
+    }
+}",
+                MainDescription("int _"));
+        }
+
+        [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestUnderscoreLocalInAssignment()
+        {
+            await TestAsync(
+@"class C
+{
+    int M()
+    {
+        var $$_ = M();
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) int _"));
+        }
+
+        [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestShortDiscardInOutVar()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(out int i)
+    {
+        M(out $$_);
+        i = 0;
+    }
+}",
+                MainDescription($"int _"));
+        }
+
+        [WorkItem(16667, "https://github.com/dotnet/roslyn/issues/16667")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDiscardInOutVar()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(out int i)
+    {
+        M(out var $$_);
+        i = 0;
+    }
+}"); // No quick info (see issue #16667)
+        }
+
+        [WorkItem(16667, "https://github.com/dotnet/roslyn/issues/16667")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDiscardInIsPattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        if (3 is int $$_) { }
+    }
+}"); // No quick info (see issue #16667)
+        }
+
+        [WorkItem(16667, "https://github.com/dotnet/roslyn/issues/16667")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDiscardInSwitchPattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        switch (3)
+        {
+            case int $$_:
+                return;
+        }
+    }
+}"); // No quick info (see issue #16667)
+        }
+
         [WorkItem(540871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540871")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestLiterals()
@@ -4712,7 +4805,7 @@ namespace MyNs
     </Submission>
 </Workspace>
 ";
-            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
+            using (var workspace = TestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
             {
                 await TestWithOptionsAsync(workspace, MainDescription("(parameter) int x = 1"));
             }
@@ -4742,6 +4835,48 @@ class C : I
     }
 }",
                 MainDescription("(int, int) C.Name { get; set; }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRefMethod()
+        {
+            await TestInMethodAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        ref int i = ref $$foo();
+    }
+
+    private static ref int foo()
+    {
+        throw new NotImplementedException();
+    }
+}",
+                MainDescription("ref int Program.foo()"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRefLocal()
+        {
+            await TestInMethodAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        ref int $$i = ref foo();
+    }
+
+    private static ref int foo()
+    {
+        throw new NotImplementedException();
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) ref int i"));
         }
     }
 }

@@ -22,7 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         public static string ReorderHeader => ServicesVSResources.Reorder;
         public static string SpecificationHeader => ServicesVSResources.Specification;
         public static string RequiredStyleHeader => ServicesVSResources.Required_Style;
+        public static string SeverityHeader => ServicesVSResources.Severity;
         public static string ExplanatoryText => ServicesVSResources.For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_applied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Severity_level;
+        public static string AddRuleAutomationText => ServicesVSResources.Add_a_naming_rule;
+        public static string RemoveAutomationText => ServicesVSResources.Remove_naming_rule;
+        public static string SymbolSpecificationAutomationText => ServicesVSResources.Symbol_Specification;
+        public static string NamingStyleAutomationText => ServicesVSResources.Naming_Style;
+        public static string SeverityAutomationText => ServicesVSResources.Severity;
 
         private NamingStyleOptionPageViewModel _viewModel;
         private readonly string _languageName;
@@ -65,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             var viewModel = new ManageSymbolSpecificationsDialogViewModel(_viewModel.Specifications, _viewModel.CodeStyleItems.ToList(), _languageName, _notificationService);
             var dialog = new ManageNamingStylesInfoDialog(viewModel);
-            if (dialog.ShowDialog().Value == true)
+            if (dialog.ShowModal().Value == true)
             {
                 _viewModel.UpdateSpecificationList(viewModel);
             }
@@ -75,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             var viewModel = new ManageNamingStylesDialogViewModel(_viewModel.NamingStyles, _viewModel.CodeStyleItems.ToList(), _notificationService);
             var dialog = new ManageNamingStylesInfoDialog(viewModel);
-            if (dialog.ShowDialog().Value == true)
+            if (dialog.ShowModal().Value == true)
             {
                 _viewModel.UpdateStyleList(viewModel);
             }

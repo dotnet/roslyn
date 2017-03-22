@@ -95,14 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // exact match.
                 var escapedName = parameter.Name.ToIdentifierToken().ToString();
 
-                context.AddItem(SymbolCompletionItem.Create(
+                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: escapedName + ColonString,
-                    insertionText: null,
-                    symbol: parameter,
+                    symbols: ImmutableArray.Create(parameter),
+                    rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
                     contextPosition: token.SpanStart,
-                    filterText: escapedName,
-                    rules: s_rules,
-                    matchPriority: SymbolMatchPriority.PreferNamedArgument));
+                    filterText: escapedName));
             }
         }
 

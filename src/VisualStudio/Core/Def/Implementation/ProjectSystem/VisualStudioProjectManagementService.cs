@@ -31,9 +31,10 @@ namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
             var folders = new List<string>();
             var defaultNamespace = "";
 
-            if (workspace is VisualStudioWorkspaceImpl)
+            if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
-                ((VisualStudioWorkspaceImpl)workspace).GetProjectData(project.Id, out var ivisualStudioHostProject, out var hierarchy, out var envDTEProject);
+                vsWorkspace.GetProjectData(project.Id, 
+                    out var ivisualStudioHostProject, out var hierarchy, out var envDTEProject);
 
                 try
                 {
@@ -52,9 +53,10 @@ namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
         {
             var folders = new List<string>();
 
-            if (workspace is VisualStudioWorkspaceImpl)
+            if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
-                ((VisualStudioWorkspaceImpl)workspace).GetProjectData(projectId, out var ivisualStudioHostProject, out var hierarchy, out var envDTEProject);
+                vsWorkspace.GetProjectData(projectId, 
+                    out var ivisualStudioHostProject, out var hierarchy, out var envDTEProject);
 
                 var projectItems = envDTEProject.ProjectItems;
 

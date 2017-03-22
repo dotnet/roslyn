@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
@@ -1347,7 +1348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Only compiler-generated MoveNext methods have iterator scopes.  See if this is one.
-                var stateMachineHoistedLocalScopes = default(ImmutableArray<Cci.StateMachineHoistedLocalScope>);
+                var stateMachineHoistedLocalScopes = default(ImmutableArray<StateMachineHoistedLocalScope>);
                 if (isStateMachineMoveNextMethod)
                 {
                     stateMachineHoistedLocalScopes = builder.GetHoistedLocalScopes();

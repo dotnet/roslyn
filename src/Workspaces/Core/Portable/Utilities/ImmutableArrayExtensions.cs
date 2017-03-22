@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -24,22 +25,20 @@ namespace Roslyn.Utilities
                 return ImmutableArray.Create<T>();
             }
 
+            if (items is ImmutableArray<T> array)
+            {
+                return array.NullToEmpty();
+            }
+
             return ImmutableArray.CreateRange<T>(items);
         }
 
         internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this ImmutableArray<T> items)
-        {
-            if (items.IsDefault)
-            {
-                return ImmutableArray.Create<T>();
-            }
-
-            return items;
-        }
+            => items.IsDefault ? ImmutableArray<T>.Empty : items;
 
         internal static IReadOnlyList<T> ToImmutableReadOnlyListOrEmpty<T>(this IEnumerable<T> items)
         {
-            if (items is ImmutableArray<T> && !((ImmutableArray<T>)items).IsDefault)
+            if (items is ImmutableArray<T> array && !array.IsDefault)
             {
                 return (IReadOnlyList<T>)items;
             }

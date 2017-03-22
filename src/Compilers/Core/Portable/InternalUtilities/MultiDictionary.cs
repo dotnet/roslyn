@@ -168,18 +168,9 @@ namespace Roslyn.Utilities
 
         private readonly Dictionary<K, ValueSet> _dictionary;
 
-        public int Count
-        {
-            get
-            {
-                return _dictionary.Count;
-            }
-        }
+        public int Count => _dictionary.Count;
 
-        public IEnumerable<K> Keys
-        {
-            get { return _dictionary.Keys; }
-        }
+        public IEnumerable<K> Keys => _dictionary.Keys;
 
         // Returns an empty set if there is no such key in the dictionary.
         public ValueSet this[K k]
