@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sourceLocation,
                         symbols,
                         arg + 1,
-                        refArg.ToDisplayString());
+                        refArg.ToArgumentDisplayString());
                 }
                 else
                 {
@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sourceLocation,
                         symbols,
                         arg + 1,
-                        refParm.ToDisplayString());
+                        refParm.ToParameterDisplayString());
                 }
             }
             else

@@ -6344,7 +6344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RefKind refKind = analyzedArguments.RefKind(i);
                 if (refKind != RefKind.None)
                 {
-                    Error(diagnostics, ErrorCode.ERR_BadArgExtraRef, analyzedArguments.Argument(i).Syntax, i + 1, refKind.ToDisplayString());
+                    Error(diagnostics, ErrorCode.ERR_BadArgExtraRef, analyzedArguments.Argument(i).Syntax, i + 1, refKind.ToArgumentDisplayString());
                     return true;
                 }
             }
