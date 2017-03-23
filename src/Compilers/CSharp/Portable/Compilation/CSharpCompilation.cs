@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _options,
                 this.ExternalReferences,
                 info?.PreviousScriptCompilation,
-                info?.ReturnType,
+                info?.ReturnTypeOpt,
                 info?.GlobalsType,
                 info != null,
                 _referenceManager,
@@ -1181,13 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The Script class symbol or null if it is not defined.</returns>
         private ImplicitNamedTypeSymbol BindScriptClass()
         {
-            if (_options.ScriptClassName == null || !_options.ScriptClassName.IsValidClrTypeName())
-            {
-                return null;
-            }
-
-            var namespaceOrType = this.Assembly.GlobalNamespace.GetNamespaceOrTypeByQualifiedName(_options.ScriptClassName.Split('.')).AsSingleton();
-            return namespaceOrType as ImplicitNamedTypeSymbol;
+            return (ImplicitNamedTypeSymbol)CommonBindScriptClass();
         }
 
         internal bool IsSubmissionSyntaxTree(SyntaxTree tree)
@@ -1944,6 +1938,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         cancellationToken.ThrowIfCancellationRequested();
                         builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
+                    }
+                }
+
+                var parseOptionsReported = new HashSet<ParseOptions>();
+                foreach (var syntaxTree in syntaxTrees)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (!syntaxTree.Options.Errors.IsDefaultOrEmpty && parseOptionsReported.Add(syntaxTree.Options))
+                    {
+                        var location = syntaxTree.GetLocation(TextSpan.FromBounds(0, 0));
+                        foreach (var error in syntaxTree.Options.Errors)
+                        {
+                            builder.Add(error.WithLocation(location));
+                        }
                     }
                 }
             }

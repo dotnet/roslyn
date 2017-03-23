@@ -216,9 +216,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public void Initialize(string data)
-            {
-                base.Initialize(data, CancellationToken.None);
-            }
+                => base.Initialize(data, CancellationToken.None);
 
             public string RemoveAssemblySymbolKeys()
             {
@@ -247,7 +245,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        // All ther characters we pass along directly to the string builder.
+                        // All other characters we pass along directly to the string builder.
                         _builder.Append(Eat(ch));
                     }
                 }
@@ -258,7 +256,7 @@ namespace Microsoft.CodeAnalysis
             protected override object CreateResultForString(int start, int end, bool hasEmbeddedQuote)
             {
                 // 'start' is right after the open quote, and 'end' is right before the close quote.
-                // However, we want to include both quotes in teh result.
+                // However, we want to include both quotes in the result.
                 _builder.Append(DoubleQuoteChar);
                 if (!_skipString)
                 {
@@ -291,6 +289,7 @@ namespace Microsoft.CodeAnalysis
             public SymbolEquivalenceComparer Comparer { get; private set; }
 
             private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
+            private bool _resolveLocations;
 
             private SymbolKeyReader()
             {
@@ -304,6 +303,7 @@ namespace Microsoft.CodeAnalysis
                 _idToResult.Clear();
                 Compilation = null;
                 IgnoreAssemblyKey = false;
+                _resolveLocations = false;
                 Comparer = null;
                 _methodSymbolStack.Clear();
 
@@ -313,10 +313,11 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyReader GetReader(
                 string data, Compilation compilation,
-                bool ignoreAssemblyKey, CancellationToken cancellationToken)
+                bool ignoreAssemblyKey, bool resolveLocations,
+                CancellationToken cancellationToken)
             {
                 var reader = s_readerPool.Allocate();
-                reader.Initialize(data, compilation, ignoreAssemblyKey, cancellationToken);
+                reader.Initialize(data, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
                 return reader;
             }
 
@@ -324,11 +325,14 @@ namespace Microsoft.CodeAnalysis
                 string data,
                 Compilation compilation,
                 bool ignoreAssemblyKey,
+                bool resolveLocations,
                 CancellationToken cancellationToken)
             {
                 base.Initialize(data, cancellationToken);
                 Compilation = compilation;
                 IgnoreAssemblyKey = ignoreAssemblyKey;
+                _resolveLocations = resolveLocations;
+
                 Comparer = ignoreAssemblyKey
                     ? SymbolEquivalenceComparer.IgnoreAssembliesInstance
                     : SymbolEquivalenceComparer.Instance;
@@ -360,13 +364,13 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public void PushMethod(IMethodSymbol method)
-                => _methodSymbolStack.Add(method);
+            public void PushMethod(IMethodSymbol methodOpt)
+                => _methodSymbolStack.Add(methodOpt);
 
-            public void PopMethod(IMethodSymbol method)
+            public void PopMethod(IMethodSymbol methodOpt)
             {
                 Contract.ThrowIfTrue(_methodSymbolStack.Count == 0);
-                Contract.ThrowIfFalse(method.Equals(_methodSymbolStack.Last()));
+                Contract.ThrowIfFalse(Equals(methodOpt, _methodSymbolStack.Last()));
                 _methodSymbolStack.RemoveAt(_methodSymbolStack.Count - 1);
             }
 
@@ -458,9 +462,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public ImmutableArray<SymbolKeyResolution> ReadSymbolKeyArray()
-            {
-                return ReadArray(_readSymbolKey);
-            }
+                => ReadArray(_readSymbolKey);
 
             #endregion
 
@@ -494,31 +496,45 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var kind = (LocationKind)ReadInteger();
-                if (kind == LocationKind.None)
-                {
-                    return Location.None;
-                }
-                else if (kind == LocationKind.SourceFile)
+                if (kind == LocationKind.SourceFile)
                 {
                     var filePath = ReadString();
                     var start = ReadInteger();
                     var length = ReadInteger();
-                    return CreateSourceLocation(filePath, start, length);
-                }
-                else
-                {
-                    Debug.Assert(kind == LocationKind.MetadataFile);
-                    var assembly = ReadSymbolKey();
-                    var moduleName = ReadString();
-                    return CreateModuleLocation(assembly, moduleName);
-                }
-            }
 
-            private Location CreateSourceLocation(string filePath, int start, int length)
-            {
-                var syntaxTree = GetSyntaxTree(filePath);
-                Debug.Assert(syntaxTree != null);
-                return Location.Create(syntaxTree, new TextSpan(start, length));
+                    if (_resolveLocations)
+                    {
+                        // The syntax tree can be null if we're resolving this location in a compilation
+                        // that does not contain this file.  In this case, just map this location to None.
+                        var syntaxTree = GetSyntaxTree(filePath);
+                        if (syntaxTree != null)
+                        {
+                            return Location.Create(syntaxTree, new TextSpan(start, length));
+                        }
+                    }
+                }
+                else if (kind == LocationKind.MetadataFile)
+                {
+                    var assemblyResolution = ReadSymbolKey();
+                    var moduleName = ReadString();
+
+                    if (_resolveLocations)
+                    {
+                        // We may be resolving in a compilation where we don't have a module
+                        // with this name.  In that case, just map this location to none.
+                        if (assemblyResolution.GetAnySymbol() is IAssemblySymbol assembly)
+                        {
+                            var module = assembly.Modules.FirstOrDefault(m => m.MetadataName == moduleName);
+                            var location = module?.Locations.FirstOrDefault();
+                            if (location != null)
+                            {
+                                return location;
+                            }
+                        }
+                    }
+                }
+
+                return Location.None;
             }
 
             private Location CreateModuleLocation(
@@ -531,9 +547,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public ImmutableArray<Location> ReadLocationArray()
-            {
-                return ReadArray(_readLocation);
-            }
+                => ReadArray(_readLocation);
 
             #endregion
         }

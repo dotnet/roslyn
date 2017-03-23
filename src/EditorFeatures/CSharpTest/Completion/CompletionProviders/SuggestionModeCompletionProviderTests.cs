@@ -778,12 +778,12 @@ class C {
 
             using (var workspaceFixture = new CSharpTestWorkspaceFixture())
             {
-                var document1 = await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular);
+                var document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular);
                 await CheckResultsAsync(document1, position, isBuilder);
 
                 if (await CanUseSpeculativeSemanticModelAsync(document1, position))
                 {
-                    var document2 = await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
+                    var document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
                     await CheckResultsAsync(document2, position, isBuilder);
                 }
             }
@@ -793,7 +793,7 @@ class C {
         {
             var triggerInfos = new List<CompletionTrigger>();
             triggerInfos.Add(CompletionTrigger.CreateInsertionTrigger('a'));
-            triggerInfos.Add(CompletionTrigger.Default);
+            triggerInfos.Add(CompletionTrigger.Invoke);
             triggerInfos.Add(CompletionTrigger.CreateDeletionTrigger('z'));
 
             var service = GetCompletionService(document.Project.Solution.Workspace);

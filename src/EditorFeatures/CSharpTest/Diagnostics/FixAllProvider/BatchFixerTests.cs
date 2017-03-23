@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -15,10 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
 {
     public partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(new QualifyWithThisAnalyzer(), new QualifyWithThisFixer());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new QualifyWithThisAnalyzer(), new QualifyWithThisFixer());
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private class QualifyWithThisAnalyzer : DiagnosticAnalyzer
@@ -152,7 +149,7 @@ class C
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false);
         }
 
         #endregion

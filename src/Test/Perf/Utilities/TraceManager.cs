@@ -144,7 +144,7 @@ namespace Roslyn.Test.Performance.Utilities
         public void Cleanup()
         {
             var totalDuration = _durations.Sum(v => v);
-            var average = totalDuration / _durations.Count;
+            var average = _durations.Count != 0 ? totalDuration / _durations.Count : 0;
             var allString = string.Join(",", _durations);
 
             Log($"Wallclock times for {_testName}");

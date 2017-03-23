@@ -740,20 +740,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // - Return types "match"
-            var returnsMatch =
-                method.ReturnsVoid && delegateMethod.ReturnsVoid ||
-                Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, delegateMethod.ReturnType, ref useSiteDiagnostics);
-            if (!returnsMatch)
+            if (delegateMethod.ReturnsByRef != method.ReturnsByRef)
             {
-                Error(diagnostics, ErrorCode.ERR_BadRetType, errorLocation, method, method.ReturnType);
+                Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
                 diagnostics.Add(errorLocation, useSiteDiagnostics);
                 return false;
             }
 
-            if (method.ReturnsByRef != delegateMethod.ReturnsByRef)
+            bool returnsMatch = delegateMethod.ReturnsByRef?
+                                    // - Return types identity-convertible
+                                    Conversions.HasIdentityConversion(method.ReturnType, delegateMethod.ReturnType):
+                                    // - Return types "match"
+                                    method.ReturnsVoid && delegateMethod.ReturnsVoid ||
+                                        Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, delegateMethod.ReturnType, ref useSiteDiagnostics);
+
+            if (!returnsMatch)
             {
-                Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
+                Error(diagnostics, ErrorCode.ERR_BadRetType, errorLocation, method, method.ReturnType);
                 diagnostics.Add(errorLocation, useSiteDiagnostics);
                 return false;
             }

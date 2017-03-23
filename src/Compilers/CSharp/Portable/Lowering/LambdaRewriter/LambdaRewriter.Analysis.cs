@@ -73,7 +73,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly HashSet<MethodSymbol> MethodsConvertedToDelegates = new HashSet<MethodSymbol>();
 
             /// <summary>
-            /// Any scope that a method in <see cref="MethodsConvertedToDelegates"/> closes over. If a scope is in this set, don't use a struct closure.
+            /// True if the method signature can't be rewritten to contain ref/out parameters.
+            /// </summary>
+            public bool CanTakeRefParameters(MethodSymbol closure) => !(closure.IsAsync
+                                                                        || closure.IsIterator
+                                                                        // We can't rewrite delegate signatures
+                                                                        || MethodsConvertedToDelegates.Contains(closure));
+
+            /// <summary>
+            /// Any scope that a method that <see cref="CanTakeRefParameters(MethodSymbol)"/> doesn't close over.
+            /// If a scope is in this set, don't use a struct closure.
             /// </summary>
             public readonly HashSet<BoundNode> ScopesThatCantBeStructs = new HashSet<BoundNode>();
 
@@ -325,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LambdaScopes.Add(lambda, innermostScope);
 
                         // Disable struct closures on methods converted to delegates, as well as on async and iterator methods.
-                        var markAsNoStruct = MethodsConvertedToDelegates.Contains(lambda) || lambda.IsAsync || lambda.IsIterator;
+                        var markAsNoStruct = !CanTakeRefParameters(lambda);
                         if (markAsNoStruct)
                         {
                             ScopesThatCantBeStructs.Add(innermostScope);
@@ -557,37 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitMethodGroup(BoundMethodGroup node)
             {
-                // We only get here in error cases, as normally the enclosing node is a method group conversion
-                // whose visit (below) doesn't call this.  So we don't know which method is to be selected, and
-                // therefore don't know if the receiver is used. Assume if the receiver was provided, it is used.
-                var receiverOpt = node.ReceiverOpt;
-                if (receiverOpt != null)
-                {
-                    return VisitSyntaxWithReceiver(node.Syntax, receiverOpt);
-                }
-                return null;
-            }
-
-            public override BoundNode VisitConversion(BoundConversion node)
-            {
-                if (node.ConversionKind == ConversionKind.MethodGroup)
-                {
-                    if (node.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
-                    {
-                        // Use OriginalDefinition to strip generic type parameters
-                        ReferenceVariable(node.Syntax, node.SymbolOpt.OriginalDefinition);
-                        MethodsConvertedToDelegates.Add(node.SymbolOpt.OriginalDefinition);
-                    }
-                    if (node.IsExtensionMethod || ((object)node.SymbolOpt != null && !node.SymbolOpt.IsStatic))
-                    {
-                        return VisitSyntaxWithReceiver(node.Syntax, ((BoundMethodGroup)node.Operand).ReceiverOpt);
-                    }
-                    return null;
-                }
-                else
-                {
-                    return base.VisitConversion(node);
-                }
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)

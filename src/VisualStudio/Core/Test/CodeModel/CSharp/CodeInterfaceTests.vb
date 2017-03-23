@@ -11,51 +11,51 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "Access tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess1() As Task
+        Public Sub TestAccess1()
             Dim code =
 <Code>
 interface $$I { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
-        End Function
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess2() As Task
+        Public Sub TestAccess2()
             Dim code =
 <Code>
 internal interface $$I { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
-        End Function
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess3() As Task
+        Public Sub TestAccess3()
             Dim code =
 <Code>
 public interface $$I { }
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+        End Sub
 
 #End Region
 
 #Region "Attributes tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAttributes1() As Task
+        Public Sub TestAttributes1()
             Dim code =
 <Code>
 interface $$C { }
 </Code>
 
-            Await TestAttributes(code, NoElements)
-        End Function
+            TestAttributes(code, NoElements)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAttributes2() As Task
+        Public Sub TestAttributes2()
             Dim code =
 <Code>
 using System;
@@ -64,11 +64,11 @@ using System;
 interface $$C { }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"))
-        End Function
+            TestAttributes(code, IsElement("Serializable"))
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAttributes3() As Task
+        Public Sub TestAttributes3()
             Dim code =
 <Code>using System;
 
@@ -77,11 +77,11 @@ interface $$C { }
 interface $$C { }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
-        End Function
+            TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAttributes4() As Task
+        Public Sub TestAttributes4()
             Dim code =
 <Code>using System;
 
@@ -89,13 +89,13 @@ interface $$C { }
 interface $$C { }
 </Code>
 
-            Await TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
-        End Function
+            TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
+        End Sub
 #End Region
 
 #Region "Parts tests"
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestParts1() As Task
+        Public Sub TestParts1()
             Dim code =
 <Code>
 interface $$I
@@ -103,11 +103,11 @@ interface $$I
 }
 </Code>
 
-            Await TestParts(code, 1)
-        End Function
+            TestParts(code, 1)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestParts2() As Task
+        Public Sub TestParts2()
             Dim code =
 <Code>
 partial interface $$I
@@ -115,11 +115,11 @@ partial interface $$I
 }
 </Code>
 
-            Await TestParts(code, 1)
-        End Function
+            TestParts(code, 1)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestParts3() As Task
+        Public Sub TestParts3()
             Dim code =
 <Code>
 partial interface $$I
@@ -131,8 +131,8 @@ partial interface I
 }
 </Code>
 
-            Await TestParts(code, 2)
-        End Function
+            TestParts(code, 2)
+        End Sub
 #End Region
 
 #Region "AddAttribute tests"
@@ -413,7 +413,7 @@ interface Bar
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestTypeDescriptor_GetProperties() As Task
+        Public Sub TestTypeDescriptor_GetProperties()
             Dim code =
 <Code>
 interface $$I
@@ -421,14 +421,8 @@ interface $$I
 }
 </Code>
 
-            Dim expectedPropertyNames =
-                {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind", "IsCodeType",
-                 "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
-                 "ExtenderCATID", "Parent", "Namespace", "Bases", "Members", "Access", "Attributes",
-                 "DocComment", "Comment", "DerivedTypes", "IsGeneric", "DataTypeKind", "Parts"}
-
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
-        End Function
+            TestPropertyDescriptors(Of EnvDTE80.CodeInterface2)(code)
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

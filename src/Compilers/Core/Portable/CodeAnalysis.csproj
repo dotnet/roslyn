@@ -29,22 +29,17 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="CommitHashAttribute.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerExecutionContext.cs" />
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
+    <Compile Include="InternalUtilities\GeneratedCodeUtilities.cs" />
     <Compile Include="InternalUtilities\NoThrowStreamDisposer.cs" />
     <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
     <Compile Include="InternalUtilities\PlatformInformation.cs" />
-    <Compile Include="Serialization\FixedObjectBinder.cs" />
-    <Compile Include="Serialization\IObjectReadable.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />
     <Compile Include="Serialization\ObjectBinder.cs" />
-    <Compile Include="Serialization\ObjectData.cs" />
-    <Compile Include="Serialization\ObjectReader.cs" />
-    <Compile Include="Serialization\ObjectWriter.cs" />
-    <Compile Include="Serialization\RecordingObjectBinder.cs" />
     <Compile Include="Serialization\StreamObjectReader.cs" />
     <Compile Include="Serialization\StreamObjectWriter.cs" />
-    <Compile Include="Serialization\TypeKey.cs" />
     <Compile Include="Symbols\IDiscardSymbol.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
@@ -86,7 +81,6 @@
     <Compile Include="DiagnosticAnalyzer\SourceTextValueProvider.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationAnalysisValueProviderFactory.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationAnalysisValueProvider.cs" />
-    <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.GeneratedCodeUtilities.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.CompilationData.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisContextInfo.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisValueProvider.cs" />
@@ -485,7 +479,6 @@
     <Compile Include="PEWriter\PooledBlobBuilder.cs" />
     <Compile Include="PEWriter\ReferenceIndexerBase.cs" />
     <Compile Include="PEWriter\TypeNameSerializer.cs" />
-    <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
     <Compile Include="PEWriter\MetadataWriter.cs" />
     <Compile Include="RuleSet\InvalidRuleSetException.cs" />
     <Compile Include="RuleSet\RuleSet.cs" />

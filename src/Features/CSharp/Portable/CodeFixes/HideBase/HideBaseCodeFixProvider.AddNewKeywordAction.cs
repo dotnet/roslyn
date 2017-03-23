@@ -14,13 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
             private Document _document;
             private SyntaxNode _node;
 
-            public override string Title
-            {
-                get
-                {
-                    return CSharpFeaturesResources.Hide_base_member;
-                }
-            }
+            public override string Title => CSharpFeaturesResources.Hide_base_member;
 
             public AddNewKeywordAction(Document document, SyntaxNode node)
             {

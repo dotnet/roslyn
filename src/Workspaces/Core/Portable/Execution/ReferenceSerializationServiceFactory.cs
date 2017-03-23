@@ -18,12 +18,15 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new Service(workspaceServices.GetService<ITemporaryStorageService>());
+            return new Service(
+                workspaceServices.GetService<ITemporaryStorageService>(),
+                workspaceServices.GetService<IDocumentationProviderService>());
         }
 
         private sealed class Service : AbstractReferenceSerializationService
         {
-            public Service(ITemporaryStorageService service) : base(service)
+            public Service(ITemporaryStorageService service, IDocumentationProviderService documentationService) :
+                base(service, documentationService)
             {
             }
 

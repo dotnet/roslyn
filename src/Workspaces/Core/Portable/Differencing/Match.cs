@@ -311,29 +311,11 @@ namespace Microsoft.CodeAnalysis.Differencing
             return TryGetPartnerInTree2(node1, out var partner2) && node2.Equals(partner2);
         }
 
-        public TreeComparer<TNode> Comparer
-        {
-            get
-            {
-                return _comparer;
-            }
-        }
+        public TreeComparer<TNode> Comparer => _comparer;
 
-        public TNode OldRoot
-        {
-            get
-            {
-                return _root1;
-            }
-        }
+        public TNode OldRoot => _root1;
 
-        public TNode NewRoot
-        {
-            get
-            {
-                return _root2;
-            }
-        }
+        public TNode NewRoot => _root2;
 
         public IReadOnlyDictionary<TNode, TNode> Matches
         {

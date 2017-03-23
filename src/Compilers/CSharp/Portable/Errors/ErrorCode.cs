@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1291,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_EnumsCantContainDefaultConstructor = 8054,
         ERR_EncodinglessSyntaxTree = 8055,
-        ERR_AccessorListAndExpressionBody = 8056,
+        // ERR_AccessorListAndExpressionBody = 8056, Deprecated in favor of ERR_BlockBodyAndExpressionBody
         ERR_BlockBodyAndExpressionBody = 8057,
         ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
@@ -1439,7 +1439,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DelegateRefMismatch = 8189,
         #endregion stragglers for C# 7
 
-        // Available  = 8190-8195
+        #region diagnostics for parse options
+        ERR_BadSourceCodeKind = 8190,
+        ERR_BadDocumentationMode = 8191,
+        ERR_BadLanguageVersion = 8192,
+        #endregion
+
+        // Available  = 8193-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
@@ -1453,7 +1459,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionVariableInQueryClause = 8201,
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
-        ERR_AttributesInLocalFuncDecl = 8204
+        ERR_BadAsyncMethodBuilderTaskProperty = 8204,
+        ERR_AttributesInLocalFuncDecl = 8205,
+        ERR_TypeForwardedToMultipleAssemblies = 8206,
+        ERR_ExpressionTreeContainsDiscard = 8207,
+        ERR_PatternDynamicType = 8208,
+        ERR_VoidAssignment = 8209,
         #endregion more stragglers for C# 7
+
+        ERR_Merge_conflict_marker_encountered = 8300,
+        ERR_InvalidPreprocessingSymbol = 8301,
+        ERR_FeatureNotAvailableInVersion7_1 = 8302,
+        ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
     }
 }

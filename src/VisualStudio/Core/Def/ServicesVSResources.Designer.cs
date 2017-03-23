@@ -126,11 +126,38 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add a naming rule.
+        /// </summary>
+        internal static string Add_a_naming_rule {
+            get {
+                return ResourceManager.GetString("Add_a_naming_rule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add a reference to &apos;{0}&apos;.
         /// </summary>
         internal static string Add_a_reference_to_0 {
             get {
                 return ResourceManager.GetString("Add_a_reference_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add a symbol specification.
+        /// </summary>
+        internal static string Add_a_symbol_specification {
+            get {
+                return ResourceManager.GetString("Add_a_symbol_specification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add item.
+        /// </summary>
+        internal static string Add_item {
+            get {
+                return ResourceManager.GetString("Add_item", resourceCulture);
             }
         }
         
@@ -556,6 +583,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string DocumentPath_is_illegal {
             get {
                 return ResourceManager.GetString("DocumentPath_is_illegal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit item.
+        /// </summary>
+        internal static string Edit_item {
+            get {
+                return ResourceManager.GetString("Edit_item", resourceCulture);
             }
         }
         
@@ -1458,6 +1494,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pick members.
+        /// </summary>
+        internal static string Pick_members {
+            get {
+                return ResourceManager.GetString("Pick_members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer braces.
         /// </summary>
         internal static string Prefer_braces {
@@ -1716,11 +1761,38 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove item.
+        /// </summary>
+        internal static string Remove_item {
+            get {
+                return ResourceManager.GetString("Remove_item", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove naming rule.
+        /// </summary>
+        internal static string Remove_naming_rule {
+            get {
+                return ResourceManager.GetString("Remove_naming_rule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove suppressions.
         /// </summary>
         internal static string Remove_suppressions {
             get {
                 return ResourceManager.GetString("Remove_suppressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove symbol specification.
+        /// </summary>
+        internal static string Remove_symbol_specification {
+            get {
+                return ResourceManager.GetString("Remove_symbol_specification", resourceCulture);
             }
         }
         
@@ -2060,6 +2132,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This workspace does not support updating Visual Basic parse options..
+        /// </summary>
+        internal static string This_workspace_does_not_support_updating_Visual_Basic_parse_options {
+            get {
+                return ResourceManager.GetString("This_workspace_does_not_support_updating_Visual_Basic_parse_options", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This workspace only supports opening documents on the UI thread..
         /// </summary>
         internal static string This_workspace_only_supports_opening_documents_on_the_UI_thread {
@@ -2230,6 +2311,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Visual_Studio_has_suspended_some_advanced_features_to_improve_performance {
             get {
                 return ResourceManager.GetString("Visual_Studio_has_suspended_some_advanced_features_to_improve_performance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread..
+        /// </summary>
+        internal static string VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread {
+            get {
+                return ResourceManager.GetString("VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread", resourceCulture);
             }
         }
         

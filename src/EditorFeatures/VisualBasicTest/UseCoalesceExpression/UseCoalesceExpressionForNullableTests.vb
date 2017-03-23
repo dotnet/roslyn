@@ -10,15 +10,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
     Public Class UseCoalesceExpressionForNullableTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                New VisualBasicUseCoalesceExpressionForNullableDiagnosticAnalyzer(),
-                New UseCoalesceExpressionForNullableCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New VisualBasicUseCoalesceExpressionForNullableDiagnosticAnalyzer(),
+                    New UseCoalesceExpressionForNullableCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
         Public Async Function TestOnLeft_Equals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -38,7 +37,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
         Public Async Function TestOnLeft_NotEquals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -58,7 +57,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
         Public Async Function TestComplexExpression() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -78,7 +77,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
         Public Async Function TestParens1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -98,7 +97,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
         Public Async Function TestFixAll1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -120,7 +119,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
         Public Async Function TestFixAll2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -134,6 +133,30 @@ End Class",
 Class C
     Sub M(x as Integer?, y as Integer?, z as Integer?)
         dim w = If(x, If(y, z))
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        Public Async Function TestInExpressionOfT() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+Imports System.Linq.Expressions
+
+Class C
+    Sub M(x as integer?, y as integer)
+        dim e as Expression(of Func(of integer)) = function() [||]If (x.HasValue, x.Value, y)
+    End Sub
+End Class",
+"
+Imports System
+Imports System.Linq.Expressions
+
+Class C
+    Sub M(x as integer?, y as integer)
+        dim e as Expression(of Func(of integer)) = function() {|Warning:If (x, y)|}
     End Sub
 End Class")
         End Function

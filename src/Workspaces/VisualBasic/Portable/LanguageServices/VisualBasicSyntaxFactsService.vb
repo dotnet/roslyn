@@ -205,7 +205,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsUsingStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingStatement
-            Return TypeOf node Is UsingStatementSyntax
+            Return node.Kind() = SyntaxKind.UsingStatement
+        End Function
+
+        Public Function IsReturnStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsReturnStatement
+            Return node.Kind() = SyntaxKind.ReturnStatement
+        End Function
+
+        Public Function GetExpressionOfReturnStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfReturnStatement
+            Return TryCast(node, ReturnStatementSyntax)?.Expression
         End Function
 
         Public Function IsThisConstructorInitializer(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsThisConstructorInitializer
@@ -1382,6 +1390,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return (TryCast(interpolatedString, InterpolatedStringExpressionSyntax)?.Contents).Value
         End Function
 
+        Public Function IsNumericLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsNumericLiteral
+            Return token.Kind = SyntaxKind.DecimalLiteralToken OrElse
+                   token.Kind = SyntaxKind.FloatingLiteralToken OrElse
+                   token.Kind = SyntaxKind.IntegerLiteralToken
+        End Function
+
+        Public Function IsCharacterLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsCharacterLiteral
+            Return token.Kind() = SyntaxKind.CharacterLiteralToken
+        End Function
+
         Public Function IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
             Return token.IsKind(SyntaxKind.StringLiteralToken)
         End Function
@@ -1395,8 +1413,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function GetArgumentsOfInvocationExpression(invocationExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsOfInvocationExpression
-            Dim arguments = TryCast(invocationExpression, InvocationExpressionSyntax)?.ArgumentList?.Arguments
+        Public Function GetArgumentsOfInvocationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsOfInvocationExpression
+            Return GetArgumentsOfArgumentList(TryCast(node, InvocationExpressionSyntax)?.ArgumentList)
+        End Function
+
+        Public Function GetArgumentsOfObjectCreationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsOfObjectCreationExpression
+            Return GetArgumentsOfArgumentList(TryCast(node, ObjectCreationExpressionSyntax)?.ArgumentList)
+        End Function
+
+        Public Function GetArgumentsOfArgumentList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsOfArgumentList
+            Dim arguments = TryCast(node, ArgumentListSyntax)?.Arguments
             Return If(arguments.HasValue, arguments.Value, Nothing)
         End Function
 
@@ -1498,8 +1524,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             newContextNode = contextNode
         End Sub
 
-        Public Function GetObjectCreationInitializer(objectCreationExpression As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetObjectCreationInitializer
-            Return DirectCast(objectCreationExpression, ObjectCreationExpressionSyntax).Initializer
+        Public Function GetObjectCreationInitializer(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetObjectCreationInitializer
+            Return DirectCast(node, ObjectCreationExpressionSyntax).Initializer
+        End Function
+
+        Public Function GetObjectCreationType(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetObjectCreationType
+            Return DirectCast(node, ObjectCreationExpressionSyntax).Type
         End Function
 
         Public Function IsSimpleAssignmentStatement(statement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleAssignmentStatement
@@ -1607,9 +1637,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(TryCast(node, ExpressionSyntax)?.WalkDownParentheses(), node)
         End Function
 
+        Public Function IsLogicalAndExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalAndExpression
+            Return node.IsKind(SyntaxKind.AndAlsoExpression)
+        End Function
+
         Public Function IsLogicalNotExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalNotExpression
             Return node.IsKind(SyntaxKind.NotExpression)
-            Throw New NotImplementedException()
         End Function
 
         Public Function GetOperandOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetOperandOfPrefixUnaryExpression
@@ -1622,12 +1655,117 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             name = memberAccess.Name
         End Sub
 
-        Public Function IsWhitespaceTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsWhitespaceTrivia
+        Public Function GetNextExecutableStatement(statement As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetNextExecutableStatement
+            Return DirectCast(statement, StatementSyntax).GetNextStatement()?.FirstAncestorOrSelf(Of ExecutableStatementSyntax)
+        End Function
+
+        Public Overrides Function IsWhitespaceTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsWhitespaceTrivia
             Return trivia.IsWhitespace()
         End Function
 
-        Public Function IsEndOfLineTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsEndOfLineTrivia
+        Public Overrides Function IsEndOfLineTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsEndOfLineTrivia
             Return trivia.IsEndOfLine()
+        End Function
+
+        Public Overrides Function IsSingleLineCommentTrivia(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.CommentTrivia
+        End Function
+
+        Public Overrides Function IsMultiLineCommentTrivia(trivia As SyntaxTrivia) As Boolean
+            ' VB does not have multi-line comments.
+            Return False
+        End Function
+
+        Public Overrides Function IsShebangDirectiveTrivia(trivia As SyntaxTrivia) As Boolean
+            ' VB does not have shebang directives.
+            Return False
+        End Function
+
+        Public Overrides Function IsPreprocessorDirective(trivia As SyntaxTrivia) As Boolean
+            Return SyntaxFacts.IsPreprocessorDirective(trivia.Kind())
+        End Function
+
+        Public Function IsRegularComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsRegularComment
+            Return trivia.Kind = SyntaxKind.CommentTrivia
+        End Function
+
+        Public Function IsDocumentationComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsDocumentationComment
+            Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
+        End Function
+
+        Public Function IsOnTypeHeader(root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsOnTypeHeader
+            Dim statement = root.FindToken(position).GetAncestor(Of TypeStatementSyntax)
+            If statement Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim start = If(statement.AttributeLists.LastOrDefault()?.GetLastToken().GetNextToken().SpanStart,
+                           statement.SpanStart)
+            Dim _end = If(statement.TypeParameterList?.GetLastToken().FullSpan.End,
+                          statement.Identifier.FullSpan.End)
+
+            Return position >= start AndAlso position <= _end
+        End Function
+
+        Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
+            Dim token = root.FindToken(position)
+            Dim typeDecl = token.GetAncestor(Of TypeBlockSyntax)
+            If typeDecl IsNot Nothing Then
+                Dim start = If(typeDecl.Implements.LastOrDefault()?.Span.End,
+                               If(typeDecl.Inherits.LastOrDefault()?.Span.End,
+                                  typeDecl.BlockStatement.Span.End))
+
+                If position >= start AndAlso
+                   position <= typeDecl.EndBlockStatement.Span.Start Then
+
+                    Dim line = sourceText.Lines.GetLineFromPosition(position)
+                    If Not line.IsEmptyOrWhitespace() Then
+                        Return False
+                    End If
+
+                    Dim member = typeDecl.Members.FirstOrDefault(Function(d) d.FullSpan.Contains(position))
+                    If member Is Nothing Then
+                        ' There are no members, Or we're after the last member.
+                        Return True
+                    Else
+                        ' We're within a member.  Make sure we're in the leading whitespace of
+                        ' the member.
+                        If position < member.SpanStart Then
+                            For Each trivia In member.GetLeadingTrivia()
+                                If Not trivia.IsWhitespaceOrEndOfLine() Then
+                                    Return False
+                                End If
+
+                                If trivia.FullSpan.Contains(position) Then
+                                    Return True
+                                End If
+                            Next
+                        End If
+                    End If
+                End If
+            End If
+
+            Return False
+        End Function
+
+        Public Function GetSelectedMembers(root As SyntaxNode, textSpan As TextSpan) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFactsService.GetSelectedMembers
+            Return ImmutableArray(Of SyntaxNode).CastUp(root.GetMembersInSpan(textSpan))
+        End Function
+
+        Private Function ISyntaxFactsService_GetFileBanner(root As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetFileBanner
+            Return GetFileBanner(root)
+        End Function
+
+        Protected Overrides Function ContainsInterleavedDirective(span As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+            Return token.ContainsInterleavedDirective(span, cancellationToken)
+        End Function
+
+        Private Function ISyntaxFactsService_ContainsInterleavedDirective(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.ContainsInterleavedDirective
+            Return ContainsInterleavedDirective(node, cancellationToken)
+        End Function
+
+        Private Function ISyntaxFactsService_ContainsInterleavedDirective1(nodes As ImmutableArray(Of SyntaxNode), cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.ContainsInterleavedDirective
+            Return ContainsInterleavedDirective(nodes, cancellationToken)
         End Function
     End Class
 End Namespace

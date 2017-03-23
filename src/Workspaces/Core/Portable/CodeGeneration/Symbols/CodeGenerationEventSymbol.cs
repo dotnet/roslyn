@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public CodeGenerationEventSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol type,

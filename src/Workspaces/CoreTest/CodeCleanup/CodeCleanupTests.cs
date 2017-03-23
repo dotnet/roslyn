@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -304,9 +305,8 @@ End Module";
 
         private void VerifyRange(string codeWithMarker, string language = LanguageNames.CSharp)
         {
-            var namedSpans = (IDictionary<string, IList<TextSpan>>)new Dictionary<string, IList<TextSpan>>();
-
-            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out namedSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, 
+                out var codeWithoutMarker, out IDictionary<string, ImmutableArray<TextSpan>> namedSpans);
 
             var expectedResult = namedSpans.ContainsKey("r") ? namedSpans["r"] as IEnumerable<TextSpan> : SpecializedCollections.EmptyEnumerable<TextSpan>();
 
@@ -315,9 +315,8 @@ End Module";
 
         private void VerifyRange(string codeWithMarker, ICodeCleanupProvider transformer, ref IEnumerable<TextSpan> expectedResult, string language = LanguageNames.CSharp)
         {
-            var namedSpans = (IDictionary<string, IList<TextSpan>>)new Dictionary<string, IList<TextSpan>>();
-
-            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out namedSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, 
+                out var codeWithoutMarker, out IDictionary<string, ImmutableArray<TextSpan>> namedSpans);
 
             VerifyRange(codeWithoutMarker, SpecializedCollections.SingletonEnumerable(transformer), namedSpans["b"], ref expectedResult, language);
         }

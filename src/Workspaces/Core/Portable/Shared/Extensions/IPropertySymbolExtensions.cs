@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.DeclaredAccessibility,
                 property.GetSymbolModifiers(),
                 property.Type,
+                property.ReturnsByRef,
                 property.ExplicitInterfaceImplementations.FirstOrDefault(),
                 property.Name,
                 parameters,
@@ -58,13 +59,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.DeclaredAccessibility,
                 property.GetSymbolModifiers(),
                 property.Type,
+                property.ReturnsByRef,
                 property.ExplicitInterfaceImplementations.FirstOrDefault(),
                 property.Name,
-                property.Parameters.Select(p =>
+                property.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        p.GetAttributes().Where(a => !shouldRemoveAttribute(a)).ToList(),
+                        p.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
                         p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
-                        p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)).ToList(),
+                        p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
                 property.GetMethod,
                 property.SetMethod,
                 property.IsIndexer);

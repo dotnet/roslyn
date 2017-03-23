@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -47,6 +48,11 @@ class C
             Assert.Equal(expected, LambdaUtilities.IsLambdaBody(node, allowReducedLambdas: true));
             Assert.Equal(isLambdaBody || isReducedLambdaBody, expected);
             Assert.Equal(isLambdaBody, LambdaUtilities.IsLambdaBody(node));
+
+            var methodDef = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(d => d.Identifier.ValueText == "M").Single();
+            Assert.Equal("C", model.GetEnclosingSymbol(methodDef.SpanStart).ToTestDisplayString());
+            Assert.Equal("C", model.GetEnclosingSymbol(methodDef.ParameterList.CloseParenToken.SpanStart).ToTestDisplayString());
+            Assert.Equal("void C.M()", model.GetEnclosingSymbol(methodDef.Body.SpanStart).ToTestDisplayString());
         }
 
         [Fact]

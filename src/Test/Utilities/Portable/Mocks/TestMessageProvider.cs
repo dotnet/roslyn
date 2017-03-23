@@ -425,5 +425,21 @@ namespace Roslyn.Test.Utilities
                 throw new NotImplementedException();
             }
         }
+
+        public override int ERR_BadSourceCodeKind
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public override int ERR_BadDocumentationMode
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 }

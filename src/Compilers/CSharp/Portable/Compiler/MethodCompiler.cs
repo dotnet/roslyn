@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
@@ -1347,7 +1348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Only compiler-generated MoveNext methods have iterator scopes.  See if this is one.
-                var stateMachineHoistedLocalScopes = default(ImmutableArray<Cci.StateMachineHoistedLocalScope>);
+                var stateMachineHoistedLocalScopes = default(ImmutableArray<StateMachineHoistedLocalScope>);
                 if (isStateMachineMoveNextMethod)
                 {
                     stateMachineHoistedLocalScopes = builder.GetHoistedLocalScopes();
@@ -1481,9 +1482,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceMethod = method as SourceMethodSymbol;
             if ((object)sourceMethod != null)
             {
+                var constructorSyntax = sourceMethod.SyntaxNode as ConstructorDeclarationSyntax;
+
+                // Static constructor can't have any this/base call
+                if (method.MethodKind == MethodKind.StaticConstructor &&
+                    constructorSyntax?.Initializer != null)
+                {
+                    diagnostics.Add(
+                        ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall,
+                        constructorSyntax.Initializer.ThisOrBaseKeyword.GetLocation(),
+                        constructorSyntax.Identifier.ValueText);
+                }
+
                 if (sourceMethod.IsExtern)
                 {
-                    if (sourceMethod.BodySyntax == null && (sourceMethod.SyntaxNode as ConstructorDeclarationSyntax)?.Initializer == null)
+                    if (sourceMethod.BodySyntax == null && constructorSyntax?.Initializer == null)
                     {
                         // Generate warnings only if we are not generating ERR_ExternHasBody or ERR_ExternHasConstructorInitializer errors
                         GenerateExternalMethodWarnings(sourceMethod, diagnostics);
@@ -1597,7 +1610,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics">Accumulates errors (e.g. access "this" in constructor initializer).</param>
         /// <param name="compilation">Used to retrieve binder.</param>
         /// <returns>A bound expression for the constructor initializer call.</returns>
-        internal static BoundExpression BindConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics, CSharpCompilation compilation)
+        internal static BoundExpression BindConstructorInitializer(
+            MethodSymbol constructor, DiagnosticBag diagnostics, CSharpCompilation compilation)
         {
             // Note that the base type can be null if we're compiling System.Object in source.
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;

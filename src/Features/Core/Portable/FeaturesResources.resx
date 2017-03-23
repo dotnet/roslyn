@@ -183,11 +183,11 @@
   <data name="generated_code_is_overlapping_with_hidden_portion_of_the_code" xml:space="preserve">
     <value>generated code is overlapping with hidden portion of the code</value>
   </data>
-  <data name="Add_optional_parameters_to_0_1" xml:space="preserve">
-    <value>Add optional parameters to '{0}({1})'</value>
+  <data name="Add_optional_parameters_to_0" xml:space="preserve">
+    <value>Add optional parameters to '{0}'</value>
   </data>
-  <data name="Add_parameters_to_0_1" xml:space="preserve">
-    <value>Add parameters to '{0}({1})'</value>
+  <data name="Add_parameters_to_0" xml:space="preserve">
+    <value>Add parameters to '{0}'</value>
   </data>
   <data name="Generate_delegating_constructor_0_1" xml:space="preserve">
     <value>Generate delegating constructor '{0}({1})'</value>
@@ -198,14 +198,14 @@
   <data name="Generate_field_assigning_constructor_0_1" xml:space="preserve">
     <value>Generate field assigning constructor '{0}({1})'</value>
   </data>
-  <data name="Generate_Both" xml:space="preserve">
-    <value>Generate Both</value>
+  <data name="Generate_Equals_and_GetHashCode" xml:space="preserve">
+    <value>Generate Equals and GetHashCode</value>
   </data>
   <data name="Generate_Equals_object" xml:space="preserve">
-    <value>Generate 'Equals(object)'</value>
+    <value>Generate Equals(object)</value>
   </data>
   <data name="Generate_GetHashCode" xml:space="preserve">
-    <value>Generate 'GetHashCode()'</value>
+    <value>Generate GetHashCode()</value>
   </data>
   <data name="Generate_constructor_in_0" xml:space="preserve">
     <value>Generate constructor in '{0}'</value>
@@ -213,11 +213,11 @@
   <data name="Generate_all" xml:space="preserve">
     <value>Generate all</value>
   </data>
-  <data name="Generate_enum_member_0_in_1" xml:space="preserve">
-    <value>Generate enum member '{0}' in '{1}'</value>
+  <data name="Generate_enum_member_1_0" xml:space="preserve">
+    <value>Generate enum member '{1}.{0}'</value>
   </data>
-  <data name="Generate_constant_0_in_1" xml:space="preserve">
-    <value>Generate constant '{0}' in '{1}'</value>
+  <data name="Generate_constant_1_0" xml:space="preserve">
+    <value>Generate constant '{1}.{0}'</value>
   </data>
   <data name="Generate_read_only_property_1_0" xml:space="preserve">
     <value>Generate read-only property '{1}.{0}'</value>
@@ -228,8 +228,8 @@
   <data name="Generate_read_only_field_1_0" xml:space="preserve">
     <value>Generate read-only field '{1}.{0}'</value>
   </data>
-  <data name="Generate_field_0_in_1" xml:space="preserve">
-    <value>Generate field '{0}' in '{1}'</value>
+  <data name="Generate_field_1_0" xml:space="preserve">
+    <value>Generate field '{1}.{0}'</value>
   </data>
   <data name="Generate_local_0" xml:space="preserve">
     <value>Generate local '{0}'</value>
@@ -583,11 +583,11 @@
   <data name="Unknown_symbol_kind" xml:space="preserve">
     <value>Unknown symbol kind</value>
   </data>
-  <data name="Generate_abstract_property_0_in_1" xml:space="preserve">
-    <value>Generate abstract property '{0}' in '{1}'</value>
+  <data name="Generate_abstract_property_1_0" xml:space="preserve">
+    <value>Generate abstract property '{1}.{0}'</value>
   </data>
-  <data name="Generate_abstract_method_0_in_1" xml:space="preserve">
-    <value>Generate abstract method '{0}' in '{1}'</value>
+  <data name="Generate_abstract_method_1_0" xml:space="preserve">
+    <value>Generate abstract method '{1}.{0}'</value>
   </data>
   <data name="Generate_method_1_0" xml:space="preserve">
     <value>Generate method '{1}.{0}'</value>
@@ -1150,5 +1150,74 @@ This version used in: {2}</value>
   </data>
   <data name="Add_document_0" xml:space="preserve">
     <value>Add document '{0}'</value>
+  </data>
+  <data name="Add_argument_name_0" xml:space="preserve">
+    <value>Add argument name '{0}'</value>
+  </data>
+  <data name="Take_0" xml:space="preserve">
+    <value>Take '{0}'</value>
+  </data>
+  <data name="Take_both" xml:space="preserve">
+    <value>Take both</value>
+  </data>
+  <data name="Take_bottom" xml:space="preserve">
+    <value>Take bottom</value>
+  </data>
+  <data name="Take_top" xml:space="preserve">
+    <value>Take top</value>
+  </data>
+  <data name="Remove_unused_variable" xml:space="preserve">
+    <value>Remove unused variable</value>
+  </data>
+  <data name="Convert_to_binary" xml:space="preserve">
+    <value>Convert to binary</value>
+  </data>
+  <data name="Convert_to_decimal" xml:space="preserve">
+    <value>Convert to decimal</value>
+  </data>
+  <data name="Convert_to_hex" xml:space="preserve">
+    <value>Convert to hex</value>
+  </data>
+  <data name="Separate_thousands" xml:space="preserve">
+    <value>Separate thousands</value>
+  </data>
+  <data name="Separate_words" xml:space="preserve">
+    <value>Separate words</value>
+  </data>
+  <data name="Separate_nibbles" xml:space="preserve">
+    <value>Separate nibbles</value>
+  </data>
+  <data name="Remove_separators" xml:space="preserve">
+    <value>Remove separators</value>
+  </data>
+  <data name="Add_parameter_to_0" xml:space="preserve">
+    <value>Add parameter to '{0}'</value>
+  </data>
+  <data name="Generate_constructor" xml:space="preserve">
+    <value>Generate constructor...</value>
+  </data>
+  <data name="Pick_members_to_be_used_as_constructor_parameters" xml:space="preserve">
+    <value>Pick members to be used as constructor parameters</value>
+  </data>
+  <data name="Pick_members_to_be_used_in_Equals_GetHashCode" xml:space="preserve">
+    <value>Pick members to be used in Equals/GetHashCode</value>
+  </data>
+  <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
+    <value>Changes to expression trees may result in behavior changes at runtime</value>
+  </data>
+  <data name="Generate_overrides" xml:space="preserve">
+    <value>Generate overrides...</value>
+  </data>
+  <data name="Pick_members_to_override" xml:space="preserve">
+    <value>Pick members to override</value>
+  </data>
+  <data name="Add_null_checks" xml:space="preserve">
+    <value>Add null checks</value>
+  </data>
+  <data name="Generate_operators" xml:space="preserve">
+    <value>Generate operators</value>
+  </data>
+  <data name="Implement_0" xml:space="preserve">
+    <value>Implement {0}</value>
   </data>
 </root>

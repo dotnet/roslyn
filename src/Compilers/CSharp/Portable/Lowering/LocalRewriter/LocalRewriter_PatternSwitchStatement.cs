@@ -18,7 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Helper class for rewriting a pattern switch statement by lowering it to a decision tree and
-        /// then to a sequence of statements.
+        /// then lowering the decision tree to a sequence of bound statements. We inherit <see cref="DecisionTreeBuilder"/>
+        /// for the machinery to build the decision tree, and then use
+        /// <see cref="PatternSwitchLocalRewriter.LowerDecisionTree(BoundExpression, DecisionTree)"/>
+        /// recursively to produce bound nodes that implement it.
         /// </summary>
         private class PatternSwitchLocalRewriter : DecisionTreeBuilder
         {
@@ -63,13 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     initialTemp = _factory.SynthesizedLocal(expression.Type, expression.Syntax);
                     result.Add(_factory.Assignment(_factory.Local(initialTemp), expression));
                     expression = _factory.Local(initialTemp);
-                }
 
-                // EnC: We need to insert a hidden sequence point to handle function remapping in case 
-                // the containing method is edited while methods invoked in the expression are being executed.
-                if (!node.WasCompilerGenerated && _localRewriter.Instrument)
-                {
-                    expression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, expression, _factory);
+                    // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+                    // the containing method is edited while methods invoked in the expression are being executed.
+                    if (!node.WasCompilerGenerated && _localRewriter.Instrument)
+                    {
+                        expression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, expression, _factory);
+                    }
                 }
 
                 // output the decision tree part
@@ -333,6 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // invariant: the input has already been tested, to ensure it is not null
                 if (input == temp)
                 {
+                    // this may not be reachable due to https://github.com/dotnet/roslyn/issues/16878
                     return _factory.Literal(true);
                 }
 
@@ -368,15 +372,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var value = byValue.Expression.ConstantValue.Value;
                 Debug.Assert(value != null);
-                DecisionTree onValue;
-                if (byValue.ValueAndDecision.TryGetValue(value, out onValue))
-                {
-                    LowerDecisionTree(byValue.Expression, onValue);
-                    if (onValue.MatchIsComplete)
-                    {
-                        return;
-                    }
-                }
+
+                // because we are switching on a constant, the decision tree builder does not produce a (nonempty) ByValue
+                Debug.Assert(byValue.ValueAndDecision.Count == 0);
 
                 LowerDecisionTree(byValue.Expression, byValue.Default);
             }
@@ -503,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (underlyingSwitchType.SpecialType == SpecialType.System_String)
                 {
                     _localRewriter.EnsureStringHashFunction(rewrittenSections, _factory.Syntax);
-                    stringEquality = _localRewriter.GetSpecialTypeMethod(_factory.Syntax, SpecialMember.System_String__op_Equality);
+                    stringEquality = _localRewriter.UnsafeGetSpecialTypeMethod(_factory.Syntax, SpecialMember.System_String__op_Equality);
                 }
 
                 // The BoundSwitchStatement requires a constant target when there are no sections, so we accomodate that here.
@@ -605,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     builder.Add(_factory.Block(section.Statements));
-                    // this location should not be reachable.
+                    // this location in the generated code in builder should not be reachable.
                 }
 
                 Debug.Assert(nextLabel != null);

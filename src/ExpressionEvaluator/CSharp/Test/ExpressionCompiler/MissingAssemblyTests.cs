@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
-using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -440,44 +440,70 @@ class C
         [Fact]
         public void ShouldTryAgain_CORDBG_E_MISSING_METADATA()
         {
-            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf = (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-            {
-                Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.CORDBG_E_MISSING_METADATA));
-                throw ExceptionUtilities.Unreachable;
-            };
-
-            var references = ImmutableArray<MetadataBlock>.Empty;
-            var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
-            Assert.False(ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
-            Assert.Empty(references);
+            ShouldTryAgain_False(
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.CORDBG_E_MISSING_METADATA));
+                    throw ExceptionUtilities.Unreachable;
+                });
         }
 
         [Fact]
         public void ShouldTryAgain_COR_E_BADIMAGEFORMAT()
         {
-            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf = (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-            {
-                Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.COR_E_BADIMAGEFORMAT));
-                throw ExceptionUtilities.Unreachable;
-            };
-
-            var references = ImmutableArray<MetadataBlock>.Empty;
-            var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
-            Assert.False(ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
-            Assert.Empty(references);
+            ShouldTryAgain_False(
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.COR_E_BADIMAGEFORMAT));
+                    throw ExceptionUtilities.Unreachable;
+                });
         }
 
         [Fact]
-        public void ShouldTryAgain_OtherException()
+        public void ShouldTryAgain_ObjectDisposedException()
         {
-            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf = (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-            {
-                throw new Exception();
-            };
+            ShouldTryAgain_False(
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    throw new ObjectDisposedException("obj");
+                });
+        }
+
+        [Fact]
+        public void ShouldTryAgain_RPC_E_DISCONNECTED()
+        {
+            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf =
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    Marshal.ThrowExceptionForHR(unchecked((int)0x80010108));
+                    throw ExceptionUtilities.Unreachable;
+                };
+
+            var references = ImmutableArray<MetadataBlock>.Empty;
+            var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
+            Assert.Throws<COMException>(() => ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
+        }
+
+        [Fact]
+        public void ShouldTryAgain_Exception()
+        {
+            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf =
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    throw new Exception();
+                };
 
             var references = ImmutableArray<MetadataBlock>.Empty;
             var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
             Assert.Throws<Exception>(() => ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
+        }
+
+        private static void ShouldTryAgain_False(DkmUtilities.GetMetadataBytesPtrFunction gmdbpf)
+        {
+            var references = ImmutableArray<MetadataBlock>.Empty;
+            var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
+            Assert.False(ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
+            Assert.Empty(references);
         }
 
         [WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")]
@@ -752,6 +778,100 @@ class UseLinq
 
                 Assert.Equal(2, retryCount);
             });
+        }
+
+        [Fact]
+        public void TupleNoSystemRuntime()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        var x = 1;
+        var y = (x, 2);
+        var z = (3, 4, (5, 6));
+    }
+}";
+            TupleContextNoSystemRuntime(
+                source,
+                "C.M",
+                "y",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                (int, int) V_1, //y
+                (int, int, (int, int)) V_2) //z
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+        }
+
+        [WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")]
+        [Fact]
+        public void NonTupleNoSystemRuntime()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        var x = 1;
+        var y = (x, 2);
+        var z = (3, 4, (5, 6));
+    }
+}";
+            TupleContextNoSystemRuntime(
+                source,
+                "C.M",
+                "x",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                (int, int) V_1, //y
+                (int, int, (int, int)) V_2) //z
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+        }
+
+        private static void TupleContextNoSystemRuntime(string source, string methodName, string expression, string expectedIL)
+        {
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
+            using (var systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance())
+            {
+                WithRuntimeInstance(comp, new[] { MscorlibRef, ValueTupleRef }, runtime =>
+                {
+                    ImmutableArray<MetadataBlock> blocks;
+                    Guid moduleVersionId;
+                    ISymUnmanagedReader symReader;
+                    int methodToken;
+                    int localSignatureToken;
+                    GetContextState(runtime, methodName, out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+                    string errorMessage;
+                    CompilationTestData testData;
+                    int retryCount = 0;
+                    var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                        runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                        expression,
+                        ImmutableArray<Alias>.Empty,
+                        (b, u) => EvaluationContext.CreateMethodContext(b.ToCompilation(), symReader, moduleVersionId, methodToken, methodVersion: 1, ilOffset: 0, localSignatureToken: localSignatureToken),
+                        (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                        {
+                            retryCount++;
+                            Assert.Equal("System.Runtime", assemblyIdentity.Name);
+                            var block = systemRuntime.MetadataBlock;
+                            uSize = (uint)block.Size;
+                            return block.Pointer;
+                        },
+                        errorMessage: out errorMessage,
+                        testData: out testData);
+                    Assert.Equal(1, retryCount);
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
+                });
+            }
         }
 
         private sealed class TestCompileResult : CompileResult

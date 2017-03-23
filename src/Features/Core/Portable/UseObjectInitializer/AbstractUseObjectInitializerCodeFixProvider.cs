@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             return SpecializedTasks.EmptyTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
@@ -74,7 +74,10 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             // We're going to be continually editing this tree.  Track all the nodes we
             // care about so we can find them across each edit.
-            var currentRoot = originalRoot.TrackNodes(originalObjectCreationNodes);
+            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes));
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             while (originalObjectCreationNodes.Count > 0)
             {
@@ -82,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
                 var analyzer = new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>(
-                    syntaxFacts, objectCreation);
+                    semanticModel, syntaxFacts, objectCreation, cancellationToken);
                 var matches = analyzer.Analyze();
 
                 if (matches == null || matches.Value.Length == 0)
@@ -102,11 +105,12 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     subEditor.RemoveNode(match.Statement);
                 }
 
-                currentRoot = subEditor.GetChangedRoot();
+                document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
+                semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
             editor.ReplaceNode(editor.OriginalRoot, currentRoot);
-            return SpecializedTasks.EmptyTask;
         }
 
         protected abstract TStatementSyntax GetNewStatement(

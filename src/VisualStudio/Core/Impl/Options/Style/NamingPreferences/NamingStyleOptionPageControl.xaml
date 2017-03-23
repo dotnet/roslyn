@@ -159,7 +159,8 @@
                                 SelectedItem="{Binding SelectedSpecification, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                 VerticalContentAlignment="Center"
                                 HorizontalContentAlignment="Left"
-                                ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}">
+                                ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}"
+                                AutomationProperties.Name="{x:Static style:NamingStyleOptionPageControl.SymbolSpecificationAutomationText}">
                                 <ComboBox.ItemContainerStyle>
                                     <Style TargetType="ComboBoxItem">
                                         <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
@@ -182,7 +183,8 @@
                                     SelectedItem="{Binding SelectedStyle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                     VerticalContentAlignment="Center"
                                     HorizontalContentAlignment="Left"
-                                    ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}">
+                                    ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}"
+                                    AutomationProperties.Name="{x:Static style:NamingStyleOptionPageControl.NamingStyleAutomationText}">
                                 <ComboBox.ItemContainerStyle>
                                     <Style TargetType="ComboBoxItem">
                                         <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
@@ -205,7 +207,8 @@
                                     Visibility="{Binding NotificationsAvailable, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"
                                     VerticalContentAlignment="Center"
                                     HorizontalContentAlignment="Left"
-                                    ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}">
+                                    ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}"
+                                    AutomationProperties.Name="{x:Static style:NamingStyleOptionPageControl.SeverityAutomationText}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <Grid>
@@ -244,7 +247,7 @@
                                     HorizontalContentAlignment="Center"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    AutomationProperties.Name="{Binding RemoveAutomationText}">
+                                    AutomationProperties.Name="{x:Static style:NamingStyleOptionPageControl.RemoveAutomationText}">
                                 <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.DeleteListItem}" />
                             </Button>
                         </DataTemplate>
@@ -258,7 +261,7 @@
                         Margin="7">
                 <Button Name="AddButton" 
                         Click="AddButton_Click" 
-                        AutomationProperties.Name="{Binding AddRuleAutomationText}"
+                        AutomationProperties.Name="{x:Static style:NamingStyleOptionPageControl.AddRuleAutomationText}"
                         AutomationProperties.AutomationId="Add"
                         Height="24" Width="24"
                         Margin="0 0 0 0">

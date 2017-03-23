@@ -232,12 +232,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                                        .WithAdditionalAnnotations(Formatter.Annotation);
 
             SyntaxNode newParentingNode = null;
-            if (oldParentingNode is BasePropertyDeclarationSyntax)
+            if (oldParentingNode is BasePropertyDeclarationSyntax baseProperty)
             {
                 var getAccessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, newBody);
                 var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.List(new[] { getAccessor }));
 
-                newParentingNode = ((BasePropertyDeclarationSyntax)oldParentingNode).RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia);
+                newParentingNode = baseProperty.RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia);
 
                 if (newParentingNode.IsKind(SyntaxKind.PropertyDeclaration))
                 {
@@ -256,11 +256,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                         .WithTrailingTrivia(indexerDeclaration.SemicolonToken.TrailingTrivia);
                 }
             }
-            else if (oldParentingNode is BaseMethodDeclarationSyntax)
+            else if (oldParentingNode is BaseMethodDeclarationSyntax baseMethod)
             {
-                newParentingNode = ((BaseMethodDeclarationSyntax)oldParentingNode)
-                    .RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia)
-                    .WithBody(newBody);
+                newParentingNode = baseMethod.RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia)
+                                             .WithBody(newBody);
 
                 if (newParentingNode.IsKind(SyntaxKind.MethodDeclaration))
                 {

@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using static Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions;
 using Xunit;
 using Roslyn.Test.Utilities;
 
@@ -14,6 +15,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class SyntaxBinderTests : CompilingTestBase
     {
+        [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
+        public void EnumBinaryOps()
+        {
+            string source = @"
+    [Flags]
+    internal enum TestEnum
+    {
+        None,
+        Tags,
+        FilePath,
+        Capabilities,
+        Visibility,
+        AllProperties = FilePath | Visibility
+    }
+    class C {
+         public void Foo(){
+            var x = TestEnum.FilePath | TestEnum.Visibility;
+        }
+    }
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var orNodes = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().ToArray();
+            Assert.Equal(orNodes.Length, 2);
+
+            var insideEnumDefinition = semanticModel.GetSymbolInfo(orNodes[0]);
+            var insideMethodBody = semanticModel.GetSymbolInfo(orNodes[1]);
+
+            Assert.False(insideEnumDefinition.IsEmpty);
+            Assert.False(insideMethodBody.IsEmpty);
+
+            Assert.NotEqual(insideEnumDefinition, insideMethodBody);
+
+            Assert.Equal(insideEnumDefinition.Symbol.ToTestDisplayString(), 
+                "System.Int32 System.Int32.op_BitwiseOr(System.Int32 left, System.Int32 right)");
+            Assert.Equal(insideMethodBody.Symbol.ToTestDisplayString(), 
+                "TestEnum TestEnum.op_BitwiseOr(TestEnum left, TestEnum right)");
+        }
+
         [Fact, WorkItem(543895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543895")]
         public void TestBug11947()
         {
