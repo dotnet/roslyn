@@ -63,11 +63,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
             => BeginInvokeOnUIThread(GetExecuteOnActionViewCallback(action));
 
+        public string GetActiveBufferName()
+        {
+            return GetDTE().ActiveDocument.Name;
+        }
+
+        public void WaitForActiveView(string expectedView)
+        {
+            Retry(GetActiveBufferName, (actual) => actual == expectedView, TimeSpan.FromMilliseconds(100));
+        }
+
         public void Activate()
             => GetDTE().ActiveDocument.Activate();
 
         public string GetText()
-            => ExecuteOnActiveView<string>(view => view.TextSnapshot.GetText());
+            => ExecuteOnActiveView(view => view.TextSnapshot.GetText());
 
         public void SetText(string text)
             => ExecuteOnActiveView(view =>
@@ -107,6 +117,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var text = line.GetText();
 
                 return text.Substring(bufferPosition.Position - line.Start);
+            });
+
+        public string GetSelectedText()
+            => ExecuteOnActiveView(view =>
+            {
+                var subjectBuffer = view.GetBufferContainingCaret();
+                var selectedSpan = view.Selection.SelectedSpans[0];
+                return subjectBuffer.CurrentSnapshot.GetText(selectedSpan);
             });
 
         public void MoveCaret(int position)
@@ -396,6 +414,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             SendKeys.SendWait(keys);
         }
 
+        public void SendKeysToNavigateTo(string keys)
+        {
+            var dialogAutomationElement = FindNavigateTo();
+            if (dialogAutomationElement == null)
+            {
+                throw new InvalidOperationException($"Expected the NavigateTo dialog to be open, but it is not.");
+            }
+
+            dialogAutomationElement.SetFocus();
+            SendKeys.SendWait(keys);
+        }
+
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
             DialogHelpers.PressButton(GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
@@ -418,6 +448,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
 
             return vsAutomationElement.FindFirst(TreeScope.Descendants, elementCondition);
+        }
+
+        private static AutomationElement FindNavigateTo()
+        {
+            var vsAutomationElement = AutomationElement.FromHandle(new IntPtr(GetDTE().MainWindow.HWnd));
+            return vsAutomationElement.FindDescendantByAutomationId("PART_SearchBox");
         }
 
         private T Retry<T>(Func<T> action, Func<T, bool> stoppingCondition, TimeSpan delay)
