@@ -208,11 +208,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             return semanticModel.GetType(argument.Expression, cancellationToken);
         }
 
-        protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
-        {
-            return compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
-        }
-
         internal override IMethodSymbol GetDelegatingConstructor(
             State state,
             SemanticDocument document,

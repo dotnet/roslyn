@@ -1,15 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbolExtensions
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -213,6 +207,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _method
             End Get
         End Property
+
+        Public Shared Widening Operator CType(conversion As Conversion) As ConversionInfo
+            Return New ConversionInfo(
+                exists:=conversion.Exists,
+                isIdentity:=conversion.IsIdentity,
+                isWidening:=conversion.IsWidening,
+                isNarrowing:=conversion.IsNarrowing,
+                isNumeric:=conversion.IsNumeric,
+                isNullable:=conversion.IsNullableValueType,
+                isReference:=conversion.IsReference,
+                isDefaultLiteral:=conversion.IsDefault,
+                isUserDefined:=conversion.IsUserDefined,
+                methodSymbol:=conversion.MethodSymbol)
+        End Operator
 
         ''' <summary>
         ''' Returns True if two <see cref="Conversion"/> values are equal.

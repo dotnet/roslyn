@@ -1,14 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Shared.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     ''' <summary>
@@ -19,8 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     ''' the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
     ''' </summary>
     Friend Class SpeculationAnalyzer
-        Inherits AbstractSpeculationAnalyzer(Of SyntaxNode, ExpressionSyntax, TypeSyntax, AttributeSyntax,
-                                             ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax, SemanticModel, Conversion)
+        Inherits AbstractSpeculationAnalyzer(Of
+            SyntaxNode, ExpressionSyntax, TypeSyntax, AttributeSyntax,
+            ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax, SemanticModel)
 
         ''' <summary>
         ''' Creates a semantic analyzer for speculative syntax replacement.
@@ -528,17 +523,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Return node.IsKind(SyntaxKind.ParenthesizedExpression)
         End Function
 
-        Protected Overrides Function ConversionsAreCompatible(originalModel As SemanticModel, originalExpression As ExpressionSyntax, newModel As SemanticModel, newExpression As ExpressionSyntax) As Boolean
-            Return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression))
-        End Function
-
         Protected Overrides Function ConversionsAreCompatible(originalExpression As ExpressionSyntax, originalTargetType As ITypeSymbol, newExpression As ExpressionSyntax, newTargetType As ITypeSymbol) As Boolean
-            Dim originalConversion As Conversion?
-            Dim newConversion As Conversion?
+            Dim originalConversion As ConversionInfo?
+            Dim newConversion As ConversionInfo?
 
             Me.GetConversions(originalExpression, originalTargetType, newExpression, newTargetType, originalConversion, newConversion)
 
-            If originalConversion Is Nothing OrElse newConversion Is Nothing
+            If originalConversion Is Nothing OrElse newConversion Is Nothing Then
                 Return False
             End If
 
@@ -549,30 +540,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             If Me.OriginalSemanticModel.OptionStrict() <> OptionStrict.Off AndAlso
                Me.SpeculativeSemanticModel.GetConstantValue(newExpression).HasValue Then
                 Dim newExpressionType = Me.SpeculativeSemanticModel.GetTypeInfo(newExpression).ConvertedType
-                newConversion = Me.OriginalSemanticModel.Compilation.ClassifyConversion(newExpressionType, newTargetType)
+                newConversion = Me.OriginalSemanticModel.Compilation.ClassifyConversionInfo(newExpressionType, newTargetType)
             End If
 
             Return ConversionsAreCompatible(originalConversion.Value, newConversion.Value)
-        End Function
-
-        Private Overloads Function ConversionsAreCompatible(originalConversion As Conversion, newConversion As Conversion) As Boolean
-            If originalConversion.Exists <> newConversion.Exists OrElse
-                ((Not originalConversion.IsNarrowing) AndAlso newConversion.IsNarrowing) Then
-                Return False
-            End If
-
-            Dim originalIsUserDefined = originalConversion.IsUserDefined
-            Dim newIsUserDefined = newConversion.IsUserDefined
-
-            If (originalIsUserDefined <> newIsUserDefined) Then
-                Return False
-            End If
-
-            If (originalIsUserDefined OrElse originalConversion.MethodSymbol IsNot Nothing OrElse newConversion.MethodSymbol IsNot Nothing) Then
-                Return SymbolsAreCompatible(originalConversion.MethodSymbol, newConversion.MethodSymbol)
-            End If
-
-            Return True
         End Function
 
         Protected Overrides Function ForEachConversionsAreCompatible(originalModel As SemanticModel, originalForEach As ForEachStatementSyntax, newModel As SemanticModel, newForEach As ForEachStatementSyntax) As Boolean
@@ -586,17 +557,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             getEnumeratorMethod = info.GetEnumeratorMethod
             elementType = info.ElementType
         End Sub
-
-        Protected Overrides Function IsReferenceConversion(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
-            Return compilation.ClassifyConversion(sourceType, targetType).IsReference
-        End Function
-
-        Protected Overrides Function ClassifyConversion(model As SemanticModel, expression As ExpressionSyntax, targetType As ITypeSymbol) As Conversion
-            Return model.ClassifyConversion(expression, targetType)
-        End Function
-
-        Protected Overrides Function ClassifyConversion(model As SemanticModel, originalType As ITypeSymbol, targetType As ITypeSymbol) As Conversion
-            Return model.Compilation.ClassifyConversion(originalType, targetType)
-        End Function
     End Class
 End Namespace

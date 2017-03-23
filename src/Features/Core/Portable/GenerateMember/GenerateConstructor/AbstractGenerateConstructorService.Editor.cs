@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
     internal abstract partial class AbstractGenerateConstructorService<TService, TArgumentSyntax, TAttributeArgumentSyntax>
     {
-        protected abstract bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType);
+        protected bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
+            => compilation.ClassifyConversionInfo(sourceType, targetType).IsWidening;
 
         internal abstract IMethodSymbol GetDelegatingConstructor(State state, SemanticDocument document, int argumentCount, INamedTypeSymbol namedType, ISet<IMethodSymbol> candidates, CancellationToken cancellationToken);
 

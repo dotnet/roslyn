@@ -176,12 +176,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return info.ConvertedType
                 End If
 
-                Dim conversion = semanticModel.ClassifyConversion(expression, info.ConvertedType)
+                Dim conversion = semanticModel.ClassifyConversionInfo(expression, info.ConvertedType)
                 If conversion.IsNumeric AndAlso conversion.IsWidening Then
                     Return info.ConvertedType
                 End If
 
-                Dim conv = semanticModel.GetConversion(expression)
+                Dim conv = semanticModel.GetConversionInfo(expression)
                 If IsCoClassImplicitConversion(info, conv, semanticModel.Compilation.CoClassType()) Then
                     Return info.ConvertedType
                 End If
@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return If(info.Type.IsObjectType(), info.ConvertedType, info.Type)
         End Function
 
-        Private Shared Function IsCoClassImplicitConversion(info As TypeInfo, conversion As Conversion, coclassSymbol As ISymbol) As Boolean
+        Private Shared Function IsCoClassImplicitConversion(info As TypeInfo, conversion As ConversionInfo, coclassSymbol As ISymbol) As Boolean
             If Not conversion.IsWidening OrElse
                  info.ConvertedType Is Nothing OrElse
                  info.ConvertedType.TypeKind <> TypeKind.Interface Then

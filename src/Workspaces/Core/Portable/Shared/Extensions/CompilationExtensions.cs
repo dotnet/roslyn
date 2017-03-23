@@ -12,8 +12,13 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class ICompilationExtensions
+    internal static class CompilationExtensions
     {
+        public static bool IsAssignableTo(this Compilation compilation, ITypeSymbol fromSymbol, ITypeSymbol toSymbol)
+            => fromSymbol != null &&
+               toSymbol != null &&
+               compilation.ClassifyConversionInfo(fromSymbol, toSymbol).IsWidening;
+
         public static ImmutableArray<Compilation> GetReferencedCompilations(this Compilation compilation)
         {
             var builder = ArrayBuilder<Compilation>.GetInstance();

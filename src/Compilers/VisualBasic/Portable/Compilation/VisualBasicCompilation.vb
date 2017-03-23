@@ -1746,6 +1746,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New Conversion(Conversions.ClassifyConversion(vbsource, vbdest, Nothing))
         End Function
 
+        Protected Overrides Function CommonClassifyConversionInfo(source As ITypeSymbol, destination As ITypeSymbol) As ConversionInfo
+            Return ClassifyConversion(source, destination)
+        End Function
+
         ''' <summary>
         ''' A symbol representing the implicit Script class. This is null if the class is not
         ''' defined in the compilation.

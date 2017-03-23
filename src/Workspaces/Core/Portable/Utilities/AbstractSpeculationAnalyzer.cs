@@ -17,8 +17,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// It uses the original tree's semantic model to create a speculative semantic model and verifies that
     /// the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
     /// </summary>
-    internal abstract class AbstractSpeculationAnalyzer<TSyntaxNode, TExpressionSyntax, TTypeSyntax, TAttributeSyntax,
-        TArgumentSyntax, TForEachStatementSyntax, TThrowStatementSyntax, TSemanticModel, TConversion>
+    internal abstract class AbstractSpeculationAnalyzer<
+        TSyntaxNode, TExpressionSyntax, TTypeSyntax, TAttributeSyntax,
+        TArgumentSyntax, TForEachStatementSyntax, TThrowStatementSyntax, TSemanticModel>
         where TSyntaxNode : SyntaxNode
         where TExpressionSyntax : TSyntaxNode
         where TTypeSyntax : TExpressionSyntax
@@ -27,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         where TForEachStatementSyntax : TSyntaxNode
         where TThrowStatementSyntax : TSyntaxNode
         where TSemanticModel : SemanticModel
-        where TConversion : struct
     {
         private readonly TExpressionSyntax _expression;
         private readonly TExpressionSyntax _newExpressionForReplace;
@@ -251,7 +251,33 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return ConversionsAreCompatible(originalExpression, originalTargetType, newExpression, newTargetType);
         }
 
-        protected abstract bool ConversionsAreCompatible(SemanticModel model1, TExpressionSyntax expression1, SemanticModel model2, TExpressionSyntax expression2);
+        protected bool ConversionsAreCompatible(SemanticModel originalModel, TExpressionSyntax originalExpression, SemanticModel newModel, TExpressionSyntax newExpression)
+            => ConversionsAreCompatible(originalModel.GetConversionInfo(originalExpression), newModel.GetConversionInfo(newExpression));
+
+        protected bool ConversionsAreCompatible(ConversionInfo originalConversion, ConversionInfo newConversion)
+        {
+            if (originalConversion.Exists != newConversion.Exists ||
+                (!originalConversion.IsNarrowing && newConversion.IsNarrowing))
+            {
+                return false;
+            }
+
+            var originalIsUserDefined = originalConversion.IsUserDefined;
+            var newIsUserDefined = newConversion.IsUserDefined;
+
+            if (originalIsUserDefined != newIsUserDefined)
+            {
+                return false;
+            }
+
+            if (originalIsUserDefined || originalConversion.MethodSymbol != null || newConversion.MethodSymbol != null)
+            {
+                return SymbolsAreCompatible(originalConversion.MethodSymbol, newConversion.MethodSymbol);
+            }
+
+            return true;
+        }
+
         protected abstract bool ConversionsAreCompatible(TExpressionSyntax originalExpression, ITypeSymbol originalTargetType, TExpressionSyntax newExpression, ITypeSymbol newTargetType);
 
         protected bool SymbolsAreCompatible(TSyntaxNode originalNode, TSyntaxNode newNode, bool requireNonNullSymbols = false)
@@ -743,7 +769,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return false;
         }
 
-        protected abstract bool IsReferenceConversion(Compilation model, ITypeSymbol sourceType, ITypeSymbol targetType);
+        protected bool IsReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
+            => compilation.ClassifyConversionInfo(sourceType, targetType).IsReference;
 
         private bool IsCompatibleInterfaceMemberImplementation(
             ISymbol symbol,
@@ -1029,8 +1056,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             ITypeSymbol originalTargetType,
             TExpressionSyntax newExpression,
             ITypeSymbol newTargetType,
-            out TConversion? originalConversion,
-            out TConversion? newConversion)
+            out ConversionInfo? originalConversion,
+            out ConversionInfo? newConversion)
         {
             originalConversion = null;
             newConversion = null;
@@ -1057,7 +1084,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        protected abstract TConversion ClassifyConversion(TSemanticModel model, TExpressionSyntax expression, ITypeSymbol targetType);
-        protected abstract TConversion ClassifyConversion(TSemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType);
+        protected ConversionInfo ClassifyConversion(TSemanticModel model, TExpressionSyntax expression, ITypeSymbol targetType)
+            => model.ClassifyConversionInfo(expression, targetType);
+
+        protected ConversionInfo ClassifyConversion(TSemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType)
+            => model.Compilation.ClassifyConversionInfo(originalType, targetType);
     }
 }
