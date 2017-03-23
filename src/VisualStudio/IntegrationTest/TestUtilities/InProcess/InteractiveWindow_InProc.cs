@@ -37,15 +37,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             CloseWindow();
 
             _interactiveWindow = AcquireInteractiveWindow();
+        }
+
+        public void SubscribeForReadyForInput()
+        {
             _interactiveWindow.ReadyForInput += InteractiveWindow_ReadyForInput;
         }
 
-        public event Action ReadyForInput; 
-
-        public void Dispose()
+        public void UnsubscribeFromReadyForInput()
         {
             _interactiveWindow.ReadyForInput -= InteractiveWindow_ReadyForInput;
         }
+        
+        public void Dispose()
+        {
+            UnsubscribeFromReadyForInput();
+        }
+
+        public event EventHandler ReadyForInput;
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
 
@@ -242,7 +251,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected void InteractiveWindow_ReadyForInput()
         {
-            ReadyForInput();
+            ReadyForInput(null, null);
         }
     }
 }

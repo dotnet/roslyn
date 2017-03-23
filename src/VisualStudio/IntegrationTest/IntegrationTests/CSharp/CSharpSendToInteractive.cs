@@ -91,30 +91,25 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void SendMultipleLineBlockSelectedSubmissionToInteractive()
         {
+            SubmitText("int x = 1;");
             InsertCode("// scenario 3");
             OpenFile(ProjectName, FileName);
             VisualStudio.Instance.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
-            VisualStudio.Instance.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true);
+            VisualStudio.Instance.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true, selectBlock: true);
             ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
             WaitWhileInteractiveIsRunning();
-            VerifyLastReplOutputContains(@"string a = ""alpha"";
-. x *= 4;");
+            VerifyLastReplOutputContains(". x *= 4;");
 
             ClearReplText();
-            SubmitText("a + \"s\"");
+            SubmitText("a + \"s\"", waitForPrompt: false);
             VerifyLastReplOutputContains("\"alphas\"");
-            SubmitText("b");
+            SubmitText("b", waitForPrompt: false);
             VerifyLastReplOutputContains("CS0103");
-            SubmitText("x");
+            SubmitText("x", waitForPrompt: false);
             VerifyLastReplOutputContains("4");
         }
 
         [Fact]
-
-
-
-
-
         public void SendToInteractiveWithKeyboardShortcut()
         {
             InsertCode("// scenario 4");
@@ -122,10 +117,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Instance.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
             SendKeys(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
+            WaitWhileInteractiveIsRunning();
             VerifyLastReplOutputContains("int j = 7;");
 
             ClearReplText();
-            SubmitText("j.ToString()");
+            SubmitText("j.ToString()", waitForPrompt: false);
             VerifyLastReplOutputContains("\"7\"");
         }
 
@@ -157,9 +153,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VerifyLastReplInput("// scenario 6");
 
             ClearReplText();
-            SubmitText("y");
+            SubmitText("y", waitForPrompt: false);
             VerifyLastReplOutput("2");
-            SubmitText("z");
+            SubmitText("z", waitForPrompt: false);
             VerifyLastReplOutput("3");
         }
 

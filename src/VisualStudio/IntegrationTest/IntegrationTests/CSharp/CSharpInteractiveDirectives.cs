@@ -139,7 +139,7 @@ Process.GetCurrentProcess().ProcessName");
             // VerifyErrorCount(1);
             
             SubmitText("#bar");
-            VerifyLastReplOutput("(1,/2): error CS1024: Preprocessor directive expected");
+            VerifyLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(2);
         }
@@ -205,50 +205,51 @@ Loading context from");
             VerifyLastReplOutputContains("CS7010: Quoted file name expected");
         }
 
-        [Fact]
-        public void VerifyNoSquigglesErrorMessagesAndIntellisenseFeaturesContinueWorkingAfterReset()
-        {
-            SubmitText(@"using static System.Console;
-/// <summary>innertext
-/// </summary>
-/// --><!--comment--><!--
-/// <![CDATA[cdata]]]]>&gt;
-/// <typeparam name=""attribute"" />
-public static void Main(string[] args)
-{
-    WriteLine(""Hello World"");
-}");
-            SubmitText("#reset");
-            PlaceCaret("using");
-            VerifyCurrentTokenType(tokenType: "keyword");
-            PlaceCaret("{");
-            VerifyCurrentTokenType(tokenType: "punctuation");
-            PlaceCaret("Main");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Hello");
-            VerifyCurrentTokenType(tokenType: "string");
-            PlaceCaret("<summary", charsOffset: -1);
-            SendKeys(Alt(VirtualKey.Right));
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("summary");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - name");
-            PlaceCaret("innertext");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - text");
-            PlaceCaret("--");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("comment");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
-            PlaceCaret("CDATA");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("cdata");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
-            PlaceCaret("attribute");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Environment");
-            VerifyCurrentTokenType(tokenType: "class name");
-            // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
-            // VerifyErrorCount(0);
-        }
+//        [Fact]
+//        TODO(https://github.com/dotnet/roslyn/issues/8281)
+//        public void VerifyNoSquigglesErrorMessagesAndIntellisenseFeaturesContinueWorkingAfterReset()
+//        {
+//            SubmitText(@"using static System.Console;
+///// <summary>innertext
+///// </summary>
+///// --><!--comment--><!--
+///// <![CDATA[cdata]]]]>&gt;
+///// <typeparam name=""attribute"" />
+//public static void Main(string[] args)
+//{
+//    WriteLine(""Hello World"");
+//}");
+//            SubmitText("#reset");
+//            PlaceCaret("using");
+//         /  VerifyCurrentTokenType(tokenType: "keyword");
+//            PlaceCaret("{");
+//            VerifyCurrentTokenType(tokenType: "punctuation");
+//            PlaceCaret("Main");
+//            VerifyCurrentTokenType(tokenType: "identifier");
+//            PlaceCaret("Hello");
+//            VerifyCurrentTokenType(tokenType: "string");
+//            PlaceCaret("<summary", charsOffset: -1);
+//            SendKeys(Alt(VirtualKey.Right));
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
+//            PlaceCaret("summary");
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - name");
+//            PlaceCaret("innertext");
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - text");
+//            PlaceCaret("--");
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - text");
+//            PlaceCaret("comment");
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
+//            PlaceCaret("CDATA");
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
+//            PlaceCaret("cdata");
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
+//            PlaceCaret("attribute");
+//            VerifyCurrentTokenType(tokenType: "identifier");
+//            PlaceCaret("Environment");
+//            VerifyCurrentTokenType(tokenType: "class name");
+//            // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
+//            // VerifyErrorCount(0);
+//        }
 
         [Fact]
         public void WorkspaceClearedAfterReset()

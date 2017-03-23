@@ -41,7 +41,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             var actualTokenTypes = TextViewWindow.GetCurrentClassifications();
             Assert.Equal(actualTokenTypes.Length, 1);
             Assert.Contains(tokenType, actualTokenTypes[0]);
-            Assert.NotEqual("text", tokenType);
+            Assert.NotEqual("text", tokenType); 
         }
 
         protected void Wait(double seconds)

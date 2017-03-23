@@ -72,16 +72,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void ExecuteActionAndWaitReadyForInput(Action action)
         {
-            // To be sure we do not overlap with the previous call
-            while(_interactiveWindowInProc.IsRunning)
+            //   To be sure we do not overlap with the previous call
+            while (_interactiveWindowInProc.IsRunning)
             {
                 Task.Delay(50);
             }
 
+            _interactiveWindowInProc.SubscribeForReadyForInput();
+
             bool readyForInputFlag = false;
 
-            Action flagResetAction = null;
-            flagResetAction = () =>
+            EventHandler flagResetAction = null;
+            flagResetAction = (object sender, EventArgs args) =>
             {
                 _interactiveWindowInProc.ReadyForInput -= flagResetAction;
                 readyForInputFlag = true;
@@ -92,6 +94,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             {
                 Task.Delay(50);
             }
+
+            _interactiveWindowInProc.UnsubscribeFromReadyForInput();
         }
     }
 }

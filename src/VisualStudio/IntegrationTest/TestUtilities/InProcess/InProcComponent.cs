@@ -54,6 +54,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected static bool IsCommandAvailable(string commandName)
             => GetDTE().Commands.Item(commandName).IsAvailable;
+
         protected static void ExecuteCommand(string commandName, string args = "")
             => GetDTE().ExecuteCommand(commandName, args);
 
