@@ -1090,6 +1090,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics);
                     }
                 }
+
+                if (implicitImpl.ContainingType.IsInterface && implementingType.ContainingModule != implicitImpl.ContainingModule)
+                {
+                    // PROTOTYPE(DefaultInterfaceImplementation): Should we check language version as well?
+                    // Usually, it is done based on specific syntax that targets a new feature, but in this case
+                    // no special syntax is used. Also, partial types can have declarations coming from different 
+                    // trees with different options. We could use options from the tree the result of 
+                    // GetInterfaceLocation() is based on.
+
+                    // The default implementation is coming from a different module, which means that we probably won't check
+                    // for the required runtime capability
+                    if (!implementingType.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember,
+                                        GetInterfaceLocation(interfaceMember, implementingType),
+                                        implicitImpl, interfaceMember, implementingType);
+                    }
+                }
             }
 
             if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implicitImpl, interfaceMember))
@@ -1113,24 +1131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // CONSIDER: Dev10 does not seem to report this for indexers or their accessors.
                         diagnostics.Add(ErrorCode.WRN_MultipleRuntimeImplementationMatches, member.Locations[0], member, interfaceMember, implementingType);
                     }
-                }
-            }
-
-            if (implicitImpl.ContainingType.IsInterface && implementingType.ContainingModule != implicitImpl.ContainingModule)
-            {
-                // PROTOTYPE(DefaultInterfaceImplementation): Should we check language version as well?
-                // Usually, it is done based on specific syntax that targets a new feature, but in this case
-                // no special syntax is used. Also, partial types can have declarations coming from different 
-                // trees with different options. We could use options from the tree the result of 
-                // GetInterfaceLocation() is based on.
-
-                // The default implementation is coming from a different module, which means that we probably won't check
-                // for the required runtime capability
-                if (!implementingType.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
-                {
-                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember,
-                                    GetInterfaceLocation(interfaceMember, implementingType),
-                                    implicitImpl, interfaceMember, implementingType);
                 }
             }
         }

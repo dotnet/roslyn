@@ -8805,11 +8805,11 @@ struct S6<T>
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 14, Column = 39 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 5, Column = 13 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 6, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InterfaceMemberHasBody, Line = 7, Column = 20 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 7, Column = 20 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 12, Column = 11 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 13, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InterfaceMemberHasBody, Line = 14, Column = 15 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InterfaceMemberHasBody, Line = 14, Column = 41 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 14, Column = 15 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 14, Column = 41 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...

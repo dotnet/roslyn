@@ -1484,9 +1484,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_CycleInInterfaceInheritance" xml:space="preserve">
     <value>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</value>
   </data>
-  <data name="ERR_InterfaceMemberHasBody" xml:space="preserve">
-    <value>'{0}': interface members cannot have a definition</value>
-  </data>
   <data name="ERR_HidingAbstractMethod" xml:space="preserve">
     <value>'{0}' hides inherited abstract member '{1}'</value>
   </data>

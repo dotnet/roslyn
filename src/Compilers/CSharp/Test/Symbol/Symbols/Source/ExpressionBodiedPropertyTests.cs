@@ -46,9 +46,10 @@ interface C
     int P => 1;
 }");
             comp.VerifyDiagnostics(
-    // (4,14): error CS0531: 'C.P.get': interface members cannot have a definition
-    //     int P => 1;
-    Diagnostic(ErrorCode.ERR_InterfaceMemberHasBody, "1").WithArguments("C.P.get").WithLocation(4, 14));
+                // (4,14): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                //     int P => 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "1").WithArguments("default interface implementation", "7.1").WithLocation(4, 14)
+                );
         }
 
         [Fact]

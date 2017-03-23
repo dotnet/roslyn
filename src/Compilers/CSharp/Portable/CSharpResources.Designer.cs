@@ -5354,15 +5354,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: interface members cannot have a definition.
-        /// </summary>
-        internal static string ERR_InterfaceMemberHasBody {
-            get {
-                return ResourceManager.GetString("ERR_InterfaceMemberHasBody", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; in explicit interface declaration is not a member of interface.
         /// </summary>
         internal static string ERR_InterfaceMemberNotFound {
