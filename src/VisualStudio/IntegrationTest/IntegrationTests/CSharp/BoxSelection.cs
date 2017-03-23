@@ -12,7 +12,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public BoxSelection(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
-            SubmitText("#cls", waitForPrompt: false);
+            SubmitText("#cls");
         }
 
         public new void Dispose()

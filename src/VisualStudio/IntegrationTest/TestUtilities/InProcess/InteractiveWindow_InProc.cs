@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -14,7 +15,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// <remarks>
     /// This object exists in the Visual Studio host and is marhsalled across the process boundary.
     /// </remarks>
-    internal abstract class InteractiveWindow_InProc : TextViewWindow_InProc, IDisposable
+    internal abstract class InteractiveWindow_InProc : TextViewWindow_InProc
     {
         private const string NewLineFollowedByReplSubmissionText = "\n. ";
         private const string ReplSubmissionText = ". ";
@@ -38,23 +39,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             _interactiveWindow = AcquireInteractiveWindow();
         }
-
-        public void SubscribeForReadyForInput()
-        {
-            _interactiveWindow.ReadyForInput += InteractiveWindow_ReadyForInput;
-        }
-
-        public void UnsubscribeFromReadyForInput()
-        {
-            _interactiveWindow.ReadyForInput -= InteractiveWindow_ReadyForInput;
-        }
-        
-        public void Dispose()
-        {
-            UnsubscribeFromReadyForInput();
-        }
-
-        public event EventHandler ReadyForInput;
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
 
@@ -159,14 +143,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void SubmitText(string text, bool waitForPrompt = true)
+        public void SubmitText(string text)
         {
             _interactiveWindow.SubmitAsync(new[] { text }).Wait();
-
-            if (waitForPrompt)
-            {
-                WaitForReplPrompt();
-            }
         }
 
         public void CloseWindow()
@@ -180,14 +159,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     window?.Close();
                     break;
                 }
-            }
-        }
-
-        public bool IsRunning
-        {
-            get
-            {
-                return _interactiveWindow.IsRunning;
             }
         }
 
@@ -236,6 +207,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void WaitForReplOutputContains(string outputText)
             => WaitForReplOutputContainsAsync(outputText).Wait();
 
+        public void WaitForLastReplOutput(string outputText)
+            => WaitForLastReplOutputAsync(outputText).Wait();
+
+        public void WaitForLastReplOutputContains(string outputText)
+            => WaitForLastReplOutputContainsAsync(outputText).Wait();
+
+        public void WaitForLastReplInputContains(string outputText)
+            => WaitForLastReplInputContainsAsync(outputText).Wait();
+
         private async Task WaitForReplOutputContainsAsync(string outputText)
         {
             while (!GetReplText().Contains(outputText))
@@ -244,14 +224,33 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
+        private async Task WaitForLastReplOutputContainsAsync(string outputText)
+        {
+            while (!GetLastReplOutput().Contains(outputText))
+            {
+                await Task.Delay(50);
+            }
+        }
+
+        private async Task WaitForLastReplOutputAsync(string outputText)
+        {
+            while (!GetLastReplOutput().Contains(outputText))
+            {
+                await Task.Delay(50);
+            }
+        }
+
+        private async Task WaitForLastReplInputContainsAsync(string outputText)
+        {
+            while (!GetLastReplInput().Contains(outputText))
+            {
+                await Task.Delay(50);
+            }
+        }
+
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
             return _interactiveWindow.TextView.TextBuffer;
-        }
-
-        protected void InteractiveWindow_ReadyForInput()
-        {
-            ReadyForInput(null, null);
         }
     }
 }

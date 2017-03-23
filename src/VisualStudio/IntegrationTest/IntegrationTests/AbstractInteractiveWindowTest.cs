@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Xunit;
@@ -38,17 +37,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.Instance.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
         }
 
-        protected void DisableSuggestionMode()
-            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-
-        protected void EnableSuggestionMode()
-            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
-
         protected void Reset(bool waitForPrompt = true)
             => InteractiveWindow.Reset(waitForPrompt: true);
 
-        protected void SubmitText(string text, bool waitForPrompt = true)
-            => InteractiveWindow.SubmitText(text, waitForPrompt);
+        protected void SubmitText(string text)
+            => InteractiveWindow.SubmitText(text);
 
         protected void SendKeys(params object[] input)
         {
@@ -66,22 +59,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
                   extendSelection,
                   selectBlock);
 
-        protected void VerifyLastReplOutput(string expectedReplOutput)
-        {
-            var lastReplOutput = InteractiveWindow.GetLastReplOutput();
-            Assert.Equal(expectedReplOutput, lastReplOutput);
-        }
-
         protected void VerifyLastReplInput(string expectedReplInput)
         {
             var lastReplInput = InteractiveWindow.GetLastReplInput();
             Assert.Equal(expectedReplInput, lastReplInput);
-        }
-
-        protected void VerifyLastReplOutputContains(string expectedReplOutput)
-        {
-            var lastReplOutput = InteractiveWindow.GetLastReplOutput();
-            Assert.Contains(expectedReplOutput, lastReplOutput);
         }
 
         protected void VerifyLastReplOutputEndsWith(string expectedReplOutput)
@@ -128,25 +109,19 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
-        protected void WaitWhileInteractiveIsRunning()
-        {
-            while (InteractiveWindow.IsRunning)
-            {
-                Task.Delay(50);
-            }
-        }
-
-        protected void SendKeysAndWait(params object[] input)
-        {
-            InteractiveWindow.ExecuteActionAndWaitReadyForInput(() => SendKeys(input));
-        }
-
-        private void ExecuteCommandWait(string commandName, string argument = "")
-        {
-            InteractiveWindow.ExecuteActionAndWaitReadyForInput(() => ExecuteCommand(commandName, argument));
-        }
-
         protected void WaitForReplOutput(string outputText)
             => InteractiveWindow.WaitForReplOutput(outputText);
+
+        protected void WaitForReplOutputContains(string outputText)
+            => InteractiveWindow.WaitForReplOutputContains(outputText);
+
+        protected void WaitForLastReplOutputContains(string outputText)
+            => InteractiveWindow.WaitForLastReplOutputContains(outputText);
+
+        protected void WaitForLastReplOutput(string outputText)
+            => InteractiveWindow.WaitForLastReplOutput(outputText);
+
+        protected void WaitForLastReplInputContains(string outputText)
+            => InteractiveWindow.WaitForLastReplInputContains(outputText);
     }
 }

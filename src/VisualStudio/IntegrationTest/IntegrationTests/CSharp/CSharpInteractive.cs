@@ -19,28 +19,28 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void BclMathCall()
         {
             SubmitText("Math.Sin(1)");
-            VerifyLastReplOutput("0.8414709848078965");
+            WaitForLastReplOutput("0.8414709848078965");
         }
 
         [Fact]
         public void BclConsoleCall()
         {
             SubmitText(@"Console.WriteLine(""Hello, World!"");");
-            VerifyLastReplOutput("Hello, World!");
+            WaitForLastReplOutput("Hello, World!");
         }
 
         [Fact]
         public void ForStatement()
         {
             SubmitText("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);");
-            VerifyLastReplOutputEndsWith($"{81}");
+            WaitForLastReplOutputContains($"{81}");
         }
 
         [Fact]
         public void ForEachStatement()
         {
             SubmitText(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());");
-            VerifyLastReplOutputContains(@"c:\windows\win.ini");
+            WaitForLastReplOutputContains(@"c:\windows\win.ini");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17634")]
@@ -51,7 +51,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     return x < 1 ? 1 : x * Fac(x - 1);
 }
 Fac(4)");
-            VerifyLastReplOutput($"{24}");
+            WaitForLastReplOutput($"{24}");
         }
 
         [Fact]
@@ -89,8 +89,7 @@ w.Content = g;");
 
             await AutomationElementHelper.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
 
-            WaitForReplOutput("Hello, World!");
-            VerifyLastReplOutput("Hello, World!");
+            WaitForLastReplOutput("Hello, World!");
             SubmitText("b = null; w.Close(); w = null;");
         }
 
@@ -106,7 +105,7 @@ w.Content = g;");
             Assert.EndsWith("#help", InteractiveWindow.GetReplText());
 
             VisualStudio.Instance.SendKeys.Send("\n");
-            InteractiveWindow.WaitForReplOutputContains("REPL commands");
+            WaitForReplOutputContains("REPL commands");
         }
     }
 }
