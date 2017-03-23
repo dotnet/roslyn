@@ -3032,10 +3032,10 @@ class A { }
             node.GetDiagnostics().Verify(
                 // (1,8): error CS1029: #error: 'version:7.1'
                 // #error version:7.1
-                Diagnostic(ErrorCode.ERR_ErrorDirective, "version:7.1").WithArguments("version:7.1").WithLocation(1, 8),
-                // (1,8): error CS8302: Feature 'version' is not available in C# 7.1. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "version:7.1").WithArguments("version:7.1"),
+                // (1,8): error CS8025: Feature 'version' is not available in C# 4. Please use language version 7.1 or greater.
                 // #error version:7.1
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "version:7.1").WithArguments("version", "7.1").WithLocation(1, 8)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "version:7.1").WithArguments("version", "7.1").WithLocation(1, 8)
                 );
         }
 

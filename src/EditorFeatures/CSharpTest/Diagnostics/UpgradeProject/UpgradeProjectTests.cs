@@ -85,6 +85,19 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task UpgradeProjectFromCSharp7_1ToLatest()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+#error version:[|7.1|]
+}",
+                LanguageVersion.Latest,
+                new CSharpParseOptions(LanguageVersion.CSharp7_1));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
         public async Task UpgradeProjectFromCSharp7ToCSharp7_1()
         {
             await TestLanguageVersionUpgradedAsync(

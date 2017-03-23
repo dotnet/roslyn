@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         if (errorText.StartsWith(versionMarker, StringComparison.Ordinal) &&
                             LanguageVersionFacts.TryParse(errorText.Substring(versionMarker.Length), out var languageVersion))
                         {
-                            ErrorCode error = languageVersion.GetErrorCode();
+                            ErrorCode error = this.Options.LanguageVersion.GetErrorCode();
                             eod = this.AddError(eod, triviaOffset, triviaWidth, error, "version", new CSharpRequiredLanguageVersion(languageVersion));
                         }
                     }
