@@ -132,6 +132,7 @@
     <Compile Include="FlowAnalysis\TryLockUsingStatementTests.vb" />
     <Compile Include="IOperation\IOperationTests_IUsingStatement.vb" />
     <Compile Include="IOperation\IOperationTests_IVariableDeclaration.vb" />
+    <Compile Include="IOperation\IOperationTests_IUnaryOperatorExpression.vb" />
     <Compile Include="Resource.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
