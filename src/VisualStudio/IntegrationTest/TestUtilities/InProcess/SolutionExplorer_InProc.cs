@@ -388,37 +388,54 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void BuildSolution(bool waitForBuildToFinish)
         {
+            var buildOutputWindowPane = GetBuildOutputWindowPane();
+            buildOutputWindowPane.Clear();
+            ExecuteCommand(WellKnownCommandNames.Build_BuildSolution);
+            WaitForBuildToFinish(buildOutputWindowPane);
+        }
+
+        public void ClearBuildOutputWindowPane()
+        {
+            var buildOutputWindowPane = GetBuildOutputWindowPane();
+            buildOutputWindowPane.Clear();
+        }
+
+        public void WaitForBuildToFinish()
+        {
+            var buildOutputWindowPane = GetBuildOutputWindowPane();
+            WaitForBuildToFinish(buildOutputWindowPane);
+        }
+
+        private EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
+        {
             var dte = (DTE2)GetDTE();
             var outputWindow = dte.ToolWindows.OutputWindow;
+            return outputWindow.OutputWindowPanes.Item("Build");
+        }
 
-            var buildOutputWindowPane = outputWindow.OutputWindowPanes.Item("Build");
-            buildOutputWindowPane.Clear();
+        private void WaitForBuildToFinish(EnvDTE.OutputWindowPane buildOutputWindowPane)
+        {
+            var textDocument = buildOutputWindowPane.TextDocument;
+            var textDocumentSelection = textDocument.Selection;
 
-            ExecuteCommand(WellKnownCommandNames.Build_BuildSolution);
+            var buildFinishedRegex = new Regex(@"^========== Build: \d+ succeeded, \d+ failed, \d+ up-to-date, \d+ skipped ==========$", RegexOptions.Compiled);
 
-            if (waitForBuildToFinish)
+            do
             {
-                var textDocument = buildOutputWindowPane.TextDocument;
-                var textDocumentSelection = textDocument.Selection;
+                Thread.Yield();
 
-                var buildFinishedRegex = new Regex(@"^========== Build: \d+ succeeded, \d+ failed, \d+ up-to-date, \d+ skipped ==========$", RegexOptions.Compiled);
-
-                do
+                try
                 {
-                    Thread.Yield();
-
-                    try
-                    {
-                        textDocumentSelection.GotoLine(textDocument.EndPoint.Line - 1, Select: true);
-                    }
-                    catch (ArgumentException)
-                    {
-                        // Its possible that the window will still be initializing, clearing,
-                        // etc... We should ignore those errors and just try again
-                    }
+                    textDocumentSelection.GotoLine(textDocument.EndPoint.Line - 1, Select: true);
                 }
-                while (!buildFinishedRegex.IsMatch(textDocumentSelection.Text));
+                catch (ArgumentException)
+                {
+                    // Its possible that the window will still be initializing, clearing,
+                    // etc... We should ignore those errors and just try again
+                }
             }
+            while (!buildFinishedRegex.IsMatch(textDocumentSelection.Text));
+
         }
 
         public int GetErrorListErrorCount()
@@ -567,14 +584,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var dte = (DTE2)GetDTE();
             var solutionExplorer = dte.ToolWindows.SolutionExplorer;
- 
+
             var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
             item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             solutionExplorer.Parent.Activate();
         }
 
         private static EnvDTE.UIHierarchyItem FindFirstItemRecursively(
-            EnvDTE.UIHierarchyItems currentItems, 
+            EnvDTE.UIHierarchyItems currentItems,
             string itemName)
         {
             if (currentItems == null)

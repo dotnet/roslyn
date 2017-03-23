@@ -220,7 +220,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Instance.SolutionExplorer.SelectItem(ProjectName);
             ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);
 
-            Wait(seconds: 10); // TODO
+            WaitForReplOutput("using TestProj;");
             SubmitText("x");
             VerifyLastReplOutputContains("CS0103");
 

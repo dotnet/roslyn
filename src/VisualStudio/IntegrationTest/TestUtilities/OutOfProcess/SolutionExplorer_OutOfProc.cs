@@ -104,5 +104,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SelectItem(string itemName)
             => _inProc.SelectItem(itemName);
+
+        public void ClearBuildOutputWindowPane()
+            => _inProc.ClearBuildOutputWindowPane();
+
+        public void WaitForBuildToFinish()
+            => _inProc.WaitForBuildToFinish();
     }
 }
