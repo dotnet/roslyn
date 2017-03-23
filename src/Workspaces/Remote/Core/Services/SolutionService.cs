@@ -146,14 +146,14 @@ namespace Microsoft.CodeAnalysis.Remote
             if (currentSolution?.Item1 == solutionChecksum)
             {
                 // asked about primary solution
-                return currentSolution?.Item2;
+                return currentSolution.Item2;
             }
 
             var lastSolution = s_lastSolution;
             if (lastSolution?.Item1 == solutionChecksum)
             {
                 // asked about last solution
-                return lastSolution?.Item2;
+                return lastSolution.Item2;
             }
 
             return null;
