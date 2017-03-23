@@ -256,8 +256,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return null;
             }
 
-            return MatchPatternSegment(candidate, inludeMatchSpans, _fullPatternSegment, wantAllMatches: false, allMatches: out var ignored, fuzzyMatch: false) ??
-                   MatchPatternSegment(candidate, inludeMatchSpans, _fullPatternSegment, wantAllMatches: false, allMatches: out ignored, fuzzyMatch: true);
+            return MatchPatternSegment(candidate, inludeMatchSpans, _fullPatternSegment, wantAllMatches: false, allMatches: out _, fuzzyMatch: false) ??
+                   MatchPatternSegment(candidate, inludeMatchSpans, _fullPatternSegment, wantAllMatches: false, allMatches: out _, fuzzyMatch: true);
         }
 
         private StringBreaks GetWordSpans(string word)
