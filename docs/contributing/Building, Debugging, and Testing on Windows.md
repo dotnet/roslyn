@@ -7,21 +7,22 @@ Using the command line Roslyn can be developed using the following pattern:
 1. Clone https://github.com/dotnet/roslyn
 1. Run Restore.cmd 
 1. Run Build.cmd
-1. Run Restore.cmd
+1. Run Test.cmd
 
 ## Developing with Visual Studio 2017
 
 1. [Visual Studio 2017](https://www.visualstudio.com/downloads/)
     - Ensure C#, VB, MSBuild and Visual Studio Extensibility are included in the selected work loads
-1. Run Restore.cmd + Build.cmd
+1. Run Restore.cmd
+1. Run Build.cmd
 1. Open Roslyn.sln
 
 If you already installed Visual Studio and need to add the necessary work loads do the followig:
 
-    - Open the vs_installer.  Typically located at "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
-    - The Visual Studio installation will be listed under the Installed section
-    - Click on the hamburger menu, click Modify 
-    - Choose the workloads listed above and click Modify
+- Open the vs_installer.  Typically located at "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
+- The Visual Studio installation will be listed under the Installed section
+- Click on the hamburger menu, click Modify 
+- Choose the workloads listed above and click Modify
 
 ## Running Tests
 
@@ -51,7 +52,7 @@ give it a try.
 
 The Rosyln solution is designed to support easy debugging via F5.  Several of our
 projects produce VSIX which deploy into Visual Studio during build.  The F5 operation 
-will a new Visual Studio instance using those VSIX which override our installed
+will start a new Visual Studio instance using those VSIX which override our installed
 binaries.  This means trying out a change to the languge, IDE or debugger is as
 simple as hitting F5.
 

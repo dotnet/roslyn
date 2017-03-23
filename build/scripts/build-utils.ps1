@@ -137,11 +137,13 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
 
         # This line deliberately avoids using -ErrorAction.  Inside a VS command prompt
         # an MSBuild command should always be available.
-        $p = (Get-Command msbuild).Path
-        $p = Split-Path -parent $p
-        Write-Output "vscmd"
-        Write-Output $p
-        return
+        $command = (Get-Command msbuild -ErrorAction SilentlyContinue)
+        if ($command -ne $null) {
+            $p = Split-Path -parent $command.Path
+            Write-Output "vscmd"
+            Write-Output $p
+            return
+        }
     }
 
     # Look for a valid VS installation

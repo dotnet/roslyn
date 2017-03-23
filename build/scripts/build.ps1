@@ -7,7 +7,8 @@ param (
     [switch]$clean = $false,
     [switch]$clearPackageCache = $false,
     [string]$project = "",
-    [string]$msbuildDir = "")
+    [string]$msbuildDir = "",
+    [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -41,20 +42,26 @@ function Run-Test() {
 }
 
 try {
+    if ($badArgs -ne $null) {
+        Write-Host "Bad arguments: $badArgs"
+        Print-Usage
+        exit 1
+    }
+
     . (Join-Path $PSScriptRoot "build-utils.ps1")
 
     $nuget = Ensure-NuGet
+    if ($clearPackageCache) {
+        Clear-PackageCache
+    }
+
     if ($msbuildDir -eq "") {
         $msbuildDir = Get-MSBuildDir
     }
     $msbuild = Join-Path $msbuildDir "msbuild.exe"
 
     if ($restore) {
-        if ($clearPackageCache) {
-            Clear-PackageCache
-        }
-
-        Restore-Pacakages -clean:$clean -msbuildDir $msbuildDir -project:project
+        Restore-Packages -clean:$clean -msbuildDir $msbuildDir -project $project
     }
 
     if ($build) {
