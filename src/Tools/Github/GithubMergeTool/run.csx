@@ -8,13 +8,13 @@ using System;
 using System.Net;
 using System.Threading.Tasks;
 
-private static string VslsnapGithubAuthToken = null;
+private static string DotnetBotGithubAuthToken = null;
 
 private static TraceWriter Log = null;
 
 private static async Task MakeGithubPr(string repoOwner, string repoName, string srcBranch, string destBranch)
 {    
-    var gh = new GithubMergeTool.GithubMergeTool("vslsnap@users.noreply.github.com", VslsnapGithubAuthToken);
+    var gh = new GithubMergeTool.GithubMergeTool("dotnet-bot@users.noreply.github.com", DotnetBotGithubAuthToken);
 
     Log.Info($"Merging from {srcBranch} to {destBranch}");
 
@@ -42,7 +42,7 @@ private static Task MakeRoslynPr(string srcBranch, string destBranch)
 
 private static async Task RunAsync()
 {
-    VslsnapGithubAuthToken = await GetSecret("vslsnap-github-auth-token");
+    DotnetBotGithubAuthToken = await GetSecret("dotnet-bot-github-auth-token");
 
     // Roslyn branches
     await MakeRoslynPr("dev15.0.x", "dev15.1.x");
