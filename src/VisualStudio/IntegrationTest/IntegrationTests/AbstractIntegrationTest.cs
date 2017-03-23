@@ -41,7 +41,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             var actualTokenTypes = TextViewWindow.GetCurrentClassifications();
             Assert.Equal(actualTokenTypes.Length, 1);
             Assert.Contains(tokenType, actualTokenTypes[0]);
-            Assert.NotEqual("text", tokenType); 
+            Assert.NotEqual("text", tokenType);
         }
 
         protected void Wait(double seconds)
@@ -103,6 +103,7 @@ The list of available commands:
 
         protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
             => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";", featuresToWaitFor));
+<<<<<<< HEAD
 
         protected void AddFile(string fileName, string contents = null, bool open = false)
             => VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, fileName, contents, open);
@@ -136,5 +137,7 @@ The list of available commands:
             var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
             Assert.Contains(referencedProjectName, projectReferences);
         }
+=======
+>>>>>>> upstream/master
     }
 }
