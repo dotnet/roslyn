@@ -8019,11 +8019,11 @@ End Class
         <Fact>
         Public Sub RefOut()
             Dim dir = Temp.CreateDirectory()
-            dir.CreateDirectory("ref")
+            Dim refDir = dir.CreateDirectory("ref")
 
             Dim src = dir.CreateFile("a.vb")
             src.WriteAllText("
-Class C
+Public Class C
     ''' <summary>Main method</summary>
     Public Shared Sub Main()
         System.Console.Write(""Hello"")
@@ -8081,10 +8081,38 @@ a
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
                 )
 
-            output = ProcessUtilities.RunAndGetOutput(refDll, startFolder:=dir.ToString(), expectedRetCode:=-532462766)
+            VerifyNullReferenceException(refDir, "a.dll")
 
             ' Clean up temp files
             CleanupAllGeneratedFiles(dir.Path)
+        End Sub
+
+        ''' <summary>
+        ''' Calls C.Main() on the program and verifies that a null reference exception is thrown.
+        ''' </summary>
+        Private Shared Sub VerifyNullReferenceException(dir As TempDirectory, referenceName As String)
+
+            Dim src = dir.CreateFile("verifier.vb")
+            src.WriteAllText("
+Class Verifier
+    Public Shared Sub Main()
+        Try
+            C.Main()
+        Catch ex As System.NullReferenceException
+            System.Console.Write(""Got expected exception"")
+        End Try
+    End Sub
+End Class")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:verifier.exe", $"/reference:{referenceName}", "verifier.vb"})
+
+            Dim exitCode = vbc.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Dim dirPath As String = dir.ToString()
+            Dim output = ProcessUtilities.RunAndGetOutput(Path.Combine(dirPath, "verifier.exe"), startFolder:=dirPath, expectedRetCode:=0)
+            Assert.Equal("Got expected exception", output)
         End Sub
 
         <Fact>

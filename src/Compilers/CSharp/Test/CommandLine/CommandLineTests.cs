@@ -8915,11 +8915,11 @@ class C {
         public void RefOut()
         {
             var dir = Temp.CreateDirectory();
-            dir.CreateDirectory("ref");
+            var refDir = dir.CreateDirectory("ref");
 
             var src = dir.CreateFile("a.cs");
             src.WriteAllText(@"
-class C
+public class C
 {
     /// <summary>Main method</summary>
     public static void Main()
@@ -8977,10 +8977,43 @@ class C
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
                 );
 
-            output = ProcessUtilities.RunAndGetOutput(refDll, startFolder: dir.ToString(), expectedRetCode: -532462766);
+            VerifyNullReferenceException(refDir, "a.dll");
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);
+        }
+
+        /// <summary>
+        /// Calls C.Main() on the program and verifies that a null reference exception is thrown.
+        /// </summary>
+        internal static void VerifyNullReferenceException(TempDirectory dir, string programName)
+        {
+            var src = dir.CreateFile("verifier.cs");
+            src.WriteAllText(@"
+class Verifier
+{
+    public static void Main()
+    {
+        try
+        {
+            C.Main();
+        }
+        catch(System.NullReferenceException)
+        {
+            System.Console.Write(""Got expected exception"");
+        }
+    }
+}");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, dir.Path,
+                new[] { "/nologo", "/out:verifier.exe", $"/reference:{programName}", "verifier.cs" });
+
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            string dirPath = dir.ToString();
+            string output = ProcessUtilities.RunAndGetOutput(Path.Combine(dirPath, "verifier.exe"), startFolder: dirPath, expectedRetCode: 0);
+            Assert.Equal("Got expected exception", output);
         }
 
         [Fact]
