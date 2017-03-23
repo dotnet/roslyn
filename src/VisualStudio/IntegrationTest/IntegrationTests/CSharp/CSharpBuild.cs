@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     public class CSharpBuild : AbstractIntegrationTest
     {
         public CSharpBuild(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+            : base(instanceFactory, _ => null)
         {
             VisualStudio.Instance.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
             VisualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);

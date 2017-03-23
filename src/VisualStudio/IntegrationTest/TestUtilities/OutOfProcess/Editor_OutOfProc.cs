@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _editorInProc.GetLineTextBeforeCaret();
 
         public string GetSelectedText()
-            => _inProc.GetSelectedText();
+            => _editorInProc.GetSelectedText();
 
         public string GetLineTextAfterCaret()
             => _editorInProc.GetLineTextAfterCaret();
