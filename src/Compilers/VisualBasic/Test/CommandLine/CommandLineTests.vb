@@ -8069,7 +8069,7 @@ a
             Dim output = ProcessUtilities.RunAndGetOutput(exe, startFolder:=dir.Path)
             Assert.Equal("Hello", output.Trim())
 
-            Dim refDll = Path.Combine(dir.Path, Path.Combine("ref", "a.dll"))
+            Dim refDll = Path.Combine(refDir.Path, "a.dll")
             Assert.True(File.Exists(refDll))
 
             ' The types and members that are included needs further refinement.
@@ -8085,6 +8085,7 @@ a
 
             ' Clean up temp files
             CleanupAllGeneratedFiles(dir.Path)
+            CleanupAllGeneratedFiles(refDir.Path)
         End Sub
 
         ''' <summary>

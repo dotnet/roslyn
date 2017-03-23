@@ -8965,7 +8965,7 @@ public class C
             var output = ProcessUtilities.RunAndGetOutput(exe, startFolder: dir.Path);
             Assert.Equal("Hello", output.Trim());
 
-            var refDll = Path.Combine(dir.Path, Path.Combine("ref", "a.dll"));
+            var refDll = Path.Combine(refDir.Path, "a.dll");
             Assert.True(File.Exists(refDll));
 
             // The types and members that are included needs further refinement.
@@ -8981,12 +8981,13 @@ public class C
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);
+            CleanupAllGeneratedFiles(refDir.Path);
         }
 
         /// <summary>
         /// Calls C.Main() on the program and verifies that a null reference exception is thrown.
         /// </summary>
-        internal static void VerifyNullReferenceException(TempDirectory dir, string programName)
+        private static void VerifyNullReferenceException(TempDirectory dir, string programName)
         {
             var src = dir.CreateFile("verifier.cs");
             src.WriteAllText(@"
