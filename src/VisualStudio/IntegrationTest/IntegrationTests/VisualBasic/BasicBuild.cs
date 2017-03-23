@@ -11,7 +11,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     public class BasicBuild : AbstractIntegrationTest
     {
         public BasicBuild(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+            : base(instanceFactory, _=> null)
         {
             VisualStudio.Instance.SolutionExplorer.CreateSolution(nameof(BasicBuild));
             VisualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);

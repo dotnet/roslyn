@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 CloseSolution(saveExistingSolutionIfExists);
             }
 
-            var solutionPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            string solutionPath = IntegrationHelper.CreateTemporaryPath();
             IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
 
             dte.Solution.Create(solutionPath, solutionName);

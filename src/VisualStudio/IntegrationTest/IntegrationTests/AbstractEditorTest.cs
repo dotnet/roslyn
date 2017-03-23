@@ -18,16 +18,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractEditorTest : AbstractIntegrationTest
     {
-        protected readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
         protected readonly Editor_OutOfProc Editor;
 
         protected readonly string ProjectName = "TestProj";
 
         protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+            : base(instanceFactory, visualStudio => visualStudio.Instance.Editor)
         {
-            VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
-            Editor = VisualStudio.Instance.Editor;
+            Editor = (Editor_OutOfProc)TextViewWindow;
         }
 
         protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
@@ -39,13 +37,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudioInstanceFactory instanceFactory,
             string solutionName,
             string projectTemplate)
-           : base(instanceFactory)
+           : base(instanceFactory, visualStudio => visualStudio.Instance.Editor)
         {
             VisualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
             VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, projectTemplate, LanguageName);
 
-            VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
-            Editor = VisualStudio.Instance.Editor;
+            Editor = (Editor_OutOfProc)TextViewWindow;
 
             // Winforms and XAML do not open text files on creation
             // so these editor tasks will not work if that is the project template being used.
@@ -58,9 +55,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         protected abstract string LanguageName { get; }
-
-        protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
-            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";",featuresToWaitFor));
 
         protected void ClearEditor()
             => SetUpEditor("$$");
@@ -142,12 +136,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void EnableSuggestionMode()
             => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
-
-        protected void InvokeCompletionList()
-        {
-            ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
-            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-        }
 
         protected void InvokeSignatureHelp()
         {
@@ -275,15 +263,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var editorText = Editor.GetText();
             Assert.DoesNotContain(expectedText, editorText);
-        }
-
-        protected void VerifyCompletionItemExists(params string[] expectedItems)
-        {
-            var completionItems = Editor.GetCompletionItems();
-            foreach (var expectedItem in expectedItems)
-            {
-                Assert.Contains(expectedItem, completionItems);
-            }
         }
 
         protected void VerifyCompletionItemDoesNotExist(params string[] expectedItems)
@@ -454,18 +433,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             Editor.NavigateToSendKeys(text);
             WaitForAsyncOperations(FeatureAttribute.NavigateTo);
             Editor.NavigateToSendKeys("{ENTER}");
-        }
-
-        public void VerifyCurrentTokenType(string tokenType)
-        {
-            WaitForAsyncOperations(
-                FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService,
-                FeatureAttribute.Classification);
-            var actualTokenTypes = Editor.GetCurrentClassifications();
-            Assert.Equal(actualTokenTypes.Length, 1);
-            Assert.Contains(tokenType, actualTokenTypes[0]);
-            Assert.NotEqual("text", tokenType);
         }
     }
 }
