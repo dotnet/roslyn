@@ -65,12 +65,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             Assert.Equal(expectedReplInput, lastReplInput);
         }
 
-        protected void VerifyLastReplOutputEndsWith(string expectedReplOutput)
-        {
-            var lastReplOutput = InteractiveWindow.GetLastReplOutput();
-            Assert.EndsWith(expectedReplOutput, lastReplOutput);
-        }
-
         protected void VerifyReplPromptConsistency(string prompt, string output)
         {
             var replText = InteractiveWindow.GetReplText();

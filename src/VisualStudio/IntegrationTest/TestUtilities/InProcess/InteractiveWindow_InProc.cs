@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -20,6 +19,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private const string NewLineFollowedByReplSubmissionText = "\n. ";
         private const string ReplSubmissionText = ". ";
         private const string ReplPromptText = "> ";
+        private const int TimeoutInMilliseconds = 10000;
 
         private readonly string _viewCommand;
         private readonly string _windowTitle;
@@ -173,18 +173,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForReplPrompt()
-            => WaitForReplPromptAsync().Wait();
-
-        private async Task WaitForReplPromptAsync()
-        {
-            while (!GetReplText().EndsWith(ReplPromptText))
-            {
-                await Task.Delay(50);
-            }
-        }
+            => WaitForPredicate(() => GetReplText().EndsWith(ReplPromptText));
 
         public void WaitForReplOutput(string outputText)
-            => WaitForReplOutputAsync(outputText).Wait();
+            => WaitForPredicate(() => GetReplText().EndsWith(outputText + Environment.NewLine + ReplPromptText));
 
         public void ClearScreen()
         {
@@ -196,55 +188,29 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             _interactiveWindow.InsertCode(text);
         }
 
-        private async Task WaitForReplOutputAsync(string outputText)
-        {
-            while (!GetReplText().EndsWith(outputText + Environment.NewLine + ReplPromptText))
-            {
-                await Task.Delay(50);
-            }
-        }
-
         public void WaitForReplOutputContains(string outputText)
-            => WaitForReplOutputContainsAsync(outputText).Wait();
+            => WaitForPredicate(() => GetReplText().Contains(outputText));
 
         public void WaitForLastReplOutput(string outputText)
-            => WaitForLastReplOutputAsync(outputText).Wait();
+            => WaitForPredicate(() => GetLastReplOutput().Contains(outputText));
 
         public void WaitForLastReplOutputContains(string outputText)
-            => WaitForLastReplOutputContainsAsync(outputText).Wait();
+            => WaitForPredicate(() => GetLastReplOutput().Contains(outputText));
 
         public void WaitForLastReplInputContains(string outputText)
-            => WaitForLastReplInputContainsAsync(outputText).Wait();
+            => WaitForPredicate(() => GetLastReplInput().Contains(outputText));
 
-        private async Task WaitForReplOutputContainsAsync(string outputText)
+        private void WaitForPredicate(Func<bool> predicate)
         {
-            while (!GetReplText().Contains(outputText))
+            var beginTime = DateTime.UtcNow;
+            while (!predicate() && DateTime.UtcNow < beginTime.AddMilliseconds(TimeoutInMilliseconds))
             {
-                await Task.Delay(50);
+                Task.Delay(50);
             }
-        }
 
-        private async Task WaitForLastReplOutputContainsAsync(string outputText)
-        {
-            while (!GetLastReplOutput().Contains(outputText))
+            if (!predicate())
             {
-                await Task.Delay(50);
-            }
-        }
-
-        private async Task WaitForLastReplOutputAsync(string outputText)
-        {
-            while (!GetLastReplOutput().Contains(outputText))
-            {
-                await Task.Delay(50);
-            }
-        }
-
-        private async Task WaitForLastReplInputContainsAsync(string outputText)
-        {
-            while (!GetLastReplInput().Contains(outputText))
-            {
-                await Task.Delay(50);
+                throw new Exception($"Predicate never assigned a value after {TimeoutInMilliseconds} milliseconds and no exceptions were thrown");
             }
         }
 
