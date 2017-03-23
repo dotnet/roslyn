@@ -399,10 +399,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             FieldSymbol field = fieldAccess.FieldSymbol;
 
-            // const fields are literal values with no homes
+            // const fields are literal values with no homes. (ex: decimal.Zero)
             if (field.IsConst)
             {
-                //PROTOTYPE(readonlyRefs): does this actually happen?
                 return false;
             }
 

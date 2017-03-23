@@ -1023,9 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // can we take address at all?
-            //PROTOTYPE(readonlyRefs): we only need to read, so we could pass "false" here
-            //                         but that may result in getting a ref off a readonly field, which could upset verifier
-            if (!HasHome(receiver, needWriteable: true))
+            if (!HasHome(receiver, needWriteable: false))
             {
                 return false;
             }

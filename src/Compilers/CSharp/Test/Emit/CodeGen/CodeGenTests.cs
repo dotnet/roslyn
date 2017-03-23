@@ -12024,11 +12024,12 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"42");
+            var compilation = CompileAndVerify(source, expectedOutput: @"42", verify: false);
 
             // Dev10
             compilation.VerifyIL("Program.Main",
-@"{
+@"
+{
   // Code size       76 (0x4c)
   .maxstack  3
   .locals init (MyManagedStruct V_0)
@@ -12047,9 +12048,9 @@ struct MyManagedStruct
   IL_0023:  ldflda     ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
   IL_0028:  ldc.i4     0x1c8
   IL_002d:  call       ""void MyManagedStruct.Nested.Nested1.mutate(int)""
-  IL_0032:  ldfld      ""MyManagedStruct cls1.y""
-  IL_0037:  ldfld      ""MyManagedStruct.Nested MyManagedStruct.n""
-  IL_003c:  ldfld      ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0032:  ldflda     ""MyManagedStruct cls1.y""
+  IL_0037:  ldflda     ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_003c:  ldflda     ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
   IL_0041:  ldfld      ""int MyManagedStruct.Nested.Nested1.num""
   IL_0046:  call       ""void System.Console.WriteLine(int)""
   IL_004b:  ret
