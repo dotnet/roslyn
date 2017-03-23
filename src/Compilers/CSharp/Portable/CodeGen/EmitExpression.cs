@@ -384,8 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // or if we have default(T) (to do box just once)
             var nullCheckOnCopy = LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
-                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol)) ||
-                                   (receiver.IsDefaultValue() && notConstrained);
+                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
 
             // ===== RECEIVER
             if (nullCheckOnCopy)
@@ -502,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(receiverTemp == null);
                 // receiver may be used as target of a struct call (if T happens to be a sruct)
                 receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained);
-                Debug.Assert(receiverTemp == null);
+                Debug.Assert(receiverTemp == null || receiver.IsDefaultValue());
             }
 
             EmitExpression(expression.WhenNotNull, used);

@@ -68,7 +68,7 @@ class Program
   IL_0000:  ldc.i4.s   42
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_0
-  IL_0005:  call       ""ref readonly int Program.M(ref readonly int)""
+  IL_0005:  call       ""ref readonly int Program.M(in int)""
   IL_000a:  ldind.i4
   IL_000b:  call       ""void System.Console.WriteLine(int)""
   IL_0010:  ret
@@ -103,7 +103,7 @@ class Program
   IL_0000:  ldc.i4.s   42
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_0
-  IL_0005:  call       ""ref readonly int Program.M(ref readonly int)""
+  IL_0005:  call       ""ref readonly int Program.M(in int)""
   IL_000a:  ldind.i4
   IL_000b:  call       ""void System.Console.WriteLine(int)""
   IL_0010:  ret
@@ -137,14 +137,14 @@ class Program
   // Code size       17 (0x11)
   .maxstack  1
   IL_0000:  ldsflda    ""int Program.F""
-  IL_0005:  call       ""ref readonly int Program.M(ref readonly int)""
+  IL_0005:  call       ""ref readonly int Program.M(in int)""
   IL_000a:  ldind.i4
   IL_000b:  call       ""void System.Console.WriteLine(int)""
   IL_0010:  ret
 }");
 
 
-            comp.VerifyIL("Program.M(ref readonly int)", @"
+            comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -180,12 +180,12 @@ class Program
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: "42");
 
-            comp.VerifyIL("Program.M(ref readonly int)", @"
+            comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ref readonly int Program.M1(ref readonly int)""
+  IL_0001:  call       ""ref readonly int Program.M1(in int)""
   IL_0006:  ret
 }");
         }
