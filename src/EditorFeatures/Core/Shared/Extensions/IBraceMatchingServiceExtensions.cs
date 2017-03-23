@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     internal static class IBraceMatchingServiceExtensions
     {
         public static async Task<TextSpan?> FindMatchingSpanAsync(
-             this IBraceMatchingService service,
-             Document document,
-             int position,
-             CancellationToken cancellationToken)
+            this IBraceMatchingService service,
+            Document document,
+            int position,
+            CancellationToken cancellationToken)
         {
             // These are the matching spans when checking the token to the right of the position.
             var braces1 = await service.GetMatchingBracesAsync(document, position, cancellationToken).ConfigureAwait(false);
