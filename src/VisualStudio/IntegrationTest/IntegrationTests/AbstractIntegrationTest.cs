@@ -124,14 +124,14 @@ The list of available commands:
             VisualStudio.Instance.SolutionExplorer.AddReference(projectName, fullyQualifiedAssemblyName);
         }
 
-        protected void VerifyAssemblyReferencePresent(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken)
+        public void VerifyAssemblyReferencePresent(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken)
         {
             var assemblyReferences = VisualStudio.Instance.SolutionExplorer.GetAssemblyReferences(projectName);
             var expectedAssemblyReference = assemblyName + "," + assemblyVersion + "," + assemblyPublicKeyToken.ToUpper();
             Assert.Contains(expectedAssemblyReference, assemblyReferences);
         }
 
-        protected void VerifyProjectReferencePresent(string projectName, string referencedProjectName)
+        public void VerifyProjectReferencePresent(string projectName, string referencedProjectName)
         {
             var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
             Assert.Contains(referencedProjectName, projectReferences);

@@ -60,10 +60,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void PlaceCaret(string text, int charsOffset = 0, int occurrence = 0, bool extendSelection = false, bool selectBlock = false)
               => InteractiveWindow.PlaceCaret(
-                  text, 
-                  charsOffset, 
-                  occurrence, 
-                  extendSelection, 
+                  text,
+                  charsOffset,
+                  occurrence,
+                  extendSelection,
                   selectBlock);
 
         protected void VerifyLastReplOutput(string expectedReplOutput)
@@ -134,6 +134,16 @@ namespace Roslyn.VisualStudio.IntegrationTests
             {
                 Task.Delay(50);
             }
+        }
+
+        protected void SendKeysAndWait(params object[] input)
+        {
+            InteractiveWindow.ExecuteActionAndWaitReadyForInput(() => SendKeys(input));
+        }
+
+        private void ExecuteCommandWait(string commandName, string argument = "")
+        {
+            InteractiveWindow.ExecuteActionAndWaitReadyForInput(() => ExecuteCommand(commandName, argument));
         }
 
         protected void WaitForReplOutput(string outputText)

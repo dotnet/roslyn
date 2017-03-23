@@ -397,19 +397,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             return dialog;
         }
 
-        public void VerifyAssemblyReferencePresent(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken)
-        {
-            var assemblyReferences = VisualStudio.Instance.SolutionExplorer.GetAssemblyReferences(projectName);
-            var expectedAssemblyReference = assemblyName + "," + assemblyVersion + "," + assemblyPublicKeyToken.ToUpper();
-            Assert.Contains(expectedAssemblyReference, assemblyReferences);
-        }
-
-        public void VerifyProjectReferencePresent(string projectName, string referencedProjectName)
-        {
-            var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
-            Assert.Contains(referencedProjectName, projectReferences);
-
-        }
         protected void InvokeNavigateToAndPressEnter(string text)
         {
             ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);

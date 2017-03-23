@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// <remarks>
     /// This object exists in the Visual Studio host and is marhsalled across the process boundary.
     /// </remarks>
-    internal abstract class InteractiveWindow_InProc : TextViewWindow_InProc
+    internal abstract class InteractiveWindow_InProc : TextViewWindow_InProc, IDisposable
     {
         private const string NewLineFollowedByReplSubmissionText = "\n. ";
         private const string ReplSubmissionText = ". ";
@@ -37,6 +37,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             CloseWindow();
 
             _interactiveWindow = AcquireInteractiveWindow();
+            _interactiveWindow.ReadyForInput += InteractiveWindow_ReadyForInput;
+        }
+
+        public event Action ReadyForInput; 
+
+        public void Dispose()
+        {
+            _interactiveWindow.ReadyForInput -= InteractiveWindow_ReadyForInput;
         }
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
@@ -230,6 +238,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
             return _interactiveWindow.TextView.TextBuffer;
+        }
+
+        protected void InteractiveWindow_ReadyForInput()
+        {
+            ReadyForInput();
         }
     }
 }

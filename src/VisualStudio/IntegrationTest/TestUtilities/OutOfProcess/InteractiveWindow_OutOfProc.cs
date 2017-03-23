@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -67,5 +69,29 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public bool IsRunning
             => _interactiveWindowInProc.IsRunning;
+
+        public void ExecuteActionAndWaitReadyForInput(Action action)
+        {
+            // To be sure we do not overlap with the previous call
+            while(_interactiveWindowInProc.IsRunning)
+            {
+                Task.Delay(50);
+            }
+
+            bool readyForInputFlag = false;
+
+            Action flagResetAction = null;
+            flagResetAction = () =>
+            {
+                _interactiveWindowInProc.ReadyForInput -= flagResetAction;
+                readyForInputFlag = true;
+            };
+
+            action();
+            while (!readyForInputFlag)
+            {
+                Task.Delay(50);
+            }
+        }
     }
 }
