@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -10,123 +9,114 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     /// <summary>
     /// Provides a means of interacting with the Visual Studio editor by remoting calls into Visual Studio.
     /// </summary>
-    public partial class Editor_OutOfProc : OutOfProcComponent
+    public partial class Editor_OutOfProc : TextViewWindow_OutOfProc
     {
-        private readonly Editor_InProc _inProc;
+        private readonly Editor_InProc _editorInProc;
 
         internal Editor_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            _inProc = CreateInProcComponent<Editor_InProc>(visualStudioInstance);
+            _editorInProc = (Editor_InProc)_textViewWindowInProc;
         }
+
+        internal override TextViewWindow_InProc CreateInProcComponent(VisualStudioInstance visualStudioInstance)
+            => CreateInProcComponent<Editor_InProc>(visualStudioInstance);
 
         public void Activate()
-            => _inProc.Activate();
+            => _editorInProc.Activate();
 
         public string GetText()
-            => _inProc.GetText();
+            => _editorInProc.GetText();
 
         public void SetText(string value)
-            => _inProc.SetText(value);
+            => _editorInProc.SetText(value);
 
         public string GetCurrentLineText()
-            => _inProc.GetCurrentLineText();
-
-        public int GetCaretPosition()
-            => _inProc.GetCaretPosition();
+            => _editorInProc.GetCurrentLineText();
 
         public string GetLineTextBeforeCaret()
-            => _inProc.GetLineTextBeforeCaret();
+            => _editorInProc.GetLineTextBeforeCaret();
+
+        public string GetSelectedText()
+            => _editorInProc.GetSelectedText();
 
         public string GetLineTextAfterCaret()
-            => _inProc.GetLineTextAfterCaret();
+            => _editorInProc.GetLineTextAfterCaret();
 
         public void MoveCaret(int position)
-            => _inProc.MoveCaret(position);
-
-        public string[] GetCurrentClassifications()
-            => _inProc.GetCurrentClassifications();
-
-        public void PlaceCaret(string marker, int charsOffset, int occurrence, bool extendSelection, bool selectBlock)
-            => _inProc.PlaceCaret(marker, charsOffset, occurrence, extendSelection, selectBlock);
-
-        public string[] GetCompletionItems()
-        {
-            WaitForCompletionSet();
-            return _inProc.GetCompletionItems();
-        }
+            => _editorInProc.MoveCaret(position);
 
         public string GetCurrentCompletionItem()
         {
             WaitForCompletionSet();
-            return _inProc.GetCurrentCompletionItem();
+            return _editorInProc.GetCurrentCompletionItem();
         }
 
         public bool IsCompletionActive()
         {
             WaitForCompletionSet();
-            return _inProc.IsCompletionActive();
+            return _editorInProc.IsCompletionActive();
         }
 
         public bool IsSignatureHelpActive()
         {
             WaitForSignatureHelp();
-            return _inProc.IsSignatureHelpActive();
+            return _editorInProc.IsSignatureHelpActive();
         }
 
         public Signature[] GetSignatures()
         {
             WaitForSignatureHelp();
-            return _inProc.GetSignatures();
+            return _editorInProc.GetSignatures();
         }
 
         public Signature GetCurrentSignature()
         {
             WaitForSignatureHelp();
-            return _inProc.GetCurrentSignature();
+            return _editorInProc.GetCurrentSignature();
         }
 
         public string GetQuickInfo()
         {
             WaitForQuickInfo();
-            return _inProc.GetQuickInfo();
+            return _editorInProc.GetQuickInfo();
         }
 
         public void ShowLightBulb()
-            => _inProc.ShowLightBulb();
+            => _editorInProc.ShowLightBulb();
 
         public void WaitForLightBulbSession()
-            => _inProc.WaitForLightBulbSession();
+            => _editorInProc.WaitForLightBulbSession();
 
         public void DismissLightBulbSession()
-            => _inProc.DismissLightBulbSession();
+            => _editorInProc.DismissLightBulbSession();
 
         public bool IsLightBulbSessionExpanded()
-            => _inProc.IsLightBulbSessionExpanded();
+            => _editorInProc.IsLightBulbSessionExpanded();
 
         public string[] GetLightBulbActions()
-            => _inProc.GetLightBulbActions();
+            => _editorInProc.GetLightBulbActions();
 
         public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
-            => _inProc.ApplyLightBulbAction(action, fixAllScope, blockUntilComplete);
+            => _editorInProc.ApplyLightBulbAction(action, fixAllScope, blockUntilComplete);
 
         public bool IsCaretOnScreen()
-            => _inProc.IsCaretOnScreen();
+            => _editorInProc.IsCaretOnScreen();
 
         public void AddWinFormButton(string buttonName)
-            => _inProc.AddWinFormButton(buttonName);
+            => _editorInProc.AddWinFormButton(buttonName);
 
         public void DeleteWinFormButton(string buttonName)
-            => _inProc.DeleteWinFormButton(buttonName);
+            => _editorInProc.DeleteWinFormButton(buttonName);
 
         public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string propertyTypeName = null)
-            => _inProc.EditWinFormButtonProperty(buttonName, propertyName, propertyValue, propertyTypeName);
+            => _editorInProc.EditWinFormButtonProperty(buttonName, propertyName, propertyValue, propertyTypeName);
 
         public void EditWinFormButtonEvent(string buttonName, string eventName, string eventHandlerName)
-            => _inProc.EditWinFormButtonEvent(buttonName, eventName, eventHandlerName);
+            => _editorInProc.EditWinFormButtonEvent(buttonName, eventName, eventHandlerName);
 
         public string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
-            => _inProc.GetWinFormButtonPropertyValue(buttonName, propertyName);
+            => _editorInProc.GetWinFormButtonPropertyValue(buttonName, propertyName);
 
         /// <summary>
         /// Sends key strokes to the active editor in Visual Studio. Various types are supported by this method:
@@ -140,18 +130,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         }
 
         public void MessageBox(string message)
-            => _inProc.MessageBox(message);
+            => _editorInProc.MessageBox(message);
 
         public void VerifyDialog(string dialogName, bool isOpen)
-            => _inProc.VerifyDialog(dialogName, isOpen);
+            => _editorInProc.VerifyDialog(dialogName, isOpen);
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
-            => _inProc.PressDialogButton(dialogAutomationName, buttonAutomationName);
+            => _editorInProc.PressDialogButton(dialogAutomationName, buttonAutomationName);
 
         public void DialogSendKeys(string dialogAutomationName, string keys)
-            => _inProc.DialogSendKeys(dialogAutomationName, keys);
+            => _editorInProc.DialogSendKeys(dialogAutomationName, keys);
 
         public void Undo()
-            => _inProc.Undo();
+            => _editorInProc.Undo();
+
+        public void NavigateToSendKeys(string keys)
+            => _editorInProc.SendKeysToNavigateTo(keys);
+
+        public void WaitForActiveView(string viewName)
+            => _editorInProc.WaitForActiveView(viewName);
     }
 }
