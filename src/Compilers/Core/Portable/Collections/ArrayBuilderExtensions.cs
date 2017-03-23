@@ -18,6 +18,17 @@ namespace Microsoft.CodeAnalysis
             }
             return false;
         }
+        public static bool Any<T, TArg>(this ArrayBuilder<T> builder, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var item in builder)
+            {
+                if (predicate(item, arg))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 
         public static bool All<T>(this ArrayBuilder<T> builder, Func<T, bool> predicate)
         {

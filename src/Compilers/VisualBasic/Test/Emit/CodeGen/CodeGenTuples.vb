@@ -19174,6 +19174,71 @@ End Class
         End Sub
 
         <Fact()>
+        <WorkItem(17994, "https://github.com/dotnet/roslyn/issues/17994")>
+        Public Sub TupleNameMatchInDuplicateConstraint()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I1(Of T)
+End Interface
+
+Class C(Of U As {I1(Of (a As Integer, b As Integer)), I1(Of (a As Integer, b As Integer))})
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics(<errors>
+BC32071: Constraint type 'I1(Of (a As Integer, b As Integer))' already specified for this type parameter.
+Class C(Of U As {I1(Of (a As Integer, b As Integer)), I1(Of (a As Integer, b As Integer))})
+                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                               </errors>)
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(17994, "https://github.com/dotnet/roslyn/issues/17994")>
+        Public Sub TupleNameDifferencesInDuplicateConstraint()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I1(Of T)
+End Interface
+
+Class C(Of U As {I1(Of (a As Integer, b As Integer)), I1(Of (notA As Integer, notB As Integer))})
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics(<errors>
+BC32071: Constraint type 'I1(Of (notA As Integer, notB As Integer))' already specified for this type parameter.
+Class C(Of U As {I1(Of (a As Integer, b As Integer)), I1(Of (notA As Integer, notB As Integer))})
+                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                               </errors>)
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(17994, "https://github.com/dotnet/roslyn/issues/17994")>
+        Public Sub TupleNameDifferencesInIndirectDuplicateConstraint()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I1(Of T)
+End Interface
+Interface I2(Of T)
+    Inherits I1(Of T)
+End Interface
+
+Class C(Of U As {I1(Of (a As Integer, b As Integer)), I2(Of (notA As Integer, notB As Integer))})
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+        End Sub
+
+        <Fact()>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
         Public Sub CanReImplementInterfaceWithDifferentTupleNames()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(

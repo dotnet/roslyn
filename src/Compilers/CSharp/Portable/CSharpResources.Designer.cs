@@ -3500,6 +3500,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Duplicate constraint &apos;{0}&apos; for type parameter &apos;{1}&apos;, with differences in tuple element names only..
+        /// </summary>
+        internal static string ERR_DuplicateBoundWithDifferentTupleNames {
+            get {
+                return ResourceManager.GetString("ERR_DuplicateBoundWithDifferentTupleNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The switch statement contains multiple cases with the label value &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_DuplicateCaseLabel {

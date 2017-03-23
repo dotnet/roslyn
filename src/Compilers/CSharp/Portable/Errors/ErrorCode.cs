@@ -1471,5 +1471,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidPreprocessingSymbol = 8301,
         ERR_FeatureNotAvailableInVersion7_1 = 8302,
         ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
+        ERR_DuplicateBoundWithDifferentTupleNames = 8304,
     }
 }
