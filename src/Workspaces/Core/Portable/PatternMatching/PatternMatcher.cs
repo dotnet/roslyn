@@ -617,12 +617,12 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             string candidate, 
             bool includeMatchedSpans,
             StringBreaks candidateParts, 
-            TextChunk chunk, 
+            TextChunk patternChunk, 
             CompareOptions compareOption,
             out List<TextSpan> matchedSpans)
         {
             matchedSpans = null;
-            var chunkCharacterSpans = chunk.CharacterSpans;
+            var patternChunkCharacterSpans = patternChunk.CharacterSpans;
 
             // Note: we may have more pattern parts than candidate parts.  This is because multiple
             // pattern parts may match a candidate part.  For example "SiUI" against "SimpleUI".
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             while (true)
             {
                 // Let's consider our termination cases
-                if (currentChunkSpan == chunkCharacterSpans.Count)
+                if (currentChunkSpan == patternChunkCharacterSpans.Count)
                 {
                     Contract.Requires(firstMatch.HasValue);
                     Contract.Requires(contiguous.HasValue);
@@ -673,23 +673,23 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 // will be Simple/UI/Element, and the pattern parts will be Si/U/I.  We'll match 'Si'
                 // against 'Simple' first.  Then we'll match 'U' against 'UI'. However, we want to
                 // still keep matching pattern parts against that candidate part. 
-                for (; currentChunkSpan < chunkCharacterSpans.Count; currentChunkSpan++)
+                for (; currentChunkSpan < patternChunkCharacterSpans.Count; currentChunkSpan++)
                 {
-                    var chunkCharacterSpan = chunkCharacterSpans[currentChunkSpan];
+                    var patternChunkCharacterSpan = patternChunkCharacterSpans[currentChunkSpan];
 
                     if (gotOneMatchThisCandidate)
                     {
                         // We've already gotten one pattern part match in this candidate.  We will
                         // only continue trying to consume pattern parts if the last part and this
                         // part are both upper case.  
-                        if (!char.IsUpper(chunk.Text[chunkCharacterSpans[currentChunkSpan - 1].Start]) ||
-                            !char.IsUpper(chunk.Text[chunkCharacterSpans[currentChunkSpan].Start]))
+                        if (!char.IsUpper(patternChunk.Text[patternChunkCharacterSpans[currentChunkSpan - 1].Start]) ||
+                            !char.IsUpper(patternChunk.Text[patternChunkCharacterSpans[currentChunkSpan].Start]))
                         {
                             break;
                         }
                     }
 
-                    if (!PartStartsWith(candidate, candidatePart, chunk.Text, chunkCharacterSpan, compareOption))
+                    if (!PartStartsWith(candidate, candidatePart, patternChunk.Text, patternChunkCharacterSpan, compareOption))
                     {
                         break;
                     }
@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     if (includeMatchedSpans)
                     {
                         matchedSpans = matchedSpans ?? new List<TextSpan>();
-                        matchedSpans.Add(new TextSpan(candidatePart.Start, chunkCharacterSpan.Length));
+                        matchedSpans.Add(new TextSpan(candidatePart.Start, patternChunkCharacterSpan.Length));
                     }
 
                     gotOneMatchThisCandidate = true;
@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     // obviously contiguous.
                     contiguous = contiguous ?? true;
 
-                    candidatePart = new TextSpan(candidatePart.Start + chunkCharacterSpan.Length, candidatePart.Length - chunkCharacterSpan.Length);
+                    candidatePart = new TextSpan(candidatePart.Start + patternChunkCharacterSpan.Length, candidatePart.Length - patternChunkCharacterSpan.Length);
                 }
 
                 // Check if we matched anything at all.  If we didn't, then we need to unset the
