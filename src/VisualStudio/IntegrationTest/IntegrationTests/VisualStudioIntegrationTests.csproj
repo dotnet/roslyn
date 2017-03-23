@@ -40,6 +40,14 @@
     <Compile Include="CSharp\CSharpSignatureHelp.cs" />
     <Compile Include="CSharp\CSharpWinForms.cs" />
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
+    <Compile Include="Extensions\CommonExtensions.cs" />
+    <Compile Include="Extensions\CommonExtensions.Verifiers.cs" />
+    <Compile Include="Extensions\EditorExtensions.cs" />
+    <Compile Include="Extensions\EditorExtensions.Verifiers.cs" />
+    <Compile Include="Extensions\InteractiveExtensions.cs" />
+    <Compile Include="Extensions\SolutionExplorerExtensions.Verifiers.cs" />
+    <Compile Include="Extensions\SolutionExplorerExtensions.cs" />
+    <Compile Include="Extensions\SetOptionsExtensions.cs" />
     <Compile Include="Workspace\WorkspaceBase.cs" />
     <Compile Include="Workspace\WorkspacesDesktop.cs" />
     <Compile Include="Workspace\WorkspacesNetCore.cs" />
@@ -58,7 +66,6 @@
     <Compile Include="VisualBasic\BasicWinForms.cs" />
     <Compile Include="VisualBasic\BasicQuickInfo.cs" />
     <Compile Include="VisualBasic\BasicNavigateTo.cs" />
-    <Compile Include="Workspace\WorkspacesNetCore2.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

@@ -2,6 +2,8 @@
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -95,25 +97,25 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void CutDeletePasteSelectAll()
         {
             SendKeys("Text");
-            ExecuteCommand("Edit.LineStart");
-            ExecuteCommand("Edit.LineEnd");
-            ExecuteCommand("Edit.LineStartExtend");
-            ExecuteCommand("Edit.SelectionCancel");
-            ExecuteCommand("Edit.LineEndExtend");
-            ExecuteCommand("Edit.SelectAll");
-            ExecuteCommand("Edit.SelectAll");
-            ExecuteCommand("Edit.Copy");
-            ExecuteCommand("Edit.Cut");
-            ExecuteCommand("Edit.Paste");
-            ExecuteCommand("Edit.Delete");
-            ExecuteCommand("Edit.LineUp");
-            ExecuteCommand("Edit.LineDown");
-            ExecuteCommand("Edit.Paste");
-            ExecuteCommand("Edit.Paste");
+            this.ExecuteCommand("Edit.LineStart");
+            this.ExecuteCommand("Edit.LineEnd");
+            this.ExecuteCommand("Edit.LineStartExtend");
+            this.ExecuteCommand("Edit.SelectionCancel");
+            this.ExecuteCommand("Edit.LineEndExtend");
+            this.ExecuteCommand("Edit.SelectAll");
+            this.ExecuteCommand("Edit.SelectAll");
+            this.ExecuteCommand("Edit.Copy");
+            this.ExecuteCommand("Edit.Cut");
+            this.ExecuteCommand("Edit.Paste");
+            this.ExecuteCommand("Edit.Delete");
+            this.ExecuteCommand("Edit.LineUp");
+            this.ExecuteCommand("Edit.LineDown");
+            this.ExecuteCommand("Edit.Paste");
+            this.ExecuteCommand("Edit.Paste");
             SendKeys(VirtualKey.Escape);
         }
 
-        //<!-- Regression test for bug 13731. 
+        //<!-- Regression test for bug 13731.
         //     Unfortunately we don't have good unit-test infrastructure to test InteractiveWindow.cs.
         //     For now, since we don't have coverage of InteractiveWindow.IndentCurrentLine at all,
         //     I'd rather have a quick integration test scenario rather than no coverage at all.
@@ -129,7 +131,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             SendKeys(")");
             SendKeys(VirtualKey.Left);
             SendKeys(VirtualKey.Enter);
-            VerifyCaretPosition(12);
+            this.VerifyCaretPosition(12);
         }
     }
 }

@@ -4,7 +4,10 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Other
 {
@@ -130,35 +133,37 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
         public void VerifyAvailableCodeActions()
         {
-            OpenFile("Program.cs", ConsoleProjectName);
-            PlaceCaret("y.foo", charsOffset: 1);
-            InvokeCodeActionList();
-            VerifyCodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
-            PlaceCaret("y.ee", charsOffset: 1);
-            InvokeCodeActionList();
-            VerifyCodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
-            PlaceCaret("a.bar", charsOffset: 1);
-            InvokeCodeActionList();
-            VerifyCodeAction("Add project reference to 'ClassLibrary3'.", applyFix: false);
+            var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
+            this.OpenFile("Program.cs", consoleProject);
+            this.PlaceCaret("y.foo", charsOffset: 1);
+            this.InvokeCodeActionList();
+            this.VerifyCodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
+            this.PlaceCaret("y.ee", charsOffset: 1);
+            this.InvokeCodeActionList();
+            this.VerifyCodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
+            this.PlaceCaret("a.bar", charsOffset: 1);
+            this.InvokeCodeActionList();
+            this.VerifyCodeAction("Add project reference to 'ClassLibrary3'.", applyFix: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
         public void InvokeSomeFixesInCSharpThenVerifyReferences()
         {
-            OpenFile("Program.cs", ConsoleProjectName);
-            PlaceCaret("y.foo", charsOffset: 1);
-            InvokeCodeActionList();
-            VerifyCodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);
-            VerifyAssemblyReferencePresent(
-                projectName: ConsoleProjectName,
+            var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
+            this.OpenFile("Program.cs", consoleProject);
+            this.PlaceCaret("y.foo", charsOffset: 1);
+            this.InvokeCodeActionList();
+            this.VerifyCodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);
+            this.VerifyAssemblyReferencePresent(
+                project: consoleProject,
                 assemblyName: "System.Windows.Forms",
                 assemblyVersion: "4.0.0.0",
                 assemblyPublicKeyToken: "b77a5c561934e089");
-            PlaceCaret("a.bar", charsOffset: 1);
-            InvokeCodeActionList();
-            VerifyCodeAction("Add project reference to 'ClassLibrary3'.", applyFix: true);
-            VerifyProjectReferencePresent(
-                projectName: ConsoleProjectName,
+            this.PlaceCaret("a.bar", charsOffset: 1);
+            this.InvokeCodeActionList();
+            this.VerifyCodeAction("Add project reference to 'ClassLibrary3'.", applyFix: true);
+            this.VerifyProjectReferencePresent(
+                project: consoleProject,
                 referencedProjectName: ClassLibrary3Name);
         }
     }

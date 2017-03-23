@@ -10,39 +10,35 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class WorkspacesDesktop : WorkspaceBase
     {
-        protected override string LanguageName => LanguageNames.CSharp;
-
         public WorkspacesDesktop(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+            : base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
         {
-            VisualStudio.Instance.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));
-            VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, WellKnownProjectTemplates.ClassLibrary, LanguageName);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void OpenCSharpThenVBSolution()
+        public override void OpenCSharpThenVBSolution()
         {
-            OpenCSharpThenVBSolutionCommon();
+            base.OpenCSharpThenVBSolution();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void MetadataReference()
+        public override void MetadataReference()
         {
-            MetadataReferenceCommon();
+            base.MetadataReference();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void ProjectReference()
+        public override void ProjectReference()
         {
-            ProjectReferenceCommon(WellKnownProjectTemplates.ClassLibrary);
+            base.ProjectReference();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void ProjectProperties()
+        public override void ProjectProperties()
         {
             VisualStudio.Instance.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));
             VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
-            ProjectPropertiesCommon();
+            base.ProjectProperties();
         }
     }
 }
