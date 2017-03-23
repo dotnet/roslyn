@@ -40,7 +40,6 @@ try
         "dev15.0.x" { } 
         "dev15.1.x" { } 
         "master" { } 
-        "dev/pilchie/Fix389698" { }
         default
         {
             if (-not $test)
