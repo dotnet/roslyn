@@ -174,7 +174,6 @@
     <Compile Include="AutomaticCompletion\AutomaticParenthesisCompletionTests.cs" />
     <Compile Include="BlockCommentEditing\BlockCommentEditingTests.cs" />
     <Compile Include="BraceHighlighting\BraceHighlightingTests.cs" />
-    <Compile Include="BraceHighlighting\MultiCharacterBraceHighlightingTests.cs" />
     <Compile Include="BraceMatching\CSharpBraceMatcherTests.cs" />
     <Compile Include="CallHierarchy\CallHierarchyTests.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureTests.cs" />
