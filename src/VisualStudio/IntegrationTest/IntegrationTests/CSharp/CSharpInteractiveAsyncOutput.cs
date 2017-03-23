@@ -16,7 +16,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyPreviousAndNextHistory()
         {
-            SubmitText(@"#prompt inline ""@@@"" ""   """, waitForPrompt: false);
             SubmitText(@"#cls", waitForPrompt: false);
 
             SubmitText(@"using System.Threading;
@@ -36,27 +35,23 @@ t3.Start();", waitForPrompt: false);
             SubmitText(@"1+2", waitForPrompt: false);
             Wait(seconds: 1);
 
-            VerifyReplPromptConsistency(prompt: "@@@", output: "$");
+            VerifyReplPromptConsistency(prompt: "....", output: "$");
 
-            SubmitText(@"#prompt margin", waitForPrompt: false);
             Wait(seconds: 1);
 
             SubmitText(@"1+4", waitForPrompt: false);
-            SubmitText(@"#prompt inline", waitForPrompt: false);
             Wait(seconds: 1);
 
             SubmitText(@"1+5");
             Wait(seconds: 1);
 
-            VerifyReplPromptConsistency(prompt: "@@@", output: "$");
+            VerifyReplPromptConsistency(prompt: "....", output: "$");
 
             SubmitText(@"#cls", waitForPrompt: false);
             SubmitText(@"1+5", waitForPrompt: false);
             Wait(seconds: 1);
 
-            VerifyReplPromptConsistency(prompt: "@@@", output: "$");
-
-            SubmitText(@"#prompt inline "" > "" "". """, waitForPrompt: false);
+            VerifyReplPromptConsistency(prompt: "....", output: "$");
 
             SubmitText(@"t1.Abort();
 t1.Join();
@@ -67,7 +62,6 @@ t3.Join();");
 
             ClearReplText();
 
-            SubmitText(@"#prompt inline "" > "" "". """);
             Reset(waitForPrompt: true);
         }
     }

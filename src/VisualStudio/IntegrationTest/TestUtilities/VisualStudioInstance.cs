@@ -6,8 +6,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
-using System.Threading.Tasks;
-using System.Windows.Automation;
 using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -121,44 +119,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public void ExecuteCommand(string commandName, string argument = "")
             => _inProc.ExecuteCommand(commandName, argument);
 
+        public bool IsCommandAvailable(string commandName)
+            => _inProc.IsCommandAvailable(commandName);
+
+        public string[] GetAvailableCommands()
+            => _inProc.GetAvailableCommands();
+
         public bool IsRunning => !HostProcess.HasExited;
-
-        public async Task ClickAutomationElementAsync(string elementName, bool recursive = false)
-        {
-            var element = await FindAutomationElementAsync(elementName, recursive).ConfigureAwait(false);
-
-            if (element != null)
-            {
-                var tcs = new TaskCompletionSource<object>();
-
-                Automation.AddAutomationEventHandler(InvokePattern.InvokedEvent, element, TreeScope.Element, (src, e) => {
-                    tcs.SetResult(null);
-                });
-
-                if (element.TryGetCurrentPattern(InvokePattern.Pattern, out var invokePatternObj))
-                {
-                    var invokePattern = (InvokePattern)invokePatternObj;
-                    invokePattern.Invoke();
-                }
-
-                await tcs.Task;
-            }
-        }
-
-        private async Task<AutomationElement> FindAutomationElementAsync(string elementName, bool recursive = false)
-        {
-            AutomationElement element = null;
-            var scope = recursive ? TreeScope.Descendants : TreeScope.Children;
-            var condition = new PropertyCondition(AutomationElement.NameProperty, elementName);
-
-            // TODO(Dustin): This is code is a bit terrifying. If anything goes wrong and the automation
-            // element can't be found, it'll continue to spin until the heat death of the universe.
-            await IntegrationHelper.WaitForResultAsync(
-                () => (element = AutomationElement.RootElement.FindFirst(scope, condition)) != null, expectedResult: true
-            ).ConfigureAwait(false);
-
-            return element;
-        }
 
         public void CleanUp()
         {

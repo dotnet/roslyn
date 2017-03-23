@@ -38,7 +38,7 @@ public static void Main(string[] args)
             PlaceCaret("Hello");
             VerifyCurrentTokenType(tokenType: "string");
             PlaceCaret("<summary", charsOffset: -1);
-            SendKeys(new KeyPress(VirtualKey.Right, ShiftState.Alt));
+            SendKeys(Alt(VirtualKey.Right));
             VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
             PlaceCaret("summary");
             VerifyCurrentTokenType(tokenType: "xml doc comment - name");

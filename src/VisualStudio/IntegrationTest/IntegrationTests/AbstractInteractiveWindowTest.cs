@@ -2,6 +2,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Xunit;
@@ -10,8 +11,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractInteractiveWindowTest : AbstractIntegrationTest
     {
-        private const string Edit_SelectionCancelCommand = "Edit.SelectionCancel";
-
         private static readonly char[] LineSeparators = { '\r', '\n' };
 
         protected readonly CSharpInteractiveWindow_OutOfProc InteractiveWindow;
@@ -34,10 +33,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void ClearReplText()
         {
             // Dismiss the pop-up (if any)
-            VisualStudio.Instance.ExecuteCommand(Edit_SelectionCancelCommand);
+            VisualStudio.Instance.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
 
             // Clear the line
-            VisualStudio.Instance.ExecuteCommand(Edit_SelectionCancelCommand);
+            VisualStudio.Instance.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
         }
 
         protected void DisableSuggestionMode()
@@ -67,6 +66,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
                   occurrence: 0, 
                   extendSelection: false, 
                   selectBlock: false);
+
+        protected void PlaceCaret(string text, int charsOffset = 0, int occurrence = 0, bool extendSelection = false, bool selectBlock = false)
+              => InteractiveWindow.PlaceCaret(
+                  text,
+                  charsOffset,
+                  occurrence,
+                  extendSelection,
+                  selectBlock);
 
         protected void VerifyLastReplOutput(string expectedReplOutput)
         {
@@ -119,6 +126,33 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 // There must be no output on a prompt line.
                 Assert.DoesNotContain(output, replTextLine);
             }
+        }
+
+        protected void VerifyCompletionUnexpectedItemDoesNotExist(params string[] unexpectedItems)
+        {
+            var completionItems = InteractiveWindow.GetCompletionItems();
+            foreach (var unexpectedItem in unexpectedItems)
+            {
+                Assert.DoesNotContain(unexpectedItem, completionItems);
+            }
+        }
+
+        protected void WaitWhileInteractiveIsRunning()
+        {
+            while (InteractiveWindow.IsRunning)
+            {
+                Task.Delay(50);
+            }
+        }
+
+        protected void SendKeysAndWait(params object[] input)
+        {
+            InteractiveWindow.ExecuteActionAndWaitReadyForInput(() => SendKeys(input));
+        }
+
+        private void ExecuteCommandWait(string commandName, string argument = "")
+        {
+            InteractiveWindow.ExecuteActionAndWaitReadyForInput(() => ExecuteCommand(commandName, argument));
         }
 
         protected void WaitForReplOutput(string outputText)

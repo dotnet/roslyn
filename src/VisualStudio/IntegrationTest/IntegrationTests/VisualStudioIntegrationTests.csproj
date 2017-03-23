@@ -21,6 +21,7 @@
   <ItemGroup>
     <Compile Include="AbstractIntegrationTest.cs" />
     <Compile Include="AbstractInteractiveWindowTest.cs" />
+    <Compile Include="CSharp\BoxSelection.cs" />
     <Compile Include="CSharp\CSharpChangeSignatureDialog.cs" />
     <Compile Include="CSharp\CSharpClassification.cs" />
     <Compile Include="CSharp\CSharpFindReferences.cs" />
@@ -35,7 +36,10 @@
     <Compile Include="CSharp\CSharpInteractiveCommands.cs" />
     <Compile Include="CSharp\CSharpReplClassification.cs" />
     <Compile Include="CSharp\CSharpReplIntellisense.cs" />
+    <Compile Include="CSharp\CSharpInteractiveDirectives.cs" />
+    <Compile Include="CSharp\CSharpInteractiveFormsAndWpf.cs" />
     <Compile Include="CSharp\CSharpQuickInfo.cs" />
+    <Compile Include="CSharp\CSharpSendToInteractive.cs" />
     <Compile Include="CSharp\CSharpNavigateTo.cs" />
     <Compile Include="CSharp\CSharpSignatureHelp.cs" />
     <Compile Include="CSharp\CSharpWinForms.cs" />

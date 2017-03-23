@@ -126,7 +126,7 @@ End Class");
             VerifyTextContains(@"Private Sub SomeButtonHandler(sender As Object, e As EventArgs) Handles SomeNewButton.Click");
             // Rename control from the code behind file (bug 784595)
             SelectTextInCurrentDocument(@"SomeNewButton");
-            ExecuteCommand("Refactor.Rename");
+            ExecuteCommand(WellKnownCommandNames.Refactor_Rename);
             SendKeys("AnotherNewButton", VirtualKey.Enter);
             VerifyTextContains(@"Private Sub SomeButtonHandler(sender As Object, e As EventArgs) Handles AnotherNewButton.Click");
         }

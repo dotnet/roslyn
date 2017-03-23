@@ -3,6 +3,9 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using System.Collections.Generic;
+using System.Linq;
+using EnvDTE;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;

@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public void ShowLightBulb()
-            => InvokeOnUIThread(() => GetDTE().ExecuteCommand("View.ShowSmartTag"));
+            => InvokeOnUIThread(() => GetDTE().ExecuteCommand(WellKnownCommandNames.View_ShowSmartTag));
 
         public void WaitForLightBulbSession()
             => ExecuteOnActiveView(view =>
@@ -660,7 +660,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void Undo()
-            => GetDTE().ExecuteCommand("Edit.Undo");
+            => GetDTE().ExecuteCommand(WellKnownCommandNames.Edit_Undo);
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -16,9 +17,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected readonly VisualStudioInstanceContext VisualStudio;
         protected readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
         protected readonly TextViewWindow_OutOfProc TextViewWindow;
+        protected readonly string ProjectName = "TestProj";
+        protected readonly string SolutionName = "TestSolution";
 
         protected AbstractIntegrationTest(
-            VisualStudioInstanceFactory instanceFactory, 
+            VisualStudioInstanceFactory instanceFactory,
             Func<VisualStudioInstanceContext, TextViewWindow_OutOfProc> textViewWindowBuilder)
         {
             VisualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
@@ -60,7 +63,22 @@ namespace Roslyn.VisualStudio.IntegrationTests
             => new KeyPress(virtualKey, ShiftState.Alt);
 
         protected void ExecuteCommand(string commandName, string argument = "")
-            => VisualStudio.Instance.ExecuteCommand(commandName, argument);
+        {
+            if (VisualStudio.Instance.IsCommandAvailable(commandName))
+            {
+                VisualStudio.Instance.ExecuteCommand(commandName, argument);
+            }
+            else
+            {
+                var commands = VisualStudio.Instance.GetAvailableCommands();
+                Assert.False(true,
+                    string.Format(@"Failed with executing command {0}. 
+The list of available commands: 
+{1}",
+              commandName,
+              string.Join(",", commands)));
+            }
+        }
 
         protected void InvokeCompletionList()
         {
@@ -85,5 +103,38 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
             => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";", featuresToWaitFor));
+
+        protected void AddFile(string fileName, string contents = null, bool open = false)
+            => VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, fileName, contents, open);
+
+        protected void OpenFile(string projectName, string fileName)
+            => VisualStudio.Instance.SolutionExplorer.OpenFile(projectName, fileName);
+
+        protected void OpenFileWithDesigner(string projectName, string fileName)
+            => VisualStudio.Instance.SolutionExplorer.OpenFileWithDesigner(projectName, fileName);
+
+        protected void CloseFile(string projectName, string fileName, bool saveFile = true)
+            => VisualStudio.Instance.SolutionExplorer.CloseFile(projectName, fileName, saveFile);
+
+        protected void SaveFile(string projectName, string fileName)
+            => VisualStudio.Instance.SolutionExplorer.SaveFile(projectName, fileName);
+
+        protected void AddReference(string projectName, string fullyQualifiedAssemblyName)
+        {
+            VisualStudio.Instance.SolutionExplorer.AddReference(projectName, fullyQualifiedAssemblyName);
+        }
+
+        public void VerifyAssemblyReferencePresent(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken)
+        {
+            var assemblyReferences = VisualStudio.Instance.SolutionExplorer.GetAssemblyReferences(projectName);
+            var expectedAssemblyReference = assemblyName + "," + assemblyVersion + "," + assemblyPublicKeyToken.ToUpper();
+            Assert.Contains(expectedAssemblyReference, assemblyReferences);
+        }
+
+        public void VerifyProjectReferencePresent(string projectName, string referencedProjectName)
+        {
+            var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
+            Assert.Contains(referencedProjectName, projectReferences);
+        }
     }
 }

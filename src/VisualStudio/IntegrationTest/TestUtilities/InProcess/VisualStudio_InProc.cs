@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using EnvDTE;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -23,6 +25,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         new public void ExecuteCommand(string commandName, string args = "")
             => InProcComponent.ExecuteCommand(commandName, args);
+
+        public string[] GetAvailableCommands()
+        {
+            List<string> result = new List<string>();
+            var commands = GetDTE().Commands;
+            foreach (Command command in commands)
+            {
+                try
+                {
+                    string commandName = command.Name;
+                    if (command.IsAvailable)
+                    {
+                        result.Add(commandName);
+                    }
+                }
+                finally { }
+            }
+
+            return result.ToArray();
+        }
 
         public void ActivateMainWindow()
             => InvokeOnUIThread(() => {

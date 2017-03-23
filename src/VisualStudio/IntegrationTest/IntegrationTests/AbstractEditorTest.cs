@@ -20,8 +20,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
     {
         protected readonly Editor_OutOfProc Editor;
 
-        protected readonly string ProjectName = "TestProj";
-
         protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, visualStudio => visualStudio.Instance.Editor)
         {
@@ -77,21 +75,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
-        protected void AddFile(string fileName, string contents = null, bool open = false)
-            => VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, fileName, contents, open);
-
-        protected void OpenFile(string projectName, string fileName)
-            => VisualStudio.Instance.SolutionExplorer.OpenFile(projectName, fileName);
-
-        protected void OpenFileWithDesigner(string projectName, string fileName)
-            => VisualStudio.Instance.SolutionExplorer.OpenFileWithDesigner(projectName, fileName);
-
-        protected void CloseFile(string projectName, string fileName, bool saveFile = true)
-            => VisualStudio.Instance.SolutionExplorer.CloseFile(projectName, fileName, saveFile);
-
-        protected void SaveFile(string projectName, string fileName)
-            => VisualStudio.Instance.SolutionExplorer.SaveFile(projectName, fileName);
-
         protected void AddWinFormButton(string buttonName)
             => VisualStudio.Instance.Editor.AddWinFormButton(buttonName);
 
@@ -120,7 +103,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         protected void PlaceCaret(string text, int charsOffset = 0)
-            => VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset: charsOffset, occurrence: 0, extendSelection: false, selectBlock: false);
+            => VisualStudio.Instance.Editor.PlaceCaret(text, charsOffset);
 
         protected void BuildSolution(bool waitForBuildToFinish)
             => VisualStudio.Instance.SolutionExplorer.BuildSolution(waitForBuildToFinish);
@@ -414,19 +397,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             return dialog;
         }
 
-        public void VerifyAssemblyReferencePresent(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken)
-        {
-            var assemblyReferences = VisualStudio.Instance.SolutionExplorer.GetAssemblyReferences(projectName);
-            var expectedAssemblyReference = assemblyName + "," + assemblyVersion + "," + assemblyPublicKeyToken.ToUpper();
-            Assert.Contains(expectedAssemblyReference, assemblyReferences);
-        }
-
-        public void VerifyProjectReferencePresent(string projectName, string referencedProjectName)
-        {
-            var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
-            Assert.Contains(referencedProjectName, projectReferences);
-
-        }
         protected void InvokeNavigateToAndPressEnter(string text)
         {
             ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);

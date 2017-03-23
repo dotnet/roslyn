@@ -24,6 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomationElementExtensions.cs" />
+    <Compile Include="AutomationElementHelper.cs" />
     <Compile Include="CaptureTestNameAttribute.cs" />
     <Compile Include="Common\Comparison.cs" />
     <Compile Include="Common\Parameter.cs" />

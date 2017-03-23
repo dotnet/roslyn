@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.InteractiveWindow;
@@ -14,10 +17,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// <remarks>
     /// This object exists in the Visual Studio host and is marhsalled across the process boundary.
     /// </remarks>
-    internal abstract class InteractiveWindow_InProc : TextViewWindow_InProc
+    internal abstract class InteractiveWindow_InProc : TextViewWindow_InProc, IDisposable
     {
-        private const string ResetCommand = "InteractiveConsole.Reset";
-        private const string CleanScreenCommand = "InteractiveConsole.ClearScreen";
+        private const string NewLineFollowedByReplSubmissionText = "\n. ";
         private const string ReplSubmissionText = ". ";
         private const string ReplPromptText = "> ";
 
@@ -38,6 +40,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             CloseWindow();
 
             _interactiveWindow = AcquireInteractiveWindow();
+            _interactiveWindow.ReadyForInput += InteractiveWindow_ReadyForInput;
+        }
+
+        public event Action ReadyForInput; 
+
+        public void Dispose()
+        {
+            _interactiveWindow.ReadyForInput -= InteractiveWindow_ReadyForInput;
         }
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
@@ -83,7 +93,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
 
             replText = replText.Substring(lastPromptIndex, replText.Length - lastPromptIndex);
-            var lastSubmissionIndex = replText.LastIndexOf(ReplSubmissionText);
+            var lastSubmissionIndex = replText.LastIndexOf(NewLineFollowedByReplSubmissionText);
 
             if (lastSubmissionIndex > 0)
             {
@@ -110,28 +120,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// </summary>
         public string GetLastReplInput()
         {
-            // TODO: This may be flaky if the last submission contains ReplPromptText
-            // TODO: ReplSubmissionText is not yet supported
+            // TODO: This may be flaky if the last submission contains ReplPromptText or ReplSubmissionText
 
             var replText = GetReplText();
             var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
+            replText = replText.Substring(lastPromptIndex + ReplPromptText.Length);
 
-            replText = replText.Substring(lastPromptIndex, replText.Length - lastPromptIndex);
-            replText = replText.Substring(ReplPromptText.Length);
+            var lastSubmissionTextIndex = replText.LastIndexOf(NewLineFollowedByReplSubmissionText);
 
-            var firstNewLineIndex = replText.IndexOf(Environment.NewLine);
-
-            if (firstNewLineIndex <= 0)
+            int firstNewLineIndex;
+            if (lastSubmissionTextIndex < 0)
             {
-                return replText;
+                firstNewLineIndex = replText.IndexOf(Environment.NewLine);
+            }
+            else
+            {
+                firstNewLineIndex = replText.IndexOf(Environment.NewLine, lastSubmissionTextIndex);
             }
 
-            return replText.Substring(0, firstNewLineIndex);
+            string lastReplInputWithReplSubmissionText = (firstNewLineIndex <= 0) ? replText : replText.Substring(0, firstNewLineIndex);
+
+            return lastReplInputWithReplSubmissionText.Replace(ReplSubmissionText, string.Empty);
         }
 
         public void Reset(bool waitForPrompt = true)
         {
-            ExecuteCommand(ResetCommand);
+            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_Reset);
 
             if (waitForPrompt)
             {
@@ -163,6 +177,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
+        public bool IsRunning
+        {
+            get
+            {
+                return _interactiveWindow.IsRunning;
+            }
+        }
+
         public void ShowWindow(bool waitForPrompt = true)
         {
             ExecuteCommand(_viewCommand);
@@ -189,7 +211,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ClearScreen()
         {
-            ExecuteCommand(CleanScreenCommand);
+            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ClearScreen);
         }
 
         public void InsertCode(string text)
@@ -219,6 +241,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
             return _interactiveWindow.TextView.TextBuffer;
+        }
+
+        protected void InteractiveWindow_ReadyForInput()
+        {
+            ReadyForInput();
         }
     }
 }
