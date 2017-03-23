@@ -110,7 +110,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid)
         End Sub
 
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
-        Public Sub InvalidIfStatement()
+        Public Sub InvalidIfElseIfStatement()
             Dim source = <![CDATA[
 Class Program
     Private Shared Sub Main(args As String())
