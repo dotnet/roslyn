@@ -60,7 +60,7 @@ try {
 
     if (-not $skipRestore) { 
         Write-Host "Running restore"
-        & ".\build\scripts\restore.ps1" -msbuildDir $msbuildDir
+        Restore-All -msbuildDir $msbuildDir 
     }
 
     # Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
