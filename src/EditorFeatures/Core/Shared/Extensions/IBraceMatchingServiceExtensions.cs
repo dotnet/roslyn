@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             else if (braces1.HasValue && position >= braces1.Value.RightSpan.Start && position < braces1.Value.RightSpan.End)
             {
                 // { ^} - return left span
-                                return braces1.Value.LeftSpan;
+                return braces1.Value.LeftSpan;
             }
 
             return null;
