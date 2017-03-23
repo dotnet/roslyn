@@ -43,7 +43,7 @@ try
         "dev15.0.x" { } 
         "master" { } 
         "post-dev15" { } 
-        "features/refout" { }
+        "features_refout" { }
         default
         {
             if (-not $test)
