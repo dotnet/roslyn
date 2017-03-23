@@ -250,12 +250,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // In this case, inlining the 'i' would cause it to longer be definitely
             // assigned in the WriteLine invocation.
 
-            if (localDeclarator.Initializer == null)
-            {
-                // Don't need to examine this unless the variable has an initializer.
-                return false;
-            }
-
             // Find all the current read-references to the local.
             var query = from t in enclosingBlock.DescendantTokens()
                         where t.Kind() == SyntaxKind.IdentifierToken
