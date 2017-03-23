@@ -389,6 +389,7 @@
     <Compile Include="NamingStyles\Serialization\NamingStylePreferencesExtensions.cs" />
     <Compile Include="PatternMatching\PatternMatch.cs" />
     <Compile Include="PatternMatching\PatternMatcher.cs" />
+    <Compile Include="PatternMatching\PatternMatcher.PatternSegment.cs" />
     <Compile Include="PatternMatching\PatternMatcher.Segment.cs" />
     <Compile Include="PatternMatching\PatternMatcher.TextChunk.cs" />
     <Compile Include="PatternMatching\PatternMatches.cs" />

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// text between the dots, as well as information about any individual 'Words' that we 
         /// can break the segment into.
         /// </summary>
-        private struct Segment : IDisposable
+        private struct PatternSegment : IDisposable
         {
             // Information about the entire piece of text between the dots.  For example, if the 
             // text between the dots is 'GetKeyword', then TotalTextChunk.Text will be 'GetKeyword' and 
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             // respectively.
             public readonly TextChunk[] SubWordTextChunks;
 
-            public Segment(string text, bool verbatimIdentifierPrefixIsWordCharacter, bool allowFuzzyMatching)
+            public PatternSegment(string text, bool verbatimIdentifierPrefixIsWordCharacter, bool allowFuzzyMatching)
             {
                 this.TotalTextChunk = new TextChunk(text, allowFuzzyMatching);
                 this.SubWordTextChunks = BreakPatternIntoTextChunks(

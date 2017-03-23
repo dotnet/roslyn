@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private readonly bool _allowFuzzyMatching;
         private readonly bool _invalidPattern;
-        private readonly Segment _fullPatternSegment;
-        private readonly Segment[] _dotSeparatedSegments;
+        private readonly PatternSegment _fullPatternSegment;
+        private readonly PatternSegment[] _dotSeparatedPatternSegments;
 
         private readonly Dictionary<string, StringBreaks> _stringToWordSpans = new Dictionary<string, StringBreaks>();
         private readonly Func<string, StringBreaks> _breakIntoWordSpans = StringBreaker.BreakIntoWordParts;
@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// Construct a new PatternMatcher using the calling thread's culture for string searching and comparison.
         /// </summary>
         public PatternMatcher(
-                string pattern,
-                bool verbatimIdentifierPrefixIsWordCharacter = false,
-                bool allowFuzzyMatching = false) : 
-            this(pattern, CultureInfo.CurrentCulture, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching)
+            string pattern,
+            bool verbatimIdentifierPrefixIsWordCharacter = false,
+            bool allowFuzzyMatching = false) 
+            :  this(pattern, CultureInfo.CurrentCulture, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching)
         {
         }
 
@@ -64,35 +64,35 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             _compareInfo = culture.CompareInfo;
             _allowFuzzyMatching = allowFuzzyMatching;
 
-            _fullPatternSegment = new Segment(pattern, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching);
+            _fullPatternSegment = new PatternSegment(pattern, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching);
 
             if (pattern.IndexOf('.') < 0)
             {
                 // PERF: Avoid string.Split allocations when the pattern doesn't contain a dot.
-                _dotSeparatedSegments = pattern.Length > 0
-                    ? new Segment[1] { _fullPatternSegment }
-                    : Array.Empty<Segment>();
+                _dotSeparatedPatternSegments = pattern.Length > 0
+                    ? new PatternSegment[1] { _fullPatternSegment }
+                    : Array.Empty<PatternSegment>();
             }
             else
             {
-                _dotSeparatedSegments = pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries)
-                                                .Select(text => new Segment(text.Trim(), verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching))
+                _dotSeparatedPatternSegments = pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries)
+                                                .Select(text => new PatternSegment(text.Trim(), verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching))
                                                 .ToArray();
             }
 
-            _invalidPattern = _dotSeparatedSegments.Length == 0 || _dotSeparatedSegments.Any(s => s.IsInvalid);
+            _invalidPattern = _dotSeparatedPatternSegments.Length == 0 || _dotSeparatedPatternSegments.Any(s => s.IsInvalid);
         }
 
         public void Dispose()
         {
             _fullPatternSegment.Dispose();
-            foreach (var segment in _dotSeparatedSegments)
+            foreach (var segment in _dotSeparatedPatternSegments)
             {
                 segment.Dispose();
             }
         }
 
-        public bool IsDottedPattern => _dotSeparatedSegments.Length > 1;
+        public bool IsDottedPattern => _dotSeparatedPatternSegments.Length > 1;
 
         private bool SkipMatch(string candidate)
         {
@@ -100,9 +100,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         }
 
         public ImmutableArray<PatternMatch> GetMatches(string candidate)
-        {
-            return GetMatches(candidate, includeMatchSpans: false);
-        }
+            => GetMatches(candidate, includeMatchSpans: false);
 
         /// <summary>
         /// Determines if a given candidate string matches under a multiple word query text, as you
@@ -135,19 +133,17 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return ImmutableArray<PatternMatch>.Empty;
             }
 
-            var result = MatchSegment(candidate, includeMatchSpans: false, segment: _dotSeparatedSegments.Last(), fuzzyMatch: false);
+            var result = MatchSegment(candidate, includeMatchSpans: false, segment: _dotSeparatedPatternSegments.Last(), fuzzyMatch: false);
             if (!result.IsEmpty)
             {
                 return result;
             }
 
-            return MatchSegment(candidate, includeMatchSpans: false, segment: _dotSeparatedSegments.Last(), fuzzyMatch: true);
+            return MatchSegment(candidate, includeMatchSpans: false, segment: _dotSeparatedPatternSegments.Last(), fuzzyMatch: true);
         }
 
         public PatternMatches GetMatches(string candidate, string dottedContainer)
-        {
-            return GetMatches(candidate, dottedContainer, includeMatchSpans: false);
-        }
+            => GetMatches(candidate, dottedContainer, includeMatchSpans: false);
 
         /// <summary>
         /// Matches a pattern against a candidate, and an optional dotted container for the 
@@ -189,7 +185,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             // First, check that the last part of the dot separated pattern matches the name of the
             // candidate.  If not, then there's no point in proceeding and doing the more
             // expensive work.
-            var candidateMatch = MatchSegment(candidate, includeMatchSpans, _dotSeparatedSegments.Last(), fuzzyMatch);
+            var candidateMatch = MatchSegment(candidate, includeMatchSpans, _dotSeparatedPatternSegments.Last(), fuzzyMatch);
             if (candidateMatch.IsDefaultOrEmpty)
             {
                 return PatternMatches.Empty;
@@ -200,7 +196,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             // -1 because the last part was checked against the name, and only the rest
             // of the parts are checked against the container.
-            var relevantDotSeparatedSegmentLength = _dotSeparatedSegments.Length - 1;
+            var relevantDotSeparatedSegmentLength = _dotSeparatedPatternSegments.Length - 1;
             if (relevantDotSeparatedSegmentLength > containerParts.Length)
             {
                 // There weren't enough container parts to match against the pattern parts.
@@ -219,7 +215,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                      i < relevantDotSeparatedSegmentLength;
                      i++, j++)
                 {
-                    var segment = _dotSeparatedSegments[i];
+                    var segment = _dotSeparatedPatternSegments[i];
                     var containerName = containerParts[j];
                     var containerMatch = MatchSegment(containerName, includeMatchSpans, segment, fuzzyMatch);
                     if (containerMatch.IsDefaultOrEmpty)
@@ -260,8 +256,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return null;
             }
 
-            return MatchSegment(candidate, inludeMatchSpans, _fullPatternSegment, wantAllMatches: false, allMatches: out var ignored, fuzzyMatch: false) ??
-                   MatchSegment(candidate, inludeMatchSpans, _fullPatternSegment, wantAllMatches: false, allMatches: out ignored, fuzzyMatch: true);
+            return MatchPatternSegment(candidate, inludeMatchSpans, _fullPatternSegment, wantAllMatches: false, allMatches: out var ignored, fuzzyMatch: false) ??
+                   MatchPatternSegment(candidate, inludeMatchSpans, _fullPatternSegment, wantAllMatches: false, allMatches: out ignored, fuzzyMatch: true);
         }
 
         private StringBreaks GetWordSpans(string word)
@@ -443,14 +439,14 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         }
 
         private ImmutableArray<PatternMatch> MatchSegment(
-            string candidate, bool includeMatchSpans, Segment segment, bool fuzzyMatch)
+            string candidate, bool includeMatchSpans, PatternSegment segment, bool fuzzyMatch)
         {
             if (fuzzyMatch && !_allowFuzzyMatching)
             {
                 return ImmutableArray<PatternMatch>.Empty;
             }
 
-            var singleMatch = MatchSegment(candidate, includeMatchSpans, segment, 
+            var singleMatch = MatchPatternSegment(candidate, includeMatchSpans, segment, 
                 wantAllMatches: true, fuzzyMatch: fuzzyMatch, allMatches: out var matches);
             if (singleMatch.HasValue)
             {
@@ -476,10 +472,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// <param name="allMatches">If <paramref name="wantAllMatches"/> is true, and there's more than one match, then the list of all matches.</param>
         /// <param name="includeMatchSpans">Whether or not the matched spans should be included with results</param>
         /// <returns>If there's only one match, then the return value is that match. Otherwise it is null.</returns>
-        private PatternMatch? MatchSegment(
+        private PatternMatch? MatchPatternSegment(
             string candidate,
             bool includeMatchSpans,
-            Segment segment,
+            PatternSegment segment,
             bool wantAllMatches,
             bool fuzzyMatch,
             out ImmutableArray<PatternMatch> allMatches)
