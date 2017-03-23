@@ -594,8 +594,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
 
             cdiEncoder.AddTupleElementNames(new[]
             {
-                ("a", 1, 0, 0, ImmutableArray.Create("e")),
-                ("b", -1, 0, 10, ImmutableArray.Create("u", null, "v")),
+                (LocalName: "a", SlotIndex: 1, ScopeStart: 0, ScopeEnd: 0, Names: ImmutableArray.Create("e")),
+                (LocalName: "b", SlotIndex: -1, ScopeStart: 0, ScopeEnd: 10, Names: ImmutableArray.Create("u", null, "v")),
             });
 
             var cdi = cdiEncoder.ToArray();
