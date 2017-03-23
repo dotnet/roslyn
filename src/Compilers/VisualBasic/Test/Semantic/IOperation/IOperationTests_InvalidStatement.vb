@@ -134,6 +134,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid)
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid)
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid)
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program)
     IBlockStatement (0 statements) (OperationKind.BlockStatement)
 ]]>.Value
 

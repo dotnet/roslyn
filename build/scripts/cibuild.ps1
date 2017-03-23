@@ -54,8 +54,8 @@ try {
     }
 
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
-    $msbuildDir = Get-MSBuildDir
-    $msbuild = Join-Path $msbuildDir "msbuild.exe"
+    $msbuild = Ensure-MSBuild
+    $msbuildDir = Split-Path -parent $msbuild
     $configDir = Join-Path $binariesDIr $buildConfiguration
 
     if (-not $skipRestore) { 
