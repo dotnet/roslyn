@@ -7,6 +7,7 @@ using System.Linq;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -16,11 +17,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 {
     internal class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
     {
+        public List<MemberSymbolViewModel> MemberContainers { get; set; }
+        public List<OptionViewModel> Options { get; set; }
+
         internal PickMembersDialogViewModel(
             IGlyphService glyphService,
-            ImmutableArray<ISymbol> members)
+            ImmutableArray<ISymbol> members,
+            ImmutableArray<PickMembersOption> options)
         {
-            MemberContainers = members.Select(m => new MemberSymbolViewModel(m, glyphService)).OrderBy(s => s.MemberName).ToList();
+            MemberContainers = members.Select(m => new MemberSymbolViewModel(m, glyphService)).ToList();
+            Options = options.Select(o => new OptionViewModel(o)).ToList();
         }
 
         internal void DeselectAll()
@@ -143,14 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             list.Insert(index + delta, param);
 
             SelectedIndex += delta;
-
-            //NotifyPropertyChanged(nameof(AllParameters));
-            //NotifyPropertyChanged(nameof(SignatureDisplay));
-            //NotifyPropertyChanged(nameof(SignaturePreviewAutomationText));
-            //NotifyPropertyChanged(nameof(IsOkButtonEnabled));
         }
-
-        public List<MemberSymbolViewModel> MemberContainers { get; set; }
 
         internal class MemberSymbolViewModel : AbstractNotifyPropertyChanged
         {
@@ -183,6 +182,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             public ImageSource Glyph => MemberSymbol.GetGlyph().GetImageSource(_glyphService);
 
             public string MemberAutomationText => MemberSymbol.Kind + " " + MemberName;
+        }
+
+        internal class OptionViewModel : AbstractNotifyPropertyChanged
+        {
+            public PickMembersOption Option { get; }
+
+            public string Title { get; }
+
+            public OptionViewModel(PickMembersOption option)
+            {
+                Option = option;
+                Title = option.Title;
+                IsChecked = option.Value;
+            }
+
+            private bool _isChecked;
+            public bool IsChecked
+            {
+                get => _isChecked;
+
+                set
+                {
+                    Option.Value = value;
+                    SetProperty(ref _isChecked, value);
+                }
+            }
+
+            public string MemberAutomationText => Option.Title;
         }
     }
 }

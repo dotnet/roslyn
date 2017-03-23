@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 
 namespace Microsoft.CodeAnalysis.GenerateFromMembers
 {
-
     internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvider : CodeRefactoringProvider
     {
         protected class SelectedMemberInfo

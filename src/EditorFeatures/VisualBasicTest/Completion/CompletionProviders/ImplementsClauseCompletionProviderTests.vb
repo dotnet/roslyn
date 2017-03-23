@@ -639,7 +639,7 @@ End Interface
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(element)
+            Using workspace = TestWorkspace.Create(element)
                 Dim position = workspace.Documents.Single().CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
                 Dim service = GetCompletionService(workspace)

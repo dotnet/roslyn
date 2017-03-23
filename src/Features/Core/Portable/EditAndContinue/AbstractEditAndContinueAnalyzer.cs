@@ -2550,7 +2550,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (layoutAttribute == null)
             {
-                layoutAttribute = model.Compilation.GetTypeByMetadataName("System.Runtime.InteropServices.StructLayoutAttribute");
+                layoutAttribute = model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName);
                 if (layoutAttribute == null)
                 {
                     return false;

@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -19,6 +17,31 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
     {
         protected AbstractGenerateFromMembersCodeRefactoringProvider()
         {
+        }
+
+        /// <summary>
+        /// Gets the enclosing named type for the specified position.  We can't use
+        /// <see cref="SemanticModel.GetEnclosingSymbol"/> because that doesn't return
+        /// the type you're current on if you're on the header of a class/interface.
+        /// </summary>
+        internal static INamedTypeSymbol GetEnclosingNamedType(
+            SemanticModel semanticModel, SyntaxNode root, int start, CancellationToken cancellationToken)
+        {
+            var token = root.FindToken(start);
+            if (token == ((ICompilationUnitSyntax)root).EndOfFileToken)
+            {
+                token = token.GetPreviousToken();
+            }
+
+            for (var node = token.Parent; node != null; node = node.Parent)
+            {
+                if (semanticModel.GetDeclaredSymbol(node) is INamedTypeSymbol declaration)
+                {
+                    return declaration;
+                }
+            }
+
+            return null;
         }
 
         protected async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
@@ -50,27 +73,27 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 
         // Can use non const fields and properties with setters in them.
         protected static bool IsWritableInstanceFieldOrProperty(ISymbol symbol)
-            => IsInstanceFieldOrProperty(symbol) &&
+            => IsViableInstanceFieldOrProperty(symbol) &&
                IsWritableFieldOrProperty(symbol);
 
         private static bool IsWritableFieldOrProperty(ISymbol symbol)
         {
             switch (symbol)
             {
-                case IFieldSymbol field: return !field.IsConst && field.AssociatedSymbol == null;
+                case IFieldSymbol field: return !field.IsConst && IsViableField(field);
                 case IPropertySymbol property: return property.IsWritableInConstructor();
                 default: return false;
             }
         }
 
-        protected static bool IsInstanceFieldOrProperty(ISymbol symbol)
-            => !symbol.IsStatic && (IsField(symbol) || IsProperty(symbol));
+        protected static bool IsViableInstanceFieldOrProperty(ISymbol symbol)
+            => !symbol.IsStatic && (IsViableField(symbol) || IsViableProperty(symbol));
 
-        private static bool IsProperty(ISymbol symbol)
+        private static bool IsViableProperty(ISymbol symbol)
             => symbol.Kind == SymbolKind.Property;
 
-        private static bool IsField(ISymbol symbol)
-            => symbol.Kind == SymbolKind.Field;
+        private static bool IsViableField(ISymbol symbol)
+            => symbol is IFieldSymbol field && field.AssociatedSymbol == null;
 
         protected ImmutableArray<IParameterSymbol> DetermineParameters(
             ImmutableArray<ISymbol> selectedMembers)

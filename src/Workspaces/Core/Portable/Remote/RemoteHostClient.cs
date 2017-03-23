@@ -93,11 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public async Task<Session> TryCreateServiceSessionAsync(string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(solution.Workspace == _workspace);
-
-            var service = _workspace.Services.GetService<ISolutionSynchronizationService>();
-            var snapshot = await service.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
-
+            var snapshot = await GetPinnedScopeAsync(solution, cancellationToken).ConfigureAwait(false);
             return await TryCreateServiceSessionAsync(serviceName, snapshot, callbackTarget, cancellationToken).ConfigureAwait(false);
         }
 
@@ -141,6 +137,19 @@ namespace Microsoft.CodeAnalysis.Remote
         private void OnConnectionChanged(bool connected)
         {
             ConnectionChanged?.Invoke(this, connected);
+        }
+
+        private async Task<PinnedRemotableDataScope> GetPinnedScopeAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            if (solution == null)
+            {
+                return null;
+            }
+
+            Contract.ThrowIfFalse(solution.Workspace == _workspace);
+
+            var service = _workspace.Services.GetService<ISolutionSynchronizationService>();
+            return await service.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
         }
 
         // TODO: make this to not exposed to caller. abstract all of these under Request and Response mechanism

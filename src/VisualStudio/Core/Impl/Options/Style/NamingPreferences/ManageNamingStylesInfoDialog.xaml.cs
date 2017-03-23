@@ -17,6 +17,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
         public string CannotBeDeletedExplanation => ServicesVSResources.This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule;
+        public string AddItemAutomationText => ServicesVSResources.Add_item;
+        public string EditButtonAutomationText => ServicesVSResources.Edit_item;
+        public string RemoveButtonAutomationText => ServicesVSResources.Remove_item;
 
         internal ManageNamingStylesInfoDialog(IManageNamingStylesInfoDialogViewModel viewModel)
         {

@@ -171,9 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var position = lessThanToken.SpanStart;
 
             SignatureHelpItem item;
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol namedType)
             {
-                var namedType = (INamedTypeSymbol)symbol;
                 item = CreateItem(
                     symbol, semanticModel, position,
                     symbolDisplayService, anonymousTypeDisplayService,

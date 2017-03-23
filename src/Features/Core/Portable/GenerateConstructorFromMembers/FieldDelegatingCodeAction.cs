@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,15 +20,18 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             private readonly GenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly State _state;
+            private readonly bool _addNullChecks;
 
             public FieldDelegatingCodeAction(
                 GenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
-                State state)
+                State state,
+                bool addNullChecks)
             {
                 _service = service;
                 _document = document;
                 _state = state;
+                _addNullChecks = addNullChecks;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -47,13 +51,28 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var factory = _document.GetLanguageService<SyntaxGenerator>();
 
                 var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var preferThrowExpression = options.GetOption(CodeStyleOptions.PreferThrowExpression).Value;
+
+                var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var members = factory.CreateFieldDelegatingConstructor(
+                    compilation,
                     _state.ContainingType.Name,
                     _state.ContainingType,
                     _state.Parameters,
                     parameterToExistingFieldMap,
                     parameterToNewFieldMap: null,
+                    addNullChecks: _addNullChecks,
+                    preferThrowExpression: preferThrowExpression,
                     cancellationToken: cancellationToken);
+
+                // If the user has selected a set of members (i.e. TextSpan is not empty), then we will
+                // choose the right location (i.e. null) to insert the constructor.  However, if they're 
+                // just invoking the feature manually at a specific location, then we'll insert the 
+                // members at that specific place in the class/struct.
+                var afterThisLocation = _state.TextSpan.IsEmpty
+                    ? syntaxTree.GetLocation(_state.TextSpan)
+                    : null;
 
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
@@ -61,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     members,
                     new CodeGenerationOptions(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
-                        afterThisLocation: _state.TextSpan.IsEmpty ? syntaxTree.GetLocation(_state.TextSpan) : null),
+                        afterThisLocation: afterThisLocation),
                     cancellationToken).ConfigureAwait(false);
 
                 return result;

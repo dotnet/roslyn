@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (underlyingSwitchType.SpecialType == SpecialType.System_String)
                 {
                     _localRewriter.EnsureStringHashFunction(rewrittenSections, _factory.Syntax);
-                    stringEquality = _localRewriter.GetSpecialTypeMethod(_factory.Syntax, SpecialMember.System_String__op_Equality);
+                    stringEquality = _localRewriter.UnsafeGetSpecialTypeMethod(_factory.Syntax, SpecialMember.System_String__op_Equality);
                 }
 
                 // The BoundSwitchStatement requires a constant target when there are no sections, so we accomodate that here.

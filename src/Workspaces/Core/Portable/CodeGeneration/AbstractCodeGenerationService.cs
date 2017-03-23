@@ -178,9 +178,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             options = options ?? CodeGenerationOptions.Default;
 
-            var result = await this.FindMostRelevantDeclarationAsync(solution, destination, options, cancellationToken).ConfigureAwait(false);
-            SyntaxNode destinationDeclaration = result.Item1;
-            IList<bool> availableIndices = result.Item2;
+            var (destinationDeclaration, availableIndices) =
+                await this.FindMostRelevantDeclarationAsync(solution, destination, options, cancellationToken).ConfigureAwait(false);
 
             if (destinationDeclaration == null)
             {
@@ -199,10 +198,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (options.AddImports)
             {
-                var adder = this.CreateImportsAdder(newDocument);
-                newDocument = await adder.AddAsync(members, options.PlaceSystemNamespaceFirst, options, cancellationToken).ConfigureAwait(false);
+                newDocument = await AddImportsAsync(
+                    newDocument, options, cancellationToken).ConfigureAwait(false);
             }
 
+            return newDocument;
+        }
+
+        public async Task<Document> AddImportsAsync(Document document, CodeGenerationOptions options, CancellationToken cancellationToken)
+        {
+            options = options ?? CodeGenerationOptions.Default;
+            var adder = this.CreateImportsAdder(document);
+            var newDocument = await adder.AddAsync(options.PlaceSystemNamespaceFirst, options, cancellationToken).ConfigureAwait(false);
             return newDocument;
         }
 
@@ -430,9 +437,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentNullException(nameof(namespaceOrType));
             }
 
-            if (namespaceOrType is INamespaceSymbol)
+            if (namespaceOrType is INamespaceSymbol namespaceSymbol)
             {
-                return AddNamespaceAsync(solution, destination, (INamespaceSymbol)namespaceOrType, options, cancellationToken);
+                return AddNamespaceAsync(solution, destination, namespaceSymbol, options, cancellationToken);
             }
             else
             {

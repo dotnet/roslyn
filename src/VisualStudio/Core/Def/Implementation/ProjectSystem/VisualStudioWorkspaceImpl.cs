@@ -126,6 +126,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Microsoft.CodeAnalysis.Solution newSolution,
             IProgressTracker progressTracker)
         {
+            if (_foregroundObject.IsValueCreated && !_foregroundObject.Value.IsForeground())
+            {
+                throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
+            }
+
             var projectChanges = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().ToList();
             var projectsToLoad = new HashSet<Guid>();
             foreach (var pc in projectChanges)
@@ -195,6 +200,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
+        protected override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
+        {
+            var parseOptionsService = project.LanguageServices.GetService<IParseOptionsService>();
+            if (parseOptionsService == null)
+            {
+                return false;
+            }
+
+            // Currently, only changes to the LanguageVersion of parse options are supported.
+            var newLanguageVersion = parseOptionsService.GetLanguageVersion(newOptions);
+            var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
+
+            return newOptions == updated;
+        }
+
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
             switch (feature)
@@ -211,6 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.AddAdditionalDocument:
                 case ApplyChangesKind.RemoveAdditionalDocument:
                 case ApplyChangesKind.ChangeAdditionalDocument:
+                case ApplyChangesKind.ChangeParseOptions:
                     return true;
 
                 default:
@@ -269,6 +290,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string GetAnalyzerPath(AnalyzerReference analyzerReference)
         {
             return analyzerReference.FullPath;
+        }
+
+        protected override void ApplyParseOptionsChanged(ProjectId projectId, ParseOptions options)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<IParseOptionsService>();
+            Contract.ThrowIfNull(parseOptionsService, nameof(parseOptionsService));
+
+            string newVersion = parseOptionsService.GetLanguageVersion(options);
+
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
+            foreach (string configurationName in (object[])project.ConfigurationManager.ConfigurationRowNames)
+            {
+                switch (hostProject.Language)
+                {
+                    case LanguageNames.CSharp:
+                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)project.ConfigurationManager
+                            .ConfigurationRow(configurationName).Item(1).Object;
+
+                        if (newVersion != csharpProperties.LanguageVersion)
+                        {
+                            csharpProperties.LanguageVersion = newVersion;
+                        }
+                        break;
+
+                    case LanguageNames.VisualBasic:
+                        throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_parse_options);
+                }
+            }
         }
 
         protected override void ApplyAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
@@ -1021,6 +1080,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             // workspace is going away. unregister this workspace from work coordinator
             StopSolutionCrawler();
+
+            // We should consider calling this here. It is commented out because Solution event tracking was 
+            // moved from VisualStudioProjectTracker, which is never Dispose()'d.  Rather than risk the 
+            // UnadviseSolutionEvents causing another issue (calling into dead COM objects, etc), we'll just 
+            // continue to skip it for now.
+            // UnadviseSolutionEvents();
 
             base.Dispose(finalize);
         }

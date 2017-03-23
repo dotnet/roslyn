@@ -604,7 +604,7 @@ namespace A.B {
                 // (1,19): error CS1002: ; expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
-                // (1,19): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (1,19): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("tuples", "7").WithLocation(1, 19),
                 // (1,20): error CS1031: Type expected
@@ -1583,6 +1583,7 @@ class A
         }
 
         [WorkItem(8506, "https://github.com/dotnet/roslyn/issues/8506")]
+        [WorkItem(17403, "https://github.com/dotnet/roslyn/issues/17403")]
         [Fact]
         public void CrossCorlibSystemObjectReturnType_Script()
         {
@@ -1592,21 +1593,42 @@ class A
             //
             // In the original bug, Xamarin iOS, Android, and Mac Mobile profile corlibs were
             // realistic cross-compilation targets.
-            var compilation = CSharpCompilation.CreateScriptCompilation(
-                "submission-assembly",
-                references: new [] { MinAsyncCorlibRef },
+
+            void AssertCompilationCorlib(CSharpCompilation compilation)
+            {
+                Assert.True(compilation.IsSubmission);
+
+                var taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+                var taskOfObject = taskOfT.Construct(compilation.ObjectType);
+                var entryPoint = compilation.GetEntryPoint(default(CancellationToken));
+
+                Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly);
+                Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly);
+                Assert.Equal(taskOfObject, entryPoint.ReturnType);
+            }
+
+            var firstCompilation = CSharpCompilation.CreateScriptCompilation(
+                "submission-assembly-1",
+                references: new[] { MinAsyncCorlibRef },
                 syntaxTree: Parse("true", options: TestOptions.Script)
             ).VerifyDiagnostics();
 
-            Assert.True(compilation.IsSubmission);
+            AssertCompilationCorlib(firstCompilation);
 
-            var taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
-            var taskOfObject = taskOfT.Construct(compilation.ObjectType);
-            var entryPoint = compilation.GetEntryPoint(default(CancellationToken));
+            var secondCompilation = CSharpCompilation.CreateScriptCompilation(
+                "submission-assembly-2",
+                previousScriptCompilation: firstCompilation,
+                syntaxTree: Parse("false", options: TestOptions.Script))
+                .WithScriptCompilationInfo(new CSharpScriptCompilationInfo(firstCompilation, null, null))
+                .VerifyDiagnostics();
 
-            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly);
-            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly);
-            Assert.Equal(taskOfObject, entryPoint.ReturnType);
+            AssertCompilationCorlib(secondCompilation);
+
+            Assert.Same(firstCompilation.ObjectType, secondCompilation.ObjectType);
+
+            Assert.Null(new CSharpScriptCompilationInfo(null, null, null)
+                .WithPreviousScriptCompilation(firstCompilation)
+                .ReturnTypeOpt);
         }
 
         [WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")]
