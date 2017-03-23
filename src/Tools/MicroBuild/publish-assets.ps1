@@ -43,6 +43,7 @@ try
         "dev15.0.x" { } 
         "dev15.1.x" { } 
         "master" { } 
+        # Note that slashes are replaced with underscores. So a feature branch would look like "features_refout"
         "dev_pilchie_Fix389698" { }
         default
         {
