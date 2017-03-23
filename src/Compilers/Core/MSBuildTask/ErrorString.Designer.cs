@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reference assembly &quot;{0}&quot; already has latest information. Leaving it untouched..
+        /// </summary>
+        internal static string CopyRefAssembly_SkippingCopy {
+            get {
+                return ResourceManager.GetString("CopyRefAssembly_SkippingCopy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MSB3053: The assembly alias &quot;{1}&quot; on reference &quot;{0}&quot; contains illegal characters..
         /// </summary>
         internal static string Csc_AssemblyAliasContainsIllegalCharacters {
@@ -143,15 +152,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MSB3082: Task failed because &quot;{0}&quot; was not found..
-        /// </summary>
-        internal static string General_ToolFileNotFound {
-            get {
-                return ResourceManager.GetString("General_ToolFileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to MSB3087: An incompatible host object was passed into the &quot;{0}&quot; task.  The host object for this task must implement the &quot;{1}&quot; interface..
         /// </summary>
         internal static string General_IncorrectHostObject {
@@ -184,6 +184,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         internal static string General_ReferenceDoesNotExist {
             get {
                 return ResourceManager.GetString("General_ReferenceDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MSB3082: Task failed because &quot;{0}&quot; was not found..
+        /// </summary>
+        internal static string General_ToolFileNotFound {
+            get {
+                return ResourceManager.GetString("General_ToolFileNotFound", resourceCulture);
             }
         }
         

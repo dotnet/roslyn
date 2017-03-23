@@ -47,6 +47,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 return Copy();
             }
+            else
+            {
+                Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_SkippingCopy", DestinationPath);
+            }
 
             return true;
         }
@@ -55,8 +59,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             try
             {
-                File.Delete(DestinationPath);
-                File.Copy(SourcePath, DestinationPath);
+                File.Copy(SourcePath, DestinationPath, overwrite: true);
             }
             catch (Exception e)
             {
