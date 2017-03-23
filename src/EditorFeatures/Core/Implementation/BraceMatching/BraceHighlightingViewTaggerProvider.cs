@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -61,25 +62,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         {
             using (Logger.LogBlock(FunctionId.Tagger_BraceHighlighting_TagProducer_ProduceTags, context.CancellationToken))
             {
-                await ProduceTagsForBracesAsync(context, document, snapshot, position, rightBrace: false).ConfigureAwait(false);
-                await ProduceTagsForBracesAsync(context, document, snapshot, position - 1, rightBrace: true).ConfigureAwait(false);
+                if (position >= 0 && position <= snapshot.Length)
+                {
+                    var (bracesLeftOfPosition, bracesRightOfPosition) = await _braceMatcherService.GetAllMatchingBracesAsync(
+                    document, position, context.CancellationToken).ConfigureAwait(false);
+
+                    AddBraces(context, snapshot, bracesLeftOfPosition);
+                    AddBraces(context, snapshot, bracesRightOfPosition);
+                }
             }
         }
 
-        private async Task ProduceTagsForBracesAsync(TaggerContext<BraceHighlightTag> context, Document document, ITextSnapshot snapshot, int position, bool rightBrace)
+        private void AddBraces(
+            TaggerContext<BraceHighlightTag> context,
+            ITextSnapshot snapshot,
+            BraceMatchingResult? braces)
         {
-            if (position >= 0 && position <= snapshot.Length)
+            if (braces.HasValue)
             {
-                var braces = await _braceMatcherService.GetMatchingBracesAsync(document, position, context.CancellationToken).ConfigureAwait(false);
-                if (braces.HasValue)
-                {
-                    if ((!rightBrace && braces.Value.LeftSpan.Start == position) ||
-                        (rightBrace && braces.Value.RightSpan.Start == position))
-                    {
-                        context.AddTag(snapshot.GetTagSpan(braces.Value.LeftSpan.ToSpan(), BraceHighlightTag.StartTag));
-                        context.AddTag(snapshot.GetTagSpan(braces.Value.RightSpan.ToSpan(), BraceHighlightTag.EndTag));
-                    }
-                }
+                context.AddTag(snapshot.GetTagSpan(braces.Value.LeftSpan.ToSpan(), BraceHighlightTag.StartTag));
+                context.AddTag(snapshot.GetTagSpan(braces.Value.RightSpan.ToSpan(), BraceHighlightTag.EndTag));
             }
         }
     }
