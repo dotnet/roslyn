@@ -1,0 +1,11 @@
+﻿{
+  "dependencies": {
+    "xunit.performance.core": "1.0.0-beta-build0001"
+  },
+  "frameworks": {
+    "net46": { }
+  },
+  "runtimes": { 
+    "win7": { } 
+  }
+}
