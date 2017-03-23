@@ -117,13 +117,13 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return ImmutableArray<PatternMatch>.Empty;
             }
 
-            var result = MatchSegment(candidate, includeMatchSpans, _fullPatternSegment, fuzzyMatch: true);
+            var result = MatchPatternSegment(candidate, includeMatchSpans, _fullPatternSegment, fuzzyMatch: true);
             if (!result.IsEmpty)
             {
                 return result;
             }
 
-            return MatchSegment(candidate, includeMatchSpans, _fullPatternSegment, fuzzyMatch: false);
+            return MatchPatternSegment(candidate, includeMatchSpans, _fullPatternSegment, fuzzyMatch: false);
         }
 
         public ImmutableArray<PatternMatch> GetMatchesForLastSegmentOfPattern(string candidate)
@@ -133,13 +133,13 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return ImmutableArray<PatternMatch>.Empty;
             }
 
-            var result = MatchSegment(candidate, includeMatchSpans: false, segment: _dotSeparatedPatternSegments.Last(), fuzzyMatch: false);
+            var result = MatchPatternSegment(candidate, includeMatchSpans: false, patternSegment: _dotSeparatedPatternSegments.Last(), fuzzyMatch: false);
             if (!result.IsEmpty)
             {
                 return result;
             }
 
-            return MatchSegment(candidate, includeMatchSpans: false, segment: _dotSeparatedPatternSegments.Last(), fuzzyMatch: true);
+            return MatchPatternSegment(candidate, includeMatchSpans: false, patternSegment: _dotSeparatedPatternSegments.Last(), fuzzyMatch: true);
         }
 
         public PatternMatches GetMatches(string candidate, string dottedContainer)
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             // First, check that the last part of the dot separated pattern matches the name of the
             // candidate.  If not, then there's no point in proceeding and doing the more
             // expensive work.
-            var candidateMatch = MatchSegment(candidate, includeMatchSpans, _dotSeparatedPatternSegments.Last(), fuzzyMatch);
+            var candidateMatch = MatchPatternSegment(candidate, includeMatchSpans, _dotSeparatedPatternSegments.Last(), fuzzyMatch);
             if (candidateMatch.IsDefaultOrEmpty)
             {
                 return PatternMatches.Empty;
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 {
                     var segment = _dotSeparatedPatternSegments[i];
                     var containerName = containerParts[j];
-                    var containerMatch = MatchSegment(containerName, includeMatchSpans, segment, fuzzyMatch);
+                    var containerMatch = MatchPatternSegment(containerName, includeMatchSpans, segment, fuzzyMatch);
                     if (containerMatch.IsDefaultOrEmpty)
                     {
                         // This container didn't match the pattern piece.  So there's no match at all.
@@ -438,15 +438,15 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             return false;
         }
 
-        private ImmutableArray<PatternMatch> MatchSegment(
-            string candidate, bool includeMatchSpans, PatternSegment segment, bool fuzzyMatch)
+        private ImmutableArray<PatternMatch> MatchPatternSegment(
+            string candidate, bool includeMatchSpans, PatternSegment patternSegment, bool fuzzyMatch)
         {
             if (fuzzyMatch && !_allowFuzzyMatching)
             {
                 return ImmutableArray<PatternMatch>.Empty;
             }
 
-            var singleMatch = MatchPatternSegment(candidate, includeMatchSpans, segment, 
+            var singleMatch = MatchPatternSegment(candidate, includeMatchSpans, patternSegment, 
                 wantAllMatches: true, fuzzyMatch: fuzzyMatch, allMatches: out var matches);
             if (singleMatch.HasValue)
             {
@@ -541,11 +541,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             //
             // Only if all words have some sort of match is the pattern considered matched.
 
-            var subWordTextChunks = segment.SubWordTextChunks;
             var matches = ArrayBuilder<PatternMatch>.GetInstance();
 
             try
             {
+                var subWordTextChunks = segment.SubWordTextChunks;
                 foreach (var subWordTextChunk in subWordTextChunks)
                 {
                     // Try to match the candidate with this word

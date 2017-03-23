@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private struct PatternSegment : IDisposable
         {
             // Information about the entire piece of text between the dots.  For example, if the 
-            // text between the dots is 'GetKeyword', then TotalTextChunk.Text will be 'GetKeyword' and 
+            // text between the dots is 'Get-Keyword', then TotalTextChunk.Text will be 'Get-Keyword' and 
             // TotalTextChunk.CharacterSpans will correspond to 'G', 'et', 'K' and 'eyword'.
             public readonly TextChunk TotalTextChunk;
 
             // Information about the subwords compromising the total word.  For example, if the 
-            // text between the dots is 'GetKeyword', then the subwords will be 'Get' and 'Keyword'
+            // text between the dots is 'Get-Keyword', then the subwords will be 'Get' and 'Keyword'
             // Those individual words will have CharacterSpans of ('G' and 'et') and ('K' and 'eyword')
             // respectively.
             public readonly TextChunk[] SubWordTextChunks;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             public PatternSegment(string text, bool verbatimIdentifierPrefixIsWordCharacter, bool allowFuzzyMatching)
             {
                 this.TotalTextChunk = new TextChunk(text, allowFuzzyMatching);
-                this.SubWordTextChunks = BreakPatternIntoTextChunks(
+                this.SubWordTextChunks = BreakPatternIntoSubWords(
                     text, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching);
             }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return count;
             }
 
-            private static TextChunk[] BreakPatternIntoTextChunks(
+            private static TextChunk[] BreakPatternIntoSubWords(
                 string pattern, bool verbatimIdentifierPrefixIsWordCharacter, bool allowFuzzyMatching)
             {
                 int partCount = CountTextChunks(pattern, verbatimIdentifierPrefixIsWordCharacter);
