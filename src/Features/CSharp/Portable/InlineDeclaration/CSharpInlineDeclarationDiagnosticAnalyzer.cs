@@ -324,11 +324,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     return current;
                 }
 
-                // Any loop construct defines a scope for out-variables.
+                // Any loop construct defines a scope for out-variables, as well as each of the following:
+                // * Using statements
+                // * Fixed statements
+                // * Try statements (specifically for exception filters)
                 if (current.Kind() == SyntaxKind.WhileStatement ||
                     current.Kind() == SyntaxKind.DoStatement ||
                     current.Kind() == SyntaxKind.ForStatement ||
-                    current.Kind() == SyntaxKind.ForEachStatement)
+                    current.Kind() == SyntaxKind.ForEachStatement ||
+                    current.Kind() == SyntaxKind.UsingStatement ||
+                    current.Kind() == SyntaxKind.FixedStatement ||
+                    current.Kind() == SyntaxKind.TryStatement)
                 {
                     return current;
                 }
