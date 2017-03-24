@@ -130,8 +130,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     // Now, move the caret to the right location.
-                        TextView.Caret.MoveTo(
-                            new SnapshotPoint(this.SubjectBuffer.CurrentSnapshot, desiredCaretPosition));
+                    TextView.Caret.MoveTo(
+                        new SnapshotPoint(this.SubjectBuffer.CurrentSnapshot, desiredCaretPosition));
+                    TextView.Caret.EnsureVisible();
 
                     // Now, pass along the commit character unless the completion item said not to
                     if (characterWasSentIntoBuffer && !completionChange.IncludesCommitCharacter)
