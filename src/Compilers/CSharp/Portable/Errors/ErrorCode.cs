@@ -1464,9 +1464,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeForwardedToMultipleAssemblies = 8206,
         ERR_ExpressionTreeContainsDiscard = 8207,
         ERR_PatternDynamicType = 8208,
+        ERR_VoidAssignment = 8209,
         #endregion more stragglers for C# 7
 
         ERR_Merge_conflict_marker_encountered = 8300,
         ERR_InvalidPreprocessingSymbol = 8301,
+        ERR_FeatureNotAvailableInVersion7_1 = 8302,
+        ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
     }
 }

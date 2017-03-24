@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                     // a SpeculativeSemanticModel, containingSymbol.ContainingAssembly.Compilation
                     // may not have been rebuilt to reflect the trees used by the 
                     // SpeculativeSemanticModel to produce containingSymbol. In that case,
-                    // asking the ContainingAssembly's complation for a SemanticModel based
+                    // asking the ContainingAssembly's compilation for a SemanticModel based
                     // on trees for containingSymbol with throw an ArgumentException.
                     // Unfortunately, the best way to avoid this (currently) is to see if
                     // we're asking for a model for a tree that's part of the compilation.

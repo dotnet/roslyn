@@ -769,5 +769,60 @@ class C
     }
 }");
         }
+
+        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestMissingAcrossPreprocessorDirective()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+        var items = new [||]List<object>();
+#if true
+        items.Add(1);
+#endif
+    }
+}");
+        }
+
+        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestAvailableInsidePreprocessorDirective()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+#if true
+        var items = new [||]List<object>();
+        items.Add(1);
+#endif
+    }
+}",
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+#if true
+        var items = new List<object>
+        {
+            1
+        };
+#endif
+    }
+}", ignoreTrivia: false);
+        }
     }
 }

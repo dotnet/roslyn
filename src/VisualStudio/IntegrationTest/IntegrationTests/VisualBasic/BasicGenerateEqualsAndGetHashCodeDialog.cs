@@ -34,7 +34,7 @@ $$
 End Class");
 
             InvokeCodeActionList();
-            VerifyCodeAction("Generate 'Equals(object)'...", applyFix: true, blockUntilComplete: false);
+            VerifyCodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickCancel();
             VerifyTextContains(
@@ -63,7 +63,7 @@ $$
 End Class");
 
             InvokeCodeActionList();
-            VerifyCodeAction("Generate 'Equals(object)'...", applyFix: true, blockUntilComplete: false);
+            VerifyCodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickOk();
             WaitForAsyncOperations(FeatureAttribute.LightBulb);

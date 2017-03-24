@@ -60,7 +60,6 @@
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryLogger.cs">
       <Link>Telemetry\VSTelemetryLogger.cs</Link>
     </Compile>
-    <Compile Include="CodeLens\CodeLensArguments.cs" />
     <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
     <Compile Include="Services\CodeAnalysisService_DesignerAttributes.cs" />
     <Compile Include="Services\CodeAnalysisService_TodoComments.cs" />
