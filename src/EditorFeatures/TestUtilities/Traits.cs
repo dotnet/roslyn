@@ -22,6 +22,7 @@ namespace Roslyn.Test.Utilities
             public const string BlockCommentEditing = nameof(BlockCommentEditing);
             public const string BraceHighlighting = nameof(BraceHighlighting);
             public const string BraceMatching = nameof(BraceMatching);
+            public const string Build = nameof(Build);
             public const string CallHierarchy = nameof(CallHierarchy);
             public const string CaseCorrection = nameof(CaseCorrection);
             public const string ChangeSignature = nameof(ChangeSignature);

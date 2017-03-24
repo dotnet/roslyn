@@ -153,7 +153,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     End Function
 
     Friend Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, Optional which As Integer = 0) As String
-        Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, fileName, which)
+        Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, fileName, which, prefixMatch:=True)
         If node Is Nothing Then
             Return Nothing
         End If
