@@ -3,11 +3,24 @@
 using System;
 using System.Reflection;
 using Microsoft.Xunit.Performance.Api;
+using Microsoft.Xunit.Performance;
+using System.Threading;
 
 namespace Runner
 {
     public static class Program
     {
+        [Benchmark]
+        public static void BenchFoo() {
+            foreach (var iteration in Benchmark.Iterations)
+            {
+                using (iteration.StartMeasurement())
+                {
+                    Thread.Sleep(1);
+                }
+            }
+        }
+
         public static void Main(string[] args)
         {
             using (XunitPerformanceHarness p = new XunitPerformanceHarness(args))
