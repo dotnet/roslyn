@@ -71,11 +71,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to check the content hash of the destination ref assembly &apos;{0}&apos;. It will be overwritten..
+        /// </summary>
+        internal static string CopyRefAssembly_BadDestination1 {
+            get {
+                return ResourceManager.GetString("CopyRefAssembly_BadDestination1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to check the content hash of the source ref assembly &apos;{0}&apos;: {1}
+        ///{2}.
+        /// </summary>
+        internal static string CopyRefAssembly_BadSource3 {
+            get {
+                return ResourceManager.GetString("CopyRefAssembly_BadSource3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reference assembly &quot;{0}&quot; already has latest information. Leaving it untouched..
         /// </summary>
-        internal static string CopyRefAssembly_SkippingCopy {
+        internal static string CopyRefAssembly_SkippingCopy1 {
             get {
-                return ResourceManager.GetString("CopyRefAssembly_SkippingCopy", resourceCulture);
+                return ResourceManager.GetString("CopyRefAssembly_SkippingCopy1", resourceCulture);
             }
         }
         

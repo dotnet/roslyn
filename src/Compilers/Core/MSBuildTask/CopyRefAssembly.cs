@@ -35,24 +35,35 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return false;
             }
 
-            if (!File.Exists(DestinationPath))
+            if (File.Exists(DestinationPath))
             {
-                return Copy();
+                Guid source;
+                try
+                {
+                    source = ExtractMvid(SourcePath);
+                }
+                catch (Exception e)
+                {
+                    Log.LogMessageFromResources(MessageImportance.High, "CopyRefAssembly_BadSource3", SourcePath, e.Message, e.StackTrace);
+                }
+
+                try
+                {
+                    Guid destination = ExtractMvid(DestinationPath);
+
+                    if (source.Equals(destination))
+                    {
+                        Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_SkippingCopy1", DestinationPath);
+                        return true;
+                    }
+                }
+                catch (Exception)
+                {
+                    Log.LogMessage(MessageImportance.High, "CopyRefAssembly_BadDestination1", DestinationPath);
+                }
             }
 
-            var source = ExtractMvid(SourcePath);
-            var destination = ExtractMvid(DestinationPath);
-
-            if (!source.Equals(destination))
-            {
-                return Copy();
-            }
-            else
-            {
-                Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_SkippingCopy", DestinationPath);
-            }
-
-            return true;
+            return Copy();
         }
 
         private bool Copy()
