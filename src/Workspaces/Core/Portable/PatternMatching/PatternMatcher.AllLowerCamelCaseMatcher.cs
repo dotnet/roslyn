@@ -46,16 +46,14 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 var candidatePartIndex = 0;
 
                 var (bestWeight, localMatchedSpans) = TryMatch(
-                   patternIndex, candidatePartIndex,
-                   contiguous: true, firstMatch: true);
+                   patternIndex, candidatePartIndex, contiguous: true);
 
                 matchedSpans = localMatchedSpans;
                 return bestWeight;
             }
 
             private (int? bestWeight, List<TextSpan> matchedSpans) TryMatch(
-                int patternIndex, int candidatePartIndex,
-                bool contiguous, bool firstMatch)
+                int patternIndex, int candidatePartIndex, bool contiguous)
             {
                 if (patternIndex == _patternText.Length)
                 {
@@ -90,7 +88,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         // consume parts of the pattern once we reach the next hump.
 
                         var (weight, matchedSpans) = TryConsumePatternOrMatchNextPart(
-                            patternIndex, partIndex, firstMatch, contiguous);
+                            patternIndex, partIndex, contiguous);
                         if (weight == null)
                         {
                             // Even though we matched this current candidate part we failed to match
@@ -122,8 +120,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
 
             private (int? bestWeight, List<TextSpan> matchedSpans) TryConsumePatternOrMatchNextPart(
-                int patternIndex, int partIndex,
-                bool firstMatch, bool contiguous)
+                int patternIndex, int partIndex, bool contiguous)
             {
                 var bestWeight = default(int?);
                 var bestMatchedSpans = default(List<TextSpan>);
@@ -152,8 +149,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     // of the candidate.
 
                     var (weight, matchedSpans) = TryMatch(
-                        patternIndex + possibleHumpMatchLength, partIndex + 1,
-                        contiguous, firstMatch: false);
+                        patternIndex + possibleHumpMatchLength, partIndex + 1, contiguous);
 
                     if (weight == null)
                     {
@@ -164,7 +160,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                     Debug.Assert(weight <= CamelCaseContiguousBonus);
 
-                    if (firstMatch)
+                    if (partIndex == 0)
                     {
                         weight += CamelCaseMatchesFromStartBonus;
                     }
