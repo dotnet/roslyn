@@ -183,20 +183,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return new Signature(sessions[0].SelectedSignature);
             });
 
-        public string GetQuickInfo()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<IQuickInfoBroker>();
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one QuickInfo session, but found {sessions.Count}");
-                }
-
-                return QuickInfoToStringConverter.GetStringFromBulkContent(sessions[0].QuickInfoContent);
-            });
-
         public bool IsCaretOnScreen()
             => ExecuteOnActiveView(view =>
             {

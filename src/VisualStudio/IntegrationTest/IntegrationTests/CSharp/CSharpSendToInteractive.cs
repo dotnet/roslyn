@@ -61,60 +61,51 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Instance.Editor.PlaceCaret("/* 1 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 2 */", charsOffset: -1, extendSelection: true);
             ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            WaitWhileInteractiveIsRunning();
-            VerifyLastReplOutputContains("int x = 1;");
+            WaitForLastReplOutput("int x = 1;");
 
             ClearReplText();
-            SubmitText("x.ToString()", waitForPrompt: false);
-            VerifyLastReplOutputContains("\"1\"");
+            SubmitText("x.ToString()");
+            WaitForLastReplOutputContains("\"1\"");
         }
 
         [Fact]
         public void SendMultipleLineSubmissionToInteractive()
         {
-            // problem here
             InsertCode("// scenario 2");
             OpenFile(ProjectName, FileName);
             VisualStudio.Instance.Editor.PlaceCaret("/* 3 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 4 */", charsOffset: -1, extendSelection: true);
             ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            WaitWhileInteractiveIsRunning();
-            
-            VerifyLastReplOutputContains("int z = 3;");
+            WaitForLastReplOutput("int z = 3;");
+
             ClearReplText();
             SubmitText("y.ToString()");
-            VerifyLastReplOutputContains("\"2\"");
+            WaitForLastReplOutputContains("\"2\"");
             SubmitText("z.ToString()");
-            VerifyLastReplOutputContains("\"3\"");
+            WaitForLastReplOutputContains("\"3\"");
         }
 
         [Fact]
         public void SendMultipleLineBlockSelectedSubmissionToInteractive()
         {
+            SubmitText("int x = 1;");
             InsertCode("// scenario 3");
             OpenFile(ProjectName, FileName);
             VisualStudio.Instance.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
-            VisualStudio.Instance.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true);
+            VisualStudio.Instance.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true, selectBlock: true);
             ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            WaitWhileInteractiveIsRunning();
-            VerifyLastReplOutputContains(@"string a = ""alpha"";
-. x *= 4;");
+            WaitForLastReplOutput(". x *= 4;");
 
             ClearReplText();
             SubmitText("a + \"s\"");
-            VerifyLastReplOutputContains("\"alphas\"");
+            WaitForLastReplOutputContains("\"alphas\"");
             SubmitText("b");
-            VerifyLastReplOutputContains("CS0103");
+            WaitForLastReplOutputContains("CS0103");
             SubmitText("x");
-            VerifyLastReplOutputContains("4");
+            WaitForLastReplOutputContains("4");
         }
 
         [Fact]
-
-
-
-
-
         public void SendToInteractiveWithKeyboardShortcut()
         {
             InsertCode("// scenario 4");
@@ -122,11 +113,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Instance.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
             SendKeys(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
-            VerifyLastReplOutputContains("int j = 7;");
+            WaitForLastReplOutput("int j = 7;");
 
             ClearReplText();
             SubmitText("j.ToString()");
-            VerifyLastReplOutputContains("\"7\"");
+            WaitForLastReplOutputContains("\"7\"");
         }
 
         [Fact]
@@ -137,12 +128,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Instance.Editor.PlaceCaret("/* 1 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 2 */", charsOffset: -1, extendSelection: true);
             ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            WaitWhileInteractiveIsRunning();
+            WaitForLastReplInputContains("// scenario 5");
 
-            VerifyLastReplInput("// scenario 5");
             ClearReplText();
             SubmitText("x");
-            VerifyLastReplOutput("1");
+            WaitForLastReplOutput("1");
         }
 
         [Fact]
@@ -153,14 +143,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Instance.Editor.PlaceCaret("/* 3 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 4 */", charsOffset: -1, extendSelection: true);
             ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            WaitWhileInteractiveIsRunning();
-            VerifyLastReplInput("// scenario 6");
+            WaitForLastReplInputContains("// scenario 6");
 
             ClearReplText();
             SubmitText("y");
-            VerifyLastReplOutput("2");
+            WaitForLastReplOutput("2");
             SubmitText("z");
-            VerifyLastReplOutput("3");
+            WaitForLastReplOutput("3");
         }
 
         [Fact]
@@ -172,18 +161,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Instance.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
             VisualStudio.Instance.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true, selectBlock: true);
             ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
-            WaitWhileInteractiveIsRunning();
-            VerifyLastReplInput("// scenario 7");
+            WaitForLastReplInputContains("// scenario 7");
 
             ClearReplText();
 
-            SubmitText("a", waitForPrompt: false);
-            VerifyLastReplOutput("\"alpha\"");
+            SubmitText("a");
+            WaitForLastReplOutput("\"alpha\"");
 
-            SubmitText("b", waitForPrompt: false);
-            VerifyLastReplOutputContains("CS0103");
-            SubmitText("x", waitForPrompt: false);
-            VerifyLastReplOutput("4");
+            SubmitText("b");
+            WaitForLastReplOutputContains("CS0103");
+            SubmitText("x");
+            WaitForLastReplOutput("4");
         }
 
         [Fact]
@@ -194,12 +182,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Instance.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
             SendKeys(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
-            WaitWhileInteractiveIsRunning();
-            VerifyLastReplInput("// scenario 8");
+            WaitForLastReplInputContains("// scenario 8");
 
             ClearReplText();
-            SubmitText("j", waitForPrompt: false);
-            VerifyLastReplOutput("7");
+            SubmitText("j");
+            WaitForLastReplOutput("7");
         }
 
         [Fact]
@@ -208,11 +195,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             ClearReplText();
             SubmitText("#r \"System.Numerics\"");
             SubmitText("Console.WriteLine(new System.Numerics.BigInteger(42));");
-            VerifyLastReplOutput("42");
+            WaitForLastReplOutput("42");
 
             SubmitText("public class MyClass { public string MyFunc() { return \"MyClass.MyFunc()\"; } }");
             SubmitText("(new MyClass()).MyFunc()");
-            VerifyLastReplOutput("\"MyClass.MyFunc()\"");
+            WaitForLastReplOutput("\"MyClass.MyFunc()\"");
         }
 
         [Fact]
@@ -224,16 +211,24 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Instance.SolutionExplorer.SelectItem(ProjectName);
             ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);
 
-            Wait(seconds: 10); // TODO
+            // Waiting for a long operation: build + reset from project
+            int defaultTimeoutInMilliseconds = InteractiveWindow.GetTimeoutInMilliseconds();
+            InteractiveWindow.SetTimeout(120000);
+            WaitForReplOutput("using TestProj;");
+            InteractiveWindow.SetTimeout(defaultTimeoutInMilliseconds);
+
             SubmitText("x");
-            VerifyLastReplOutputContains("CS0103");
+            WaitForLastReplOutputContains("CS0103");
 
             SubmitText("(new TestProj.C()).M()");
-            VerifyLastReplOutput("\"C.M()\"");
+            WaitForLastReplOutput("\"C.M()\"");
 
             SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"foo\";");
             SubmitText("f.Text");
-            VerifyLastReplOutput("\"foo\"");
+            WaitForLastReplOutput("\"foo\"");
+
+            // TODO https://github.com/dotnet/roslyn/issues/18133
+            Wait(seconds: 5);
         }
     }
 }

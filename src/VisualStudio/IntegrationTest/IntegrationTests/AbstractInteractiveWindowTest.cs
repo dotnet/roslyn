@@ -39,17 +39,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.Instance.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
         }
 
-        protected void DisableSuggestionMode()
-            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-
-        protected void EnableSuggestionMode()
-            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
-
         protected void Reset(bool waitForPrompt = true)
             => InteractiveWindow.Reset(waitForPrompt: true);
 
-        protected void SubmitText(string text, bool waitForPrompt = true)
-            => InteractiveWindow.SubmitText(text, waitForPrompt);
+        protected void SubmitText(string text)
+            => InteractiveWindow.SubmitText(text);
 
         protected void SendKeys(params object[] input)
         {
@@ -59,14 +53,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void InsertCode(string text)
             => InteractiveWindow.InsertCode(text);
 
-        protected void PlaceCaret(string text, int charsOffset = 0)
-              => InteractiveWindow.PlaceCaret(
-                  text, 
-                  charsOffset: charsOffset, 
-                  occurrence: 0, 
-                  extendSelection: false, 
-                  selectBlock: false);
-
         protected void PlaceCaret(string text, int charsOffset = 0, int occurrence = 0, bool extendSelection = false, bool selectBlock = false)
               => InteractiveWindow.PlaceCaret(
                   text,
@@ -75,28 +61,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
                   extendSelection,
                   selectBlock);
 
-        protected void VerifyLastReplOutput(string expectedReplOutput)
-        {
-            var lastReplOutput = InteractiveWindow.GetLastReplOutput();
-            Assert.Equal(expectedReplOutput, lastReplOutput);
-        }
-
         protected void VerifyLastReplInput(string expectedReplInput)
         {
             var lastReplInput = InteractiveWindow.GetLastReplInput();
             Assert.Equal(expectedReplInput, lastReplInput);
-        }
-
-        protected void VerifyLastReplOutputContains(string expectedReplOutput)
-        {
-            var lastReplOutput = InteractiveWindow.GetLastReplOutput();
-            Assert.Contains(expectedReplOutput, lastReplOutput);
-        }
-
-        protected void VerifyLastReplOutputEndsWith(string expectedReplOutput)
-        {
-            var lastReplOutput = InteractiveWindow.GetLastReplOutput();
-            Assert.EndsWith(expectedReplOutput, lastReplOutput);
         }
 
         protected void VerifyReplPromptConsistency(string prompt, string output)
@@ -137,25 +105,19 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
-        protected void WaitWhileInteractiveIsRunning()
-        {
-            while (InteractiveWindow.IsRunning)
-            {
-                Task.Delay(50);
-            }
-        }
-
-        protected void SendKeysAndWait(params object[] input)
-        {
-            InteractiveWindow.ExecuteActionAndWaitReadyForInput(() => SendKeys(input));
-        }
-
-        private void ExecuteCommandWait(string commandName, string argument = "")
-        {
-            InteractiveWindow.ExecuteActionAndWaitReadyForInput(() => ExecuteCommand(commandName, argument));
-        }
-
         protected void WaitForReplOutput(string outputText)
             => InteractiveWindow.WaitForReplOutput(outputText);
+
+        protected void WaitForReplOutputContains(string outputText)
+            => InteractiveWindow.WaitForReplOutputContains(outputText);
+
+        protected void WaitForLastReplOutputContains(string outputText)
+            => InteractiveWindow.WaitForLastReplOutputContains(outputText);
+
+        protected void WaitForLastReplOutput(string outputText)
+            => InteractiveWindow.WaitForLastReplOutput(outputText);
+
+        protected void WaitForLastReplInputContains(string outputText)
+            => InteractiveWindow.WaitForLastReplInputContains(outputText);
     }
 }

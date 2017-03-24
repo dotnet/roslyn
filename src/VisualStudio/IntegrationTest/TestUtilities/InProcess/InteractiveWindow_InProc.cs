@@ -5,9 +5,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -17,20 +14,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// <remarks>
     /// This object exists in the Visual Studio host and is marhsalled across the process boundary.
     /// </remarks>
-    internal abstract class InteractiveWindow_InProc : TextViewWindow_InProc, IDisposable
+    internal abstract class InteractiveWindow_InProc : TextViewWindow_InProc
     {
         private const string NewLineFollowedByReplSubmissionText = "\n. ";
         private const string ReplSubmissionText = ". ";
         private const string ReplPromptText = "> ";
+        private const int DefaultTimeoutInMilliseconds = 10000;
 
         private readonly string _viewCommand;
         private readonly string _windowTitle;
+        private int _timeoutInMilliseconds;
         private IInteractiveWindow _interactiveWindow;
 
         protected InteractiveWindow_InProc(string viewCommand, string windowTitle)
         {
             _viewCommand = viewCommand;
             _windowTitle = windowTitle;
+            _timeoutInMilliseconds = DefaultTimeoutInMilliseconds;
         }
 
         public void Initialize()
@@ -40,17 +40,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             CloseWindow();
 
             _interactiveWindow = AcquireInteractiveWindow();
-            _interactiveWindow.ReadyForInput += InteractiveWindow_ReadyForInput;
-        }
-
-        public event Action ReadyForInput; 
-
-        public void Dispose()
-        {
-            _interactiveWindow.ReadyForInput -= InteractiveWindow_ReadyForInput;
         }
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
+
+        public void SetTimeout(int milliseconds)
+        {
+            _timeoutInMilliseconds = milliseconds;
+        }
+
+        public int GetTimeoutInMilliseconds()
+        {
+            return _timeoutInMilliseconds;
+        }
 
         public bool IsInitializing
             => _interactiveWindow.IsInitializing;
@@ -153,14 +155,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void SubmitText(string text, bool waitForPrompt = true)
+        public void SubmitText(string text)
         {
             _interactiveWindow.SubmitAsync(new[] { text }).Wait();
-
-            if (waitForPrompt)
-            {
-                WaitForReplPrompt();
-            }
         }
 
         public void CloseWindow()
@@ -177,14 +174,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public bool IsRunning
-        {
-            get
-            {
-                return _interactiveWindow.IsRunning;
-            }
-        }
-
         public void ShowWindow(bool waitForPrompt = true)
         {
             ExecuteCommand(_viewCommand);
@@ -196,18 +185,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForReplPrompt()
-            => WaitForReplPromptAsync().Wait();
-
-        private async Task WaitForReplPromptAsync()
-        {
-            while (!GetReplText().EndsWith(ReplPromptText))
-            {
-                await Task.Delay(50);
-            }
-        }
+            => WaitForPredicate(() => GetReplText().EndsWith(ReplPromptText));
 
         public void WaitForReplOutput(string outputText)
-            => WaitForReplOutputAsync(outputText).Wait();
+            => WaitForPredicate(() => GetReplText().EndsWith(outputText + Environment.NewLine + ReplPromptText));
 
         public void ClearScreen()
         {
@@ -219,33 +200,35 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             _interactiveWindow.InsertCode(text);
         }
 
-        private async Task WaitForReplOutputAsync(string outputText)
-        {
-            while (!GetReplText().EndsWith(outputText + Environment.NewLine + ReplPromptText))
-            {
-                await Task.Delay(50);
-            }
-        }
-
         public void WaitForReplOutputContains(string outputText)
-            => WaitForReplOutputContainsAsync(outputText).Wait();
+            => WaitForPredicate(() => GetReplText().Contains(outputText));
 
-        private async Task WaitForReplOutputContainsAsync(string outputText)
+        public void WaitForLastReplOutput(string outputText)
+            => WaitForPredicate(() => GetLastReplOutput().Contains(outputText));
+
+        public void WaitForLastReplOutputContains(string outputText)
+            => WaitForPredicate(() => GetLastReplOutput().Contains(outputText));
+
+        public void WaitForLastReplInputContains(string outputText)
+            => WaitForPredicate(() => GetLastReplInput().Contains(outputText));
+
+        private void WaitForPredicate(Func<bool> predicate)
         {
-            while (!GetReplText().Contains(outputText))
+            var beginTime = DateTime.UtcNow;
+            while (!predicate() && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
             {
-                await Task.Delay(50);
+                Task.Delay(50);
+            }
+
+            if (!predicate())
+            {
+                throw new Exception($"Predicate never assigned a value after {_timeoutInMilliseconds} milliseconds and no exceptions were thrown");
             }
         }
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
             return _interactiveWindow.TextView.TextBuffer;
-        }
-
-        protected void InteractiveWindow_ReadyForInput()
-        {
-            ReadyForInput();
         }
     }
 }

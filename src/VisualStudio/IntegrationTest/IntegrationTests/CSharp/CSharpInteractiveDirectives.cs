@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -75,7 +74,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 var bigInt = new BigInteger();
 bigInt");
 
-            VerifyLastReplOutput("[0]");
+            WaitForLastReplOutput("[0]");
         }
 
         [Fact]
@@ -87,7 +86,7 @@ class Complex { public int foo() { return 4; } }
 var comp = new Complex();
 comp.foo()");
 
-            VerifyLastReplOutput("4");
+            WaitForLastReplOutput("4");
         }
 
         [Fact]
@@ -103,7 +102,7 @@ comp.foo()");
                 SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
                 SubmitText(@"var comp = new Complex();
 comp.foo()");
-                VerifyLastReplOutput("4");
+                WaitForLastReplOutput("4");
             }
         }
 
@@ -112,7 +111,7 @@ comp.foo()");
         {
             SubmitText(@"using System.Diagnostics;
 Process.GetCurrentProcess().ProcessName");
-            VerifyLastReplOutput("\"InteractiveHost\"");
+            WaitForLastReplOutput("\"InteractiveHost\"");
         }
 
         [Fact]
@@ -124,9 +123,9 @@ Process.GetCurrentProcess().ProcessName");
             {
                 temporaryTextFile.Create();
                 SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
-                VerifyLastReplOutput("2");
+                WaitForLastReplOutput("2");
                 SubmitText("#load text");
-                VerifyLastReplOutputContains("CS7010: Quoted file name expected");
+                WaitForLastReplOutputContains("CS7010: Quoted file name expected");
             }
         }
 
@@ -134,12 +133,13 @@ Process.GetCurrentProcess().ProcessName");
         public void VerifySquiggleAndErrorMessageUnderIncorrectDirective()
         {
             SubmitText("#foo");
-            VerifyLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
+            WaitForLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(1);
-            
+            SubmitText("#reset");
+
             SubmitText("#bar");
-            VerifyLastReplOutput("(1,/2): error CS1024: Preprocessor directive expected");
+            WaitForLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(2);
         }
@@ -148,7 +148,7 @@ Process.GetCurrentProcess().ProcessName");
         public void VerifyHashHelpDirectiveOutputNoSquigglesUnderHashHelp()
         {
             SubmitText("#help");
-            VerifyLastReplOutput(@"Keyboard shortcuts:
+            WaitForLastReplOutput(@"Keyboard shortcuts:
   Enter                If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
   Ctrl-Enter           Within the current submission, evaluate the current submission.
                        Within a previous submission, append the previous submission to the current submission.
@@ -185,9 +185,9 @@ Script directives:
         public void VerifyHashReset()
         {
             SubmitText("1+1");
-            VerifyLastReplOutput("2");
+            WaitForLastReplOutput("2");
             SubmitText("#reset");
-            VerifyLastReplOutputContains(@"Resetting execution engine.
+            WaitForLastReplOutputContains(@"Resetting execution engine.
 Loading context from");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(0);
@@ -197,86 +197,87 @@ Loading context from");
         public void VerifyDisplayCommandUsageOutputNoSquigglesUnderSlashHelp()
         {
             SubmitText("#reset /help");
-            VerifyLastReplOutputContains(@"Usage:
+            WaitForLastReplOutputContains(@"Usage:
   #reset [noconfig]");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(0);
             SubmitText("#load /help");
-            VerifyLastReplOutputContains("CS7010: Quoted file name expected");
+            WaitForLastReplOutputContains("CS7010: Quoted file name expected");
         }
 
-        [Fact]
-        public void VerifyNoSquigglesErrorMessagesAndIntellisenseFeaturesContinueWorkingAfterReset()
-        {
-            SubmitText(@"using static System.Console;
-/// <summary>innertext
-/// </summary>
-/// --><!--comment--><!--
-/// <![CDATA[cdata]]]]>&gt;
-/// <typeparam name=""attribute"" />
-public static void Main(string[] args)
-{
-    WriteLine(""Hello World"");
-}");
-            SubmitText("#reset");
-            PlaceCaret("using");
-            VerifyCurrentTokenType(tokenType: "keyword");
-            PlaceCaret("{");
-            VerifyCurrentTokenType(tokenType: "punctuation");
-            PlaceCaret("Main");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Hello");
-            VerifyCurrentTokenType(tokenType: "string");
-            PlaceCaret("<summary", charsOffset: -1);
-            SendKeys(Alt(VirtualKey.Right));
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("summary");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - name");
-            PlaceCaret("innertext");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - text");
-            PlaceCaret("--");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("comment");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
-            PlaceCaret("CDATA");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("cdata");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
-            PlaceCaret("attribute");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Environment");
-            VerifyCurrentTokenType(tokenType: "class name");
-            // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
-            // VerifyErrorCount(0);
-        }
+//        [Fact]
+//        TODO(https://github.com/dotnet/roslyn/issues/8281)
+//        public void VerifyNoSquigglesErrorMessagesAndIntellisenseFeaturesContinueWorkingAfterReset()
+//        {
+//            SubmitText(@"using static System.Console;
+///// <summary>innertext
+///// </summary>
+///// --><!--comment--><!--
+///// <![CDATA[cdata]]]]>&gt;
+///// <typeparam name=""attribute"" />
+//public static void Main(string[] args)
+//{
+//    WriteLine(""Hello World"");
+//}");
+//            SubmitText("#reset");
+//            PlaceCaret("using");
+//         /  VerifyCurrentTokenType(tokenType: "keyword");
+//            PlaceCaret("{");
+//            VerifyCurrentTokenType(tokenType: "punctuation");
+//            PlaceCaret("Main");
+//            VerifyCurrentTokenType(tokenType: "identifier");
+//            PlaceCaret("Hello");
+//            VerifyCurrentTokenType(tokenType: "string");
+//            PlaceCaret("<summary", charsOffset: -1);
+//            SendKeys(Alt(VirtualKey.Right));
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
+//            PlaceCaret("summary");
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - name");
+//            PlaceCaret("innertext");
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - text");
+//            PlaceCaret("--");
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - text");
+//            PlaceCaret("comment");
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
+//            PlaceCaret("CDATA");
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
+//            PlaceCaret("cdata");
+//            VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
+//            PlaceCaret("attribute");
+//            VerifyCurrentTokenType(tokenType: "identifier");
+//            PlaceCaret("Environment");
+//            VerifyCurrentTokenType(tokenType: "class name");
+//            // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
+//            // VerifyErrorCount(0);
+//        }
 
         [Fact]
         public void WorkspaceClearedAfterReset()
         {
             SubmitText("double M() { return 13.1; }");
             SubmitText("M()");
-            VerifyLastReplOutput("13.1");
+            WaitForLastReplOutput("13.1");
             SubmitText("double M() { return M(); }");
             SubmitText("M()");
-            VerifyLastReplOutputContains("Process is terminated due to StackOverflowException.");
+            WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
             SubmitText("M()");
-            VerifyLastReplOutputContains("CS0103");
+            WaitForLastReplOutputContains("CS0103");
             SubmitText("double M() { return M(); }");
             SubmitText("M()");
-            VerifyLastReplOutputContains("Process is terminated due to StackOverflowException.");
+            WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
             SubmitText("double M() { return 13.2; }");
             SubmitText("M()");
-            VerifyLastReplOutput("13.2");
+            WaitForLastReplOutput("13.2");
         }
 
         [Fact]
         public void InitializationAfterReset()
         {
             SubmitText("#reset");
-            VerifyLastReplOutput(@"Resetting execution engine.
+            WaitForLastReplOutput(@"Resetting execution engine.
 Loading context from 'CSharpInteractive.rsp'.");
             SubmitText("#reset noconfig");
-            VerifyLastReplOutput("Resetting execution engine.");
+            WaitForLastReplOutput("Resetting execution engine.");
         }
     }
 }

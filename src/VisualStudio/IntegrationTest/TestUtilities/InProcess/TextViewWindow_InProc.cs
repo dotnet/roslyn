@@ -2,15 +2,13 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using EnvDTE;
+using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -99,10 +97,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public void PlaceCaret(
-            string marker, 
-            int charsOffset, 
-            int occurrence, 
-            bool extendSelection, 
+            string marker,
+            int charsOffset,
+            int occurrence,
+            bool extendSelection,
             bool selectBlock)
             => ExecuteOnActiveView(view =>
             {
@@ -193,6 +191,38 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var view = GetActiveTextView();
                 action(view);
             };
+
+        public string GetQuickInfo()
+            => ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModelService<IQuickInfoBroker>();
+
+                var sessions = broker.GetSessions(view);
+                if (sessions.Count != 1)
+                {
+                    throw new InvalidOperationException($"Expected exactly one QuickInfo session, but found {sessions.Count}");
+                }
+
+                return QuickInfoToStringConverter.GetStringFromBulkContent(sessions[0].QuickInfoContent);
+            });
+
+        public void VerifyTags(string tagTypeName, int expectedCount)
+            => ExecuteOnActiveView(view =>
+        {
+            Type type = WellKnowTagNames.GetTagTypeByName(tagTypeName);
+            Func<IMappingTagSpan<ITag>, bool> filterTag = (tag) => { return tag.Tag.GetType().Equals(type); };
+            var service = GetComponentModelService<IViewTagAggregatorFactoryService>();
+            var aggregator = service.CreateTagAggregator<ITag>(view);
+            var allTags = aggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));
+            var tags = allTags.Where(filterTag).Cast<IMappingTagSpan<ITag>>();
+            var actualCount = tags.Count();
+
+            if (expectedCount != actualCount)
+            {
+                var tagsTypesString = string.Join(",", allTags.Select(tag => tag.Tag.ToString()));
+                throw new Exception($"Failed to verify {tagTypeName} tags. Expected count: {expectedCount}, Actual count: {actualCount}. All tags: {tagsTypesString}");
+            }
+        });
 
         protected abstract IWpfTextView GetActiveTextView();
     }

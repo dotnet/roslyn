@@ -76,6 +76,7 @@
     <Compile Include="OutOfProcess\InteractiveWindow_OutOfProc.cs" />
     <Compile Include="WellKnownProjectTemplates.cs" />
     <Compile Include="OutOfProcess\VisualStudioWorkspace_OutOfProc.cs" />
+    <Compile Include="WellKnowTagNames.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />

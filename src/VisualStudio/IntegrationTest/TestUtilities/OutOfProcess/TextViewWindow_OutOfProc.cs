@@ -40,5 +40,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public string[] GetCurrentClassifications()
             => _textViewWindowInProc.GetCurrentClassifications();
+
+        public string GetQuickInfo()
+        {
+            WaitForQuickInfo();
+            return _textViewWindowInProc.GetQuickInfo();
+        }
+
+        public void VerifyTags(string tagTypeName, int expectedCount)
+            => _textViewWindowInProc.VerifyTags(tagTypeName, expectedCount);
     }
 }
