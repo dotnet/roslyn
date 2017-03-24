@@ -29,6 +29,9 @@ namespace Microsoft.CodeAnalysis.Host
             _disposer = disposer;
         }
 
+        internal abstract void Initialize();
+        internal abstract string DatabaseFileDirectory { get; }
+
         public string WorkingFolderPath { get; }
         public string SolutionFilePath { get; }
 
