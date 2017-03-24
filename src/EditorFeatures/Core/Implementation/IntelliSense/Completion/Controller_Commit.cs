@@ -122,9 +122,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // Determine where the caret should go after we insert the text.  If the 
                         // client supplied a position, they just accept that.  Otherwise, place
                         // the caret at the end of the text that we're comitting.
-                        desiredCaretPosition = completionChange.NewPosition != null
-                            ? completionChange.NewPosition.Value
-                            : mappedSpan.Start.Position + adjustedNewText.Length;
+                        desiredCaretPosition = 
+                            completionChange.NewPosition ?? mappedSpan.Start.Position + adjustedNewText.Length;
 
                         textEdit.Replace(mappedSpan.Span, adjustedNewText);
                         textEdit.Apply();
