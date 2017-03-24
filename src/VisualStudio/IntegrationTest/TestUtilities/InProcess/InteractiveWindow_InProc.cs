@@ -19,16 +19,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private const string NewLineFollowedByReplSubmissionText = "\n. ";
         private const string ReplSubmissionText = ". ";
         private const string ReplPromptText = "> ";
-        private const int TimeoutInMilliseconds = 10000;
+        private const int DefaultTimeoutInMilliseconds = 10000;
 
         private readonly string _viewCommand;
         private readonly string _windowTitle;
+        private int _timeoutInMilliseconds;
         private IInteractiveWindow _interactiveWindow;
 
         protected InteractiveWindow_InProc(string viewCommand, string windowTitle)
         {
             _viewCommand = viewCommand;
             _windowTitle = windowTitle;
+            _timeoutInMilliseconds = DefaultTimeoutInMilliseconds;
         }
 
         public void Initialize()
@@ -41,6 +43,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
+
+        public void SetTimeout(int milliseconds)
+        {
+            _timeoutInMilliseconds = milliseconds;
+        }
+
+        public int GetTimeoutInMilliseconds()
+        {
+            return _timeoutInMilliseconds;
+        }
 
         public bool IsInitializing
             => _interactiveWindow.IsInitializing;
@@ -203,14 +215,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private void WaitForPredicate(Func<bool> predicate)
         {
             var beginTime = DateTime.UtcNow;
-            while (!predicate() && DateTime.UtcNow < beginTime.AddMilliseconds(TimeoutInMilliseconds))
+            while (!predicate() && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
             {
                 Task.Delay(50);
             }
 
             if (!predicate())
             {
-                throw new Exception($"Predicate never assigned a value after {TimeoutInMilliseconds} milliseconds and no exceptions were thrown");
+                throw new Exception($"Predicate never assigned a value after {_timeoutInMilliseconds} milliseconds and no exceptions were thrown");
             }
         }
 

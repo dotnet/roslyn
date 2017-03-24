@@ -211,7 +211,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Instance.SolutionExplorer.SelectItem(ProjectName);
             ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);
 
+            // Waiting for a long operation: build + reset from project
+            int defaultTimeoutInMilliseconds = InteractiveWindow.GetTimeoutInMilliseconds();
+            InteractiveWindow.SetTimeout(120000);
             WaitForReplOutput("using TestProj;");
+            InteractiveWindow.SetTimeout(defaultTimeoutInMilliseconds);
+
             SubmitText("x");
             WaitForLastReplOutputContains("CS0103");
 
