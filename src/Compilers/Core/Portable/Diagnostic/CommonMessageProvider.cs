@@ -159,6 +159,10 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_CantReadRulesetFile { get; }
         public abstract int ERR_CompileCancelled { get; }
 
+        // parse options:
+        public abstract int ERR_BadSourceCodeKind { get; }
+        public abstract int ERR_BadDocumentationMode { get; }
+
         // compilation options:
         public abstract int ERR_BadCompilationOptionValue { get; }
         public abstract int ERR_MutuallyExclusiveOptions { get; }

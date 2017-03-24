@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
             public override int GetHashCode()
             {
-                return Hash.Combine((int)FunctionId, ItemKey == null ? 0 : ItemKey.GetHashCode());
+                return Hash.Combine((int)FunctionId, ItemKey?.GetHashCode() ?? 0);
             }
 
             public override bool Equals(object obj)

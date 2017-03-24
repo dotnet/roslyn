@@ -30,7 +30,7 @@ namespace TestHelper
         #region  Get Diagnostics
 
         /// <summary>
-        /// Given classes in the form of strings, their language, and an IDiagnosticAnlayzer to apply to it, return the diagnostics found in the string after converting it to a document.
+        /// Given classes in the form of strings, their language, and an IDiagnosticAnalyzer to apply to it, return the diagnostics found in the string after converting it to a document.
         /// </summary>
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source classes are in</param>
@@ -122,7 +122,7 @@ namespace TestHelper
 
             if (sources.Length != documents.Length)
             {
-                throw new SystemException("Amount of sources did not match amount of Documents created");
+                throw new InvalidOperationException("Amount of sources did not match amount of Documents created");
             }
 
             return documents;

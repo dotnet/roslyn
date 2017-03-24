@@ -200,10 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     else
                     {
                         var containingTypeSyntax = symbol.ContainingType.Accept(this);
-                        if (containingTypeSyntax is NameSyntax)
+                        if (containingTypeSyntax is NameSyntax name)
                         {
                             return AddInformationTo(
-                                SyntaxFactory.QualifiedName((NameSyntax)containingTypeSyntax, simpleNameSyntax),
+                                SyntaxFactory.QualifiedName(name, simpleNameSyntax),
                                 symbol);
                         }
                         else

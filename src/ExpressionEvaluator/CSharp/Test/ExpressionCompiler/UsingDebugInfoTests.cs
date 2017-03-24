@@ -420,7 +420,7 @@ public class C
             var module = ModuleInstance.Create(peImage, symReader);
             var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
-            var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)); // Used to throw.
+            var compContext = evalContext.CreateCompilationContext(); // Used to throw.
             var imports = compContext.NamespaceBinder.ImportChain.Single();
             Assert.Equal("System", imports.Usings.Single().NamespaceOrType.ToTestDisplayString());
             Assert.Equal("SI", imports.UsingAliases.Keys.Single());
@@ -452,7 +452,7 @@ public class C
             var module = ModuleInstance.Create(peImage, symReader);
             var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
-            var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)); // Used to throw.
+            var compContext = evalContext.CreateCompilationContext(); // Used to throw.
             var imports = compContext.NamespaceBinder.ImportChain.Single();
             Assert.Equal("System", imports.Usings.Single().NamespaceOrType.ToTestDisplayString());
             Assert.Equal("SI", imports.UsingAliases.Keys.Single());
@@ -490,7 +490,7 @@ public class C
             var module = ModuleInstance.Create(peImage, symReader);
             var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "C.Main");
-            var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+            var compContext = evalContext.CreateCompilationContext();
             var imports = compContext.NamespaceBinder.ImportChain.Single();
             Assert.Equal("System.IO", imports.Usings.Single().NamespaceOrType.ToTestDisplayString()); // Note: some information is preserved.
             Assert.Equal(0, imports.UsingAliases.Count);
@@ -531,7 +531,7 @@ namespace N
             var module = ModuleInstance.Create(peImage, symReader);
             var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "N.C.Main");
-            var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+            var compContext = evalContext.CreateCompilationContext();
             var imports = compContext.NamespaceBinder.ImportChain.Single();
             Assert.Equal("System", imports.Usings.Single().NamespaceOrType.ToTestDisplayString()); // Note: some information is preserved.
             Assert.Equal(0, imports.UsingAliases.Count);
@@ -572,7 +572,7 @@ namespace N
             var module = ModuleInstance.Create(peImage, symReader);
             var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var evalContext = CreateMethodContext(runtime, "N.C.Main");
-            var compContext = evalContext.CreateCompilationContext(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+            var compContext = evalContext.CreateCompilationContext();
             var imports = compContext.NamespaceBinder.ImportChain.Single();
             Assert.Equal(0, imports.Usings.Length); // Note: the import is dropped
             Assert.Equal(0, imports.UsingAliases.Count);
@@ -602,7 +602,7 @@ class C
 
             WithRuntimeInstance(comp, runtime =>
             {
-                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+                var importsList = GetImports(runtime, "C.M");
 
                 var imports = importsList.Single();
 
@@ -637,7 +637,7 @@ class C
 
             WithRuntimeInstance(comp, runtime =>
             {
-                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+                var importsList = GetImports(runtime, "C.M");
 
                 var imports = importsList.Single();
 
@@ -682,7 +682,7 @@ namespace A
 
             WithRuntimeInstance(comp, runtime =>
             {
-                var importsList = GetImports(runtime, "A.C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single()).AsEnumerable().ToArray();
+                var importsList = GetImports(runtime, "A.C.M").AsEnumerable().ToArray();
                 Assert.Equal(2, importsList.Length);
 
                 var expectedNames = new[] { "System.IO", "System" }; // Innermost-to-outermost
@@ -720,7 +720,7 @@ class C
 
             WithRuntimeInstance(comp, runtime =>
             {
-                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+                var importsList = GetImports(runtime, "C.M");
 
                 var imports = importsList.Single();
 
@@ -762,7 +762,7 @@ class C
 
             WithRuntimeInstance(comp, runtime =>
             {
-                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+                var importsList = GetImports(runtime, "C.M");
 
                 var imports = importsList.Single();
 
@@ -794,7 +794,7 @@ class C
 
             WithRuntimeInstance(comp, runtime =>
             {
-                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+                var importsList = GetImports(runtime, "C.M");
 
                 var imports = importsList.Single();
 
@@ -850,7 +850,7 @@ class C
 
             WithRuntimeInstance(comp, runtime =>
             {
-                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+                var importsList = GetImports(runtime, "C.M");
 
                 var imports = importsList.Single();
 
@@ -901,7 +901,7 @@ class C
 
             WithRuntimeInstance(comp, runtime =>
             {
-                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+                var importsList = GetImports(runtime, "C.M");
 
                 var imports = importsList.Single();
 
@@ -942,7 +942,7 @@ class C
 
             WithRuntimeInstance(comp, runtime =>
             {
-                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+                var importsList = GetImports(runtime, "C.M");
 
                 var imports = importsList.Single();
 
@@ -986,7 +986,7 @@ class C
 
             WithRuntimeInstance(comp, runtime =>
             {
-                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+                var importsList = GetImports(runtime, "C.M");
 
                 var imports = importsList.Single();
 
@@ -1034,7 +1034,7 @@ class C
 
             WithRuntimeInstance(comp, runtime =>
             {
-                var importsList = GetImports(runtime, "C.M", comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Syntax.LiteralExpressionSyntax>().Single());
+                var importsList = GetImports(runtime, "C.M");
 
                 var imports = importsList.Single();
 
@@ -1055,10 +1055,10 @@ class C
             });
         }
 
-        private static ImportChain GetImports(RuntimeInstance runtime, string methodName, Syntax.ExpressionSyntax syntax)
+        private static ImportChain GetImports(RuntimeInstance runtime, string methodName)
         {
             var evalContext = CreateMethodContext(runtime, methodName);
-            var compContext = evalContext.CreateCompilationContext(syntax);
+            var compContext = evalContext.CreateCompilationContext();
             return compContext.NamespaceBinder.ImportChain;
         }
 

@@ -27,6 +27,22 @@ End class",
 End class")
         End Function
 
+        <WorkItem(17368, "https://github.com/dotnet/roslyn/issues/17368")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestMissingParameterList() As Task
+            Await TestInRegularAndScript1Async(
+"class C
+    function [||]GetFoo as integer
+    End function
+End class",
+"class C
+    ReadOnly Property Foo as integer
+        Get
+        End Get
+    End Property
+End class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithoutGetName() As Task
             Await TestInRegularAndScriptAsync(

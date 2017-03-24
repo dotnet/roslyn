@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
@@ -14,11 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Shared ReadOnly Instance As SyntaxGenerator = New VisualBasicSyntaxGenerator()
 
-        Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia
-            Get
-                Return SyntaxFactory.CarriageReturnLineFeed
-            End Get
-        End Property
+        Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
+
+        Friend Overrides ReadOnly Property RequiresExplicitImplementationForInterfaceMembers As Boolean = True
 
         Friend Overrides Function EndOfLine(text As String) As SyntaxTrivia
             Return SyntaxFactory.EndOfLine(text)
@@ -607,6 +606,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 SyntaxFactory.WhileStatement(DirectCast(condition, ExpressionSyntax)),
                 GetStatementList(statements))
         End Function
+
+        Friend Overrides Function RefExpression(expression As SyntaxNode) As SyntaxNode
+            Return expression
+        End Function
+
 #End Region
 
 #Region "Declarations"
@@ -1484,6 +1488,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return attr.WithTarget(Nothing)
         End Function
 
+        Friend Overrides Function GetTypeInheritance(declaration As SyntaxNode) As ImmutableArray(Of SyntaxNode)
+            Dim typeDecl = TryCast(declaration, TypeBlockSyntax)
+            If typeDecl Is Nothing Then
+                Return ImmutableArray(Of SyntaxNode).Empty
+            End If
+
+            Dim builder = ArrayBuilder(Of SyntaxNode).GetInstance()
+            builder.AddRange(typeDecl.Inherits)
+            builder.AddRange(typeDecl.Implements)
+            Return builder.ToImmutableAndFree()
+        End Function
+
         Public Overrides Function GetAttributes(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
             Return Me.Flatten(GetAttributeLists(declaration))
         End Function
@@ -1872,18 +1888,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return IsChildOf(node, SyntaxKind.FieldDeclaration) OrElse IsChildOf(node, SyntaxKind.LocalDeclarationStatement)
         End Function
 
-        Private Function Isolate(declaration As SyntaxNode, editor As Func(Of SyntaxNode, SyntaxNode), Optional shouldPreserveTrivia As Boolean = True) As SyntaxNode
+        Private Function Isolate(declaration As SyntaxNode, editor As Func(Of SyntaxNode, SyntaxNode)) As SyntaxNode
             Dim isolated = AsIsolatedDeclaration(declaration)
 
-            Dim result As SyntaxNode = Nothing
-
-            If shouldPreserveTrivia Then
-                result = PreserveTrivia(isolated, editor)
-            Else
-                result = editor(isolated)
-            End If
-
-            Return result
+            Return PreserveTrivia(isolated, editor)
         End Function
 
         Private Function GetFullDeclaration(declaration As SyntaxNode) As SyntaxNode
@@ -3956,7 +3964,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.NamedFieldInitializer(
                 DirectCast(identifier, IdentifierNameSyntax),
                 DirectCast(expression, ExpressionSyntax))
-
         End Function
 
         Friend Overrides Function IsRegularOrDocComment(trivia As SyntaxTrivia) As Boolean

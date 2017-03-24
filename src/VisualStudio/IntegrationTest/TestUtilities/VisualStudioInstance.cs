@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
@@ -17,8 +19,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public class VisualStudioInstance
     {
-        private readonly Process _hostProcess;
-        private readonly DTE _dte;
         private readonly IntegrationService _integrationService;
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
@@ -41,14 +41,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public VisualStudioWorkspace_OutOfProc VisualStudioWorkspace { get; }
 
-        public VisualStudioInstance(Process hostProcess, DTE dte)
+        internal DTE Dte { get; }
+
+        internal Process HostProcess { get; }
+
+        /// <summary>
+        /// The set of Visual Studio packages that are installed into this instance.
+        /// </summary>
+        public ImmutableHashSet<string> SupportedPackageIds { get; }
+
+        /// <summary>
+        /// The path to the root of this installed version of Visual Studio. This is the folder that contains
+        /// Common7\IDE.
+        /// </summary>
+        public string InstallationPath { get; }
+
+        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath)
         {
-            _hostProcess = hostProcess;
-            _dte = dte;
+            HostProcess = hostProcess;
+            Dte = dte;
+            SupportedPackageIds = supportedPackageIds;
+            InstallationPath = installationPath;
 
             StartRemoteIntegrationService(dte);
 
-            _integrationServiceChannel = new IpcClientChannel($"IPC channel client for {_hostProcess.Id}", sinkProvider: null);
+            _integrationServiceChannel = new IpcClientChannel($"IPC channel client for {HostProcess.Id}", sinkProvider: null);
             ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: true);
 
             // Connect to a 'well defined, shouldn't conflict' IPC channel
@@ -104,7 +121,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public void ExecuteCommand(string commandName, string argument = "")
             => _inProc.ExecuteCommand(commandName, argument);
 
-        public bool IsRunning => !_hostProcess.HasExited;
+        public bool IsRunning => !HostProcess.HasExited;
 
         public async Task ClickAutomationElementAsync(string elementName, bool recursive = false)
         {
@@ -148,10 +165,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             VisualStudioWorkspace.CleanUpWaitingService();
             VisualStudioWorkspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
-            CSharpInteractiveWindow.CleanUpInteractiveWindow();
+            CSharpInteractiveWindow.CloseInteractiveWindow();
         }
 
-        public void Close()
+        public void Close(bool exitHostProcess = true)
         {
             if (!IsRunning)
             {
@@ -161,13 +178,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             CleanUp();
 
             CloseRemotingService();
-            CloseHostProcess();
+
+            if (exitHostProcess)
+            {
+                CloseHostProcess();
+            }
         }
 
         private void CloseHostProcess()
         {
             _inProc.Quit();
-            IntegrationHelper.KillProcess(_hostProcess);
+            IntegrationHelper.KillProcess(HostProcess);
         }
 
         private void CloseRemotingService()
@@ -185,7 +206,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        private void StartRemoteIntegrationService(EnvDTE.DTE dte)
+        private void StartRemoteIntegrationService(DTE dte)
         {
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
 

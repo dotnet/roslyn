@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string GenerateConstructorFromMembers = "Generate Constructor From Members Code Action Provider";
         public const string GenerateDefaultConstructors = "Generate Default Constructors Code Action Provider";
         public const string GenerateEqualsAndGetHashCodeFromMembers = "Generate Equals and GetHashCode Code Action Provider";
+        public const string GenerateOverrides = "Generate Overrides Code Action Provider";
         public const string InlineTemporary = "Inline Temporary Code Action Provider";
         public const string IntroduceVariable = "Introduce Variable Code Action Provider";
         public const string InvertIf = "Invert If Code Action Provider";

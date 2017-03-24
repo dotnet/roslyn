@@ -162,6 +162,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add null checks.
+        /// </summary>
+        internal static string Add_null_checks {
+            get {
+                return ResourceManager.GetString("Add_null_checks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add optional parameters to &apos;{0}&apos;.
         /// </summary>
         internal static string Add_optional_parameters_to_0 {
@@ -1189,15 +1198,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate Both.
-        /// </summary>
-        internal static string Generate_Both {
-            get {
-                return ResourceManager.GetString("Generate_Both", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Generate constant &apos;{1}.{0}&apos;.
         /// </summary>
         internal static string Generate_constant_1_0 {
@@ -1252,7 +1252,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate &apos;Equals(object)&apos;.
+        ///   Looks up a localized string similar to Generate Equals and GetHashCode.
+        /// </summary>
+        internal static string Generate_Equals_and_GetHashCode {
+            get {
+                return ResourceManager.GetString("Generate_Equals_and_GetHashCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate Equals(object).
         /// </summary>
         internal static string Generate_Equals_object {
             get {
@@ -1279,7 +1288,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate &apos;GetHashCode()&apos;.
+        ///   Looks up a localized string similar to Generate GetHashCode().
         /// </summary>
         internal static string Generate_GetHashCode {
             get {
@@ -1320,6 +1329,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Generate_new_type {
             get {
                 return ResourceManager.GetString("Generate_new_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate operators.
+        /// </summary>
+        internal static string Generate_operators {
+            get {
+                return ResourceManager.GetString("Generate_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate overrides....
+        /// </summary>
+        internal static string Generate_overrides {
+            get {
+                return ResourceManager.GetString("Generate_overrides", resourceCulture);
             }
         }
         
@@ -1419,6 +1446,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Hosting_process_exited_with_exit_code_0 {
             get {
                 return ResourceManager.GetString("Hosting_process_exited_with_exit_code_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement {0}.
+        /// </summary>
+        internal static string Implement_0 {
+            get {
+                return ResourceManager.GetString("Implement_0", resourceCulture);
             }
         }
         
@@ -2181,6 +2217,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Pick_members_to_be_used_in_Equals_GetHashCode {
             get {
                 return ResourceManager.GetString("Pick_members_to_be_used_in_Equals_GetHashCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pick members to override.
+        /// </summary>
+        internal static string Pick_members_to_override {
+            get {
+                return ResourceManager.GetString("Pick_members_to_override", resourceCulture);
             }
         }
         
