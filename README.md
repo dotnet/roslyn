@@ -25,7 +25,7 @@
 
 Roslyn provides open-source C# and Visual Basic compilers with rich code analysis APIs.  It enables building code analysis tools with the same APIs that are used by Visual Studio.
 
-### Language Design Discussion Moved
+### Language Design Discussion
 
 We are now taking language feature discussion in other repositories:
 - https://github.com/dotnet/csharplang for C# specific issues
