@@ -6,7 +6,7 @@ This document reflects the status, and planned work, for the compiler team.  It 
 
 | Feature | Branch | State | Developers | LDM Champ |
 | ------- | ------ | ----- | ------ | --------- |
-| [Async Main](https://github.com/dotnet/csharplang/blob/master/proposals/async-main.md) | none  | Proposal | [tyoverby](https://github.com/tyoverby) | [stephentoub](https://github.com/stephentoub) |
+| [Async Main](https://github.com/dotnet/csharplang/blob/master/proposals/async-main.md) | none  | In Development | [tyoverby](https://github.com/tyoverby) | [stephentoub](https://github.com/stephentoub) |
 | [Default Expressions](https://github.com/dotnet/csharplang/blob/master/proposals/target-typed-default.md) | [default](https://github.com/dotnet/roslyn/tree/features/default)  | Prototype | [jcouv](https://github.com/jcouv) | [jcouv](https://github.com/jcouv) |
 
 ## C# 7.2
