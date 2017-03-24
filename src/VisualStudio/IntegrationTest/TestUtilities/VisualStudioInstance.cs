@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
@@ -43,10 +45,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         internal Process HostProcess { get; }
 
-        public VisualStudioInstance(Process hostProcess, DTE dte)
+        /// <summary>
+        /// The set of Visual Studio packages that are installed into this instance.
+        /// </summary>
+        public ImmutableHashSet<string> SupportedPackageIds { get; }
+
+        /// <summary>
+        /// The path to the root of this installed version of Visual Studio. This is the folder that contains
+        /// Common7\IDE.
+        /// </summary>
+        public string InstallationPath { get; }
+
+        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath)
         {
             HostProcess = hostProcess;
             Dte = dte;
+            SupportedPackageIds = supportedPackageIds;
+            InstallationPath = installationPath;
 
             StartRemoteIntegrationService(dte);
 

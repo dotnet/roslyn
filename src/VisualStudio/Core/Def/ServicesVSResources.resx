@@ -897,4 +897,7 @@ Additional information: {1}</value>
   <data name="Remove_naming_rule" xml:space="preserve">
     <value>Remove naming rule</value>
   </data>
+  <data name="VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread" xml:space="preserve">
+    <value>VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread.</value>
+  </data>
 </root>

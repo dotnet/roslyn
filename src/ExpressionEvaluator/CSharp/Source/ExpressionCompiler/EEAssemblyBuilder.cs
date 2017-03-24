@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 id: LocalDebugId.None,
                 pdbAttributes: LocalVariableAttributes.None,
                 constraints: constraints,
-                dynamicTransformFlags: ImmutableArray<TypedConstant>.Empty,
-                tupleElementNames: ImmutableArray<TypedConstant>.Empty);
+                dynamicTransformFlags: ImmutableArray<bool>.Empty,
+                tupleElementNames: ImmutableArray<string>.Empty);
         }
 
         private sealed class SlotAllocator : VariableSlotAllocator
@@ -149,8 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 LocalDebugId id,
                 LocalVariableAttributes pdbAttributes,
                 LocalSlotConstraints constraints,
-                ImmutableArray<TypedConstant> dynamicTransformFlags,
-                ImmutableArray<TypedConstant> tupleElementNames)
+                ImmutableArray<bool> dynamicTransformFlags,
+                ImmutableArray<string> tupleElementNames)
             {
                 var local = symbol as EELocalSymbol;
                 if ((object)local == null)
