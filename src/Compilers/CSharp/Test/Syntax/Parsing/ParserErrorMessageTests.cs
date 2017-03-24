@@ -3954,6 +3954,48 @@ public class Test
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "30").WithLocation(7, 34));
         }
 
+        [Fact]
+        public void CS1674ERR_StackAllocInUsing1()
+        {
+            // Diff errors
+            var test = @"
+public class Test
+{
+    unsafe public static void Main()
+    {
+        using (var v = stackalloc int[1])
+        {
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlib(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                //         using (var v = stackalloc int[1])
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("int*").WithLocation(6, 16));
+        }
+
+        [Fact]
+        public void CS0029ERR_StackAllocInUsing2()
+        {
+            // Diff errors
+            var test = @"
+public class Test
+{
+    unsafe public static void Main()
+    {
+        using (System.IDisposable v = stackalloc int[1])
+        {
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlib(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (6,39): error CS0029: Cannot implicitly convert type 'int*' to 'System.IDisposable'
+                //         using (System.IDisposable v = stackalloc int[1])
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "stackalloc int[1]").WithArguments("int*", "System.IDisposable").WithLocation(6, 39));
+        }
+
         [WorkItem(906993, "DevDiv/Personal")]
         [Fact]
         public void CS1576ERR_InvalidLineNumberpp()
