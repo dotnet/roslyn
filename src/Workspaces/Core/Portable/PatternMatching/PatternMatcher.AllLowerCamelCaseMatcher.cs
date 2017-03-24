@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 {
     internal sealed partial class PatternMatcher : IDisposable
     {
+        /// <summary>
+        /// Encapsulated matches responsible for mathcing an all lowercase pattern against
+        /// a candidate using CamelCase matching. i.e. this code is responsible for finding the
+        /// match between "cofipro" and "CodeFixProvider". 
+        /// </summary>
         private struct AllLowerCamelCaseMatcher
         {
             private readonly string _candidate;
@@ -69,7 +74,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 var patternCharacter = _patternText[patternIndex];
                 for (var partIndex = candidatePartIndex; partIndex < _candidateParts.Count; partIndex++)
                 {
-                    // If we've been contiguous, but we jump past a part, then we're no longer contiguous.
+                    // If we've been contiguous, but we jumped past a part, then we're no longer contiguous.
                     if (contiguous.HasValue && contiguous.Value)
                     {
                         contiguous = partIndex == candidatePartIndex;
