@@ -3,6 +3,8 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -12,7 +14,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// <remarks>
     /// This object exists in the Visual Studio host and is marhsalled across the process boundary.
     /// </remarks>
-    internal abstract class InteractiveWindow_InProc : InProcComponent
+    internal abstract class InteractiveWindow_InProc : TextViewWindow_InProc
     {
         private const string ResetCommand = "InteractiveConsole.Reset";
         private const string CleanScreenCommand = "InteractiveConsole.ClearScreen";
@@ -46,8 +48,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetReplText()
             => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
 
-        public int GetCaretPosition()
-             => _interactiveWindow.TextView.Caret.Position.BufferPosition.Position;
+        protected override IWpfTextView GetActiveTextView()
+            => _interactiveWindow.TextView;
 
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.
@@ -212,6 +214,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 await Task.Delay(50);
             }
+        }
+
+        protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
+        {
+            return _interactiveWindow.TextView.TextBuffer;
         }
     }
 }
