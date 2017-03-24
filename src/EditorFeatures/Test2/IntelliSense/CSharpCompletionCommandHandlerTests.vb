@@ -3033,14 +3033,7 @@ class C
                 ' First send a space to trigger out special completion provider.
                 state.SendTypeChars(" ")
 
-                ' Now listen for text change events so we see what happens when we try to commit
-                ' the item.
-                Dim lastChangeArgs As TextContentChangedEventArgs = Nothing
-                AddHandler textBuffer.Changed,
-                    Sub(o, e)
-                        lastChangeArgs = e
-                    End Sub
-
+                Dim snapshotBeforeCommit = textBuffer.CurrentSnapshot
                 Await state.WaitForAsynchronousOperationsAsync()
 
                 ' Commit the item
@@ -3061,9 +3054,10 @@ class C
 }", finalText)
 
                 ' This should have happened as two text changes to the buffer.
-                Assert.Equal(2, lastChangeArgs.Changes.Count)
+                Dim changes = snapshotBeforeCommit.Version.Changes
+                Assert.Equal(2, changes.Count)
 
-                Dim actualChanges = lastChangeArgs.Changes.ToArray()
+                Dim actualChanges = changes.ToArray()
                 Dim firstChange = actualChanges(0)
                 Assert.Equal(New Span(0, 0), firstChange.OldSpan)
                 Assert.Equal("using NewUsing;", firstChange.NewText)
