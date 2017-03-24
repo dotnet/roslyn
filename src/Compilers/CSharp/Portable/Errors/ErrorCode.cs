@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarargsAsync = 4006,
         ERR_ByRefTypeAndAwait = 4007,
         ERR_BadAwaitArgVoidCall = 4008,
-        ERR_MainCantBeAsync = 4009,
+        // ERR_MainCantBeAsync = 4009,
         ERR_CantConvAsyncAnonFuncReturns = 4010,
         ERR_BadAwaiterPattern = 4011,
         ERR_BadSpecialByRefLocal = 4012,
@@ -1471,5 +1471,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidPreprocessingSymbol = 8301,
         ERR_FeatureNotAvailableInVersion7_1 = 8302,
         ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
+        ERR_CompilerAndLanguageVersion = 8304,
     }
 }

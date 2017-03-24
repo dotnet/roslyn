@@ -199,13 +199,13 @@
     <value>Generate field assigning constructor '{0}({1})'</value>
   </data>
   <data name="Generate_Equals_and_GetHashCode" xml:space="preserve">
-    <value>Generate 'Equals(object) and GetHashCode()'</value>
+    <value>Generate Equals and GetHashCode</value>
   </data>
   <data name="Generate_Equals_object" xml:space="preserve">
-    <value>Generate 'Equals(object)'</value>
+    <value>Generate Equals(object)</value>
   </data>
   <data name="Generate_GetHashCode" xml:space="preserve">
-    <value>Generate 'GetHashCode()'</value>
+    <value>Generate GetHashCode()</value>
   </data>
   <data name="Generate_constructor_in_0" xml:space="preserve">
     <value>Generate constructor in '{0}'</value>
@@ -1216,5 +1216,8 @@ This version used in: {2}</value>
   </data>
   <data name="Generate_operators" xml:space="preserve">
     <value>Generate operators</value>
+  </data>
+  <data name="Implement_0" xml:space="preserve">
+    <value>Implement {0}</value>
   </data>
 </root>

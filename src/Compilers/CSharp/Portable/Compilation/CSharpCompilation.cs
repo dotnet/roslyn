@@ -1369,7 +1369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal new MethodSymbol GetEntryPoint(CancellationToken cancellationToken)
         {
             EntryPoint entryPoint = GetEntryPointAndDiagnostics(cancellationToken);
-            return entryPoint == null ? null : entryPoint.MethodSymbol;
+            return entryPoint?.MethodSymbol;
         }
 
         internal EntryPoint GetEntryPointAndDiagnostics(CancellationToken cancellationToken)
@@ -1456,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var viableEntryPoints = ArrayBuilder<MethodSymbol>.GetInstance();
                 foreach (var candidate in entryPointCandidates)
                 {
-                    if (!candidate.HasEntryPointSignature())
+                    if (!candidate.HasEntryPointSignature(this))
                     {
                         // a single error for partial methods:
                         warnings.Add(ErrorCode.WRN_InvalidMainSig, candidate.Locations.First(), candidate);
@@ -1468,11 +1468,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // a single error for partial methods:
                         warnings.Add(ErrorCode.WRN_MainCantBeGeneric, candidate.Locations.First(), candidate);
                         continue;
-                    }
-
-                    if (candidate.IsAsync)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_MainCantBeAsync, candidate.Locations.First(), candidate);
                     }
 
                     viableEntryPoints.Add(candidate);

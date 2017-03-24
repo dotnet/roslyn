@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,6 +14,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHashCodeFromMembers
 {
+    using static GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider;
+
     public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -1001,7 +1003,7 @@ class Program
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => options[0].Value = true,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 ignoreTrivia: false);
         }
 
@@ -1038,7 +1040,7 @@ class Program
         => !(program1 == program2);
 }",
 chosenSymbols: null,
-optionsCallback: options => options[0].Value = true,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 parameters: new TestParameters(
     options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.TrueWithNoneEnforcement)));
         }
@@ -1074,7 +1076,7 @@ class Program
     public static bool operator ==(Program program1, Program program2) => true;
 }",
 chosenSymbols: null,
-optionsCallback: options => Assert.Empty(options),
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)),
 ignoreTrivia: false);
         }
 
@@ -1119,7 +1121,109 @@ struct Program
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => options[0].Value = true,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnStruct()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+struct Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+struct Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Program && Equals((Program)obj);
+    }
+
+    public bool Equals(Program other)
+    {
+        return s == other.s;
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClass()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Program);
+    }
+
+    public bool Equals(Program other)
+    {
+        return other != null &&
+               s == other.s;
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestDoNotOfferIEquatableIfTypeAlreadyImplementsIt()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program : System.IEquatable<Program>
+{
+    public string s;
+    [||]
+}",
+@"
+using System.Collections.Generic;
+
+class Program : System.IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               s == program.s;
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)),
 ignoreTrivia: false);
         }
     }

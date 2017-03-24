@@ -59,9 +59,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             };
         }
 
-        public string DirectoryName => Path.GetDirectoryName(FileName);
+        public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
 
-        public string FileName
+        public string SolutionFileFullPath
         {
             get
             {
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 CloseSolution(saveExistingSolutionIfExists);
             }
 
-            var solutionPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            string solutionPath = IntegrationHelper.CreateTemporaryPath();
             IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
 
             dte.Solution.Create(solutionPath, solutionName);

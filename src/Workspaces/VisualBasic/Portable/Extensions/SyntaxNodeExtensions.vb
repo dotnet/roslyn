@@ -340,20 +340,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' </summary>
         <Extension()>
         Public Function ContainsInterleavedDirective(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
-            ' Check if this node contains a start or end pp construct whose
-            ' matching construct is not contained within this node.  If so, 
-            ' this node must be pinned and cannot move.
-            '
-            ' Also, keep track of those spans so that if we see #else/#elif we
-            ' can tell if they belong to a pp span that is entirely within the
-            ' node.
-            Dim span = node.Span
-            Return node.DescendantTokens().Any(Function(token) ContainsInterleavedDirective(span, token, cancellationToken))
+            Return VisualBasicSyntaxFactsService.Instance.ContainsInterleavedDirective(node, cancellationToken)
         End Function
 
-        Private Function ContainsInterleavedDirective(
-            textSpan As TextSpan,
+        <Extension>
+        Public Function ContainsInterleavedDirective(
             token As SyntaxToken,
+            textSpan As TextSpan,
             cancellationToken As CancellationToken) As Boolean
 
             Return ContainsInterleavedDirective(textSpan, token.LeadingTrivia, cancellationToken) OrElse

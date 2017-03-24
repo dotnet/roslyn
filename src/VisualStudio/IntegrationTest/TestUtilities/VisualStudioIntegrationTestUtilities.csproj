@@ -31,6 +31,7 @@
     <Compile Include="Common\Signature.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="HostWaitHelper.cs" />
+    <Compile Include="InProcess\TextViewWindow_InProc.cs" />
     <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
     <Compile Include="DialogHelpers.cs" />
     <Compile Include="InProcess\FindReferencesWindow_InProc.cs" />
@@ -54,7 +55,9 @@
     <Compile Include="OutOfProcess\Shell_OutOfProc.cs" />
     <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
     <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
+    <Compile Include="OutOfProcess\TextViewWindow_OutOfProc.cs" />
     <Compile Include="ScreenshotService.cs" />
+    <Compile Include="TemporaryTextFile.cs" />
     <Compile Include="TestUtilities.cs" />
     <Compile Include="WellKnownCommandNames.cs" />
     <Compile Include="VisualStudioInstance.cs" />
