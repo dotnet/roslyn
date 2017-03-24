@@ -765,8 +765,8 @@ End Sub</x>.Value)
                 <x>Public fld As Integer</x>.Value)
 
             VerifySyntax(Of FieldDeclarationSyntax)(
-                _g.FieldDeclaration("fld", _g.TypeExpression(SpecialType.System_Int32), modifiers:=DeclarationModifiers.Static Or DeclarationModifiers.ReadOnly),
-                <x>Shared ReadOnly fld As Integer</x>.Value)
+                _g.FieldDeclaration("fld", _g.TypeExpression(SpecialType.System_Int32), modifiers:=DeclarationModifiers.Static Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WithEvents),
+                <x>Shared ReadOnly WithEvents fld As Integer</x>.Value)
         End Sub
 
         <Fact>
