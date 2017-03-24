@@ -72,11 +72,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
             bodyBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
+            var propertySyntax = syntax as PropertyDeclarationSyntax;
+            var arrowExpression = propertySyntax != null
+                ? propertySyntax.ExpressionBody
+                : ((IndexerDeclarationSyntax)syntax).ExpressionBody;
+            bool hasExpressionBody = arrowExpression != null;
+            bool hasInitializer = !isIndexer && propertySyntax.Initializer != null;
+
+            GetAcessorDeclarations(syntax, diagnostics, out bool notRegularProperty, out bool hasAccessorList,
+                                   out AccessorDeclarationSyntax getSyntax, out AccessorDeclarationSyntax setSyntax);
+
+            bool accessorsHaveImplementation;
+            if (hasAccessorList)
+            {
+                accessorsHaveImplementation = (getSyntax != null && (getSyntax.Body != null || getSyntax.ExpressionBody != null)) ||
+                                              (setSyntax != null && (setSyntax.Body != null || setSyntax.ExpressionBody != null));
+            }
+            else
+            {
+                accessorsHaveImplementation = hasExpressionBody;
+            }
+
             bool modifierErrors;
-            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isIndexer, location, diagnostics, out modifierErrors);
+            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isIndexer,
+                                       accessorsHaveImplementation, location, 
+                                       diagnostics, out modifierErrors);
             this.CheckAccessibility(location, diagnostics);
 
             this.CheckModifiers(location, isIndexer, diagnostics);
+
+            notRegularProperty = notRegularProperty && (!containingType.IsInterface && !IsAbstract && !IsExtern && !isIndexer && hasAccessorList);
 
             if (isIndexer && !isExplicitInterfaceImplementation)
             {
@@ -106,66 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _sourceName = _sourceName ?? memberName; //sourceName may have been set while loading attributes
             _name = isIndexer ? ExplicitInterfaceHelpers.GetMemberName(WellKnownMemberNames.Indexer, _explicitInterfaceType, aliasQualifierOpt) : _sourceName;
             _isExpressionBodied = false;
-
-            bool hasAccessorList = syntax.AccessorList != null;
-            var propertySyntax = syntax as PropertyDeclarationSyntax;
-            var arrowExpression = propertySyntax != null
-                ? propertySyntax.ExpressionBody
-                : ((IndexerDeclarationSyntax)syntax).ExpressionBody;
-            bool hasExpressionBody = arrowExpression != null;
-            bool hasInitializer = !isIndexer && propertySyntax.Initializer != null;
-
-            bool notRegularProperty = (!IsAbstract && !IsExtern && !isIndexer && hasAccessorList);
-            AccessorDeclarationSyntax getSyntax = null;
-            AccessorDeclarationSyntax setSyntax = null;
-            if (hasAccessorList)
-            {
-                foreach (var accessor in syntax.AccessorList.Accessors)
-                {
-                    switch (accessor.Kind())
-                    {
-                        case SyntaxKind.GetAccessorDeclaration:
-                            if (getSyntax == null)
-                            {
-                                getSyntax = accessor;
-                            }
-                            else
-                            {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
-                            }
-                            break;
-                        case SyntaxKind.SetAccessorDeclaration:
-                            if (setSyntax == null)
-                            {
-                                setSyntax = accessor;
-                            }
-                            else
-                            {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
-                            }
-                            break;
-                        case SyntaxKind.AddAccessorDeclaration:
-                        case SyntaxKind.RemoveAccessorDeclaration:
-                            diagnostics.Add(ErrorCode.ERR_GetOrSetExpected, accessor.Keyword.GetLocation());
-                            continue;
-                        case SyntaxKind.UnknownAccessorDeclaration:
-                            // We don't need to report an error here as the parser will already have
-                            // done that for us.
-                            continue;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
-                    }
-
-                    if (accessor.Body != null || accessor.ExpressionBody != null)
-                    {
-                        notRegularProperty = false;
-                    }
-                }
-            }
-            else
-            {
-                notRegularProperty = false;
-            }
 
             if (hasInitializer)
             {
@@ -381,6 +346,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CheckForBlockAndExpressionBody(
                 syntax.AccessorList, syntax.GetExpressionBodySyntax(), syntax, diagnostics);
+        }
+
+        private static void GetAcessorDeclarations(BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics, 
+                                                   out bool notRegularProperty, out bool hasAccessorList, 
+                                                   out AccessorDeclarationSyntax getSyntax, out AccessorDeclarationSyntax setSyntax)
+        {
+            notRegularProperty = true;
+            hasAccessorList = syntax.AccessorList != null;
+            getSyntax = null;
+            setSyntax = null;
+
+            if (hasAccessorList)
+            {
+                foreach (var accessor in syntax.AccessorList.Accessors)
+                {
+                    switch (accessor.Kind())
+                    {
+                        case SyntaxKind.GetAccessorDeclaration:
+                            if (getSyntax == null)
+                            {
+                                getSyntax = accessor;
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
+                            }
+                            break;
+                        case SyntaxKind.SetAccessorDeclaration:
+                            if (setSyntax == null)
+                            {
+                                setSyntax = accessor;
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
+                            }
+                            break;
+                        case SyntaxKind.AddAccessorDeclaration:
+                        case SyntaxKind.RemoveAccessorDeclaration:
+                            diagnostics.Add(ErrorCode.ERR_GetOrSetExpected, accessor.Keyword.GetLocation());
+                            continue;
+                        case SyntaxKind.UnknownAccessorDeclaration:
+                            // We don't need to report an error here as the parser will already have
+                            // done that for us.
+                            continue;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
+                    }
+
+                    if (accessor.Body != null || accessor.ExpressionBody != null)
+                    {
+                        notRegularProperty = false;
+                    }
+                }
+            }
+            else
+            {
+                notRegularProperty = false;
+            }
         }
 
         internal bool IsExpressionBodied
@@ -714,7 +738,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool isExplicitInterfaceImplementation, bool isIndexer, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool isExplicitInterfaceImplementation, 
+                                                   bool isIndexer, bool accessorsHaveImplementation,
+                                                   Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
             var defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
@@ -755,7 +781,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Proper errors must have been reported by now.
             if (isInterface)
             {
-                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Abstract | DeclarationModifiers.Public;
+                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Public | 
+                    (accessorsHaveImplementation ? DeclarationModifiers.Virtual : DeclarationModifiers.Abstract);
             }
 
             if (isIndexer)

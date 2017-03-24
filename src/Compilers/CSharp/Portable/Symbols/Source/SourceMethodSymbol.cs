@@ -1562,18 +1562,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_containingType.IsInterface)
             {
-                if (!this.IsAccessor())
-                {
-                    Binder.CheckFeatureAvailability(declarationSyntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
+                Binder.CheckFeatureAvailability(declarationSyntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
 
-                    if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
-                    }
-                }
-                else
+                if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                 {
-                    diagnostics.Add(ErrorCode.ERR_InterfaceMemberHasBody, location, this);
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
                 }
             }
             else if (IsExtern && !IsAbstract)

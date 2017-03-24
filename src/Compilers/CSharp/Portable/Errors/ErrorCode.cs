@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NonInterfaceInInterfaceList = 527,
         ERR_DuplicateInterfaceInBaseList = 528,
         ERR_CycleInInterfaceInheritance = 529,
-        ERR_InterfaceMemberHasBody = 531,
+        //ERR_InterfaceMemberHasBody = 531,
         ERR_HidingAbstractMethod = 533,
         ERR_UnimplementedAbstractMethod = 534,
         ERR_UnimplementedInterfaceMember = 535,
