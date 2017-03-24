@@ -440,44 +440,70 @@ class C
         [Fact]
         public void ShouldTryAgain_CORDBG_E_MISSING_METADATA()
         {
-            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf = (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-            {
-                Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.CORDBG_E_MISSING_METADATA));
-                throw ExceptionUtilities.Unreachable;
-            };
-
-            var references = ImmutableArray<MetadataBlock>.Empty;
-            var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
-            Assert.False(ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
-            Assert.Empty(references);
+            ShouldTryAgain_False(
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.CORDBG_E_MISSING_METADATA));
+                    throw ExceptionUtilities.Unreachable;
+                });
         }
 
         [Fact]
         public void ShouldTryAgain_COR_E_BADIMAGEFORMAT()
         {
-            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf = (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-            {
-                Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.COR_E_BADIMAGEFORMAT));
-                throw ExceptionUtilities.Unreachable;
-            };
-
-            var references = ImmutableArray<MetadataBlock>.Empty;
-            var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
-            Assert.False(ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
-            Assert.Empty(references);
+            ShouldTryAgain_False(
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.COR_E_BADIMAGEFORMAT));
+                    throw ExceptionUtilities.Unreachable;
+                });
         }
 
         [Fact]
-        public void ShouldTryAgain_OtherException()
+        public void ShouldTryAgain_ObjectDisposedException()
         {
-            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf = (AssemblyIdentity assemblyIdentity, out uint uSize) =>
-            {
-                throw new Exception();
-            };
+            ShouldTryAgain_False(
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    throw new ObjectDisposedException("obj");
+                });
+        }
+
+        [Fact]
+        public void ShouldTryAgain_RPC_E_DISCONNECTED()
+        {
+            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf =
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    Marshal.ThrowExceptionForHR(unchecked((int)0x80010108));
+                    throw ExceptionUtilities.Unreachable;
+                };
+
+            var references = ImmutableArray<MetadataBlock>.Empty;
+            var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
+            Assert.Throws<COMException>(() => ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
+        }
+
+        [Fact]
+        public void ShouldTryAgain_Exception()
+        {
+            DkmUtilities.GetMetadataBytesPtrFunction gmdbpf =
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    throw new Exception();
+                };
 
             var references = ImmutableArray<MetadataBlock>.Empty;
             var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
             Assert.Throws<Exception>(() => ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
+        }
+
+        private static void ShouldTryAgain_False(DkmUtilities.GetMetadataBytesPtrFunction gmdbpf)
+        {
+            var references = ImmutableArray<MetadataBlock>.Empty;
+            var missingAssemblyIdentities = ImmutableArray.Create(new AssemblyIdentity("A"));
+            Assert.False(ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
+            Assert.Empty(references);
         }
 
         [WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")]

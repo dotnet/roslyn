@@ -1297,7 +1297,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate &apos;Equals(object) and GetHashCode()&apos;.
+        ///   Looks up a localized string similar to Generate Equals and GetHashCode.
         /// </summary>
         internal static string Generate_Equals_and_GetHashCode {
             get {
@@ -1306,7 +1306,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate &apos;Equals(object)&apos;.
+        ///   Looks up a localized string similar to Generate Equals(object).
         /// </summary>
         internal static string Generate_Equals_object {
             get {
@@ -1333,7 +1333,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate &apos;GetHashCode()&apos;.
+        ///   Looks up a localized string similar to Generate GetHashCode().
         /// </summary>
         internal static string Generate_GetHashCode {
             get {
@@ -1491,6 +1491,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Hosting_process_exited_with_exit_code_0 {
             get {
                 return ResourceManager.GetString("Hosting_process_exited_with_exit_code_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement {0}.
+        /// </summary>
+        internal static string Implement_0 {
+            get {
+                return ResourceManager.GetString("Implement_0", resourceCulture);
             }
         }
         

@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 => new XElement(nameof(ModifierKind), ModifierKindWrapper);
 
             internal static ModifierKind FromXElement(XElement modifierElement)
-                => new ModifierKind((ModifierKindEnum)(ModifierKindEnum)Enum.Parse((Type)typeof(ModifierKindEnum), (string)modifierElement.Value));
+                => new ModifierKind((ModifierKindEnum)Enum.Parse(typeof(ModifierKindEnum), modifierElement.Value));
         }
 
         public enum ModifierKindEnum

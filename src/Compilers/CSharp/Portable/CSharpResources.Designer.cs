@@ -4391,7 +4391,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 1.  Please use language version {1} or greater..
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 1. Please use language version {1} or greater..
         /// </summary>
         internal static string ERR_FeatureNotAvailableInVersion1 {
             get {
@@ -4400,7 +4400,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 2.  Please use language version {1} or greater..
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 2. Please use language version {1} or greater..
         /// </summary>
         internal static string ERR_FeatureNotAvailableInVersion2 {
             get {
@@ -4409,7 +4409,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 3.  Please use language version {1} or greater..
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 3. Please use language version {1} or greater..
         /// </summary>
         internal static string ERR_FeatureNotAvailableInVersion3 {
             get {
@@ -4418,7 +4418,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 4.  Please use language version {1} or greater..
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 4. Please use language version {1} or greater..
         /// </summary>
         internal static string ERR_FeatureNotAvailableInVersion4 {
             get {
@@ -4427,7 +4427,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 5.  Please use language version {1} or greater..
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 5. Please use language version {1} or greater..
         /// </summary>
         internal static string ERR_FeatureNotAvailableInVersion5 {
             get {
@@ -4436,7 +4436,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 6.  Please use language version {1} or greater..
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 6. Please use language version {1} or greater..
         /// </summary>
         internal static string ERR_FeatureNotAvailableInVersion6 {
             get {
@@ -4445,7 +4445,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 7.  Please use language version {1} or greater..
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 7. Please use language version {1} or greater..
         /// </summary>
         internal static string ERR_FeatureNotAvailableInVersion7 {
             get {
@@ -4454,7 +4454,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 7.1.  Please use language version {1} or greater..
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 7.1. Please use language version {1} or greater..
         /// </summary>
         internal static string ERR_FeatureNotAvailableInVersion7_1 {
             get {
@@ -5800,6 +5800,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_LambdaInIsAs {
             get {
                 return ResourceManager.GetString("ERR_LambdaInIsAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specified language version &apos;{0}&apos; cannot have leading zeroes.
+        /// </summary>
+        internal static string ERR_LanguageVersionCannotHaveLeadingZeroes {
+            get {
+                return ResourceManager.GetString("ERR_LanguageVersionCannotHaveLeadingZeroes", resourceCulture);
             }
         }
         
