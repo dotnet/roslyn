@@ -19,15 +19,15 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         {
             private readonly string _candidate;
             private readonly bool _includeMatchedSpans;
-            private readonly StringBreaks _candidateParts;
+            private readonly StringBreaks _candidateHumps;
             private readonly TextChunk _patternChunk;
             private readonly string _patternText;
 
-            public AllLowerCamelCaseMatcher(string candidate, bool includeMatchedSpans, StringBreaks candidateParts, TextChunk patternChunk)
+            public AllLowerCamelCaseMatcher(string candidate, bool includeMatchedSpans, StringBreaks candidateHumps, TextChunk patternChunk)
             {
                 _candidate = candidate;
                 _includeMatchedSpans = includeMatchedSpans;
-                _candidateParts = candidateParts;
+                _candidateHumps = candidateHumps;
                 _patternChunk = patternChunk;
                 _patternText = _patternChunk.Text;
             }
@@ -48,17 +48,17 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 // in the pattern chunk.
 
                 var patternIndex = 0;
-                var candidatePartIndex = 0;
+                var candidateHumpIndex = 0;
 
                 var (bestWeight, localMatchedSpans) = TryMatch(
-                   patternIndex, candidatePartIndex, contiguous: null);
+                   patternIndex, candidateHumpIndex, contiguous: null);
 
                 matchedSpans = localMatchedSpans;
                 return bestWeight;
             }
 
             private (int? bestWeight, List<TextSpan> matchedSpans) TryMatch(
-                int patternIndex, int candidatePartIndex, bool? contiguous)
+                int patternIndex, int candidateHumpIndex, bool? contiguous)
             {
                 if (patternIndex == _patternText.Length)
                 {
@@ -70,26 +70,25 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 var bestWeight = default(int?);
                 var bestMatchedSpans = default(List<TextSpan>);
 
-                // Look for a part of the candidate that matches the current letter we're on.
+                // Look for a hump in the candidate that matches the current letter we're on.
                 var patternCharacter = _patternText[patternIndex];
-                for (var partIndex = candidatePartIndex; partIndex < _candidateParts.Count; partIndex++)
+                for (var humpIndex = candidateHumpIndex; humpIndex < _candidateHumps.Count; humpIndex++)
                 {
-                    // If we've been contiguous, but we jumped past a part, then we're no longer contiguous.
+                    // If we've been contiguous, but we jumped past a hump, then we're no longer contiguous.
                     if (contiguous.HasValue && contiguous.Value)
                     {
-                        contiguous = partIndex == candidatePartIndex;
+                        contiguous = humpIndex == candidateHumpIndex;
                     }
 
-                    var candidatePart = _candidateParts[partIndex];
-                    if (char.ToLower(_candidate[candidatePart.Start]) == patternCharacter)
+                    var candidateHump = _candidateHumps[humpIndex];
+                    if (char.ToLower(_candidate[candidateHump.Start]) == patternCharacter)
                     {
-                        // Found a part of the candidate string that matches the current pattern
+                        // Found a hump in the candidate string that matches the current pattern
                         // character we're on.  i.e. we matched the c in cofipro against the C in 
                         // CodeFixProvider.
                         //
                         // Now, for each subsequent character, we need to both try to consume it
-                        // as part of the candidate text, or see if it should match the next hump
-                        // in the candidate.
+                        // as part of the current hump, or see if it should match the next hump.
                         //
                         // Note, if the candidate is something like CodeFixProvider and our pattern
                         // is cofipro, and we've matched the 'f' against the 'F', then the max of
@@ -103,11 +102,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                             contiguous = true;
                         }
 
-                        var (weight, matchedSpans) = TryConsumePatternOrMatchNextPart(
-                            patternIndex, partIndex, contiguous.Value);
+                        var (weight, matchedSpans) = TryConsumePatternOrMatchNextHump(
+                            patternIndex, humpIndex, contiguous.Value);
                         if (weight == null)
                         {
-                            // Even though we matched this current candidate part we failed to match
+                            // Even though we matched this current candidate hump we failed to match
                             // the remainder of the pattern.  Continue to the next candidate hump
                             // to see if our pattern character will match it and potentially succed.
                             continue;
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         {
                             // We found a path that allowed us to match everything contiguously
                             // from the beginning.  This is the best match possible.  So we can
-                            // just stop now and return thie result.
+                            // just stop now and return this result.
                             return (weight, matchedSpans);
                         }
 
@@ -135,21 +134,21 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return (bestWeight, bestMatchedSpans);
             }
 
-            private (int? bestWeight, List<TextSpan> matchedSpans) TryConsumePatternOrMatchNextPart(
-                int patternIndex, int partIndex, bool contiguous)
+            private (int? bestWeight, List<TextSpan> matchedSpans) TryConsumePatternOrMatchNextHump(
+                int patternIndex, int humpIndex, bool contiguous)
             {
                 var bestWeight = default(int?);
                 var bestMatchedSpans = default(List<TextSpan>);
 
-                var candidatePart = _candidateParts[partIndex];
+                var candidateHump = _candidateHumps[humpIndex];
 
                 var maxPatternHumpLength = _patternText.Length - patternIndex;
-                var maxCandidateHumpLength = candidatePart.Length;
+                var maxCandidateHumpLength = candidateHump.Length;
                 var maxHumpMatchLength = Math.Min(maxPatternHumpLength, maxCandidateHumpLength);
                 for (var possibleHumpMatchLength = 1; possibleHumpMatchLength <= maxHumpMatchLength; possibleHumpMatchLength++)
                 {
                     if (!LowercaseSubstringsMatch(
-                        _candidate, candidatePart.Start,
+                        _candidate, candidateHump.Start,
                         _patternText, patternIndex, possibleHumpMatchLength))
                     {
                         // Stop trying to consume once the pattern contents no longer matches
@@ -157,15 +156,15 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         break;
                     }
 
-                    // This is the span of the part of the candidate we matched.
-                    var candidateMatchSpan = new TextSpan(candidatePart.Start, possibleHumpMatchLength);
+                    // This is the span of the hump of the candidate we matched.
+                    var candidateMatchSpan = new TextSpan(candidateHump.Start, possibleHumpMatchLength);
 
                     // The pattern substring 'f' has matched against 'F', or 'fi' has matched
                     // against 'Fi'.  recurse and let the rest of the pattern match the remainder
                     // of the candidate.
 
                     var (weight, matchedSpans) = TryMatch(
-                        patternIndex + possibleHumpMatchLength, partIndex + 1, contiguous);
+                        patternIndex + possibleHumpMatchLength, humpIndex + 1, contiguous);
 
                     if (weight == null)
                     {
@@ -176,7 +175,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                     Debug.Assert(weight <= CamelCaseContiguousBonus);
 
-                    if (partIndex == 0)
+                    if (humpIndex == 0)
                     {
                         weight += CamelCaseMatchesFromStartBonus;
                     }
