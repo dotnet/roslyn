@@ -9,23 +9,23 @@ This document provides guidance for thinking about language interactions and tes
 - Determinism
 - Loading from metadata (source vs. loaded from metadata)
 - Public interface of compiler APIs (including semantic model APIs listed below):
- - GetDeclaredSymbol 
- - GetEnclosingSymbol 
- - GetSymbolInfo 
- - GetSpeculativeSymbolInfo 
- - GetTypeInfo 
- - GetSpeculativeTypeInfo 
- - GetMethodGroup 
- - GetConstantValue 
- - GetAliasInfo 
- - GetSpeculativeAliasInfo 
- - LookupSymbols 
- - AnalyzeStatementsControlFlow 
- - AnalyzeStatementControlFlow 
- - AnalyzeExpressionDataFlow 
- - AnalyzeStatementsDataFlow 
- - AnalyzeStatementDataFlow 
- - ClassifyConversion
+    - GetDeclaredSymbol 
+    - GetEnclosingSymbol 
+    - GetSymbolInfo 
+    - GetSpeculativeSymbolInfo 
+    - GetTypeInfo 
+    - GetSpeculativeTypeInfo 
+    - GetMethodGroup 
+    - GetConstantValue 
+    - GetAliasInfo 
+    - GetSpeculativeAliasInfo 
+    - LookupSymbols 
+    - AnalyzeStatementsControlFlow 
+    - AnalyzeStatementControlFlow 
+    - AnalyzeExpressionDataFlow 
+    - AnalyzeStatementsDataFlow 
+    - AnalyzeStatementDataFlow 
+    - ClassifyConversion
 - VB/F# interop
 - Performance and stress testing
  
@@ -69,15 +69,17 @@ This document provides guidance for thinking about language interactions and tes
 - Constructors, properties, indexers, events, operators, and destructors.
 - Async
 - Lvalues: the synthesized fields are mutable 
- - Ref / out parameters
- - Compound operators (+=, /=, etc ..) 
- - Assignment exprs
+    - Ref / out parameters
+    - Compound operators (+=, /=, etc ..) 
+    - Assignment exprs
 
  
 # Misc
 - reserved keywords (sometimes contextual)
 - pre-processing directives
 - COM interop
+- modopt and modreq
+- ref assemblies
 
 
 # Testing in interaction with other components
