@@ -138,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedValueSourcePath,
             bool expectedIsXmlLiteral)
         {
+            Assert.NotEqual(default(DebugInformationFormat), format);
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
             var actualXml = XElement.Parse(PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), methodTokens));
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 expectedPdb: expectedPdb,
                 expectedIsPortable: format != DebugInformationFormat.Pdb);
 
-            AssertXml.Equal(expectedPdb, actualXml, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+            AssertXml.Equal(expectedPdb, actualXml, $"Format: {format}{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
         }
 
         internal string GetMethodIL(string qualifiedMethodName)
