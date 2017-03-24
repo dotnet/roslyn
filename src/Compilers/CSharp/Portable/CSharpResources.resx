@@ -4402,6 +4402,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /target:winmdobj              Build a Windows Runtime intermediate file that 
                                is consumed by WinMDExp (Short form: /t:winmdobj)
  /doc:&lt;file&gt;                   XML Documentation file to generate
+ /refout:&lt;file&gt;                Reference assembly output to generate
  /platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
                                Itanium, x64, arm, anycpu32bitpreferred, or 
                                anycpu. The default is anycpu.
@@ -4445,6 +4446,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /optimize[+|-]                Enable optimizations (Short form: /o)
  /deterministic                Produce a deterministic assembly
                                (including module version GUID and timestamp)
+ /refonly                      Produce a reference assembly in place of the main output
  /instrument:TestCoverage      Produce an assembly instrumented to collect
                                coverage information
  /sourcelink:&lt;file&gt;            Source link info to embed into Portable PDB.
