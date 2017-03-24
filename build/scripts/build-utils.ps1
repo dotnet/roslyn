@@ -13,7 +13,7 @@ $ErrorActionPreference="Stop"
 # Original sample came from: http://jameskovacs.com/2010/02/25/the-exec-problem/
 function Exec([scriptblock]$cmd, [string]$errorMessage = "Error executing command: " + $cmd) { 
     $output = & $cmd 
-    if (-not $?) {
+    if ((-not $?) -or ($lastexitcode -ne 0)) {
         Write-Host $output
         throw $errorMessage 
     } 
