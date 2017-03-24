@@ -354,9 +354,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         ' being returned.  Do we want to differentiate between no result and ambiguous
                         ' results?  There doesn't seem to be an existing error code for "duplicate well-
                         ' known type".
-                        If (careAboutAmbiguity) Then
-                            referencedAssemblyResult = Nothing
-                        End If
+                        'If (careAboutAmbiguity) Then
+                        referencedAssemblyResult = Nothing
+                        'End If
                         Exit For
                     End If
                 End If
