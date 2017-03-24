@@ -24,7 +24,7 @@ try {
     $msbuild = Ensure-MSBuild
 
     # The /nowarn exception can be removed once we fix https://github.com/dotnet/roslyn/issues/17325
-    & $msbuild /nodereuse:false /p:Configuration=Release /p:SkipTest=true Build.proj /warnaserror /nowarn:3277
+    & $msbuild /nodereuse:false /p:Configuration=Release /p:SkipTest=true Build.proj /warnaserror /nowarn:MSB3277
     if (-not $?) { 
         throw "Build failed"
     }
