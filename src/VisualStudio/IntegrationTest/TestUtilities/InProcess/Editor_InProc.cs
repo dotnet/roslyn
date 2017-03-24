@@ -535,6 +535,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
+        public void GoToDefinition()
+            => GetDTE().ExecuteCommand("Edit.GoToDefinition");
+
         public void GoToImplementation()
             => GetDTE().ExecuteCommand("Edit.GoToImplementation");
     }

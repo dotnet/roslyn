@@ -273,6 +273,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }).ToArray();
         }
 
+        public void GoToDefinition()
+            => _inProc.GoToDefinition();
+
         public void GoToImplementation()
             => _inProc.GoToImplementation();
     }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
@@ -62,8 +63,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
 
         // TODO: Enable this once the GoToDefinition tests are merged
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/15740"),
-         Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationFromMetadataAsSource()
         {
             AddFile("FileImplementation.cs");
@@ -73,17 +73,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
 class Implementation : IDisposable
 {
-  public void SomeMethod()
-  {
-    IDisposable d;
-  }
+    public void SomeMethod()
+    {
+        IDisposable d;
+    }
 }");
-            PlaceCaret("IDisposable d");
-
-            // Uncomment this line once the GoToDefinition tests are merged
-            // Editor.GoToDefinition();
+            PlaceCaret("IDisposable d", charsOffset: -1);
+            Editor.GoToDefinition();
             Editor.GoToImplementation();
-            VerifyTextContains(@"class Implementation : IDisposable", assertCaretPosition: true);
+            VerifyTextContains(@"class Implementation$$ : IDisposable", assertCaretPosition: true);
         }
     }
 }
