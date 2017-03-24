@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string AsyncLazy = nameof(AsyncLazy);
             public const string Classification = nameof(Classification);
             public const string Diagnostics = nameof(Diagnostics);
+            public const string ErrorSquiggles = nameof(ErrorSquiggles);
             public const string FindReferences = nameof(FindReferences);
             public const string FixIncorrectTokens = nameof(FixIncorrectTokens);
             public const string Formatting = nameof(Formatting);

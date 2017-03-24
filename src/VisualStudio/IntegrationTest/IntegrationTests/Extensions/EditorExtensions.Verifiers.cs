@@ -248,5 +248,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
         {
             test.VisualStudio.Instance.Editor.VerifyDialog(dialogName, isOpen);
         }
+
+        public static void VerifyErrorTags(this AbstractIntegrationTest test, params string[] expectedTags)
+        {
+            test.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
+            test.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
+            var actualTags = test.VisualStudio.Instance.Editor.GetErrorTags();
+            Assert.Equal(expectedTags, actualTags);
+        }
     }
 }
