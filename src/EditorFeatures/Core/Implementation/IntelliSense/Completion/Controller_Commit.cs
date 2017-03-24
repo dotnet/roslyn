@@ -111,34 +111,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     var mappedSpan = triggerSnapshotSpan.TranslateTo(
                         this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
-                    // If the client is providing a caret position, then it's likely they're
-                    // making a large/complex change to the document.  In this case try to
-                    // get the editor to actually apply this as a minimal-change so that the
-                    // document change looks nice and tidy.  This won't mess anything up as we
-                    // will then place the caret manually.
-                    //
-                    // If the caret position is not provided, then we do not want a minimal-change
-                    // as it's important that the caret move to the end of the inserted text,
-                    // and the editor might actually make a smaller change than that when it 
-                    // does it's diff.
-                    var editOptions = completionChange.NewPosition != null
-                        ? EditOptions.DefaultMinimalChange
-                        : EditOptions.None;
+                    int desiredCaretPosition;
+
                     // Now actually make the text change to the document.
-                    using (var textEdit = this.SubjectBuffer.CreateEdit(editOptions, reiteratedVersionNumber: null, editTag: null))
+                    using (var textEdit = this.SubjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
                     {
                         var adjustedNewText = AdjustForVirtualSpace(textChange);
+
+                        // Determine where the caret should go after we insert the text.  If the 
+                        // client supplied a position, they just accept that.  Otherwise, place
+                        // the caret at the end of the text that we're comitting.
+                        desiredCaretPosition = completionChange.NewPosition != null
+                            ? completionChange.NewPosition.Value
+                            : mappedSpan.Start + adjustedNewText.Length;
 
                         textEdit.Replace(mappedSpan.Span, adjustedNewText);
                         textEdit.Apply();
                     }
 
-                    // adjust the caret position if requested by completion service
-                    if (completionChange.NewPosition != null)
-                    {
-                        TextView.Caret.MoveTo(new SnapshotPoint(
-                            this.SubjectBuffer.CurrentSnapshot, completionChange.NewPosition.Value));
-                    }
+                    // Now, move the caret to the right location.
+                        TextView.Caret.MoveTo(
+                            new SnapshotPoint(this.SubjectBuffer.CurrentSnapshot, desiredCaretPosition));
 
                     // Now, pass along the commit character unless the completion item said not to
                     if (characterWasSentIntoBuffer && !completionChange.IncludesCommitCharacter)
