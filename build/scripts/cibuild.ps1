@@ -28,7 +28,7 @@ function Run-MSBuild() {
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    & $msbuild /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal @args
+    & $msbuild /warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal @args
     if (-not $?) {
         throw "Build failed"
     }
@@ -80,7 +80,6 @@ try {
     # Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
     $bootstrapLog = Join-Path $binariesDir "Bootstrap.log"
     Run-MSBuild /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP "build\Toolset\Toolset.csproj" /p:Configuration=$buildConfiguration /fileloggerparameters:LogFile=$($bootstrapLog)
-    Exec { & ".\build\scripts\check-msbuild.ps1" $bootstrapLog }
     $bootstrapDir = Join-Path $binariesDir "Bootstrap"
     Remove-Item -re $bootstrapDir -ErrorAction SilentlyContinue
     Create-Directory $bootstrapDir
@@ -135,7 +134,6 @@ try {
     $buildLog = Join-Path $binariesdir "Build.log"
 
     Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
-    Exec { & ".\build\scripts\check-msbuild.ps1" $buildLog }
     exit 0
 }
 catch {
