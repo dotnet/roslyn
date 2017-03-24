@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // the caret at the end of the text that we're comitting.
                         desiredCaretPosition = completionChange.NewPosition != null
                             ? completionChange.NewPosition.Value
-                            : mappedSpan.Start + adjustedNewText.Length;
+                            : mappedSpan.Start.Position + adjustedNewText.Length;
 
                         textEdit.Replace(mappedSpan.Span, adjustedNewText);
                         textEdit.Apply();
@@ -132,7 +133,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // Now, move the caret to the right location.
                     TextView.Caret.MoveTo(
                         new SnapshotPoint(this.SubjectBuffer.CurrentSnapshot, desiredCaretPosition));
-                    TextView.Caret.EnsureVisible();
 
                     // Now, pass along the commit character unless the completion item said not to
                     if (characterWasSentIntoBuffer && !completionChange.IncludesCommitCharacter)

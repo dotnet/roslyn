@@ -1,6 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Linq
+Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Commands
@@ -13,6 +15,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Microsoft.VisualStudio.Utilities
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class CSharpCompletionCommandHandlerTests
@@ -3011,5 +3014,100 @@ class C
                 state.AssertItemsInOrder(expectedOrder)
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLargeChangeBrokenUpIntoSmallTextChanges() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+class C
+{
+    void foo() {
+        return$$
+    }
+}]]></Document>, {New MultipleChangeCompletionProvider()})
+
+                Dim testDocument = state.Workspace.Documents(0)
+                Dim textBuffer = testDocument.TextBuffer
+
+                ' First send a space to trigger out special completion provider.
+                state.SendTypeChars(" ")
+
+                ' Now listen for text change events so we see what happens when we try to commit
+                ' the item.
+                Dim lastChangeArgs As TextContentChangedEventArgs = Nothing
+                AddHandler textBuffer.Changed,
+                    Sub(o, e)
+                        lastChangeArgs = e
+                    End Sub
+
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                ' Commit the item
+                state.SendTab()
+
+                Dim positionAfterSpace = testDocument.CursorPosition.Value + 1
+
+                ' Verify that we see the entire change
+                Dim finalText = textBuffer.CurrentSnapshot.GetText()
+                Assert.Equal(
+"using NewUsing;
+using System;
+class C
+{
+    void foo() {
+        return InsertedItem
+    }
+}", finalText)
+
+                ' This should have happened as two text changes to the buffer.
+                Assert.Equal(2, lastChangeArgs.Changes.Count)
+
+                Dim actualChanges = lastChangeArgs.Changes.ToArray()
+                Dim firstChange = actualChanges(0)
+                Assert.Equal(New Span(0, 0), firstChange.OldSpan)
+                Assert.Equal("using NewUsing;", firstChange.NewText)
+
+                Dim secondChange = actualChanges(1)
+                Assert.Equal(New Span(positionAfterSpace, 0), secondChange.OldSpan)
+                Assert.Equal("InsertedItem", secondChange.NewText)
+            End Using
+        End Function
+
+        Private Class MultipleChangeCompletionProvider
+            Inherits CompletionProvider
+
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                context.AddItem(CompletionItem.Create(
+                    "CustomItem",
+                    rules:=CompletionItemRules.Default.WithMatchPriority(1000)))
+                Return SpecializedTasks.EmptyTask
+            End Function
+
+            Public Overrides Function ShouldTriggerCompletion(text As SourceText, caretPosition As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean
+                Return True
+            End Function
+
+            Public Overrides Function GetChangeAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
+                Dim text =
+"
+using System;
+class C
+{
+    void foo() {
+        return "
+                Dim newText =
+"using NewUsing;
+using System;
+class C
+{
+    void foo() {
+        return InsertedItem"
+
+                Dim change = CompletionChange.Create(
+                    New TextChange(New TextSpan(0, text.Length), newText))
+                Return Task.FromResult(change)
+            End Function
+        End Class
     End Class
 End Namespace
