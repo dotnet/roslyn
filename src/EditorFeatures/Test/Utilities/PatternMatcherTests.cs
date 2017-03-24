@@ -721,7 +721,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [Fact]
         public void MatchAllLowerCamelCasePattern1()
         {
-            Assert.Null(TryMatchSingleWordPattern("[|Co|]de[|Fi|]x[|Pro|]vider", "cofipro"));
+            Assert.NotNull(TryMatchSingleWordPattern("[|Co|]de[|Fi|]x[|Pro|]vider", "cofipro"));
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern2()
+        {
+            Assert.NotNull(TryMatchSingleWordPattern("[|C|]lear[|Ofi|]lac[|Pro|]fessional", "cofipro"));
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern3()
+        {
+            Assert.NotNull(TryMatchSingleWordPattern("[|C|]ore[|Ofi|]lac[|Pro|]fessional", "cofipro"));
         }
 
         private static IList<string> PartListToSubstrings(string identifier, StringBreaks parts)

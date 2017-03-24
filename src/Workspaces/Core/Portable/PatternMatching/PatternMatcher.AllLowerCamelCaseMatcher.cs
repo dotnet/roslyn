@@ -133,11 +133,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 var maxPatternHumpLength = _patternText.Length - patternIndex;
                 var maxCandidateHumpLength = candidatePart.Length;
                 var maxHumpMatchLength = Math.Min(maxPatternHumpLength, maxCandidateHumpLength);
-                for (var possibleHumpMatchLength = 1; possibleHumpMatchLength < maxHumpMatchLength; possibleHumpMatchLength++)
+                for (var possibleHumpMatchLength = 1; possibleHumpMatchLength <= maxHumpMatchLength; possibleHumpMatchLength++)
                 {
                     if (!LowercaseSubstringsMatch(
                         _candidate, candidatePart.Start,
-                        _patternText, patternIndex, maxHumpMatchLength))
+                        _patternText, patternIndex, possibleHumpMatchLength))
                     {
                         // Stop trying to consume once the pattern contents no longer matches
                         // against the current candidate hump.
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         patternIndex + possibleHumpMatchLength, partIndex + 1,
                         contiguous, firstMatch: false);
 
-                    if (weight < 0)
+                    if (weight == null)
                     {
                         // Didn't match when we recursed.  Try to consume more and see if that gets us 
                         // somewhere.
