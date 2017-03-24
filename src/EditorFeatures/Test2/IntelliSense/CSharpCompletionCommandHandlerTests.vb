@@ -3065,6 +3065,20 @@ class C
                 Dim secondChange = actualChanges(1)
                 Assert.Equal(New Span(positionAfterSpace, 0), secondChange.OldSpan)
                 Assert.Equal("InsertedItem", secondChange.NewText)
+
+                ' Make sure new edits happen after the text that was inserted.
+                state.SendTypeChars("1")
+
+                finalText = textBuffer.CurrentSnapshot.GetText()
+                Assert.Equal(
+"using NewUsing;
+using System;
+class C
+{
+    void foo() {
+        return InsertedItem1
+    }
+}", finalText)
             End Using
         End Function
 
