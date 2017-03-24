@@ -114,10 +114,10 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Dimension sizes: 1, Element Type: M) (OperationKind.ArrayCreationExpression, Type: M())
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32)
-    Left: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32)
-        IParameterReferenceExpression: dimension (OperationKind.ParameterReferenceExpression, Type: System.UInt16)
+IArrayCreationExpression (Dimension sizes: 1, Element Type: M) (OperationKind.ArrayCreationExpression, Type: M(), IsInvalid)
+  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid)
+    Left: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid)
+        IParameterReferenceExpression: dimension (OperationKind.ParameterReferenceExpression, Type: UInt16)
     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
   IArrayInitializer (OperationKind.ArrayInitializer)
 ]]>.Value
