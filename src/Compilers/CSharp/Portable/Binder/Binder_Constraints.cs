@@ -154,6 +154,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type, name);
                                 continue;
                             }
+                            else if (constraintTypes.Any((t1, t2) => t1.Equals(t2, TypeCompareKind.IgnoreTupleNames), type))
+                            {
+                                Error(diagnostics, ErrorCode.ERR_DuplicateBoundWithDifferentTupleNames, syntax, type, name);
+                                continue;
+                            }
 
                             if (type.TypeKind == TypeKind.Class)
                             {

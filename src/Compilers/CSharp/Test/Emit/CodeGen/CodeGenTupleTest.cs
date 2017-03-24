@@ -21749,6 +21749,71 @@ class Derived : Base<I2<(int notA, int notB)>> {}
         }
 
         [Fact]
+        [WorkItem(17994, "https://github.com/dotnet/roslyn/issues/17994")]
+        public void TupleNameDifferencesInDuplicateConstraint()
+        {
+            var source = @"
+interface I1<T> {}
+
+class C<U> where U : I1<(int a, int b)>, I1<(int notA, int notB)> {}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (4,42): error CS8304: Duplicate constraint 'I1<(int notA, int notB)>' for type parameter 'U', with differences in tuple element names only.
+                // class C<U> where U : I1<(int a, int b)>, I1<(int notA, int notB)> {}
+                Diagnostic(ErrorCode.ERR_DuplicateBoundWithDifferentTupleNames, "I1<(int notA, int notB)>").WithArguments("I1<(int notA, int notB)>", "U").WithLocation(4, 42)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17994, "https://github.com/dotnet/roslyn/issues/17994")]
+        public void DynamicDisallowedInConstraint()
+        {
+            var source = @"
+interface I1<T> {}
+
+class C<U> where U : I1<dynamic> {}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (4,22): error CS1968: Constraint cannot be a dynamic type 'I1<dynamic>'
+                // class C<U> where U : I1<dynamic> {}
+                Diagnostic(ErrorCode.ERR_ConstructedDynamicTypeAsBound, "I1<dynamic>").WithArguments("I1<dynamic>").WithLocation(4, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17994, "https://github.com/dotnet/roslyn/issues/17994")]
+        public void TupleNameMatchInDuplicateConstraint()
+        {
+            var source = @"
+interface I1<T> {}
+
+class C<U> where U : I1<(int a, int b)>, I1<(int a, int b)> {}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (4,42): error CS0405: Duplicate constraint 'I1<(int a, int b)>' for type parameter 'U'
+                // class C<U> where U : I1<(int a, int b)>, I1<(int a, int b)> {}
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I1<(int a, int b)>").WithArguments("I1<(int a, int b)>", "U").WithLocation(4, 42)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17994, "https://github.com/dotnet/roslyn/issues/17994")]
+        public void TupleNameDifferencesInIndirectDuplicateConstraint()
+        {
+            var source = @"
+interface I1<T> {}
+interface I2<T> : I1<T> {}
+
+class C<U> where U : I1<(int a, int b)>, I2<(int notA, int notB)> {}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
         public void CanReImplementInterfaceWithDifferentTupleNames()
         {

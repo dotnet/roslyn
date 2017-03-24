@@ -1173,6 +1173,9 @@
   <data name="ERR_DuplicateBound" xml:space="preserve">
     <value>Duplicate constraint '{0}' for type parameter '{1}'</value>
   </data>
+  <data name="ERR_DuplicateBoundWithDifferentTupleNames" xml:space="preserve">
+    <value>Duplicate constraint '{0}' for type parameter '{1}', with differences in tuple element names only.</value>
+  </data>
   <data name="ERR_ClassBoundNotFirst" xml:space="preserve">
     <value>The class type constraint '{0}' must come before any other constraints</value>
   </data>
