@@ -597,7 +597,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Checks if the method has an entry point compatible signature, i.e.
-        /// - the return type is either void, int, Task, or Task&lt;int&gt;
+        /// - the return type is either void, int, <see cref="System.Threading.Tasks.Task" />, 
+        /// or <see cref="System.Threading.Tasks.Task{int}" />
         /// - has either no parameter or a single parameter of type string[]
         /// </summary>
         internal bool HasEntryPointSignature(CSharpCompilation compilation)
