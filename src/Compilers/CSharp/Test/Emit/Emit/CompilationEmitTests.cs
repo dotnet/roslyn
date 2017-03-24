@@ -397,7 +397,7 @@ public abstract class PublicClass
         }
 
         [Fact]
-        public void EmitMetadata_DisallowEmbedding()
+        public void EmitMetadata_AllowEmbedding()
         {
             CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll);
@@ -405,8 +405,20 @@ public abstract class PublicClass
             using (var output = new MemoryStream())
             using (var metadataOutput = new MemoryStream())
             {
-                Assert.Throws<ArgumentException>(() => comp.Emit(output, metadataPEStream: metadataOutput,
-                    options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)));
+                var result = comp.Emit(output, metadataPEStream: metadataOutput,
+                    options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded));
+
+                VerifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.EmbeddedPortablePdb });
+                VerifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { });
+            }
+
+            void VerifyEmbeddedDebugInfo(MemoryStream stream, DebugDirectoryEntryType[] expected)
+            {
+                using (var peReader = new PEReader(stream.ToImmutable()))
+                {
+                    var entries = peReader.ReadDebugDirectory();
+                    AssertEx.Equal(expected, entries.Select(e => e.Type));
+                }
             }
         }
 

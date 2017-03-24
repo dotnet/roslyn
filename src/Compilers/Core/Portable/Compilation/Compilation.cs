@@ -2073,7 +2073,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             if (options?.DebugInformationFormat == DebugInformationFormat.Embedded &&
-                (metadataPEStream != null || options?.EmitMetadataOnly == true))
+                options?.EmitMetadataOnly == true)
             {
                 throw new ArgumentException(CodeAnalysisResources.EmbeddingPdbUnexpectedWhenEmittingMetadata, nameof(metadataPEStream));
             }
