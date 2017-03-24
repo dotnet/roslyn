@@ -718,10 +718,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Null(TryMatchSingleWordPattern("AbcdefghijEfgHij", "efghij"));
         }
 
+        [Fact]
+        public void MatchAllLowerCamelCasePattern1()
+        {
+            Assert.Null(TryMatchSingleWordPattern("[|Co|]de[|Fi|]x[|Pro|]vider", "cofipro"));
+        }
+
         private static IList<string> PartListToSubstrings(string identifier, StringBreaks parts)
         {
-            List<string> result = new List<string>();
-            for (int i = 0; i < parts.Count; i++)
+            var result = new List<string>();
+            for (var i = 0; i < parts.Count; i++)
             {
                 var span = parts[i];
                 result.Add(identifier.Substring(span.Start, span.Length));
@@ -731,14 +737,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         }
 
         private static IList<string> BreakIntoCharacterParts(string identifier)
-        {
-            return PartListToSubstrings(identifier, StringBreaker.BreakIntoCharacterParts(identifier));
-        }
+            => PartListToSubstrings(identifier, StringBreaker.BreakIntoCharacterParts(identifier));
 
         private static IList<string> BreakIntoWordParts(string identifier)
-        {
-            return PartListToSubstrings(identifier, StringBreaker.BreakIntoWordParts(identifier));
-        }
+            => PartListToSubstrings(identifier, StringBreaker.BreakIntoWordParts(identifier));
 
         private static PatternMatch? TryMatchSingleWordPattern(string candidate, string pattern)
         {
