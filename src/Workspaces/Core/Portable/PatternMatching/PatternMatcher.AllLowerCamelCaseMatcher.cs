@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 {
                     contiguous = contiguous && partIndex == candidatePartIndex;
 
-                    var candidatePart = _candidateParts[candidatePartIndex];
+                    var candidatePart = _candidateParts[partIndex];
                     if (char.ToLower(_candidate[candidatePart.Start]) == patternCharacter)
                     {
                         // Found a part of the candidate string that matches the current pattern

@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     /// </summary>
     internal sealed partial class PatternMatcher : IDisposable
     {
-        private const int CamelCaseContiguousBonus = 1;
-        private const int CamelCaseMatchesFromStartBonus = 2;
-        private const int CamelCaseMaxWeight = CamelCaseContiguousBonus + CamelCaseMatchesFromStartBonus;
+        public const int CamelCaseContiguousBonus = 1;
+        public const int CamelCaseMatchesFromStartBonus = 2;
+        public const int CamelCaseMaxWeight = CamelCaseContiguousBonus + CamelCaseMatchesFromStartBonus;
 
         private static readonly char[] s_dotCharacterArray = { '.' };
 

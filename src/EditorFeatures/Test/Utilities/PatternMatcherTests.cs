@@ -721,7 +721,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [Fact]
         public void MatchAllLowerCamelCasePattern1()
         {
-            Assert.NotNull(TryMatchSingleWordPattern("[|Co|]de[|Fi|]x[|Pro|]vider", "cofipro"));
+            var result =TryMatchSingleWordPattern("[|Co|]de[|Fi|]x[|Pro|]vider", "cofipro");
+            Assert.NotNull(result);
+            Assert.Equal(PatternMatcher.CamelCaseMaxWeight, result.Value.CamelCaseWeight);
         }
 
         [Fact]
@@ -734,6 +736,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         public void MatchAllLowerCamelCasePattern3()
         {
             Assert.NotNull(TryMatchSingleWordPattern("[|C|]ore[|Ofi|]lac[|Pro|]fessional", "cofipro"));
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern4()
+        {
+            var result = TryMatchSingleWordPattern("[|Co|]deFix[|Pro|]vider", "copro");
+            Assert.NotNull(result);
+            Assert.Equal(PatternMatcher.CamelCaseMatchesFromStartBonus, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern5()
+        {
+            var result = TryMatchSingleWordPattern("Code[|Fi|]x[|Pro|]vider", "fipro");
+            Assert.NotNull(result);
+            Assert.Equal(PatternMatcher.CamelCaseContiguousBonus, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern6()
+        {
+            var result = TryMatchSingleWordPattern("Code[|Fi|]xObject[|Pro|]vider", "fipro");
+            Assert.NotNull(result);
+            Assert.Equal(0, result.Value.CamelCaseWeight);
         }
 
         private static IList<string> PartListToSubstrings(string identifier, StringBreaks parts)
