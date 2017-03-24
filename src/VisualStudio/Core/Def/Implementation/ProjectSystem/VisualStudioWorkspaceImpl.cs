@@ -126,6 +126,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Microsoft.CodeAnalysis.Solution newSolution,
             IProgressTracker progressTracker)
         {
+            if (_foregroundObject.IsValueCreated && !_foregroundObject.Value.IsForeground())
+            {
+                throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
+            }
+
             var projectChanges = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().ToList();
             var projectsToLoad = new HashSet<Guid>();
             foreach (var pc in projectChanges)

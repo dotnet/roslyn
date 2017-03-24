@@ -28,8 +28,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// The instance that has already been launched by this factory and can be reused.
         /// </summary>
         private VisualStudioInstance _currentlyRunningInstance;
-        private ImmutableHashSet<string> _supportedPackageIds;
-        private string _installationPath;
+
         private bool _hasCurrentlyActiveContext;
 
         static VisualStudioInstanceFactory()
@@ -123,7 +122,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             //  * The current instance is no longer running
 
             return _currentlyRunningInstance == null
-                || (_supportedPackageIds != null && !requiredPackageIds.All((requiredPackageId) => _supportedPackageIds.Contains(requiredPackageId))) // _supportedPackagesIds will be null if ISetupInstance2.GetPackages() is NYI
+                || (!requiredPackageIds.All(id => _currentlyRunningInstance.SupportedPackageIds.Contains(id)))
                 || !_currentlyRunningInstance.IsRunning;
         }
 
@@ -142,6 +141,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             Process hostProcess;
             DTE dte;
+            ImmutableHashSet<string> supportedPackageIds;
+            string installationPath;
 
             if (shouldStartNewInstance)
             {
@@ -149,10 +150,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 _currentlyRunningInstance?.Close();
 
                 var instance = LocateVisualStudioInstance(requiredPackageIds) as ISetupInstance2;
-                _supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetId()));
-                _installationPath = instance.GetInstallationPath();
+                supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetId()));
+                installationPath = instance.GetInstallationPath();
 
-                hostProcess = StartNewVisualStudioProcess(_installationPath);
+                hostProcess = StartNewVisualStudioProcess(installationPath);
                 // We wait until the DTE instance is up before we're good
                 dte = IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).Result;
             }
@@ -166,11 +167,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 hostProcess = _currentlyRunningInstance.HostProcess;
                 dte = _currentlyRunningInstance.Dte;
+                supportedPackageIds = _currentlyRunningInstance.SupportedPackageIds;
+                installationPath = _currentlyRunningInstance.InstallationPath;
 
                 _currentlyRunningInstance.Close(exitHostProcess: false);
             }
 
-            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte);
+            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
         }
 
         private static ISetupConfiguration GetSetupConfiguration()
