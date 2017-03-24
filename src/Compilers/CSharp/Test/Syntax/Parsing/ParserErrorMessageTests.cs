@@ -317,7 +317,6 @@ public struct st { }
         public void CS0231ERR_ParamsLast()
         {
             var test = @"
-using System;
 public class MyClass {
     public void MyMeth(params int[] values, int i) {}
     public static int Main() {
@@ -327,12 +326,9 @@ public class MyClass {
 ";
 
             CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
-                // (4,24): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (3,24): error CS0231: A params parameter must be the last parameter in a formal parameter list
                 //     public void MyMeth(params int[] values, int i) {}
-                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] values").WithLocation(4, 24),
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using System;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1));
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] values").WithLocation(3, 24));
         }
 
         [Fact]
