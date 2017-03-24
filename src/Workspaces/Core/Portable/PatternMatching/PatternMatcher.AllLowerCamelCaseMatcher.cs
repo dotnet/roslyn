@@ -46,19 +46,19 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 var candidatePartIndex = 0;
 
                 var (bestWeight, localMatchedSpans) = TryMatch(
-                   patternIndex, candidatePartIndex, contiguous: true);
+                   patternIndex, candidatePartIndex, contiguous: null);
 
                 matchedSpans = localMatchedSpans;
                 return bestWeight;
             }
 
             private (int? bestWeight, List<TextSpan> matchedSpans) TryMatch(
-                int patternIndex, int candidatePartIndex, bool contiguous)
+                int patternIndex, int candidatePartIndex, bool? contiguous)
             {
                 if (patternIndex == _patternText.Length)
                 {
                     // We hit the end.  So we were able to match against this candidate.
-                    return (bestWeight: contiguous ? CamelCaseContiguousBonus : 0,
+                    return (bestWeight: contiguous == false ? 0 : CamelCaseContiguousBonus,
                             matchedSpans: _includeMatchedSpans ? new List<TextSpan>() : null);
                 }
 
@@ -69,7 +69,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 var patternCharacter = _patternText[patternIndex];
                 for (var partIndex = candidatePartIndex; partIndex < _candidateParts.Count; partIndex++)
                 {
-                    contiguous = contiguous && partIndex == candidatePartIndex;
+                    // If we've been contiguous, but we jump past a part, then we're no longer contiguous.
+                    if (contiguous.HasValue && contiguous.Value)
+                    {
+                        contiguous = partIndex == candidatePartIndex;
+                    }
 
                     var candidatePart = _candidateParts[partIndex];
                     if (char.ToLower(_candidate[candidatePart.Start]) == patternCharacter)
@@ -86,9 +90,16 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         // is cofipro, and we've matched the 'f' against the 'F', then the max of
                         // the pattern we'll want to consume is "fip" against "Fix".  We don't want
                         // consume parts of the pattern once we reach the next hump.
+                        
+                        // We matched something.  If this was our first match, consider ourselves
+                        // contiguous.
+                        if (contiguous == null)
+                        {
+                            contiguous = true;
+                        }
 
                         var (weight, matchedSpans) = TryConsumePatternOrMatchNextPart(
-                            patternIndex, partIndex, contiguous);
+                            patternIndex, partIndex, contiguous.Value);
                         if (weight == null)
                         {
                             // Even though we matched this current candidate part we failed to match
