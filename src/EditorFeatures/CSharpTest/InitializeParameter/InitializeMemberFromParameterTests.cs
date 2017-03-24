@@ -193,7 +193,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestInitializePropertyWithBadName()
+        public async Task TestInitializeDoesNotUsePropertyWithUnrelatedName()
         {
             await TestInRegularAndScriptAsync(
 @"

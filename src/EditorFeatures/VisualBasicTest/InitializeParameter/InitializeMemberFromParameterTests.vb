@@ -143,7 +143,7 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
-        Public Async Function TestInitializePropertyWithBadName() As Task
+        Public Async Function TestInitializeDoesNotUsePropertyWithUnrelatedName() As Task
 
             Await TestInRegularAndScriptAsync(
 "
