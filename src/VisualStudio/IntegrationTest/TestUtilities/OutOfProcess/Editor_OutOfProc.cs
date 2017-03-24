@@ -272,5 +272,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 return TextSpan.FromBounds(int.Parse(start), int.Parse(end));
             }).ToArray();
         }
+
+        public void GoToImplementation()
+            => _inProc.GoToImplementation();
     }
 }
