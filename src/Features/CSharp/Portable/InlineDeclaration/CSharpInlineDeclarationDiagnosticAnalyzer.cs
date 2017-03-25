@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 var compilation = compilationContext.Compilation;
-                var expressionTypeOpt = compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+                var expressionTypeOpt = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
                 compilationContext.RegisterSyntaxNodeAction(
                     syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionTypeOpt), SyntaxKind.Argument);
             });
@@ -193,12 +194,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // The variable is read or written from outside the block that the new variable
                 // would be scoped in.  This would cause a break.
                 //
-                // Note(cyrusn): We coudl still offer the refactoring, but just show an error in the
+                // Note(cyrusn): We could still offer the refactoring, but just show an error in the
                 // preview in this case.
                 return;
             }
 
-            // Make sure the variable isn't ever acessed before the usage in this out-var.
+            // Make sure the variable isn't ever accessed before the usage in this out-var.
             if (IsAccessed(semanticModel, outSymbol, enclosingBlockOfLocalStatement, 
                            localStatement, argumentNode, cancellationToken))
             {
@@ -293,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             // NOTE: there is no current compiler API to determine if a variable is definitely
             // assigned or not.  So, for now, we just get diagnostics for this block and see if
-            // we get any definite assigment errors where we have a reference to the symbol. If
+            // we get any definite assignment errors where we have a reference to the symbol. If
             // so, then we don't offer the fix.
 
             rootWithoutInitializer = (CompilationUnitSyntax)rootWithoutInitializerTree.GetRoot(cancellationToken);

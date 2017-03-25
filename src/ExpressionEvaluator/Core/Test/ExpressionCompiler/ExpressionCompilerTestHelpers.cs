@@ -364,7 +364,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         }
 
         internal static void VerifyIL(
-            this ImmutableArray<byte> assembly,
+            this byte[] assembly,
+            int methodToken,
             string qualifiedName,
             string expectedIL,
             [CallerLineNumber]int expectedValueSourceLine = 0,
@@ -380,9 +381,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             {
                 var module = metadata.Module;
                 var reader = module.MetadataReader;
-                var typeDef = reader.GetTypeDef(parts[0]);
-                var methodName = parts[1];
-                var methodHandle = reader.GetMethodDefHandle(typeDef, methodName);
+                var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(methodToken);
+                var methodDef = reader.GetMethodDefinition(methodHandle);
+                var typeDef = reader.GetTypeDefinition(methodDef.GetDeclaringType());
+                Assert.True(reader.StringComparer.Equals(typeDef.Name, parts[0]));
+                Assert.True(reader.StringComparer.Equals(methodDef.Name, parts[1]));
                 var methodBody = module.GetMethodBodyOrThrow(methodHandle);
 
                 var pooled = PooledStringBuilder.GetInstance();

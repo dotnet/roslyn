@@ -27,12 +27,8 @@ namespace Microsoft.CodeAnalysis.Options
 
         public override bool Equals(object obj)
         {
-            if (obj is OptionKey)
-            {
-                return Equals((OptionKey)obj);
-            }
-
-            return false;
+            return obj is OptionKey key &&
+                   Equals(key);
         }
 
         public bool Equals(OptionKey other)

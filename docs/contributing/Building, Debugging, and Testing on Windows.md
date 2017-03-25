@@ -1,40 +1,38 @@
-# Required Software
+# Building, Debugging and Testing on Windows
 
-1. [Visual Studio 2015 with Update 3](http://go.microsoft.com/fwlink/?LinkId=691129).
-2. Visual Studio 2015 Extensibility Tools.
- 
-    If you already installed Visual Studio, the Extensibility Tools can be added as follows: 
-    - Open Control Panel -> Programs and Features
-    - Select the entry for your installation of Microsoft Visual Studio. Depending on your version, it may appear as follows:
-        - Microsoft Visual Studio Community 2015 with Update 3
-        - Microsoft Visual Studio Professional 2015
-        - Microsoft Visual Studio Enterprise 2015
-    - Press the 'Change' button
-    - In the resulting window, press the 'Modify' button
-    - Check the "Visual Studio Extensibility Tools Update 3" item and press the 'Next' button
-    - Press the 'Update' button
-3. Install the [RC insider VSIX](https://dotnet.myget.org/F/roslyn/vsix/eb2680f2-4e63-44a8-adf6-2e667d9f689c-2.0.0.6110410.vsix).
+## Working with the code
 
-  - If you need to uninstall this or another version of this VSIX, you must:
-    
-    - Close all instances of VS
-    -	delete %LocalAppdata%\Microsoft\VisualStudio\14.0\ (Note, this will delete all your extensions, not just the Roslyn VSIX)
-    - run `devenv /updateconfiguration` from a developer command prompt
-
-
-
-NOTE: You can also use a [Visual Studio "15" Preview](https://www.visualstudio.com/news/releasenotes/vs15-relnotes). The publicly available version of Visual Studio "15" Preview 4 is a work in progress, and as such, does not fully support developing against the Roslyn solution. If you use Preview 4 with the Roslyn solution, you will see issues that prevent the setup project from building and stop the setup VSIX from getting deployed to the RoslynDev hive even when the build does succeed. As such, we recommend remaining on Visual Studio "15" Preview 3 if you are developing against the Roslyn solution. 
-
-# Getting the Code
+Using the command line Roslyn can be developed using the following pattern:
 
 1. Clone https://github.com/dotnet/roslyn
-2. Run the "Developer Command Prompt for VS2015" from your start menu.
-3. Navigate to the directory of your Git clone.
-4. Run `Restore.cmd` in the command prompt to restore NuGet packages.
-5. Due to [Issue #5876](https://github.com/dotnet/roslyn/issues/5876), you should build on the command line before opening in Visual Studio. Run `msbuild /v:m /m Roslyn.sln`
-6. Open _Roslyn.sln_
+1. Run Restore.cmd 
+1. Run Build.cmd
+1. Run Test.cmd
 
-# Running Tests
+## Developing with Visual Studio 2017
+
+1. [Visual Studio 2017](https://www.visualstudio.com/downloads/)
+    - Ensure C#, VB, MSBuild and Visual Studio Extensibility are included in the selected work loads
+1. Run Restore.cmd
+1. Run Build.cmd
+1. Open Roslyn.sln
+
+If you already installed Visual Studio and need to add the necessary work loads do the followig:
+
+- Open the vs_installer.  Typically located at "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
+- The Visual Studio installation will be listed under the Installed section
+- Click on the hamburger menu, click Modify 
+- Choose the workloads listed above and click Modify
+
+## Running Tests
+
+There are a number of options for running the core Roslyn unit tests
+
+### Command Line
+
+The Test.cmd script will run our unit test on already built binaries.  It can be passed the -build arguments to force a new build before running tests.  
+
+### Test Explorer 
 
 Tests cannot be run via Test Explorer due to some Visual Studio limitations.
 
@@ -50,17 +48,16 @@ the source from
 [xunit.runner.wpf](https://github.com/pilchie/xunit.runner.wpf), build it and
 give it a try.
 
-# Trying Your Changes in Visual Studio
+## Trying Your Changes in Visual Studio
 
-Starting with Visual Studio 2015 Update 1, it is now possible to run your changes inside Visual
-Studio to try them out. Some projects in Roslyn.sln, listed below, build Visual
-Studio extensions. When you build those projects, they automatically deploy
-into an experimental instance of Visual Studio. The first time you clone, you
-should first do a full build of Roslyn.sln to make sure everything is primed.
-Then, you can run Visual Studio by right clicking the appropriate project in
-Visual Studio, setting it as a startup project, and pressing F5. You can also
-run Visual Studio after building by running a "Developer Command Prompt for
-VS2015" and then running `devenv /rootsuffix RoslynDev`.
+The Rosyln solution is designed to support easy debugging via F5.  Several of our
+projects produce VSIX which deploy into Visual Studio during build.  The F5 operation 
+will start a new Visual Studio instance using those VSIX which override our installed
+binaries.  This means trying out a change to the languge, IDE or debugger is as
+simple as hitting F5.
+
+The startup project needs to be set to VisualStudioSetup.  This should be the default
+but in same cases will need to be set explicitly.
 
 Here are what is deployed with each extension, by project that builds it. If
 you're working on a particular area, you probably want to set the appropriate
@@ -114,6 +111,6 @@ command line, run msbuild with `/p:BootstrapBuildPath=YourBootstrapBuildPath`.
 `YourBootstrapBuildPath` could be any directory on your machine so long as it had
 csc and vbc inside it. You can check the cibuild.cmd and see how it is used.
 
-# Contributing
+## Contributing
 
 Please see [Contributing Code](https://github.com/dotnet/roslyn/wiki/Contributing-Code) for details on contributing changes back to the code.

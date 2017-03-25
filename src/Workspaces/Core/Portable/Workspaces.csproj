@@ -389,7 +389,7 @@
     <Compile Include="NamingStyles\Serialization\NamingStylePreferencesExtensions.cs" />
     <Compile Include="PatternMatching\PatternMatch.cs" />
     <Compile Include="PatternMatching\PatternMatcher.cs" />
-    <Compile Include="PatternMatching\PatternMatcher.Segment.cs" />
+    <Compile Include="PatternMatching\PatternMatcher.PatternSegment.cs" />
     <Compile Include="PatternMatching\PatternMatcher.TextChunk.cs" />
     <Compile Include="PatternMatching\PatternMatches.cs" />
     <Compile Include="PatternMatching\PatternMatchKind.cs" />
@@ -406,6 +406,7 @@
     <Compile Include="Shared\Utilities\TextReaderWithLength.cs" />
     <Compile Include="Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
+    <Compile Include="Workspace\Host\ParseOptions\IParseOptionsService.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.WorkspaceTaskScheduler.cs" />
     <Compile Include="Tags\WellKnownTags.cs" />
     <Compile Include="Workspace\Solution\Checksum.cs" />

@@ -6,6 +6,10 @@
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Default = 0 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> String
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(version As String, ByRef result As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.AsClause() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleAsClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.Identifier() -> Microsoft.CodeAnalysis.SyntaxToken

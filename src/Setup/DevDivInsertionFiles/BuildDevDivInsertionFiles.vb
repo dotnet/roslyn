@@ -1,17 +1,10 @@
-﻿Imports <xmlns:wix="http://schemas.microsoft.com/wix/2006/wi">
-Imports <xmlns:msbuild="http://schemas.microsoft.com/developer/msbuild/2003">
-Imports <xmlns:vsix="http://schemas.microsoft.com/developer/vsx-schema/2011">
-Imports <xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
-Imports System.IO.Packaging
+﻿Imports System.IO.Packaging
 Imports System.IO
 Imports System.Threading
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 Imports System.Reflection.PortableExecutable
 Imports System.Reflection.Metadata
-Imports Roslyn.BuildDevDivInsertionFiles
-Imports System.Security.Cryptography
-Imports System.Text
 Imports System.Runtime.InteropServices
 
 Public Class BuildDevDivInsertionFiles
@@ -323,6 +316,7 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
         "Microsoft.CodeAnalysis.Workspaces.dll",
         "Microsoft.DiaSymReader.dll",
+        "Microsoft.DiaSymReader.Converter.Xml.dll",
         "Microsoft.DiaSymReader.Native.amd64.dll",
         "Microsoft.DiaSymReader.Native.x86.dll",
         "Microsoft.DiaSymReader.PortablePdb.dll",
@@ -720,7 +714,7 @@ Public Class BuildDevDivInsertionFiles
     Private Sub ParseSwrFile(path As String, <Out> ByRef version As Version, <Out> ByRef files As IEnumerable(Of String))
         Dim lines = File.ReadAllLines(path)
 
-        version = Version.Parse(lines.Single(Function(line) line.TrimStart().StartsWith("version=")).Split("="c)(1))
+        version = version.Parse(lines.Single(Function(line) line.TrimStart().StartsWith("version=")).Split("="c)(1))
         files = (From line In lines Where line.TrimStart().StartsWith("file")).ToArray()
     End Sub
 
@@ -859,6 +853,8 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\EditorServicesTest\Esent.Interop.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
         add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
+        add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.PortablePdb.dll")
+        add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Converter.Xml.dll")
         add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.dll")
         add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Native.amd64.dll")
         add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Native.x86.dll")
@@ -1039,6 +1035,10 @@ Public Class BuildDevDivInsertionFiles
         ' No duplicates are allowed
         filesToInsert.GroupBy(Function(x) x).All(Function(g) g.Count() = 1)
 
+        Dim outputFolder = GetAbsolutePathInOutputDirectory(PackageName)
+
+        Directory.CreateDirectory(outputFolder)
+
         ' Write an Init.cmd that sets DEVPATH to the toolset location. This overrides
         ' assembly loading during the VS build to always look in the Roslyn toolset
         ' first. This is necessary because there are various incompatible versions
@@ -1050,8 +1050,24 @@ set RoslynToolsRoot=%~dp0
 set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
 
         File.WriteAllText(
-            Path.Combine(_binDirectory, "Init.cmd"),
+            Path.Combine(outputFolder, "Init.cmd"),
             fileContents)
+
+        ' Copy all dependent compiler files to the output directory
+        ' It is most important to have isolated copies of the compiler
+        ' exes (csc, vbc, vbcscompiler) since we are going to mark them
+        ' 32-bit only to work around problems with the VS build.
+        ' These binaries should never ship anywhere other than the VS toolset
+        ' See https://github.com/dotnet/roslyn/issues/17864
+        For Each fileName In filesToInsert
+            Dim srcPath = Path.Combine(_binDirectory, GetMappedPath(fileName))
+            Dim dstPath = Path.Combine(outputFolder, fileName)
+            File.Copy(srcPath, dstPath)
+
+            If Path.GetExtension(fileName) = ".exe" Then
+                MarkFile32BitPref(dstPath)
+            End If
+        Next
 
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
                   <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
@@ -1066,11 +1082,34 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
                           <file src="Init.cmd"/>
                           <%= filesToInsert.
                               OrderBy(Function(f) f).
-                              Select(Function(f) <file src=<%= GetMappedPath(f) %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
+                              Select(Function(f) <file src=<%= f %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
                       </files>
                   </package>
 
-        xml.Save(GetAbsolutePathInOutputDirectory(PackageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
+        xml.Save(Path.Combine(outputFolder, PackageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
+    End Sub
+
+    Private Sub MarkFile32BitPref(filePath As String)
+        Const OffsetFromStartOfCorHeaderToFlags = 4 + ' byte count 
+                                                  2 + ' Major version
+                                                  2 + ' Minor version
+                                                  8   ' Metadata directory
+
+        Using stream As FileStream = File.Open(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read)
+            Using reader As PEReader = New PEReader(stream)
+                Dim newFlags As Int32 = reader.PEHeaders.CorHeader.Flags Or
+                                        CorFlags.Prefers32Bit Or
+                                        CorFlags.Requires32Bit ' CLR requires both req and pref flags to be set
+
+                Using writer = New BinaryWriter(stream)
+                    Dim mdReader = reader.GetMetadataReader()
+                    stream.Position = reader.PEHeaders.CorHeaderStartOffset + OffsetFromStartOfCorHeaderToFlags
+
+                    writer.Write(newFlags)
+                    writer.Flush()
+                End Using
+            End Using
+        End Using
     End Sub
 
     Private Function IsLanguageServiceRegistrationFile(fileName As String) As Boolean

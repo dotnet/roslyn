@@ -101,7 +101,8 @@ End Class
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"), 
+         Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void CheckFoldersPopulateComboBox()
         {
             VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, @"folder1\folder2\GenerateTypeTests.vb", open: true);

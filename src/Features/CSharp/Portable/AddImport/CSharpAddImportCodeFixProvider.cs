@@ -205,9 +205,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     {
                         break;
                     }
-                    else if (node is MemberBindingExpressionSyntax)
+                    else if (node is MemberBindingExpressionSyntax memberBindingExpr)
                     {
-                        node = (node as MemberBindingExpressionSyntax).Name;
+                        node = memberBindingExpr.Name;
                     }
                     break;
                 case CS1929:

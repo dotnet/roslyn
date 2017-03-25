@@ -279,6 +279,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             out SyntaxNode newRoot, out SyntaxNode newContextNode);
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
+
+        ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
+
+        bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
+        bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
     }
 
     [Flags]

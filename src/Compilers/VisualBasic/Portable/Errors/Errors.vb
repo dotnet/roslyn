@@ -753,7 +753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         'ERR_UnableToCreateMetaDataAPI = 31024
         'ERR_UnableToOpenFile1 = 31027
         ERR_EventHandlerSignatureIncompatible2 = 31029
-        ERR_ProjectCCError1 = 31030
+        ERR_ConditionalCompilationConstantNotValid = 31030
         'ERR_ProjectCCError0 = 31031
         ERR_InterfaceImplementedTwice1 = 31033
         ERR_InterfaceNotImplemented1 = 31035
@@ -1725,8 +1725,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_BadAssemblyName = 37283
 
         ERR_Merge_conflict_marker_encountered = 37284
-        ERR_NoRefOutWhenRefOnly = 37285
-        ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 37286
+
+        ERR_BadSourceCodeKind = 37285
+        ERR_BadDocumentationMode = 37286
+        ERR_BadLanguageVersion = 37287
+        ERR_InvalidPreprocessorConstantType = 37288
+
+        ERR_NoRefOutWhenRefOnly = 37300
+        ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 37301
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -1970,7 +1976,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         IDS_LogoLine1 = 56007
         IDS_LogoLine2 = 56008
         IDS_VBCHelp = 56009
-        IDS_InvalidPreprocessorConstantType = 56010
+        ' available: 56010
         IDS_ToolName = 56011
 
         ' Feature codes

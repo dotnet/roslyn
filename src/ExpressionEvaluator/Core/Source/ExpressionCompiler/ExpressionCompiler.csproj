@@ -29,6 +29,7 @@
     <Compile Include="DynamicFlagsCustomTypeInfo.cs" />
     <Compile Include="EESymbolProvider.cs" />
     <Compile Include="ILSpan.cs" />
+    <Compile Include="MetadataUtilities_Exceptions.cs" />
     <Compile Include="NotImplementedMetadataException.cs" />
     <Compile Include="PDB\MethodDebugInfo.Native.cs" />
     <Compile Include="PDB\MethodDebugInfo.Portable.cs" />
@@ -77,6 +78,7 @@
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.ProductionBreakpoints.CodeAnalysis" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\WindowsProxy.winmd" />

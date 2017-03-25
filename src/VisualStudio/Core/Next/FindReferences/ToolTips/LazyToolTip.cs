@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
@@ -16,17 +17,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
             private readonly Func<DisposableToolTip> _createToolTip;
-            private readonly TextBlock _textBlock;
+            private readonly FrameworkElement _element;
 
             private DisposableToolTip _disposableToolTip;
 
             private LazyToolTip(
-                TextBlock textBlock,
+                FrameworkElement element,
                 Func<DisposableToolTip> createToolTip)
             {
                 _foregroundObject.AssertIsForeground();
 
-                _textBlock = textBlock;
+                _element = element;
                 _createToolTip = createToolTip;
 
                 // Set ourselves as the tooltip of this text block.  This will let WPF know that 
@@ -35,26 +36,26 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // out ourselves with a real tooltip that is lazily created.  When that tooltip
                 // is the dismissed, we'll release the resources associated with it and we'll
                 // reattach ourselves.
-                _textBlock.ToolTip = this;
+                _element.ToolTip = this;
 
-                textBlock.ToolTipOpening += this.OnToolTipOpening;
-                textBlock.ToolTipClosing += this.OnToolTipClosing;
+                element.ToolTipOpening += this.OnToolTipOpening;
+                element.ToolTipClosing += this.OnToolTipClosing;
             }
 
-            public static void AttachTo(TextBlock textBlock, Func<DisposableToolTip> createToolTip)
+            public static void AttachTo(FrameworkElement element, Func<DisposableToolTip> createToolTip)
             {
-                new LazyToolTip(textBlock, createToolTip);
+                new LazyToolTip(element, createToolTip);
             }
 
             private void OnToolTipOpening(object sender, ToolTipEventArgs e)
             {
                 _foregroundObject.AssertIsForeground();
 
-                Debug.Assert(_textBlock.ToolTip == this);
+                Debug.Assert(_element.ToolTip == this);
                 Debug.Assert(_disposableToolTip == null);
 
                 _disposableToolTip = _createToolTip();
-                _textBlock.ToolTip = _disposableToolTip.ToolTip;
+                _element.ToolTip = _disposableToolTip.ToolTip;
             }
 
             private void OnToolTipClosing(object sender, ToolTipEventArgs e)
@@ -62,9 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _foregroundObject.AssertIsForeground();
 
                 Debug.Assert(_disposableToolTip != null);
-                Debug.Assert(_textBlock.ToolTip == _disposableToolTip.ToolTip);
+                Debug.Assert(_element.ToolTip == _disposableToolTip.ToolTip);
 
-                _textBlock.ToolTip = this;
+                _element.ToolTip = this;
 
                 _disposableToolTip.Dispose();
                 _disposableToolTip = null;

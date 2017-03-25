@@ -134,9 +134,13 @@
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
     <Compile Include="AddConstructorParametersFromMembers\State.cs" />
+    <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersOptions.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorWithDialogCodeAction.cs" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\FormatLargeBinaryExpressionRule.cs" />
+    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersOptions.cs" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndHashWithDialogCodeAction.cs" />
+    <Compile Include="GenerateOverrides\GenerateOverridesWithDialogCodeAction.cs" />
+    <Compile Include="GenerateOverrides\GenerateOverridesCodeRefactoringProvider.cs" />
     <Compile Include="PickMembers\IPickMembersService.cs" />
     <Compile Include="PickMembers\PickMembersResult.cs" />
     <Compile Include="GenerateFromMembers\SelectedMemberInfo.cs" />
@@ -167,6 +171,7 @@
     <Compile Include="TodoComments\AbstractTodoCommentService.cs" />
     <Compile Include="TodoComments\IRemoteTodoCommentService.cs" />
     <Compile Include="TodoComments\ITodoCommentService.cs" />
+    <Compile Include="UpgradeProject\AbstractUpgradeProjectCodeFixProvider.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
