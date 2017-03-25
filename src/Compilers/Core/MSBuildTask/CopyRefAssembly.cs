@@ -10,10 +10,10 @@ using Microsoft.Build.Utilities;
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
-    /// If the source and destination ref assemblies are different,
-    /// this task copies the source over to the destination.
+    /// By default, this task copies the source over to the destination. 
+    /// But if we're able to check that they are identical, the destination is left untouched.
     /// </summary>
-    public class CopyRefAssembly : Task
+    public sealed class CopyRefAssembly : Task
     {
         [Required]
         public string SourcePath { get; set; }
