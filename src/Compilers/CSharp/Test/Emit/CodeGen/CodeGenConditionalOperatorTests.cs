@@ -2326,5 +2326,53 @@ static class LiveList
 
             CompileAndVerify(source);
         }
+
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void TestConditionalOperatorNotLvalue()
+        {
+            var source = @"
+    class Program
+    {
+
+        interface IIncrementable
+        {
+            int Increment();
+        }
+
+        struct S1: IIncrementable
+        {
+            public int field;
+            public int Increment() => field++;
+        }
+
+        static void Main()
+        {
+            S1 v = default(S1);
+            v.Increment();
+
+            (true ? v : default(S1)).Increment();
+
+            System.Console.WriteLine(v.field);
+
+            System.Console.WriteLine((true ? v : default(S1)).Increment());
+
+            System.Console.WriteLine(v.field);
+
+            Test(ref v);
+            System.Console.WriteLine(v.field);
+        }
+
+        static void Test<T>(ref T arg) where T:IIncrementable
+        {
+            (true ? arg : default(T)).Increment();
+        }
+    }
+";
+            string expectedOutput = @"1
+1
+1
+1";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
     }
 }

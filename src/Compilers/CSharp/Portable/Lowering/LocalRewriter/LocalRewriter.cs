@@ -498,5 +498,75 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rhs = assignment.Right;
             return rhs.IsDefaultValue();
         }
+
+        /// <summary>
+        /// Receivers of struct methods are alowed to be RValues or LValues.
+        /// Whether the mutations from the method are propagated back to the 
+        /// receiver instance is conditional on whether the receiver is an LValue.
+        /// 
+        /// An inconvenient situation may arise when an the receiver is an RValue expression,
+        /// which is trivially reduced during lowering to one of its operands and 
+        /// such operand happens to be an LValue. That operation alone would 
+        /// expose the operand to mutations while it would not be exposed otherwise.
+        /// I.E. the transformation becomes semantically observable.
+        /// 
+        /// To prevent such situations, we will wrap the operand into a node whose only 
+        /// purpose is to never be an LValue.
+        /// </summary>
+        private static BoundExpression EnsureNotLvalueReceiver(BoundExpression expr)
+        {
+            // Leave as-is where receiver mutations cannot happen.
+            if (!ReceiverCanBeAssigned(expr))
+            {
+                return expr;
+            }
+
+            // - reference type receivers are byval
+            // - special value types do not have mutating members
+            var type = expr.Type.OriginalDefinition;
+            if (type.IsReferenceType || type.SpecialType != SpecialType.None)
+            {
+                return expr;
+            }
+
+            return new BoundConversion(
+                expr.Syntax,
+                expr,
+                Conversion.IdentityValue,
+                @checked: false,
+                explicitCastInCode: true,
+                constantValueOpt: null,
+                type: expr.Type)
+            { WasCompilerGenerated = true };
+        }
+
+        internal static bool ReceiverCanBeAssigned(BoundExpression receiver)
+        {
+            // - reference type receivers are byval
+            // - special value types (int32, Nullable<T>, . .) do not have mutating members
+            if (receiver.Type.IsReferenceType ||
+                receiver.Type.OriginalDefinition.SpecialType != SpecialType.None)
+            {
+                return false;
+            }
+
+            switch (receiver.Kind)
+            {
+                case BoundKind.Parameter:
+                case BoundKind.Local:
+                case BoundKind.ArrayAccess:
+                case BoundKind.ThisReference:
+                case BoundKind.BaseReference:
+                case BoundKind.PointerIndirectionOperator:
+                case BoundKind.RefValueOperator:
+                case BoundKind.FieldAccess:
+                    return true;
+
+                case BoundKind.Call:
+                    return ((BoundCall)receiver).Method.RefKind != RefKind.None;
+            }
+
+            return false;
+        }
     }
 }
