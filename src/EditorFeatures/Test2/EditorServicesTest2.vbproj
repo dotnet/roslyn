@@ -195,6 +195,7 @@
     <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
     <Compile Include="IntelliSense\CompletionServiceTests.vb" />
     <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests_Projections.vb" />
+    <Compile Include="IntelliSense\VisualBasicCompletionCommandHandlerTests_XmlDoc.vb" />
     <Compile Include="InteractivePaste\InteractivePasteCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CompletionRulesTests.vb" />
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
