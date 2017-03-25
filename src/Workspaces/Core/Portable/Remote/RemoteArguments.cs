@@ -52,7 +52,11 @@ namespace Microsoft.CodeAnalysis.Remote
             var projectId = ProjectId;
             var project = solution.GetProject(projectId);
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = SymbolKey.Resolve(SymbolKeyData, compilation, cancellationToken: cancellationToken).GetAnySymbol();
+
+            // The server and client should both be talking about the same compilation.  As such
+            // locations in symbols are save to resolve as we rehydrate the SymbolKey.
+            var symbol = SymbolKey.Resolve(
+                SymbolKeyData, compilation, resolveLocations: true, cancellationToken: cancellationToken).GetAnySymbol();
             Debug.Assert(symbol != null, "We should always be able to resolve a symbol back on the host side.");
             return new SymbolAndProjectId(symbol, projectId);
         }

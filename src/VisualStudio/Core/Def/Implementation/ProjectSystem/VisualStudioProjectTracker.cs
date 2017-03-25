@@ -761,14 +761,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectContext.AddAdditionalFile(sourceFile.Path);
             }
 
+            var metadataReferences = commandLineArguments.ResolveMetadataReferences(project.CurrentCompilationOptions.MetadataReferenceResolver).AsImmutable();
             var addedProjectReferences = new HashSet<string>();
             foreach (var projectReferencePath in projectInfo.ReferencedProjectFilePaths)
             {
-                // NOTE: ImmutableProjects might contain projects for other languages like
-                // Xaml, or Typescript where the project file ends up being identical.
-                var referencedProject = ImmutableProjects.SingleOrDefault(
-                    p => (p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
-                         && StringComparer.OrdinalIgnoreCase.Equals(p.ProjectFilePath, projectReferencePath));
+                var referencedProject = TryFindExistingProjectForProjectReference(projectReferencePath, metadataReferences);
                 if (referencedProject == null)
                 {
                     referencedProject = GetOrCreateProjectFromArgumentsAndReferences(
@@ -809,15 +806,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            foreach (var reference in commandLineArguments.ResolveMetadataReferences(project.CurrentCompilationOptions.MetadataReferenceResolver))
+            foreach (var reference in metadataReferences)
             {
-                // Some references may fail to be resolved - if they are, we'll still pass them
-                // through, in case they come into existence later (they may be built by other 
-                // parts of the build system).
-                var unresolvedReference = reference as UnresolvedMetadataReference;
-                var path = unresolvedReference == null
-                    ? ((PortableExecutableReference)reference).FilePath
-                    : unresolvedReference.Reference;
+                var path = GetReferencePath(reference);
                 if (targetPathsToProjectPaths.TryGetValue(path, out var possibleProjectReference) &&
                     addedProjectReferences.Contains(possibleProjectReference))
                 {
@@ -842,6 +833,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             return (AbstractProject)projectContext;
+        }
+
+        private AbstractProject TryFindExistingProjectForProjectReference(string projectReferencePath, ImmutableArray<MetadataReference> metadataReferences)
+        {
+            // NOTE: ImmutableProjects might contain projects for other languages like
+            // Xaml, or Typescript where the project file ends up being identical.
+            AbstractProject candidate = null;
+            foreach (var existingProject in ImmutableProjects)
+            {
+                if (existingProject.Language != LanguageNames.CSharp && existingProject.Language != LanguageNames.VisualBasic)
+                {
+                    continue;
+                }
+
+                if (!StringComparer.OrdinalIgnoreCase.Equals(existingProject.ProjectFilePath, projectReferencePath))
+                {
+                    continue;
+                }
+
+                // There might be multiple projects that have the same project file path and language in the case of
+                // cross-targeted .NET Core project.  To support that, we'll try to find the one with the output path
+                // that matches one of the metadata references we're trying to add.  If we don't find any, then we'll
+                // settle one with a matching project file path.
+                candidate = candidate ?? existingProject;
+                if (metadataReferences.Contains(mr => StringComparer.OrdinalIgnoreCase.Equals(GetReferencePath(mr), existingProject.BinOutputPath)))
+                {
+                    return existingProject;
+                }
+            }
+
+            return candidate;
+        }
+
+        private static string GetReferencePath(MetadataReference mr)
+        {
+            // Some references may fail to be resolved - if they are, we'll still pass them
+            // through, in case they come into existence later (they may be built by other 
+            // parts of the build system).
+            return mr is UnresolvedMetadataReference umr
+                ? umr.Reference
+                : ((PortableExecutableReference)mr).FilePath;
         }
 
         private static string GetLanguageOfProject(string projectFilename)
