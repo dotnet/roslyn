@@ -284,59 +284,37 @@ namespace Roslyn.Test.Utilities
             public static readonly ConstantSignatureVisualizer Instance = new ConstantSignatureVisualizer();
 
             public string GetArrayType(string elementType, ArrayShape shape)
-            {
-                return elementType + "[" + new string(',', shape.Rank) + "]";
-            }
+                => elementType + "[" + new string(',', shape.Rank) + "]";
 
             public string GetByReferenceType(string elementType)
-            {
-                return elementType + "&";
-            }
+                => elementType + "&";
 
             public string GetFunctionPointerType(MethodSignature<string> signature)
-            {
-                return "method-ptr";
-            }
+                => "method-ptr";
 
             public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments)
-            {
-                return genericType + "{" + string.Join(", ", typeArguments) + "}";
-            }
+                => genericType + "{" + string.Join(", ", typeArguments) + "}";
 
             public string GetGenericMethodParameter(object genericContext, int index)
-            {
-                return "!!" + index;
-            }
+                => "!!" + index;
 
             public string GetGenericTypeParameter(object genericContext, int index)
-            {
-                return "!" + index;
-            }
+                => "!" + index;
 
             public string GetModifiedType(string modifier, string unmodifiedType, bool isRequired)
-            {
-                return (isRequired ? "modreq" : "modopt") + "(" + modifier + ") " + unmodifiedType;
-            }
+                => (isRequired ? "modreq" : "modopt") + "(" + modifier + ") " + unmodifiedType;
 
             public string GetPinnedType(string elementType)
-            {
-                return "pinned " + elementType;
-            }
+                => "pinned " + elementType;
 
             public string GetPointerType(string elementType)
-            {
-                return elementType + "*";
-            }
+                => elementType + "*";
 
             public string GetPrimitiveType(PrimitiveTypeCode typeCode)
-            {
-                return typeCode.ToString();
-            }
+                => typeCode.ToString();
 
             public string GetSZArrayType(string elementType)
-            {
-                return elementType + "[]";
-            }
+                => elementType + "[]";
 
             public string GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind)
             {
@@ -378,11 +356,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        /// <summary>
-        /// Asserts that all the method bodies in the PE are empty or `throw null`, if expectEmptyOrThrowNull is true.
-        /// Asserts that none of the methods bodies are empty or `throw null`, if expectEmptyOrThrowNull is false.
-        /// </summary>
-        internal static void VerifyMethodBodies(ImmutableArray<byte> peImage, bool expectEmptyOrThrowNull)
+        internal static void VerifyMethodBodies(ImmutableArray<byte> peImage, Action<byte[]> ilValidator)
         {
             using (var peReader = new PEReader(peImage))
             {
@@ -393,19 +367,38 @@ namespace Roslyn.Test.Utilities
                     if (rva != 0)
                     {
                         var il = peReader.GetMethodBody(rva).GetILBytes();
-                        var throwNull = new[] { (byte)ILOpCode.Ldnull, (byte)ILOpCode.Throw };
-
-                        if (expectEmptyOrThrowNull)
-                        {
-                            AssertEx.Equal(throwNull, il);
-                        }
-                        else
-                        {
-                            AssertEx.NotEqual(throwNull, il);
-                        }
+                        ilValidator(il);
+                    }
+                    else
+                    {
+                        ilValidator(null);
                     }
                 }
             }
+        }
+
+        static readonly byte[] ThrowNull = new[] { (byte)ILOpCode.Ldnull, (byte)ILOpCode.Throw };
+
+        internal static void AssertEmptyOrThrowNull(ImmutableArray<byte> peImage)
+        {
+            VerifyMethodBodies(peImage, (il) =>
+            {
+                if (il != null)
+                {
+                    AssertEx.Equal(ThrowNull, il);
+                }
+            });
+        }
+
+        internal static void AssertNotThrowNull(ImmutableArray<byte> peImage)
+        {
+            VerifyMethodBodies(peImage, (il) =>
+            {
+                if (il != null)
+                {
+                    AssertEx.NotEqual(ThrowNull, il);
+                }
+            });
         }
     }
 }

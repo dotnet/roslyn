@@ -339,7 +339,7 @@ public abstract class PublicClass
                     "System.Diagnostics.DebuggableAttribute" });
 
             var peImage = comp.EmitToArray(emitRefOnly);
-            MetadataReaderUtils.VerifyMethodBodies(peImage, expectEmptyOrThrowNull: true);
+            MetadataReaderUtils.AssertEmptyOrThrowNull(peImage);
         }
         [Fact]
         public void EmitMetadataOnly_DisallowPdbs()
@@ -364,7 +364,7 @@ public abstract class PublicClass
             using (var output = new MemoryStream())
             using (var metadataPeOutput = new MemoryStream())
             {
-                Assert.Throws<ArgumentException>(() => comp.Emit(output, metadataPeStream: metadataPeOutput,
+                Assert.Throws<ArgumentException>(() => comp.Emit(output, metadataPEStream: metadataPeOutput,
                     options: EmitOptions.Default.WithEmitMetadataOnly(true)));
             }
         }
@@ -378,7 +378,7 @@ public abstract class PublicClass
             using (var output = new MemoryStream())
             using (var metadataPeOutput = new MemoryStream())
             {
-                Assert.Throws<ArgumentException>(() => comp.Emit(output, metadataPeStream: metadataPeOutput,
+                Assert.Throws<ArgumentException>(() => comp.Emit(output, metadataPEStream: metadataPeOutput,
                     options: EmitOptions.Default));
             }
         }
@@ -393,6 +393,46 @@ public abstract class PublicClass
             {
                 Assert.Throws<ArgumentException>(() => comp.Emit(output,
                     options: EmitOptions.Default.WithEmitMetadataOnly(true)));
+            }
+        }
+
+        [Fact]
+        public void EmitMetadata_AllowEmbedding()
+        {
+            CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll);
+
+            using (var output = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
+            {
+                var result = comp.Emit(output, metadataPEStream: metadataOutput,
+                    options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded));
+
+                VerifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.EmbeddedPortablePdb });
+                VerifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { });
+            }
+
+            void VerifyEmbeddedDebugInfo(MemoryStream stream, DebugDirectoryEntryType[] expected)
+            {
+                using (var peReader = new PEReader(stream.ToImmutable()))
+                {
+                    var entries = peReader.ReadDebugDirectory();
+                    AssertEx.Equal(expected, entries.Select(e => e.Type));
+                }
+            }
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_DisallowEmbedding()
+        {
+            CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll);
+
+            using (var output = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output,
+                    options: EmitOptions.Default.WithEmitMetadataOnly(true)
+                        .WithDebugInformationFormat(DebugInformationFormat.Embedded)));
             }
         }
 
@@ -412,17 +452,17 @@ public abstract class PublicClass
             using (var pdbOutput = new MemoryStream())
             using (var metadataOutput = new MemoryStream())
             {
-                var result = comp.Emit(output, pdbOutput, metadataPeStream: metadataOutput);
+                var result = comp.Emit(output, pdbOutput, metadataPEStream: metadataOutput);
                 Assert.True(result.Success);
                 Assert.NotEqual(0, output.Position);
                 Assert.NotEqual(0, pdbOutput.Position);
                 Assert.NotEqual(0, metadataOutput.Position);
-                MetadataReaderUtils.VerifyMethodBodies(ImmutableArray.CreateRange(output.GetBuffer()), expectEmptyOrThrowNull: false);
-                MetadataReaderUtils.VerifyMethodBodies(ImmutableArray.CreateRange(metadataOutput.GetBuffer()), expectEmptyOrThrowNull: true);
+                MetadataReaderUtils.AssertNotThrowNull(ImmutableArray.CreateRange(output.GetBuffer()));
+                MetadataReaderUtils.AssertEmptyOrThrowNull(ImmutableArray.CreateRange(metadataOutput.GetBuffer()));
             }
 
             var peImage = comp.EmitToArray();
-            MetadataReaderUtils.VerifyMethodBodies(peImage, expectEmptyOrThrowNull: false);
+            MetadataReaderUtils.AssertNotThrowNull(peImage);
         }
 
         /// <summary>

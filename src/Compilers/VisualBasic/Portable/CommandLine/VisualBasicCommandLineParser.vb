@@ -1413,7 +1413,7 @@ lVbRuntimePlus:
                 .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
                 .TouchedFilesPath = touchedFilesPath,
                 .OutputLevel = outputLevel,
-                .EmitPdb = emitPdb AndAlso Not metadataOnly,
+                .EmitPdb = emitPdb AndAlso Not metadataOnly, ' Silently ignore emitPdb when metadataOnly is set
                 .SourceLink = sourceLink,
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,

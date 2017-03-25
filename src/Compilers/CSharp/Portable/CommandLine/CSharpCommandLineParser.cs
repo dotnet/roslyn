@@ -1322,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OutputFileName = outputFileName,
                 OutputRefFilePath = outputRefFilePath,
                 PdbPath = pdbPath,
-                EmitPdb = emitPdb && !metadataOnly,
+                EmitPdb = emitPdb && !metadataOnly, // silently ignore emitPdb when metadataOnly is set
                 SourceLink = sourceLink,
                 OutputDirectory = outputDirectory,
                 DocumentationPath = documentationPath,

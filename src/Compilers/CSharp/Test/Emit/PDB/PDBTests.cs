@@ -134,7 +134,7 @@ public class C
             {
                 var result = compilation.Emit(
                     peStream: peStream,
-                    metadataPeStream: null,
+                    metadataPEStream: null,
                     pdbStream: pdbStream,
                     xmlDocumentationStream: null,
                     cancellationToken: default(CancellationToken),
@@ -168,7 +168,7 @@ public class C
             {
                 var result = compilation.Emit(
                     peStream: peStream,
-                    metadataPeStream: null,
+                    metadataPEStream: null,
                     pdbStream: pdbStream,
                     xmlDocumentationStream: null,
                     cancellationToken: default(CancellationToken),
@@ -202,7 +202,7 @@ public class C
             {
                 var result = compilation.Emit(
                     peStream: peStream,
-                    metadataPeStream: null,
+                    metadataPEStream: null,
                     pdbStream: pdbStream,
                     xmlDocumentationStream: null,
                     cancellationToken: default(CancellationToken),
