@@ -19,6 +19,7 @@
                   @(EmbeddedFiles)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
+                   @(IntermediateRefAssembly);
                    @(_DebugSymbolsIntermediatePath);
                    $(NonExistentFile);
                    @(CustomAdditionalCompileOutputs)"
@@ -102,6 +103,7 @@
          OptionStrict="$(OptionStrict)"
          OptionStrictType="$(OptionStrictType)"
          OutputAssembly="@(IntermediateAssembly)"
+         OutputRefAssembly="@(IntermediateRefAssembly)"
          PdbFile="$(PdbFile)"
          Platform="$(PlatformTarget)"
          Prefer32Bit="$(Prefer32Bit)"

@@ -71,6 +71,34 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to check the content hash of the destination ref assembly &apos;{0}&apos;. It will be overwritten..
+        /// </summary>
+        internal static string CopyRefAssembly_BadDestination1 {
+            get {
+                return ResourceManager.GetString("CopyRefAssembly_BadDestination1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to check the content hash of the source ref assembly &apos;{0}&apos;: {1}
+        ///{2}.
+        /// </summary>
+        internal static string CopyRefAssembly_BadSource3 {
+            get {
+                return ResourceManager.GetString("CopyRefAssembly_BadSource3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference assembly &quot;{0}&quot; already has latest information. Leaving it untouched..
+        /// </summary>
+        internal static string CopyRefAssembly_SkippingCopy1 {
+            get {
+                return ResourceManager.GetString("CopyRefAssembly_SkippingCopy1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MSB3053: The assembly alias &quot;{1}&quot; on reference &quot;{0}&quot; contains illegal characters..
         /// </summary>
         internal static string Csc_AssemblyAliasContainsIllegalCharacters {
@@ -143,15 +171,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MSB3082: Task failed because &quot;{0}&quot; was not found..
-        /// </summary>
-        internal static string General_ToolFileNotFound {
-            get {
-                return ResourceManager.GetString("General_ToolFileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to MSB3087: An incompatible host object was passed into the &quot;{0}&quot; task.  The host object for this task must implement the &quot;{1}&quot; interface..
         /// </summary>
         internal static string General_IncorrectHostObject {
@@ -184,6 +203,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         internal static string General_ReferenceDoesNotExist {
             get {
                 return ResourceManager.GetString("General_ReferenceDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MSB3082: Task failed because &quot;{0}&quot; was not found..
+        /// </summary>
+        internal static string General_ToolFileNotFound {
+            get {
+                return ResourceManager.GetString("General_ToolFileNotFound", resourceCulture);
             }
         }
         
