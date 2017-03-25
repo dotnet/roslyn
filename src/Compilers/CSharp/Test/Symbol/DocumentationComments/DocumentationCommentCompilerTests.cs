@@ -4622,15 +4622,9 @@ class C
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
 
             var actual = GetDocumentationCommentText(comp,
-                // (2,16): warning CS0419: Ambiguous reference in cref attribute: 'M'. Assuming 'C.M(int)', but could have also matched other overloads including 'C.M(string)'.
-                // /// <see cref="M"/>
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "M").WithArguments("M", "C.M(int)", "C.M(string)"),
                 // (4,16): warning CS0419: Ambiguous reference in cref attribute: 'M{T}'. Assuming 'C.M<T>(int)', but could have also matched other overloads including 'C.M<T>(string)'.
                 // /// <see cref="M{T}"/>
                 Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "M{T}").WithArguments("M{T}", "C.M<T>(int)", "C.M<T>(string)"),
-                // (7,16): warning CS0419: Ambiguous reference in cref attribute: 'C.M'. Assuming 'C.M(int)', but could have also matched other overloads including 'C.M(string)'.
-                // /// <see cref="C.M"/>
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C.M").WithArguments("C.M", "C.M(int)", "C.M(string)"),
                 // (9,16): warning CS0419: Ambiguous reference in cref attribute: 'C.M{T}'. Assuming 'C.M<T>(int)', but could have also matched other overloads including 'C.M<T>(string)'.
                 // /// <see cref="C.M{T}"/>
                 Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C.M{T}").WithArguments("C.M{T}", "C.M<T>(int)", "C.M<T>(string)"));
@@ -4643,12 +4637,12 @@ class C
     </assembly>
     <members>
         <member name=""T:C"">
-            <see cref=""M:C.M(System.Int32)""/>
+            <see cref=""O:C.M""/>
             <see cref=""M:C.M(System.Int32)""/>
             <see cref=""M:C.M``1(System.Int32)""/>
             <see cref=""M:C.M``1(System.Int32)""/>
             
-            <see cref=""M:C.M(System.Int32)""/>
+            <see cref=""O:C.M""/>
             <see cref=""M:C.M(System.Int32)""/>
             <see cref=""M:C.M``1(System.Int32)""/>
             <see cref=""M:C.M``1(System.Int32)""/>
@@ -4685,18 +4679,12 @@ class C
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
 
             var actual = GetDocumentationCommentText(comp,
-                // (2,16): warning CS0419: Ambiguous reference in cref attribute: 'M'. Assuming 'C.M<T>(int)', but could have also matched other overloads including 'C.M<T>(string)'.
-                // /// <see cref="M"/>
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "M").WithArguments("M", "C.M<T>(int)", "C.M<T>(string)"),
                 // (3,16): warning CS0419: Ambiguous reference in cref attribute: 'M(int)'. Assuming 'C.M<T>(int)', but could have also matched other overloads including 'C.M<T, U>(int)'.
                 // /// <see cref="M(int)"/>
                 Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "M(int)").WithArguments("M(int)", "C.M<T>(int)", "C.M<T, U>(int)"),
                 // (4,16): warning CS0419: Ambiguous reference in cref attribute: 'M{T}'. Assuming 'C.M<T>(int)', but could have also matched other overloads including 'C.M<T>(string)'.
                 // /// <see cref="M{T}"/>
                 Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "M{T}").WithArguments("M{T}", "C.M<T>(int)", "C.M<T>(string)"),
-                // (7,16): warning CS0419: Ambiguous reference in cref attribute: 'C.M'. Assuming 'C.M<T>(int)', but could have also matched other overloads including 'C.M<T>(string)'.
-                // /// <see cref="C.M"/>
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C.M").WithArguments("C.M", "C.M<T>(int)", "C.M<T>(string)"),
                 // (8,16): warning CS0419: Ambiguous reference in cref attribute: 'C.M(int)'. Assuming 'C.M<T>(int)', but could have also matched other overloads including 'C.M<T, U>(int)'.
                 // /// <see cref="C.M(int)"/>
                 Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C.M(int)").WithArguments("C.M(int)", "C.M<T>(int)", "C.M<T, U>(int)"),
@@ -4712,12 +4700,12 @@ class C
     </assembly>
     <members>
         <member name=""T:C"">
-            <see cref=""M:C.M``1(System.Int32)""/>
+            <see cref=""O:C.M""/>
             <see cref=""M:C.M``1(System.Int32)""/>
             <see cref=""M:C.M``1(System.Int32)""/>
             <see cref=""M:C.M``1(System.Int32)""/>
             
-            <see cref=""M:C.M``1(System.Int32)""/>
+            <see cref=""O:C.M""/>
             <see cref=""M:C.M``1(System.Int32)""/>
             <see cref=""M:C.M``1(System.Int32)""/>
             <see cref=""M:C.M``1(System.Int32)""/>
@@ -4751,10 +4739,7 @@ class C
 ";
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
 
-            var actual = GetDocumentationCommentText(comp,
-                // (5,16): warning CS0419: Ambiguous reference in cref attribute: 'N'. Assuming 'C.N(int)', but could have also matched other overloads including 'C.N(string)'.
-                // /// <see cref="N"/>
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "N").WithArguments("N", "C.N(int)", "C.N(string)"));
+            var actual = GetDocumentationCommentText(comp);
 
             var expected = @"
 <?xml version=""1.0""?>
@@ -4764,10 +4749,10 @@ class C
     </assembly>
     <members>
         <member name=""T:C"">
-            <see cref=""M:C.M(System.Int32)""/>
+            <see cref=""O:C.M""/>
             <see cref=""M:C.M(System.Int32)""/>
             
-            <see cref=""M:C.N(System.Int32)""/>
+            <see cref=""O:C.N""/>
             <see cref=""M:C.N(System.Int32)""/>
         </member>
     </members>
@@ -6053,7 +6038,6 @@ class C
         [Fact]
         public void Dev10_785160()
         {
-            // Someone suggested preferring the more public member in case of ambiguity, but it was not implemented.
             var source = @"
 /// <see cref='M'/>
 class C
@@ -6063,10 +6047,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
-            var actual = GetDocumentationCommentText(comp,
-                // (2,16): warning CS0419: Ambiguous reference in cref attribute: 'M'. Assuming 'C.M(char)', but could have also matched other overloads including 'C.M(int)'.
-                // /// <see cref='M'/>
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "M").WithArguments("M", "C.M(char)", "C.M(int)"));
+            var actual = GetDocumentationCommentText(comp);
             var expected = @"
 <?xml version=""1.0""?>
 <doc>
@@ -6075,7 +6056,7 @@ class C
     </assembly>
     <members>
         <member name=""T:C"">
-            <see cref='M:C.M(System.Char)'/>
+            <see cref='O:C.M'/>
         </member>
     </members>
 </doc>

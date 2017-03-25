@@ -579,42 +579,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             out Symbol ambiguityWinner,
             DiagnosticBag diagnostics)
         {
-            // If the syntax indicates arity zero, then we match methods of any arity.
-            // However, if there are both generic and non-generic methods, then the
-            // generic methods should be ignored.
-            if (symbols.Length > 1 && arity == 0)
-            {
-                bool hasNonGenericMethod = false;
-                bool hasGenericMethod = false;
-                foreach (Symbol s in symbols)
-                {
-                    if (s.Kind != SymbolKind.Method)
-                    {
-                        continue;
-                    }
-
-                    if (((MethodSymbol)s).Arity == 0)
-                    {
-                        hasNonGenericMethod = true;
-                    }
-                    else
-                    {
-                        hasGenericMethod = true;
-                    }
-
-                    if (hasGenericMethod && hasNonGenericMethod)
-                    {
-                        break; //Nothing else to be learned.
-                    }
-                }
-
-                if (hasNonGenericMethod && hasGenericMethod)
-                {
-                    symbols = symbols.WhereAsArray(s =>
-                        s.Kind != SymbolKind.Method || ((MethodSymbol)s).Arity == 0);
-                }
-            }
-
             Debug.Assert(!symbols.IsEmpty);
 
             Symbol symbol = symbols[0];
@@ -654,9 +618,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (secondBest.IsFromCompilation == best.IsFromCompilation)
                 {
-                    CrefSyntax crefSyntax = GetRootCrefSyntax(memberSyntax);
-                    int otherIndex = symbolIndex == 0 ? 1 : 0;
-                    diagnostics.Add(ErrorCode.WRN_AmbiguousXMLReference, crefSyntax.Location, crefSyntax.ToString(), symbol, symbols[otherIndex]);
+                    // Overloads are supported, but only when resolving method symbols, and only when no parameters or
+                    // type parameters are specified.
+                    if (arity != 0 || !symbols.All(SymbolKind.Method))
+                    {
+                        CrefSyntax crefSyntax = GetRootCrefSyntax(memberSyntax);
+                        int otherIndex = symbolIndex == 0 ? 1 : 0;
+                        diagnostics.Add(ErrorCode.WRN_AmbiguousXMLReference, crefSyntax.Location, crefSyntax.ToString(), symbol, symbols[otherIndex]);
+                    }
 
                     ambiguityWinner = ConstructWithCrefTypeParameters(arity, typeArgumentListSyntax, symbol);
                     return symbols.SelectAsArray(sym => ConstructWithCrefTypeParameters(arity, typeArgumentListSyntax, sym));

@@ -39,6 +39,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbol is NamedTypeSymbol && (object)symbol.ContainingType != null;
         }
 
+        public static bool All<T>(this ImmutableArray<T> array, SymbolKind kind)
+            where T : Symbol
+        {
+            for (int i = 0, n = array.Length; i < n; i++)
+            {
+                var item = array[i];
+                if (item?.Kind != kind)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public static bool Any<T>(this ImmutableArray<T> array, SymbolKind kind)
             where T : Symbol
         {

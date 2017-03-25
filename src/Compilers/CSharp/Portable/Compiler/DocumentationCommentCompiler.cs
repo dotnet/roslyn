@@ -961,6 +961,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     symbol = ambiguityWinner;
                     Debug.Assert((object)symbol != null);
+
+                    // If all of the symbols are methods and no type arguments or parameters were specified, there is no
+                    // need to disambiguate.
+                    MemberCrefSyntax memberCrefSyntax = crefSyntax as MemberCrefSyntax
+                        ?? (crefSyntax as QualifiedCrefSyntax)?.Member;
+                    if (memberCrefSyntax is NameMemberCrefSyntax nameMemberCrefSyntax
+                        && nameMemberCrefSyntax.Parameters is null
+                        && nameMemberCrefSyntax.Name is SimpleNameSyntax simpleNameSyntax
+                        && simpleNameSyntax.Arity == 0)
+                    {
+                        if (symbols.All(SymbolKind.Method))
+                        {
+                            var pool = PooledStringBuilder.GetInstance();
+                            try
+                            {
+                                StringBuilder builder = pool.Builder;
+                                DocumentationCommentIDVisitor.OverloadInstance.Visit(ambiguityWinner, builder);
+                                return builder.Length == 0 ? null : builder.ToString();
+                            }
+                            finally
+                            {
+                                pool.Free();
+                            }
+                        }
+                    }
+
                     break;
             }
 

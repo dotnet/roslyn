@@ -18855,9 +18855,6 @@ public class MyClass
                 // (7,14): warning CS1591: Missing XML comment for publicly visible type or member 'MyClass'
                 // public class MyClass
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "MyClass").WithArguments("MyClass"),
-                // (9,19): warning CS0419: Ambiguous reference in cref attribute: 'I.F'. Assuming 'I.F()', but could have also matched other overloads including 'I.F(int)'.
-                //    /// <see cref="I.F"/>
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "I.F").WithArguments("I.F", "I.F()", "I.F(int)"),
                 // (13,23): warning CS1591: Missing XML comment for publicly visible type or member 'MyClass.Main()'
                 //    public static void Main ()
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "Main").WithArguments("MyClass.Main()"));
