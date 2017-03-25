@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.VisualStudio.IntegrationTests.Extensions.ErrorList;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -18,12 +19,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer
         {
             var projectReferences = test.VisualStudio.Instance.SolutionExplorer.GetProjectReferences(project.Name);
             Assert.Contains(referencedProjectName, projectReferences);
-        }
-
-        public static void VerifyNoBuildErrors(this AbstractIntegrationTest test)
-        {
-            test.BuildSolution(waitForBuildToFinish: true);
-            Assert.Equal(0, test.GetErrorListErrorCount());
         }
 
         public static void VerifyFileContents(this AbstractIntegrationTest test, ProjectUtils.Project project, string fileName, string expectedContents)

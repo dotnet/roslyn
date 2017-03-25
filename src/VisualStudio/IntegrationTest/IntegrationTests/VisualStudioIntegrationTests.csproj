@@ -23,6 +23,9 @@
     <Compile Include="AbstractInteractiveWindowTest.cs" />
     <Compile Include="CSharp\CSharpChangeSignatureDialog.cs" />
     <Compile Include="CSharp\CSharpClassification.cs" />
+    <Compile Include="CSharp\CSharpErrorListCommon.cs" />
+    <Compile Include="CSharp\CSharpErrorListDesktop.cs" />
+    <Compile Include="CSharp\CSharpErrorListNetCore.cs" />
     <Compile Include="CSharp\CSharpFindReferences.cs" />
     <Compile Include="CSharp\CSharpGenerateTypeDialog.cs" />
     <Compile Include="CSharp\CSharpInteractiveAsyncOutput.cs" />
@@ -44,10 +47,15 @@
     <Compile Include="Extensions\CommonExtensions.Verifiers.cs" />
     <Compile Include="Extensions\EditorExtensions.cs" />
     <Compile Include="Extensions\EditorExtensions.Verifiers.cs" />
+    <Compile Include="Extensions\ErrorListExtensions.Verifiers.cs" />
+    <Compile Include="Extensions\ErrorListExtensions.cs" />
     <Compile Include="Extensions\InteractiveExtensions.cs" />
     <Compile Include="Extensions\SolutionExplorerExtensions.Verifiers.cs" />
     <Compile Include="Extensions\SolutionExplorerExtensions.cs" />
     <Compile Include="Extensions\SetOptionsExtensions.cs" />
+    <Compile Include="VisualBasic\BasicErrorListCommon.cs" />
+    <Compile Include="VisualBasic\BasicErrorListDesktop.cs" />
+    <Compile Include="VisualBasic\BasicErrorListNetCore.cs" />
     <Compile Include="Workspace\WorkspaceBase.cs" />
     <Compile Include="Workspace\WorkspacesDesktop.cs" />
     <Compile Include="Workspace\WorkspacesNetCore.cs" />
