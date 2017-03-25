@@ -401,29 +401,6 @@ End Class
             Await VerifyItemExistsAsync(text, "bar")
         End Function
 
-        <WorkItem(623219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623219")>
-        <WorkItem(746919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746919")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCommitParam() As Task
-            Dim text = "
-Class C(Of T)
-    ''' <param$$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
-"
-
-            Dim expected = "
-Class C(Of T)
-    ''' <param name=""bar""$$
-    Sub Goo(Of T)(bar As T)
-    End Sub
-End Class
-"
-
-            Await VerifyCustomCommitProviderAsync(text, "param name=""bar""", expected)
-        End Function
-
         <WorkItem(623158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623158")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCloseTag() As Task
@@ -479,50 +456,6 @@ End Module
 "
 
             Await VerifyNoItemsExistAsync(text)
-        End Function
-
-        <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAllowTypingDoubleQuote() As Task
-            Dim text = "
-Class C(Of T)
-    ''' <param$$
-    Sub Goo(Of T)(bar as T)
-    End Sub
-End Class
-"
-
-            Dim expected = "$$
-Class C(Of T)
-    ''' <param
-    Sub Goo(Of T)(bar as T)
-    End Sub
-End Class
-"
-
-            Await VerifyCustomCommitProviderAsync(text, "param name=""bar""", expected, Microsoft.CodeAnalysis.SourceCodeKind.Regular, commitChar:=""""c)
-        End Function
-
-        <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAllowTypingSpace() As Task
-            Dim text = "
-Class C(Of T)
-    ''' <param$$
-    Sub Goo(Of T)(bar as T)
-    End Sub
-End Class
-"
-
-            Dim expected = "$$
-Class C(Of T)
-    ''' <param
-    Sub Goo(Of T)(bar as T)
-    End Sub
-End Class
-"
-
-            Await VerifyCustomCommitProviderAsync(text, "param name=""bar""", expected, Microsoft.CodeAnalysis.SourceCodeKind.Regular, commitChar:=" "c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -692,29 +625,6 @@ Class C
 End Class
 "
             Await VerifyItemsExistAsync(text, "number", "bullet", "table")
-        End Function
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSeeCommitOnSpace() As Task
-            Dim text = "
-Class C
-    ''' <summary>
-    ''' <$$
-    ''' </summary>
-    Sub Goo()
-    End Sub
-End Class
-"
-            Dim after = "
-Class C
-    ''' <summary>
-    ''' <see$$/>
-    ''' </summary>
-    Sub Goo()
-    End Sub
-End Class
-"
-            Await VerifyCustomCommitProviderAsync(text, "see", after, commitChar:=" "c)
         End Function
 
         <WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")>
