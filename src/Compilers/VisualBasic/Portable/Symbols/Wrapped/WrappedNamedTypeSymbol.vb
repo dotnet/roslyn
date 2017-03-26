@@ -17,193 +17,191 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class WrappedNamedTypeSymbol
         Inherits NamedTypeSymbol
 
-        Protected _underlyingType As NamedTypeSymbol
-
         Public ReadOnly Property UnderlyingNamedType As NamedTypeSymbol
-            Get
-                Return Me._underlyingType
-            End Get
-        End Property
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return Me._underlyingType.IsImplicitlyDeclared
+                Return UnderlyingNamedType.IsImplicitlyDeclared
             End Get
         End Property
 
         Public Overrides ReadOnly Property Arity As Integer
             Get
-                Return Me._underlyingType.Arity
+                Return UnderlyingNamedType.Arity
             End Get
         End Property
 
         Public Overrides ReadOnly Property MightContainExtensionMethods As Boolean
             Get
-                Return Me._underlyingType.MightContainExtensionMethods
+                Return UnderlyingNamedType.MightContainExtensionMethods
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return Me._underlyingType.Name
+                Return UnderlyingNamedType.Name
             End Get
         End Property
 
         Public Overrides ReadOnly Property MetadataName As String
             Get
-                Return Me._underlyingType.MetadataName
+                Return UnderlyingNamedType.MetadataName
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
-                Return Me._underlyingType.HasSpecialName
+                Return UnderlyingNamedType.HasSpecialName
             End Get
         End Property
 
         Friend Overrides ReadOnly Property MangleName As Boolean
             Get
-                Return Me._underlyingType.MangleName
+                Return UnderlyingNamedType.MangleName
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return Me._underlyingType.DeclaredAccessibility
+                Return UnderlyingNamedType.DeclaredAccessibility
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeKind As TypeKind
             Get
-                Return Me._underlyingType.TypeKind
+                Return UnderlyingNamedType.TypeKind
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsInterface As Boolean
             Get
-                Return Me._underlyingType.IsInterface
+                Return UnderlyingNamedType.IsInterface
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return Me._underlyingType.Locations
+                Return UnderlyingNamedType.Locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return Me._underlyingType.DeclaringSyntaxReferences
+                Return UnderlyingNamedType.DeclaringSyntaxReferences
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsMustInherit As Boolean
             Get
-                Return Me._underlyingType.IsMustInherit
+                Return UnderlyingNamedType.IsMustInherit
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotInheritable As Boolean
             Get
-                Return Me._underlyingType.IsNotInheritable
+                Return UnderlyingNamedType.IsNotInheritable
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsMetadataAbstract As Boolean
             Get
-                Return Me._underlyingType.IsMetadataAbstract
+                Return UnderlyingNamedType.IsMetadataAbstract
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsMetadataSealed As Boolean
             Get
-                Return Me._underlyingType.IsMetadataSealed
+                Return UnderlyingNamedType.IsMetadataSealed
             End Get
         End Property
 
         Friend Overrides ReadOnly Property DefaultPropertyName As String
             Get
-                Return Me._underlyingType.DefaultPropertyName
+                Return UnderlyingNamedType.DefaultPropertyName
             End Get
         End Property
 
         Friend Overrides ReadOnly Property CoClassType As TypeSymbol
             Get
-                Return Me._underlyingType.CoClassType
+                Return UnderlyingNamedType.CoClassType
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
             Get
-                Return Me._underlyingType.HasEmbeddedAttribute
+                Return UnderlyingNamedType.HasEmbeddedAttribute
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                Return Me._underlyingType.ObsoleteAttributeData
+                Return UnderlyingNamedType.ObsoleteAttributeData
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ShouldAddWinRTMembers As Boolean
             Get
-                Return Me._underlyingType.ShouldAddWinRTMembers
+                Return UnderlyingNamedType.ShouldAddWinRTMembers
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsWindowsRuntimeImport As Boolean
             Get
-                Return Me._underlyingType.IsWindowsRuntimeImport
+                Return UnderlyingNamedType.IsWindowsRuntimeImport
             End Get
         End Property
 
         Friend Overrides ReadOnly Property Layout As TypeLayout
             Get
-                Return Me._underlyingType.Layout
+                Return UnderlyingNamedType.Layout
             End Get
         End Property
 
         Friend Overrides ReadOnly Property MarshallingCharSet As CharSet
             Get
-                Return Me._underlyingType.MarshallingCharSet
+                Return UnderlyingNamedType.MarshallingCharSet
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsSerializable As Boolean
             Get
-                Return Me._underlyingType.IsSerializable
+                Return UnderlyingNamedType.IsSerializable
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasDeclarativeSecurity As Boolean
             Get
-                Return Me._underlyingType.HasDeclarativeSecurity
+                Return UnderlyingNamedType.HasDeclarativeSecurity
             End Get
         End Property
 
         Public Sub New(underlyingType As NamedTypeSymbol)
             Debug.Assert(underlyingType IsNot Nothing)
-            Me._underlyingType = underlyingType
+            UnderlyingNamedType = underlyingType
         End Sub
 
-        Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            Return Me._underlyingType.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
+        Public Overrides Function GetDocumentationCommentXml(
+                                                     Optional preferredCulture As CultureInfo = Nothing,
+                                                     Optional expandIncludes As Boolean = False,
+                                                     Optional cancellationToken As CancellationToken = Nothing
+                                                            ) As String
+            Return UnderlyingNamedType.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
 
         Friend Overrides Function GetSecurityInformation() As IEnumerable(Of SecurityAttribute)
-            Return Me._underlyingType.GetSecurityInformation()
+            Return UnderlyingNamedType.GetSecurityInformation()
         End Function
 
         Friend Overrides Function GetAppliedConditionalSymbols() As ImmutableArray(Of String)
-            Return Me._underlyingType.GetAppliedConditionalSymbols()
+            Return UnderlyingNamedType.GetAppliedConditionalSymbols()
         End Function
 
         Friend Overrides Function GetAttributeUsageInfo() As AttributeUsageInfo
-            Return Me._underlyingType.GetAttributeUsageInfo()
+            Return UnderlyingNamedType.GetAttributeUsageInfo()
         End Function
 
         Friend Overrides Function GetGuidString(<Out()> ByRef guidString As String) As Boolean
-            Return Me._underlyingType.GetGuidString(guidString)
+            Return UnderlyingNamedType.GetGuidString(guidString)
         End Function
     End Class
 End Namespace

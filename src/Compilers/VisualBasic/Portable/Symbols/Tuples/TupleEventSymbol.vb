@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Globalization
-Imports System.Threading
-Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -15,92 +12,91 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly _containingType As TupleTypeSymbol
 
-        Public Overrides ReadOnly Property IsTupleEvent As Boolean
-            Get
-                Return True
-            End Get
-        End Property
+        Public Overrides ReadOnly Property IsTupleEvent As Boolean = True
 
         Public Overrides ReadOnly Property TupleUnderlyingEvent As EventSymbol
             Get
-                Return Me._underlyingEvent
+                Return UnderlyingEvent
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return Me._containingType
+                Return _containingType
             End Get
         End Property
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                Return Me._underlyingEvent.Type
+                Return UnderlyingEvent.Type
             End Get
         End Property
 
         Public Overrides ReadOnly Property AddMethod As MethodSymbol
             Get
-                Return Me._containingType.GetTupleMemberSymbolForUnderlyingMember(Of MethodSymbol)(Me._underlyingEvent.AddMethod)
+                Return _containingType.GetTupleMemberSymbolForUnderlyingMember(UnderlyingEvent.AddMethod)
             End Get
         End Property
 
         Public Overrides ReadOnly Property RemoveMethod As MethodSymbol
             Get
-                Return Me._containingType.GetTupleMemberSymbolForUnderlyingMember(Of MethodSymbol)(Me._underlyingEvent.RemoveMethod)
+                Return _containingType.GetTupleMemberSymbolForUnderlyingMember(UnderlyingEvent.RemoveMethod)
             End Get
         End Property
 
         Friend Overrides ReadOnly Property AssociatedField As FieldSymbol
             Get
-                Return Me._containingType.GetTupleMemberSymbolForUnderlyingMember(Of FieldSymbol)(Me._underlyingEvent.AssociatedField)
+                Return _containingType.GetTupleMemberSymbolForUnderlyingMember(UnderlyingEvent.AssociatedField)
             End Get
         End Property
 
         Public Overrides ReadOnly Property RaiseMethod As MethodSymbol
             Get
-                Return Me._containingType.GetTupleMemberSymbolForUnderlyingMember(Of MethodSymbol)(Me._underlyingEvent.RaiseMethod)
+                Return _containingType.GetTupleMemberSymbolForUnderlyingMember(UnderlyingEvent.RaiseMethod)
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsExplicitInterfaceImplementation As Boolean
             Get
-                Return Me._underlyingEvent.IsExplicitInterfaceImplementation
+                Return UnderlyingEvent.IsExplicitInterfaceImplementation
             End Get
         End Property
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of EventSymbol)
             Get
-                Return Me._underlyingEvent.ExplicitInterfaceImplementations
+                Return UnderlyingEvent.ExplicitInterfaceImplementations
             End Get
         End Property
 
         Public Sub New(container As TupleTypeSymbol, underlyingEvent As EventSymbol)
             MyBase.New(underlyingEvent)
-            Me._containingType = container
+            _containingType = container
         End Sub
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
             Dim useSiteDiagnostic As DiagnosticInfo = MyBase.GetUseSiteErrorInfo
-            MyBase.MergeUseSiteErrorInfo(useSiteDiagnostic, Me._underlyingEvent.GetUseSiteErrorInfo())
+            MyBase.MergeUseSiteErrorInfo(useSiteDiagnostic, UnderlyingEvent.GetUseSiteErrorInfo())
             Return useSiteDiagnostic
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Me._underlyingEvent.GetHashCode()
+            Return UnderlyingEvent.GetHashCode()
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean
-            Return Me.Equals(TryCast(obj, TupleEventSymbol))
+            Return Equals(TryCast(obj, TupleEventSymbol))
         End Function
 
         Public Overloads Function Equals(other As TupleEventSymbol) As Boolean
-            Return other Is Me OrElse
-                (other IsNot Nothing AndAlso Me._containingType = other._containingType AndAlso Me._underlyingEvent = other._underlyingEvent)
+            Return (other Is Me) OrElse (other IsNot Nothing AndAlso
+                                         _containingType = other._containingType AndAlso
+                                         UnderlyingEvent = other.UnderlyingEvent)
         End Function
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return Me._underlyingEvent.GetAttributes()
+            Return UnderlyingEvent.GetAttributes()
         End Function
+
     End Class
+
 End Namespace
