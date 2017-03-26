@@ -26,6 +26,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public void TestOptionSerialization()
+        {
+            var option = new CodeStyleOption<bool>(false, NotificationOption.None);
+            var serialized = option.ToXElement();
+            var deserialized = CodeStyleOption<ExpressionBodyPreference>.FromXElement(serialized);
+
+            Assert.Equal(ExpressionBodyPreference.Never, deserialized.Value);
+
+            option = new CodeStyleOption<bool>(true, NotificationOption.None);
+            serialized = option.ToXElement();
+            deserialized = CodeStyleOption<ExpressionBodyPreference>.FromXElement(serialized);
+
+            Assert.Equal(ExpressionBodyPreference.WhenPossible, deserialized.Value);
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()
         {
             await TestInRegularAndScriptAsync(
