@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class XmlDocCommentCompletionProvider
         Inherits AbstractDocCommentCompletionProvider(Of DocumentationCommentTriviaSyntax)
 
+        Public Sub New()
+            MyBase.New(s_defaultRules)
+        End Sub
+
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Dim isStartOfTag = text(characterPosition) = "<"c
             Dim isClosingTag = (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c)
@@ -102,11 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             items.AddRange(GetAlwaysVisibleItems())
 
             Dim parentElement = token.GetAncestor(Of XmlElementSyntax)()
-            If parentElement Is Nothing Then
-                Return items
-            End If
-
-            Dim grandParent = parentElement.Parent
+            Dim grandParent = parentElement?.Parent
 
             If grandParent.IsKind(SyntaxKind.XmlElement) Then
                 items.AddRange(GetNestedItems(symbol))
@@ -118,20 +118,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 If GetStartTagName(grandParent) = ListHeaderElementName Then
                     items.AddRange(GetListHeaderItems())
                 End If
-            ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedItems(symbol))
+            ElseIf token.Parent.IsKind(SyntaxKind.XmlText) Then
+                If token.Parent.IsParentKind(SyntaxKind.DocumentationCommentTrivia) Then
+                    ' Top level, without tag:
+                    '     ''' $$
+                    items.AddRange(GetTopLevelItems(symbol, parent))
+                ElseIf token.Parent.IsParentKind(SyntaxKind.XmlElement) Then
+                    items.AddRange(GetNestedItems(symbol))
 
-                If GetStartTagName(token.Parent.Parent) = ListElementName Then
-                    items.AddRange(GetListItems())
-                End If
+                    If GetStartTagName(token.Parent.Parent) = ListElementName Then
+                        items.AddRange(GetListItems())
+                    End If
 
-                If GetStartTagName(token.Parent.Parent) = ListHeaderElementName Then
-                    items.AddRange(GetListHeaderItems())
+                    If GetStartTagName(token.Parent.Parent) = ListHeaderElementName Then
+                        items.AddRange(GetListHeaderItems())
+                    End If
                 End If
             ElseIf grandParent.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
-                items.AddRange(GetItemsForSymbol(symbol, parent))
-                items.AddRange(GetTopLevelSingleUseItems(parent))
-                items.AddRange(GetTopLevelRepeatableItems())
+                ' Top level, with tag:
+                '     ''' <$$
+                '     ''' <tag$$
+                items.AddRange(GetTopLevelItems(symbol, parent))
             End If
 
             If token.Parent.IsKind(SyntaxKind.XmlElementStartTag, SyntaxKind.XmlName) Then
@@ -241,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetExistingTopLevelElementNames(parentTrivia As DocumentationCommentTriviaSyntax) As IEnumerable(Of String)
-            Return parentTrivia.Content.Select(AddressOf GetElementName)
+            Return parentTrivia.Content.Select(AddressOf GetElementName).WhereNotNull()
         End Function
 
         Protected Overrides Function GetExistingTopLevelAttributeValues(syntax As DocumentationCommentTriviaSyntax, elementName As String, attributeName As String) As IEnumerable(Of String)
@@ -309,20 +316,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             CompletionItemRules.Create(
                 filterCharacterRules:=FilterRules,
                 enterKeyRule:=EnterKeyRule.Never)
-
-        Protected Overrides Function GetCompletionItemRules(displayText As String) As CompletionItemRules
-            Dim commitRules = s_defaultRules.CommitCharacterRules
-
-            If displayText.Contains("""") Then
-                commitRules = commitRules.Add(WithoutQuoteRule)
-            End If
-
-            If displayText.Contains(" ") Then
-                commitRules = commitRules.Add(WithoutSpaceRule)
-            End If
-
-            Return s_defaultRules.WithCommitCharacterRules(commitRules)
-        End Function
 
     End Class
 End Namespace

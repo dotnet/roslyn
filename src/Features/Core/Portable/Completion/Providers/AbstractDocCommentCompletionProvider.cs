@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -58,6 +59,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static readonly ImmutableArray<string> s_listTypeValues = ImmutableArray.Create("bullet", "number", "table");
 
+        private readonly CompletionItemRules defaultRules;
+
+        protected AbstractDocCommentCompletionProvider(CompletionItemRules defaultRules)
+        {
+            this.defaultRules = defaultRules ?? throw new ArgumentNullException(nameof(defaultRules)); ;
+        }
+
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             if (!context.Options.GetOption(CompletionControllerOptions.ShowXmlDocCommentCompletion))
@@ -79,9 +87,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract IEnumerable<string> GetExistingTopLevelElementNames(TSyntax syntax);
 
         protected abstract IEnumerable<string> GetExistingTopLevelAttributeValues(TSyntax syntax, string tagName, string attributeName);
-
-        private bool HasExistingTopLevelElement(TSyntax syntax, string name) =>
-            GetExistingTopLevelElementNames(syntax).Contains(name);
 
         private CompletionItem GetItem(string name)
         {
@@ -184,21 +189,40 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return s_listTypeValues.Select(CreateCompletionItem);
             }
 
-            return null;
+            return SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
         protected abstract IEnumerable<string> GetKeywordNames();
 
-        protected IEnumerable<CompletionItem> GetTopLevelRepeatableItems()
+        protected IEnumerable<CompletionItem> GetTopLevelItems(ISymbol symbol, TSyntax syntax)
         {
-            return s_topLevelRepeatableTagNames.Select(GetItem);
-        }
+            var items = new List<CompletionItem>();
 
-        protected IEnumerable<CompletionItem> GetTopLevelSingleUseItems(TSyntax syntax)
-        {
-            var tagNames = new HashSet<string>(s_topLevelSingleUseTagNames);
-            tagNames.RemoveAll(GetExistingTopLevelElementNames(syntax).WhereNotNull());
-            return tagNames.Select(GetItem);
+            var existingTopLevelTags = new HashSet<string>(GetExistingTopLevelElementNames(syntax));
+
+            items.AddRange(s_topLevelSingleUseTagNames.Except(existingTopLevelTags).Select(GetItem));
+            items.AddRange(s_topLevelRepeatableTagNames.Select(GetItem));
+
+            if (symbol != null)
+            {
+                items.AddRange(GetParameterItems(symbol.GetParameters(), syntax, ParameterElementName));
+                items.AddRange(GetParameterItems(symbol.GetTypeParameters(), syntax, TypeParameterElementName));
+
+                var property = symbol as IPropertySymbol;
+                if (property != null && !existingTopLevelTags.Contains(ValueElementName))
+                {
+                    items.Add(GetItem(ValueElementName));
+                }
+
+                var method = symbol as IMethodSymbol;
+                var returns = method != null && !method.ReturnsVoid;
+                if (returns && !existingTopLevelTags.Contains(ReturnsElementName))
+                {
+                    items.Add(GetItem(ReturnsElementName));
+                }
+            }
+
+            return items;
         }
 
         protected IEnumerable<CompletionItem> GetListItems()
@@ -209,32 +233,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected IEnumerable<CompletionItem> GetListHeaderItems()
         {
             return s_listHeaderTagNames.Select(GetItem);
-        }
-
-        protected IEnumerable<CompletionItem> GetItemsForSymbol(ISymbol symbol, TSyntax syntax)
-        {
-            var items = new List<CompletionItem>();
-
-            if (symbol != null)
-            {
-                items.AddRange(GetParameterItems(symbol.GetParameters(), syntax, ParameterElementName));
-                items.AddRange(GetParameterItems(symbol.GetTypeParameters(), syntax, TypeParameterElementName));
-
-                var property = symbol as IPropertySymbol;
-                if (property != null && !HasExistingTopLevelElement(syntax, ValueElementName))
-                {
-                    items.Add(GetItem(ValueElementName));
-                }
-
-                var method = symbol as IMethodSymbol;
-                var returns = method != null && !method.ReturnsVoid;
-                if (returns && !HasExistingTopLevelElement(syntax, ReturnsElementName))
-                {
-                    items.Add(GetItem(ReturnsElementName));
-                }
-            }
-
-            return items;
         }
 
         private IEnumerable<CompletionItem> GetParameterItems<TSymbol>(ImmutableArray<TSymbol> symbols, TSyntax syntax, string tagName) where TSymbol : ISymbol
@@ -311,12 +309,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 rules: GetCompletionItemRules(displayText));
         }
 
-        internal static readonly CharacterSetModificationRule WithoutQuoteRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '"');
-        internal static readonly CharacterSetModificationRule WithoutSpaceRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ');
+        private static readonly CharacterSetModificationRule WithoutQuoteRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '"');
+        private static readonly CharacterSetModificationRule WithoutSpaceRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ');
 
         internal static readonly ImmutableArray<CharacterSetModificationRule> FilterRules = ImmutableArray.Create(
             CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '!', '-', '['));
 
-        protected abstract CompletionItemRules GetCompletionItemRules(string displayText);
+        private CompletionItemRules GetCompletionItemRules(string displayText)
+        {
+            var commitRules = defaultRules.CommitCharacterRules;
+
+            if (displayText.Contains("\""))
+            {
+                commitRules = commitRules.Add(WithoutQuoteRule);
+            }
+
+            if (displayText.Contains(" "))
+            {
+                commitRules = commitRules.Add(WithoutSpaceRule);
+            }
+
+            return defaultRules.WithCommitCharacterRules(commitRules);
+        }
     }
 }

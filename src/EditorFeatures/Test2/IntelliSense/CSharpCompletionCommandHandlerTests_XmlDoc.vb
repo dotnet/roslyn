@@ -584,7 +584,9 @@ class c
                 <Document><![CDATA[
 class c
 {
+    /// <summary>
     /// $$
+    /// </summary>
     void goo() { }
 }
             ]]></Document>)
@@ -650,6 +652,30 @@ class c
 
                 ' /// <seealso cref=">$$"/>
                 Await state.AssertLineTextAroundCaret("    /// <seealso cref="">", """/>")
+            End Using
+        End Function
+
+        <WorkItem(623219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623219")>
+        <WorkItem(746919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746919")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitParam() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class c<T>
+{
+    /// <param$$
+    void goo<T>(T bar) { }
+}
+            ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+
+                ' /// <param name="bar"$$
+                Await state.AssertLineTextAroundCaret("    /// <param name=""bar""", "")
             End Using
         End Function
 
@@ -1070,5 +1096,56 @@ class c<T>
             End Using
         End Function
 
+        <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AllowTypingDoubleQuote() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class c
+{
+    /// <param$$
+    void goo<T>(T bar) { }
+}
+            ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                state.SendTypeChars(" name=""")
+
+                ' /// <param name="$$
+                Await state.AssertLineTextAroundCaret("    /// <param name=""", "")
+
+                ' Because the item contains a double quote, the completion list should still be present with the same selection
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+            End Using
+        End Function
+
+        <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AllowTypingSpace() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class c
+{
+    /// <param$$
+    void goo<T>(T bar) { }
+}
+            ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                state.SendTypeChars(" ")
+
+                ' /// <param $$
+                Await state.AssertLineTextAroundCaret("    /// <param ", "")
+
+                ' Because the item contains a space, the completion list should still be present with the same selection
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+            End Using
+        End Function
     End Class
 End Namespace
