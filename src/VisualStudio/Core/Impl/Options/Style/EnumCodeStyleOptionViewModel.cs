@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -21,6 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     internal class EnumCodeStyleOptionViewModel<T> : AbstractCodeStyleOptionViewModel
         where T : struct
     {
+        static EnumCodeStyleOptionViewModel()
+        {
+            Contract.ThrowIfFalse(typeof(T).IsEnum);
+        }
+
         private static readonly ImmutableArray<T> s_enumValues =
             ImmutableArray.Create((T[])Enum.GetValues(typeof(T)));
 
