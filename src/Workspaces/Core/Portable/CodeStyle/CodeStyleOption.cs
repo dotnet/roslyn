@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 using Roslyn.Utilities;
 
@@ -118,6 +119,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             switch (type)
             {
                 case nameof(Boolean):
+                    // Try to map a boolean value.  Either map it to true/false if we're a 
+                    // CodeStyleOption<bool> or map it to the 0 or 1 value for an enum if we're
+                    // a CodeStyleOption<SomeEnumType>.
                     return v => Convert(bool.Parse(v));
                 case nameof(Int32):
                     return v => (T)(object)int.Parse(v);
@@ -128,13 +132,18 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private static T Convert(bool b)
         {
+            // If we had a bool and we wanted a bool, then just return this
+            // value.
             if (typeof(T) == typeof(bool))
             {
                 return (T)(object)b;
             }
 
+
             var enumValues = (T[])Enum.GetValues(typeof(T));
-            return b ? enumValues[0] : enumValues[1];
+            return b 
+                ? enumValues.First(v => (int)(object)v == 0) 
+                : enumValues.First(v => (int)(object)v == 1);
         }
 
         public bool Equals(CodeStyleOption<T> other)

@@ -10,7 +10,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// </summary>
     internal enum ExpressionBodyPreference
     {
+        // Value can not be changed. 'false' was the "never" value back when we used CodeStyleOption<bool>
+        // and that will map to '0' when derialized.
         Never = 0,
+        // Value can not be changed. 'true' was the 'whenever possible' value back when we used
+        // CodeStyleOption<bool> and that will map to '1' when deserialized.
         WhenPossible = 1,
         WhenOnSingleLine = 2,
     }
