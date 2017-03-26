@@ -311,9 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsAnyLambdaOrAnonymousMethod(this SyntaxNode node)
-        {
-            return node.IsAnyLambda() || node.IsKind(SyntaxKind.AnonymousMethodExpression);
-        }
+            => node.IsAnyLambda() || node.IsKind(SyntaxKind.AnonymousMethodExpression);
 
         /// <summary>
         /// Returns true if the passed in node contains an interleaved pp directive.
@@ -352,28 +350,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// constructs (like #if/#endif or #region/#endregion), but the grouping construct isn't
         /// entirely contained within the span of the node.
         /// </summary>
+        public static bool ContainsInterleavedDirective(this SyntaxNode syntaxNode, CancellationToken cancellationToken)
+            => CSharpSyntaxFactsService.Instance.ContainsInterleavedDirective(syntaxNode, cancellationToken);
+
         public static bool ContainsInterleavedDirective(
-            this SyntaxNode syntaxNode,
-            CancellationToken cancellationToken)
-        {
-            // Check if this node contains a start, middle or end pp construct whose matching construct is
-            // not contained within this node.  If so, this node must be pinned and cannot move.
-
-            var span = syntaxNode.Span;
-            foreach (var token in syntaxNode.DescendantTokens())
-            {
-                if (ContainsInterleavedDirective(span, token, cancellationToken))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool ContainsInterleavedDirective(
+            this SyntaxToken token,
             TextSpan textSpan,
-            SyntaxToken token,
             CancellationToken cancellationToken)
         {
             return

@@ -444,21 +444,23 @@ Friend Module CompilationUtils
         Return s
     End Function
 
-    Public Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0) As TNode
+    Public Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0, Optional prefixMatch As Boolean = False) As TNode
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
 
         Dim bindText As String = Nothing
         Dim bindPoint = FindBindingTextPosition(compilation, fileName, bindText, which)
         Dim token = tree.GetRoot().FindToken(bindPoint, True)
         Dim node = token.Parent
+        Dim hasMatchingText As Func(Of SyntaxNode, Boolean) = Function(n) n.ToString = bindText OrElse
+            (prefixMatch AndAlso TryCast(n, TNode) IsNot Nothing AndAlso n.ToString.StartsWith(bindText))
 
-        While (node IsNot Nothing AndAlso node.ToString <> bindText)
+        While (node IsNot Nothing AndAlso Not hasMatchingText(node))
             node = node.Parent
         End While
 
         If node IsNot Nothing Then
             While TryCast(node, TNode) Is Nothing
-                If node.Parent IsNot Nothing AndAlso node.Parent.ToString = bindText Then
+                If node.Parent IsNot Nothing AndAlso hasMatchingText(node.Parent) Then
                     node = node.Parent
                 Else
                     Exit While
@@ -468,7 +470,12 @@ Friend Module CompilationUtils
 
         Assert.NotNull(node)  ' If this trips, then node  wasn't found
         Assert.IsAssignableFrom(GetType(TNode), node)
-        Assert.Equal(bindText, node.ToString())
+        If Not prefixMatch Then
+            Assert.Equal(bindText, node.ToString())
+        Else
+            Assert.StartsWith(bindText, node.ToString)
+        End If
+
 
         Return DirectCast(node, TNode)
     End Function

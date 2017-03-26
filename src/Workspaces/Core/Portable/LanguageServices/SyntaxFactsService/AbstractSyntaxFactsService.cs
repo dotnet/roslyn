@@ -6,7 +6,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
@@ -344,5 +346,45 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             return ImmutableArray.CreateRange(leadingTrivia.Take(index));
         }
+
+        public bool ContainsInterleavedDirective(
+            ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken)
+        {
+            if (nodes.Length > 0)
+            {
+                var span = TextSpan.FromBounds(nodes.First().Span.Start, nodes.Last().Span.End);
+
+                foreach (var node in nodes)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (ContainsInterleavedDirective(span, node, cancellationToken))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken)
+            => ContainsInterleavedDirective(node.Span, node, cancellationToken);
+
+        private bool ContainsInterleavedDirective(
+            TextSpan span, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            foreach (var token in node.DescendantTokens())
+            {
+                if (ContainsInterleavedDirective(span, token, cancellationToken))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        protected abstract bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken);
     }
 }
