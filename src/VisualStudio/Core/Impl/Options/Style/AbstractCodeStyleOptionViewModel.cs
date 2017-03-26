@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public IOption Option { get; }
 
         public string Description { get; set; }
-        public double DescriptionMargin { get; set; }
+        public double DescriptionMargin { get; set; } = 12d;
         public string GroupName { get; set; }
         public List<CodeStylePreference> Preferences { get; set; }
         public List<NotificationOptionViewModel> NotificationPreferences { get; set; }
@@ -55,7 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Description = description;
             Preferences = preferences ?? GetDefaultPreferences();
             NotificationPreferences = notificationPreferences ?? GetDefaultNotifications();
-            DescriptionMargin = 12d;
             GroupName = groupName;
         }
 
