@@ -671,13 +671,6 @@ class List<T>
                 new CodeStylePreference(CSharpVSResources.Prefer_explicit_type, isChecked: false),
             };
 
-            var expressionBodyPreferences = new List<CodeStylePreference>
-            {
-                new CodeStylePreference(CSharpVSResources.Never, isChecked: false),
-                new CodeStylePreference(CSharpVSResources.When_possible, isChecked: false),
-                new CodeStylePreference(CSharpVSResources.When_on_single_line, isChecked: false),
-            };
-
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, CSharpVSResources.Qualify_field_access_with_this, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.QualifyPropertyAccess, CSharpVSResources.Qualify_property_access_with_this, s_propertyDeclarationPreviewTrue, s_propertyDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.QualifyMethodAccess, CSharpVSResources.Qualify_method_access_with_this, s_methodDeclarationPreviewTrue, s_methodDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
@@ -701,7 +694,7 @@ class List<T>
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, s_preferPatternMatchingOverAsWithNullCheck, s_preferPatternMatchingOverAsWithNullCheck, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, this, optionSet, expressionPreferencesGroupTitle));
 
-            AddExpressionBodyOptions(optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences);
+            AddExpressionBodyOptions(optionSet, expressionPreferencesGroupTitle);
 
             // Variable preferences
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferInlinedVariableDeclaration, ServicesVSResources.Prefer_inlined_variable_declaration, s_preferInlinedVariableDeclaration, s_preferInlinedVariableDeclaration, this, optionSet, variablePreferencesGroupTitle));
@@ -713,8 +706,15 @@ class List<T>
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionSet, nullCheckingGroupTitle));
         }
 
-        private void AddExpressionBodyOptions(OptionSet optionSet, string expressionPreferencesGroupTitle, List<CodeStylePreference> expressionBodyPreferences)
+        private void AddExpressionBodyOptions(OptionSet optionSet, string expressionPreferencesGroupTitle)
         {
+            var expressionBodyPreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(CSharpVSResources.Never, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.When_possible, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.When_on_single_line, isChecked: false),
+            };
+
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
                 CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
                 ServicesVSResources.Use_expression_body_for_methods,
