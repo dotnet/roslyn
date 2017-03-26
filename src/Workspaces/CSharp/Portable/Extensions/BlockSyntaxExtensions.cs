@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            Debug.Assert(preference == ExpressionBodyPreference.WhenOnSingleLine);
+            Contract.ThrowIfFalse(preference == ExpressionBodyPreference.WhenOnSingleLine);
             return CSharpSyntaxFactsService.Instance.IsOnSingleLine(expression, fullSpan: false);
         }
 
