@@ -789,7 +789,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private void SetXmlOption<T>(Option<CodeStyleOption<T>> option, string value)
         {
-            var convertedValue = CodeStyleOption<bool>.FromXElement(XElement.Parse(value));
+            var convertedValue = CodeStyleOption<T>.FromXElement(XElement.Parse(value));
             _workspace.Options = _workspace.Options.WithChangedOption(option, convertedValue);
         }
 
