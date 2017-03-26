@@ -471,6 +471,23 @@ public class Outer<TOuter>
 {
     public class Inner<TInner>
     {
+        /// <typeparam name=""$$""/>
+        public int Method<TMethod>(T green) { }
+    }
+}";
+
+            await VerifyItemsExistAsync(text, "TMethod");
+            await VerifyItemsAbsentAsync(text, "TOuter", "TInner");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParamNamesInWrongScope()
+        {
+            var text = @"
+public class Outer<TOuter>
+{
+    public class Inner<TInner>
+    {
         /// <summary>
         /// <typeparam name=""$$""/>
         /// </summary>
@@ -490,9 +507,7 @@ public class Outer<TOuter>
 {
     public class Inner<TInner>
     {
-        /// <summary>
         /// <typeparam name=""T$$""/>
-        /// </summary>
         public int Method<TMethod>(T green) { }
     }
 }";
@@ -554,16 +569,43 @@ static void Foo(string str)
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ListTypes()
+        public async Task ListAttributes()
         {
             await VerifyItemsExistAsync(@"
 /// <summary>
-/// <list type=""$$""
+/// <list $$></list>
+/// </summary>
+static void Foo()
+{
+}
+", "type");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ListTypeValues()
+        {
+            await VerifyItemsExistAsync(@"
+/// <summary>
+/// <list type=""$$""></list>
 /// </summary>
 static void Foo()
 {
 }
 ", "bullet", "number", "table");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11490")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SeeAttributeNames()
+        {
+            await VerifyItemsExistAsync(@"
+/// <summary>
+/// <see $$/>
+/// </summary>
+static void Foo()
+{
+}
+", "cref", "langword");
         }
 
         [WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")]
@@ -572,7 +614,7 @@ static void Foo()
         {
             await VerifyItemsExistAsync(@"
 /// <summary>
-/// <see langword=""$$""
+/// <see langword=""$$""/>
 /// </summary>
 static void Foo()
 {
@@ -582,7 +624,7 @@ static void Foo()
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task SeeAttributesOnSpace()
+        public async Task AttributeNamesOnSpaceAfterTagName()
         {
             var text = @"
 /// <summary>
@@ -596,7 +638,115 @@ static void Foo()
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task SeeLangwordValuesOnQuote()
+        public async Task AttributeNamesAfterTagNameWithinIncompleteElement()
+        {
+            var text = @"
+class C
+{
+    /// <see $$
+    void Foo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "cref");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNamesAfterTagNameInEmptyElement()
+        {
+            var text = @"
+class C
+{
+    /// <see $$/>
+    void Foo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "cref");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNamesAfterTagNameInElementStartTag()
+        {
+            var text = @"
+class C
+{
+    /// <summary>
+    /// <see $$>
+    /// </summary>
+    void Foo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "langword");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNamesAfterPartiallyTypedAttributeName()
+        {
+            var text = @"
+class C
+{
+    /// <summary>
+    /// <see c$$
+    /// </summary>
+    void Foo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "cref");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNamesAfterNameAttribute()
+        {
+            var text = @"
+class C
+{
+    /// <summary>
+    /// <see name="""" $$
+    /// </summary>
+    void Foo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "cref");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNamesAfterCrefAttribute()
+        {
+            var text = @"
+class C
+{
+    /// <summary>
+    /// <see cref="""" $$
+    /// </summary>
+    void Foo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "langword");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNamesAfterTextAttribute()
+        {
+            var text = @"
+class C
+{
+    /// <summary>
+    /// <see foo="""" $$
+    /// </summary>
+    void Foo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "cref");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeValuesOnQuote()
         {
             var text = @"
 /// <summary>
@@ -606,45 +756,6 @@ static void Foo()
 {
 }";
             await VerifyItemExistsAsync(text, "await", usePreviousCharAsTrigger: true);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AttributeNameAfterElementName()
-        {
-            var text = @"
-class C
-{
-    /// <exception $$
-    void Foo() { }
-}
-";
-            await VerifyItemExistsAsync(text, "cref");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task PartiallyTypedAttributeName()
-        {
-            var text = @"
-class C
-{
-    /// <exception c$$
-    void Foo() { }
-}
-";
-            await VerifyItemExistsAsync(text, "cref");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AttributeNameAfterAttribute()
-        {
-            var text = @"
-class C
-{
-    /// <exception name="""" $$
-    void Foo() { }
-}
-";
-            await VerifyItemExistsAsync(text, "cref");
         }
     }
 }

@@ -20,6 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
     internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider<DocumentationCommentTriviaSyntax>
     {
+        public XmlDocCommentCompletionProvider() : base(s_defaultRules)
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             var c = text[characterPosition];
@@ -122,9 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (token.Parent.Parent is DocumentationCommentTriviaSyntax ||
                     (token.Parent.Parent.IsKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.Parent is DocumentationCommentTriviaSyntax))
                 {
-                    items.AddRange(GetTopLevelSingleUseItems(parentTrivia));
-                    items.AddRange(GetTopLevelRepeatableItems());
-                    items.AddRange(GetItemsForSymbol(declaredSymbol, parentTrivia));
+                    items.AddRange(GetTopLevelItems(declaredSymbol, parentTrivia));
                 }
             }
 
@@ -282,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             SyntaxFacts.GetKeywordKinds().Select(SyntaxFacts.GetText);
 
         protected override IEnumerable<string> GetExistingTopLevelElementNames(DocumentationCommentTriviaSyntax syntax) =>
-            syntax.Content.Select(GetElementName);
+            syntax.Content.Select(GetElementName).WhereNotNull();
 
         protected override IEnumerable<string> GetExistingTopLevelAttributeValues(DocumentationCommentTriviaSyntax syntax, string elementName, string attributeName)
         {
@@ -328,22 +330,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 filterCharacterRules: FilterRules, 
                 commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '>', '\t')),
                 enterKeyRule: EnterKeyRule.Never);
-
-        protected override CompletionItemRules GetCompletionItemRules(string displayText)
-        {
-            var commitRules = s_defaultRules.CommitCharacterRules;
-
-            if (displayText.Contains("\""))
-            {
-                commitRules = commitRules.Add(WithoutQuoteRule);
-            }
-
-            if (displayText.Contains(" "))
-            {
-                commitRules = commitRules.Add(WithoutSpaceRule);
-            }
-
-            return s_defaultRules.WithCommitCharacterRules(commitRules);
-        }
     }
 }
