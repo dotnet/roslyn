@@ -13,40 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// </summary>
     internal class BooleanCodeStyleOptionViewModel : AbstractCodeStyleOptionViewModel
     {
+        private readonly string _truePreview;
+        private readonly string _falsePreview;
+
         private CodeStylePreference _selectedPreference;
-        public override CodeStylePreference SelectedPreference
-        {
-            get
-            {
-                return _selectedPreference;
-            }
-            set
-            {
-                if (SetProperty(ref _selectedPreference, value))
-                {
-                    Info.SetOptionAndUpdatePreview(new CodeStyleOption<bool>(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
-                }
-            }
-        }
-
         private NotificationOptionViewModel _selectedNotificationPreference;
-        public override NotificationOptionViewModel SelectedNotificationPreference
-        {
-            get
-            {
-                return _selectedNotificationPreference;
-            }
-
-            set
-            {
-                if (SetProperty(ref _selectedNotificationPreference, value))
-                {
-                    Info.SetOptionAndUpdatePreview(new CodeStyleOption<bool>(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
-                }
-            }
-        }
-
-        public override bool NotificationsAvailable => true;
 
         public BooleanCodeStyleOptionViewModel(
             IOption option,
@@ -58,8 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             string groupName,
             List<CodeStylePreference> preferences = null,
             List<NotificationOptionViewModel> notificationPreferences = null)
-            : base(option, description, new[] { truePreview, falsePreview }, info, options, groupName, preferences, notificationPreferences)
+            : base(option, description, info, options, groupName, preferences, notificationPreferences)
         {
+            _truePreview = truePreview;
+            _falsePreview = falsePreview;
+
             var codeStyleOption = ((CodeStyleOption<bool>)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
             _selectedPreference = Preferences.Single(c => c.IsChecked == codeStyleOption.Value);
 
@@ -70,7 +44,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             NotifyPropertyChanged(nameof(SelectedNotificationPreference));
         }
 
+        public override CodeStylePreference SelectedPreference
+        {
+            get => _selectedPreference;
+
+            set
+            {
+                if (SetProperty(ref _selectedPreference, value))
+                {
+                    Info.SetOptionAndUpdatePreview(new CodeStyleOption<bool>(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
+                }
+            }
+        }
+
+        public override NotificationOptionViewModel SelectedNotificationPreference
+        {
+            get => _selectedNotificationPreference;
+
+            set
+            {
+                if (SetProperty(ref _selectedNotificationPreference, value))
+                {
+                    Info.SetOptionAndUpdatePreview(new CodeStyleOption<bool>(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
+                }
+            }
+        }
+
         public override string GetPreview() 
-            => SelectedPreference.IsChecked ? Previews[0] : Previews[1];
+            => SelectedPreference.IsChecked ? _truePreview : _falsePreview;
     }
 }

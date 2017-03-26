@@ -27,79 +27,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Contract.ThrowIfFalse(typeof(T).IsEnum);
         }
 
-        private static readonly ImmutableArray<T> s_enumValues =
-            ImmutableArray.Create((T[])Enum.GetValues(typeof(T)));
+        private readonly ImmutableArray<T> _enumValues;
+        private readonly ImmutableArray<string> _previews;
 
         private CodeStylePreference _selectedPreference;
-        public override CodeStylePreference SelectedPreference
-        {
-            get
-            {
-                return _selectedPreference;
-            }
-
-            set
-            {
-                if (SetProperty(ref _selectedPreference, value))
-                {
-                    var index = Preferences.IndexOf(value);
-                    var enumValue = s_enumValues[index];
-
-                    Info.SetOptionAndUpdatePreview(
-                        new CodeStyleOption<T>(
-                            enumValue, _selectedNotificationPreference.Notification),
-                        Option, GetPreview());
-                }
-            }
-        }
-
         private NotificationOptionViewModel _selectedNotificationPreference;
-        public override NotificationOptionViewModel SelectedNotificationPreference
-        {
-            get
-            {
-                return _selectedNotificationPreference;
-            }
-
-            set
-            {
-                if (SetProperty(ref _selectedNotificationPreference, value))
-                {
-                    var index = Preferences.IndexOf(SelectedPreference);
-                    var enumValue = s_enumValues[index];
-
-                    Info.SetOptionAndUpdatePreview(
-                        new CodeStyleOption<T>(
-                            enumValue, _selectedNotificationPreference.Notification),
-                        Option, GetPreview());
-                }
-            }
-        }
-
-        public override bool NotificationsAvailable => true;
-
-        public override string GetPreview()
-        {
-            var index = Preferences.IndexOf(SelectedPreference);
-            return Previews[index];
-        }
 
         public EnumCodeStyleOptionViewModel(
             Option<CodeStyleOption<T>> option,
             string description,
+            T[] enumValues,
             string[] previews,
             AbstractOptionPreviewViewModel info,
             OptionSet options,
             string groupName,
             List<CodeStylePreference> preferences)
-            : base(option, description, previews, info, options, groupName, preferences)
+            : base(option, description, info, options, groupName, preferences)
         {
-            Debug.Assert(preferences.Count == s_enumValues.Length);
-            Debug.Assert(previews.Length == s_enumValues.Length);
+            Debug.Assert(preferences.Count == enumValues.Length);
+            Debug.Assert(previews.Length == enumValues.Length);
+
+            var expectedEnumValues = Enum.GetValues(typeof(T));
+            Debug.Assert(expectedEnumValues.Length == enumValues.Length, "Enum was updated, but UI wasn't.");
+
+            _enumValues = enumValues.ToImmutableArray();
+            _previews = previews.ToImmutableArray();
 
             var codeStyleOption = options.GetOption(option);
 
-            var enumIndex = s_enumValues.IndexOf(codeStyleOption.Value);
+            var enumIndex = _enumValues.IndexOf(codeStyleOption.Value);
             _selectedPreference = Preferences[enumIndex];
 
             var notificationViewModel = NotificationPreferences.Single(i => i.Notification.Value == codeStyleOption.Notification.Value);
@@ -107,6 +63,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             NotifyPropertyChanged(nameof(SelectedPreference));
             NotifyPropertyChanged(nameof(SelectedNotificationPreference));
+        }
+
+        public override string GetPreview()
+        {
+            var index = Preferences.IndexOf(SelectedPreference);
+            return _previews[index];
+        }
+
+        public override CodeStylePreference SelectedPreference
+        {
+            get => _selectedPreference;
+
+            set
+            {
+                if (SetProperty(ref _selectedPreference, value))
+                {
+                    var index = Preferences.IndexOf(value);
+                    var enumValue = _enumValues[index];
+
+                    Info.SetOptionAndUpdatePreview(
+                        new CodeStyleOption<T>(
+                            enumValue, _selectedNotificationPreference.Notification),
+                        Option, GetPreview());
+                }
+            }
+        }
+
+        public override NotificationOptionViewModel SelectedNotificationPreference
+        {
+            get => _selectedNotificationPreference;
+
+            set
+            {
+                if (SetProperty(ref _selectedNotificationPreference, value))
+                {
+                    var index = Preferences.IndexOf(SelectedPreference);
+                    var enumValue = _enumValues[index];
+
+                    Info.SetOptionAndUpdatePreview(
+                        new CodeStyleOption<T>(
+                            enumValue, _selectedNotificationPreference.Notification),
+                        Option, GetPreview());
+                }
+            }
         }
     }
 }

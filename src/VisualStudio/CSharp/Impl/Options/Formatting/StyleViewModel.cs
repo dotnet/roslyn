@@ -715,39 +715,47 @@ class List<T>
                 new CodeStylePreference(CSharpVSResources.When_on_single_line, isChecked: false),
             };
 
+            var enumValues = new[] { ExpressionBodyPreference.Never, ExpressionBodyPreference.WhenPossible, ExpressionBodyPreference.WhenOnSingleLine };
+
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
                 CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
                 ServicesVSResources.Use_expression_body_for_methods,
+                enumValues,
                 new[] { s_preferBlockBodyForMethods, s_preferExpressionBodyForMethods, s_preferExpressionBodyForMethods },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
                 CSharpCodeStyleOptions.PreferExpressionBodiedConstructors,
                 ServicesVSResources.Use_expression_body_for_constructors,
+                enumValues,
                 new[] { s_preferBlockBodyForConstructors, s_preferExpressionBodyForConstructors, s_preferExpressionBodyForConstructors },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
                 CSharpCodeStyleOptions.PreferExpressionBodiedOperators,
                 ServicesVSResources.Use_expression_body_for_operators,
+                enumValues,
                 new[] { s_preferBlockBodyForOperators, s_preferExpressionBodyForOperators, s_preferExpressionBodyForOperators },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
                 CSharpCodeStyleOptions.PreferExpressionBodiedProperties,
                 ServicesVSResources.Use_expression_body_for_properties,
+                enumValues,
                 new[] { s_preferBlockBodyForProperties, s_preferExpressionBodyForProperties, s_preferExpressionBodyForProperties },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
                 CSharpCodeStyleOptions.PreferExpressionBodiedIndexers,
                 ServicesVSResources.Use_expression_body_for_indexers,
+                enumValues,
                 new[] { s_preferBlockBodyForIndexers, s_preferExpressionBodyForIndexers, s_preferExpressionBodyForIndexers },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
                 CSharpCodeStyleOptions.PreferExpressionBodiedAccessors,
                 ServicesVSResources.Use_expression_body_for_accessors,
+                enumValues,
                 new[] { s_preferBlockBodyForAccessors, s_preferExpressionBodyForAccessors, s_preferExpressionBodyForAccessors },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
         }
