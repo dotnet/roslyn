@@ -16,185 +16,184 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class WrappedParameterSymbol
         Inherits ParameterSymbol
 
-        Protected _underlyingParameter As ParameterSymbol
 
         Public ReadOnly Property UnderlyingParameter As ParameterSymbol
-            Get
-                Return Me._underlyingParameter
-            End Get
-        End Property
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                Return Me._underlyingParameter.Type
+                Return UnderlyingParameter.Type
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsByRef As Boolean
             Get
-                Return Me._underlyingParameter.IsByRef
+                Return UnderlyingParameter.IsByRef
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsMetadataIn As Boolean
             Get
-                Return Me._underlyingParameter.IsMetadataIn
+                Return UnderlyingParameter.IsMetadataIn
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsMetadataOut As Boolean
             Get
-                Return Me._underlyingParameter.IsMetadataOut
+                Return UnderlyingParameter.IsMetadataOut
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return Me._underlyingParameter.Locations
+                Return UnderlyingParameter.Locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return Me._underlyingParameter.DeclaringSyntaxReferences
+                Return UnderlyingParameter.DeclaringSyntaxReferences
             End Get
         End Property
 
         Public Overrides ReadOnly Property Ordinal As Integer
             Get
-                Return Me._underlyingParameter.Ordinal
+                Return UnderlyingParameter.Ordinal
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsParamArray As Boolean
             Get
-                Return Me._underlyingParameter.IsParamArray
+                Return UnderlyingParameter.IsParamArray
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsMetadataOptional As Boolean
             Get
-                Return Me._underlyingParameter.IsMetadataOptional
+                Return UnderlyingParameter.IsMetadataOptional
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return Me._underlyingParameter.IsImplicitlyDeclared
+                Return UnderlyingParameter.IsImplicitlyDeclared
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return Me._underlyingParameter.Name
+                Return UnderlyingParameter.Name
             End Get
         End Property
 
         Public Overrides ReadOnly Property MetadataName As String
             Get
-                Return Me._underlyingParameter.MetadataName
+                Return UnderlyingParameter.MetadataName
             End Get
         End Property
 
         Public Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return Me._underlyingParameter.CustomModifiers
+                Return UnderlyingParameter.CustomModifiers
             End Get
         End Property
 
         Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return Me._underlyingParameter.RefCustomModifiers
+                Return UnderlyingParameter.RefCustomModifiers
             End Get
         End Property
 
         Friend Overrides ReadOnly Property MarshallingInformation As MarshalPseudoCustomAttributeData
             Get
-                Return Me._underlyingParameter.MarshallingInformation
+                Return UnderlyingParameter.MarshallingInformation
             End Get
         End Property
 
         Friend Overrides ReadOnly Property MarshallingType As UnmanagedType
             Get
-                Return Me._underlyingParameter.MarshallingType
+                Return UnderlyingParameter.MarshallingType
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsIDispatchConstant As Boolean
             Get
-                Return Me._underlyingParameter.IsIDispatchConstant
+                Return UnderlyingParameter.IsIDispatchConstant
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsIUnknownConstant As Boolean
             Get
-                Return Me._underlyingParameter.IsIUnknownConstant
+                Return UnderlyingParameter.IsIUnknownConstant
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
             Get
-                Return Me._underlyingParameter.IsCallerLineNumber
+                Return UnderlyingParameter.IsCallerLineNumber
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
             Get
-                Return Me._underlyingParameter.IsCallerFilePath
+                Return UnderlyingParameter.IsCallerFilePath
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
             Get
-                Return Me._underlyingParameter.IsCallerMemberName
+                Return UnderlyingParameter.IsCallerMemberName
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsExplicitByRef As Boolean
             Get
-                Return Me._underlyingParameter.IsExplicitByRef
+                Return UnderlyingParameter.IsExplicitByRef
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOptional As Boolean
             Get
-                Return Me._underlyingParameter.IsOptional
+                Return UnderlyingParameter.IsOptional
             End Get
         End Property
 
         Public Overrides ReadOnly Property HasExplicitDefaultValue As Boolean
             Get
-                Return Me._underlyingParameter.HasExplicitDefaultValue
+                Return UnderlyingParameter.HasExplicitDefaultValue
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ExplicitDefaultConstantValue(inProgress As SymbolsInProgress(Of ParameterSymbol)) As ConstantValue
             Get
-                Return Me._underlyingParameter.ExplicitDefaultConstantValue(inProgress)
+                Return UnderlyingParameter.ExplicitDefaultConstantValue(inProgress)
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasOptionCompare As Boolean
             Get
-                Return Me._underlyingParameter.HasOptionCompare
+                Return UnderlyingParameter.HasOptionCompare
             End Get
         End Property
 
         Protected Sub New(underlyingParameter As ParameterSymbol)
             Debug.Assert(underlyingParameter IsNot Nothing)
-            Me._underlyingParameter = underlyingParameter
+            Me.UnderlyingParameter = underlyingParameter
         End Sub
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return Me._underlyingParameter.GetAttributes()
+            Return UnderlyingParameter.GetAttributes()
         End Function
 
         Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            Me._underlyingParameter.AddSynthesizedAttributes(compilationState, attributes)
+            UnderlyingParameter.AddSynthesizedAttributes(compilationState, attributes)
         End Sub
 
-        Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            Return Me._underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
+        Public Overrides Function GetDocumentationCommentXml(
+                                                     Optional preferredCulture As CultureInfo = Nothing,
+                                                     Optional expandIncludes As Boolean = False,
+                                                     Optional cancellationToken As CancellationToken = Nothing
+                                                            ) As String
+            Return UnderlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
     End Class
 End Namespace
