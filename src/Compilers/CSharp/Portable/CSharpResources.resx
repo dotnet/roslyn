@@ -4969,6 +4969,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsTupleConversion" xml:space="preserve">
     <value>An expression tree may not contain a tuple conversion.</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsDefaultLiteral" xml:space="preserve">
+    <value>An expression tree may not contain a default literal.</value>
+  </data>
   <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
     <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
   </data>

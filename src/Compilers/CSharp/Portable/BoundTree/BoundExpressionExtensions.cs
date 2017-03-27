@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsLiteralDefault(this BoundExpression node)
         {
-            return node.Kind == BoundKind.DefaultLiteral && (object)node.Type == null;
+            return node.Kind == BoundKind.DefaultLiteral && node.Syntax.Kind() == SyntaxKind.DefaultLiteralExpression;
         }
 
         // returns true when expression has no side-effects and produces

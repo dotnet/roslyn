@@ -838,7 +838,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,47): error CS0845: An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side
                 //     Expression<Func<object>> testExpr = () => default ?? "hello";
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "default").WithLocation(6, 47)
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "default"),
+                // (6,47): error CS9002: An expression tree may not contain a default literal.
+                //     Expression<Func<object>> testExpr = () => default ?? "hello";
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDefaultLiteral, "default").WithLocation(6, 47)
                 );
         }
 
@@ -1105,6 +1108,33 @@ class C
                 // (6,17): error CS0118: 'System' is a namespace but is used like a type
                 //         default(System).ToString();
                 Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "type").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        public void DefaultLiteralDisallowedInExpressionTree()
+        {
+            string source =
+@"
+using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void M<T>()
+    {
+        Expression<Func<int, bool>> expr1 = (int x) => x == (int)default;
+        Expression<Func<int, bool>> expr2 = (int x) => x == default;
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(new[] { source }, new[] { ExpressionAssemblyRef }, parseOptions: TestOptions.ExperimentalParseOptions);
+            comp.VerifyDiagnostics(
+                // (9,66): error CS9002: An expression tree may not contain a default literal.
+                //         Expression<Func<int, bool>> expr1 = (int x) => x == (int)default;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDefaultLiteral, "default").WithLocation(9, 66),
+                // (10,61): error CS9002: An expression tree may not contain a default literal.
+                //         Expression<Func<int, bool>> expr2 = (int x) => x == default;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDefaultLiteral, "default").WithLocation(10, 61)
                 );
         }
     }

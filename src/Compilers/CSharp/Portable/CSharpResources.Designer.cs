@@ -4193,6 +4193,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a default literal..
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsDefaultLiteral {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsDefaultLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain a discard..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsDiscard {

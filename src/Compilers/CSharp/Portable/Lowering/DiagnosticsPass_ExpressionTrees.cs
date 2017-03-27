@@ -700,5 +700,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.VisitThrowExpression(node);
         }
+
+        public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
+        {
+            if (_inExpressionLambda && node.IsLiteralDefault())
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsDefaultLiteral, node);
+            }
+            return base.VisitDefaultLiteral(node);
+        }
     }
 }
