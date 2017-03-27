@@ -3540,8 +3540,7 @@ class C
             var expr = this.ParseExpression(text, TestOptions.ExperimentalParseOptions);
 
             Assert.NotNull(expr);
-            Assert.Equal(SyntaxKind.DefaultLiteral, expr.Kind());
-            Assert.False(((DefaultLiteralSyntax)expr).Keyword.IsMissing);
+            Assert.Equal(SyntaxKind.DefaultLiteralExpression, expr.Kind());
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
         }

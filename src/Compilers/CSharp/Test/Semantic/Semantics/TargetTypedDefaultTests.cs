@@ -52,7 +52,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -122,7 +122,7 @@ struct S
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("S", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("S", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -150,7 +150,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("T", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("T", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -388,7 +388,8 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("default", def.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -491,7 +492,8 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("default", def.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetDeclaredSymbol(def));
@@ -864,7 +866,7 @@ class Program
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
-            var def = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultLiteralSyntax>().Single();
+            var def = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("System.Int32?", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Int32?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -1071,7 +1073,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("System.Int16", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetDeclaredSymbol(def));

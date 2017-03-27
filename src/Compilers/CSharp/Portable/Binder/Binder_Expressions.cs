@@ -540,6 +540,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NullLiteralExpression:
                     return BindLiteralConstant((LiteralExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.DefaultLiteralExpression:
+                    return new BoundDefaultLiteral(node, constantValueOpt: null, type: null);
+
                 case SyntaxKind.ParenthesizedExpression:
                     // Parenthesis tokens are ignored, and operand is bound in the context of parent
                     // expression.
@@ -551,9 +554,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.DefaultExpression:
                     return BindDefaultExpression((DefaultExpressionSyntax)node, diagnostics);
-
-                case SyntaxKind.DefaultLiteral:
-                    return BindDefaultLiteral((DefaultLiteralSyntax)node);
 
                 case SyntaxKind.TypeOfExpression:
                     return BindTypeOf((TypeOfExpressionSyntax)node, diagnostics);
@@ -771,11 +771,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-        }
-
-        private static BoundExpression BindDefaultLiteral(DefaultLiteralSyntax node)
-        {
-            return new BoundDefaultLiteral(node, constantValueOpt: null, type: null);
         }
 
         private BoundExpression BindTupleExpression(TupleExpressionSyntax node, DiagnosticBag diagnostics)

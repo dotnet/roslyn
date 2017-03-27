@@ -726,6 +726,7 @@
     <Kind Name="TrueLiteralExpression"/>
     <Kind Name="FalseLiteralExpression"/>
     <Kind Name="NullLiteralExpression"/>
+    <Kind Name="DefaultLiteralExpression"/>
     <Field Name="Token" Type="SyntaxToken">
       <Kind Name="ArgListKeyword"/>
       <Kind Name="NumericLiteralToken"/>
@@ -734,6 +735,7 @@
       <Kind Name="TrueKeyword"/>
       <Kind Name="FalseKeyword"/>
       <Kind Name="NullKeyword"/>
+      <Kind Name="DefaultKeyword"/>
       <PropertyComment>
         <summary>SyntaxToken representing the keyword corresponding to the kind of the literal expression.</summary>
       </PropertyComment>
@@ -916,21 +918,6 @@
     </TypeComment>
     <FactoryComment>
       <summary>Creates a DefaultExpressionSyntax node.</summary>
-    </FactoryComment>
-  </Node>
-  <Node Name="DefaultLiteralSyntax" Base="ExpressionSyntax">
-    <Kind Name="DefaultLiteral"/>
-    <Field Name="Keyword" Type="SyntaxToken">
-      <Kind Name="DefaultKeyword"/>
-      <PropertyComment>
-        <summary>SyntaxToken representing the DefaultKeyword.</summary>
-      </PropertyComment>
-    </Field>
-    <TypeComment>
-      <summary>Class which represents the syntax node for a default literal.</summary>
-    </TypeComment>
-    <FactoryComment>
-      <summary>Creates a DefaultLiteralSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="TypeOfExpressionSyntax" Base="ExpressionSyntax">
