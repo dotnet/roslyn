@@ -3016,30 +3016,28 @@ class C
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestLargeChangeBrokenUpIntoSmallTextChanges() As Task
+        Public Sub TestLargeChangeBrokenUpIntoSmallTextChanges()
+            Dim provider = New MultipleChangeCompletionProvider()
+
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
 class C
 {
     void foo() {
-        return$$
+        return $$
     }
-}]]></Document>, {New MultipleChangeCompletionProvider()})
+}]]></Document>, {provider})
 
                 Dim testDocument = state.Workspace.Documents(0)
                 Dim textBuffer = testDocument.TextBuffer
 
-                ' First send a space to trigger out special completion provider.
-                state.SendTypeChars(" ")
-
                 Dim snapshotBeforeCommit = textBuffer.CurrentSnapshot
-                Await state.WaitForAsynchronousOperationsAsync()
+                provider.SetInfo(snapshotBeforeCommit.GetText(), testDocument.CursorPosition.Value)
 
-                ' Commit the item
+                ' First send a space to trigger out special completion provider.
+                state.SendInvokeCompletionList()
                 state.SendTab()
-
-                Dim positionAfterSpace = testDocument.CursorPosition.Value + 1
 
                 ' Verify that we see the entire change
                 Dim finalText = textBuffer.CurrentSnapshot.GetText()
@@ -3063,7 +3061,7 @@ class C
                 Assert.Equal("using NewUsing;", firstChange.NewText)
 
                 Dim secondChange = actualChanges(1)
-                Assert.Equal(New Span(positionAfterSpace, 0), secondChange.OldSpan)
+                Assert.Equal(New Span(testDocument.CursorPosition.Value, 0), secondChange.OldSpan)
                 Assert.Equal("InsertedItem", secondChange.NewText)
 
                 ' Make sure new edits happen after the text that was inserted.
@@ -3080,10 +3078,83 @@ class C
     }
 }", finalText)
             End Using
-        End Function
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub TestLargeChangeBrokenUpIntoSmallTextChanges2()
+            Dim provider = New MultipleChangeCompletionProvider()
+
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+class C
+{
+    void foo() {
+        return Custom$$
+    }
+}]]></Document>, {provider})
+
+                Dim testDocument = state.Workspace.Documents(0)
+                Dim textBuffer = testDocument.TextBuffer
+
+                Dim snapshotBeforeCommit = textBuffer.CurrentSnapshot
+                provider.SetInfo(snapshotBeforeCommit.GetText(), testDocument.CursorPosition.Value)
+
+                ' First send a space to trigger out special completion provider.
+                state.SendInvokeCompletionList()
+                state.SendTab()
+
+                ' Verify that we see the entire change
+                Dim finalText = textBuffer.CurrentSnapshot.GetText()
+                Assert.Equal(
+"using NewUsing;
+using System;
+class C
+{
+    void foo() {
+        return InsertedItem
+    }
+}", finalText)
+
+                ' This should have happened as two text changes to the buffer.
+                Dim changes = snapshotBeforeCommit.Version.Changes
+                Assert.Equal(2, changes.Count)
+
+                Dim actualChanges = changes.ToArray()
+                Dim firstChange = actualChanges(0)
+                Assert.Equal(New Span(0, 0), firstChange.OldSpan)
+                Assert.Equal("using NewUsing;", firstChange.NewText)
+
+                Dim secondChange = actualChanges(1)
+                Assert.Equal(New Span(testDocument.CursorPosition.Value - "Custom".Length, "Custom".Length), secondChange.OldSpan)
+                Assert.Equal("InsertedItem", secondChange.NewText)
+
+                ' Make sure new edits happen after the text that was inserted.
+                state.SendTypeChars("1")
+
+                finalText = textBuffer.CurrentSnapshot.GetText()
+                Assert.Equal(
+"using NewUsing;
+using System;
+class C
+{
+    void foo() {
+        return InsertedItem1
+    }
+}", finalText)
+            End Using
+        End Sub
 
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
+
+            Private _text As String
+            Private _caretPosition As Integer
+
+            Public Sub SetInfo(text As String, caretPosition As Integer)
+                _text = text
+                _caretPosition = caretPosition
+            End Sub
 
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 context.AddItem(CompletionItem.Create(
@@ -3097,13 +3168,6 @@ class C
             End Function
 
             Public Overrides Function GetChangeAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
-                Dim text =
-"
-using System;
-class C
-{
-    void foo() {
-        return "
                 Dim newText =
 "using NewUsing;
 using System;
@@ -3113,7 +3177,7 @@ class C
         return InsertedItem"
 
                 Dim change = CompletionChange.Create(
-                    New TextChange(New TextSpan(0, text.Length), newText))
+                    New TextChange(New TextSpan(0, _caretPosition), newText))
                 Return Task.FromResult(change)
             End Function
         End Class
