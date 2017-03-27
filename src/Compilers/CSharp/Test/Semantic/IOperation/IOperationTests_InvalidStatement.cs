@@ -183,5 +183,92 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid)
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
+
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidGotoCaseStatement_MissingLabel()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch (args.Length)
+        {
+            case 0:
+                /*<bind>*/goto case 1;/*</bind>*/
+                break;
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvalidStatement (OperationKind.InvalidStatement, IsInvalid)
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+";
+            VerifyOperationTreeForTest<GotoStatementSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18225"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidGotoCaseStatement_OutsideSwitchStatement()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        /*<bind>*/goto case 1;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvalidStatement (OperationKind.InvalidStatement, IsInvalid)
+  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+";
+            VerifyOperationTreeForTest<GotoStatementSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18225"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidBreakStatement_OutsideLoopOrSwitch()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        /*<bind>*/break;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvalidStatement (OperationKind.InvalidStatement, IsInvalid)
+";
+            VerifyOperationTreeForTest<BreakStatementSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18225"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidContinueStatement_OutsideLoopOrSwitch()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        /*<bind>*/continue;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvalidStatement (OperationKind.InvalidStatement, IsInvalid)
+";
+            VerifyOperationTreeForTest<ContinueStatementSyntax>(source, expectedOperationTree);
+        }
     }
 }

@@ -288,5 +288,119 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid)
 
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
+
+        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        Public Sub InvalidGotoStatement_MissingLabel()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Select Case args.Length
+            Case 1
+                GoTo Label1'BIND:"GoTo Label1"
+        End Select
+    End Sub
+End Module
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidStatement (OperationKind.InvalidStatement, IsInvalid)
+  IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid)
+]]>.Value
+
+            VerifyOperationTreeForTest(Of GoToStatementSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        Public Sub InvalidExitStatement_OutsideLoopOrSwitch()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Exit For'BIND:"Exit For"
+    End Sub
+End Module
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidStatement (OperationKind.InvalidStatement, IsInvalid)
+]]>.Value
+
+            VerifyOperationTreeForTest(Of ExitStatementSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        Public Sub InvalidContinueStatement_OutsideLoopOrSwitch()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Continue'BIND:"Continue"
+    End Sub
+End Module
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidStatement (OperationKind.InvalidStatement, IsInvalid)
+]]>.Value
+
+            VerifyOperationTreeForTest(Of ContinueStatementSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18225"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        Public Sub InvalidCaseStatement_OutsideSwitchBlock()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Case 0'BIND:"Case 0"
+    End Sub
+End Module
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidStatement (OperationKind.InvalidStatement, IsInvalid)
+  ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
+]]>.Value
+
+            VerifyOperationTreeForTest(Of CaseStatementSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        Public Sub InvalidElseIfStatement_NoPrecedingIfStatement()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        ElseIf args.Length = 0'BIND:"ElseIf args.Length = 0"
+    End Sub
+End Module
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidStatement (OperationKind.InvalidStatement, IsInvalid)
+  IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
+    Left: IIndexedPropertyReferenceExpression: ReadOnly Property System.Array.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32)
+        Instance Receiver: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String())
+    Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
+]]>.Value
+
+            VerifyOperationTreeForTest(Of ElseIfStatementSyntax)(source, expectedOperationTree)
+        End Sub
     End Class
 End Namespace
