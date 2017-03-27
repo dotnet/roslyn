@@ -10,8 +10,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     /// <summary>
-    /// This class acts as a base for any view model that 
-    /// binds to the codestyle options UI.
+    /// This class acts as a base for any view model that  binds to the codestyle options UI.
     /// </summary>
     /// <remarks>
     /// This supports databinding of: 
@@ -24,20 +23,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// </remarks>
     internal abstract class AbstractCodeStyleOptionViewModel : AbstractNotifyPropertyChanged
     {
-        private readonly string _truePreview;
-        private readonly string _falsePreview;
         protected AbstractOptionPreviewViewModel Info { get; }
         public IOption Option { get; }
 
         public string Description { get; set; }
-        public double DescriptionMargin { get; set; }
+        public double DescriptionMargin { get; set; } = 12d;
         public string GroupName { get; set; }
-        public abstract CodeStylePreference SelectedPreference { get; set; }
         public List<CodeStylePreference> Preferences { get; set; }
         public List<NotificationOptionViewModel> NotificationPreferences { get; set; }
-        public abstract bool NotificationsAvailable { get; }
 
-        public virtual string GetPreview() => SelectedPreference.IsChecked ? _truePreview : _falsePreview;
+        public abstract CodeStylePreference SelectedPreference { get; set; }
+        public abstract string GetPreview();
+
         public virtual NotificationOptionViewModel SelectedNotificationPreference
         {
             get { return NotificationPreferences.First(); }
@@ -47,23 +44,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public AbstractCodeStyleOptionViewModel(
             IOption option,
             string description,
-            string truePreview,
-            string falsePreview,
             AbstractOptionPreviewViewModel info,
             OptionSet options,
             string groupName,
             List<CodeStylePreference> preferences = null,
             List<NotificationOptionViewModel> notificationPreferences = null)
         {
-            _truePreview = truePreview;
-            _falsePreview = falsePreview;
-
             Info = info;
             Option = option;
             Description = description;
             Preferences = preferences ?? GetDefaultPreferences();
             NotificationPreferences = notificationPreferences ?? GetDefaultNotifications();
-            DescriptionMargin = 12d;
             GroupName = groupName;
         }
 
@@ -86,6 +77,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 new CodeStylePreference(ServicesVSResources.No, isChecked: false),
             };
         }
-
     }
 }

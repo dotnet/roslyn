@@ -5,6 +5,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -185,11 +186,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             DocumentOptionSet documentOptions, ParseOptions parseOptions,
             MethodDeclarationSyntax methodDeclaration, bool createReturnStatementForExpression)
         {
-            var preferExpressionBody = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
-            if (methodDeclaration?.Body != null && preferExpressionBody)
+            var expressionBodyPreference = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
+            if (methodDeclaration?.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (methodDeclaration.Body.TryConvertToExpressionBody(
-                        parseOptions, out var arrowExpression, out var semicolonToken))
+                        parseOptions, expressionBodyPreference, out var arrowExpression, out var semicolonToken))
                 {
                     return methodDeclaration.WithBody(null)
                                             .WithExpressionBody(arrowExpression)
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                                             .WithAdditionalAnnotations(Formatter.Annotation);
                 }
             }
-            else if (methodDeclaration?.ExpressionBody != null && !preferExpressionBody)
+            else if (methodDeclaration?.ExpressionBody != null && expressionBodyPreference == ExpressionBodyPreference.Never)
             {
                 var block = methodDeclaration?.ExpressionBody.ConvertToBlock(
                     methodDeclaration.SemicolonToken, createReturnStatementForExpression);
