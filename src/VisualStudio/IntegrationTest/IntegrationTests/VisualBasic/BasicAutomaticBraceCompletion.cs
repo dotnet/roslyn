@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -28,15 +29,15 @@ Class C
     End Sub
 End Class");
 
-            SendKeys("Dim x = {");
-            VerifyCurrentLineText("Dim x = {$$}", assertCaretPosition: true);
+            this.SendKeys("Dim x = {");
+            this.VerifyCurrentLineText("Dim x = {$$}", assertCaretPosition: true);
 
-            SendKeys(
+            this.SendKeys(
                 "New Object",
                 VirtualKey.Escape,
                 VirtualKey.Tab);
 
-            VerifyCurrentLineText("Dim x = {New Object}$$", assertCaretPosition: true);
+            this.VerifyCurrentLineText("Dim x = {New Object}$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -49,9 +50,9 @@ Class C
     End Sub
 End Class");
 
-            SendKeys("Dim x = {");
-            SendKeys('}');
-            VerifyCurrentLineText("Dim x = {}$$", assertCaretPosition: true);
+            this.SendKeys("Dim x = {");
+            this.SendKeys('}');
+            this.VerifyCurrentLineText("Dim x = {}$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -64,17 +65,17 @@ Class C
     End Sub
 End Class");
 
-            SendKeys("Console.Write(");
-            VerifyCurrentLineText("Console.Write($$)", assertCaretPosition: true);
+            this.SendKeys("Console.Write(");
+            this.VerifyCurrentLineText("Console.Write($$)", assertCaretPosition: true);
 
-            SendKeys('"');
-            VerifyCurrentLineText("Console.Write(\"$$\")", assertCaretPosition: true);
+            this.SendKeys('"');
+            this.VerifyCurrentLineText("Console.Write(\"$$\")", assertCaretPosition: true);
 
-            SendKeys('"');
-            VerifyCurrentLineText("Console.Write(\"\"$$)", assertCaretPosition: true);
+            this.SendKeys('"');
+            this.VerifyCurrentLineText("Console.Write(\"\"$$)", assertCaretPosition: true);
 
-            SendKeys(')');
-            VerifyCurrentLineText("Console.Write(\"\")$$", assertCaretPosition: true);
+            this.SendKeys(')');
+            this.VerifyCurrentLineText("Console.Write(\"\")$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -87,11 +88,10 @@ Class C
     End Sub
 End Class");
 
-            SendKeys("Dim x = {");
-            SendKeys(VirtualKey.Enter);
-            VerifyCurrentLineText("            $$}", assertCaretPosition: true, trimWhitespace: false);
-
-            VerifyTextContains(@"
+            this.SendKeys("Dim x = {");
+            this.SendKeys(VirtualKey.Enter);
+            this.VerifyCurrentLineText("            $$}", assertCaretPosition: true, trimWhitespace: false);
+            this.VerifyTextContains(@"
 Class C
     Sub Foo()
         Dim x = {
@@ -109,13 +109,13 @@ Class C
     $$
 End Class");
 
-            SendKeys("Sub Foo(");
-            VerifyCurrentLineText("Sub Foo($$)", assertCaretPosition: true);
+            this.SendKeys("Sub Foo(");
+            this.VerifyCurrentLineText("Sub Foo($$)", assertCaretPosition: true);
 
-            SendKeys("x As Long");
-            SendKeys(VirtualKey.Escape);
-            SendKeys(VirtualKey.Tab);
-            VerifyCurrentLineText("Sub Foo(x As Long)$$", assertCaretPosition: true);
+            this.SendKeys("x As Long");
+            this.SendKeys(VirtualKey.Escape);
+            this.SendKeys(VirtualKey.Tab);
+            this.VerifyCurrentLineText("Sub Foo(x As Long)$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -126,12 +126,12 @@ Class C
     $$
 End Class");
 
-            SendKeys("Sub Foo(");
-            VerifyCurrentLineText("Sub Foo($$)", assertCaretPosition: true);
+            this.SendKeys("Sub Foo(");
+            this.VerifyCurrentLineText("Sub Foo($$)", assertCaretPosition: true);
 
-            SendKeys(VirtualKey.Escape);
-            SendKeys(')');
-            VerifyCurrentLineText("Sub Foo()$$", assertCaretPosition: true);
+            this.SendKeys(VirtualKey.Escape);
+            this.SendKeys(')');
+            this.VerifyCurrentLineText("Sub Foo()$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -144,8 +144,8 @@ Class C
     End Sub
 End Class");
 
-            SendKeys("Dim [Dim");
-            VerifyCurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
+            this.SendKeys("Dim [Dim");
+            this.VerifyCurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -158,11 +158,11 @@ Class C
     End Sub
 End Class");
 
-            SendKeys("Dim [Dim");
-            VerifyCurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
+            this.SendKeys("Dim [Dim");
+            this.VerifyCurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
 
-            SendKeys("] As Long");
-            VerifyCurrentLineText("Dim [Dim] As Long$$", assertCaretPosition: true);
+            this.SendKeys("] As Long");
+            this.VerifyCurrentLineText("Dim [Dim] As Long$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -175,11 +175,11 @@ Class C
     End Sub
 End Class");
 
-            SendKeys("Dim str = \"");
-            VerifyCurrentLineText("Dim str = \"$$\"", assertCaretPosition: true);
+            this.SendKeys("Dim str = \"");
+            this.VerifyCurrentLineText("Dim str = \"$$\"", assertCaretPosition: true);
 
-            SendKeys(VirtualKey.Tab);
-            VerifyCurrentLineText("Dim str = \"\"$$", assertCaretPosition: true);
+            this.SendKeys(VirtualKey.Tab);
+            this.VerifyCurrentLineText("Dim str = \"\"$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -195,13 +195,13 @@ Class C
     End Sub
 End Class");
 
-            SendKeys(
+            this.SendKeys(
                 "Dim y = {New C([dim",
                 VirtualKey.Escape,
                 "]:=\"hello({[\")}",
                 VirtualKey.Enter);
-
-            VerifyTextContains("Dim y = {New C([dim]:=\"hello({[\")}");
+            var actualText = Editor.GetText();
+            Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -217,7 +217,7 @@ Class C
     End Sub
 End Class");
 
-            SendKeys(
+            this.SendKeys(
                 "Dim y = {New C([dim",
                 VirtualKey.Escape,
                 VirtualKey.Tab,
@@ -226,8 +226,8 @@ End Class");
                 VirtualKey.Tab,
                 VirtualKey.Tab,
                 VirtualKey.Enter);
-
-            VerifyTextContains("Dim y = {New C([dim]:=\"hello({[\")}");
+            var actualText = Editor.GetText();
+            Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -240,8 +240,8 @@ Class C
     End Sub
 End Class");
 
-            SendKeys("{([\"");
-            VerifyCurrentLineText("' {([\"$$", assertCaretPosition: true);
+            this.SendKeys("{([\"");
+            this.VerifyCurrentLineText("' {([\"$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -254,8 +254,8 @@ Class C
     End Sub
 End Class");
 
-            SendKeys("Dim s = \"{([");
-            VerifyCurrentLineText("Dim s = \"{([$$\"", assertCaretPosition: true);
+            this.SendKeys("Dim s = \"{([");
+            this.VerifyCurrentLineText("Dim s = \"{([$$\"", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -266,12 +266,12 @@ $$
 Class C
 End Class");
 
-            SendKeys("'''");
-            SendKeys('{');
-            SendKeys('(');
-            SendKeys('[');
-            SendKeys('"');
-            VerifyCurrentLineText("''' {([\"$$", assertCaretPosition: true);
+            this.SendKeys("'''");
+            this.SendKeys('{');
+            this.SendKeys('(');
+            this.SendKeys('[');
+            this.SendKeys('"');
+            this.VerifyCurrentLineText("''' {([\"$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -286,8 +286,8 @@ Class C
     End Sub
 End Class");
 
-            SendKeys("(");
-            VerifyCurrentLineText("''' <see></see>($$", assertCaretPosition: true);
+            this.SendKeys("(");
+            this.VerifyCurrentLineText("''' <see></see>($$", assertCaretPosition: true);
         }
 
         [WorkItem(652015, "DevDiv")]
@@ -301,8 +301,8 @@ Class C
     End Sub
 End Class");
 
-            SendKeys("Dim x=\"\" '");
-            VerifyCurrentLineText("Dim x=\"\" '$$", assertCaretPosition: true);
+            this.SendKeys("Dim x=\"\" '");
+            this.VerifyCurrentLineText("Dim x=\"\" '$$", assertCaretPosition: true);
         }
 
         [WorkItem(653399, "DevDiv")]
@@ -315,11 +315,11 @@ Class C
     End Sub
 End Class");
 
-            SendKeys(VirtualKey.Enter);
-            SendKeys('(');
-            SendKeys(VirtualKey.Backspace);
+            this.SendKeys(VirtualKey.Enter);
+            this.SendKeys('(');
+            this.SendKeys(VirtualKey.Backspace);
 
-            VerifyCurrentLineText("        $$", assertCaretPosition: true, trimWhitespace: false);
+            this.VerifyCurrentLineText("        $$", assertCaretPosition: true, trimWhitespace: false);
         }
 
         [WorkItem(659684, "DevDiv")]
@@ -335,8 +335,8 @@ Class C
     End Sub
 End Class");
 
-            SendKeys("Foo(");
-            VerifyCurrentLineText("Foo($$)", assertCaretPosition: true);
+            this.SendKeys("Foo(");
+            this.VerifyCurrentLineText("Foo($$)", assertCaretPosition: true);
         }
 
         [WorkItem(657451, "DevDiv")]
@@ -347,8 +347,8 @@ End Class");
 Class C
     $$");
 
-            SendKeys("Sub Foo(");
-            VerifyCurrentLineText("Sub Foo($$)", assertCaretPosition: true);
+            this.SendKeys("Sub Foo(");
+            this.VerifyCurrentLineText("Sub Foo($$)", assertCaretPosition: true);
         }
     }
 }
