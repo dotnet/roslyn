@@ -371,7 +371,7 @@ class C<T>
 {
     void Main(T t)
     {
-        var v = t == null ? throw new Exception() : t;
+        var v = [||]t == null ? throw new Exception() : t;
     }
 }");
         }
@@ -385,7 +385,7 @@ class C<T> where T : struct
 {
     void Main(T t)
     {
-        var v = t == null ? throw new Exception() : t;
+        var v = [||]t == null ? throw new Exception() : t;
     }
 }");
         }
@@ -399,7 +399,7 @@ class C<T> where T : class
 {
     void Main(T t)
     {
-        var v = t == null ? throw new Exception() : t;
+        var v = [||]t == null ? throw new Exception() : t;
     }
 }",
 @"
@@ -421,7 +421,7 @@ class C
 {
     void Main(int? t)
     {
-        var v = t == null ? throw new Exception() : t;
+        var v = [||]t == null ? throw new Exception() : t;
     }
 }");
         }
@@ -435,7 +435,7 @@ class C
 {
     void Main(int[] t)
     {
-        var v = t == null ? throw new Exception() : t;
+        var v = [||]t == null ? throw new Exception() : t;
     }
 }",
 @"
@@ -457,7 +457,7 @@ class C
 {
     void Main(System.ICloneable t)
     {
-        var v = t == null ? throw new Exception() : t;
+        var v = [||]t == null ? throw new Exception() : t;
     }
 }",
 @"
@@ -479,7 +479,7 @@ class C
 {
     void Main(dynamic t)
     {
-        var v = t == null ? throw new Exception() : t;
+        var v = [||]t == null ? throw new Exception() : t;
     }
 }",
 @"
