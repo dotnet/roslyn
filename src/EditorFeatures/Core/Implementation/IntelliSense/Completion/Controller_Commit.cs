@@ -124,22 +124,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                     // If the completion change requested a new position for the caret to go,
                     // then set the caret to go directly to that point.
-                    //
-                    // Also, If we're doing a minimal change, then the edit that we make to the 
-                    // buffer may not make the total text change that places the caret where we 
-                    // would expect it to go based on the requested change. In this case, determine
-                    // where the item should go and set the care manually.
-                    if (editOptions.ComputeMinimalChange || completionChange.NewPosition.HasValue)
+                    if (completionChange.NewPosition.HasValue)
                     {
-                        var desiredCaretPosition =
-                            completionChange.NewPosition ?? mappedSpan.Start.Position + adjustedNewText.Length;
+                        SetCaretPosition(desiredCaretPosition: completionChange.NewPosition.Value);
+                    }
+                    else if (editOptions.ComputeMinimalChange)
+                    {
+                        // Or, If we're doing a minimal change, then the edit that we make to the 
+                        // buffer may not make the total text change that places the caret where we 
+                        // would expect it to go based on the requested change. In this case, 
+                        // determine where the item should go and set the care manually.
 
-                        // Now, move the caret to the right location.
-                        var graph = new DisconnectedBufferGraph(this.SubjectBuffer, this.TextView.TextBuffer);
-                        var viewTextSpan = graph.GetSubjectBufferTextSpanInViewBuffer(new TextSpan(desiredCaretPosition, 0));
-                        var desiredCaretPoint = new SnapshotPoint(TextView.TextBuffer.CurrentSnapshot, viewTextSpan.TextSpan.Start);
-
-                        TextView.Caret.MoveTo(new SnapshotPoint(TextView.TextBuffer.CurrentSnapshot, viewTextSpan.TextSpan.Start));
+                        // Note: we only want to move the caret if the caret would have been moved 
+                        // by the edit.  i.e. if the caret was actually in the mapped span that 
+                        // we're replacing.
+                        if (TextView.GetCaretPoint(this.SubjectBuffer) is SnapshotPoint caretPositionInBuffer &&
+                            mappedSpan.IntersectsWith(caretPositionInBuffer))
+                        {
+                            SetCaretPosition(desiredCaretPosition: mappedSpan.Start.Position + adjustedNewText.Length);
+                        }
                     }
 
                     // Now, pass along the commit character unless the completion item said not to
@@ -158,6 +161,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // Let the completion rules know that this item was committed.
             this.MakeMostRecentItem(item.DisplayText);
+        }
+
+        private void SetCaretPosition(int desiredCaretPosition)
+        {
+            // Now, move the caret to the right location.
+            var graph = new DisconnectedBufferGraph(this.SubjectBuffer, this.TextView.TextBuffer);
+            var viewTextSpan = graph.GetSubjectBufferTextSpanInViewBuffer(new TextSpan(desiredCaretPosition, 0));
+            var desiredCaretPoint = new SnapshotPoint(TextView.TextBuffer.CurrentSnapshot, viewTextSpan.TextSpan.Start);
+
+            TextView.Caret.MoveTo(new SnapshotPoint(TextView.TextBuffer.CurrentSnapshot, viewTextSpan.TextSpan.Start));
         }
 
         private EditOptions GetEditOptions(SnapshotSpan spanToReplace, string adjustedNewText)
