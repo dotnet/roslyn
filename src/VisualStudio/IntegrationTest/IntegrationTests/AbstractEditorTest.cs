@@ -126,22 +126,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
         }
 
-        protected void InvokeQuickInfo()
-        {
-            ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
-            WaitForAsyncOperations(FeatureAttribute.QuickInfo);
-        }
-
-        protected void InvokeCodeActionList()
-        {
-            WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
-            WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
-
-            Editor.ShowLightBulb();
-            Editor.WaitForLightBulbSession();
-            WaitForAsyncOperations(FeatureAttribute.LightBulb);
-        }
-
         private void VerifyCurrentLineTextAndAssertCaretPosition(string expectedText, bool trimWhitespace)
         {
             var caretStartIndex = expectedText.IndexOf("$$");
@@ -303,14 +287,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var actualContents = VisualStudio.Instance.SolutionExplorer.GetFileContents(ProjectName, fileName);
             Assert.Equal(expectedContents, actualContents);
-        }
-
-        public void VerifyCodeActionsNotShowing()
-        {
-            if (Editor.IsLightBulbSessionExpanded())
-            {
-                throw new InvalidOperationException("Expected no light bulb session, but one was found.");
-            }
         }
 
         public void VerifyNoBuildErrors()
