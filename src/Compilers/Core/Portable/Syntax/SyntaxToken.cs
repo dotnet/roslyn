@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public struct SyntaxToken : IEquatable<SyntaxToken>
     {
-        private static readonly Func<DiagnosticInfo, Diagnostic> CreateDiagnosticWithoutLocation = Diagnostic.Create;
+        private static readonly Func<DiagnosticInfo, Diagnostic> s_createDiagnosticWithoutLocation = Diagnostic.Create;
 
         internal static readonly Func<SyntaxToken, bool> NonZeroWidth = t => t.Width > 0;
         internal static readonly Func<SyntaxToken, bool> Any = t => true;
@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis
 
                 return diagnostics.Length == 0
                     ? SpecializedCollections.EmptyEnumerable<Diagnostic>()
-                    : diagnostics.Select(CreateDiagnosticWithoutLocation);
+                    : diagnostics.Select(s_createDiagnosticWithoutLocation);
             }
 
             return tree.GetDiagnostics(this);
