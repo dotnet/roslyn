@@ -1930,5 +1930,44 @@ namespace N
 
             await TestExtractMethodAsync(code, expected);
         }
+
+        [WorkItem(17971, "https://github.com/dotnet/roslyn/issues/17971")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task BrokenForeachLoop()
+        {
+            var code = @"using System;
+namespace ConsoleApp1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            [|Console.WriteLine(1);
+            foreach ()
+            Console.WriteLine(2);|]
+        }
+    }
+}";
+            var expected = @"using System;
+namespace ConsoleApp1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            NewMethod();
+        }
+
+        private static void NewMethod()
+        {
+            Console.WriteLine(1);
+            foreach ()
+                Console.WriteLine(2);
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
     }
 }
