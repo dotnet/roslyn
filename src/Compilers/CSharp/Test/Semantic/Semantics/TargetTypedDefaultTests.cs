@@ -516,6 +516,27 @@ class C
         }
 
         [Fact]
+        public void DefaultInEnum()
+        {
+            string source = @"
+enum E
+{
+    Entry = default
+}
+class C
+{
+    static void Main()
+    {
+        System.Console.Write((int)E.Entry);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0");
+        }
+
+        [Fact]
         public void YieldReturn()
         {
             string source = @"
@@ -753,38 +774,101 @@ class C
             var text = @"
 class C
 {
-    static void Main()
+    static void M<T>()
     {
         System.Console.Write(default as long);
+        System.Console.Write(default as T);
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0077: The as operator must be used with a reference type or nullable type ('long' is a non-nullable value type)
                 //         System.Console.Write(default as long);
-                Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "default as long").WithArguments("long").WithLocation(6, 30)
+                Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "default as long").WithArguments("long").WithLocation(6, 30),
+                // (7,30): error CS0413: The type parameter 'T' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
+                //         System.Console.Write(default as T);
+                Diagnostic(ErrorCode.ERR_AsWithTypeVar, "default as T").WithArguments("T").WithLocation(7, 30)
                 );
         }
 
         [Fact]
-        public void DefaultInIsPattern()
+        public void DefaultInAsOperatorWithReferenceType()
         {
             var text = @"
 class C
 {
     static void Main()
     {
+        System.Console.Write($""{default as C == null} {default as string == null}"");
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (6,33): warning CS0458: The result of the expression is always 'null' of type 'C'
+                //         System.Console.Write($"{default as C == null} {default as string == null}");
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "default as C").WithArguments("C").WithLocation(6, 33),
+                // (6,56): warning CS0458: The result of the expression is always 'null' of type 'string'
+                //         System.Console.Write($"{default as C == null} {default as string == null}");
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "default as string").WithArguments("string").WithLocation(6, 56)
+                );
+            CompileAndVerify(comp, expectedOutput: "True True");
+        }
+
+        [Fact]
+        public void DefaultInputToConstantPattern()
+        {
+            var text = @"
+class C
+{
+    static void M<T>()
+    {
         System.Console.Write(default is long);
+        System.Console.Write(default is string);
+        System.Console.Write(default is default);
+        System.Console.Write(default is T);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                //         System.Console.Write(default is long);
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is long").WithArguments("is", "default").WithLocation(6, 30),
+                // (7,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                //         System.Console.Write(default is string);
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is string").WithArguments("is", "default").WithLocation(7, 30),
+                // (8,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                //         System.Console.Write(default is default);
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is default").WithArguments("is", "default").WithLocation(8, 30),
+                // (8,41): error CS0150: A constant value is expected
+                //         System.Console.Write(default is default);
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "default").WithLocation(8, 41),
+                // (9,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                //         System.Console.Write(default is T);
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is T").WithArguments("is", "default").WithLocation(9, 30)
+                );
+        }
+
+        [Fact]
+        public void DefaultInConstantPattern()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        string hello = ""hello"";
+        string nullString = null;
+        int two = 2;
+        int zero = 0;
+        System.Console.Write($""{hello is default} {nullString is default} {two is default} {zero is default}"");
     }
 }";
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (6,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
-                //         System.Console.Write(default is long);
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is long").WithArguments("is", "default").WithLocation(6, 30)
-                );
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "False True False True");
         }
 
         [Fact]
