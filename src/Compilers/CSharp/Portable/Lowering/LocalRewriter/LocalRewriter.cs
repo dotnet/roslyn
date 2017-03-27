@@ -500,31 +500,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Receivers of struct methods are alowed to be RValues or LValues.
+        /// Receivers of struct methods are required to be at least RValues but can be assignable variables.
         /// Whether the mutations from the method are propagated back to the 
-        /// receiver instance is conditional on whether the receiver is an LValue.
+        /// receiver instance is conditional on whether the receiver is a variable that can be assigned. 
+        /// If not, then the invokation is performed on a copy.
         /// 
-        /// An inconvenient situation may arise when an the receiver is an RValue expression,
+        /// An inconvenient situation may arise when the receiver is an RValue expression (like a ternary operator),
         /// which is trivially reduced during lowering to one of its operands and 
-        /// such operand happens to be an LValue. That operation alone would 
+        /// such operand happens to be an assignable variable (like a local). That operation alone would 
         /// expose the operand to mutations while it would not be exposed otherwise.
         /// I.E. the transformation becomes semantically observable.
         /// 
         /// To prevent such situations, we will wrap the operand into a node whose only 
-        /// purpose is to never be an LValue.
+        /// purpose is to never be an assignable expression.
         /// </summary>
-        private static BoundExpression EnsureNotLvalueReceiver(BoundExpression expr)
+        private static BoundExpression EnsureNotAssignableIfUsedAsMethodReceiver(BoundExpression expr)
         {
             // Leave as-is where receiver mutations cannot happen.
-            if (!ReceiverCanBeAssigned(expr))
-            {
-                return expr;
-            }
-
-            // - reference type receivers are byval
-            // - special value types do not have mutating members
-            var type = expr.Type.OriginalDefinition;
-            if (type.IsReferenceType || type.SpecialType != SpecialType.None)
+            if (!WouldBeAssignableIfUsedAsMethodReceiver(expr))
             {
                 return expr;
             }
@@ -540,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        internal static bool ReceiverCanBeAssigned(BoundExpression receiver)
+        internal static bool WouldBeAssignableIfUsedAsMethodReceiver(BoundExpression receiver)
         {
             // - reference type receivers are byval
             // - special value types (int32, Nullable<T>, . .) do not have mutating members
