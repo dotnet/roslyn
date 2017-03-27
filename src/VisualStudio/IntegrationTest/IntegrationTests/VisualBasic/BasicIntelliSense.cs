@@ -154,7 +154,7 @@ End Module");
             SendKeys(' ');
             VerifyCompletionListIsActive(expected: true);
 
-            SendKeys("foo");
+            SendKeys("fooo");
             VerifyCompletionListIsActive(expected: false);
 
             SendKeys(' ');
