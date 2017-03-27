@@ -715,7 +715,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [Fact]
         public void MatchAllLowerPattern4()
         {
-            Assert.Null(TryMatchSingleWordPattern("AbcdefghijEfgHij", "efghij"));
+            Assert.NotNull(TryMatchSingleWordPattern("Abcdefghij[|EfgHij|]", "efghij"));
+        }
+
+        [Fact]
+        public void MatchAllLowerPattern5()
+        {
+            Assert.Null(TryMatchSingleWordPattern("Abcdefghijefghij", "efghij"));
         }
 
         [Fact]
@@ -760,6 +766,46 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var result = TryMatchSingleWordPattern("Code[|Fi|]xObject[|Pro|]vider", "fipro");
             Assert.NotNull(result);
             Assert.Equal(0, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern7()
+        {
+            var result = TryMatchSingleWordPattern("[|co|]deFix[|Pro|]vider", "copro");
+            Assert.NotNull(result);
+            Assert.Equal(PatternMatcher.CamelCaseMatchesFromStartBonus, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern8()
+        {
+            var result = TryMatchSingleWordPattern("_[|co|]deFix[|Pro|]vider", "copro");
+            Assert.NotNull(result);
+            Assert.Equal(0, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern9()
+        {
+            var result = TryMatchSingleWordPattern("[|Co|]deFix_[|Pro|]vider", "copro");
+            Assert.NotNull(result);
+            Assert.Equal(PatternMatcher.CamelCaseMatchesFromStartBonus, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern10()
+        {
+            var result = TryMatchSingleWordPattern("[|CO|]DE_FIX_[|PRO|]VIDER", "copro");
+            Assert.NotNull(result);
+            Assert.Equal(PatternMatcher.CamelCaseMatchesFromStartBonus, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void DoNotMatchAllLowerCamelCasePatternReordered()
+        {
+            // We could consider supporting this in the future.
+            var result = TryMatchSingleWordPattern("CodeFixObjectProvider", "ficopro");
+            Assert.Null(result);
         }
 
         private static IList<string> PartListToSubstrings(string identifier, StringBreaks parts)
