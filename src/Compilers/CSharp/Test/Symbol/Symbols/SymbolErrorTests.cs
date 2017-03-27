@@ -833,17 +833,11 @@ interface i1
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (6,35): error CS0073: An add or remove accessor must have a body
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
+                //     event myDelegate myevent { add; remove; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 35),
                 // (6,43): error CS0073: An add or remove accessor must have a body
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
-
-                // NOTE: dev10 doesn't report these cascading errors, but they seem more
-                // informative than the parser errors above.
-
-                // (6,32): error CS0069: An event in an interface cannot have add or remove accessors
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "add"),
-                // (6,37): error CS0069: An event in an interface cannot have add or remove accessors
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "remove"));
+                //     event myDelegate myevent { add; remove; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 43));
         }
 
         [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
@@ -858,10 +852,12 @@ interface i1
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (5,32): error CS0069: An event in an interface cannot have add or remove accessors
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "add"),
-                // (5,39): error CS0069: An event in an interface cannot have add or remove accessors
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "remove"));
+                // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                //     event myDelegate myevent { add {} remove {} }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(5, 32),
+                // (5,39): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                //     event myDelegate myevent { add {} remove {} }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(5, 39));
         }
 
         [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
@@ -876,8 +872,12 @@ interface i1
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (5,32): error CS0069: An event in an interface cannot have add or remove accessors
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "add"));
+                // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                //     event myDelegate myevent { add {} }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(5, 32),
+                // (5,22): error CS0065: 'i1.myevent': event property must have both add and remove accessors
+                //     event myDelegate myevent { add {} }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "myevent").WithArguments("i1.myevent").WithLocation(5, 22));
         }
 
         [Fact]

@@ -3887,15 +3887,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An event in an interface cannot have add or remove accessors.
-        /// </summary>
-        internal static string ERR_EventPropertyInInterface {
-            get {
-                return ResourceManager.GetString("ERR_EventPropertyInInterface", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Expected contextual keyword &apos;by&apos;.
         /// </summary>
         internal static string ERR_ExpectedContextualKeywordBy {

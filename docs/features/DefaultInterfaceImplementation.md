@@ -29,5 +29,7 @@ class Test1 : I1
 
 - Supplying an implementation along with declaration of a property or an indexer and recognizing that implementation as default implementation for them when a type implements the interface. 
 
+- Supplying an implementation along with declaration of an event and recognizing that implementation as default implementation for the event when a type implements the interface. 
+
 
 **Open issues and work items** are tracked in https://github.com/dotnet/roslyn/issues/17952.

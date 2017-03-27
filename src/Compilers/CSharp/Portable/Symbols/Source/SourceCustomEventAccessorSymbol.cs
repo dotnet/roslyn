@@ -62,26 +62,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            if (@event.ContainingType.IsInterface)
+            var bodyOpt = syntax.Body;
+            if (bodyOpt != null)
             {
-                diagnostics.Add(ErrorCode.ERR_EventPropertyInInterface, this.Location);
-            }
-            else
-            {
-                var bodyOpt = syntax.Body;
-                if (bodyOpt != null)
+                if (IsExtern && !IsAbstract)
                 {
-                    if (IsExtern && !IsAbstract)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_ExternHasBody, this.Location, this);
-                    }
-                    else if (IsAbstract && !IsExtern)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_AbstractHasBody, this.Location, this);
-                    }
-                    // Do not report error for IsAbstract && IsExtern. Dev10 reports CS0180 only
-                    // in that case ("member cannot be both extern and abstract").
+                    diagnostics.Add(ErrorCode.ERR_ExternHasBody, this.Location, this);
                 }
+                else if (IsAbstract && !IsExtern)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AbstractHasBody, this.Location, this);
+                }
+                else if (@event.ContainingType.IsInterface)
+                {
+                    Binder.CheckFeatureAvailability(syntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, this.Location);
+
+                    if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.Location);
+                    }
+                }
+                // Do not report error for IsAbstract && IsExtern. Dev10 reports CS0180 only
+                // in that case ("member cannot be both extern and abstract").
             }
 
             _name = GetOverriddenAccessorName(@event, isAdder) ?? _name;

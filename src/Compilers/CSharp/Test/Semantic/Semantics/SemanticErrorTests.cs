@@ -2006,40 +2006,30 @@ class C
             var text = @"
 interface I
 {
-    event System.Action E1 { add; } // CS0069 on add
-    event System.Action E2 { remove; } // CS0069 on remove
-    event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
+    event System.Action E1 { add; }
+    event System.Action E2 { remove; }
+    event System.Action E3 { add; remove; }
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (4,30): error CS0069: An event in an interface cannot have add or remove accessors
-                //     event System.Action E1 { add; } // CS0069 on add
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "add"),
-                // (5,30): error CS0069: An event in an interface cannot have add or remove accessors
-                //     event System.Action E2 { remove; } // CS0069 on remove
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "remove"),
-                // (6,30): error CS0069: An event in an interface cannot have add or remove accessors
-                //     event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "add"),
-                // (6,35): error CS0069: An event in an interface cannot have add or remove accessors
-                //     event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "remove"),
-
-                // CONSIDER: dev10 doesn't report these, but we report them in the parser so they're
-                // hard to suppress.
-
                 // (4,33): error CS0073: An add or remove accessor must have a body
-                //     event System.Action E1 { add; } // CS0069 on add
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
+                //     event System.Action E1 { add; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(4, 33),
                 // (5,36): error CS0073: An add or remove accessor must have a body
-                //     event System.Action E2 { remove; } // CS0069 on remove
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
+                //     event System.Action E2 { remove; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(5, 36),
                 // (6,33): error CS0073: An add or remove accessor must have a body
-                //     event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
+                //     event System.Action E3 { add; remove; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 33),
                 // (6,41): error CS0073: An add or remove accessor must have a body
-                //     event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"));
+                //     event System.Action E3 { add; remove; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 41),
+                // (4,25): error CS0065: 'I.E1': event property must have both add and remove accessors
+                //     event System.Action E1 { add; }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I.E1").WithLocation(4, 25),
+                // (5,25): error CS0065: 'I.E2': event property must have both add and remove accessors
+                //     event System.Action E2 { remove; }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E2").WithArguments("I.E2").WithLocation(5, 25));
         }
 
         [Fact]
