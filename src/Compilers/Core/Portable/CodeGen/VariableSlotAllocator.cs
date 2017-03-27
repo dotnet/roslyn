@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
-            ImmutableArray<TypedConstant> dynamicTransformFlags,
-            ImmutableArray<TypedConstant> tupleElementNames);
+            ImmutableArray<bool> dynamicTransformFlags,
+            ImmutableArray<string> tupleElementNames);
 
         public abstract string PreviousStateMachineTypeName { get; }
 

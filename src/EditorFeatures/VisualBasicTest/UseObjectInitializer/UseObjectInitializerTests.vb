@@ -28,7 +28,7 @@ End Class",
 Class C
     Dim i As Integer
     Sub M()
-        Dim c = New C() With {
+        Dim c = New C With {
             .i = 1
         }
     End Sub
@@ -51,7 +51,7 @@ End Class",
 Class C
     Dim i As Integer
     Sub M()
-        Dim c As New C() With {
+        Dim c As New C With {
             .i = 1
         }
     End Sub
@@ -76,7 +76,7 @@ Class C
     Dim i As Integer
     Sub M()
         Dim c as C = Nothing
-        c = New C() With {
+        c = New C With {
             .i = 1
         }
     End Sub
@@ -100,7 +100,7 @@ End Class",
 Class C
     Dim i As Integer
     Sub M()
-        Dim c = New C() With {
+        Dim c = New C With {
             .i = 1
         }
         c.i = 2
@@ -131,7 +131,7 @@ Class C
     Sub M()
         Dim array As C()
 
-        array(0) = New C() With {
+        array(0) = New C With {
             .i = 1,
             .j = 2
         }
@@ -158,7 +158,7 @@ Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = New C() With {
+        Dim c = New C With {
             .i = 1
         }
         c.j += 1
@@ -216,7 +216,7 @@ End Class",
 "                            
 Class C
     Sub M()
-        Dim x As ProcessStartInfo = New ProcessStartInfo() With {
+        Dim x As ProcessStartInfo = New ProcessStartInfo With {
             .Arguments = Sub()
                              With New String()
                                  Dim a = .Length.ToString()
@@ -253,12 +253,12 @@ Class C
     Sub M()
         Dim array As C()
 
-        array(0) = New C() With {
+        array(0) = New C With {
             .i = 1,
             .j = 2
         }
 
-        array(1) = New C() With {
+        array(1) = New C With {
             .i = 3,
             .j = 4
         }
@@ -285,7 +285,7 @@ Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = New C() With {
+        Dim c = New C With {
             .i = 1, ' Foo
             .j = 2 ' Bar
             }

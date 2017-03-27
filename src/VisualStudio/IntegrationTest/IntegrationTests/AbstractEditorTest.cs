@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
@@ -19,16 +18,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractEditorTest : AbstractIntegrationTest
     {
-        protected readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
         protected readonly Editor_OutOfProc Editor;
 
         protected readonly string ProjectName = "TestProj";
 
         protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+            : base(instanceFactory, visualStudio => visualStudio.Instance.Editor)
         {
-            VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
-            Editor = VisualStudio.Instance.Editor;
+            Editor = (Editor_OutOfProc)TextViewWindow;
         }
 
         protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
@@ -40,13 +37,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudioInstanceFactory instanceFactory,
             string solutionName,
             string projectTemplate)
-           : base(instanceFactory)
+           : base(instanceFactory, visualStudio => visualStudio.Instance.Editor)
         {
             VisualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
             VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, projectTemplate, LanguageName);
 
-            VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
-            Editor = VisualStudio.Instance.Editor;
+            Editor = (Editor_OutOfProc)TextViewWindow;
 
             // Winforms and XAML do not open text files on creation
             // so these editor tasks will not work if that is the project template being used.
@@ -59,9 +55,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         protected abstract string LanguageName { get; }
-
-        protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
-            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";",featuresToWaitFor));
 
         protected void ClearEditor()
             => SetUpEditor("$$");
@@ -138,31 +131,22 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void SendKeys(params object[] keys)
             => Editor.SendKeys(keys);
 
-        protected KeyPress KeyPress(VirtualKey virtualKey, ShiftState shiftState)
-            => new KeyPress(virtualKey, shiftState);
-
-        protected KeyPress Ctrl(VirtualKey virtualKey)
-            => new KeyPress(virtualKey, ShiftState.Ctrl);
-
-        protected KeyPress Shift(VirtualKey virtualKey)
-            => new KeyPress(virtualKey, ShiftState.Shift);
-
         protected void DisableSuggestionMode()
             => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
 
         protected void EnableSuggestionMode()
             => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
 
-        protected void InvokeCompletionList()
-        {
-            ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
-            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-        }
-
         protected void InvokeSignatureHelp()
         {
             ExecuteCommand(WellKnownCommandNames.Edit_ParameterInfo);
             WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
+        }
+
+        protected void InvokeQuickInfo()
+        {
+            ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
+            WaitForAsyncOperations(FeatureAttribute.QuickInfo);
         }
 
         protected void InvokeCodeActionList()
@@ -174,9 +158,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             Editor.WaitForLightBulbSession();
             WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
-
-        protected void ExecuteCommand(string commandName, string argument = "")
-            => VisualStudio.Instance.ExecuteCommand(commandName, argument);
 
         private void VerifyCurrentLineTextAndAssertCaretPosition(string expectedText, bool trimWhitespace)
         {
@@ -282,15 +263,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var editorText = Editor.GetText();
             Assert.DoesNotContain(expectedText, editorText);
-        }
-
-        protected void VerifyCompletionItemExists(params string[] expectedItems)
-        {
-            var completionItems = Editor.GetCompletionItems();
-            foreach (var expectedItem in expectedItems)
-            {
-                Assert.Contains(expectedItem, completionItems);
-            }
         }
 
         protected void VerifyCompletionItemDoesNotExist(params string[] expectedItems)
@@ -453,18 +425,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
             Assert.Contains(referencedProjectName, projectReferences);
-        }
 
-        public void VerifyCurrentTokenType(string tokenType)
+        }
+        protected void InvokeNavigateToAndPressEnter(string text)
         {
-            WaitForAsyncOperations(
-                FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService,
-                FeatureAttribute.Classification);
-            var actualTokenTypes = Editor.GetCurrentClassifications();
-            Assert.Equal(actualTokenTypes.Length, 1);
-            Assert.Contains(tokenType, actualTokenTypes[0]);
-            Assert.NotEqual("text", tokenType);
+            ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);
+            Editor.NavigateToSendKeys(text);
+            WaitForAsyncOperations(FeatureAttribute.NavigateTo);
+            Editor.NavigateToSendKeys("{ENTER}");
         }
     }
 }
