@@ -1,4 +1,4 @@
-
+ 
 Quickstart guide for deconstructions (C# 7.0)
 ----------------------------------------------
 1. Install Visual Studio 2017 
