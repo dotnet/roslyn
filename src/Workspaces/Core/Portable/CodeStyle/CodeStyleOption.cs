@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Xml.Linq;
 using Roslyn.Utilities;
 
@@ -22,6 +21,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// bool-CodeStyleOption is then deserialized into an enum-CodeStyleOption then 'false' 
     /// values will be migrated to have the 0-value of the enum, and 'true' values will be
     /// migrated to have the 1-value of the enum.
+    /// 
+    /// Similarly, enum-type code options will serialize out in a way that is compatible with 
+    /// hosts that expect the value to be a boolean.  Specifically, if the enum value is 0 or 1
+    /// then those values will write back as false/true.
     /// </summary>
     public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
@@ -36,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         public T Value { get; set; }
+
+        private int EnumValueAsInt32 => (int)(object)Value;
 
         public NotificationOption Notification { get; set; }
 
@@ -52,15 +57,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 return Value;
             }
+            else if (IsZeroOrOneValueOfEnum())
+            {
+                return EnumValueAsInt32 == 1;
+            }
             else
             {
-                return (int)(object)Value;
+                return EnumValueAsInt32;
             }
         }
 
         private string GetTypeNameForSerialization()
         {
-            if (typeof(T) == typeof(bool))
+            if (typeof(T) == typeof(bool) || IsZeroOrOneValueOfEnum())
             {
                 return nameof(Boolean);
             }
@@ -68,6 +77,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 return nameof(Int32);
             }
+        }
+
+        private bool IsZeroOrOneValueOfEnum()
+        {
+            var intVal = EnumValueAsInt32;
+            return intVal == 0 || intVal == 1;
         }
 
         public static CodeStyleOption<T> FromXElement(XElement element)
@@ -124,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     // a CodeStyleOption<SomeEnumType>.
                     return v => Convert(bool.Parse(v));
                 case nameof(Int32):
-                    return v => (T)(object)int.Parse(v);
+                    return v => Convert(int.Parse(v));
                 default:
                     throw new ArgumentException(nameof(type));
             }
@@ -132,18 +147,26 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private static T Convert(bool b)
         {
-            // If we had a bool and we wanted a bool, then just return this
-            // value.
+            // If we had a bool and we wanted a bool, then just return this value.
             if (typeof(T) == typeof(bool))
             {
                 return (T)(object)b;
             }
 
+            // Map booleans to the 1/0 value of the enum.
+            return b ? (T)(object)1 : (T)(object)0;
+        }
 
-            var enumValues = (T[])Enum.GetValues(typeof(T));
-            return b 
-                ? enumValues.First(v => (int)(object)v == 0) 
-                : enumValues.First(v => (int)(object)v == 1);
+        private static T Convert(int i)
+        {
+            // We got an int, but we wanted a bool.  Map 0 to false, 1 to true, and anything else to default.
+            if (typeof(T) == typeof(bool))
+            {
+                return (T)(object)(i == 1);
+            }
+
+            // If had an int and we wanted an enum, then just return this value.
+            return (T)(object)(i);
         }
 
         public bool Equals(CodeStyleOption<T> other)

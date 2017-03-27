@@ -26,8 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public void TestOptionSerialization()
+        public void TestOptionSerialization1()
         {
+            // Verify that bool-options can migrate to ExpressionBodyPreference-options.
             var option = new CodeStyleOption<bool>(false, NotificationOption.None);
             var serialized = option.ToXElement();
             var deserialized = CodeStyleOption<ExpressionBodyPreference>.FromXElement(serialized);
@@ -41,6 +42,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             Assert.Equal(ExpressionBodyPreference.WhenPossible, deserialized.Value);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public void TestOptionSerialization2()
+        {
+            // Verify that ExpressionBodyPreference-options can migrate to bool-options.
+            var option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.None);
+            var serialized = option.ToXElement();
+            var deserialized = CodeStyleOption<bool>.FromXElement(serialized);
+
+            Assert.Equal(false, deserialized.Value);
+
+            option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.None);
+            serialized = option.ToXElement();
+            deserialized = CodeStyleOption<bool>.FromXElement(serialized);
+
+            Assert.Equal(true, deserialized.Value);
+
+            // This new values can't actually translate back to a bool.  So we'll just get the default
+            // value for this option.
+            option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption.None);
+            serialized = option.ToXElement();
+            deserialized = CodeStyleOption<bool>.FromXElement(serialized);
+
+            Assert.Equal(default(bool), deserialized.Value);
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()

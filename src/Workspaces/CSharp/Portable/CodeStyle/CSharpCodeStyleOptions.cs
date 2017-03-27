@@ -108,11 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 return boolValue ? ExpressionBodyPreference.WhenPossible : ExpressionBodyPreference.Never;
             }
 
-            switch (value)
+            if (value == "when_on_single_line")
             {
-                case "never": return ExpressionBodyPreference.Never;
-                case "when_possible": return ExpressionBodyPreference.WhenPossible;
-                case "when_on_single_line": return ExpressionBodyPreference.WhenOnSingleLine;
+                return ExpressionBodyPreference.WhenOnSingleLine;
             }
 
             return @default;
