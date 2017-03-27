@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // original attributes and we don't want to mess with them. 
                 AddPartialModifiersToTypeChain(documentEditor, 
                     removeAttributesAndComments: false, removeTypeInheritance: false);
-                documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepNoTrivia);
+                documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
                 var updatedDocument = documentEditor.GetChangedDocument();
 
