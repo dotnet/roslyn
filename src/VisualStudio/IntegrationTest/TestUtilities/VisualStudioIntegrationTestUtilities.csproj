@@ -35,6 +35,7 @@
     <Compile Include="Helper.cs" />
     <Compile Include="HostWaitHelper.cs" />
     <Compile Include="InProcess\ErrorList_InProc.cs" />
+    <Compile Include="InProcess\ImmediateWindow_InProc.cs" />
     <Compile Include="InProcess\TextViewWindow_InProc.cs" />
     <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
     <Compile Include="DialogHelpers.cs" />
@@ -53,14 +54,18 @@
     <Compile Include="Interop\NativeMethods.cs" />
     <Compile Include="LightBulbHelper.cs" />
     <Compile Include="OutOfProcess\ChangeSignatureDialog_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\Debugger_OutOfProc.cs" />
     <Compile Include="OutOfProcess\ErrorList_OutOfProc.cs" />
     <Compile Include="OutOfProcess\FindReferencesWindow_OutOfProc.cs" />
     <Compile Include="OutOfProcess\GenerateTypeDialog_OutOfProc.cs" />
+    <Compile Include="InProcess\Debugger_InProc.cs" />
+    <Compile Include="OutOfProcess\ImmediateWindow_OutOfProc.cs" />
     <Compile Include="OutOfProcess\OutOfProcComponent.cs" />
     <Compile Include="OutOfProcess\Shell_OutOfProc.cs" />
     <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
     <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
     <Compile Include="OutOfProcess\TextViewWindow_OutOfProc.cs" />
+    <Compile Include="RetryHelper.cs" />
     <Compile Include="ScreenshotService.cs" />
     <Compile Include="TemporaryTextFile.cs" />
     <Compile Include="TestUtilities.cs" />

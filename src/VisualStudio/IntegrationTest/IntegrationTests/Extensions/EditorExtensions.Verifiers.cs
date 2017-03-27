@@ -132,11 +132,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
             this AbstractIntegrationTest test, 
             params string[] expectedItems)
         {
-            var completionItems = test.VisualStudio.Instance.Editor.GetCompletionItems();
-            foreach (var expectedItem in expectedItems)
-            {
-                Assert.DoesNotContain(expectedItem, completionItems);
-            }
+            CommonExtensions.VerifyCompletionItemDoesNotExist(test.VisualStudio.Instance.Editor, expectedItems);
         }
 
         public static void VerifyCurrentCompletionItem(
