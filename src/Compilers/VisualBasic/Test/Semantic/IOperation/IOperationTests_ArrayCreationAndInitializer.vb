@@ -386,5 +386,50 @@ IArrayCreationExpression (Dimension sizes: 4, Element Type: System.Int32) (Opera
 
             VerifyOperationTreeForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree)
         End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationErrorCase_MissingDimension()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F()
+        Dim a = New String(1,) {}'BIND:"New String(1,) {}"
+    End Sub
+End Class
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (Dimension sizes: 2, Element Type: System.String) (OperationKind.ArrayCreationExpression, Type: System.String(,), IsInvalid)
+  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2)
+    Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+    Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+  IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid)
+    Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+  IArrayInitializer (OperationKind.ArrayInitializer)
+]]>.Value
+
+            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationErrorCase_InvalidInitializer()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F()
+        Dim a = New C() {1}'BIND:"New C() {1}"
+    End Sub
+End Class
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (Dimension sizes: 1, Element Type: C) (OperationKind.ArrayCreationExpression, Type: C(), IsInvalid)
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+  IArrayInitializer (OperationKind.ArrayInitializer, IsInvalid)
+    IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: C, IsInvalid)
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+]]>.Value
+
+            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+        End Sub
     End Class
 End Namespace

@@ -371,5 +371,45 @@ IArrayCreationExpression (Dimension sizes: 1, Element Type: System.Int32[,,]) (O
 ";
             VerifyOperationTreeForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree);
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18193"), WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        public void ArrayCreationErrorCase_MissingDimension()
+        {
+            string source = @"
+class C
+{
+    public void F()
+    {
+        var a = /*<bind>*/new string[]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IArrayCreationExpression (Dimension sizes: 0, Element Type: System.String) (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid)
+";
+            VerifyOperationTreeForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+        public void ArrayCreationErrorCase_InvalidInitializer()
+        {
+            string source = @"
+class C
+{
+    public void F()
+    {
+        var a = /*<bind>*/new string[] { 1 }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IArrayCreationExpression (Dimension sizes: 1, Element Type: System.String) (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid)
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+  IArrayInitializer (OperationKind.ArrayInitializer, IsInvalid)
+    IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.String, IsInvalid)
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+";
+            VerifyOperationTreeForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree);
+        }
     }
 }
