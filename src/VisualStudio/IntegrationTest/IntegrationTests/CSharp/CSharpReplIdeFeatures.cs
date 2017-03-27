@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -49,11 +49,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         // https://github.com/dotnet/roslyn/issues/801
-        // [Fact]
+        [Fact]
         public void VerifyCodeActionsNotAvailableInPreviousSubmission()
         {
             InsertCode("Console.WriteLine(42);");
-            //      <VerifyNoCodeActionsAvailable />
+            VerifyCodeActionsNotShowing();
         }
 
         //  https://github.com/dotnet/roslyn/issues/3785
@@ -145,8 +145,8 @@ static void TestMethod(int y)
             InsertCode("int someint; someint = 22; someint = 23;");
             PlaceCaret("someint = 22", charsOffset: -6);
 
-            Wait(seconds: 10); // TODO
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 2);
+            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
         }
 
@@ -155,11 +155,11 @@ static void TestMethod(int y)
         {
             InsertCode("int someint; someint = 22; someint = 23;");
             PlaceCaret("someint = 22", charsOffset: -6);
-            Wait(seconds: 10); // TODO
+            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
 
-            PlaceCaret("2", charsOffset: -6);
-            Wait(seconds: 10); // TODO
+            PlaceCaret("22");
+            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 0);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 0);
@@ -172,7 +172,7 @@ static void TestMethod(int y)
             SubmitText("Foo something = new Foo();");
             SubmitText("something.ToString();");
             PlaceCaret("someth", charsOffset: 1, occurrence: 2);
-            Wait(seconds: 10); // TODO
+            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 1);
         }
@@ -184,7 +184,7 @@ static void TestMethod(int y)
             SubmitText("Foo something = new Foo();");
             InsertCode("something.ToString();");
             PlaceCaret("someth", charsOffset: 1, occurrence: 2);
-            Wait(seconds: 10); // TODO
+            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 1);
         }
@@ -196,7 +196,7 @@ static void TestMethod(int y)
             SubmitText("Foo a;");
             SubmitText("Foo b;");
             PlaceCaret("Foo b", charsOffset: -1);
-            Wait(seconds: 10); // TODO
+            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 2);
         }
@@ -208,7 +208,7 @@ static void TestMethod(int y)
             SubmitText("Foo a;");
             InsertCode("Foo b;");
             PlaceCaret("Foo b", charsOffset: -1);
-            Wait(seconds: 10); // TODO
+            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 2);
         }
@@ -220,7 +220,7 @@ static void TestMethod(int y)
             SubmitText("Foo a;");
             InsertCode("Foo b;Something();");
             PlaceCaret("Something();", charsOffset: -1);
-            Wait(seconds: 10); // TODO
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 0);
         }
@@ -231,9 +231,9 @@ static void TestMethod(int y)
             SubmitText("string abc = null;");
             SubmitText("abc = string.Empty;");
             InsertCode("int abc = 42;");
-            Wait(seconds: 10); // TODO
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
             PlaceCaret("abc", occurrence: 3);
-            Wait(seconds: 10); // TODO
+            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
             InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 0);
         }
@@ -261,9 +261,6 @@ static void TestMethod(int y)
         [Fact]
         public void DisabledCommandsPart1()
         {
-            //      < !--ETA doesn't check command state -->
-            //      <ExcludeScenarioInHost HostName = "ETA" />
-
             InsertCode(@"public class Class
 {
     int field;
@@ -274,49 +271,48 @@ static void TestMethod(int y)
      }
 }");
 
-            //      <WaitForWorkspace />
             PlaceCaret("abc");
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+            Assert.False(VisualStudio.Instance.IsCommandAvailable(WellKnownCommandNames.Refactor_Rename));
 
-            //      < VerifyCommandDisabled Command="Refactor.Rename" />
-            //      <PlaceCursor Marker = "1 + 1" />
-            //      < VerifyCommandDisabled Command="Refactor.ExtractMethod" />
-            //      <PlaceCursor Marker = "Class" />
-            //      < VerifyCommandDisabled Command="Refactor.ExtractInterface" />
-            //      <PlaceCursor Marker = "field" />
-            //      < VerifyCommandDisabled Command="Refactor.EncapsulateField" />
-            //      <PlaceCursor Marker = "Method" />
-            //      < VerifyCommandDisabled Command="Refactor.RemoveParameters" />
-            //      <VerifyCommandDisabled Command = "Refactor.ReorderParameters" />
-            //    </ Scenario >\
+            PlaceCaret("1 + 1");
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+            Assert.False(VisualStudio.Instance.IsCommandAvailable(WellKnownCommandNames.Refactor_ExtractMethod));
+
+            PlaceCaret("Class");
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+            Assert.False(VisualStudio.Instance.IsCommandAvailable(WellKnownCommandNames.Refactor_ExtractInterface));
+
+            PlaceCaret("field");
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+            Assert.False(VisualStudio.Instance.IsCommandAvailable(WellKnownCommandNames.Refactor_EncapsulateField));
+
+            PlaceCaret("Method");
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+            Assert.False(VisualStudio.Instance.IsCommandAvailable(WellKnownCommandNames.Refactor_RemoveParameters));
+            Assert.False(VisualStudio.Instance.IsCommandAvailable(WellKnownCommandNames.Refactor_ReorderParameters));
         }
 
-        //    < !--https://github.com/dotnet/roslyn/issues/6587
-        [Fact]
+        // https://github.com/dotnet/roslyn/issues/6587
+        // No support of quick actions in ETA scenario
+        // [Fact]
         public void AddUsing()
         {
-            //      < !- -ETA doesn't handle ctrl-. in tool windows - ->
-            //      <ExcludeScenarioInHost HostName = "ETA" />
-
             InsertCode("typeof(ArrayList)");
-
-            //      < WaitForWorkspace />
             PlaceCaret("ArrayList");
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
 
-            //      <WaitForWorkspace />
-            //      <VerifyCodeActions ApplyFix = "using System.Collections;" >
-            //        < ExpectedItems >
-            //          < string >using System.Collections;</string>
-            //          <string>System.Collections.ArrayList</string>
-            //        </ExpectedItems>
-            //      </VerifyCodeActions>
-            //      <VerifyReplInput>
-            //        <![CDATA[using System.Collections;
+            InvokeCodeActionList();
+            VerifyCodeActions(
+                new string[] { "using System.Collections;", "System.Collections.ArrayList" },
+                "using System.Collections;");
 
-            //typeof(ArrayList)]]>
-            //      </VerifyReplInput>
-            //    </Scenario>
+            VerifyLastReplInput(@"using System.Collections;
+typeof(ArrayList)");
         }
-        [Fact]
+
+        // No support of quick actions in ETA scenario
+        // [Fact]
         public void QualifyName()
         {
             //      < !- -ETA doesn't handle ctrl-. in tool windows - ->

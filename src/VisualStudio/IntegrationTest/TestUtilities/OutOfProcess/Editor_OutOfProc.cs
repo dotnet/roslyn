@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
@@ -75,24 +74,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             WaitForSignatureHelp();
             return _editorInProc.GetCurrentSignature();
         }
-
-        public void ShowLightBulb()
-            => _editorInProc.ShowLightBulb();
-
-        public void WaitForLightBulbSession()
-            => _editorInProc.WaitForLightBulbSession();
-
-        public void DismissLightBulbSession()
-            => _editorInProc.DismissLightBulbSession();
-
-        public bool IsLightBulbSessionExpanded()
-            => _editorInProc.IsLightBulbSessionExpanded();
-
-        public string[] GetLightBulbActions()
-            => _editorInProc.GetLightBulbActions();
-
-        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
-            => _editorInProc.ApplyLightBulbAction(action, fixAllScope, blockUntilComplete);
 
         public bool IsCaretOnScreen()
             => _editorInProc.IsCaretOnScreen();

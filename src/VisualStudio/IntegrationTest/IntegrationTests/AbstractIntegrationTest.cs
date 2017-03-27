@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -136,10 +139,75 @@ The list of available commands:
             Assert.Contains(referencedProjectName, projectReferences);
         }
 
+        public void VerifyCodeActions(
+          IEnumerable<string> expectedItems,
+          string applyFix = null,
+          bool verifyNotShowing = false,
+          bool ensureExpectedItemsAreOrdered = false,
+          FixAllScope? fixAllScope = null,
+          bool blockUntilComplete = true)
+        {
+            TextViewWindow.ShowLightBulb();
+            TextViewWindow.WaitForLightBulbSession();
+
+            if (verifyNotShowing)
+            {
+                VerifyCodeActionsNotShowing();
+                return;
+            }
+
+            var actions = TextViewWindow.GetLightBulbActions();
+
+            if (expectedItems != null && expectedItems.Any())
+            {
+                if (ensureExpectedItemsAreOrdered)
+                {
+                    TestUtilities.ThrowIfExpectedItemNotFoundInOrder(
+                        actions,
+                        expectedItems);
+                }
+                else
+                {
+                    TestUtilities.ThrowIfExpectedItemNotFound(
+                        actions,
+                        expectedItems);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
+            {
+                TextViewWindow.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
+
+                if (blockUntilComplete)
+                {
+                    // wait for action to complete
+                    WaitForAsyncOperations(FeatureAttribute.LightBulb);
+                }
+            }
+        }
+
+        public void VerifyCodeActionsNotShowing()
+        {
+            if (TextViewWindow.IsLightBulbSessionExpanded())
+            {
+                throw new InvalidOperationException("Expected no light bulb session, but one was found.");
+            }
+        }
+
         protected void InvokeQuickInfo()
         {
             ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
             WaitForAsyncOperations(FeatureAttribute.QuickInfo);
+        }
+
+        protected void InvokeCodeActionList()
+        {
+            WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
+            WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
+
+            TextViewWindow.ShowLightBulb();
+            TextViewWindow.WaitForLightBulbSession();
+            WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
     }
 }
