@@ -309,53 +309,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete);
         }
 
-        public void VerifyCodeActions(
-            IEnumerable<string> expectedItems,
-            string applyFix = null,
-            bool verifyNotShowing = false,
-            bool ensureExpectedItemsAreOrdered = false,
-            FixAllScope? fixAllScope = null,
-            bool blockUntilComplete = true)
-        {
-            Editor.ShowLightBulb();
-            Editor.WaitForLightBulbSession();
-
-            if (verifyNotShowing)
-            {
-                VerifyCodeActionsNotShowing();
-                return;
-            }
-
-            var actions = Editor.GetLightBulbActions();
-
-            if (expectedItems != null && expectedItems.Any())
-            {
-                if (ensureExpectedItemsAreOrdered)
-                {
-                    TestUtilities.ThrowIfExpectedItemNotFoundInOrder(
-                        actions,
-                        expectedItems);
-                }
-                else
-                {
-                    TestUtilities.ThrowIfExpectedItemNotFound(
-                        actions,
-                        expectedItems);
-                }
-            }
-
-            if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
-            {
-                Editor.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
-
-                if (blockUntilComplete)
-                {
-                    // wait for action to complete
-                    WaitForAsyncOperations(FeatureAttribute.LightBulb);
-                }
-            }
-        }
-
         public void VerifyDialog(string dialogName, bool isOpen)
         {
             Editor.VerifyDialog(dialogName, isOpen);
