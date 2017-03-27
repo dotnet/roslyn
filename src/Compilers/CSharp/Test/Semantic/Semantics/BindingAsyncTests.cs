@@ -1270,6 +1270,30 @@ class A
         }
 
         [Fact]
+        public void MainCantBeAsyncInt()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    async static int Main()
+    {
+        await Task.Factory.StartNew(() => 5);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (6,23): warning CS0028: 'A.Main()' has the wrong signature to be an entry point
+                //     async static void Main()
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main()").WithLocation(6, 23),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+            var entry = compilation.GetEntryPoint(CancellationToken.None);
+            Assert.Null(entry);
+        }
+
+        [Fact]
         public void MainCanBeAsyncAndGenericOnInt()
         {
             var origSource = @"
