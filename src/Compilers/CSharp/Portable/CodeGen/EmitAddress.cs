@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Writeable,
 
             // reference itself will not be written to, but may be used for call, callvirt.
-            // for all purposes it the same as Writeable, except when fetching an address of an array element
+            // for all purposes it is the same as Writeable, except when fetching an address of an array element
             // where it results in a ".readonly" prefix to deal with array covariance.
             Constrained,
 
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         /// Emits receiver in a form that allows member accesses ( O or &amp; ). 
-        /// For verifiably reference types it is the actual reference. 
+        /// For verifier-reference types it is the actual reference. 
         /// For the value types it is an address of the receiver.
         /// For generic types it is either a boxed receiver or the address of the receiver with readonly intent. 
         /// 

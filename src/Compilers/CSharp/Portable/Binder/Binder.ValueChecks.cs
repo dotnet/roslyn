@@ -902,12 +902,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // check all arguments that are not passed by value
             if (!argRefKinds.IsDefault)
             {
-                for (var argIdx = 0; argIdx < args.Length; argIdx++)
+                for (var argIndex = 0; argIndex < args.Length; argIndex++)
                 {
-                    if (argRefKinds[argIdx] != RefKind.None && !CheckValueKind(args[argIdx].Syntax, args[argIdx], BindValueKind.ReturnableReference, false, diagnostics))
+                    if (argRefKinds[argIndex] != RefKind.None && !CheckValueKind(args[argIndex].Syntax, args[argIndex], BindValueKind.ReturnableReference, false, diagnostics))
                     {
                         var errorCode = checkingReceiver ? ErrorCode.ERR_RefReturnCall2 : ErrorCode.ERR_RefReturnCall;
-                        var parameterIndex = argToParamsOpt.IsDefault ? argIdx : argToParamsOpt[argIdx];
+                        var parameterIndex = argToParamsOpt.IsDefault ? argIndex : argToParamsOpt[argIndex];
                         var parameterName = parameters[parameterIndex].Name;
                         Error(diagnostics, errorCode, syntax, symbol, parameterName);
                         return false;
@@ -918,9 +918,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // check all "in" parameters 
-            for (var paramIdx = 0; paramIdx < parameters.Length; paramIdx++)
+            for (var paramIndex = 0; paramIndex < parameters.Length; paramIndex++)
             {
-                var parameter = parameters[paramIdx];
+                var parameter = parameters[paramIndex];
 
                 if (parameter.RefKind != RefKind.RefReadOnly)
                 {
@@ -935,18 +935,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression argument = null;
                 if (argToParamsOpt.IsDefault)
                 {
-                    if (paramIdx < args.Length)
+                    if (paramIndex < args.Length)
                     {
-                        argument = args[paramIdx];
+                        argument = args[paramIndex];
                     }
                 }
                 else
                 {
-                    for (int argIdx = 0; argIdx < args.Length; argIdx++)
+                    for (int argIndex = 0; argIndex < args.Length; argIndex++)
                     {
-                        if (argToParamsOpt[argIdx] == paramIdx)
+                        if (argToParamsOpt[argIndex] == paramIndex)
                         {
-                            argument = args[argIdx];
+                            argument = args[argIndex];
+                            break;
                         }
                     }
                 }
