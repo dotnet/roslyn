@@ -1222,6 +1222,30 @@ interface IInterface
         }
 
         [Fact]
+        public void MainCanBeAsyncWithArgs()
+        {
+            var origSource = @"
+using System.Threading.Tasks;
+
+class A
+{
+    async static Task Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => { });
+    }
+}";
+            var sources = new string[] { origSource, origSource.Replace("async ", "").Replace("await", "return") };
+            foreach (var source in sources)
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+                compilation.VerifyDiagnostics();
+                var entry = compilation.GetEntryPoint(CancellationToken.None);
+                Assert.NotNull(entry);
+                Assert.Equal("System.Threading.Tasks.Task A.Main(System.String[] args)", entry.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
         public void MainCanBeAsync()
         {
             var origSource = @"
@@ -1279,18 +1303,45 @@ class A
 {
     async static int Main()
     {
-        await Task.Factory.StartNew(() => 5);
+        return await Task.Factory.StartNew(() => 5);
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
+                // (6,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async static int Main()
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(6, 22),
                 // (6,23): warning CS0028: 'A.Main()' has the wrong signature to be an entry point
                 //     async static void Main()
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main()").WithLocation(6, 23),
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main()").WithLocation(6, 22),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
             var entry = compilation.GetEntryPoint(CancellationToken.None);
             Assert.Null(entry);
+        }
+
+        [Fact]
+        public void MainCanBeAsyncAndGenericOnIntWithArgs()
+        {
+            var origSource = @"
+using System.Threading.Tasks;
+
+class A
+{
+    async static Task<int> Main(string[] args)
+    {
+        return await Task.Factory.StartNew(() => 5);
+    }
+}";
+            var sources = new string[] { origSource, origSource.Replace("async ", "").Replace("await", "") };
+            foreach (var source in sources)
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+                compilation.VerifyDiagnostics();
+                var entry = compilation.GetEntryPoint(CancellationToken.None);
+                Assert.NotNull(entry);
+                Assert.Equal("System.Threading.Tasks.Task<System.Int32> A.Main(System.String[] args)", entry.ToTestDisplayString());
+            }
         }
 
         [Fact]
