@@ -113,6 +113,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             var identifierName = (IdentifierNameSyntax)argumentExpression;
 
+            // Don't offer to inline variables named "_".  It can cause is to create a discard symbol
+            // which would cause a break.
+            if (identifierName.Identifier.ValueText == "_")
+            {
+                return;
+            }
+
             var containingStatement = argumentExpression.FirstAncestorOrSelf<StatementSyntax>();
             if (containingStatement == null)
             {
