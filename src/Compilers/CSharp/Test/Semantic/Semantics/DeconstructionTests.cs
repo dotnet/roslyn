@@ -4550,5 +4550,89 @@ class C
 
             StandAlone_20_VerifySemanticModel(comp2);
         }
+
+        [Fact]
+        public void DiscardVoid_01()
+        {
+            var source = @"class C
+{
+    static void Main()
+    {
+        (_, _) = (1, Main());
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (5,22): error CS8210: A tuple may not contain a value of type 'void'.
+                //         (_, _) = (1, Main());
+                Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(5, 22)
+                );
+            var main = (MethodSymbol)((NamedTypeSymbol)comp.GlobalNamespace.GetMember("C")).GetMember("Main");
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var mainCall = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "Main()").Single();
+            var type = model.GetTypeInfo(mainCall);
+            Assert.Equal(SpecialType.System_Void, type.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
+            var symbols = model.GetSymbolInfo(mainCall);
+            Assert.Equal(symbols.Symbol, main);
+            Assert.Empty(symbols.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, symbols.CandidateReason);
+
+            // the ArgumentSyntax above a tuple element doesn't support GetTypeInfo or GetSymbolInfo.
+            var argument = (ArgumentSyntax)mainCall.Parent;
+            type = model.GetTypeInfo(argument);
+            Assert.Null(type.Type);
+            Assert.Null(type.ConvertedType);
+            symbols = model.GetSymbolInfo(argument);
+            Assert.Null(symbols.Symbol);
+            Assert.Empty(symbols.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, symbols.CandidateReason);
+        }
+
+        [Fact]
+        public void DiscardVoid_02()
+        {
+            var source = @"class C
+{
+    static void Main()
+    {
+        (int x, void y) = (1, Main());
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (5,17): error CS1547: Keyword 'void' cannot be used in this context
+                //         (int x, void y) = (1, Main());
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 17),
+                // (5,31): error CS8210: A tuple may not contain a value of type 'void'.
+                //         (int x, void y) = (1, Main());
+                Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(5, 31),
+                // (5,17): error CS0029: Cannot implicitly convert type 'void' to 'void'
+                //         (int x, void y) = (1, Main());
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "void y").WithArguments("void", "void").WithLocation(5, 17)
+                );
+            var main = (MethodSymbol)((NamedTypeSymbol)comp.GlobalNamespace.GetMember("C")).GetMember("Main");
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var mainCall = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "Main()").Single();
+            var type = model.GetTypeInfo(mainCall);
+            Assert.Equal(SpecialType.System_Void, type.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
+            var symbols = model.GetSymbolInfo(mainCall);
+            Assert.Equal(symbols.Symbol, main);
+            Assert.Empty(symbols.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, symbols.CandidateReason);
+
+            // the ArgumentSyntax above a tuple element doesn't support GetTypeInfo or GetSymbolInfo.
+            var argument = (ArgumentSyntax)mainCall.Parent;
+            type = model.GetTypeInfo(argument);
+            Assert.Null(type.Type);
+            Assert.Null(type.ConvertedType);
+            symbols = model.GetSymbolInfo(argument);
+            Assert.Null(symbols.Symbol);
+            Assert.Empty(symbols.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, symbols.CandidateReason);
+        }
     }
 }

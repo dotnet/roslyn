@@ -5044,4 +5044,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CompilerAndLanguageVersion" xml:space="preserve">
     <value>Compiler version: '{0}'. Language version: {1}.</value>
   </data>
+  <data name="ERR_VoidInTuple" xml:space="preserve">
+    <value>A tuple may not contain a value of type 'void'.</value>
+  </data>
 </root>

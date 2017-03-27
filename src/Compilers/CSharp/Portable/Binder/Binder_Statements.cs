@@ -2687,6 +2687,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_NoImplicitConv, syntax, distinguisher.First, distinguisher.Second);
                     }
                 }
+                else if (sourceType.SpecialType == SpecialType.System_Void)
+                {
+                    Error(diagnostics, ErrorCode.ERR_NoImplicitConv, syntax, sourceType.ToDisplayString(), targetType.ToDisplayString());
+                }
                 else
                 {
                     SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, sourceType, targetType);
