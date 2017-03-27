@@ -611,14 +611,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return false;
                 }
-                // Change this to `namedType.IsNonGenericTaskType` if you want to support "task-like" objects.
                 else if (namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))
                 {
+                    // Change this to `namedType.IsNonGenericTaskType` if you want to support "task-like" objects.
                     return true;
                 }
-                // Change this to `namedType.IsGenericTaskType` if you want to support "task-like" objects.
                 else if (namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
                 {
+                    // Change this to `namedType.IsGenericTaskType` if you want to support "task-like" objects.
                     return namedType.TypeArguments[0].SpecialType == SpecialType.System_Int32;
                 }
                 else
