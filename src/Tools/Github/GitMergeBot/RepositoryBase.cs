@@ -2,7 +2,10 @@
 
 using System;
 using System.Threading.Tasks;
+using System.Web.Configuration;
 using LibGit2Sharp;
+using Microsoft.Azure.KeyVault;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace GitMergeBot
 {
@@ -47,8 +50,10 @@ namespace GitMergeBot
             Repository.Fetch(remoteName, fetchOptions);
         }
 
-        public static RepositoryBase Create(RepositoryType type, string path, string repoName, string project, string userId, string userName, string password, string remoteName)
+        public static RepositoryBase Create(RepositoryType type, string path, string repoName, string project, string userId, string userName, string authTokenSecretName, string remoteName)
         {
+            string password = Program.GetSecret(authTokenSecretName).Result;
+
             switch (type)
             {
                 case RepositoryType.GitHub:

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -89,9 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(variablesToHoist.Count == 0);
 
                 // In debug build we hoist all locals and parameters:
-                variablesToHoist.AddRange(from v in allVariables
-                                          where v.Symbol != null && HoistInDebugBuild(v.Symbol)
-                                          select v.Symbol);
+                foreach (var v in allVariables)
+                {
+                    var symbol = v.Symbol;
+                    if ((object)symbol != null && HoistInDebugBuild(symbol))
+                    {
+                        variablesToHoist.Add(symbol);
+                    }
+                }
             }
 
             return variablesToHoist;
@@ -110,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 LocalSymbol local = (LocalSymbol)symbol;
 
-                if (local.IsConst)
+                if (local.IsConst || local.IsPinned)
                 {
                     return false;
                 }
