@@ -13,7 +13,7 @@ $ErrorActionPreference="Stop"
 # Original sample came from: http://jameskovacs.com/2010/02/25/the-exec-problem/
 function Exec([scriptblock]$cmd, [string]$errorMessage = "Error executing command: " + $cmd) { 
     $output = & $cmd 
-    if (-not $?) {
+    if ((-not $?) -or ($lastexitcode -ne 0)) {
         Write-Host $output
         throw $errorMessage 
     } 
@@ -45,21 +45,9 @@ function Ensure-MSBuild([switch]$xcopy = $false) {
     $both = Get-MSBuildKindAndDir -xcopy:$xcopy
     $msbuildDir = $both[1]
     switch ($both[0]) {
-        "xcopy" {
-            $p = Get-PackageDir "RoslynTools.ReferenceAssemblies"
-            ${env:TargetFrameworkRootPath} = Join-Path $p "tools\Framework"
-            break;
-        }
-        "vscmd" {
-            # Nothing to do here as the VS Dev CMD should set all appropriate environment
-            # variables.
-            break;
-        }
-        "vsinstall" {
-            # Nothing to do here as the VS Dev CMD should set all appropriate environment
-            # variables.
-            break;
-        }
+        "xcopy" { break; }
+        "vscmd" { break; }
+        "vsinstall" { break; }
         default {
             throw "Unknown MSBuild installation type $($both[0])"
         }
@@ -137,11 +125,13 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
 
         # This line deliberately avoids using -ErrorAction.  Inside a VS command prompt
         # an MSBuild command should always be available.
-        $p = (Get-Command msbuild).Path
-        $p = Split-Path -parent $p
-        Write-Output "vscmd"
-        Write-Output $p
-        return
+        $command = (Get-Command msbuild -ErrorAction SilentlyContinue)
+        if ($command -ne $null) {
+            $p = Split-Path -parent $command.Path
+            Write-Output "vscmd"
+            Write-Output $p
+            return
+        }
     }
 
     # Look for a valid VS installation
@@ -190,4 +180,60 @@ function Get-VisualStudioDir() {
     return $p
 }
 
+# Clear out the NuGet package cache
+function Clear-PackageCache() {
+    $nuget = Ensure-NuGet
+    Exec { & $nuget locals all -clear }
+}
+
+# Restore a single project
+function Restore-Project([string]$fileName, [string]$nuget, [string]$msbuildDir) {
+    $nugetConfig = Join-Path $repoDir "nuget.config"
+    $filePath = Join-Path $repoDir $fileName
+    Exec { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath }
+}
+
+# Restore all of the projects that the repo consumes
+function Restore-Packages([switch]$clean = $false, [string]$msbuildDir = "", [string]$project = "") {
+    $nuget = Ensure-NuGet
+    if ($msbuildDir -eq "") {
+        $msbuildDir = Get-MSBuildDir
+    }
+
+    Write-Host "Restore using MSBuild at $msbuildDir"
+
+    if ($clean) {
+        Write-Host "Deleting project.lock.json files"
+        Get-ChildItem $repoDir -re -in project.lock.json | Remove-Item
+    }
+
+    if ($project -ne "") {
+        Write-Host "Restoring project $project"
+        Restore-Project -fileName $project -nuget $nuget -msbuildDir $msbuildDir
+    }
+    else {
+        $all = @(
+            "Toolsets:build\ToolsetPackages\project.json",
+            "Toolsets (Dev14 VS SDK build tools):build\ToolsetPackages\dev14.project.json",
+            "Toolsets (Dev15 VS SDK RC build tools):build\ToolsetPackages\dev15rc.project.json",
+            "Samples:src\Samples\Samples.sln",
+            "Templates:src\Setup\Templates\Templates.sln",
+            "Toolsets Compiler:build\Toolset\Toolset.csproj",
+            "Roslyn:Roslyn.sln",
+            "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln",
+            "DevDiv Roslyn Packages:src\Setup\DevDivPackages\Roslyn\project.json",
+            "DevDiv Debugger Packages:src\Setup\DevDivPackages\Debugger\project.json")
+
+        foreach ($cur in $all) {
+            $both = $cur.Split(':')
+            Write-Host "Restoring $($both[0])"
+            Restore-Project -fileName $both[1] -nuget $nuget -msbuildDir $msbuildDir
+        }
+    }
+}
+
+# Restore all of the projects that the repo consumes
+function Restore-All([switch]$clean = $false, [string]$msbuildDir = "") {
+    Restore-Packages -clean:$clean -msbuildDir $msbuildDir
+}
 
