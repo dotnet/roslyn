@@ -1326,6 +1326,6 @@ ignoreTrivia: false);
         }
 
         private IDictionary<OptionKey, object> PreferExpressionBodiedMethods =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithSuggestionEnforcement));
+            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
     }
 }
