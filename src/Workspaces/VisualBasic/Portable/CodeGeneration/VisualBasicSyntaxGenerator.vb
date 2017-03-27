@@ -624,7 +624,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return list
         End Function
 
-        Private Shared s_fieldModifiers As DeclarationModifiers = DeclarationModifiers.Const Or DeclarationModifiers.[New] Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.Static
+        Private Shared s_fieldModifiers As DeclarationModifiers = DeclarationModifiers.Const Or DeclarationModifiers.[New] Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.Static Or DeclarationModifiers.WithEvents
         Private Shared s_methodModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.Async Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
         Private Shared s_constructorModifiers As DeclarationModifiers = DeclarationModifiers.Static
         Private Shared s_propertyModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WriteOnly Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
@@ -2468,6 +2468,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return DirectCast(declaration, EnumBlockSyntax).EnumStatement.Modifiers
                 Case SyntaxKind.EnumStatement
                     Return DirectCast(declaration, EnumStatementSyntax).Modifiers
+                Case SyntaxKind.ModuleBlock
+                    Return DirectCast(declaration, ModuleBlockSyntax).ModuleStatement.Modifiers
+                Case SyntaxKind.ModuleStatement
+                    Return DirectCast(declaration, ModuleStatementSyntax).Modifiers
                 Case SyntaxKind.DelegateFunctionStatement,
                      SyntaxKind.DelegateSubStatement
                     Return DirectCast(declaration, DelegateStatementSyntax).Modifiers
@@ -2538,6 +2542,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return DirectCast(declaration, EnumBlockSyntax).WithEnumStatement(DirectCast(declaration, EnumBlockSyntax).EnumStatement.WithModifiers(tokens))
                 Case SyntaxKind.EnumStatement
                     Return DirectCast(declaration, EnumStatementSyntax).WithModifiers(tokens)
+                Case SyntaxKind.ModuleBlock
+                    Return DirectCast(declaration, ModuleBlockSyntax).WithModuleStatement(DirectCast(declaration, ModuleBlockSyntax).ModuleStatement.WithModifiers(tokens))
+                Case SyntaxKind.ModuleStatement
+                    Return DirectCast(declaration, ModuleStatementSyntax).WithModifiers(tokens)
                 Case SyntaxKind.DelegateFunctionStatement,
                      SyntaxKind.DelegateSubStatement
                     Return DirectCast(declaration, DelegateStatementSyntax).WithModifiers(tokens)
@@ -2618,38 +2626,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function CanHaveAccessibility(declaration As SyntaxNode) As Boolean
             Select Case declaration.Kind
                 Case SyntaxKind.ClassBlock,
-                    SyntaxKind.ClassStatement,
-                    SyntaxKind.StructureBlock,
-                    SyntaxKind.StructureStatement,
-                    SyntaxKind.InterfaceBlock,
-                    SyntaxKind.InterfaceStatement,
-                    SyntaxKind.EnumBlock,
-                    SyntaxKind.EnumStatement,
-                    SyntaxKind.DelegateFunctionStatement,
-                    SyntaxKind.DelegateSubStatement,
-                    SyntaxKind.FieldDeclaration,
-                    SyntaxKind.FunctionBlock,
-                    SyntaxKind.SubBlock,
-                    SyntaxKind.ConstructorBlock,
-                    SyntaxKind.FunctionStatement,
-                    SyntaxKind.SubStatement,
-                    SyntaxKind.SubNewStatement,
-                    SyntaxKind.PropertyBlock,
-                    SyntaxKind.PropertyStatement,
-                    SyntaxKind.OperatorBlock,
-                    SyntaxKind.OperatorStatement,
-                    SyntaxKind.EventBlock,
-                    SyntaxKind.EventStatement,
-                    SyntaxKind.GetAccessorBlock,
-                    SyntaxKind.GetAccessorStatement,
-                    SyntaxKind.SetAccessorBlock,
-                    SyntaxKind.SetAccessorStatement,
-                    SyntaxKind.AddHandlerAccessorBlock,
-                    SyntaxKind.AddHandlerAccessorStatement,
-                    SyntaxKind.RemoveHandlerAccessorBlock,
-                    SyntaxKind.RemoveHandlerAccessorStatement,
-                    SyntaxKind.RaiseEventAccessorBlock,
-                    SyntaxKind.RaiseEventAccessorStatement
+                     SyntaxKind.ClassStatement,
+                     SyntaxKind.StructureBlock,
+                     SyntaxKind.StructureStatement,
+                     SyntaxKind.InterfaceBlock,
+                     SyntaxKind.InterfaceStatement,
+                     SyntaxKind.EnumBlock,
+                     SyntaxKind.EnumStatement,
+                     SyntaxKind.ModuleBlock,
+                     SyntaxKind.ModuleStatement,
+                     SyntaxKind.DelegateFunctionStatement,
+                     SyntaxKind.DelegateSubStatement,
+                     SyntaxKind.FieldDeclaration,
+                     SyntaxKind.FunctionBlock,
+                     SyntaxKind.SubBlock,
+                     SyntaxKind.ConstructorBlock,
+                     SyntaxKind.FunctionStatement,
+                     SyntaxKind.SubStatement,
+                     SyntaxKind.SubNewStatement,
+                     SyntaxKind.PropertyBlock,
+                     SyntaxKind.PropertyStatement,
+                     SyntaxKind.OperatorBlock,
+                     SyntaxKind.OperatorStatement,
+                     SyntaxKind.EventBlock,
+                     SyntaxKind.EventStatement,
+                     SyntaxKind.GetAccessorBlock,
+                     SyntaxKind.GetAccessorStatement,
+                     SyntaxKind.SetAccessorBlock,
+                     SyntaxKind.SetAccessorStatement,
+                     SyntaxKind.AddHandlerAccessorBlock,
+                     SyntaxKind.AddHandlerAccessorStatement,
+                     SyntaxKind.RemoveHandlerAccessorBlock,
+                     SyntaxKind.RemoveHandlerAccessorStatement,
+                     SyntaxKind.RaiseEventAccessorBlock,
+                     SyntaxKind.RaiseEventAccessorStatement
                     Return True
                 Case Else
                     Return False
