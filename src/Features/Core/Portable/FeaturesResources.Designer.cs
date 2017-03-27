@@ -1189,6 +1189,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Format string &apos;{0}&apos; contains invalid placeholder &apos;{1}&apos;.
+        /// </summary>
+        internal static string Format_string_0_contains_invalid_placeholder_1 {
+            get {
+                return ResourceManager.GetString("Format_string_0_contains_invalid_placeholder_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to from {0}.
         /// </summary>
         internal static string from_0 {
@@ -1779,6 +1788,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Introduce_query_variable_for_all_occurrences_of_0 {
             get {
                 return ResourceManager.GetString("Introduce_query_variable_for_all_occurrences_of_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid format string.
+        /// </summary>
+        internal static string Invalid_format_string {
+            get {
+                return ResourceManager.GetString("Invalid_format_string", resourceCulture);
             }
         }
         

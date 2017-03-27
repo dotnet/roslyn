@@ -110,6 +110,7 @@
     <Compile Include="UseExpressionBody\Helpers\UseExpressionBodyForConversionOperatorsHelper.cs" />
     <Compile Include="UseExpressionBody\Helpers\UseExpressionBodyForOperatorsHelper.cs" />
     <Compile Include="UseExpressionBody\Helpers\UseExpressionBodyForPropertiesHelper.cs" />
+    <Compile Include="ValidateFormatString\ValidateFormatStringDiagnosticAnalyzer.cs" />
     <Compile Include="AddBraces\CSharpAddBracesCodeFixProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="UseCollectionInitializer\CSharpUseCollectionInitializerCodeFixProvider.cs" />

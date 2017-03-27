@@ -437,6 +437,7 @@
     <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerCodeFixProvider.vb" />
     <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerDiagnosticAnalyzer.vb" />
     <Compile Include="Structure\Providers\UsingBlockStructureProvider.vb" />
+    <Compile Include="ValidateFormatString\ValidateFormatStringDiagnosticAnalyzer.vb" />
     <Compile Include="VBFeaturesResources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

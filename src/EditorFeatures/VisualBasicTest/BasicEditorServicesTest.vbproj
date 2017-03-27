@@ -615,6 +615,7 @@
     <Compile Include="UseObjectInitializer\UseObjectInitializerTests.vb" />
     <Compile Include="Utilities\CodeSnippets.vb" />
     <Compile Include="Utils.vb" />
+    <Compile Include="ValidateFormatString\ValidateFormatStringTests.vb" />
     <EmbeddedResource Include="Formatting\XmlLiterals.resx" />
     <None Include="PerfTests\BasicPerfFindRefs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
