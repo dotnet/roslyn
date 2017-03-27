@@ -370,5 +370,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeLens_FindReferenceLocationsAsync,
         CodeLens_FindReferenceMethodsAsync,
         CodeLens_GetFullyQualifiedName,
+        RemoteHostClientService_Restarted,
     }
 }
