@@ -1244,10 +1244,10 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            PropertyImplementation_101(source1);
+            ValidatePropertyImplementation_101(source1);
         }
 
-        private void PropertyImplementation_101(string source1)
+        private void ValidatePropertyImplementation_101(string source1)
         { 
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
@@ -1519,7 +1519,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            PropertyImplementation_101(source1);
+            ValidatePropertyImplementation_101(source1);
         }
 
         [Fact]
@@ -3918,6 +3918,1173 @@ class Test1 : I1
                 );
 
             ValidateIndexerImplementation_501(compilation1.SourceModule, "Test1");
+        }
+
+        [Fact]
+        public void EventImplementation_101()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E1 
+    {
+        add
+        {
+            System.Console.WriteLine(""add E1"");
+        }
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     event System.Action E1 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25)
+                );
+
+            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: true, haveRemove: false);
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            void Validate2(ModuleSymbol m)
+            {
+                ValidateEventImplementationTest2_101(m, haveAdd: true, haveRemove: false);
+            }
+
+            Validate2(compilation2.SourceModule);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+        }
+
+        private static void ValidateEventImplementationTest1_101(ModuleSymbol m, bool haveAdd, bool haveRemove)
+        {
+            var i1 = m.GlobalNamespace.GetTypeMember("I1");
+            var e1 = i1.GetMember<EventSymbol>("E1");
+            var addE1 = e1.AddMethod;
+            var rmvE1 = e1.RemoveMethod;
+
+            if (haveAdd)
+            {
+                Assert.False(addE1.IsAbstract);
+                Assert.True(addE1.IsVirtual);
+                Assert.True(addE1.IsMetadataVirtual());
+            }
+            else
+            {
+                Assert.Null(addE1);
+            }
+
+            if (haveRemove)
+            {
+                Assert.False(rmvE1.IsAbstract);
+                Assert.True(rmvE1.IsVirtual);
+                Assert.True(rmvE1.IsMetadataVirtual());
+            }
+            else
+            {
+                Assert.Null(rmvE1);
+            }
+
+            Assert.False(e1.IsAbstract);
+            Assert.True(e1.IsVirtual);
+            Assert.True(i1.IsAbstract);
+            Assert.True(i1.IsMetadataAbstract);
+
+            if (m is PEModuleSymbol peModule)
+            {
+                int rva;
+
+                if (haveAdd)
+                {
+                    peModule.Module.GetMethodDefPropsOrThrow(((PEMethodSymbol)addE1).Handle, out _, out _, out _, out rva);
+                    Assert.NotEqual(0, rva);
+                }
+
+                if (haveRemove)
+                {
+                    peModule.Module.GetMethodDefPropsOrThrow(((PEMethodSymbol)rmvE1).Handle, out _, out _, out _, out rva);
+                    Assert.NotEqual(0, rva);
+                }
+            }
+
+            var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+            Assert.Equal("I1", test1.Interfaces.Single().ToTestDisplayString());
+            Assert.Same(e1, test1.FindImplementationForInterfaceMember(e1));
+
+            if (haveAdd)
+            {
+                Assert.Same(addE1, test1.FindImplementationForInterfaceMember(addE1));
+            }
+
+            if (haveRemove)
+            {
+                Assert.Same(rmvE1, test1.FindImplementationForInterfaceMember(rmvE1));
+            }
+        }
+
+        private static void ValidateEventImplementationTest2_101(ModuleSymbol m, bool haveAdd, bool haveRemove)
+        {
+            var test2 = m.GlobalNamespace.GetTypeMember("Test2");
+            Assert.Equal("I1", test2.Interfaces.Single().ToTestDisplayString());
+
+            var e1 = test2.Interfaces.Single().GetMember<EventSymbol>("E1");
+            Assert.Same(e1, test2.FindImplementationForInterfaceMember(e1));
+
+            if (haveAdd)
+            {
+                var addP1 = e1.AddMethod;
+                Assert.Same(addP1, test2.FindImplementationForInterfaceMember(addP1));
+            }
+
+            if (haveRemove)
+            {
+                var rmvP1 = e1.RemoveMethod;
+                Assert.Same(rmvP1, test2.FindImplementationForInterfaceMember(rmvP1));
+            }
+        }
+
+        [Fact]
+        public void EventImplementation_102()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E1 
+    {
+        add => System.Console.WriteLine(""add E1"");
+        remove => System.Console.WriteLine(""remove E1"");
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            void Validate1(ModuleSymbol m)
+            {
+                ValidateEventImplementationTest1_101(m, haveAdd: true, haveRemove: true);
+            }
+
+            Validate1(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            void Validate2(ModuleSymbol m)
+            {
+                ValidateEventImplementationTest2_101(m, haveAdd: true, haveRemove: true);
+            }
+
+            Validate2(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+
+            var compilation3 = CreateCompilationWithMscorlib(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            Validate2(compilation3.SourceModule);
+
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate2);
+        }
+
+        [Fact]
+        public void EventImplementation_103()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E1 
+    {
+        remove
+        {
+            System.Console.WriteLine(""remove E1"");
+        }
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     event System.Action E1 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25)
+                );
+
+            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: false, haveRemove: true);
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            void Validate2(ModuleSymbol m)
+            {
+                ValidateEventImplementationTest2_101(m, haveAdd: false, haveRemove: true);
+            }
+
+            Validate2(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+        }
+
+        [Fact]
+        public void EventImplementation_104()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E1
+    {
+        add;
+    }
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (6,12): error CS0073: An add or remove accessor must have a body
+                //         add;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 12),
+                // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     event System.Action E1 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25)
+                );
+
+            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: true, haveRemove: false);
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            void Validate2(ModuleSymbol m)
+            {
+                ValidateEventImplementationTest2_101(m, haveAdd: true, haveRemove: false);
+            }
+
+            Validate2(compilation2.SourceModule);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+        }
+
+        [Fact]
+        public void EventImplementation_105()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E1 
+    {
+        remove;
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (6,15): error CS0073: An add or remove accessor must have a body
+                //         remove;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 15),
+                // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     event System.Action E1 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25)
+                );
+
+            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: false, haveRemove: true);
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            void Validate2(ModuleSymbol m)
+            {
+                ValidateEventImplementationTest2_101(m, haveAdd: false, haveRemove: true);
+            }
+
+            Validate2(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+        }
+
+        [Fact]
+        public void EventImplementation_106()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E1 
+    {
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     event System.Action E1 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25)
+                );
+
+            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: false, haveRemove: false);
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            void Validate2(ModuleSymbol m)
+            {
+                ValidateEventImplementationTest2_101(m, haveAdd: false, haveRemove: false);
+            }
+
+            Validate2(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+        }
+
+        [Fact]
+        public void EventImplementation_107()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E1 
+    {
+        add;
+        remove;
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (6,12): error CS0073: An add or remove accessor must have a body
+                //         add;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 12),
+                // (7,15): error CS0073: An add or remove accessor must have a body
+                //         remove;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(7, 15)
+                );
+
+            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: true, haveRemove: true);
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            void Validate2(ModuleSymbol m)
+            {
+                ValidateEventImplementationTest2_101(m, haveAdd: true, haveRemove: true);
+            }
+
+            Validate2(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+        }
+
+        [Fact]
+        public void EventImplementation_108()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E1 
+    {
+        get;
+        set;
+    } => 0;
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (8,7): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                //     } => 0;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 7),
+                // (6,9): error CS1055: An add or remove accessor expected
+                //         get;
+                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "get").WithLocation(6, 9),
+                // (7,9): error CS1055: An add or remove accessor expected
+                //         set;
+                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "set").WithLocation(7, 9),
+                // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     event System.Action E1 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1")
+                );
+
+            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: false, haveRemove: false);
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            void Validate2(ModuleSymbol m)
+            {
+                ValidateEventImplementationTest2_101(m, haveAdd: false, haveRemove: false);
+            }
+
+            Validate2(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+        }
+
+        [Fact]
+        public void EventImplementation_109()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E1 
+    {
+        add => throw null;
+        remove;
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (6,12): error CS0073: An add or remove accessor must have a body
+                //         add;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";")
+                );
+
+            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: true, haveRemove: true);
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            void Validate2(ModuleSymbol m)
+            {
+                ValidateEventImplementationTest2_101(m, haveAdd: true, haveRemove: true);
+            }
+
+            Validate2(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+        }
+
+        [Fact]
+        public void EventImplementation_110()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E1 
+    {
+        add;
+        remove => throw null;
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (6,12): error CS0073: An add or remove accessor must have a body
+                //         add;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";")
+                );
+
+            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: true, haveRemove: true);
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            void Validate2(ModuleSymbol m)
+            {
+                ValidateEventImplementationTest2_101(m, haveAdd: true, haveRemove: true);
+            }
+
+            Validate2(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+        }
+
+        [Fact]
+        public void EventImplementation_201()
+        {
+            var source1 =
+@"
+interface I1
+{
+    event System.Action E7 { add {} remove {} }
+    event System.Action E8 { add {} remove {} }
+}
+
+class Base
+{
+    event System.Action E7;
+}
+
+class Derived : Base, I1
+{
+    event System.Action E8 { add {} remove {} }
+}
+
+class Test : I1 {}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (10,25): warning CS0067: The event 'Base.E7' is never used
+                //     event System.Action E7;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E7").WithArguments("Base.E7").WithLocation(10, 25)
+                );
+
+            ValidateEventImplementation_201(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
+                    Assert.Equal("I1", derivedResult.Interfaces.Single().ToTestDisplayString());
+
+                    ValidateEventImplementation_201(m);
+                });
+        }
+
+        private static void ValidateEventImplementation_201(ModuleSymbol m)
+        {
+            var e7 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E7");
+            var e8 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E8");
+
+            var derived = m.ContainingAssembly.GetTypeByMetadataName("Derived");
+
+            Assert.Same(e7, derived.FindImplementationForInterfaceMember(e7));
+            Assert.Same(e8, derived.FindImplementationForInterfaceMember(e8));
+
+            Assert.Same(e7.AddMethod, derived.FindImplementationForInterfaceMember(e7.AddMethod));
+            Assert.Same(e8.AddMethod, derived.FindImplementationForInterfaceMember(e8.AddMethod));
+            Assert.Same(e7.RemoveMethod, derived.FindImplementationForInterfaceMember(e7.RemoveMethod));
+            Assert.Same(e8.RemoveMethod, derived.FindImplementationForInterfaceMember(e8.RemoveMethod));
+        }
+
+        [Fact]
+        public void EventImplementation_202()
+        {
+            var source1 =
+@"
+interface I1
+{
+    event System.Action E7 { add {} remove {} }
+    event System.Action E8 { add {} remove {} }
+}
+
+class Base : Test
+{
+    event System.Action E7;
+}
+
+class Derived : Base, I1
+{
+    event System.Action E8 { add {} remove {} }
+}
+
+class Test : I1 {}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (10,25): warning CS0067: The event 'Base.E7' is never used
+                //     event System.Action E7;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E7").WithArguments("Base.E7").WithLocation(10, 25)
+                );
+
+            ValidateEventImplementation_201(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
+                    Assert.Equal("I1", derivedResult.Interfaces.Single().ToTestDisplayString());
+
+                    ValidateEventImplementation_201(m);
+                });
+        }
+
+        [Fact]
+        public void EventImplementation_203()
+        {
+            var source1 =
+@"
+interface I1
+{
+    event System.Action E7 { add {} remove {} }
+    event System.Action E8 { add {} remove {} }
+}
+
+class Base : Test
+{
+    event System.Action E7;
+}
+
+class Derived : Base, I1
+{
+    event System.Action E8 { add {} remove {} }
+}
+
+class Test : I1 
+{
+    event System.Action I1.E7 { add {} remove {} }
+    event System.Action I1.E8 { add {} remove {} }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (10,25): warning CS0067: The event 'Base.E7' is never used
+                //     event System.Action E7;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E7").WithArguments("Base.E7").WithLocation(10, 25)
+                );
+
+            void Validate(ModuleSymbol m)
+            {
+                var e7 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E7");
+                var e8 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E8");
+
+                var derived = m.ContainingAssembly.GetTypeByMetadataName("Derived");
+
+                Assert.Equal("event System.Action Test.I1.E7", derived.FindImplementationForInterfaceMember(e7).ToTestDisplayString());
+                Assert.Equal("event System.Action Test.I1.E8", derived.FindImplementationForInterfaceMember(e8).ToTestDisplayString());
+
+                Assert.Equal("void Test.I1.E7.add", derived.FindImplementationForInterfaceMember(e7.AddMethod).ToTestDisplayString());
+                Assert.Equal("void Test.I1.E8.add", derived.FindImplementationForInterfaceMember(e8.AddMethod).ToTestDisplayString());
+                Assert.Equal("void Test.I1.E7.remove", derived.FindImplementationForInterfaceMember(e7.RemoveMethod).ToTestDisplayString());
+                Assert.Equal("void Test.I1.E8.remove", derived.FindImplementationForInterfaceMember(e8.RemoveMethod).ToTestDisplayString());
+            }
+
+            Validate(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
+                    Assert.Equal("I1", derivedResult.Interfaces.Single().ToTestDisplayString());
+
+                    Validate(m);
+                });
+        }
+
+        [Fact]
+        public void EventImplementation_204()
+        {
+            var source1 =
+@"
+interface I1
+{
+    event System.Action E7 { add {} remove {} }
+    event System.Action E8 { add {} remove {} }
+}
+
+class Base : Test
+{
+    new event System.Action E7;
+}
+
+class Derived : Base, I1
+{
+    new event System.Action E8 { add {} remove {} }
+}
+
+class Test : I1 
+{
+    public event System.Action E7 { add {} remove {} }
+    public event System.Action E8 { add {} remove {} }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (10,29): warning CS0067: The event 'Base.E7' is never used
+                //     new event System.Action E7;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E7").WithArguments("Base.E7").WithLocation(10, 29)
+                );
+
+            void Validate(ModuleSymbol m)
+            {
+                var e7 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E7");
+                var e8 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E8");
+
+                var derived = m.ContainingAssembly.GetTypeByMetadataName("Derived");
+
+                Assert.Equal("event System.Action Test.E7", derived.FindImplementationForInterfaceMember(e7).ToTestDisplayString());
+                Assert.Equal("event System.Action Test.E8", derived.FindImplementationForInterfaceMember(e8).ToTestDisplayString());
+
+                Assert.Equal("void Test.E7.add", derived.FindImplementationForInterfaceMember(e7.AddMethod).ToTestDisplayString());
+                Assert.Equal("void Test.E8.add", derived.FindImplementationForInterfaceMember(e8.AddMethod).ToTestDisplayString());
+                Assert.Equal("void Test.E7.remove", derived.FindImplementationForInterfaceMember(e7.RemoveMethod).ToTestDisplayString());
+                Assert.Equal("void Test.E8.remove", derived.FindImplementationForInterfaceMember(e8.RemoveMethod).ToTestDisplayString());
+            }
+
+            Validate(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
+                    Assert.Equal("I1", derivedResult.Interfaces.Single().ToTestDisplayString());
+
+                    Validate(m);
+                });
+        }
+
+        [Fact]
+        public void EventImplementation_501()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E7 
+    { 
+        add {} 
+        remove {} 
+    }
+}
+
+class Test1 : I1
+{}
+";
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+            compilation1.VerifyDiagnostics(
+                // (6,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         add {} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(6, 9),
+                // (7,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         remove {} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(7, 9)
+                );
+
+            ValidateEventImplementation_501(compilation1.SourceModule, "Test1");
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation3.VerifyDiagnostics(
+                // (2,15): error CS8502: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because the target runtime doesn't support default interface implementation.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2"),
+                // (2,15): error CS8502: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because the target runtime doesn't support default interface implementation.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2")
+                );
+
+            ValidateEventImplementation_501(compilation3.SourceModule, "Test2");
+        }
+
+        private static void ValidateEventImplementation_501(ModuleSymbol m, string typeName)
+        {
+            var derived = m.GlobalNamespace.GetTypeMember(typeName);
+            var i1 = derived.Interfaces.Single();
+            Assert.Equal("I1", i1.ToTestDisplayString());
+
+            var e7 = i1.GetMember<EventSymbol>("E7");
+
+            Assert.True(e7.IsVirtual);
+            Assert.False(e7.IsAbstract);
+
+            Assert.Same(e7, derived.FindImplementationForInterfaceMember(e7));
+
+            Assert.True(e7.AddMethod.IsVirtual);
+            Assert.True(e7.RemoveMethod.IsVirtual);
+
+            Assert.True(e7.AddMethod.IsMetadataVirtual());
+            Assert.True(e7.RemoveMethod.IsMetadataVirtual());
+
+            Assert.False(e7.AddMethod.IsAbstract);
+            Assert.False(e7.RemoveMethod.IsAbstract);
+
+            Assert.Same(e7.AddMethod, derived.FindImplementationForInterfaceMember(e7.AddMethod));
+            Assert.Same(e7.RemoveMethod, derived.FindImplementationForInterfaceMember(e7.RemoveMethod));
+        }
+
+        [Fact]
+        public void EventImplementation_502()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E7 
+    { 
+        add {} 
+        remove {} 
+    }
+}
+";
+
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            compilation3.VerifyDiagnostics(
+                // (2,15): error CS8502: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because the target runtime doesn't support default interface implementation.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2"),
+                // (2,15): error CS8502: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because the target runtime doesn't support default interface implementation.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2")
+                );
+
+            ValidateEventImplementation_501(compilation3.SourceModule, "Test2");
+        }
+
+        [Fact]
+        public void EventImplementation_503()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E7 
+    { 
+        add {} 
+        remove {} 
+    }
+}
+";
+
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public interface I2
+{
+    void M2();
+}
+
+class Test2 : I2
+{
+    public void M2() {}
+}
+";
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            var test2 = compilation3.GetTypeByMetadataName("Test2");
+            var i1 = compilation3.GetTypeByMetadataName("I1");
+            Assert.Equal("I1", i1.ToTestDisplayString());
+
+            var e7 = i1.GetMember<EventSymbol>("E7");
+
+            Assert.Null(test2.FindImplementationForInterfaceMember(e7));
+
+            Assert.Null(test2.FindImplementationForInterfaceMember(e7.AddMethod));
+            Assert.Null(test2.FindImplementationForInterfaceMember(e7.RemoveMethod));
+
+            compilation3.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void EventImplementation_601()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E7 
+    { 
+        add {} 
+        remove {} 
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            compilation1.VerifyDiagnostics(
+                // (6,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                //         add {} 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(6, 9),
+                // (6,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         add {} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(6, 9),
+                // (7,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                //         remove {} 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(7, 9),
+                // (7,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         remove {} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(7, 9)
+                );
+
+            ValidateEventImplementation_501(compilation1.SourceModule, "Test1");
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation3.VerifyDiagnostics(
+                // (2,15): error CS8502: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because the target runtime doesn't support default interface implementation.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2"),
+                // (2,15): error CS8502: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because the target runtime doesn't support default interface implementation.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2")
+                );
+
+            ValidateEventImplementation_501(compilation3.SourceModule, "Test2");
+        }
+
+        [Fact]
+        public void EventImplementation_701()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action E7 
+    { 
+        add {} 
+        remove {} 
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (6,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                //         add {} 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(6, 9),
+                // (7,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                //         remove {} 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(7, 9)
+                );
+
+            ValidateEventImplementation_501(compilation1.SourceModule, "Test1");
+
+            var source2 =
+@"
+class Test2 : I1
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                            parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+
+            ValidateEventImplementation_501(compilation2.SourceModule, "Test2");
+
+            CompileAndVerify(compilation2, verify: false,
+                symbolValidator: (m) =>
+                {
+                    var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
+                    Assert.Equal("I1", test2Result.Interfaces.Single().ToTestDisplayString());
+                    ValidateEventImplementation_501(m, "Test2");
+                });
+        }
+
+        [Fact]
+        public void EventImplementation_901()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static event System.Action E7 
+    { 
+        add {} 
+        remove {} 
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (4,32): error CS0106: The modifier 'static' is not valid for this item
+                //     static event System.Action E7 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E7").WithArguments("static").WithLocation(4, 32),
+                // (6,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                //         add {} 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(6, 9),
+                // (7,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                //         remove {} 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(7, 9)
+                );
+
+            ValidateEventImplementation_501(compilation1.SourceModule, "Test1");
         }
     }
 }

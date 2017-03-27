@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             CSharpSyntaxNode syntax,
             SyntaxTokenList modifiers,
+            bool isFieldLike,
             ExplicitInterfaceSpecifierSyntax interfaceSpecifierSyntaxOpt,
             SyntaxToken nameTokenSyntax,
             DiagnosticBag diagnostics)
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var isExplicitInterfaceImplementation = interfaceSpecifierSyntaxOpt != null;
             bool modifierErrors;
-            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, _location, diagnostics, out modifierErrors);
+            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isFieldLike, _location, diagnostics, out modifierErrors);
             this.CheckAccessibility(_location, diagnostics);
         }
 
@@ -398,7 +399,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool explicitInterfaceImplementation, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool explicitInterfaceImplementation,
+                                                   bool isFieldLike, Location location, 
+                                                   DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
             var defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
@@ -434,7 +437,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Proper errors must have been reported by now.
             if (isInterface)
             {
-                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Abstract | DeclarationModifiers.Public;
+                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Public |
+                       (isFieldLike ? DeclarationModifiers.Abstract : DeclarationModifiers.Virtual);
             }
 
             return mods;

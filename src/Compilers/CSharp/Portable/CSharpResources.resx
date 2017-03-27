@@ -513,9 +513,6 @@
   <data name="ERR_InterfaceEventInitializer" xml:space="preserve">
     <value>'{0}': event in interface cannot have initializer</value>
   </data>
-  <data name="ERR_EventPropertyInInterface" xml:space="preserve">
-    <value>An event in an interface cannot have add or remove accessors</value>
-  </data>
   <data name="ERR_BadEventUsage" xml:space="preserve">
     <value>The event '{0}' can only appear on the left hand side of += or -= (except when used from within the type '{1}')</value>
   </data>

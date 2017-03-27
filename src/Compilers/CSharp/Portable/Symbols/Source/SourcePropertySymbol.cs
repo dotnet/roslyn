@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasExpressionBody = arrowExpression != null;
             bool hasInitializer = !isIndexer && propertySyntax.Initializer != null;
 
-            GetAcessorDeclarations(syntax, diagnostics, out bool notRegularProperty, out bool hasAccessorList,
+            GetAcessorDeclarations(syntax, diagnostics, out bool isAutoProperty, out bool hasAccessorList,
                                    out AccessorDeclarationSyntax getSyntax, out AccessorDeclarationSyntax setSyntax);
 
             bool accessorsHaveImplementation;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckModifiers(location, isIndexer, diagnostics);
 
-            notRegularProperty = notRegularProperty && (!containingType.IsInterface && !IsAbstract && !IsExtern && !isIndexer && hasAccessorList);
+            isAutoProperty = isAutoProperty && (!containingType.IsInterface && !IsAbstract && !IsExtern && !isIndexer && hasAccessorList);
 
             if (isIndexer && !isExplicitInterfaceImplementation)
             {
@@ -134,13 +134,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasInitializer)
             {
-                CheckInitializer(notRegularProperty, location, diagnostics);
+                CheckInitializer(isAutoProperty, location, diagnostics);
             }
 
-            if (notRegularProperty || hasInitializer)
+            if (isAutoProperty || hasInitializer)
             {
                 var hasGetSyntax = getSyntax != null;
-                _isAutoProperty = notRegularProperty && hasGetSyntax;
+                _isAutoProperty = isAutoProperty && hasGetSyntax;
                 bool isReadOnly = hasGetSyntax && setSyntax == null;
 
                 if (_isAutoProperty || hasInitializer)
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                           hasInitializer);
                 }
 
-                if (notRegularProperty)
+                if (isAutoProperty)
                 {
                     Binder.CheckFeatureAvailability(
                         syntax,
@@ -261,8 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                _getMethod = CreateAccessorSymbol(getSyntax, explicitlyImplementedProperty, aliasQualifierOpt, notRegularProperty, diagnostics);
-                _setMethod = CreateAccessorSymbol(setSyntax, explicitlyImplementedProperty, aliasQualifierOpt, notRegularProperty, diagnostics);
+                _getMethod = CreateAccessorSymbol(getSyntax, explicitlyImplementedProperty, aliasQualifierOpt, isAutoProperty, diagnostics);
+                _setMethod = CreateAccessorSymbol(setSyntax, explicitlyImplementedProperty, aliasQualifierOpt, isAutoProperty, diagnostics);
 
                 if ((getSyntax == null) || (setSyntax == null))
                 {
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, location, this);
                         }
                     }
-                    else if (notRegularProperty)
+                    else if (isAutoProperty)
                     {
                         var accessor = _getMethod ?? _setMethod;
                         if (getSyntax == null)
@@ -349,10 +349,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static void GetAcessorDeclarations(BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics, 
-                                                   out bool notRegularProperty, out bool hasAccessorList, 
+                                                   out bool isAutoProperty, out bool hasAccessorList, 
                                                    out AccessorDeclarationSyntax getSyntax, out AccessorDeclarationSyntax setSyntax)
         {
-            notRegularProperty = true;
+            isAutoProperty = true;
             hasAccessorList = syntax.AccessorList != null;
             getSyntax = null;
             setSyntax = null;
@@ -397,13 +397,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (accessor.Body != null || accessor.ExpressionBody != null)
                     {
-                        notRegularProperty = false;
+                        isAutoProperty = false;
                     }
                 }
             }
             else
             {
-                notRegularProperty = false;
+                isAutoProperty = false;
             }
         }
 
