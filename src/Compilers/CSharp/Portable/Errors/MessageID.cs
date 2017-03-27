@@ -173,8 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case MessageID.IDS_FeatureIOperation:
                     return "IOperation";
-                case MessageID.IDS_FeatureDefaultLiteral:
-                    return "defaultLiteral";
                 default:
                     return null;
             }
@@ -186,6 +184,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 7.1 features.
+                case MessageID.IDS_FeatureDefaultLiteral:
+                    return LanguageVersion.CSharp7_1;
+
                 // C# 7 features.
                 case MessageID.IDS_FeatureBinaryLiteral:
                 case MessageID.IDS_FeatureDigitSeparator:

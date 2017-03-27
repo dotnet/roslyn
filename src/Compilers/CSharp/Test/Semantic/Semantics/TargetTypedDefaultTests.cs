@@ -25,9 +25,9 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,17): error CS8058: Feature 'target-typed default operator' is experimental and unsupported; use '/features:defaultLiteral' to enable.
+                // (6,17): error CS8107: Feature 'default literal' is not available in C# 7. Please use language version 7.1 or greater.
                 //         int x = default;
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "default").WithArguments("target-typed default operator", "defaultLiteral").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(6, 17)
                 );
         }
 

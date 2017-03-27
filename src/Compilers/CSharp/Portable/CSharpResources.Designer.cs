@@ -9945,7 +9945,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to target-typed default operator.
+        ///   Looks up a localized string similar to default literal.
         /// </summary>
         internal static string IDS_FeatureDefaultLiteral {
             get {
