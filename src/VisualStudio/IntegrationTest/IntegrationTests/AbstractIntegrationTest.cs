@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
@@ -16,7 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
     [CaptureTestName]
     public abstract class AbstractIntegrationTest : IDisposable
     {
-        protected readonly VisualStudioInstanceContext VisualStudio;
+        public readonly VisualStudioInstanceContext VisualStudio;
         protected readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
         protected readonly TextViewWindow_OutOfProc TextViewWindow;
         protected readonly string ProjectName = "TestProj";
@@ -33,18 +34,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         public void Dispose()
             => VisualStudio.Dispose();
-
-        public void VerifyCurrentTokenType(string tokenType)
-        {
-            WaitForAsyncOperations(
-                FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService,
-                FeatureAttribute.Classification);
-            var actualTokenTypes = TextViewWindow.GetCurrentClassifications();
-            Assert.Equal(actualTokenTypes.Length, 1);
-            Assert.Contains(tokenType, actualTokenTypes[0]);
-            Assert.NotEqual("text", tokenType);
-        }
 
         protected void Wait(double seconds)
         {

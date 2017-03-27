@@ -96,6 +96,7 @@ w.Content = g;");
         [Fact]
         public void TypingHelpDirectiveWorks()
         {
+            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
             InteractiveWindow.ShowWindow(waitForPrompt: true);
 
             // Directly type #help, rather than sending it through SubmitText. We want to actually test

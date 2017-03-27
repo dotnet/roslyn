@@ -12,7 +12,10 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -37,8 +40,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
             string projectTemplate)
            : base(instanceFactory, visualStudio => visualStudio.Instance.Editor)
         {
-            VisualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
-            VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, projectTemplate, LanguageName);
+            this.CreateSolution(solutionName);
+            this.AddProject(projectTemplate, new ProjectUtils.Project(ProjectName), LanguageName);
 
             Editor = (Editor_OutOfProc)TextViewWindow;
 

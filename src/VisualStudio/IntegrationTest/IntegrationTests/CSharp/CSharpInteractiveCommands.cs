@@ -2,6 +2,8 @@
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -131,7 +133,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             SendKeys(")");
             SendKeys(VirtualKey.Left);
             SendKeys(VirtualKey.Enter);
-            VerifyCaretPosition(12);
+            this.VerifyCaretPosition(12);
         }
     }
 }

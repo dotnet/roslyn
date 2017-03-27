@@ -61,6 +61,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
                   extendSelection,
                   selectBlock);
 
+        protected void VerifyLastReplOutput(string expectedReplOutput)
+        {
+            var lastReplOutput = InteractiveWindow.GetLastReplOutput();
+            Assert.Equal(expectedReplOutput, lastReplOutput);
+        }
+
         protected void VerifyLastReplInput(string expectedReplInput)
         {
             var lastReplInput = InteractiveWindow.GetLastReplInput();
