@@ -78,11 +78,13 @@ namespace Microsoft.CodeAnalysis.Completion
             var lastDotIndex = completionItemText.LastIndexOf('.');
             if (lastDotIndex >= 0)
             {
-                var textAfterLastDot = completionItemText.Substring(lastDotIndex + 1);
+                var afterDotPosition = lastDotIndex + 1;
+                var textAfterLastDot = completionItemText.Substring(afterDotPosition);
+
                 var match = GetMatchWorker(textAfterLastDot, pattern, includeMatchSpans, culture);
                 if (match != null)
                 {
-                    return match;
+                    return AdjustMatchedSpans(match.Value, afterDotPosition);
                 }
             }
 
@@ -90,6 +92,11 @@ namespace Microsoft.CodeAnalysis.Completion
             // Just do a normal check against the entire completion item.
             return GetMatchWorker(completionItemText, pattern, includeMatchSpans, culture);
         }
+
+        private PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
+            => value.MatchedSpans.IsDefaultOrEmpty
+                ? value
+                : value.WithMatchedSpans(value.MatchedSpans.SelectAsArray(s => new TextSpan(s.Start + offset, s.Length)));
 
         private PatternMatch? GetMatchWorker(
             string completionItemText, string pattern,
