@@ -714,7 +714,7 @@ Public Class BuildDevDivInsertionFiles
     Private Sub ParseSwrFile(path As String, <Out> ByRef version As Version, <Out> ByRef files As IEnumerable(Of String))
         Dim lines = File.ReadAllLines(path)
 
-        version = Version.Parse(lines.Single(Function(line) line.TrimStart().StartsWith("version=")).Split("="c)(1))
+        version = version.Parse(lines.Single(Function(line) line.TrimStart().StartsWith("version=")).Split("="c)(1))
         files = (From line In lines Where line.TrimStart().StartsWith("file")).ToArray()
     End Sub
 
@@ -1059,23 +1059,13 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
         ' 32-bit only to work around problems with the VS build.
         ' These binaries should never ship anywhere other than the VS toolset
         ' See https://github.com/dotnet/roslyn/issues/17864
-        Dim corFlagsPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
-            "Microsoft SDKs/Windows/v10.0A/bin/NETFX 4.6 Tools/CorFlags.exe")
-
         For Each fileName In filesToInsert
             Dim srcPath = Path.Combine(_binDirectory, GetMappedPath(fileName))
             Dim dstPath = Path.Combine(outputFolder, fileName)
             File.Copy(srcPath, dstPath)
 
-            ' If the file is an exe, use corflags to mark it 32bitpref
             If Path.GetExtension(fileName) = ".exe" Then
-                Dim proc = Process.Start(corFlagsPath, "/force /32bitpref+")
-                proc.WaitForExit()
-
-                If proc.ExitCode <> 0 Then
-                    Throw New Exception($"CorFlags on {fileName} failed with exit code {proc.ExitCode}")
-                End If
+                MarkFile32BitPref(dstPath)
             End If
         Next
 
@@ -1097,6 +1087,29 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
                   </package>
 
         xml.Save(Path.Combine(outputFolder, PackageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
+    End Sub
+
+    Private Sub MarkFile32BitPref(filePath As String)
+        Const OffsetFromStartOfCorHeaderToFlags = 4 + ' byte count 
+                                                  2 + ' Major version
+                                                  2 + ' Minor version
+                                                  8   ' Metadata directory
+
+        Using stream As FileStream = File.Open(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read)
+            Using reader As PEReader = New PEReader(stream)
+                Dim newFlags As Int32 = reader.PEHeaders.CorHeader.Flags Or
+                                        CorFlags.Prefers32Bit Or
+                                        CorFlags.Requires32Bit ' CLR requires both req and pref flags to be set
+
+                Using writer = New BinaryWriter(stream)
+                    Dim mdReader = reader.GetMetadataReader()
+                    stream.Position = reader.PEHeaders.CorHeaderStartOffset + OffsetFromStartOfCorHeaderToFlags
+
+                    writer.Write(newFlags)
+                    writer.Flush()
+                End Using
+            End Using
+        End Using
     End Sub
 
     Private Function IsLanguageServiceRegistrationFile(fileName As String) As Boolean

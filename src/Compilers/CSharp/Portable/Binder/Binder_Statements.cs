@@ -1721,22 +1721,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (op1.Kind == BoundKind.DiscardExpression)
             {
-                op1 = InferTypeForDiscard((BoundDiscardExpression)op1, op2, diagnostics);
+                op1 = InferTypeForDiscardAssignment((BoundDiscardExpression)op1, op2, diagnostics);
             }
 
             return BindAssignment(node, op1, op2, diagnostics);
         }
 
-        private BoundExpression InferTypeForDiscard(BoundDiscardExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
+        private BoundExpression InferTypeForDiscardAssignment(BoundDiscardExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
         {
-            if (op2.Type == null)
+            var inferredType = op2.Type;
+            if (inferredType == null)
             {
                 return op1.FailInference(this, diagnostics);
             }
-            else
+
+            if (inferredType.SpecialType == SpecialType.System_Void)
             {
-                return op1.SetInferredType(op2.Type);
+                diagnostics.Add(ErrorCode.ERR_VoidAssignment, op1.Syntax.Location);
             }
+
+            return op1.SetInferredType(inferredType);
         }
 
         private BoundAssignmentOperator BindAssignment(SyntaxNode node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
