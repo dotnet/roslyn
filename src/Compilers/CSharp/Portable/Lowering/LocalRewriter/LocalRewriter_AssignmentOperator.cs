@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.DiscardExpression:
                     {
-                        return EnsureNotLvalueReceiver(rewrittenRight);
+                        return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenRight);
                     }
 
                 default:

@@ -552,6 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.BaseReference:
                 case BoundKind.PointerIndirectionOperator:
                 case BoundKind.RefValueOperator:
+                case BoundKind.PseudoVariable:
                 case BoundKind.FieldAccess:
                     return true;
 

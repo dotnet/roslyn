@@ -47,11 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue conditionConstantValue = rewrittenCondition.ConstantValue;
             if (conditionConstantValue == ConstantValue.True)
             {
-                return EnsureNotLvalueReceiver(rewrittenConsequence);
+                return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenConsequence);
             }
             else if (conditionConstantValue == ConstantValue.False)
             {
-                return EnsureNotLvalueReceiver(rewrittenAlternative);
+                return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenAlternative);
             }
             else
             {

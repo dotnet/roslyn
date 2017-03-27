@@ -2374,5 +2374,40 @@ static class LiveList
 1";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void TestConditionalOperatorNotLvaluePointerElementAccess()
+        {
+            var source = @"
+class Program
+{
+
+    struct S1 
+    {
+        public int field;
+        public int Increment() => field++;
+
+    }
+
+    unsafe static void Main()
+    {
+        S1 v = default(S1);
+        v.Increment();
+
+        System.Console.WriteLine(v.field);
+
+        S1* pv = &v;
+
+        (true ? pv[0] : default(S1)).Increment();
+
+        System.Console.WriteLine(v.field);
+    }
+}
+";
+            string expectedOutput = @"1
+1";
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe);
+        }
+
     }
 }
