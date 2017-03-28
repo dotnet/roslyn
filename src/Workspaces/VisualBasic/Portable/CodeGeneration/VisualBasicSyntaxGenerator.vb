@@ -1317,17 +1317,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Return AsInterfaceMember(DirectCast(node, MethodBlockSyntax).BlockStatement)
                     Case SyntaxKind.FunctionStatement,
                      SyntaxKind.SubStatement
-                        Return DirectCast(node, MethodStatementSyntax).WithModifiers(Nothing)
+                        Return Isolate(node, Function(d) DirectCast(d, MethodStatementSyntax).WithModifiers(Nothing))
                     Case SyntaxKind.PropertyBlock
                         Return AsInterfaceMember(DirectCast(node, PropertyBlockSyntax).PropertyStatement)
                     Case SyntaxKind.PropertyStatement
-                        Dim propertyStatement = DirectCast(node, PropertyStatementSyntax)
-                        Dim mods = SyntaxFactory.TokenList(propertyStatement.Modifiers.Where(Function(tk) tk.IsKind(SyntaxKind.ReadOnlyKeyword) Or tk.IsKind(SyntaxKind.DefaultKeyword)))
-                        Return propertyStatement.WithModifiers(mods)
+                        Return Isolate(
+                            node,
+                            Function(d)
+                                Dim propertyStatement = DirectCast(d, PropertyStatementSyntax)
+                                Dim mods = SyntaxFactory.TokenList(propertyStatement.Modifiers.Where(Function(tk) tk.IsKind(SyntaxKind.ReadOnlyKeyword) Or tk.IsKind(SyntaxKind.DefaultKeyword)))
+                                Return propertyStatement.WithModifiers(mods)
+                            End Function)
                     Case SyntaxKind.EventBlock
                         Return AsInterfaceMember(DirectCast(node, EventBlockSyntax).EventStatement)
                     Case SyntaxKind.EventStatement
-                        Return DirectCast(node, EventStatementSyntax).WithModifiers(Nothing).WithCustomKeyword(Nothing)
+                        Return Isolate(node, Function(d) DirectCast(d, EventStatementSyntax).WithModifiers(Nothing).WithCustomKeyword(Nothing))
                 End Select
             End If
 

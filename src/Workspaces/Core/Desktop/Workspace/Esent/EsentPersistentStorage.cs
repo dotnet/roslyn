@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -30,8 +29,8 @@ namespace Microsoft.CodeAnalysis.Esent
         private readonly EsentStorage _esentStorage;
 
         public EsentPersistentStorage(
-            IOptionService optionService, string workingFolderPath, string solutionFilePath, Action<AbstractPersistentStorage> disposer) :
-            base(optionService, workingFolderPath, solutionFilePath, disposer)
+            IOptionService optionService, string workingFolderPath, string solutionFilePath, Action<AbstractPersistentStorage> disposer) 
+            : base(optionService, workingFolderPath, solutionFilePath, disposer)
         {
             // cache delegates
             _readStreamSolution = ReadStreamSolution;

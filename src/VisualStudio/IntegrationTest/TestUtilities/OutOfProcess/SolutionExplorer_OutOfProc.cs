@@ -89,15 +89,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SaveAll()
             => _inProc.SaveAll();
 
-        public void ShowErrorList()
-            => _inProc.ShowErrorList();
-
         public void ShowOutputWindow()
             => _inProc.ShowOutputWindow();
 
         public void UnloadProject(string projectName)
             => _inProc.UnloadProject(projectName);
-
 
         public string[] GetProjectReferences(string projectName)
             => _inProc.GetProjectReferences(projectName);

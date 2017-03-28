@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Xunit;
 
@@ -197,6 +198,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
             bool isOpen)
         {
             test.VisualStudio.Instance.Editor.VerifyDialog(dialogName, isOpen);
+        }
+
+        public static void VerifyErrorTags(this AbstractIntegrationTest test, params string[] expectedTags)
+        {
+            test.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
+            test.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
+            var actualTags = test.VisualStudio.Instance.Editor.GetErrorTags();
+            Assert.Equal(expectedTags, actualTags);
         }
     }
 }

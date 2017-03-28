@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using VSLangProj;
@@ -461,27 +461,169 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private void WaitForBuildToFinish(EnvDTE.OutputWindowPane buildOutputWindowPane)
         {
-            var textDocument = buildOutputWindowPane.TextDocument;
-            var textDocumentSelection = textDocument.Selection;
-
-            var buildFinishedRegex = new Regex(@"^========== Build: \d+ succeeded, \d+ failed, \d+ up-to-date, \d+ skipped ==========$", RegexOptions.Compiled);
-
-            do
+            var buildManager = GetGlobalService<SVsSolutionBuildManager, IVsSolutionBuildManager2>();
+            using (var semaphore = new SemaphoreSlim(1))
+            using (var solutionEvents = new UpdateSolutionEvents(buildManager))
             {
-                Thread.Yield();
-
+                semaphore.Wait();
+                UpdateSolutionEvents.UpdateSolutionDoneEvent @event = (bool succeeded, bool modified, bool canceled) => semaphore.Release();
+                solutionEvents.OnUpdateSolutionDone += @event;
                 try
                 {
-                    textDocumentSelection.GotoLine(textDocument.EndPoint.Line - 1, Select: true);
+                    semaphore.Wait();
                 }
-                catch (ArgumentException)
+                finally
                 {
-                    // Its possible that the window will still be initializing, clearing,
-                    // etc... We should ignore those errors and just try again
+                    solutionEvents.OnUpdateSolutionDone -= @event;
                 }
             }
-            while (!buildFinishedRegex.IsMatch(textDocumentSelection.Text));
+        }
 
+        internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IVsUpdateSolutionEvents2, IDisposable
+        {
+            private uint cookie;
+            private IVsSolutionBuildManager2 solutionBuildManager;
+
+            internal delegate void UpdateSolutionDoneEvent(bool succeeded, bool modified, bool canceled);
+            internal delegate void UpdateSolutionBeginEvent(ref bool cancel);
+            internal delegate void UpdateSolutionStartUpdateEvent(ref bool cancel);
+            internal delegate void UpdateProjectConfigDoneEvent(IVsHierarchy projectHierarchy, IVsCfg projectConfig, int success);
+            internal delegate void UpdateProjectConfigBeginEvent(IVsHierarchy projectHierarchy, IVsCfg projectConfig);
+
+            public event UpdateSolutionDoneEvent OnUpdateSolutionDone;
+            public event UpdateSolutionBeginEvent OnUpdateSolutionBegin;
+            public event UpdateSolutionStartUpdateEvent OnUpdateSolutionStartUpdate;
+            public event Action OnActiveProjectConfigurationChange;
+            public event Action OnUpdateSolutionCancel;
+            public event UpdateProjectConfigDoneEvent OnUpdateProjectConfigDone;
+            public event UpdateProjectConfigBeginEvent OnUpdateProjectConfigBegin;
+
+            internal UpdateSolutionEvents(IVsSolutionBuildManager2 solutionBuildManager)
+            {
+                this.solutionBuildManager = solutionBuildManager;
+                var hresult = solutionBuildManager.AdviseUpdateSolutionEvents(this, out cookie);
+                if (hresult != 0)
+                {
+                    System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(hresult);
+                }
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_Begin(ref int pfCancelUpdate)
+            {
+                var cancel = false;
+                OnUpdateSolutionBegin?.Invoke(ref cancel);
+                if (cancel)
+                {
+                    pfCancelUpdate = 1;
+                }
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
+            {
+                OnUpdateSolutionDone?.Invoke(fSucceeded != 0, fModified != 0, fCancelCommand != 0);
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+            {
+                return UpdateSolution_StartUpdate(ref pfCancelUpdate);
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_Cancel()
+            {
+                OnUpdateSolutionCancel?.Invoke();
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            {
+                return OnActiveProjectCfgChange(pIVsHierarchy);
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_Begin(ref int pfCancelUpdate)
+            {
+                var cancel = false;
+                OnUpdateSolutionBegin?.Invoke(ref cancel);
+                if (cancel)
+                {
+                    pfCancelUpdate = 1;
+                }
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
+            {
+                OnUpdateSolutionDone?.Invoke(fSucceeded != 0, fModified != 0, fCancelCommand != 0);
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+            {
+                return UpdateSolution_StartUpdate(ref pfCancelUpdate);
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_Cancel()
+            {
+                OnUpdateSolutionCancel?.Invoke();
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            {
+                return OnActiveProjectCfgChange(pIVsHierarchy);
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
+            {
+                OnUpdateProjectConfigBegin?.Invoke(pHierProj, pCfgProj);
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
+            {
+                OnUpdateProjectConfigDone?.Invoke(pHierProj, pCfgProj, fSuccess);
+                return 0;
+            }
+
+            private int UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+            {
+                var cancel = false;
+                OnUpdateSolutionStartUpdate?.Invoke(ref cancel);
+                if (cancel)
+                {
+                    pfCancelUpdate = 1;
+                }
+                return 0;
+            }
+
+            private int OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            {
+                OnActiveProjectConfigurationChange?.Invoke();
+                return 0;
+            }
+
+            void IDisposable.Dispose()
+            {
+                OnUpdateSolutionDone = null;
+                OnUpdateSolutionBegin = null;
+                OnUpdateSolutionStartUpdate = null;
+                OnActiveProjectConfigurationChange = null;
+                OnUpdateSolutionCancel = null;
+                OnUpdateProjectConfigDone = null;
+                OnUpdateProjectConfigBegin = null;
+
+                if (cookie != 0)
+                {
+                    var tempCookie = cookie;
+                    cookie = 0;
+                    var hresult = solutionBuildManager.UnadviseUpdateSolutionEvents(tempCookie);
+                    if (hresult != 0)
+                    {
+                        System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(hresult);
+                    }
+                }
+            }
         }
 
         public void OpenFileWithDesigner(string projectName, string relativeFilePath)

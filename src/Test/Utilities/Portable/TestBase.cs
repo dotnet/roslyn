@@ -386,6 +386,20 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        private static MetadataReference s_systemRef_v46;
+        public static MetadataReference SystemRef_v46
+        {
+            get
+            {
+                if (s_systemRef_v46 == null)
+                {
+                    s_systemRef_v46 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_6_1038_0.System).GetReference(display: "System.v4_6_1038_0.dll");
+                }
+
+                return s_systemRef_v46;
+            }
+        }
+
         private static MetadataReference s_systemRef_v4_0_30319_17929;
         public static MetadataReference SystemRef_v4_0_30319_17929
         {
