@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.Host
         public string SolutionFilePath { get; }
 
         protected bool PersistenceEnabled
-        {
-            get { return _optionService.GetOption(PersistentStorageOptions.Enabled); }
-        }
+            => _optionService.GetOption(PersistentStorageOptions.Enabled);
 
         public void Dispose()
         {
