@@ -17,11 +17,6 @@ namespace Microsoft.CodeAnalysis.Storage
     /// </summary>
     internal abstract partial class AbstractPersistentStorageService : IPersistentStorageService
     {
-        /// <summary>
-        /// threshold to start to use a DB (50MB)
-        /// </summary>
-        private const int SolutionSizeThreshold = 50 * 1024 * 1024;
-
         protected readonly IOptionService OptionService;
         private readonly SolutionSizeTracker _solutionSizeTracker;
 
@@ -170,7 +165,8 @@ namespace Microsoft.CodeAnalysis.Storage
             }
 
             var size = _solutionSizeTracker.GetSolutionSize(solution.Workspace, solution.Id);
-            return size > SolutionSizeThreshold;
+            var threshold = this.OptionService.GetOption(StorageOptions.SolutionSizeThreshold);
+            return size > threshold;
         }
 
         private void RegisterPrimarySolutionStorageIfNeeded(Solution solution, AbstractPersistentStorage storage)

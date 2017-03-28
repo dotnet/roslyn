@@ -207,7 +207,7 @@
     <Compile Include="Interactive\TestInteractiveEvaluator.cs" />
     <Compile Include="PersistentStorage\AbstractPersistentStorageTests.cs" />
     <Compile Include="PersistentStorage\SQLitePersistentStorageTests.cs" />
-    <Compile Include="PersistentStorage\EsentPersistentStorageTests.cs" />
+    <Compile Include="PersistentStorage\EsentPersistentStorageTests1.cs" />
     <Compile Include="PersistentStorage\SolutionSizeTests.cs" />
     <Compile Include="ProjectSystemShim\CPS\AnalyzersTests.cs" />
     <Compile Include="ProjectSystemShim\CPS\CSharpCompilerOptionsTests.cs" />

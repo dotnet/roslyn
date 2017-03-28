@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         public override void Initialize()
         {
-            // Create a sync connection to the DB and ensure it has tables for the types we care 
-            // about. Also getthe known set of string-to-id mappings we already have in the DB.
+            // Create a sync connection to the DB and ensure it has tables for the types we care about. 
             using (var syncConnection = new SQLiteConnection(DatabaseFile))
             {
                 syncConnection.CreateTable<StringInfo>();
@@ -48,6 +47,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 syncConnection.CreateTable<ProjectData>();
                 syncConnection.CreateTable<DocumentData>();
 
+                // Also getthe known set of string-to-id mappings we already have in the DB.
                 foreach (var v in syncConnection.Table<StringInfo>())
                 {
                     _stringToIdMap.TryAdd(v.Value, v.Id);
