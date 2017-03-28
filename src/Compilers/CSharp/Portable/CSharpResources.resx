@@ -849,8 +849,8 @@
   <data name="ERR_NullNotValid" xml:space="preserve">
     <value>Use of null is not valid in this context</value>
   </data>
-  <data name="ERR_DefaultNotValid" xml:space="preserve">
-    <value>Use of default is not valid in this context</value>
+  <data name="ERR_DefaultLiteralNotValid" xml:space="preserve">
+    <value>Use of default literal is not valid in this context</value>
   </data>
   <data name="ERR_UseDefViolationThis" xml:space="preserve">
     <value>The 'this' object cannot be used before all of its fields are assigned to</value>
@@ -5026,8 +5026,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PatternDynamicType" xml:space="preserve">
     <value>It is not legal to use the type 'dynamic' in a pattern.</value>
   </data>
-  <data name="ERR_BadDynamicMethodArgDefault" xml:space="preserve">
-    <value>Cannot use a type-inferred default operator as an argument to a dynamically dispatched operation.</value>
+  <data name="ERR_BadDynamicMethodArgDefaultLiteral" xml:space="preserve">
+    <value>Cannot use a default literal as an argument to a dynamically dispatched operation.</value>
   </data>
   <data name="ERR_BadDocumentationMode" xml:space="preserve">
     <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>

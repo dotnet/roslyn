@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (arg.IsLiteralDefault())
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArgDefault, arg.Syntax);
+                        Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArgDefaultLiteral, arg.Syntax);
                         hasErrors = true;
                     }
                     else

@@ -521,19 +521,20 @@ class C
             string source = @"
 enum E
 {
-    Entry = default
+    DefaultEntry = default,
+    OneEntry = default + 1
 }
 class C
 {
     static void Main()
     {
-        System.Console.Write((int)E.Entry);
+        System.Console.Write($""{(int)E.DefaultEntry} {(int)E.OneEntry}"");
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0");
+            CompileAndVerify(comp, expectedOutput: "0 1");
         }
 
         [Fact]
@@ -609,9 +610,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
-                // (7,14): error CS9000: Cannot use a type-inferred default operator as an argument to a dynamically dispatched operation.
+                // (7,14): error CS9000: Cannot use a default literal as an argument to a dynamically dispatched operation.
                 //         d.M2(default);
-                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgDefault, "default").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgDefaultLiteral, "default").WithLocation(7, 14)
                 );
         }
 
@@ -677,9 +678,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,27): error CS9001: Use of default is not valid in this context
+                // (6,27): error CS9001: Use of default literal is not valid in this context
                 //         foreach (int x in default) { }
-                Diagnostic(ErrorCode.ERR_DefaultNotValid, "default").WithLocation(6, 27),
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNotValid, "default").WithLocation(6, 27),
                 // (7,27): error CS0186: Use of null is not valid in this context
                 //         foreach (int x in null) { }
                 Diagnostic(ErrorCode.ERR_NullNotValid, "null").WithLocation(7, 27)
@@ -700,9 +701,9 @@ class C
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.ExperimentalParseOptions);
             compilation.VerifyDiagnostics(
-                // (5,35): error CS9001: Use of default is not valid in this context
+                // (5,35): error CS9001: Use of default literal is not valid in this context
                 //         var q = from x in default select x;
-                Diagnostic(ErrorCode.ERR_DefaultNotValid, "select x").WithLocation(5, 35)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNotValid, "select x").WithLocation(5, 35)
                 );
         }
 
@@ -774,10 +775,11 @@ class C
             var text = @"
 class C
 {
-    static void M<T>()
+    static void M<T, TClass>() where TClass : class
     {
         System.Console.Write(default as long);
         System.Console.Write(default as T);
+        System.Console.Write(default as TClass);
     }
 }";
 
@@ -788,7 +790,10 @@ class C
                 Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "default as long").WithArguments("long").WithLocation(6, 30),
                 // (7,30): error CS0413: The type parameter 'T' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
                 //         System.Console.Write(default as T);
-                Diagnostic(ErrorCode.ERR_AsWithTypeVar, "default as T").WithArguments("T").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_AsWithTypeVar, "default as T").WithArguments("T").WithLocation(7, 30),
+                // (8,30): warning CS0458: The result of the expression is always 'null' of type 'TClass'
+                //         System.Console.Write(default as TClass);
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "default as TClass").WithArguments("TClass").WithLocation(8, 30)
                 );
         }
 

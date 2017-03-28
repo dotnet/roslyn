@@ -2497,7 +2497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
+        public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
             return null;
         }

@@ -1176,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression Default(TypeSymbol type)
         {
-            return new BoundDefaultLiteral(Syntax, type) { WasCompilerGenerated = true };
+            return new BoundDefaultExpression(Syntax, type) { WasCompilerGenerated = true };
         }
 
         internal BoundStatement Try(
