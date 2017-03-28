@@ -1412,6 +1412,7 @@ ignoreTrivia: false);
     ///     An value that provides access to the language service for the active configured project.
     /// </returns>
     object GetActiveProjectContext();
+
     /// <summary>
     ///     Gets or sets the active workspace project context that provides access to the language service for the active configured project.
     /// </summary>
@@ -1419,6 +1420,114 @@ ignoreTrivia: false);
     ///     An value that provides access to the language service for the active configured project.
     /// </param>
     void SetActiveProjectContext(object value);
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestDocumentationComment4()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Sets <see cref=""ActiveProjectContext""/>.
+    /// </summary>
+    /// <seealso cref=""ActiveProjectContext""/>
+    object [||]ActiveProjectContext
+    {
+        set;
+    }
+}
+internal struct AStruct
+{
+    /// <seealso cref=""ILanguageServiceHost.ActiveProjectContext""/>
+    private int x;
+}",
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Sets <see cref=""SetActiveProjectContext(object)""/>.
+    /// </summary>
+    /// <seealso cref=""SetActiveProjectContext(object)""/>
+    void SetActiveProjectContext(object value);
+}
+internal struct AStruct
+{
+    /// <seealso cref=""ILanguageServiceHost.SetActiveProjectContext(object)""/>
+    private int x;
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestDocumentationComment5()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets or sets <see cref=""ActiveProjectContext""/>.
+    /// </summary>
+    /// <seealso cref=""ActiveProjectContext""/>
+    object [||]ActiveProjectContext
+    {
+        get; set;
+    }
+}
+internal struct AStruct
+{
+    /// <seealso cref=""ILanguageServiceHost.ActiveProjectContext""/>
+    private int x;
+}",
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets or sets <see cref=""GetActiveProjectContext()""/>.
+    /// </summary>
+    /// <seealso cref=""GetActiveProjectContext()""/>
+    object GetActiveProjectContext();
+
+    /// <summary>
+    ///     Gets or sets <see cref=""GetActiveProjectContext()""/>.
+    /// </summary>
+    /// <seealso cref=""GetActiveProjectContext()""/>
+    void SetActiveProjectContext(object value);
+}
+internal struct AStruct
+{
+    /// <seealso cref=""ILanguageServiceHost.GetActiveProjectContext()""/>
+    private int x;
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestDocumentationComment6()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal interface ISomeInterface<T>
+{
+    /// <seealso cref=""Context""/>
+    ISomeInterface<T> [||]Context
+    {
+        set;
+    }
+}
+internal struct AStruct
+{
+    /// <seealso cref=""ISomeInterface{T}.Context""/>
+    private int x;
+}",
+@"internal interface ISomeInterface<T>
+{
+    /// <seealso cref=""SetContext(ISomeInterface{T})""/>
+    void SetContext(ISomeInterface<T> value);
+}
+internal struct AStruct
+{
+    /// <seealso cref=""ISomeInterface{T}.SetContext(ISomeInterface{T})""/>
+    private int x;
 }", ignoreTrivia: false);
         }
 

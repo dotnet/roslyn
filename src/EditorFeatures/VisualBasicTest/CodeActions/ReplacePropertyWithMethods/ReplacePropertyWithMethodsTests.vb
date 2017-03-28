@@ -415,7 +415,7 @@ end class",
 end class")
         End Function
 
-        <WorkItem(18235, "https://github.com/dotnet/roslyn/pull/18235")>
+        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestDocumentationComment1() As Task
             Await TestInRegularAndScriptAsync(
@@ -439,7 +439,7 @@ End Interface",
 End Interface", ignoreTrivia:=False)
         End Function
 
-        <WorkItem(18235, "https://github.com/dotnet/roslyn/pull/18235")>
+        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestDocumentationComment2() As Task
             Await TestInRegularAndScriptAsync(
@@ -463,7 +463,7 @@ End Interface",
 End Interface", ignoreTrivia:=False)
         End Function
 
-        <WorkItem(18235, "https://github.com/dotnet/roslyn/pull/18235")>
+        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestDocumentationComment3() As Task
             Await TestInRegularAndScriptAsync(
@@ -492,6 +492,89 @@ End Interface",
     ''' </param>
     Sub SetActiveProjectContext(Value As Object)
 End Interface", ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestDocumentationComment4() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Sets <see cref=""ActiveProjectContext""/>.
+    ''' </summary>
+    ''' <seealso cref=""ActiveProjectContext""/>
+    WriteOnly Property [||]ActiveProjectContext As Object
+End Interface
+Structure AStruct
+    ''' <seealso cref=""ILanguageServiceHost.ActiveProjectContext""/>
+    Private X As Integer
+End Structure",
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Sets <see cref=""SetActiveProjectContext(Object)""/>.
+    ''' </summary>
+    ''' <seealso cref=""SetActiveProjectContext(Object)""/>
+    Sub SetActiveProjectContext(Value As Object)
+End Interface
+Structure AStruct
+    ''' <seealso cref=""ILanguageServiceHost.SetActiveProjectContext(Object)""/>
+    Private X As Integer
+End Structure", ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestDocumentationComment5() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Gets or sets <see cref=""ActiveProjectContext""/>.
+    ''' </summary>
+    ''' <seealso cref=""ActiveProjectContext""/>
+    Property [||]ActiveProjectContext As Object
+End Interface
+Structure AStruct
+    ''' <seealso cref=""ILanguageServiceHost.ActiveProjectContext""/>
+    Private X As Integer
+End Structure",
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Gets or sets <see cref=""GetActiveProjectContext()""/>.
+    ''' </summary>
+    ''' <seealso cref=""GetActiveProjectContext()""/>
+    Function GetActiveProjectContext() As Object
+    ''' <summary>
+    '''     Gets or sets <see cref=""GetActiveProjectContext()""/>.
+    ''' </summary>
+    ''' <seealso cref=""GetActiveProjectContext()""/>
+    Sub SetActiveProjectContext(Value As Object)
+End Interface
+Structure AStruct
+    ''' <seealso cref=""ILanguageServiceHost.GetActiveProjectContext()""/>
+    Private X As Integer
+End Structure", ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestDocumentationComment6() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface ISomeInterface(Of T)
+    ''' <seealso cref=""Context""/>
+    WriteOnly Property [||]Context As ISomeInterface(Of T)
+End Interface
+Structure AStruct
+    ''' <seealso cref=""ISomeInterface(Of T).Context""/>
+    Private X As Integer
+End Structure",
+"Interface ISomeInterface(Of T)
+    ''' <seealso cref=""SetContext(ISomeInterface(Of T))""/>
+    Sub SetContext(Value As ISomeInterface(Of T))
+End Interface
+Structure AStruct
+    ''' <seealso cref=""ISomeInterface(Of T).SetContext(ISomeInterface(Of T))""/>
+    Private X As Integer
+End Structure", ignoreTrivia:=False)
         End Function
     End Class
 End Namespace
