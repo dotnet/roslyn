@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 {
     [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
     internal partial class CSharpReplacePropertyWithMethodsService : 
-        AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, StatementSyntax>
+        AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax>
     {
         public override SyntaxNode GetPropertyDeclaration(SyntaxToken token)
         {
@@ -98,20 +98,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                     documentOptions, parseOptions, 
                     generator, propertyDeclaration, propertyBackingField,
                     getMethod, desiredGetMethodName,
-                    copyLeadingTrivia: true,
                     cancellationToken: cancellationToken));
             }
 
             var setMethod = property.SetMethod;
             if (setMethod != null)
             {
-                // Set-method only gets the leading trivia of the property if we didn't copy
-                // that trivia to the get-method.
                 result.Add(GetSetMethod(
                     documentOptions, parseOptions,
                     generator, propertyDeclaration, propertyBackingField, 
                     setMethod, desiredSetMethodName,
-                    copyLeadingTrivia: getMethod == null,
                     cancellationToken: cancellationToken));
             }
 
@@ -126,14 +122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             IFieldSymbol propertyBackingField,
             IMethodSymbol setMethod,
             string desiredSetMethodName,
-            bool copyLeadingTrivia,
             CancellationToken cancellationToken)
         {
             var methodDeclaration = GetSetMethodWorker(
                 generator, propertyDeclaration, propertyBackingField,
                 setMethod, desiredSetMethodName, cancellationToken);
 
-            methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, copyLeadingTrivia);
+            methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToParamRewriter.Instance);
 
             return UseExpressionOrBlockBodyIfDesired(
                 documentOptions, parseOptions, methodDeclaration,
@@ -182,14 +177,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             IFieldSymbol propertyBackingField,
             IMethodSymbol getMethod,
             string desiredGetMethodName,
-            bool copyLeadingTrivia,
             CancellationToken cancellationToken)
         {
             var methodDeclaration = GetGetMethodWorker(
                 generator, propertyDeclaration, propertyBackingField, getMethod,
                 desiredGetMethodName, cancellationToken);
 
-            methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, copyLeadingTrivia);
+            methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToReturnsRewriter.Instance);
 
             return UseExpressionOrBlockBodyIfDesired(
                 documentOptions, parseOptions, methodDeclaration,
@@ -199,32 +193,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         private static MethodDeclarationSyntax CopyLeadingTrivia(
             PropertyDeclarationSyntax propertyDeclaration,
             MethodDeclarationSyntax methodDeclaration,
-            bool copyLeadingTrivia)
+            CSharpSyntaxRewriter documentationCommentRewriter)
         {
-            if (copyLeadingTrivia)
-            {
-                var leadingTrivia = propertyDeclaration.GetLeadingTrivia();
-                return methodDeclaration.WithLeadingTrivia(leadingTrivia.Select(ConvertTrivia));
-            }
-
-            return methodDeclaration;
+            var leadingTrivia = propertyDeclaration.GetLeadingTrivia();
+            return methodDeclaration.WithLeadingTrivia(leadingTrivia.Select(trivia => ConvertTrivia(trivia, documentationCommentRewriter)));
         }
 
-        private static SyntaxTrivia ConvertTrivia(SyntaxTrivia trivia)
+        private static SyntaxTrivia ConvertTrivia(SyntaxTrivia trivia, CSharpSyntaxRewriter rewriter)
         {
             if (trivia.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia ||
                 trivia.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia)
             {
-                return ConvertDocumentationComment(trivia);
+                return ConvertDocumentationComment(trivia, rewriter);
             }
 
             return trivia;
         }
 
-        private static SyntaxTrivia ConvertDocumentationComment(SyntaxTrivia trivia)
+        private static SyntaxTrivia ConvertDocumentationComment(SyntaxTrivia trivia, CSharpSyntaxRewriter rewriter)
         {
             var structure = trivia.GetStructure();
-            var updatedStructure = (StructuredTriviaSyntax)ConvertValueToReturnsRewriter.Instance.Visit(structure);
+            var updatedStructure = (StructuredTriviaSyntax)rewriter.Visit(structure);
             return SyntaxFactory.Trivia(updatedStructure);
         }
 
@@ -303,6 +292,41 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         {
             // For C# we'll have the property declaration that we want to replace.
             return propertyDeclaration;
+        }
+
+        protected override NameMemberCrefSyntax TryGetCrefSyntax(IdentifierNameSyntax identifierName)
+        {
+            return identifierName.Parent as NameMemberCrefSyntax;
+        }
+
+        protected override NameMemberCrefSyntax CreateCrefSyntax(NameMemberCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode parameterType)
+        {
+            CrefParameterListSyntax parameterList;
+            if (parameterType is TypeSyntax)
+            {
+                CrefParameterSyntax parameter = SyntaxFactory.CrefParameter((TypeSyntax)parameterType.ReplaceTokens(parameterType.DescendantTokens(), ReplaceBraceTokenForDocumentation));
+                parameterList = SyntaxFactory.CrefParameterList(SyntaxFactory.SingletonSeparatedList(parameter));
+            }
+            else
+            {
+                parameterList = SyntaxFactory.CrefParameterList();
+            }
+
+            return SyntaxFactory.NameMemberCref(SyntaxFactory.IdentifierName(identifierToken), parameterList);
+        }
+
+        private static SyntaxToken ReplaceBraceTokenForDocumentation(SyntaxToken originalToken, SyntaxToken rewrittenToken)
+        {
+            switch (rewrittenToken.Kind())
+            {
+                case SyntaxKind.LessThanToken:
+                case SyntaxKind.GreaterThanToken:
+                    string newText = rewrittenToken.IsKind(SyntaxKind.LessThanToken) ? "{" : "}";
+                    return SyntaxFactory.Token(rewrittenToken.LeadingTrivia, rewrittenToken.Kind(), newText, rewrittenToken.ValueText, rewrittenToken.TrailingTrivia);
+
+                default:
+                    return rewrittenToken;
+            }
         }
 
         protected override ExpressionSyntax UnwrapCompoundAssignment(
