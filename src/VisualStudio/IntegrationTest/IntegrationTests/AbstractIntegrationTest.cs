@@ -1,15 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-using Xunit;
+using System;
+using System.Threading;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -17,8 +12,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
     public abstract class AbstractIntegrationTest : IDisposable
     {
         public readonly VisualStudioInstanceContext VisualStudio;
-        protected readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
-        protected readonly TextViewWindow_OutOfProc TextViewWindow;
+        public readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
+        public readonly TextViewWindow_OutOfProc TextViewWindow;
+
         protected readonly string ProjectName = "TestProj";
         protected readonly string SolutionName = "TestSolution";
 
@@ -40,9 +36,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             Thread.Sleep(timeout);
         }
 
-        protected KeyPress KeyPress(VirtualKey virtualKey, ShiftState shiftState)
-            => new KeyPress(virtualKey, shiftState);
-
         protected KeyPress Ctrl(VirtualKey virtualKey)
             => new KeyPress(virtualKey, ShiftState.Ctrl);
 
@@ -51,140 +44,5 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected KeyPress Alt(VirtualKey virtualKey)
             => new KeyPress(virtualKey, ShiftState.Alt);
-
-        protected void ExecuteCommand(string commandName, string argument = "")
-        {
-            if (VisualStudio.Instance.IsCommandAvailable(commandName))
-            {
-                VisualStudio.Instance.ExecuteCommand(commandName, argument);
-            }
-            else
-            {
-                var commands = VisualStudio.Instance.GetAvailableCommands();
-                Assert.False(true,
-                    string.Format(@"Failed with executing command {0}. 
-The list of available commands: 
-{1}",
-              commandName,
-              string.Join(",", commands)));
-            }
-        }
-
-        protected void InvokeCompletionList()
-        {
-            ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
-            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-        }
-
-        protected void VerifyCompletionItemExists(params string[] expectedItems)
-        {
-            var completionItems = TextViewWindow.GetCompletionItems();
-            foreach (var expectedItem in expectedItems)
-            {
-                Assert.Contains(expectedItem, completionItems);
-            }
-        }
-
-        protected void VerifyCompletionUnexpectedItemDoesNotExist(params string[] unexpectedItems)
-        {
-            var completionItems = TextViewWindow.GetCompletionItems();
-            foreach (var unexpectedItem in unexpectedItems)
-            {
-                Assert.DoesNotContain(unexpectedItem, completionItems);
-            }
-        }
-
-        protected void VerifyCaretPosition(int expectedCaretPosition)
-        {
-            var position = TextViewWindow.GetCaretPosition();
-            Assert.Equal(expectedCaretPosition, position);
-        }
-
-        protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
-            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";", featuresToWaitFor));
-
-        public void VerifyAssemblyReferencePresent(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken)
-        {
-            var assemblyReferences = VisualStudio.Instance.SolutionExplorer.GetAssemblyReferences(projectName);
-            var expectedAssemblyReference = assemblyName + "," + assemblyVersion + "," + assemblyPublicKeyToken.ToUpper();
-            Assert.Contains(expectedAssemblyReference, assemblyReferences);
-        }
-
-        public void VerifyProjectReferencePresent(string projectName, string referencedProjectName)
-        {
-            var projectReferences = VisualStudio.Instance.SolutionExplorer.GetProjectReferences(projectName);
-            Assert.Contains(referencedProjectName, projectReferences);
-        }
-
-        public void VerifyCodeActions(
-          IEnumerable<string> expectedItems,
-          string applyFix = null,
-          bool verifyNotShowing = false,
-          bool ensureExpectedItemsAreOrdered = false,
-          FixAllScope? fixAllScope = null,
-          bool blockUntilComplete = true)
-        {
-            TextViewWindow.ShowLightBulb();
-            TextViewWindow.WaitForLightBulbSession();
-
-            if (verifyNotShowing)
-            {
-                VerifyCodeActionsNotShowing();
-                return;
-            }
-
-            var actions = TextViewWindow.GetLightBulbActions();
-
-            if (expectedItems != null && expectedItems.Any())
-            {
-                if (ensureExpectedItemsAreOrdered)
-                {
-                    TestUtilities.ThrowIfExpectedItemNotFoundInOrder(
-                        actions,
-                        expectedItems);
-                }
-                else
-                {
-                    TestUtilities.ThrowIfExpectedItemNotFound(
-                        actions,
-                        expectedItems);
-                }
-            }
-
-            if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
-            {
-                TextViewWindow.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
-
-                if (blockUntilComplete)
-                {
-                    // wait for action to complete
-                    WaitForAsyncOperations(FeatureAttribute.LightBulb);
-                }
-            }
-        }
-
-        public void VerifyCodeActionsNotShowing()
-        {
-            if (TextViewWindow.IsLightBulbSessionExpanded())
-            {
-                throw new InvalidOperationException("Expected no light bulb session, but one was found.");
-            }
-        }
-
-        protected void InvokeQuickInfo()
-        {
-            ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
-            WaitForAsyncOperations(FeatureAttribute.QuickInfo);
-        }
-
-        protected void InvokeCodeActionList()
-        {
-            WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
-            WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
-
-            TextViewWindow.ShowLightBulb();
-            TextViewWindow.WaitForLightBulbSession();
-            WaitForAsyncOperations(FeatureAttribute.LightBulb);
-        }
     }
 }

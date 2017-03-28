@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveDirectives : AbstractInteractiveWindowTest
     {
@@ -19,10 +21,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void VerifyHostCommandsCompletionList()
         {
             VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
-            InsertCode("#");
-            InvokeCompletionList();
+            this.InsertCode("#");
+            this.InvokeCompletionList();
 
-            VerifyCompletionItemExists("cls",
+            this.VerifyCompletionItemExists("cls",
                 "help",
                 "load",
                 "r",
@@ -39,14 +41,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
                 "region",
                 "undef",
                 "warning");
-            VerifyCompletionUnexpectedItemDoesNotExist("int", "return", "System");
+            this.VerifyCompletionUnexpectedItemDoesNotExist("int", "return", "System");
 
-            ClearReplText();
-            InsertCode(@"int x = 1; //
+            this.ClearReplText();
+            this.InsertCode(@"int x = 1; //
 #");
-            InvokeCompletionList();
+            this.InvokeCompletionList();
 
-            VerifyCompletionItemExists(
+            this.VerifyCompletionItemExists(
                 "elif",
                 "else",
                 "endif",
@@ -58,7 +60,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
                 "region",
                 "warning");
 
-            VerifyCompletionUnexpectedItemDoesNotExist("cls",
+            this.VerifyCompletionUnexpectedItemDoesNotExist("cls",
                 "help",
                 "load",
                 "prompt",
@@ -70,8 +72,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyHashRDirective()
         {
-            SubmitText("#r \"System.Numerics\"");
-            SubmitText(@"using System.Numerics;
+            this.SubmitText("#r \"System.Numerics\"");
+            this.SubmitText(@"using System.Numerics;
 var bigInt = new BigInteger();
 bigInt");
 
@@ -81,8 +83,8 @@ bigInt");
         [Fact]
         public void VerifyLocalDeclarationWithTheSameNameHidesImportedMembersFromHashR()
         {
-            SubmitText("#r \"System.Numerics\"");
-            SubmitText(@"using System.Numerics;
+            this.SubmitText("#r \"System.Numerics\"");
+            this.SubmitText(@"using System.Numerics;
 class Complex { public int foo() { return 4; } }
 var comp = new Complex();
 comp.foo()");
@@ -93,15 +95,15 @@ comp.foo()");
         [Fact]
         public void VerifyLocalDeclarationInCsxFileWithTheSameNameHidesImportedMembersFromHashR()
         {
-            SubmitText("#r \"System.Numerics\"");
-            SubmitText("using System.Numerics;");
+            this.SubmitText("#r \"System.Numerics\"");
+            this.SubmitText("using System.Numerics;");
             using (var temporaryTextFile = new TemporaryTextFile(
-                "directivesScenario4.csx", 
+                "directivesScenario4.csx",
                 "class Complex { public int foo() { return 4; } }"))
             {
                 temporaryTextFile.Create();
-                SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
-                SubmitText(@"var comp = new Complex();
+                this.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
+                this.SubmitText(@"var comp = new Complex();
 comp.foo()");
                 this.WaitForLastReplOutput("4");
             }
@@ -110,7 +112,7 @@ comp.foo()");
         [Fact]
         public void VerifyAssembliesReferencedByDefault()
         {
-            SubmitText(@"using System.Diagnostics;
+            this.SubmitText(@"using System.Diagnostics;
 Process.GetCurrentProcess().ProcessName");
             this.WaitForLastReplOutput("\"InteractiveHost\"");
         }
@@ -119,13 +121,13 @@ Process.GetCurrentProcess().ProcessName");
         public void VerifyHashLoadDirective()
         {
             using (var temporaryTextFile = new TemporaryTextFile(
-                "directivesScenario6.csx", 
+                "directivesScenario6.csx",
                 "System.Console.WriteLine(2);"))
             {
                 temporaryTextFile.Create();
-                SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
+                this.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
                 this.WaitForLastReplOutput("2");
-                SubmitText("#load text");
+                this.SubmitText("#load text");
                 this.WaitForLastReplOutput("CS7010: Quoted file name expected");
             }
         }
@@ -133,13 +135,13 @@ Process.GetCurrentProcess().ProcessName");
         [Fact]
         public void VerifySquiggleAndErrorMessageUnderIncorrectDirective()
         {
-            SubmitText("#foo");
+            this.SubmitText("#foo");
             this.WaitForLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(1);
-            SubmitText("#reset");
+            this.SubmitText("#reset");
 
-            SubmitText("#bar");
+            this.SubmitText("#bar");
             this.WaitForLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(2);
@@ -148,7 +150,7 @@ Process.GetCurrentProcess().ProcessName");
         [Fact]
         public void VerifyHashHelpDirectiveOutputNoSquigglesUnderHashHelp()
         {
-            SubmitText("#help");
+            this.SubmitText("#help");
             this.WaitForLastReplOutput(@"Keyboard shortcuts:
   Enter                If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
   Ctrl-Enter           Within the current submission, evaluate the current submission.
@@ -177,7 +179,7 @@ Script directives:
         [Fact]
         public void VerifyHashCls()
         {
-            SubmitText("#cls");
+            this.SubmitText("#cls");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(0);
         }
@@ -185,9 +187,9 @@ Script directives:
         [Fact]
         public void VerifyHashReset()
         {
-            SubmitText("1+1");
+            this.SubmitText("1+1");
             this.WaitForLastReplOutput("2");
-            SubmitText("#reset");
+            this.SubmitText("#reset");
             this.WaitForLastReplOutput(@"Resetting execution engine.
 Loading context from");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
@@ -197,87 +199,86 @@ Loading context from");
         [Fact]
         public void VerifyDisplayCommandUsageOutputNoSquigglesUnderSlashHelp()
         {
-            SubmitText("#reset /help");
+            this.SubmitText("#reset /help");
             this.WaitForLastReplOutputContains(@"Usage:
   #reset [noconfig]");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(0);
-            SubmitText("#load /help");
+            this.SubmitText("#load /help");
             this.WaitForLastReplOutputContains("CS7010: Quoted file name expected");
         }
 
-//        [Fact]
-//        TODO(https://github.com/dotnet/roslyn/issues/8281)
-//        public void VerifyNoSquigglesErrorMessagesAndIntellisenseFeaturesContinueWorkingAfterReset()
-//        {
-//            SubmitText(@"using static System.Console;
-///// <summary>innertext
-///// </summary>
-///// --><!--comment--><!--
-///// <![CDATA[cdata]]]]>&gt;
-///// <typeparam name=""attribute"" />
-//public static void Main(string[] args)
-//{
-//    WriteLine(""Hello World"");
-//}");
-//            SubmitText("#reset");
-//            PlaceCaret("using");
-//         /  VerifyCurrentTokenType(tokenType: "keyword");
-//            PlaceCaret("{");
-//            VerifyCurrentTokenType(tokenType: "punctuation");
-//            PlaceCaret("Main");
-//            VerifyCurrentTokenType(tokenType: "identifier");
-//            PlaceCaret("Hello");
-//            VerifyCurrentTokenType(tokenType: "string");
-//            PlaceCaret("<summary", charsOffset: -1);
-//            SendKeys(Alt(VirtualKey.Right));
-//            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-//            PlaceCaret("summary");
-//            VerifyCurrentTokenType(tokenType: "xml doc comment - name");
-//            PlaceCaret("innertext");
-//            VerifyCurrentTokenType(tokenType: "xml doc comment - text");
-//            PlaceCaret("--");
-//            VerifyCurrentTokenType(tokenType: "xml doc comment - text");
-//            PlaceCaret("comment");
-//            VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
-//            PlaceCaret("CDATA");
-//            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-//            PlaceCaret("cdata");
-//            VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
-//            PlaceCaret("attribute");
-//            VerifyCurrentTokenType(tokenType: "identifier");
-//            PlaceCaret("Environment");
-//            VerifyCurrentTokenType(tokenType: "class name");
-//            // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
-//            // VerifyErrorCount(0);
-//        }
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8281")]
+        public void VerifyNoSquigglesErrorMessagesAndIntellisenseFeaturesContinueWorkingAfterReset()
+        {
+            this.SubmitText(@"using static System.Console;
+/// <summary>innertext
+/// </summary>
+/// --><!--comment--><!--
+/// <![CDATA[cdata]]]]>&gt;
+/// <typeparam name=""attribute"" />
+public static void Main(string[] args)
+{
+    WriteLine(""Hello World"");
+}");
+            this.SubmitText("#reset");
+            this.PlaceCaret("using");
+            this.VerifyCurrentTokenType(tokenType: "keyword");
+            this.PlaceCaret("{");
+            this.VerifyCurrentTokenType(tokenType: "punctuation");
+            this.PlaceCaret("Main");
+            this.VerifyCurrentTokenType(tokenType: "identifier");
+            this.PlaceCaret("Hello");
+            this.VerifyCurrentTokenType(tokenType: "string");
+            this.PlaceCaret("<summary", charsOffset: -1);
+            this.SendKeys(Alt(VirtualKey.Right));
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
+            this.PlaceCaret("summary");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - name");
+            this.PlaceCaret("innertext");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - text");
+            this.PlaceCaret("--");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - text");
+            this.PlaceCaret("comment");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
+            this.PlaceCaret("CDATA");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
+            this.PlaceCaret("cdata");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
+            this.PlaceCaret("attribute");
+            this.VerifyCurrentTokenType(tokenType: "identifier");
+            this.PlaceCaret("Environment");
+            this.VerifyCurrentTokenType(tokenType: "class name");
+            // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
+            // VerifyErrorCount(0);
+        }
 
         [Fact]
         public void WorkspaceClearedAfterReset()
         {
-            SubmitText("double M() { return 13.1; }");
-            SubmitText("M()");
+            this.SubmitText("double M() { return 13.1; }");
+            this.SubmitText("M()");
             this.WaitForLastReplOutput("13.1");
-            SubmitText("double M() { return M(); }");
-            SubmitText("M()");
+            this.SubmitText("double M() { return M(); }");
+            this.SubmitText("M()");
             this.WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
-            SubmitText("M()");
+            this.SubmitText("M()");
             this.WaitForLastReplOutputContains("CS0103");
-            SubmitText("double M() { return M(); }");
-            SubmitText("M()");
+            this.SubmitText("double M() { return M(); }");
+            this.SubmitText("M()");
             this.WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
-            SubmitText("double M() { return 13.2; }");
-            SubmitText("M()");
+            this.SubmitText("double M() { return 13.2; }");
+            this.SubmitText("M()");
             this.WaitForLastReplOutput("13.2");
         }
 
         [Fact]
         public void InitializationAfterReset()
         {
-            SubmitText("#reset");
+            this.SubmitText("#reset");
             this.WaitForLastReplOutput(@"Resetting execution engine.
 Loading context from 'CSharpInteractive.rsp'.");
-            SubmitText("#reset noconfig");
+            this.SubmitText("#reset noconfig");
             this.WaitForLastReplOutput("Resetting execution engine.");
         }
     }

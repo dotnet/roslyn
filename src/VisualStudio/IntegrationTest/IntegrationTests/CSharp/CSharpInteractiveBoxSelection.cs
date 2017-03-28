@@ -2,22 +2,24 @@
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BoxSelection : AbstractInteractiveWindowTest
+    public class CSharpInteractiveBoxSelection : AbstractInteractiveWindowTest
     {
-        public BoxSelection(VisualStudioInstanceFactory instanceFactory)
+        public CSharpInteractiveBoxSelection(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
-            SubmitText("#cls");
+            this.SubmitText("#cls");
         }
 
         public new void Dispose()
         {
-            ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
+            this.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
             base.Dispose();
         }
 
@@ -26,11 +28,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             InsertInputWithXAtLeft();
 
-            PlaceCaret(">", 1);
-            PlaceCaret("x", 0, extendSelection: true, selectBlock: true);
-            SendKeys("__", VirtualKey.Escape, "|");
+            this.PlaceCaret(">", 1);
+            this.PlaceCaret("x", 0, extendSelection: true, selectBlock: true);
+            this.SendKeys("__", VirtualKey.Escape, "|");
 
-            VerifyLastReplInput(@"__234567890ABCDEF
+            this.VerifyLastReplInput(@"__234567890ABCDEF
 __234567890ABCDEF
 __234567890ABCDEF
 __234567890ABCDEF
@@ -44,11 +46,11 @@ __|234567890ABCDEF
         public void BottomRightTopLeftPromptToSymbol()
         {
             InsertInputWithXAtLeft();
-            PlaceCaret("x", 0);
-            PlaceCaret(">", 1, extendSelection: true, selectBlock: true);
-            SendKeys("__", VirtualKey.Escape, "|");
+            this.PlaceCaret("x", 0);
+            this.PlaceCaret(">", 1, extendSelection: true, selectBlock: true);
+            this.SendKeys("__", VirtualKey.Escape, "|");
 
-            VerifyLastReplInput(@"__|234567890ABCDEF
+            this.VerifyLastReplInput(@"__|234567890ABCDEF
 __234567890ABCDEF
 __234567890ABCDEF
 __234567890ABCDEF
@@ -62,11 +64,11 @@ __234567890ABCDEF
         public void TopRightBottomLeftPromptToSymbol()
         {
             InsertInputWithXAtLeft();
-            PlaceCaret(">", 3);
-            PlaceCaret("x", -2, extendSelection: true, selectBlock: true);
-            SendKeys("__", VirtualKey.Escape, "|");
+            this.PlaceCaret(">", 3);
+            this.PlaceCaret("x", -2, extendSelection: true, selectBlock: true);
+            this.SendKeys("__", VirtualKey.Escape, "|");
 
-            VerifyLastReplInput(@"__234567890ABCDEF
+            this.VerifyLastReplInput(@"__234567890ABCDEF
 __234567890ABCDEF
 __234567890ABCDEF
 __234567890ABCDEF
@@ -80,11 +82,11 @@ __|234567890ABCDEF
         public void BottomLeftTopRightPromptToSymbol()
         {
             InsertInputWithXAtLeft();
-            PlaceCaret("x", -2);
-            PlaceCaret(">", 3, extendSelection: true, selectBlock: true);
-            SendKeys("__", VirtualKey.Escape, "|");
+            this.PlaceCaret("x", -2);
+            this.PlaceCaret(">", 3, extendSelection: true, selectBlock: true);
+            this.SendKeys("__", VirtualKey.Escape, "|");
 
-            VerifyLastReplInput(@"__|234567890ABCDEF
+            this.VerifyLastReplInput(@"__|234567890ABCDEF
 __234567890ABCDEF
 __234567890ABCDEF
 __234567890ABCDEF
@@ -98,11 +100,11 @@ __234567890ABCDEF
         public void TopLeftBottomRightSymbolToSymbol()
         {
             InsertInputWithSAndEAtLeft();
-            PlaceCaret("s", -1);
-            PlaceCaret("e", 1, extendSelection: true, selectBlock: true);
-            SendKeys("__", VirtualKey.Escape, "|");
+            this.PlaceCaret("s", -1);
+            this.PlaceCaret("e", 1, extendSelection: true, selectBlock: true);
+            this.SendKeys("__", VirtualKey.Escape, "|");
 
-            VerifyLastReplInput(@"1234567890ABCDEF
+            this.VerifyLastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
 __234567890ABCDEF
 __234567890ABCDEF
@@ -116,11 +118,11 @@ __|234567890ABCDEF
         public void BottomRightTopLeftSymbolToSymbol()
         {
             InsertInputWithSAndEAtLeft();
-            PlaceCaret("e", 1);
-            PlaceCaret("s", -1, extendSelection: true, selectBlock: true);
-            SendKeys("__", VirtualKey.Escape, "|");
+            this.PlaceCaret("e", 1);
+            this.PlaceCaret("s", -1, extendSelection: true, selectBlock: true);
+            this.SendKeys("__", VirtualKey.Escape, "|");
 
-            VerifyLastReplInput(@"1234567890ABCDEF
+            this.VerifyLastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
 __|234567890ABCDEF
 __234567890ABCDEF
@@ -134,11 +136,11 @@ __234567890ABCDEF
         public void TopRightBottomLeftSymbolToSymbol()
         {
             InsertInputWithSAndEAtLeft();
-            PlaceCaret("s", 1);
-            PlaceCaret("e", -1, extendSelection: true, selectBlock: true);
-            SendKeys("__", VirtualKey.Escape, "|");
+            this.PlaceCaret("s", 1);
+            this.PlaceCaret("e", -1, extendSelection: true, selectBlock: true);
+            this.SendKeys("__", VirtualKey.Escape, "|");
 
-            VerifyLastReplInput(@"1234567890ABCDEF
+            this.VerifyLastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
 __234567890ABCDEF
 __234567890ABCDEF
@@ -153,11 +155,11 @@ __|234567890ABCDEF
         public void BottomLeftTopRightSymbolToSymbol()
         {
             InsertInputWithSAndEAtLeft();
-            PlaceCaret("e", -1);
-            PlaceCaret("s", 1, extendSelection: true, selectBlock: true);
-            SendKeys("__", VirtualKey.Escape, "|");
+            this.PlaceCaret("e", -1);
+            this.PlaceCaret("s", 1, extendSelection: true, selectBlock: true);
+            this.SendKeys("__", VirtualKey.Escape, "|");
 
-            VerifyLastReplInput(@"1234567890ABCDEF
+            this.VerifyLastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
 __|234567890ABCDEF
 __234567890ABCDEF
@@ -171,11 +173,11 @@ __234567890ABCDEF
         public void TopLeftBottomRightSelection1()
         {
             InsertInputWithSAndEAtLeft();
-            PlaceCaret("s", -3);
-            PlaceCaret("e", 2, extendSelection: true, selectBlock: true);
-            SendKeys("_");
+            this.PlaceCaret("s", -3);
+            this.PlaceCaret("e", 2, extendSelection: true, selectBlock: true);
+            this.SendKeys("_");
 
-            VerifyLastReplInput(@"1234567890ABCDEF
+            this.VerifyLastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
 _34567890ABCDEF
 _34567890ABCDEF
@@ -189,9 +191,9 @@ _34567890ABCDEF
         public void TopLeftBottomRightSelection2()
         {
             InsertInputWithSAndEAtLeft();
-            PlaceCaret("e", -2);
-            PlaceCaret("s", -3, extendSelection: true, selectBlock: true);
-            SendKeys("_");
+            this.PlaceCaret("e", -2);
+            this.PlaceCaret("s", -3, extendSelection: true, selectBlock: true);
+            this.SendKeys("_");
 
             VerifyOriginalCodeWithSAndEAtLeft();
         }
@@ -200,9 +202,9 @@ _34567890ABCDEF
         public void TopRightBottomLeftSelection()
         {
             InsertInputWithSAndEAtLeft();
-            PlaceCaret("s", -2);
-            PlaceCaret("e", -3, extendSelection: true, selectBlock: true);
-            SendKeys("_");
+            this.PlaceCaret("s", -2);
+            this.PlaceCaret("e", -3, extendSelection: true, selectBlock: true);
+            this.SendKeys("_");
 
             VerifyOriginalCodeWithSAndEAtLeft();
         }
@@ -211,9 +213,9 @@ _34567890ABCDEF
         public void BottomLeftTopRightSelection()
         {
             InsertInputWithSAndEAtLeft();
-            PlaceCaret("e", -3);
-            PlaceCaret("s", -2, extendSelection: true, selectBlock: true);
-            SendKeys("_");
+            this.PlaceCaret("e", -3);
+            this.PlaceCaret("s", -2, extendSelection: true, selectBlock: true);
+            this.SendKeys("_");
 
             VerifyOriginalCodeWithSAndEAtLeft();
         }
@@ -222,11 +224,11 @@ _34567890ABCDEF
         public void SelectionTouchingSubmissionBuffer()
         {
             InsertInputWithSAndEAtLeft();
-            PlaceCaret("s", -2);
-            PlaceCaret("e", -1, extendSelection: true, selectBlock: true);
-            SendKeys("__");
+            this.PlaceCaret("s", -2);
+            this.PlaceCaret("e", -1, extendSelection: true, selectBlock: true);
+            this.SendKeys("__");
 
-            VerifyLastReplInput(@"1234567890ABCDEF
+            this.VerifyLastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
 __s234567890ABCDEF
 __1234567890ABCDEF
@@ -240,11 +242,11 @@ __e234567890ABCDEF
         public void PrimaryPromptLongerThanSecondaryZeroWidthNextToPromptSelection()
         {
             InsertInputWithSAndEAtLeft();
-            PlaceCaret("s", -1);
-            PlaceCaret("e", -1, extendSelection: true, selectBlock: true);
-            SendKeys("__");
-            
-            VerifyLastReplInput(@"1234567890ABCDEF
+            this.PlaceCaret("s", -1);
+            this.PlaceCaret("e", -1, extendSelection: true, selectBlock: true);
+            this.SendKeys("__");
+
+            this.VerifyLastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
 __s234567890ABCDEF
 __1234567890ABCDEF
@@ -258,31 +260,29 @@ __e234567890ABCDEF
         public void Backspace()
         {
             InsertInputWithSAndEInTheMiddle();
-            PlaceCaret("s", -1);
-            PlaceCaret("e", 0, extendSelection: true, selectBlock: true);
-            SendKeys(VirtualKey.Backspace, VirtualKey.Backspace);
+            this.PlaceCaret("s", -1);
+            this.PlaceCaret("e", 0, extendSelection: true, selectBlock: true);
+            this.SendKeys(VirtualKey.Backspace, VirtualKey.Backspace);
 
-            VerifyLastReplInput(@"1CDEF
+            this.VerifyLastReplInput(@"1CDEF
 1CDEF
 1CDEF
 1CDEF
 1CDEF
 1CDEF
 1CDEF
-1234567890ABCDEF");
-
-            
+1234567890ABCDEF");            
         }
 
         [Fact]
         public void BackspaceBehavesLikeDelete()
         {
             InsertInputWithEInTheMiddle();
-            PlaceCaret(">", 0);
-            PlaceCaret("e", 0, extendSelection: true, selectBlock: true);
-            SendKeys(VirtualKey.Backspace, VirtualKey.Backspace);
+            this.PlaceCaret(">", 0);
+            this.PlaceCaret("e", 0, extendSelection: true, selectBlock: true);
+            this.SendKeys(VirtualKey.Backspace, VirtualKey.Backspace);
 
-            VerifyLastReplInput(@"CDEF
+            this.VerifyLastReplInput(@"CDEF
 CDEF
 CDEF
 CDEF
@@ -295,39 +295,39 @@ CDEF
         [Fact]
         public void LeftToRightReversedBackspace()
         {
-            InsertCode("1234567890ABCDEF");
-            PlaceCaret("2", -5);
-            PlaceCaret(">", 8, extendSelection: true, selectBlock: true);
-            SendKeys(VirtualKey.Backspace);
+            this.InsertCode("1234567890ABCDEF");
+            this.PlaceCaret("2", -5);
+            this.PlaceCaret(">", 8, extendSelection: true, selectBlock: true);
+            this.SendKeys(VirtualKey.Backspace);
 
-            VerifyLastReplInput(@"7890ABCDEF");
+            this.VerifyLastReplInput(@"7890ABCDEF");
         }
 
         [Fact]
         public void LeftToRightReversedDelete()
         {
-            InsertCode("1234567890ABCDEF");
-            PlaceCaret("1", -1);
-            PlaceCaret(">", 5, extendSelection: true, selectBlock: true);
-            SendKeys(VirtualKey.Delete);
+            this.InsertCode("1234567890ABCDEF");
+            this.PlaceCaret("1", -1);
+            this.PlaceCaret(">", 5, extendSelection: true, selectBlock: true);
+            this.SendKeys(VirtualKey.Delete);
 
-            VerifyLastReplInput(@"4567890ABCDEF");
+            this.VerifyLastReplInput(@"4567890ABCDEF");
         }
 
         [Fact]
         public void LeftToRightReversedTypeCharacter()
         {
-            InsertCode("1234567890ABCDEF");
-            PlaceCaret("1", -1);
-            PlaceCaret(">", 5, extendSelection: true, selectBlock: true);
-            SendKeys("__");
+            this.InsertCode("1234567890ABCDEF");
+            this.PlaceCaret("1", -1);
+            this.PlaceCaret(">", 5, extendSelection: true, selectBlock: true);
+            this.SendKeys("__");
 
-            VerifyLastReplInput(@"__4567890ABCDEF");
+            this.VerifyLastReplInput(@"__4567890ABCDEF");
         }
 
         private void InsertInputWithXAtLeft()
         {
-            InsertCode(@"1234567890ABCDEF
+            this.InsertCode(@"1234567890ABCDEF
 1234567890ABCDEF
 1234567890ABCDEF
 1234567890ABCDEF
@@ -339,7 +339,7 @@ x234567890ABCDEF
 
         private void InsertInputWithSAndEAtLeft()
         {
-            InsertCode(@"1234567890ABCDEF
+            this.InsertCode(@"1234567890ABCDEF
 1234567890ABCDEF
 s234567890ABCDEF
 1234567890ABCDEF
@@ -351,7 +351,7 @@ e234567890ABCDEF
 
         private void InsertInputWithSAndEInTheMiddle()
         {
-            InsertCode(@"12s4567890ABCDEF
+            this.InsertCode(@"12s4567890ABCDEF
 1234567890ABCDEF
 1234567890ABCDEF
 1234567890ABCDEF
@@ -363,7 +363,7 @@ e234567890ABCDEF
 
         private void InsertInputWithEInTheMiddle()
         {
-            InsertCode(@"1234567890ABCDEF
+            this.InsertCode(@"1234567890ABCDEF
 1234567890ABCDEF
 1234567890ABCDEF
 1234567890ABCDEF
@@ -375,7 +375,7 @@ e234567890ABCDEF
 
         private void VerifyOriginalCodeWithSAndEAtLeft()
         {
-            VerifyLastReplInput(@"1234567890ABCDEF
+            this.VerifyLastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
 s234567890ABCDEF
 1234567890ABCDEF

@@ -3,6 +3,7 @@
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
@@ -52,163 +53,163 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
      }
  }");
 
-            SubmitText("using System;");
+            this.SubmitText("using System;");
         }
 
         [Fact]
         public void SendSingleLineSubmissionToInteractive()
         {
-            InsertCode("// scenario 1");
+            this.InsertCode("// scenario 1");
             var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 1 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 2 */", charsOffset: -1, extendSelection: true);
-            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
+            this.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
             this.WaitForLastReplOutput("int x = 1;");
 
-            ClearReplText();
-            SubmitText("x.ToString()");
+            this.ClearReplText();
+            this.SubmitText("x.ToString()");
             this.WaitForLastReplOutputContains("\"1\"");
         }
 
         [Fact]
         public void SendMultipleLineSubmissionToInteractive()
         {
-            InsertCode("// scenario 2");
+            this.InsertCode("// scenario 2");
             var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 3 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 4 */", charsOffset: -1, extendSelection: true);
-            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
+            this.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
             this.WaitForLastReplOutput("int z = 3;");
 
-            ClearReplText();
-            SubmitText("y.ToString()");
+            this.ClearReplText();
+            this.SubmitText("y.ToString()");
             this.WaitForLastReplOutputContains("\"2\"");
-            SubmitText("z.ToString()");
+            this.SubmitText("z.ToString()");
             this.WaitForLastReplOutputContains("\"3\"");
         }
 
         [Fact]
         public void SendMultipleLineBlockSelectedSubmissionToInteractive()
         {
-            SubmitText("int x = 1;");
-            InsertCode("// scenario 3");
+            this.SubmitText("int x = 1;");
+            this.InsertCode("// scenario 3");
             var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
             VisualStudio.Instance.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true, selectBlock: true);
-            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
+            this.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
             this.WaitForLastReplOutput(". x *= 4;");
 
-            ClearReplText();
-            SubmitText("a + \"s\"");
+            this.ClearReplText();
+            this.SubmitText("a + \"s\"");
             this.WaitForLastReplOutputContains("\"alphas\"");
-            SubmitText("b");
+            this.SubmitText("b");
             this.WaitForLastReplOutputContains("CS0103");
-            SubmitText("x");
+            this.SubmitText("x");
             this.WaitForLastReplOutputContains("4");
         }
 
         [Fact]
         public void SendToInteractiveWithKeyboardShortcut()
         {
-            InsertCode("// scenario 4");
+            this.InsertCode("// scenario 4");
             var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
-            SendKeys(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
+            this.SendKeys(this.Ctrl(VirtualKey.E), this.Ctrl(VirtualKey.E));
             this.WaitForLastReplOutput("int j = 7;");
 
-            ClearReplText();
-            SubmitText("j.ToString()");
+            this.ClearReplText();
+            this.SubmitText("j.ToString()");
             this.WaitForLastReplOutputContains("\"7\"");
         }
 
         [Fact]
         public void ExecuteSingleLineSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
-            InsertCode("// scenario 5");
+            this.InsertCode("// scenario 5");
             var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 1 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 2 */", charsOffset: -1, extendSelection: true);
-            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
+            this.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
             this.WaitForLastReplInputContains("// scenario 5");
 
-            ClearReplText();
-            SubmitText("x");
+            this.ClearReplText();
+            this.SubmitText("x");
             this.WaitForLastReplOutput("1");
         }
 
         [Fact]
         public void ExecuteMultipleLineSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
-            InsertCode("// scenario 6");
+            this.InsertCode("// scenario 6");
             var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 3 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 4 */", charsOffset: -1, extendSelection: true);
-            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
+            this.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
             this.WaitForLastReplInputContains("// scenario 6");
 
-            ClearReplText();
-            SubmitText("y");
+            this.ClearReplText();
+            this.SubmitText("y");
             this.WaitForLastReplOutput("2");
-            SubmitText("z");
+            this.SubmitText("z");
             this.WaitForLastReplOutput("3");
         }
 
         [Fact]
         public void ExecuteMultipleLineBlockSelectedSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
-            SubmitText("int x = 1;");
-            InsertCode("// scenario 7");
+            this.SubmitText("int x = 1;");
+            this.InsertCode("// scenario 7");
             var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
             VisualStudio.Instance.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true, selectBlock: true);
-            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
+            this.ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive);
             this.WaitForLastReplInputContains("// scenario 7");
 
-            ClearReplText();
+            this.ClearReplText();
 
-            SubmitText("a");
+            this.SubmitText("a");
             this.WaitForLastReplOutput("\"alpha\"");
 
-            SubmitText("b");
+            this.SubmitText("b");
             this.WaitForLastReplOutputContains("CS0103");
-            SubmitText("x");
+            this.SubmitText("x");
             this.WaitForLastReplOutput("4");
         }
 
         [Fact]
         public void ExecuteInInteractiveWithKeyboardShortcut()
         {
-            InsertCode("// scenario 8");
+            this.InsertCode("// scenario 8");
             var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
-            SendKeys(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
+            this.SendKeys(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
             this.WaitForLastReplInputContains("// scenario 8");
 
-            ClearReplText();
-            SubmitText("j");
+            this.ClearReplText();
+            this.SubmitText("j");
             this.WaitForLastReplOutput("7");
         }
 
         [Fact]
         public void AddAssemblyReferenceAndTypesToInteractive()
         {
-            ClearReplText();
-            SubmitText("#r \"System.Numerics\"");
-            SubmitText("Console.WriteLine(new System.Numerics.BigInteger(42));");
+            this.ClearReplText();
+            this.SubmitText("#r \"System.Numerics\"");
+            this.SubmitText("Console.WriteLine(new System.Numerics.BigInteger(42));");
             this.WaitForLastReplOutput("42");
 
-            SubmitText("public class MyClass { public string MyFunc() { return \"MyClass.MyFunc()\"; } }");
-            SubmitText("(new MyClass()).MyFunc()");
+            this.SubmitText("public class MyClass { public string MyFunc() { return \"MyClass.MyFunc()\"; } }");
+            this.SubmitText("(new MyClass()).MyFunc()");
             this.WaitForLastReplOutput("\"MyClass.MyFunc()\"");
         }
 
@@ -219,7 +220,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
                 "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
 
             VisualStudio.Instance.SolutionExplorer.SelectItem(ProjectName);
-            ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);
+            this.ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);
 
             // Waiting for a long operation: build + reset from project
             int defaultTimeoutInMilliseconds = InteractiveWindow.GetTimeoutInMilliseconds();
@@ -227,14 +228,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             this.WaitForReplOutput("using TestProj;");
             InteractiveWindow.SetTimeout(defaultTimeoutInMilliseconds);
 
-            SubmitText("x");
+            this.SubmitText("x");
             this.WaitForLastReplOutputContains("CS0103");
 
-            SubmitText("(new TestProj.C()).M()");
+            this.SubmitText("(new TestProj.C()).M()");
             this.WaitForLastReplOutput("\"C.M()\"");
 
-            SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"foo\";");
-            SubmitText("f.Text");
+            this.SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"foo\";");
+            this.SubmitText("f.Text");
             this.WaitForLastReplOutput("\"foo\"");
 
             // TODO https://github.com/dotnet/roslyn/issues/18133

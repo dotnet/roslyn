@@ -42,31 +42,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
         public static void SendKeys(this AbstractIntegrationTest test, params object[] keys)
             => test.VisualStudio.Instance.Editor.SendKeys(keys);
 
-        public static void InvokeCompletionList(this AbstractIntegrationTest test)
-        {
-            CommonExtensions.InvokeCompletionList(test);
-        }
-
         public static void InvokeSignatureHelp(this AbstractIntegrationTest test)
         {
             test.ExecuteCommand(WellKnownCommandNames.Edit_ParameterInfo);
             test.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
-        }
-
-        public static void InvokeQuickInfo(this AbstractIntegrationTest test)
-        {
-            test.ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
-            test.WaitForAsyncOperations(FeatureAttribute.QuickInfo);
-        }
-
-        public static void InvokeCodeActionList(this AbstractIntegrationTest test)
-        {
-            test.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
-            test.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
-
-            test.VisualStudio.Instance.Editor.ShowLightBulb();
-            test.VisualStudio.Instance.Editor.WaitForLightBulbSession();
-            test.WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
         public static void InvokeNavigateToAndPressEnter(this AbstractIntegrationTest test, string text)

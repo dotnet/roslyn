@@ -64,9 +64,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer
         public static void BuildSolution(this AbstractIntegrationTest test, bool waitForBuildToFinish)
             => test.VisualStudio.Instance.SolutionExplorer.BuildSolution(waitForBuildToFinish);
 
-        public static int GetErrorListErrorCount(this AbstractIntegrationTest test)
-            => test.VisualStudio.Instance.SolutionExplorer.ErrorListErrorCount;
-
         public static void EditProjectFile(this AbstractIntegrationTest test, ProjectUtils.Project project)
             => test.VisualStudio.Instance.SolutionExplorer.EditProjectFile(project.Name);
 

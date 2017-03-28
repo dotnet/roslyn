@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using EnvDTE;
+using EnvDTE80;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -61,6 +62,46 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 IntegrationHelper.SetForegroundWindow(activeVisualStudioWindow);
             });
+
+        public int GetErrorListErrorCount()
+        {
+            var dte = (DTE2)GetDTE();
+            var errorList = dte.ToolWindows.ErrorList;
+
+            var errorItems = errorList.ErrorItems;
+            var errorItemsCount = errorItems.Count;
+
+            var errorCount = 0;
+
+            try
+            {
+                for (var index = 1; index <= errorItemsCount; index++)
+                {
+                    var errorItem = errorItems.Item(index);
+
+                    if (errorItem.ErrorLevel == vsBuildErrorLevel.vsBuildErrorLevelHigh)
+                    {
+                        errorCount += 1;
+                    }
+                }
+            }
+            catch (IndexOutOfRangeException)
+            {
+                // It is entirely possible that the items in the error list are modified
+                // after we start iterating, in which case we want to try again.
+                return GetErrorListErrorCount();
+            }
+
+            return errorCount;
+        }
+
+        public void WaitForNoErrorsInErrorList()
+        {
+            while (GetErrorListErrorCount() != 0)
+            {
+                System.Threading.Thread.Yield();
+            }
+        }
 
         public void Quit()
             => GetDTE().Quit();

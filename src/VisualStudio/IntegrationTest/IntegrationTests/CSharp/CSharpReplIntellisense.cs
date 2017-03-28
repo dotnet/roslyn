@@ -29,7 +29,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifySharpRCompletionList()
         {
-            InsertCode("#r \"");
+            this.InsertCode("#r \"");
             this.InvokeCompletionList();
             this.VerifyCompletionItemExists("System");
         }
@@ -37,21 +37,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyCommitCompletionOnTopLevel()
         {
-            InsertCode("pub");
+            this.InsertCode("pub");
             this.InvokeCompletionList();
             this.VerifyCompletionItemExists("public");
-            SendKeys(VirtualKey.Tab);
-            VerifyLastReplInput("public");
-            SendKeys(VirtualKey.Escape);
+            this.SendKeys(VirtualKey.Tab);
+            this.VerifyLastReplInput("public");
+            this.SendKeys(VirtualKey.Escape);
         }
 
         [Fact]
         public void VerifyCompletionListForAmbiguousParsingCases()
         {
-            InsertCode(@"class C { }
+            this.InsertCode(@"class C { }
 public delegate R Del<T, R>(T arg);
 Del<C, System");
-            SendKeys(VirtualKey.Period);
+            this.SendKeys(VirtualKey.Period);
             this.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
             this.VerifyCompletionItemExists("ArgumentException");
         }
@@ -59,7 +59,7 @@ Del<C, System");
         [Fact]
         public void VerifySharpLoadCompletionList()
         {
-            InsertCode("#load \"");
+            this.InsertCode("#load \"");
             this.InvokeCompletionList();
             this.VerifyCompletionItemExists("C:");
         }
@@ -68,15 +68,15 @@ Del<C, System");
         public void VerifyNoCrashOnEnter()
         {
             VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-            SendKeys("#help", VirtualKey.Enter, VirtualKey.Enter);
+            this.SendKeys("#help", VirtualKey.Enter, VirtualKey.Enter);
         }
 
         [Fact]
         public void VerifyCorrectIntellisenseSelectionOnEnter()
         {
             VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-            SendKeys("TimeSpan.FromMin");
-            SendKeys(VirtualKey.Enter, "(0d)", VirtualKey.Enter);
+            this.SendKeys("TimeSpan.FromMin");
+            this.SendKeys(VirtualKey.Enter, "(0d)", VirtualKey.Enter);
             this.WaitForReplOutput("[00:00:00]");
         }
 
@@ -88,10 +88,10 @@ Del<C, System");
                 "int x = 2; class Complex { public int foo() { return 4; } }"))
             {
                 temporaryTextFile.Create();
-                SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
+                this.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
                 this.InvokeCompletionList();
                 this.VerifyCompletionItemExists("x", "Complex");
-                SendKeys(VirtualKey.Escape);
+                this.SendKeys(VirtualKey.Escape);
             }
         }
     }

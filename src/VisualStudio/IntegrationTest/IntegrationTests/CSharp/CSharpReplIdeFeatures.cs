@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
@@ -19,23 +20,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public new void Dispose()
         {
             VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-            Reset();
+            this.Reset();
             base.Dispose();
         }
 
-        // https://github.com/dotnet/roslyn/issues/801
-        // [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/801")]
         public void VerifyDefaultUsingStatements()
         {
-            SubmitText("Console.WriteLine(42);");
+            this.SubmitText("Console.WriteLine(42);");
             this.WaitForLastReplOutput("42");
         }
 
-        // https://github.com/dotnet/roslyn/issues/801
-        // [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/801")]
         public void VerifyCodeActionsAvailableInCurrentSubmission()
         {
-            InsertCode("Directory.Exists(\"foo\");");
+            this.InsertCode("Directory.Exists(\"foo\");");
             //      <VerifyCodeActions ApplyFix = "using System.IO;" >
             //        < ExpectedItems >
             //          < string >using System.IO;</string>
@@ -49,19 +48,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             //      </VerifyReplInput>
         }
 
-        // https://github.com/dotnet/roslyn/issues/801
         [Fact]
         public void VerifyCodeActionsNotAvailableInPreviousSubmission()
         {
-            InsertCode("Console.WriteLine(42);");
-            VerifyCodeActionsNotShowing();
+            this.InsertCode("Console.WriteLine(42);");
+            this.VerifyCodeActionsNotShowing();
         }
 
-        //  https://github.com/dotnet/roslyn/issues/3785
-        //  [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/3785")]
         public void SimpleRenameOnLocalsVerifySpansAndResult()
         {
-            InsertCode(@"static void Main(string[] args)
+            this.InsertCode(@"static void Main(string[] args)
 {
     int loc = 0;
     loc = 5;
@@ -73,7 +70,7 @@ static void TestMethod(int y)
 
 }");
 
-            PlaceCaret("loc");
+            this.PlaceCaret("loc");
             //      <PlaceCursor Marker = "loc" />
             //      < Rename />
             //      < VerifyRenameTags ExpectedCount="3" SpanLength="3" SpanText="loc">
@@ -100,9 +97,9 @@ static void TestMethod(int y)
         [Fact]
         public void VerifyQuickInfoOnStringDocCommentsFromMetadata()
         {
-            InsertCode("static void Foo(string[] args) { }");
-            PlaceCaret("[]", charsOffset: -2);
-            InvokeQuickInfo();
+            this.InsertCode("static void Foo(string[] args) { }");
+            this.PlaceCaret("[]", charsOffset: -2);
+            this.InvokeQuickInfo();
             var s = InteractiveWindow.GetQuickInfo();
             Assert.Equal("class‎ System‎.String", s);
         }
@@ -110,19 +107,18 @@ static void TestMethod(int y)
         [Fact]
         public void International()
         {
-            InsertCode(@"delegate void العربية();
+            this.InsertCode(@"delegate void العربية();
 العربية func = () => System.Console.WriteLine(2);");
-            PlaceCaret("func", charsOffset: -1);
-            InvokeQuickInfo();
+            this.PlaceCaret("func", charsOffset: -1);
+            this.InvokeQuickInfo();
             var s = InteractiveWindow.GetQuickInfo();
             Assert.Equal("‎(field‎)‎ العربية‎ func", s);
         }
 
-        //   https://github.com/dotnet/roslyn/issues/5013
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5013")]
         public void MethodSignatureHelp()
         {
-            InsertCode("Console.WriteLine(tr");
+            this.InsertCode("Console.WriteLine(tr");
 
             //      <InvokeSignatureHelp />
             //      <VerifySignatureHelp>
@@ -143,108 +139,107 @@ static void TestMethod(int y)
         [Fact]
         public void HighlightRefsSingleSubmissionVerifyRenameTagsShowUpWhenInvokedOnUnsubmittedText()
         {
-            InsertCode("int someint; someint = 22; someint = 23;");
-            PlaceCaret("someint = 22", charsOffset: -6);
+            this.InsertCode("int someint; someint = 22; someint = 23;");
+            this.PlaceCaret("someint = 22", charsOffset: -6);
 
-            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            this.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
         }
 
         [Fact]
         public void HighlightRefsSingleSubmissionVerifyRenameTagsGoAway()
         {
-            InsertCode("int someint; someint = 22; someint = 23;");
-            PlaceCaret("someint = 22", charsOffset: -6);
-            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
+            this.InsertCode("int someint; someint = 22; someint = 23;");
+            this.PlaceCaret("someint = 22", charsOffset: -6);
+            this.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 2);
 
-            PlaceCaret("22");
-            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 0);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 0);
+            this.PlaceCaret("22");
+            this.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedWrittenReference, 0);
         }
 
         [Fact]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpWhenInvokedOnSubmittedText()
         {
-            SubmitText("class Foo { }");
-            SubmitText("Foo something = new Foo();");
-            SubmitText("something.ToString();");
-            PlaceCaret("someth", charsOffset: 1, occurrence: 2);
-            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 1);
+            this.SubmitText("class Foo { }");
+            this.SubmitText("Foo something = new Foo();");
+            this.SubmitText("something.ToString();");
+            this.PlaceCaret("someth", charsOffset: 1, occurrence: 2);
+            this.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 1);
         }
 
         [Fact]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnUnsubmittedText()
         {
-            SubmitText("class Foo { }");
-            SubmitText("Foo something = new Foo();");
-            InsertCode("something.ToString();");
-            PlaceCaret("someth", charsOffset: 1, occurrence: 2);
-            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 1);
+            this.SubmitText("class Foo { }");
+            this.SubmitText("Foo something = new Foo();");
+            this.InsertCode("something.ToString();");
+            this.PlaceCaret("someth", charsOffset: 1, occurrence: 2);
+            this.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 1);
         }
 
         [Fact]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnTypesWhenInvokedOnSubmittedText()
         {
-            SubmitText("class Foo { }");
-            SubmitText("Foo a;");
-            SubmitText("Foo b;");
-            PlaceCaret("Foo b", charsOffset: -1);
-            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 2);
+            this.SubmitText("class Foo { }");
+            this.SubmitText("Foo a;");
+            this.SubmitText("Foo b;");
+            this.PlaceCaret("Foo b", charsOffset: -1);
+            this.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
         }
 
         [Fact]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnTypesWhenInvokedOnUnsubmittedText()
         {
-            SubmitText("class Foo { }");
-            SubmitText("Foo a;");
-            InsertCode("Foo b;");
-            PlaceCaret("Foo b", charsOffset: -1);
-            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 2);
+            this.SubmitText("class Foo { }");
+            this.SubmitText("Foo a;");
+            this.InsertCode("Foo b;");
+            this.PlaceCaret("Foo b", charsOffset: -1);
+            this.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
         }
 
         [Fact]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsGoAwayWhenInvokedOnUnsubmittedText()
         {
-            SubmitText("class Foo { }");
-            SubmitText("Foo a;");
-            InsertCode("Foo b;Something();");
-            PlaceCaret("Something();", charsOffset: -1);
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 0);
+            this.SubmitText("class Foo { }");
+            this.SubmitText("Foo a;");
+            this.InsertCode("Foo b;Something();");
+            this.PlaceCaret("Something();", charsOffset: -1);
+            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
         }
 
         [Fact]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsOnRedefinedVariable()
         {
-            SubmitText("string abc = null;");
-            SubmitText("abc = string.Empty;");
-            InsertCode("int abc = 42;");
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
-            PlaceCaret("abc", occurrence: 3);
-            WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
-            InteractiveWindow.VerifyTags(WellKnowTagNames.MarkerFormatDefinition_HighlightedReference, 0);
+            this.SubmitText("string abc = null;");
+            this.SubmitText("abc = string.Empty;");
+            this.InsertCode("int abc = 42;");
+            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            this.PlaceCaret("abc", occurrence: 3);
+            this.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
+            InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
         }
 
-        // https://github.com/dotnet/roslyn/issues/801
-        // [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/801")]
         public void VerifyCodeActionListNotEmpty()
         {
             // see bug 711467
-            InsertCode("Process");
+            this.InsertCode("Process");
 
             //      < VerifyCodeActions ApplyFix="using System.Diagnostics;">
             //        <ExpectedItems>
@@ -262,7 +257,7 @@ static void TestMethod(int y)
         [Fact]
         public void DisabledCommandsPart1()
         {
-            InsertCode(@"public class Class
+            this.InsertCode(@"public class Class
 {
     int field;
 
@@ -272,56 +267,53 @@ static void TestMethod(int y)
      }
 }");
 
-            PlaceCaret("abc");
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
+            this.PlaceCaret("abc");
+            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
             Assert.False(VisualStudio.Instance.IsCommandAvailable(WellKnownCommandNames.Refactor_Rename));
 
-            PlaceCaret("1 + 1");
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
+            this.PlaceCaret("1 + 1");
+            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
             Assert.False(VisualStudio.Instance.IsCommandAvailable(WellKnownCommandNames.Refactor_ExtractMethod));
 
-            PlaceCaret("Class");
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
+            this.PlaceCaret("Class");
+            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
             Assert.False(VisualStudio.Instance.IsCommandAvailable(WellKnownCommandNames.Refactor_ExtractInterface));
 
-            PlaceCaret("field");
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
+            this.PlaceCaret("field");
+            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
             Assert.False(VisualStudio.Instance.IsCommandAvailable(WellKnownCommandNames.Refactor_EncapsulateField));
 
-            PlaceCaret("Method");
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
+            this.PlaceCaret("Method");
+            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
             Assert.False(VisualStudio.Instance.IsCommandAvailable(WellKnownCommandNames.Refactor_RemoveParameters));
             Assert.False(VisualStudio.Instance.IsCommandAvailable(WellKnownCommandNames.Refactor_ReorderParameters));
         }
 
-        // https://github.com/dotnet/roslyn/issues/6587
-        // No support of quick actions in ETA scenario
-        // [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6587, No support of quick actions in ETA scenario")]
         public void AddUsing()
         {
-            InsertCode("typeof(ArrayList)");
-            PlaceCaret("ArrayList");
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
+            this.InsertCode("typeof(ArrayList)");
+            this.PlaceCaret("ArrayList");
+            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
 
-            InvokeCodeActionList();
-            VerifyCodeActions(
+            this.InvokeCodeActionList();
+            this.VerifyCodeActions(
                 new string[] { "using System.Collections;", "System.Collections.ArrayList" },
                 "using System.Collections;");
 
-            VerifyLastReplInput(@"using System.Collections;
+            this.VerifyLastReplInput(@"using System.Collections;
 typeof(ArrayList)");
         }
 
-        // No support of quick actions in ETA scenario
-        // [Fact]
+        [Fact(Skip = "No support of quick actions in ETA scenario")]
         public void QualifyName()
         {
             //      < !- -ETA doesn't handle ctrl-. in tool windows - ->
             //      <ExcludeScenarioInHost HostName = "ETA" />
-            InsertCode("typeof(ArrayList)");
+            this.InsertCode("typeof(ArrayList)");
 
             //      < WaitForWorkspace />
-            PlaceCaret("ArrayList");
+            this.PlaceCaret("ArrayList");
 
             //      <WaitForWorkspace />
             //      <VerifyCodeActions ApplyFix = "System.Collections.ArrayList" >

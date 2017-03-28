@@ -21,7 +21,7 @@
   <ItemGroup>
     <Compile Include="AbstractIntegrationTest.cs" />
     <Compile Include="AbstractInteractiveWindowTest.cs" />
-    <Compile Include="CSharp\BoxSelection.cs" />
+    <Compile Include="CSharp\CSharpInteractiveBoxSelection.cs" />
     <Compile Include="CSharp\CSharpChangeSignatureDialog.cs" />
     <Compile Include="CSharp\CSharpClassification.cs" />
     <Compile Include="CSharp\CSharpFindReferences.cs" />
@@ -50,6 +50,7 @@
     <Compile Include="Extensions\EditorExtensions.cs" />
     <Compile Include="Extensions\EditorExtensions.Verifiers.cs" />
     <Compile Include="Extensions\InteractiveExtensions.cs" />
+    <Compile Include="Extensions\InteractiveExtensions.Verifiers.cs" />
     <Compile Include="Extensions\SolutionExplorerExtensions.Verifiers.cs" />
     <Compile Include="Extensions\SolutionExplorerExtensions.cs" />
     <Compile Include="Extensions\SetOptionsExtensions.cs" />

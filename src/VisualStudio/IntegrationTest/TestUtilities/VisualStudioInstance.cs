@@ -125,6 +125,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public string[] GetAvailableCommands()
             => _inProc.GetAvailableCommands();
 
+        public int ErrorListErrorCount
+            => _inProc.GetErrorListErrorCount();
+
+        public void WaitForNoErrorsInErrorList()
+            => _inProc.WaitForNoErrorsInErrorList();
+
         public bool IsRunning => !HostProcess.HasExited;
 
         public void CleanUp()

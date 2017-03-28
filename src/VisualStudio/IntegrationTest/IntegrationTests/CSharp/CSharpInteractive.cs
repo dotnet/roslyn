@@ -19,35 +19,35 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void BclMathCall()
         {
-            SubmitText("Math.Sin(1)");
+            this.SubmitText("Math.Sin(1)");
             this.WaitForLastReplOutput("0.8414709848078965");
         }
 
         [Fact]
         public void BclConsoleCall()
         {
-            SubmitText(@"Console.WriteLine(""Hello, World!"");");
+            this.SubmitText(@"Console.WriteLine(""Hello, World!"");");
             this.WaitForLastReplOutput("Hello, World!");
         }
 
         [Fact]
         public void ForStatement()
         {
-            SubmitText("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);");
+            this.SubmitText("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);");
             this.WaitForLastReplOutputContains($"{81}");
         }
 
         [Fact]
         public void ForEachStatement()
         {
-            SubmitText(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());");
+            this.SubmitText(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());");
             this.WaitForLastReplOutputContains(@"c:\windows\win.ini");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17634")]
         public void TopLevelMethod()
         {
-            SubmitText(@"int Fac(int x)
+            this.SubmitText(@"int Fac(int x)
 {
     return x < 1 ? 1 : x * Fac(x - 1);
 }
@@ -58,17 +58,17 @@ Fac(4)");
         [Fact]
         public async Task WpfInteractionAsync()
         {
-            SubmitText(@"#r ""WindowsBase""
+            this.SubmitText(@"#r ""WindowsBase""
 #r ""PresentationCore""
 #r ""PresentationFramework""
 #r ""System.Xaml""");
 
-            SubmitText(@"using System.Windows;
+            this.SubmitText(@"using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;");
 
-            SubmitText(@"var w = new Window();
+            this.SubmitText(@"var w = new Window();
 w.Title = ""Hello World"";
 w.FontFamily = new FontFamily(""Calibri"");
 w.FontSize = 24;
@@ -79,7 +79,7 @@ w.Visibility = Visibility.Visible;");
 
             var testValue = Guid.NewGuid();
 
-            SubmitText($@"var b = new Button();
+            this.SubmitText($@"var b = new Button();
 b.Content = ""{testValue}"";
 b.Margin = new Thickness(40);
 b.Click += (sender, e) => Console.WriteLine(""Hello, World!"");
@@ -91,7 +91,7 @@ w.Content = g;");
             await AutomationElementHelper.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
 
             this.WaitForLastReplOutput("Hello, World!");
-            SubmitText("b = null; w.Close(); w = null;");
+            this.SubmitText("b = null; w.Close(); w = null;");
         }
 
         [Fact]
@@ -100,7 +100,7 @@ w.Content = g;");
             VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
             InteractiveWindow.ShowWindow(waitForPrompt: true);
 
-            // Directly type #help, rather than sending it through SubmitText. We want to actually test
+            // Directly type #help, rather than sending it through this.SubmitText. We want to actually test
             // that completion doesn't interfere and there aren't problems with the content-type switching.
             VisualStudio.Instance.SendKeys.Send("#help");
 

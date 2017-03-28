@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
-    public class WellKnowTagNames
+    public class WellKnownTagNames
     {
         public const string MarkerFormatDefinition_HighlightedReference = "MarkerFormatDefinition/HighlightedReference";
         public const string MarkerFormatDefinition_HighlightedDefinition = "MarkerFormatDefinition/HighlightedDefinition";

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
@@ -57,9 +56,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
 
-        public int ErrorListErrorCount
-            => _inProc.GetErrorListErrorCount();
-
         public void AddFile(string projectName, string fileName, string contents = null, bool open = false)
             => _inProc.AddFile(projectName, fileName, contents, open);
 
@@ -102,8 +98,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void UnloadProject(string projectName)
             => _inProc.UnloadProject(projectName);
 
-        public void WaitForNoErrorsInErrorList()
-            => _inProc.WaitForNoErrorsInErrorList();
 
         public string[] GetProjectReferences(string projectName)
             => _inProc.GetProjectReferences(projectName);
