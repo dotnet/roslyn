@@ -54,9 +54,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
 
-        public int ErrorListErrorCount
-            => _inProc.GetErrorListErrorCount();
-
         public void AddFile(string projectName, string fileName, string contents = null, bool open = false)
             => _inProc.AddFile(projectName, fileName, contents, open);
 
@@ -90,17 +87,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SaveAll()
             => _inProc.SaveAll();
 
-        public void ShowErrorList()
-            => _inProc.ShowErrorList();
-
         public void ShowOutputWindow()
             => _inProc.ShowOutputWindow();
 
         public void UnloadProject(string projectName)
             => _inProc.UnloadProject(projectName);
-
-        public void WaitForNoErrorsInErrorList()
-            => _inProc.WaitForNoErrorsInErrorList();
 
         public string[] GetProjectReferences(string projectName)
             => _inProc.GetProjectReferences(projectName);

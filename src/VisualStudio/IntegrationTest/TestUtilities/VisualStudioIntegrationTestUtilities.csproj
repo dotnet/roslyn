@@ -26,12 +26,14 @@
     <Compile Include="AutomationElementExtensions.cs" />
     <Compile Include="CaptureTestNameAttribute.cs" />
     <Compile Include="Common\Comparison.cs" />
+    <Compile Include="Common\ErrorListItem.cs" />
     <Compile Include="Common\Parameter.cs" />
     <Compile Include="Common\ProjectUtilities.cs" />
     <Compile Include="Common\Reference.cs" />
     <Compile Include="Common\Signature.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="HostWaitHelper.cs" />
+    <Compile Include="InProcess\ErrorList_InProc.cs" />
     <Compile Include="InProcess\TextViewWindow_InProc.cs" />
     <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
     <Compile Include="DialogHelpers.cs" />
@@ -50,6 +52,7 @@
     <Compile Include="Interop\NativeMethods.cs" />
     <Compile Include="LightBulbHelper.cs" />
     <Compile Include="OutOfProcess\ChangeSignatureDialog_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\ErrorList_OutOfProc.cs" />
     <Compile Include="OutOfProcess\FindReferencesWindow_OutOfProc.cs" />
     <Compile Include="OutOfProcess\GenerateTypeDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\OutOfProcComponent.cs" />
