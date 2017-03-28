@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Hosting.Diagnostics.Waiters;
 
@@ -148,6 +149,35 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var broker = GetComponentModelService<ISignatureHelpBroker>();
                 return broker.IsSignatureHelpActive(view);
             });
+
+        public string[] GetErrorTags()
+            => GetTags<IErrorTag>();
+
+        private string[] GetTags<TTag>(Predicate<TTag> filter = null)
+            where TTag : ITag
+        {
+            bool Filter(TTag tag)
+                => true;
+
+            string PrintSpan(SnapshotSpan span)
+                => $"'{span.GetText()}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
+
+            if (filter == null)
+            {
+                filter = Filter;
+            }
+
+            return ExecuteOnActiveView(view =>
+            {
+                var viewTagAggregatorFactory = GetComponentModelService<IViewTagAggregatorFactoryService>();
+                var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
+                var tags = aggregator
+                  .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
+                  .Where(t => filter(t.Tag))
+                  .Cast<IMappingTagSpan<ITag>>();
+                return tags.Select(tag => $"{tag.Tag.ToString()}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
+            });
+        }
 
         /// <remarks>
         /// This method does not wait for async operations before

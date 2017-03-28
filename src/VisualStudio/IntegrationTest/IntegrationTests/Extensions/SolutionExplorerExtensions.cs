@@ -13,6 +13,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer
         public static void CloseSolution(this AbstractIntegrationTest test, bool saveFirst = false)
             => test.VisualStudio.Instance.SolutionExplorer.CloseSolution(saveFirst);
 
+        public static void BuildSolution(this AbstractIntegrationTest test, bool waitForBuildToFinish)
+            => test.VisualStudio.Instance.SolutionExplorer.BuildSolution(waitForBuildToFinish);
+
         public static void AddProject(this AbstractIntegrationTest test, string projectTemplate, ProjectUtils.Project project, string languageName)
             => test.VisualStudio.Instance.SolutionExplorer.AddProject(project.Name, projectTemplate, languageName);
 
@@ -57,12 +60,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer
 
         public static void SaveAll(this AbstractIntegrationTest test)
             => test.VisualStudio.Instance.SolutionExplorer.SaveAll();
-
-        public static void BuildSolution(this AbstractIntegrationTest test, bool waitForBuildToFinish)
-            => test.VisualStudio.Instance.SolutionExplorer.BuildSolution(waitForBuildToFinish);
-
-        public static int GetErrorListErrorCount(this AbstractIntegrationTest test)
-            => test.VisualStudio.Instance.SolutionExplorer.ErrorListErrorCount;
 
         public static void EditProjectFile(this AbstractIntegrationTest test, ProjectUtils.Project project)
             => test.VisualStudio.Instance.SolutionExplorer.EditProjectFile(project.Name);

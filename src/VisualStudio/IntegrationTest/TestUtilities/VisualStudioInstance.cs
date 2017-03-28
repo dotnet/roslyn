@@ -39,6 +39,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
 
+        public ErrorList_OutOfProc ErrorList { get; }
+
         public VisualStudioWorkspace_OutOfProc VisualStudioWorkspace { get; }
 
         internal DTE Dte { get; }
@@ -84,6 +86,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             CSharpInteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
+            ErrorList = new ErrorList_OutOfProc(this);
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
