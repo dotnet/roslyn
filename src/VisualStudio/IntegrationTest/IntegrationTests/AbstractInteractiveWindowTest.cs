@@ -62,10 +62,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void PlaceCaret(string text, int charsOffset = 0)
               => InteractiveWindow.PlaceCaret(
-                  text, 
-                  charsOffset: charsOffset, 
-                  occurrence: 0, 
-                  extendSelection: false, 
+                  text,
+                  charsOffset: charsOffset,
+                  occurrence: 0,
+                  extendSelection: false,
                   selectBlock: false);
 
         protected void VerifyLastReplOutput(string expectedReplOutput)

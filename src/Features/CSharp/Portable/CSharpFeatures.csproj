@@ -81,6 +81,7 @@
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.cs" />
     <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="ImplementInterface\CSharpImplementInterfaceCodeFixProvider.cs" />
+    <Compile Include="ReplacePropertyWithMethods\ConvertValueToReturnsRewriter.cs" />
     <Compile Include="Structure\Providers\ArrowExpressionClauseStructureProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\CSharpConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
