@@ -556,7 +556,7 @@ End Structure", ignoreTrivia:=False)
         End Function
 
         <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18261"), Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestDocumentationComment6() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ISomeInterface(Of T)
