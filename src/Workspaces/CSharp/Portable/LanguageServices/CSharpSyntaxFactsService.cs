@@ -1589,8 +1589,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((interpolatedString as InterpolatedStringExpressionSyntax)?.Contents).Value;
         }
 
-        public bool IsStringLiteral(SyntaxToken token)
+        public override bool IsStringLiteral(SyntaxToken token)
             => token.IsKind(SyntaxKind.StringLiteralToken);
+
+        public override bool IsInterpolatedStringTextToken(SyntaxToken token)
+            => token.IsKind(SyntaxKind.InterpolatedStringTextToken);
 
         public bool IsStringLiteralExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.StringLiteralExpression;

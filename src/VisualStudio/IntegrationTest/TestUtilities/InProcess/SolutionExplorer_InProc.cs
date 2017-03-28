@@ -10,6 +10,7 @@ using System.Threading;
 using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using VSLangProj;
@@ -428,69 +429,178 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void BuildSolution(bool waitForBuildToFinish)
         {
-            var dte = (DTE2)GetDTE();
-            var outputWindow = dte.ToolWindows.OutputWindow;
-
-            var buildOutputWindowPane = outputWindow.OutputWindowPanes.Item("Build");
-            buildOutputWindowPane.Clear();
-
             ExecuteCommand("Build.BuildSolution");
-
             if (waitForBuildToFinish)
             {
-                var textDocument = buildOutputWindowPane.TextDocument;
-                var textDocumentSelection = textDocument.Selection;
-
-                var buildFinishedRegex = new Regex(@"^========== Build: \d+ succeeded, \d+ failed, \d+ up-to-date, \d+ skipped ==========$", RegexOptions.Compiled);
-
-                do
-                {
-                    Thread.Yield();
-
-                    try
-                    {
-                        textDocumentSelection.GotoLine(textDocument.EndPoint.Line - 1, Select: true);
-                    }
-                    catch (ArgumentException)
-                    {
-                        // Its possible that the window will still be initializing, clearing,
-                        // etc... We should ignore those errors and just try again
-                    }
-                }
-                while (!buildFinishedRegex.IsMatch(textDocumentSelection.Text));
+                WaitForBuildToFinish();
             }
         }
 
-        public int GetErrorListErrorCount()
+        private void WaitForBuildToFinish()
         {
-            var dte = (DTE2)GetDTE();
-            var errorList = dte.ToolWindows.ErrorList;
-
-            var errorItems = errorList.ErrorItems;
-            var errorItemsCount = errorItems.Count;
-
-            var errorCount = 0;
-
-            try
+            var buildManager = GetGlobalService<SVsSolutionBuildManager, IVsSolutionBuildManager2>();
+            using (var semaphore = new SemaphoreSlim(1))
+            using (var solutionEvents = new UpdateSolutionEvents(buildManager))
             {
-                for (var index = 1; index <= errorItemsCount; index++)
+                semaphore.Wait();
+                UpdateSolutionEvents.UpdateSolutionDoneEvent @event = (bool succeeded, bool modified, bool canceled) => semaphore.Release();
+                solutionEvents.OnUpdateSolutionDone += @event;
+                try
                 {
-                    var errorItem = errorItems.Item(index);
+                    semaphore.Wait();
+                }
+                finally
+                {
+                    solutionEvents.OnUpdateSolutionDone -= @event;
+                }
+            }
+        }
 
-                    if (errorItem.ErrorLevel == vsBuildErrorLevel.vsBuildErrorLevelHigh)
+        internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IVsUpdateSolutionEvents2, IDisposable
+        {
+            private uint cookie;
+            private IVsSolutionBuildManager2 solutionBuildManager;
+
+            internal delegate void UpdateSolutionDoneEvent(bool succeeded, bool modified, bool canceled);
+            internal delegate void UpdateSolutionBeginEvent(ref bool cancel);
+            internal delegate void UpdateSolutionStartUpdateEvent(ref bool cancel);
+            internal delegate void UpdateProjectConfigDoneEvent(IVsHierarchy projectHierarchy, IVsCfg projectConfig, int success);
+            internal delegate void UpdateProjectConfigBeginEvent(IVsHierarchy projectHierarchy, IVsCfg projectConfig);
+
+            public event UpdateSolutionDoneEvent OnUpdateSolutionDone;
+            public event UpdateSolutionBeginEvent OnUpdateSolutionBegin;
+            public event UpdateSolutionStartUpdateEvent OnUpdateSolutionStartUpdate;
+            public event Action OnActiveProjectConfigurationChange;
+            public event Action OnUpdateSolutionCancel;
+            public event UpdateProjectConfigDoneEvent OnUpdateProjectConfigDone;
+            public event UpdateProjectConfigBeginEvent OnUpdateProjectConfigBegin;
+
+            internal UpdateSolutionEvents(IVsSolutionBuildManager2 solutionBuildManager)
+            {
+                this.solutionBuildManager = solutionBuildManager;
+                var hresult = solutionBuildManager.AdviseUpdateSolutionEvents(this, out cookie);
+                if (hresult != 0)
+                {
+                    System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(hresult);
+                }
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_Begin(ref int pfCancelUpdate)
+            {
+                var cancel = false;
+                OnUpdateSolutionBegin?.Invoke(ref cancel);
+                if (cancel)
+                {
+                    pfCancelUpdate = 1;
+                }
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
+            {
+                OnUpdateSolutionDone?.Invoke(fSucceeded != 0, fModified != 0, fCancelCommand != 0);
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+            {
+                return UpdateSolution_StartUpdate(ref pfCancelUpdate);
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_Cancel()
+            {
+                OnUpdateSolutionCancel?.Invoke();
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            {
+                return OnActiveProjectCfgChange(pIVsHierarchy);
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_Begin(ref int pfCancelUpdate)
+            {
+                var cancel = false;
+                OnUpdateSolutionBegin?.Invoke(ref cancel);
+                if (cancel)
+                {
+                    pfCancelUpdate = 1;
+                }
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
+            {
+                OnUpdateSolutionDone?.Invoke(fSucceeded != 0, fModified != 0, fCancelCommand != 0);
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+            {
+                return UpdateSolution_StartUpdate(ref pfCancelUpdate);
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_Cancel()
+            {
+                OnUpdateSolutionCancel?.Invoke();
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            {
+                return OnActiveProjectCfgChange(pIVsHierarchy);
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
+            {
+                OnUpdateProjectConfigBegin?.Invoke(pHierProj, pCfgProj);
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
+            {
+                OnUpdateProjectConfigDone?.Invoke(pHierProj, pCfgProj, fSuccess);
+                return 0;
+            }
+
+            private int UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+            {
+                var cancel = false;
+                OnUpdateSolutionStartUpdate?.Invoke(ref cancel);
+                if (cancel)
+                {
+                    pfCancelUpdate = 1;
+                }
+                return 0;
+            }
+
+            private int OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            {
+                OnActiveProjectConfigurationChange?.Invoke();
+                return 0;
+            }
+
+            void IDisposable.Dispose()
+            {
+                OnUpdateSolutionDone = null;
+                OnUpdateSolutionBegin = null;
+                OnUpdateSolutionStartUpdate = null;
+                OnActiveProjectConfigurationChange = null;
+                OnUpdateSolutionCancel = null;
+                OnUpdateProjectConfigDone = null;
+                OnUpdateProjectConfigBegin = null;
+
+                if (cookie != 0)
+                {
+                    var tempCookie = cookie;
+                    cookie = 0;
+                    var hresult = solutionBuildManager.UnadviseUpdateSolutionEvents(tempCookie);
+                    if (hresult != 0)
                     {
-                        errorCount += 1;
+                        System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(hresult);
                     }
                 }
             }
-            catch (IndexOutOfRangeException)
-            {
-                // It is entirely possible that the items in the error list are modified
-                // after we start iterating, in which case we want to try again.
-                return GetErrorListErrorCount();
-            }
-
-            return errorCount;
         }
 
         public void OpenFileWithDesigner(string projectName, string relativeFilePath)
@@ -591,9 +701,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void SaveAll()
             => ExecuteCommand("File.SaveAll");
 
-        public void ShowErrorList()
-            => ExecuteCommand("View.ErrorList");
-
         public void ShowOutputWindow()
             => ExecuteCommand("View.Output");
 
@@ -601,14 +708,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var project = _solution.Projects.Item(projectName);
             _solution.Remove(project);
-        }
-
-        public void WaitForNoErrorsInErrorList()
-        {
-            while (GetErrorListErrorCount() != 0)
-            {
-                Thread.Yield();
-            }
         }
     }
 }

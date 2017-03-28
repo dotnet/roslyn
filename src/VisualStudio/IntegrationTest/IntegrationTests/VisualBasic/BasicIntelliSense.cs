@@ -157,7 +157,7 @@ End Module");
             this.SendKeys(' ');
             Assert.Equal(true, Editor.IsCompletionActive());
 
-            this.SendKeys("foo");
+            this.SendKeys("fooo");
             Assert.Equal(false, Editor.IsCompletionActive());
 
             this.SendKeys(' ');

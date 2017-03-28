@@ -28,8 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         protected override void SetWorkspaceOptions(TestWorkspace workspace)
         {
-            workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement)
-                                                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement);
+            workspace.Options = workspace.Options
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement)
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
         }
 
         #region "CompletionItem tests"
