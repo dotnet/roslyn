@@ -2470,7 +2470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (argumentCount == parameterCount && argToParamMap.IsDefaultOrEmpty)
             {
                 ImmutableArray<RefKind> parameterRefKinds = member.GetParameterRefKinds();
-                if (parameterRefKinds.IsDefaultOrEmpty || !parameterRefKinds.Any())
+                if (parameterRefKinds.IsDefaultOrEmpty)
                 {
                     return new EffectiveParameters(member.GetParameterTypes(), parameterRefKinds);
                 }

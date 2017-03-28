@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Constrained,
 
             // reference itself will not be written to, nor it will be used to modify fields.
-            Readonly,
+            ReadOnly,
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var methodRefKind = call.Method.RefKind;
 
                     if (methodRefKind == RefKind.Ref || 
-                        (addressKind == AddressKind.Readonly && methodRefKind == RefKind.RefReadOnly))
+                        (addressKind == AddressKind.ReadOnly && methodRefKind == RefKind.RefReadOnly))
                     {
                         EmitCallExpression(call, UseKind.UsedAsAddress);
                         break;
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     throw ExceptionUtilities.UnexpectedValue(assignment.RefKind);
 
                 default:
-                    Debug.Assert(!HasHome(expression, addressKind != AddressKind.Readonly));
+                    Debug.Assert(!HasHome(expression, addressKind != AddressKind.ReadOnly));
                     return EmitAddressOfTempClone(expression);
             }
 
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitBox(receiverType, expression.Syntax);
             _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel);
 
-            var receiverTemp = EmitAddress(expression.ReferenceTypeReceiver, AddressKind.Readonly);
+            var receiverTemp = EmitAddress(expression.ReferenceTypeReceiver, AddressKind.ReadOnly);
             Debug.Assert(receiverTemp == null);
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
             _builder.AdjustStack(-1);
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             FieldSymbol field = fieldAccess.FieldSymbol;
 
-            if (!HasHome(fieldAccess, addressKind != AddressKind.Readonly))
+            if (!HasHome(fieldAccess, addressKind != AddressKind.ReadOnly))
             {
                 // accessing a field that is not writable (const or readonly)
                 return EmitAddressOfTempClone(fieldAccess);
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 //      the reason is that while Constrained permits calls, it does not permit 
                 //      taking field addresses, so we have to turn Constrained into writeable.
                 //      It is less error prone to just pass a bool "isReadonly" 
-                return EmitInstanceFieldAddress(fieldAccess, isReadonly: addressKind == AddressKind.Readonly);
+                return EmitInstanceFieldAddress(fieldAccess, isReadonly: addressKind == AddressKind.ReadOnly);
             }
         }
 
@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var field = fieldAccess.FieldSymbol;
 
-            var tempOpt = EmitReceiverRef(fieldAccess.ReceiverOpt, isReadonly? AddressKind.Readonly: AddressKind.Writeable);
+            var tempOpt = EmitReceiverRef(fieldAccess.ReceiverOpt, isReadonly? AddressKind.ReadOnly: AddressKind.Writeable);
 
             _builder.EmitOpCode(ILOpCode.Ldflda);
             EmitSymbolToken(field, fieldAccess.Syntax);

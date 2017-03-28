@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // const but not default, must be a reference type
                 Debug.Assert(receiverType.IsVerifierReference());
                 // receiver is a reference type, so addresskind does not matter, but we do not intend to write.
-                receiverTemp = EmitReceiverRef(receiver, AddressKind.Readonly);
+                receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly);
                 EmitExpression(expression.WhenNotNull, used);
                 if (receiverTemp != null)
                 {
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case RefKind.RefReadOnly:
                     //PROTOTYPE(reaadonlyRefs): leaking a temp here
-                    var temp = EmitAddress(argument, AddressKind.Readonly);
+                    var temp = EmitAddress(argument, AddressKind.ReadOnly);
                     break;
 
                 default:
@@ -947,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // there are also cases where we must emit receiver as a reference
             if (FieldLoadMustUseRef(receiver) || FieldLoadPrefersRef(receiver))
             {
-                return EmitFieldLoadReceiverAddress(receiver) ? null : EmitReceiverRef(receiver, AddressKind.Readonly);
+                return EmitFieldLoadReceiverAddress(receiver) ? null : EmitReceiverRef(receiver, AddressKind.ReadOnly);
             }
 
             EmitExpression(receiver, true);
@@ -1434,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             //
                             //PROTOTYPE(readonlyRefs): all methods that a struct could inherit from bases are non-mutating
                             //                         we are passing here "Writeable" just to keep verifier happy
-                            //                         we should pass here "Readonly" and avoid unnecessary copy
+                            //                         we should pass here "ReadOnly" and avoid unnecessary copy
                             tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
                             callKind = CallKind.ConstrainedCallVirt;
                         }
