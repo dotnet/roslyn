@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Classification = nameof(Classification);
             public const string Diagnostics = nameof(Diagnostics);
             public const string ErrorList = nameof(ErrorList);
+            public const string ErrorSquiggles = nameof(ErrorSquiggles);
             public const string FindReferences = nameof(FindReferences);
             public const string FixIncorrectTokens = nameof(FixIncorrectTokens);
             public const string Formatting = nameof(Formatting);
