@@ -4,9 +4,9 @@ using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.CodeAnalysis.Esent
+namespace Microsoft.CodeAnalysis.Storage
 {
-    internal class EsentLogger
+    internal class StorageLogger
     {
         private const string Kind = nameof(Kind);
         private const string Reason = nameof(Reason);

@@ -2,7 +2,9 @@
   "dependencies": {
     "ManagedEsent": "1.9.4",
     "Microsoft.Build": "15.1.0-preview-000458-02",
-    "Microsoft.Build.Tasks.Core": "15.1.0-preview-000458-02"
+    "Microsoft.Build.Tasks.Core": "15.1.0-preview-000458-02",
+    "System.Data.Common": "4.3.0",
+    "System.Data.SQLite": "1.0.104"
   },
   "frameworks": {
     "net46": { }

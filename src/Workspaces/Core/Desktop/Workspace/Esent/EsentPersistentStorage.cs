@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.Isam.Esent;
 using Microsoft.Isam.Esent.Interop;
 using Roslyn.Utilities;
@@ -44,11 +45,11 @@ namespace Microsoft.CodeAnalysis.Esent
 
             var databaseFile = GetDatabaseFile(workingFolderPath);
 
-            this.EsentDirectory = Path.GetDirectoryName(databaseFile);
+            this.DatabaseFileDirectory = Path.GetDirectoryName(databaseFile);
 
-            if (!Directory.Exists(this.EsentDirectory))
+            if (!Directory.Exists(this.DatabaseFileDirectory))
             {
-                Directory.CreateDirectory(this.EsentDirectory);
+                Directory.CreateDirectory(this.DatabaseFileDirectory);
             }
 
             _nameTableCache = new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -64,12 +65,12 @@ namespace Microsoft.CodeAnalysis.Esent
             return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
         }
 
-        public void Initialize()
+        internal override void Initialize()
         {
             _esentStorage.Initialize();
         }
 
-        public string EsentDirectory { get; }
+        internal override string DatabaseFileDirectory { get; }
 
         public override Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -284,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Esent
             {
                 // if we get fatal errors from esent such as disk out of space or log file corrupted by other process and etc
                 // don't crash VS, but let VS know it can't use esent. we will gracefully recover issue by using memory.
-                EsentLogger.LogException(ex);
+                StorageLogger.LogException(ex);
 
                 return false;
             }
