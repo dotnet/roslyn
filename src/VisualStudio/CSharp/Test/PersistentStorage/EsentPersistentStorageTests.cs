@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             var storage = new EsentPersistentStorageService(_persistentEnabledOptionService, testing: true).GetStorage(solution);
 
-            Assert.NotEqual(EsentPersistentStorageService.NoOpPersistentStorageInstance, storage);
+            Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
             return storage;
         }
 

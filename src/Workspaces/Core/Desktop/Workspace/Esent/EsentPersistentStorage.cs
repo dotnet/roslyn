@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.Esent
         private readonly EsentStorage _esentStorage;
 
         public EsentPersistentStorage(
-            IOptionService optionService, string workingFolderPath, string solutionFilePath, Action<AbstractPersistentStorage> disposer) :
-            base(optionService, workingFolderPath, solutionFilePath, disposer)
+            IOptionService optionService, string workingFolderPath, string solutionFilePath, Action<AbstractPersistentStorage> disposer) 
+            : base(optionService, workingFolderPath, solutionFilePath, disposer)
         {
             // cache delegates
             _readStreamSolution = ReadStreamSolution;
