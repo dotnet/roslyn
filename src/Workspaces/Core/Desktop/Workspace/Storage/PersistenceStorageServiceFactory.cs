@@ -2,6 +2,7 @@
 
 using System.Composition;
 using System.Threading;
+using Microsoft.CodeAnalysis.Esent;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Storage
             if (_singleton == null)
             {
                 var optionService = workspaceServices.GetService<IOptionService>();
-                Interlocked.CompareExchange(ref _singleton, new PersistentStorageService(optionService, _solutionSizeTracker), null);
+                Interlocked.CompareExchange(ref _singleton, new EsentPersistentStorageService(optionService, _solutionSizeTracker), null);
             }
 
             return _singleton;

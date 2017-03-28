@@ -7,17 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Esent;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Storage;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
-    public class PersistentStorageTests : IDisposable
+    public class EsentPersistentStorageTests : IDisposable
     {
         private const int NumThreads = 10;
         private const string PersistentFolderPrefix = "PersistentStorageTests_";
@@ -34,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         private const string Data1 = "Hello ESENT";
         private const string Data2 = "Goodbye ESENT";
 
-        public PersistentStorageTests()
+        public EsentPersistentStorageTests()
         {
             _persistentFolder = Path.Combine(Path.GetTempPath(), PersistentFolderPrefix + Guid.NewGuid());
             Directory.CreateDirectory(_persistentFolder);
@@ -316,9 +313,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         private IPersistentStorage GetStorage(Solution solution)
         {
-            var storage = new PersistentStorageService(_persistentEnabledOptionService, testing: true).GetStorage(solution);
+            var storage = new EsentPersistentStorageService(_persistentEnabledOptionService, testing: true).GetStorage(solution);
 
-            Assert.NotEqual(PersistentStorageService.NoOpPersistentStorageInstance, storage);
+            Assert.NotEqual(EsentPersistentStorageService.NoOpPersistentStorageInstance, storage);
             return storage;
         }
 
