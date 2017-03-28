@@ -34,14 +34,16 @@ namespace Microsoft.CodeAnalysis.SQLite
             Action<AbstractPersistentStorage> disposer)
             : base(optionService, workingFolderPath, solutionFilePath, databaseFile, disposer)
         {
-            _connection = new SQLiteAsyncConnection(databaseFile, 
-                SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.FullMutex);
+            _connection = new SQLiteAsyncConnection(databaseFile, GetOpenFlags());
         }
+
+        private static SQLiteOpenFlags GetOpenFlags()
+            => SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.FullMutex;
 
         public override void Initialize()
         {
             // Create a sync connection to the DB and ensure it has tables for the types we care about. 
-            using (var syncConnection = new SQLiteConnection(DatabaseFile))
+            using (var syncConnection = new SQLiteConnection(DatabaseFile, GetOpenFlags()))
             {
                 syncConnection.CreateTable<StringInfo>();
                 syncConnection.CreateTable<SolutionData>();
