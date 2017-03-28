@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             if (doc == null)
             {
                 // TODO (https://github.com/dotnet/roslyn/issues/1204): this check should be unnecessary.
-                log.Write($"GetTextBuffer: document not found for '{documentId?.GetDebuggerDisplay()}'");
+                log.Write("GetTextBuffer: document not found for '#{0} - {1}'", documentId.Id.ToString(), documentId.DebugName);
                 return null;
             }
 
