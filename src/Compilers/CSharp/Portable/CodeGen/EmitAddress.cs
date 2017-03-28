@@ -496,6 +496,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
+                //NOTE: we are not propagating AddressKind here.
+                //      the reason is that while Constrained permits calls, it does not permit 
+                //      taking field addresses, so we have to turn Constrained into writeable.
+                //      It is less error prone to just pass a bool "isReadonly" 
                 return EmitInstanceFieldAddress(fieldAccess, isReadonly: addressKind == AddressKind.Readonly);
             }
         }
