@@ -207,7 +207,8 @@
   </ItemGroup>
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="ManagedEsent" />
-    <NuGetPackageToIncludeInVsix Include="sqlite-net-pcl" />
+    <NuGetPackageToIncludeInVsix Include="SQLite.Net-PCL" />
+    <NuGetPackageToIncludeInVsix Include="SQLite.Net.Async-PCL" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" />
     <!-- Visual Studio ships with some, but not all, of the assemblies in Microsoft.Composition, but we need them all -->
     <NuGetPackageToIncludeInVsix Include="Microsoft.Composition" />

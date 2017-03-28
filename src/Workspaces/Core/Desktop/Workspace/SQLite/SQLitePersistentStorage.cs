@@ -8,7 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Storage;
-using SQLite;
+using SQLite.Net;
+using SQLite.Net.Async;
+using SQLite.Net.Attributes;
+using SQLite.Net.Interop;
+using SQLite.Net.Platform.Generic;
 using static System.FormattableString;
 
 namespace Microsoft.CodeAnalysis.SQLite
@@ -34,7 +38,11 @@ namespace Microsoft.CodeAnalysis.SQLite
             Action<AbstractPersistentStorage> disposer)
             : base(optionService, workingFolderPath, solutionFilePath, databaseFile, disposer)
         {
-            _connection = new SQLiteAsyncConnection(databaseFile, GetOpenFlags());
+            _connection = new SQLiteAsyncConnection(
+                () => new SQLiteConnectionWithLock(
+                    new SQLitePlatformGeneric(),
+                    new SQLiteConnectionString(
+                        databaseFile, storeDateTimeAsTicks: false, openFlags: GetOpenFlags())));
         }
 
         private static SQLiteOpenFlags GetOpenFlags()
@@ -43,7 +51,8 @@ namespace Microsoft.CodeAnalysis.SQLite
         public override void Initialize()
         {
             // Create a sync connection to the DB and ensure it has tables for the types we care about. 
-            using (var syncConnection = new SQLiteConnection(DatabaseFile, GetOpenFlags()))
+            using (var syncConnection = new SQLiteConnection(
+                new SQLitePlatformGeneric(), DatabaseFile, GetOpenFlags()))
             {
                 syncConnection.CreateTable<StringInfo>();
                 syncConnection.CreateTable<SolutionData>();
@@ -340,7 +349,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // Successfully added the string.  Return the ID it was given.
                 return newId;
             }
-            catch (SQLiteException ex) when (ex.Result == SQLite3.Result.Constraint)
+            catch (SQLiteException ex) when (ex.Result == Result.Constraint)
             {
                 // We got a constraint violation.  This means someone else beat us to adding this
                 // string to the string-table.  We should always be able to find the string now.
