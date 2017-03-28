@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// </summary>
         private readonly SQLiteAsyncConnection _connection;
 
+        // Caches from local data to the corresponding database ID for that data.
+        // Kept locally so we can avoid hitting the DB for common data.
         private readonly ConcurrentDictionary<string, int> _stringToIdMap = new ConcurrentDictionary<string, int>();
         private readonly ConcurrentDictionary<ProjectId, int> _projectIdToIdMap = new ConcurrentDictionary<ProjectId, int>();
         private readonly ConcurrentDictionary<DocumentId, int> _documentIdToIdMap = new ConcurrentDictionary<DocumentId, int>();
@@ -42,6 +44,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             using (var syncConnection = new SQLiteConnection(DatabaseFile))
             {
                 syncConnection.CreateTable<StringInfo>();
+                syncConnection.CreateTable<SolutionData>();
+                syncConnection.CreateTable<ProjectData>();
+                syncConnection.CreateTable<DocumentData>();
 
                 foreach (var v in syncConnection.Table<StringInfo>())
                 {
