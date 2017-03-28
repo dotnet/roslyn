@@ -131,6 +131,7 @@
     <Compile Include="BlindAggregatorFactory.cs" />
     <Compile Include="BlockCommentEditing\AbstractBlockCommentEditingTests.cs" />
     <Compile Include="BraceHighlighting\AbstractBraceHighlightingTests.cs" />
+    <Compile Include="BraceHighlighting\MultiCharacterBraceHighlightingTests.cs" />
     <Compile Include="BraceMatching\AbstractBraceMatcherTests.cs" />
     <Compile Include="CallHierarchy\CallHierarchyTestState.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureTests.cs" />
