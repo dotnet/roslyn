@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
@@ -17,12 +17,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             : base(instanceFactory)
         {
             VisualStudio.Instance.SolutionExplorer.CreateSolution(SolutionName);
-            VisualStudio.Instance.SolutionExplorer.AddProject(
-                ProjectName,
-                WellKnownProjectTemplates.ConsoleApplication,
-                LanguageNames.CSharp);
+            var project = new Project(ProjectName);
+            this.AddProject(WellKnownProjectTemplates.ConsoleApplication, project, Microsoft.CodeAnalysis.LanguageNames.CSharp);
 
-            this.AddFile(FileName,
+            this.AddFile(
+                FileName, 
+                project,
                 @"using System;
 
  namespace TestProj
@@ -59,7 +59,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void SendSingleLineSubmissionToInteractive()
         {
             InsertCode("// scenario 1");
-            var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
+            var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 1 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 2 */", charsOffset: -1, extendSelection: true);
@@ -75,7 +75,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void SendMultipleLineSubmissionToInteractive()
         {
             InsertCode("// scenario 2");
-            var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
+            var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 3 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 4 */", charsOffset: -1, extendSelection: true);
@@ -94,7 +94,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             SubmitText("int x = 1;");
             InsertCode("// scenario 3");
-            var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
+            var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
             VisualStudio.Instance.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true, selectBlock: true);
@@ -114,7 +114,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void SendToInteractiveWithKeyboardShortcut()
         {
             InsertCode("// scenario 4");
-            var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
+            var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
@@ -130,7 +130,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void ExecuteSingleLineSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
             InsertCode("// scenario 5");
-            var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
+            var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 1 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 2 */", charsOffset: -1, extendSelection: true);
@@ -146,7 +146,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void ExecuteMultipleLineSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
             InsertCode("// scenario 6");
-            var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
+            var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 3 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 4 */", charsOffset: -1, extendSelection: true);
@@ -165,7 +165,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             SubmitText("int x = 1;");
             InsertCode("// scenario 7");
-            var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
+            var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 5 */", charsOffset: 6);
             VisualStudio.Instance.Editor.PlaceCaret("/* 6 */", charsOffset: -3, extendSelection: true, selectBlock: true);
@@ -187,7 +187,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void ExecuteInInteractiveWithKeyboardShortcut()
         {
             InsertCode("// scenario 8");
-            var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
+            var project = new Project(ProjectName);
             this.OpenFile(FileName, project);
             VisualStudio.Instance.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
             VisualStudio.Instance.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
