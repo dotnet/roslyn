@@ -51,14 +51,9 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         protected AbstractPersistentStorageService(IOptionService optionService, bool testing) 
-            : this(optionService)
-        {
-            _testing = true;
-        }
-
-        protected AbstractPersistentStorageService(IOptionService optionService) 
             : this(optionService, solutionSizeTracker: null)
         {
+            _testing = true;
         }
 
         protected abstract string GetDatabaseFilePath(string workingFolderPath);

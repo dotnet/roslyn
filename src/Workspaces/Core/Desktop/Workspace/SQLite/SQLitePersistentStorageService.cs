@@ -7,24 +7,24 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.Storage;
-using Microsoft.Isam.Esent.Interop;
 using Roslyn.Utilities;
+using SQLite;
 
-namespace Microsoft.CodeAnalysis.Esent
+namespace Microsoft.CodeAnalysis.SQLite
 {
-    internal partial class EsentPersistentStorageService : AbstractPersistentStorageService, IPersistentStorageService
+    internal partial class SQLitePersistentStorageService : AbstractPersistentStorageService, IPersistentStorageService
     {
-        private const string StorageExtension = "vbcs.cache";
+        private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
 
-        public EsentPersistentStorageService(
+        public SQLitePersistentStorageService(
             IOptionService optionService,
             SolutionSizeTracker solutionSizeTracker)
             : base(optionService, solutionSizeTracker)
         {
         }
 
-        public EsentPersistentStorageService(IOptionService optionService, bool testing) 
+        public SQLitePersistentStorageService(IOptionService optionService, bool testing) 
             : base(optionService, testing)
         {
         }
@@ -40,27 +40,27 @@ namespace Microsoft.CodeAnalysis.Esent
             out AbstractPersistentStorage persistentStorage)
         {
             persistentStorage = null;
-            EsentPersistentStorage database = null;
+            SQLitePersistentStorage database = null;
 
             try
             {
-                database = new EsentPersistentStorage(OptionService, 
-                    workingFolderPath, solutionPath, GetDatabaseFilePath(workingFolderPath), this.Release);
+                database = new SQLitePersistentStorage(OptionService, 
+                    workingFolderPath, solutionPath, GetDatabaseFilePath(workingFolderPath),
+                    this.Release);
                 database.Initialize();
 
                 persistentStorage = database;
                 return true;
             }
-            catch (EsentAccessDeniedException ex)
+            catch (SQLiteException ex)
             {
-                // esent db is already in use by someone.
+                // db is already in use by someone.
                 if (database != null)
                 {
                     database.Close();
                 }
 
                 StorageDatabaseLogger.LogException(ex);
-
                 return false;
             }
             catch (Exception ex)

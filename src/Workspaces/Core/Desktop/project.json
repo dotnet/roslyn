@@ -2,7 +2,8 @@
   "dependencies": {
     "ManagedEsent": "1.9.4",
     "Microsoft.Build": "15.1.0-preview-000458-02",
-    "Microsoft.Build.Tasks.Core": "15.1.0-preview-000458-02"
+    "Microsoft.Build.Tasks.Core": "15.1.0-preview-000458-02",
+    "sqlite-net-pcl": "1.2.0"
   },
   "frameworks": {
     "net46": { }

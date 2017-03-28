@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Esent;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.SQLite;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
-    public class EsentPersistentStorageTests : AbstractPersistentStorageTests
+    public class SQLitePersistentStorageTests : AbstractPersistentStorageTests
     {
         protected override IPersistentStorageService GetStorageService()
         {
-            return new EsentPersistentStorageService(_persistentEnabledOptionService, testing: true);
+            return new SQLitePersistentStorageService(_persistentEnabledOptionService, testing: true);
         }
 
         [Fact]
