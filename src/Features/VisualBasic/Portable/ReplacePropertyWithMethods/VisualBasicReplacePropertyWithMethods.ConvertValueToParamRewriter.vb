@@ -15,11 +15,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Private Sub New()
             End Sub
 
-            Private Function IsValueName(node As XmlNodeSyntax) As Boolean
-                Dim name = TryCast(node, XmlNameSyntax)
-                Return name?.Prefix Is Nothing AndAlso name?.LocalName.ValueText = "value"
-            End Function
-
             Private Function ConvertToParam(name As XmlNodeSyntax) As SyntaxNode
                 Return name.ReplaceToken(DirectCast(name, XmlNameSyntax).LocalName,
                                          SyntaxFactory.XmlNameToken("param", SyntaxKind.IdentifierToken))

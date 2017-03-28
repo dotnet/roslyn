@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 {
                     // We're in a documentation comment. Replace with a reference to the getter if one exists,
                     // otherwise to the setter.
-                    ReplaceCref();
+                    _editor.ReplaceNode(_cref, GetCrefReference(_cref));
                 }
                 else if (_semanticFacts.IsInOutContext(_semanticModel, _expression, _cancellationToken) ||
                     _semanticFacts.IsInRefContext(_semanticModel, _expression, _cancellationToken))
@@ -257,13 +257,6 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     // No writes.  Replace this with an appropriate read.
                     ReplaceRead(keepTrivia: true, conflictMessage: null);
                 }
-            }
-
-            private void ReplaceCref()
-            {
-                _editor.ReplaceNode(
-                    _cref,
-                    GetCrefReference(_cref));
             }
 
             private void ReplaceRead(bool keepTrivia, string conflictMessage)

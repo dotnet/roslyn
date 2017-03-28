@@ -128,6 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 generator, propertyDeclaration, propertyBackingField,
                 setMethod, desiredSetMethodName, cancellationToken);
 
+            // The analyzer doesn't report diagnostics when the trivia contains preprocessor directives, so it's safe
+            // to copy the complete leading trivia to both generated methods.
             methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToParamRewriter.Instance);
 
             return UseExpressionOrBlockBodyIfDesired(
@@ -288,6 +290,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return methodDeclaration;
         }
 
+        /// <summary>
+        /// Used by the documentation comment rewriters to identify top-level <c>&lt;value&gt;</c> nodes.
+        /// </summary>
+        private static bool IsValueName(XmlNameSyntax name)
+            => name.Prefix == null &&
+               name.LocalName.ValueText == "value";
+
         public override SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration)
         {
             // For C# we'll have the property declaration that we want to replace.
@@ -295,16 +304,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         }
 
         protected override NameMemberCrefSyntax TryGetCrefSyntax(IdentifierNameSyntax identifierName)
-        {
-            return identifierName.Parent as NameMemberCrefSyntax;
-        }
+            => identifierName.Parent as NameMemberCrefSyntax;
 
         protected override NameMemberCrefSyntax CreateCrefSyntax(NameMemberCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode parameterType)
         {
             CrefParameterListSyntax parameterList;
-            if (parameterType is TypeSyntax)
+            if (parameterType is TypeSyntax typeSyntax)
             {
-                CrefParameterSyntax parameter = SyntaxFactory.CrefParameter((TypeSyntax)parameterType.ReplaceTokens(parameterType.DescendantTokens(), ReplaceBraceTokenForDocumentation));
+                CrefParameterSyntax parameter = SyntaxFactory.CrefParameter(typeSyntax);
                 parameterList = SyntaxFactory.CrefParameterList(SyntaxFactory.SingletonSeparatedList(parameter));
             }
             else
@@ -312,21 +319,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 parameterList = SyntaxFactory.CrefParameterList();
             }
 
-            return SyntaxFactory.NameMemberCref(SyntaxFactory.IdentifierName(identifierToken), parameterList);
-        }
-
-        private static SyntaxToken ReplaceBraceTokenForDocumentation(SyntaxToken originalToken, SyntaxToken rewrittenToken)
-        {
-            switch (rewrittenToken.Kind())
-            {
-                case SyntaxKind.LessThanToken:
-                case SyntaxKind.GreaterThanToken:
-                    string newText = rewrittenToken.IsKind(SyntaxKind.LessThanToken) ? "{" : "}";
-                    return SyntaxFactory.Token(rewrittenToken.LeadingTrivia, rewrittenToken.Kind(), newText, rewrittenToken.ValueText, rewrittenToken.TrailingTrivia);
-
-                default:
-                    return rewrittenToken;
-            }
+            // XmlCrefAttribute replaces <T> with {T}, which is required for C# documentation comments
+            var crefAttribute = SyntaxFactory.XmlCrefAttribute(
+                SyntaxFactory.NameMemberCref(SyntaxFactory.IdentifierName(identifierToken), parameterList));
+            return (NameMemberCrefSyntax)crefAttribute.Cref;
         }
 
         protected override ExpressionSyntax UnwrapCompoundAssignment(

@@ -171,6 +171,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return trivia
         End Function
 
+        ''' <summary>
+        ''' Used by the documentation comment rewriters to identify top-level <c>&lt;value&gt;</c> nodes.
+        ''' </summary>
+        Private Shared Function IsValueName(node As XmlNodeSyntax) As Boolean
+            Dim name = TryCast(node, XmlNameSyntax)
+            Return name?.Prefix Is Nothing AndAlso name?.LocalName.ValueText = "value"
+        End Function
+
         Public Overrides Function GetPropertyNodeToReplace(propertyDeclaration As SyntaxNode) As SyntaxNode
             ' In VB we'll have the property statement.  If that is parented by a 
             ' property block, we'll want to replace that instead.  Otherwise we
