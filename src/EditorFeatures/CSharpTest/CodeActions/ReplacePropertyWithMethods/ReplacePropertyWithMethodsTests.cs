@@ -1363,7 +1363,7 @@ ignoreTrivia: false);
 @"internal interface ILanguageServiceHost
 {
     /// <summary>
-    ///     Gets the active workspace project context that provides access to the language service for the active configured project.
+    ///     Sets the active workspace project context that provides access to the language service for the active configured project.
     /// </summary>
     /// <value>
     ///     An value that provides access to the language service for the active configured project.
@@ -1376,11 +1376,11 @@ ignoreTrivia: false);
 @"internal interface ILanguageServiceHost
 {
     /// <summary>
-    ///     Gets the active workspace project context that provides access to the language service for the active configured project.
+    ///     Sets the active workspace project context that provides access to the language service for the active configured project.
     /// </summary>
-    /// <returns>
+    /// <param name=""value"">
     ///     An value that provides access to the language service for the active configured project.
-    /// </returns>
+    /// </param>
     void SetActiveProjectContext(object value);
 }", ignoreTrivia: false);
         }
@@ -1393,7 +1393,7 @@ ignoreTrivia: false);
 @"internal interface ILanguageServiceHost
 {
     /// <summary>
-    ///     Gets the active workspace project context that provides access to the language service for the active configured project.
+    ///     Gets or sets the active workspace project context that provides access to the language service for the active configured project.
     /// </summary>
     /// <value>
     ///     An value that provides access to the language service for the active configured project.
@@ -1406,12 +1406,18 @@ ignoreTrivia: false);
 @"internal interface ILanguageServiceHost
 {
     /// <summary>
-    ///     Gets the active workspace project context that provides access to the language service for the active configured project.
+    ///     Gets or sets the active workspace project context that provides access to the language service for the active configured project.
     /// </summary>
     /// <returns>
     ///     An value that provides access to the language service for the active configured project.
     /// </returns>
     object GetActiveProjectContext();
+    /// <summary>
+    ///     Gets or sets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <param name=""value"">
+    ///     An value that provides access to the language service for the active configured project.
+    /// </param>
     void SetActiveProjectContext(object value);
 }", ignoreTrivia: false);
         }

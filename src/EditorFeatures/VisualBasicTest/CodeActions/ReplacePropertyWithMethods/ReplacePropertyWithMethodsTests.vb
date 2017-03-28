@@ -445,7 +445,7 @@ End Interface", ignoreTrivia:=False)
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
     ''' <summary>
-    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    '''     Sets the active workspace project context that provides access to the language service for the active configured project.
     ''' </summary>
     ''' <value>
     '''     An that provides access to the language service for the active configured project.
@@ -454,11 +454,11 @@ End Interface", ignoreTrivia:=False)
 End Interface",
 "Interface ILanguageServiceHost
     ''' <summary>
-    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    '''     Sets the active workspace project context that provides access to the language service for the active configured project.
     ''' </summary>
-    ''' <returns>
+    ''' <param name=""Value"">
     '''     An that provides access to the language service for the active configured project.
-    ''' </returns>
+    ''' </param>
     Sub SetActiveProjectContext(Value As Object)
 End Interface", ignoreTrivia:=False)
         End Function
@@ -469,7 +469,7 @@ End Interface", ignoreTrivia:=False)
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
     ''' <summary>
-    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    '''     Gets or sets the active workspace project context that provides access to the language service for the active configured project.
     ''' </summary>
     ''' <value>
     '''     An that provides access to the language service for the active configured project.
@@ -478,12 +478,18 @@ End Interface", ignoreTrivia:=False)
 End Interface",
 "Interface ILanguageServiceHost
     ''' <summary>
-    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    '''     Gets or sets the active workspace project context that provides access to the language service for the active configured project.
     ''' </summary>
     ''' <returns>
     '''     An that provides access to the language service for the active configured project.
     ''' </returns>
     Function GetActiveProjectContext() As Object
+    ''' <summary>
+    '''     Gets or sets the active workspace project context that provides access to the language service for the active configured project.
+    ''' </summary>
+    ''' <param name=""Value"">
+    '''     An that provides access to the language service for the active configured project.
+    ''' </param>
     Sub SetActiveProjectContext(Value As Object)
 End Interface", ignoreTrivia:=False)
         End Function
