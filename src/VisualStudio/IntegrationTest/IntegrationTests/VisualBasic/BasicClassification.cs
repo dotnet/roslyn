@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -35,32 +36,32 @@ Namespace Acme
     End Class
 End Namespace");
 
-            PlaceCaret("MathAlias");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Namespace");
-            VerifyCurrentTokenType(tokenType: "keyword");
-            PlaceCaret("summary");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - name");
-            PlaceCaret("innertext");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - text");
-            PlaceCaret("!--");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("comment");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
-            PlaceCaret("CDATA");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("cdata");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
-            PlaceCaret("attribute");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Class");
-            VerifyCurrentTokenType(tokenType: "keyword");
-            PlaceCaret("Program");
-            VerifyCurrentTokenType(tokenType: "class name");
-            PlaceCaret("Hello");
-            VerifyCurrentTokenType(tokenType: "string");
-            PlaceCaret("comment");
-            VerifyCurrentTokenType(tokenType: "comment");
+            this.PlaceCaret("MathAlias");
+            this.VerifyCurrentTokenType(tokenType: "identifier");
+            this.PlaceCaret("Namespace");
+            this.VerifyCurrentTokenType(tokenType: "keyword");
+            this.PlaceCaret("summary");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - name");
+            this.PlaceCaret("innertext");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - text");
+            this.PlaceCaret("!--");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
+            this.PlaceCaret("comment");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
+            this.PlaceCaret("CDATA");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
+            this.PlaceCaret("cdata");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
+            this.PlaceCaret("attribute");
+            this.VerifyCurrentTokenType(tokenType: "identifier");
+            this.PlaceCaret("Class");
+            this.VerifyCurrentTokenType(tokenType: "keyword");
+            this.PlaceCaret("Program");
+            this.VerifyCurrentTokenType(tokenType: "class name");
+            this.PlaceCaret("Hello");
+            this.VerifyCurrentTokenType(tokenType: "string");
+            this.PlaceCaret("comment");
+            this.VerifyCurrentTokenType(tokenType: "comment");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -71,10 +72,10 @@ Imports System
 Class Foo
     Inherits Attribute
 End Class");
-            PlaceCaret("Foo");
-            VerifyCurrentTokenType(tokenType: "class name");
-            PlaceCaret("Attribute");
-            VerifyCurrentTokenType(tokenType: "class name");
+            this.PlaceCaret("Foo");
+            this.VerifyCurrentTokenType(tokenType: "class name");
+            this.PlaceCaret("Attribute");
+            this.VerifyCurrentTokenType(tokenType: "class name");
         }
     }
 }

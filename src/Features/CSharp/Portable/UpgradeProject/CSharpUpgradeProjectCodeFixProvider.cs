@@ -22,9 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         private const string CS8025 = nameof(CS8025); // error CS8025: Feature is not available in C# 4. Please use language version X or greater.
         private const string CS8026 = nameof(CS8026); // error CS8026: Feature is not available in C# 5. Please use language version X or greater.
         private const string CS8059 = nameof(CS8059); // error CS8059: Feature is not available in C# 6. Please use language version X or greater.
+        private const string CS8107 = nameof(CS8107); // error CS8059: Feature is not available in C# 7.0. Please use language version X or greater.
+        private const string CS8302 = nameof(CS8302); // error CS8302: Feature is not available in C# 7.1. Please use language version X or greater.
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS8022, CS8023, CS8024, CS8025, CS8026, CS8059);
+            ImmutableArray.Create(CS8022, CS8023, CS8024, CS8025, CS8026, CS8059, CS8107, CS8302);
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;
         public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0;

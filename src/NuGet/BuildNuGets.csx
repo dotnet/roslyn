@@ -215,8 +215,12 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
 
     if (!IsCoreBuild)
     {
+        // The -NoPackageAnalysis argument is to work around the following issue.  The warning output of 
+        // NuGet gets promoted to an error by MSBuild /warnaserror
+        // https://github.com/dotnet/roslyn/issues/18152
         commonArgs = $"-BasePath \"{BinDir}\" " +
         $"-OutputDirectory \"{OutDir}\" " +
+        $"-NoPackageAnalysis " +
         string.Join(" ", commonProperties.Select(p => $"-prop {p.Key}=\"{p.Value}\""));
     }
     else

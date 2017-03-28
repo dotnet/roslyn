@@ -22,7 +22,9 @@ try {
     Exec { & $nuget locals all -clear }
 
     $msbuild = Ensure-MSBuild
-    & $msbuild /nodereuse:false /p:Configuration=Release /p:SkipTest=true Build.proj 
+
+    # The /nowarn exception can be removed once we fix https://github.com/dotnet/roslyn/issues/17325
+    & $msbuild /nodereuse:false /p:Configuration=Release /p:SkipTest=true Build.proj /warnaserror /nowarn:MSB3277
     if (-not $?) { 
         throw "Build failed"
     }
