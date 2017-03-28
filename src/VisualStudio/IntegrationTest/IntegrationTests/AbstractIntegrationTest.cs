@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
@@ -86,6 +85,15 @@ The list of available commands:
             }
         }
 
+        protected void VerifyCompletionUnexpectedItemDoesNotExist(params string[] unexpectedItems)
+        {
+            var completionItems = TextViewWindow.GetCompletionItems();
+            foreach (var unexpectedItem in unexpectedItems)
+            {
+                Assert.DoesNotContain(unexpectedItem, completionItems);
+            }
+        }
+
         protected void VerifyCaretPosition(int expectedCaretPosition)
         {
             var position = TextViewWindow.GetCaretPosition();
@@ -94,26 +102,6 @@ The list of available commands:
 
         protected void WaitForAsyncOperations(params string[] featuresToWaitFor)
             => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(string.Join(";", featuresToWaitFor));
-
-        protected void AddFile(string fileName, string contents = null, bool open = false)
-            => VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, fileName, contents, open);
-
-        protected void OpenFile(string projectName, string fileName)
-            => VisualStudio.Instance.SolutionExplorer.OpenFile(projectName, fileName);
-
-        protected void OpenFileWithDesigner(string projectName, string fileName)
-            => VisualStudio.Instance.SolutionExplorer.OpenFileWithDesigner(projectName, fileName);
-
-        protected void CloseFile(string projectName, string fileName, bool saveFile = true)
-            => VisualStudio.Instance.SolutionExplorer.CloseFile(projectName, fileName, saveFile);
-
-        protected void SaveFile(string projectName, string fileName)
-            => VisualStudio.Instance.SolutionExplorer.SaveFile(projectName, fileName);
-
-        protected void AddReference(string projectName, string fullyQualifiedAssemblyName)
-        {
-            VisualStudio.Instance.SolutionExplorer.AddReference(projectName, fullyQualifiedAssemblyName);
-        }
 
         public void VerifyAssemblyReferencePresent(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken)
         {

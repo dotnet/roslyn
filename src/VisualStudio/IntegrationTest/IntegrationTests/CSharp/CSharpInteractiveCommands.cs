@@ -2,7 +2,6 @@
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
@@ -21,21 +20,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             SubmitText("1 + 2");
             SubmitText("1.ToString()");
-            WaitForLastReplOutput("\"1\"");
+            this.WaitForLastReplOutput("\"1\"");
             SendKeys(Alt(VirtualKey.Up));
             VerifyLastReplInput("1.ToString()");
             SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("\"1\"");
+            this.WaitForLastReplOutput("\"1\"");
             SendKeys(Alt(VirtualKey.Up));
             VerifyLastReplInput("1.ToString()");
             SendKeys(Alt(VirtualKey.Up));
             VerifyLastReplInput("1 + 2");
             SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("3");
+            this.WaitForLastReplOutput("3");
             SendKeys(Alt(VirtualKey.Down));
             VerifyLastReplInput("1.ToString()");
             SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("\"1\"");
+            this.WaitForLastReplOutput("\"1\"");
         }
 
         [Fact]
@@ -43,7 +42,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             InsertCode("2 + 3");
             SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("5");
+            this.WaitForLastReplOutput("5");
         }
 
         [Fact]
@@ -53,14 +52,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             SendKeys(VirtualKey.Enter);
             InsertCode("4");
             SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("7");
+            this.WaitForLastReplOutput("7");
         }
 
         [Fact]
         public void VerifyExecuteInput()
         {
             SubmitText("1 + ");
-            WaitForLastReplOutputContains("CS1733");
+            this.WaitForLastReplOutputContains("CS1733");
         }
 
         [Fact]
@@ -69,7 +68,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             InsertCode("1 + 2");
             SendKeys(VirtualKey.Enter);
             SubmitText("+ 3");
-            WaitForReplOutputContains("3");
+            this.WaitForLastReplOutputContains("3");
             VerifyReplPromptConsistency("<![CDATA[1 + 2 + 3]]>", "6");
         }
 
@@ -92,7 +91,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             SendKeys(Ctrl(VirtualKey.Y));
             VerifyLastReplInput(" 2 + 4 ");
             SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("6");
+            this.WaitForLastReplOutput("6");
         }
 
         [Fact]

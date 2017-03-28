@@ -1,9 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-
 namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive
 {
     public static class InteractiveExtensions
@@ -27,5 +23,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive
         {
             CommonExtensions.InvokeCompletionList(test);
         }
+
+        public static void WaitForReplOutput(this AbstractInteractiveWindowTest test, string outputText)
+            => test.VisualStudio.Instance.CSharpInteractiveWindow.WaitForReplOutput(outputText);
+
+        public static void WaitForLastReplOutputContains(this AbstractInteractiveWindowTest test, string outputText)
+            => test.VisualStudio.Instance.CSharpInteractiveWindow.WaitForLastReplOutputContains(outputText);
+
+        public static void WaitForLastReplOutput(this AbstractInteractiveWindowTest test, string outputText)
+            => test.VisualStudio.Instance.CSharpInteractiveWindow.WaitForLastReplOutput(outputText);
+
+        public static void WaitForLastReplInputContains(this AbstractInteractiveWindowTest test, string outputText)
+              => test.VisualStudio.Instance.CSharpInteractiveWindow.WaitForLastReplInputContains(outputText);
     }
 }

@@ -7,6 +7,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer
 {
     public static partial class SolutionExplorerExtensions
     {
+        public const string ProjectName = "TestProj";
+        public const string SolutionName = "TestSolution";
+
         public static void CreateSolution(this AbstractIntegrationTest test, string solutionName, bool saveExistingSolutionIfExists = false)
             => test.VisualStudio.Instance.SolutionExplorer.CreateSolution(solutionName, saveExistingSolutionIfExists);
 
@@ -18,6 +21,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer
 
         public static void AddFile(this AbstractIntegrationTest test, string fileName, ProjectUtils.Project project, string contents = null, bool open = false)
             => test.VisualStudio.Instance.SolutionExplorer.AddFile(project.Name, fileName, contents, open);
+
+        public static void AddFile(this AbstractIntegrationTest test, string fileName, string contents = null, bool open = false)
+            => test.VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, fileName, contents, open);
+
+        public static void AddReference(this AbstractIntegrationTest test, string projectName, string fullyQualifiedAssemblyName)
+         => test.VisualStudio.Instance.SolutionExplorer.AddReference(projectName, fullyQualifiedAssemblyName);
 
         public static void AddMetadataReference(this AbstractIntegrationTest test, ProjectUtils.AssemblyReference referenceName, ProjectUtils.Project projectName)
         {
@@ -66,5 +75,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer
 
         public static void EditProjectFile(this AbstractIntegrationTest test, ProjectUtils.Project project)
             => test.VisualStudio.Instance.SolutionExplorer.EditProjectFile(project.Name);
+
+        public static void CloseFile(this AbstractIntegrationTest test, string projectName, string fileName, bool saveFile = true)
+            => test.VisualStudio.Instance.SolutionExplorer.CloseFile(projectName, fileName, saveFile);
+
+        public static void SaveFile(this AbstractIntegrationTest test, string projectName, string fileName)
+            => test.VisualStudio.Instance.SolutionExplorer.SaveFile(projectName, fileName);
     }
 }

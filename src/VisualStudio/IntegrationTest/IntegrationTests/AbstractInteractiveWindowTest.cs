@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Xunit;
@@ -61,12 +59,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
                   extendSelection,
                   selectBlock);
 
-        protected void VerifyLastReplOutput(string expectedReplOutput)
-        {
-            var lastReplOutput = InteractiveWindow.GetLastReplOutput();
-            Assert.Equal(expectedReplOutput, lastReplOutput);
-        }
-
         protected void VerifyLastReplInput(string expectedReplInput)
         {
             var lastReplInput = InteractiveWindow.GetLastReplInput();
@@ -101,29 +93,5 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 Assert.DoesNotContain(output, replTextLine);
             }
         }
-
-        protected void VerifyCompletionUnexpectedItemDoesNotExist(params string[] unexpectedItems)
-        {
-            var completionItems = InteractiveWindow.GetCompletionItems();
-            foreach (var unexpectedItem in unexpectedItems)
-            {
-                Assert.DoesNotContain(unexpectedItem, completionItems);
-            }
-        }
-
-        protected void WaitForReplOutput(string outputText)
-            => InteractiveWindow.WaitForReplOutput(outputText);
-
-        protected void WaitForReplOutputContains(string outputText)
-            => InteractiveWindow.WaitForReplOutputContains(outputText);
-
-        protected void WaitForLastReplOutputContains(string outputText)
-            => InteractiveWindow.WaitForLastReplOutputContains(outputText);
-
-        protected void WaitForLastReplOutput(string outputText)
-            => InteractiveWindow.WaitForLastReplOutput(outputText);
-
-        protected void WaitForLastReplInputContains(string outputText)
-            => InteractiveWindow.WaitForLastReplInputContains(outputText);
     }
 }

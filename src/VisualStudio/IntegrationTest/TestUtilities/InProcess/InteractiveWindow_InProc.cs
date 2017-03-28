@@ -200,9 +200,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             _interactiveWindow.InsertCode(text);
         }
 
-        public void WaitForReplOutputContains(string outputText)
-            => WaitForPredicate(() => GetReplText().Contains(outputText));
-
         public void WaitForLastReplOutput(string outputText)
             => WaitForPredicate(() => GetLastReplOutput().Contains(outputText));
 

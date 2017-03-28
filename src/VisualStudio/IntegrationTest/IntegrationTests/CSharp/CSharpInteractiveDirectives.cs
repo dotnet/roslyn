@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -74,7 +75,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 var bigInt = new BigInteger();
 bigInt");
 
-            WaitForLastReplOutput("[0]");
+            this.WaitForLastReplOutput("[0]");
         }
 
         [Fact]
@@ -86,7 +87,7 @@ class Complex { public int foo() { return 4; } }
 var comp = new Complex();
 comp.foo()");
 
-            WaitForLastReplOutput("4");
+            this.WaitForLastReplOutput("4");
         }
 
         [Fact]
@@ -102,7 +103,7 @@ comp.foo()");
                 SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
                 SubmitText(@"var comp = new Complex();
 comp.foo()");
-                WaitForLastReplOutput("4");
+                this.WaitForLastReplOutput("4");
             }
         }
 
@@ -111,7 +112,7 @@ comp.foo()");
         {
             SubmitText(@"using System.Diagnostics;
 Process.GetCurrentProcess().ProcessName");
-            WaitForLastReplOutput("\"InteractiveHost\"");
+            this.WaitForLastReplOutput("\"InteractiveHost\"");
         }
 
         [Fact]
@@ -123,9 +124,9 @@ Process.GetCurrentProcess().ProcessName");
             {
                 temporaryTextFile.Create();
                 SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
-                WaitForLastReplOutput("2");
+                this.WaitForLastReplOutput("2");
                 SubmitText("#load text");
-                WaitForLastReplOutputContains("CS7010: Quoted file name expected");
+                this.WaitForLastReplOutput("CS7010: Quoted file name expected");
             }
         }
 
@@ -133,13 +134,13 @@ Process.GetCurrentProcess().ProcessName");
         public void VerifySquiggleAndErrorMessageUnderIncorrectDirective()
         {
             SubmitText("#foo");
-            WaitForLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
+            this.WaitForLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(1);
             SubmitText("#reset");
 
             SubmitText("#bar");
-            WaitForLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
+            this.WaitForLastReplOutput("(1,2): error CS1024: Preprocessor directive expected");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(2);
         }
@@ -148,7 +149,7 @@ Process.GetCurrentProcess().ProcessName");
         public void VerifyHashHelpDirectiveOutputNoSquigglesUnderHashHelp()
         {
             SubmitText("#help");
-            WaitForLastReplOutput(@"Keyboard shortcuts:
+            this.WaitForLastReplOutput(@"Keyboard shortcuts:
   Enter                If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
   Ctrl-Enter           Within the current submission, evaluate the current submission.
                        Within a previous submission, append the previous submission to the current submission.
@@ -185,9 +186,9 @@ Script directives:
         public void VerifyHashReset()
         {
             SubmitText("1+1");
-            WaitForLastReplOutput("2");
+            this.WaitForLastReplOutput("2");
             SubmitText("#reset");
-            WaitForLastReplOutputContains(@"Resetting execution engine.
+            this.WaitForLastReplOutput(@"Resetting execution engine.
 Loading context from");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(0);
@@ -197,12 +198,12 @@ Loading context from");
         public void VerifyDisplayCommandUsageOutputNoSquigglesUnderSlashHelp()
         {
             SubmitText("#reset /help");
-            WaitForLastReplOutputContains(@"Usage:
+            this.WaitForLastReplOutputContains(@"Usage:
   #reset [noconfig]");
             // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
             // VerifyErrorCount(0);
             SubmitText("#load /help");
-            WaitForLastReplOutputContains("CS7010: Quoted file name expected");
+            this.WaitForLastReplOutputContains("CS7010: Quoted file name expected");
         }
 
 //        [Fact]
@@ -256,28 +257,28 @@ Loading context from");
         {
             SubmitText("double M() { return 13.1; }");
             SubmitText("M()");
-            WaitForLastReplOutput("13.1");
+            this.WaitForLastReplOutput("13.1");
             SubmitText("double M() { return M(); }");
             SubmitText("M()");
-            WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
+            this.WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
             SubmitText("M()");
-            WaitForLastReplOutputContains("CS0103");
+            this.WaitForLastReplOutputContains("CS0103");
             SubmitText("double M() { return M(); }");
             SubmitText("M()");
-            WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
+            this.WaitForLastReplOutputContains("Process is terminated due to StackOverflowException.");
             SubmitText("double M() { return 13.2; }");
             SubmitText("M()");
-            WaitForLastReplOutput("13.2");
+            this.WaitForLastReplOutput("13.2");
         }
 
         [Fact]
         public void InitializationAfterReset()
         {
             SubmitText("#reset");
-            WaitForLastReplOutput(@"Resetting execution engine.
+            this.WaitForLastReplOutput(@"Resetting execution engine.
 Loading context from 'CSharpInteractive.rsp'.");
             SubmitText("#reset noconfig");
-            WaitForLastReplOutput("Resetting execution engine.");
+            this.WaitForLastReplOutput("Resetting execution engine.");
         }
     }
 }

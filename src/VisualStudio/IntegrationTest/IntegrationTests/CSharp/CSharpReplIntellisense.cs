@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.VisualStudio.IntegrationTests.Extensions;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -76,7 +77,7 @@ Del<C, System");
             VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
             SendKeys("TimeSpan.FromMin");
             SendKeys(VirtualKey.Enter, "(0d)", VirtualKey.Enter);
-            WaitForReplOutput("[00:00:00]");
+            this.WaitForReplOutput("[00:00:00]");
         }
 
         [Fact]

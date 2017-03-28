@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -27,7 +28,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void VerifyDefaultUsingStatements()
         {
             SubmitText("Console.WriteLine(42);");
-            WaitForLastReplOutput("42");
+            this.WaitForLastReplOutput("42");
         }
 
         // https://github.com/dotnet/roslyn/issues/801

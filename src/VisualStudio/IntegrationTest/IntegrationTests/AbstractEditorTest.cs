@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Automation;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -12,7 +9,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
@@ -116,12 +112,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void SendKeys(params object[] keys)
             => Editor.SendKeys(keys);
-
-        protected void DisableSuggestionMode()
-            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-
-        protected void EnableSuggestionMode()
-            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
 
         protected void InvokeSignatureHelp()
         {
