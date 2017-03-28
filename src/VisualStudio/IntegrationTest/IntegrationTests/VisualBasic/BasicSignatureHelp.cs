@@ -1,8 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -71,11 +73,11 @@ End Class
         {
             SetUpEditor(Baseline);
 
-            SendKeys("Dim m=Method(1,");
-            InvokeSignatureHelp();
-            VerifyCurrentSignature("C.Method(i As Integer, i2 As Integer) As C\r\nHello World 2.0!");
-            VerifyCurrentParameter("i2", "an integer, anything you like.");
-            VerifyParameters(
+            this.SendKeys("Dim m=Method(1,");
+            this.InvokeSignatureHelp();
+            this.VerifyCurrentSignature("C.Method(i As Integer, i2 As Integer) As C\r\nHello World 2.0!");
+            this.VerifyCurrentParameter("i2", "an integer, anything you like.");
+            this.VerifyParameters(
                 ("i", "an integer, preferably 42."),
                 ("i2", "an integer, anything you like."));
         }
@@ -85,12 +87,12 @@ End Class
         {
             SetUpEditor(Baseline);
 
-            SendKeys("Dim gm = GenericMethod");
-            SendKeys(VirtualKey.Escape);
-            SendKeys("(");
-            VerifyCurrentSignature("C.GenericMethod(Of T1)(i As T1) As C\r\nHello Generic World!");
-            VerifyCurrentParameter("i", "Param 1 of type T1");
-            VerifyParameters(
+            this.SendKeys("Dim gm = GenericMethod");
+            this.SendKeys(VirtualKey.Escape);
+            this.SendKeys("(");
+            this.VerifyCurrentSignature("C.GenericMethod(Of T1)(i As T1) As C\r\nHello Generic World!");
+            this.VerifyCurrentParameter("i", "Param 1 of type T1");
+            this.VerifyParameters(
                 ("i", "Param 1 of type T1"));
         }
 
@@ -126,12 +128,12 @@ Class C(Of T, R)
     End Function
 End Class");
 
-            SendKeys("GenericMethod");
-            SendKeys(VirtualKey.Escape);
-            SendKeys("(Of ");
-            VerifyCurrentSignature("C(Of T, R).GenericMethod(Of T1)(i As T1)\r\nGeneric Method with 1 Type Param");
-            VerifyCurrentParameter("T1", "Type Parameter");
-            VerifyParameters(
+            this.SendKeys("GenericMethod");
+            this.SendKeys(VirtualKey.Escape);
+            this.SendKeys("(Of ");
+            this.VerifyCurrentSignature("C(Of T, R).GenericMethod(Of T1)(i As T1)\r\nGeneric Method with 1 Type Param");
+            this.VerifyCurrentParameter("T1", "Type Parameter");
+            this.VerifyParameters(
                 ("T1", "Type Parameter"));
         }
 
@@ -154,10 +156,10 @@ Class C
     End Function
 End Class");
 
-            InvokeSignatureHelp();
-            VerifyCurrentSignature("C.GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C");
-            VerifyCurrentParameter("T2", "");
-            VerifyParameters(
+            this.InvokeSignatureHelp();
+            this.VerifyCurrentSignature("C.GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C");
+            this.VerifyCurrentParameter("T2", "");
+            this.VerifyParameters(
                 ("T1", ""),
                 ("T2", ""));
         }
@@ -172,11 +174,11 @@ Module M
     End Sub
 End Module");
 
-            SendKeys("Method(");
-            VerifyCurrentSignature("M.Method(a As Integer, b As Integer)");
-            VerifyCurrentParameter("a", "");
-            SendKeys("1, ");
-            VerifyCurrentParameter("b", "");
+            this.SendKeys("Method(");
+            this.VerifyCurrentSignature("M.Method(a As Integer, b As Integer)");
+            this.VerifyCurrentParameter("a", "");
+            this.SendKeys("1, ");
+            this.VerifyCurrentParameter("b", "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
@@ -191,8 +193,8 @@ Class C
     End Sub
 End Class");
 
-            SendKeys("Foo(");
-            VerifyCurrentSignature("C.Foo()");
+            this.SendKeys("Foo(");
+            this.VerifyCurrentSignature("C.Foo()");
 
             Editor.SetText(@"
 Class C
@@ -206,10 +208,10 @@ Class C
         {
             SetUpEditor(Baseline);
 
-            SendKeys("Dim op = OutAndParam(");
-            VerifyCurrentSignature("C.OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)\r\nComplex Method Params");
-            VerifyCurrentParameter("strings", "Jagged MultiDimensional Array");
-            VerifyParameters(
+            this.SendKeys("Dim op = OutAndParam(");
+            this.VerifyCurrentSignature("C.OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)\r\nComplex Method Params");
+            this.VerifyCurrentParameter("strings", "Jagged MultiDimensional Array");
+            this.VerifyParameters(
                 ("strings", "Jagged MultiDimensional Array"),
                 ("outArr", "Out Array"),
                 ("d", "Dynamic and Params param"));

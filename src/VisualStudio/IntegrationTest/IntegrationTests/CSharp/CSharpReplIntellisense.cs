@@ -3,6 +3,8 @@
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -19,24 +21,24 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyCompletionListOnEmptyTextAtTopLevel()
         {
-            InvokeCompletionList();
-            VerifyCompletionItemExists("var", "public", "readonly", "goto");
+            this.InvokeCompletionList();
+            this.VerifyCompletionItemExists("var", "public", "readonly", "goto");
         }
 
         [Fact]
         public void VerifySharpRCompletionList()
         {
             InsertCode("#r \"");
-            InvokeCompletionList();
-            VerifyCompletionItemExists("System");
+            this.InvokeCompletionList();
+            this.VerifyCompletionItemExists("System");
         }
 
         [Fact]
         public void VerifyCommitCompletionOnTopLevel()
         {
             InsertCode("pub");
-            InvokeCompletionList();
-            VerifyCompletionItemExists("public");
+            this.InvokeCompletionList();
+            this.VerifyCompletionItemExists("public");
             SendKeys(VirtualKey.Tab);
             VerifyLastReplInput("public");
             SendKeys(VirtualKey.Escape);
@@ -49,16 +51,16 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 public delegate R Del<T, R>(T arg);
 Del<C, System");
             SendKeys(VirtualKey.Period);
-            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-            VerifyCompletionItemExists("ArgumentException");
+            this.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+            this.VerifyCompletionItemExists("ArgumentException");
         }
 
         [Fact]
         public void VerifySharpLoadCompletionList()
         {
             InsertCode("#load \"");
-            InvokeCompletionList();
-            VerifyCompletionItemExists("C:");
+            this.InvokeCompletionList();
+            this.VerifyCompletionItemExists("C:");
         }
 
         [Fact]
@@ -81,13 +83,13 @@ Del<C, System");
         public void VerifyCompletionListForLoadMembers()
         {
             using (var temporaryTextFile = new TemporaryTextFile(
-                "c.csx", 
+                "c.csx",
                 "int x = 2; class Complex { public int foo() { return 4; } }"))
             {
                 temporaryTextFile.Create();
                 SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
-                InvokeCompletionList();
-                VerifyCompletionItemExists("x", "Complex");
+                this.InvokeCompletionList();
+                this.VerifyCompletionItemExists("x", "Complex");
                 SendKeys(VirtualKey.Escape);
             }
         }

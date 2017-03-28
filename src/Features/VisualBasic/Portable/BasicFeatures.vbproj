@@ -110,6 +110,7 @@
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
     <Compile Include="ImplementInterface\VisualBasicImplementInterfaceCodeFixProvider.vb" />
     <Compile Include="InitializeParameter\VisualBasicInitializeMemberFromParameterCodeRefactoringProvider.vb" />
+    <Compile Include="ReplacePropertyWithMethods\ConvertValueToReturnsRewriter.vb" />
     <Compile Include="Structure\Providers\CollectionInitializerStructureProvider.vb" />
     <Compile Include="Structure\Providers\ObjectCreationInitializerStructureProvider.vb" />
     <Compile Include="QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />

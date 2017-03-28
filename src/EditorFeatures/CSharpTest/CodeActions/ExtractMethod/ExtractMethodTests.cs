@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public async Task TestCodeStyle1()
+        public async Task TestUseExpressionBodyWhenPossible()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -69,7 +69,153 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 
     private static bool NewMethod(bool b) => b != true;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != true|] ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+    }
+
+    private static bool NewMethod(bool b) => b != true;
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine(
+
+            [|b != true|]
+                ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine(
+
+            {|Rename:NewMethod|}(b)
+                ? b = true : b = false);
+    }
+
+    private static bool NewMethod(bool b) => b != true;
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != 
+            true|] ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+    }
+
+    private static bool NewMethod(bool b)
+    {
+        return b != 
+            true;
+    }
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b !=/*
+*/true|] ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+    }
+
+    private static bool NewMethod(bool b)
+    {
+        return b !=/*
+*/true;
+    }
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|"""" != @""
+""|] ? b = true : b = false);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}() ? b = true : b = false);
+    }
+
+    private static bool NewMethod()
+    {
+        return """" != @""
+"";
+    }
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
         }
 
         [WorkItem(540796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]

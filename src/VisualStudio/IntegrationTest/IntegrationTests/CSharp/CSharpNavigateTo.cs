@@ -1,10 +1,13 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
+
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -21,17 +24,18 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void NavigateTo()
         {
-            AddFile("test1.cs", open: false, contents: @"
+            var project = new ProjectUtils.Project(ProjectName);
+            this.AddFile("test1.cs", project: project, open: false, contents: @"
 class FirstClass
 {
     void FirstMethod() { }
 }");
 
 
-            AddFile("test2.cs", open: true, contents: @"
+            this.AddFile("test2.cs", project: project, open: true, contents: @"
 ");
 
-            InvokeNavigateToAndPressEnter("FirstMethod");
+            this.InvokeNavigateToAndPressEnter("FirstMethod");
             Editor.WaitForActiveView("test1.cs");
             Assert.Equal("FirstMethod", Editor.GetSelectedText());
 
@@ -39,7 +43,7 @@ class FirstClass
             VisualStudio.Instance.SolutionExplorer.AddProject("VBProject", WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
             VisualStudio.Instance.SolutionExplorer.AddFile("VBProject", "vbfile.vb", open: true);
 
-            InvokeNavigateToAndPressEnter("FirstClass");
+            this.InvokeNavigateToAndPressEnter("FirstClass");
             Editor.WaitForActiveView("test1.cs");
             Assert.Equal("FirstClass", Editor.GetSelectedText());
         }

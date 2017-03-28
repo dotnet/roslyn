@@ -1307,6 +1307,7 @@ d.cs
             // - update the "UpgradeProject" codefixer
             // - update the IDE drop-down for selecting Language Version
             // - don't fix the canary test until you update all the tests that include it
+            // - update the command-line documentation (CommandLine.md)
             Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
         }

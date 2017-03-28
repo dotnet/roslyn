@@ -66,7 +66,7 @@ class Class
 
     private void Foo() => throw new NotImplementedException();
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]

@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -34,7 +33,7 @@ Class Program
 End Class
 ");
 
-            SendKeys(Shift(VirtualKey.F12));
+            this.SendKeys(Shift(VirtualKey.F12));
 
             const string localReferencesCaption = "'local' references";
             var results = VisualStudio.Instance.FindReferencesWindow.GetContents(localReferencesCaption);
@@ -81,7 +80,7 @@ Class SomeOtherClass
 End Class
 ");
 
-            SendKeys(Shift(VirtualKey.F12));
+            this.SendKeys(Shift(VirtualKey.F12));
 
             const string alphaReferencesCaption = "'Alpha' references";
             var results = VisualStudio.Instance.FindReferencesWindow.GetContents(alphaReferencesCaption);
