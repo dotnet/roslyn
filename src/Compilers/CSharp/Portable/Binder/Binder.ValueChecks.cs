@@ -899,18 +899,65 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool checkingReceiver,
             DiagnosticBag diagnostics)
         {
+            // check all arguments that are not passed by value
             if (!argRefKinds.IsDefault)
             {
-                for (var i = 0; i < args.Length; i++)
+                for (var argIndex = 0; argIndex < args.Length; argIndex++)
                 {
-                    if (argRefKinds[i] != RefKind.None && !CheckValueKind(args[i].Syntax, args[i], BindValueKind.ReturnableReference, false, diagnostics))
+                    if (argRefKinds[argIndex] != RefKind.None && !CheckValueKind(args[argIndex].Syntax, args[argIndex], BindValueKind.ReturnableReference, false, diagnostics))
                     {
                         var errorCode = checkingReceiver ? ErrorCode.ERR_RefReturnCall2 : ErrorCode.ERR_RefReturnCall;
-                        var parameterIndex = argToParamsOpt.IsDefault ? i : argToParamsOpt[i];
+                        var parameterIndex = argToParamsOpt.IsDefault ? argIndex : argToParamsOpt[argIndex];
                         var parameterName = parameters[parameterIndex].Name;
                         Error(diagnostics, errorCode, syntax, symbol, parameterName);
                         return false;
                     }
+                }
+
+                return true;
+            }
+
+            // check all "in" parameters 
+            for (var paramIndex = 0; paramIndex < parameters.Length; paramIndex++)
+            {
+                var parameter = parameters[paramIndex];
+
+                if (parameter.RefKind != RefKind.RefReadOnly)
+                {
+                    continue;
+                }
+
+                if (parameter.IsParams)
+                {
+                    break;
+                }
+
+                BoundExpression argument = null;
+                if (argToParamsOpt.IsDefault)
+                {
+                    if (paramIndex < args.Length)
+                    {
+                        argument = args[paramIndex];
+                    }
+                }
+                else
+                {
+                    for (int argIndex = 0; argIndex < args.Length; argIndex++)
+                    {
+                        if (argToParamsOpt[argIndex] == paramIndex)
+                        {
+                            argument = args[argIndex];
+                            break;
+                        }
+                    }
+                }
+
+                if (argument == null ||
+                    !CheckValueKind(argument.Syntax, argument, BindValueKind.ReturnableReference, false, diagnostics))
+                {
+                    var errorCode = checkingReceiver ? ErrorCode.ERR_RefReturnCall2 : ErrorCode.ERR_RefReturnCall;
+                    Error(diagnostics, errorCode, syntax, symbol, parameter.Name);
+                    return false;
                 }
             }
 

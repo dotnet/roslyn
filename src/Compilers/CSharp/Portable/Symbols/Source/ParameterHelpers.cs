@@ -377,8 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // CONSIDER: reported on the parameter name, or on the value of the initializer?
             // CONSIDER: Consider making this consistent.
 
-            //PROTOTYPE(refReadonly): do we allow optional values for "In" parameters?
-            if (refKind != RefKind.None)
+            if (refKind == RefKind.Ref || refKind == RefKind.Out)
             {
                 // error CS1741: A ref or out parameter cannot have a default value
                 diagnostics.Add(ErrorCode.ERR_RefOutDefaultValue, argPassingKeyword.GetLocation());

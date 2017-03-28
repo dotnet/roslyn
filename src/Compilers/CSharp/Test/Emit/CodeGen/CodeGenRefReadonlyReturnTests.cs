@@ -28,7 +28,6 @@ class Program
 }
 ";
 
-            //PROTOTYPE(readonlyRefs): this should work for now because readonly is treated as regular ref
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyIL("Program.M()", @"
@@ -459,46 +458,33 @@ class Program
 
             var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false);
 
-            //PROTOTYPE(readonlyRef): correct emit is NYI. We should not make copies when returning r/o fields
             comp.VerifyIL("Program.Test", @"
 {
-  // Code size       70 (0x46)
+  // Code size       57 (0x39)
   .maxstack  1
-  .locals init (bool V_0, //b
-                int V_1,
-                System.ValueTuple<int, int> V_2,
-                int V_3,
-                System.ValueTuple<int, int> V_4)
+  .locals init (bool V_0) //b
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  brfalse.s  IL_0020
+  IL_0003:  brfalse.s  IL_001a
   IL_0005:  ldloc.0
-  IL_0006:  brfalse.s  IL_0012
+  IL_0006:  brfalse.s  IL_000f
   IL_0008:  ldarg.0
-  IL_0009:  ldfld      ""int Program.F""
-  IL_000e:  stloc.1
-  IL_000f:  ldloca.s   V_1
-  IL_0011:  ret
-  IL_0012:  ldsfld     ""(int Alice, int Bob) Program.F1""
-  IL_0017:  stloc.2
-  IL_0018:  ldloca.s   V_2
-  IL_001a:  ldflda     ""int System.ValueTuple<int, int>.Item1""
-  IL_001f:  ret
-  IL_0020:  ldloc.0
-  IL_0021:  brfalse.s  IL_0032
-  IL_0023:  ldarg.0
-  IL_0024:  ldfld      ""Program.S Program.S1""
-  IL_0029:  ldfld      ""int Program.S.F""
-  IL_002e:  stloc.3
-  IL_002f:  ldloca.s   V_3
-  IL_0031:  ret
-  IL_0032:  ldsfld     ""Program.S Program.S2""
-  IL_0037:  ldfld      ""(int Alice, int Bob) Program.S.F1""
-  IL_003c:  stloc.s    V_4
-  IL_003e:  ldloca.s   V_4
-  IL_0040:  ldflda     ""int System.ValueTuple<int, int>.Item1""
-  IL_0045:  ret
+  IL_0009:  ldflda     ""int Program.F""
+  IL_000e:  ret
+  IL_000f:  ldsflda    ""(int Alice, int Bob) Program.F1""
+  IL_0014:  ldflda     ""int System.ValueTuple<int, int>.Item1""
+  IL_0019:  ret
+  IL_001a:  ldloc.0
+  IL_001b:  brfalse.s  IL_0029
+  IL_001d:  ldarg.0
+  IL_001e:  ldflda     ""Program.S Program.S1""
+  IL_0023:  ldflda     ""int Program.S.F""
+  IL_0028:  ret
+  IL_0029:  ldsflda    ""Program.S Program.S2""
+  IL_002e:  ldflda     ""(int Alice, int Bob) Program.S.F1""
+  IL_0033:  ldflda     ""int System.ValueTuple<int, int>.Item1""
+  IL_0038:  ret
 }");
         }
 
@@ -543,6 +529,141 @@ class Program
                 // (15,24): error CS8165: Cannot return by reference a member of result of 'Program.M1(out int)' because the argument passed to parameter 'x' cannot be returned by reference
                 //             return ref M1(out local).Alice;
                 Diagnostic(ErrorCode.ERR_RefReturnCall2, "M1(out local)").WithArguments("Program.M1(out int)", "x").WithLocation(15, 24)
+            );
+        }
+
+        [Fact]
+        public void ReadonlyReturnByRefReadonlyLocalSafety1()
+        {
+            var text = @"
+class Program
+{
+    ref readonly int Test()
+    {
+        int local = 42;
+
+        return ref this[local];
+    }
+
+    ref readonly int this[in int x] => ref x;
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (8,25): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //         return ref this[local];
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(8, 25),
+                // (8,24): error CS8164: Cannot return by reference a result of 'Program.this[in int]' because the argument passed to parameter 'x' cannot be returned by reference
+                //         return ref this[local];
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "[local]").WithArguments("Program.this[in int]", "x").WithLocation(8, 24)
+            );
+        }
+
+        [Fact]
+        public void ReadonlyReturnByRefReadonlyLiteralSafety1()
+        {
+            var text = @"
+class Program
+{
+    ref readonly int Test()
+    {
+        return ref this[42];
+    }
+
+    ref readonly int this[in int x] => ref x;
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,25): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                //         return ref this[42];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(6, 25),
+                // (6,24): error CS8164: Cannot return by reference a result of 'Program.this[in int]' because the argument passed to parameter 'x' cannot be returned by reference
+                //         return ref this[42];
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "[42]").WithArguments("Program.this[in int]", "x").WithLocation(6, 24)
+            );
+        }
+
+        [Fact]
+        public void ReadonlyReturnByRefReadonlyLiteralSafety2()
+        {
+            var text = @"
+class Program
+{
+    ref readonly int Test()
+    {
+        return ref M(42);
+    }
+
+    ref readonly int M(in int x) => ref x;
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,22): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                //         return ref M(42);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(6, 22),
+                // (6,20): error CS8164: Cannot return by reference a result of 'Program.M(in int)' because the argument passed to parameter 'x' cannot be returned by reference
+                //         return ref M(42);
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "M(42)").WithArguments("Program.M(in int)", "x").WithLocation(6, 20)
+            );
+        }
+
+        [Fact]
+        public void ReadonlyReturnByRefReadonlyOptSafety()
+        {
+            var text = @"
+class Program
+{
+    ref readonly int Test()
+    {
+        return ref M();
+    }
+
+    ref readonly int M(in int x = 42) => ref x;
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,20): error CS8164: Cannot return by reference a result of 'Program.M(in int)' because the argument passed to parameter 'x' cannot be returned by reference
+                //         return ref M();
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "M()").WithArguments("Program.M(in int)", "x").WithLocation(6, 20)
+            );
+        }
+
+        [Fact]
+        public void ReadonlyReturnByRefReadonlyConvSafety()
+        {
+            var text = @"
+class Program
+{
+    ref readonly int Test()
+    {
+        byte b = 42;
+        return ref M(b);
+    }
+
+    ref readonly int M(in int x) => ref x;
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,22): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                //         return ref M(b);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b").WithLocation(7, 22),
+                // (7,20): error CS8164: Cannot return by reference a result of 'Program.M(in int)' because the argument passed to parameter 'x' cannot be returned by reference
+                //         return ref M(b);
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "M(b)").WithArguments("Program.M(in int)", "x").WithLocation(7, 20)
             );
         }
     }

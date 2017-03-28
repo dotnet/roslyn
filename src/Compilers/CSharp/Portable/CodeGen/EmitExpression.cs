@@ -359,8 +359,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var receiverConstant = receiver.ConstantValue;
             if (receiverConstant != null)
             {
-                // const but not default
-                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
+                // const but not default, must be a reference type
+                Debug.Assert(receiverType.IsVerifierReference());
+                // receiver is a reference type, so addresskind does not matter, but we do not intend to write.
+                receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly);
                 EmitExpression(expression.WhenNotNull, used);
                 if (receiverTemp != null)
                 {
@@ -374,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             object doneLabel = new object();
             LocalDefinition cloneTemp = null;
 
-            var unconstrainedReceiver = !receiverType.IsReferenceType && !receiverType.IsValueType;
+            var notConstrained = !receiverType.IsReferenceType && !receiverType.IsValueType;
 
             // we need a copy if we deal with nonlocal value (to capture the value)
             // or if we have a ref-constrained T (to do box just once) 
@@ -387,9 +389,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // ===== RECEIVER
             if (nullCheckOnCopy)
             {
-                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: unconstrainedReceiver);
-                if (unconstrainedReceiver)
+                if (notConstrained)
                 {
+                    // if T happens to be a value type, it could be a target of mutating calls.
+                    receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained);
+
                     // unconstrained case needs to handle case where T is actually a struct.
                     // such values are never nulls
                     // we will emit a check for such case, but the check is really a JIT-time 
@@ -419,13 +423,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
+                    //PROTOTYPE(readonlyRefs): this does not need to be writeable
+                    //                         we may call "HasValue" on this, but it is not mutating
+                    receiverTemp = EmitReceiverRef(receiver, AddressKind.Writeable);
                     _builder.EmitOpCode(ILOpCode.Dup);
                     // here we have loaded two copies of a reference   { O, O }  or  {&nub, &nub}
                 }
             }
             else
             {
-                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: false);
+                //PROTOTYPE(readonlyRefs): this does not need to be writeable
+                //                         we may call "HasValue" on this, but it is not mutating
+                receiverTemp = EmitReceiverRef(receiver, AddressKind.Writeable);
                 // here we have loaded just { O } or  {&nub}
                 // we have the most trivial case where we can just reload receiver when needed again
             }
@@ -490,7 +499,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (!nullCheckOnCopy)
             {
                 Debug.Assert(receiverTemp == null);
-                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: unconstrainedReceiver);
+                // receiver may be used as target of a struct call (if T happens to be a sruct)
+                receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained);
                 Debug.Assert(receiverTemp == null || receiver.IsDefaultValue());
             }
 
@@ -575,16 +585,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitArgument(BoundExpression argument, RefKind refKind)
         {
-            if (refKind == RefKind.None)
+            switch(refKind)
             {
-                EmitExpression(argument, true);
-            }
-            else
-            {
-                var temp = EmitAddress(argument, AddressKind.Writeable);
+                case RefKind.None:
+                    EmitExpression(argument, true);
+                    break;
 
-                // Dynamic is allowed to be passed by reference, via a temp.
-                Debug.Assert(temp == null || argument.Type.IsDynamic(), "passing args byref should not clone them into temps");
+                case RefKind.RefReadOnly:
+                    //PROTOTYPE(reaadonlyRefs): leaking a temp here
+                    var temp = EmitAddress(argument, AddressKind.ReadOnly);
+                    break;
+
+                default:
+                    var unexpectedTemp = EmitAddress(argument, AddressKind.Writeable);
+                    Debug.Assert(unexpectedTemp == null, "passing args byref should not clone them into temps");
+                    break;
             }
         }
 
@@ -635,8 +650,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitDelegateCreationExpression(BoundDelegateCreationExpression expression, bool used)
         {
-            Debug.Assert(expression.Argument?.Kind != BoundKind.MethodGroup);
-            var receiver = expression.Argument;
+            var mg = expression.Argument as BoundMethodGroup;
+            var receiver = mg != null ? mg.ReceiverOpt : expression.Argument;
             var meth = expression.MethodOpt ?? receiver.Type.DelegateInvokeMethod();
             Debug.Assert((object)meth != null);
             EmitDelegateCreation(expression, receiver, expression.IsExtensionMethod, meth, expression.Type, used);
@@ -932,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // there are also cases where we must emit receiver as a reference
             if (FieldLoadMustUseRef(receiver) || FieldLoadPrefersRef(receiver))
             {
-                return EmitFieldLoadReceiverAddress(receiver) ? null : EmitReceiverRef(receiver);
+                return EmitFieldLoadReceiverAddress(receiver) ? null : EmitReceiverRef(receiver, AddressKind.ReadOnly);
             }
 
             EmitExpression(receiver, true);
@@ -1007,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // can we take address at all?
-            if (!HasHome(receiver))
+            if (!HasHome(receiver, needWriteable: false))
             {
                 return false;
             }
@@ -1271,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                         case ConversionKind.MethodGroup:
                         case ConversionKind.AnonymousFunction:
-                            throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
+                            return true;
 
                         case ConversionKind.ExplicitReference:
                         case ConversionKind.ImplicitReference:
@@ -1358,7 +1373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(method.ContainingType == receiver.Type);
                 Debug.Assert(receiver.Kind == BoundKind.ThisReference);
 
-                tempOpt = EmitReceiverRef(receiver);
+                tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
                 _builder.EmitOpCode(ILOpCode.Initobj);    //  initobj  <MyStruct>
                 EmitSymbolToken(method.ContainingType, call.Syntax);
                 FreeOptTemp(tempOpt);
@@ -1380,7 +1395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 if (receiverType.IsVerifierReference())
                 {
-                    tempOpt = EmitReceiverRef(receiver, isAccessConstrained: false);
+                    EmitExpression(receiver, used: true);
 
                     // In some cases CanUseCallOnRefTypeReceiver returns true which means that 
                     // null check is unnecessary and we can use "call"
@@ -1405,7 +1420,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                         // calling a method defined in a value type
                         Debug.Assert(receiverType == methodContainingType);
-                        tempOpt = EmitReceiverRef(receiver);
+                        // method is defined in the struct itself and is assumed to be mutating.
+                        //PROTOTYPE(readonlyRefs): when readonly structs are implemented, this will have to check "this"
+                        tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
                         callKind = CallKind.Call;
                     }
                     else
@@ -1414,7 +1431,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         {
                             // When calling a method that is virtual in metadata on a struct receiver, 
                             // we use a constrained virtual call. If possible, it will skip boxing.
-                            tempOpt = EmitReceiverRef(receiver, isAccessConstrained: true);
+                            //
+                            //PROTOTYPE(readonlyRefs): all methods that a struct could inherit from bases are non-mutating
+                            //                         we are passing here "Writeable" just to keep verifier happy
+                            //                         we should pass here "ReadOnly" and avoid unnecessary copy
+                            tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
                             callKind = CallKind.ConstrainedCallVirt;
                         }
                         else
@@ -1435,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                                 CallKind.CallVirt :
                                 CallKind.ConstrainedCallVirt;
 
-                    tempOpt = EmitReceiverRef(receiver, isAccessConstrained: callKind == CallKind.ConstrainedCallVirt);
+                    tempOpt = EmitReceiverRef(receiver, callKind == CallKind.ConstrainedCallVirt ? AddressKind.Constrained : AddressKind.Writeable);
                 }
             }
 
@@ -1939,7 +1960,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool SafeToGetWriteableReference(BoundExpression left)
         {
-            if (!HasHome(left))
+            if (!HasHome(left, needWriteable: true))
             {
                 return false;
             }
@@ -2062,7 +2083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var left = (BoundFieldAccess)assignmentTarget;
                         if (!left.FieldSymbol.IsStatic)
                         {
-                            var temp = EmitReceiverRef(left.ReceiverOpt);
+                            var temp = EmitReceiverRef(left.ReceiverOpt, AddressKind.Writeable);
                             Debug.Assert(temp == null, "temp is unexpected when assigning to a field");
                             lhsUsesStack = true;
                         }
@@ -3029,9 +3050,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var conversion = (BoundConversion)expr;
                     var conversionKind = conversion.ConversionKind;
                     if (conversionKind.IsImplicitConversion() &&
+                        conversionKind != ConversionKind.MethodGroup &&
                         conversionKind != ConversionKind.NullLiteral)
                     {
-                        Debug.Assert(conversionKind != ConversionKind.MethodGroup);
                         return StackMergeType(conversion.Operand);
                     }
                     break;

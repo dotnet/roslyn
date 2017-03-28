@@ -151,6 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void MethodChecks(MethodDeclarationSyntax syntax, Binder withTypeParamsBinder, DiagnosticBag diagnostics)
         {
+            Debug.Assert(this.MethodKind != MethodKind.UserDefinedOperator, "SourceUserDefinedOperatorSymbolBase overrides this");
+
             SyntaxToken arglistToken;
 
             // Constraint checking for parameter and return types must be delayed until
@@ -248,18 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (this.MethodKind == MethodKind.UserDefinedOperator)
-            {
-                foreach (var p in this.Parameters)
-                {
-                    if (p.RefKind != RefKind.None)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_IllegalRefParam, location);
-                        break;
-                    }
-                }
-            }
-            else if (IsPartial)
+            if (IsPartial)
             {
                 // check that there are no out parameters in a partial
                 foreach (var p in this.Parameters)

@@ -487,7 +487,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             object fallThrough = null;
 
                             EmitCondBranch(receiver, ref fallThrough, sense: false);
-                            EmitReceiverRef(receiver, isAccessConstrained: false);
+                            // receiver is a reference type, and we only intend to read it
+                            EmitReceiverRef(receiver, AddressKind.ReadOnly);
                             EmitCondBranch(ca.WhenNotNull, ref dest, sense: true);
 
                             if (fallThrough != null)
@@ -500,7 +501,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             // gotoif(receiver == null) labDest
                             // gotoif(!receiver.Access) labDest
                             EmitCondBranch(receiver, ref dest, sense: false);
-                            EmitReceiverRef(receiver, isAccessConstrained: false);
+                            // receiver is a reference type, and we only intend to read it
+                            EmitReceiverRef(receiver, AddressKind.ReadOnly);
                             condition = ca.WhenNotNull;
                             goto oneMoreTime;
                         }
@@ -716,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                this.EmitAddress(expressionOpt, AddressKind.Writeable);
+                this.EmitAddress(expressionOpt, this._method.RefKind == RefKind.RefReadOnly? AddressKind.ReadOnly: AddressKind.Writeable);
             }
 
             if (ShouldUseIndirectReturn())
@@ -1012,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var temp = AllocateTemp(exceptionSource.Type, exceptionSource.Syntax);
                         _builder.EmitLocalStore(temp);
 
-                        var receiverTemp = EmitReceiverRef(left.ReceiverOpt);
+                        var receiverTemp = EmitReceiverRef(left.ReceiverOpt, AddressKind.Writeable);
                         Debug.Assert(receiverTemp == null);
 
                         _builder.EmitLocalLoad(temp);
