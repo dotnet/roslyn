@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
             var size = _solutionSizeTracker.GetSolutionSize(solution.Workspace, solution.Id);
             var threshold = this.OptionService.GetOption(StorageOptions.SolutionSizeThreshold);
-            return size > threshold;
+            return size >= threshold;
         }
 
         private void RegisterPrimarySolutionStorageIfNeeded(Solution solution, AbstractPersistentStorage storage)

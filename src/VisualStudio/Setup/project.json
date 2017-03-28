@@ -1,7 +1,9 @@
 {
   "dependencies": {
     "Microsoft.DiaSymReader.PortablePdb": "1.2.0",
-    "ManagedEsent": "1.9.4"
+    "ManagedEsent": "1.9.4",
+    "sqlite-net-pcl": "1.2.0"
+
   },
   "frameworks": {
     "net46": { }

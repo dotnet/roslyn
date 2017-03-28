@@ -24,6 +24,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll")]
 
 [assembly: ProvideRoslynBindingRedirection("Esent.Interop.dll")]
+[assembly: ProvideRoslynBindingRedirection("SQLite-net.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Elfie.dll")]
 
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Convention.dll")]
