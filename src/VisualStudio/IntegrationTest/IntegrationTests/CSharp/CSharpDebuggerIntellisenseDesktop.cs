@@ -14,52 +14,52 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
-        public override void StartDebuggingAndVerifyBreakpoints()
-        {
-            base.StartDebuggingAndVerifyBreakpoints();
-        }
-
-         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
-        public override void DoNotCrashOnSemicolon()
-        {
-            base.DoNotCrashOnSemicolon();
-        }
-
-         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
-        public override void CompletionOnFirstCharacter()
-        {
-            base.CompletionOnFirstCharacter();
-        }
-
-         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
         public override void CompletionAfterDot()
         {
             base.CompletionAfterDot();
         }
 
-         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
         public override void CompletionAfterOpenParenInMethodCall()
         {
             base.CompletionAfterOpenParenInMethodCall();
         }
 
-         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
         public override void CompletionAfterQuestionMark()
         {
             base.CompletionAfterQuestionMark();
         }
 
-         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
         public override void CompletionInAnExpression()
         {
             base.CompletionInAnExpression();
         }
 
-         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        public override void CompletionOnFirstCharacter()
+        {
+            base.CompletionOnFirstCharacter();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        public override void DoNotCrashOnSemicolon()
+        {
+            base.DoNotCrashOnSemicolon();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
         public override void LocalsFromPreviousBlockAreNotVisibleInTheCurrentBlock()
         {
             base.LocalsFromPreviousBlockAreNotVisibleInTheCurrentBlock();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        public override void StartDebuggingAndVerifyBreakpoints()
+        {
+            base.StartDebuggingAndVerifyBreakpoints();
         }
     }
 }

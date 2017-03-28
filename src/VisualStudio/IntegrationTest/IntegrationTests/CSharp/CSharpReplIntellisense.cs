@@ -3,8 +3,6 @@
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
@@ -52,7 +50,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 public delegate R Del<T, R>(T arg);
 Del<C, System");
             this.SendKeys(VirtualKey.Period);
-            this.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
             this.VerifyCompletionItemExists("ArgumentException");
         }
 

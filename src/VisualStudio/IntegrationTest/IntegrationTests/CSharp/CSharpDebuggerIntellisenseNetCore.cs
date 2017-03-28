@@ -15,24 +15,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
-        public override void StartDebuggingAndVerifyBreakpoints()
-        {
-            base.StartDebuggingAndVerifyBreakpoints();
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
-        public override void DoNotCrashOnSemicolon()
-        {
-            base.DoNotCrashOnSemicolon();
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
-        public override void CompletionOnFirstCharacter()
-        {
-            base.CompletionOnFirstCharacter();
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
         public override void CompletionAfterDot()
         {
             base.CompletionAfterDot();
@@ -57,9 +39,27 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        public override void CompletionOnFirstCharacter()
+        {
+            base.CompletionOnFirstCharacter();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        public override void DoNotCrashOnSemicolon()
+        {
+            base.DoNotCrashOnSemicolon();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
         public override void LocalsFromPreviousBlockAreNotVisibleInTheCurrentBlock()
         {
             base.LocalsFromPreviousBlockAreNotVisibleInTheCurrentBlock();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        public override void StartDebuggingAndVerifyBreakpoints()
+        {
+            base.StartDebuggingAndVerifyBreakpoints();
         }
     }
 }

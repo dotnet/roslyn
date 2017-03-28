@@ -14,10 +14,20 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
             CommonExtensions.VerifyCurrentTokenType(test, tokenType, test.VisualStudio.Instance.Editor);
         }
 
+        public static void VerifyCompletionItemExists(this AbstractIntegrationTest test, params string[] expectedItems)
+        {
+            CommonExtensions.VerifyCompletionItemsExist(test.VisualStudio.Instance.Editor, expectedItems);
+        }
+
+        public static void VerifyCaretPosition(this AbstractIntegrationTest test, int expectedCaretPosition)
+        {
+            CommonExtensions.VerifyCaretPosition(test.VisualStudio.Instance.Editor, expectedCaretPosition);
+        }
+
         public static void VerifyCurrentLineText(
-            this AbstractIntegrationTest test, 
-            string expectedText, 
-            bool assertCaretPosition = false, 
+            this AbstractIntegrationTest test,
+            string expectedText,
+            bool assertCaretPosition = false,
             bool trimWhitespace = true)
         {
             if (assertCaretPosition)
@@ -38,8 +48,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
         }
 
         private static void VerifyCurrentLineTextAndAssertCaretPosition(
-            AbstractIntegrationTest test, 
-            string expectedText, 
+            AbstractIntegrationTest test,
+            string expectedText,
             bool trimWhitespace)
         {
             var caretStartIndex = expectedText.IndexOf("$$");
@@ -87,8 +97,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
         }
 
         public static void VerifyTextContains(
-            this AbstractIntegrationTest test, 
-            string expectedText, 
+            this AbstractIntegrationTest test,
+            string expectedText,
             bool assertCaretPosition = false)
         {
             if (assertCaretPosition)
@@ -103,7 +113,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
         }
 
         private static void VerifyTextContainsAndAssertCaretPosition(
-            AbstractIntegrationTest test, 
+            AbstractIntegrationTest test,
             string expectedText)
         {
             var caretStartIndex = expectedText.IndexOf("$$");
@@ -129,14 +139,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
         }
 
         public static void VerifyCompletionItemDoNotExist(
-            this AbstractIntegrationTest test, 
+            this AbstractIntegrationTest test,
             params string[] expectedItems)
         {
-            CommonExtensions.VerifyCompletionItemDoesNotExist(test.VisualStudio.Instance.Editor, expectedItems);
+            CommonExtensions.VerifyCompletionItemsDoNotExist(test.VisualStudio.Instance.Editor, expectedItems);
         }
 
         public static void VerifyCurrentCompletionItem(
-            this AbstractIntegrationTest test, 
+            this AbstractIntegrationTest test,
             string expectedItem)
         {
             var currentItem = test.VisualStudio.Instance.Editor.GetCurrentCompletionItem();
@@ -144,7 +154,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
         }
 
         public static void VerifyCurrentSignature(
-            this AbstractIntegrationTest test, 
+            this AbstractIntegrationTest test,
             Signature expectedSignature)
         {
             var currentSignature = test.VisualStudio.Instance.Editor.GetCurrentSignature();
@@ -166,8 +176,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
         }
 
         public static void VerifyCurrentParameter(
-            this AbstractIntegrationTest test, 
-            string name, 
+            this AbstractIntegrationTest test,
+            string name,
             string documentation)
         {
             var currentParameter = test.VisualStudio.Instance.Editor.GetCurrentSignature().CurrentParameter;
@@ -176,7 +186,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
         }
 
         public static void VerifyParameters(
-            this AbstractIntegrationTest test, 
+            this AbstractIntegrationTest test,
             params (string name, string documentation)[] parameters)
         {
             var currentParameters = test.VisualStudio.Instance.Editor.GetCurrentSignature().Parameters;
@@ -189,8 +199,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
         }
 
         public static void VerifyDialog(
-            this AbstractIntegrationTest test, 
-            string dialogName, 
+            this AbstractIntegrationTest test,
+            string dialogName,
             bool isOpen)
         {
             test.VisualStudio.Instance.Editor.VerifyDialog(dialogName, isOpen);

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using EnvDTE;
 
@@ -24,48 +25,37 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void Continue(bool waitForBreakMode)
         {
-            // Sometimes you will get a COM exception if you attempt to continue too quickly
-            RetryHelper.Try(() => GetDTE().Debugger.Go(waitForBreakMode));
+            Helper.Retry(() => GetDTE().Debugger.Go(waitForBreakMode), TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(20));
+        }
+
+        private void StartAndWaitForDebuggerMode(
+            Action<VsDebuggerEventsMonitor.DebuggerModeChangeEventHandler> addEvent,
+            Action<VsDebuggerEventsMonitor.DebuggerModeChangeEventHandler> removeEvent)
+        {
+            using (var resetEvent = new ManualResetEventSlim(false))
+            {
+                VsDebuggerEventsMonitor.DebuggerModeChangeEventHandler setEvent = (mode, reason) => resetEvent.Set();
+                addEvent(setEvent);
+                ExecuteCommand("Debug.Start");
+                resetEvent.Wait();
+                removeEvent(setEvent);
+            }
         }
 
         private void StartAndWaitForDebuggerDesignMode(VsDebuggerEventsMonitor debuggerEventsMonitor)
-        {
-            using (var semaphore = new SemaphoreSlim(1))
-            {
-                semaphore.Wait();
-                VsDebuggerEventsMonitor.DebuggerModeChangeEventHandler releaseSemaphore = (mode, reason) => semaphore.Release();
-                debuggerEventsMonitor.OnEnterDesignMode += releaseSemaphore;
-                ExecuteCommand("Debug.Start");
-                semaphore.Wait();
-                debuggerEventsMonitor.OnEnterDesignMode -= releaseSemaphore;
-            }
-        }
+            => StartAndWaitForDebuggerMode(
+                @event => debuggerEventsMonitor.OnEnterDesignMode += @event,
+                @event => debuggerEventsMonitor.OnEnterDesignMode -= @event);
 
         private void StartAndWaitForDebuggerRunMode(VsDebuggerEventsMonitor debuggerEventsMonitor)
-        {
-            using (var semaphore = new SemaphoreSlim(1))
-            {
-                semaphore.Wait();
-                VsDebuggerEventsMonitor.DebuggerModeChangeEventHandler releaseSemaphore = (mode, reason) => semaphore.Release();
-                debuggerEventsMonitor.OnEnterRunMode += releaseSemaphore;
-                ExecuteCommand("Debug.Start");
-                semaphore.Wait();
-                debuggerEventsMonitor.OnEnterDesignMode -= releaseSemaphore;
-            }
-        }
+            => StartAndWaitForDebuggerMode(
+                @event => debuggerEventsMonitor.OnEnterRunMode += @event,
+                @event => debuggerEventsMonitor.OnEnterRunMode -= @event);
 
         private void StartAndWaitForDebuggerBreakMode(VsDebuggerEventsMonitor debuggerEventsMonitor)
-        {
-            using (var semaphore = new SemaphoreSlim(1))
-            {
-                semaphore.Wait();
-                VsDebuggerEventsMonitor.DebuggerModeChangeEventHandler releaseSemaphore = (mode, reason) => semaphore.Release();
-                debuggerEventsMonitor.OnEnterBreakMode += releaseSemaphore;
-                ExecuteCommand("Debug.Start");
-                semaphore.Wait();
-                debuggerEventsMonitor.OnEnterBreakMode -= releaseSemaphore;
-            }
-        }
+            => StartAndWaitForDebuggerMode(
+                @event => debuggerEventsMonitor.OnEnterBreakMode += @event,
+                @event => debuggerEventsMonitor.OnEnterBreakMode -= @event);
 
         public enum DebuggerMode
         {

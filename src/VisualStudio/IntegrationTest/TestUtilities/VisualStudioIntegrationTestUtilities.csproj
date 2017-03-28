@@ -65,7 +65,6 @@
     <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
     <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
     <Compile Include="OutOfProcess\TextViewWindow_OutOfProc.cs" />
-    <Compile Include="RetryHelper.cs" />
     <Compile Include="ScreenshotService.cs" />
     <Compile Include="TemporaryTextFile.cs" />
     <Compile Include="TestUtilities.cs" />

@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
         public override void CompletionAfterDot()
         {
             base.CompletionAfterDot();
@@ -32,25 +32,25 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             base.CompletionAfterQuestionMark();
         }
 
-         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
         public override void CompletionInAnExpression()
         {
             base.CompletionInAnExpression();
         }
 
-         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
         public override void CompletionOnFirstCharacter()
         {
             base.CompletionOnFirstCharacter();
         }
 
-         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
         public override void LocalsFromPreviousBlockAreNotVisibleInTheCurrentBlock()
         {
             base.LocalsFromPreviousBlockAreNotVisibleInTheCurrentBlock();
         }
 
-         [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Debugger)]
         public override void StartDebuggingAndVerifyBreakpoints()
         {
             base.StartDebuggingAndVerifyBreakpoints();

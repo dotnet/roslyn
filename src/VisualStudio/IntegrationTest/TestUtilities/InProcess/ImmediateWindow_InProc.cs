@@ -52,14 +52,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 var hresult = _immediateWindow.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out var result);
                 Marshal.ThrowExceptionForHR(hresult);
-
-                if (result is IVsTextView textView)
-                {
-                    var adaptersFactory = GetComponentModelService<IVsEditorAdaptersFactoryService>();
-                    return adaptersFactory.GetWpfTextView(textView);
-                }
-
-                throw new ArgumentException("unable to find active text view");
+                var textView = (IVsTextView)result;
+                var adaptersFactory = GetComponentModelService<IVsEditorAdaptersFactoryService>();
+                return adaptersFactory.GetWpfTextView(textView);
             });
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)

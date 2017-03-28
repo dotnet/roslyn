@@ -8,10 +8,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.ImmediateWindow
             => CommonExtensions.InvokeCompletionList(test);
 
         public static void VerifyCompletionItemExistsInImmediateWindow(this AbstractIntegrationTest test, params string[] expectedItems)
-            => CommonExtensions.VerifyCompletionItemExists(test.VisualStudio.Instance.ImmediateWindow, expectedItems);
+            => CommonExtensions.VerifyCompletionItemsExist(test.VisualStudio.Instance.ImmediateWindow, expectedItems);
 
         public static void VerifyCompletionItemDoesNotExistInImmediateWindow(this AbstractIntegrationTest test, params string[] expectedItems)
-            => CommonExtensions.VerifyCompletionItemDoesNotExist(test.VisualStudio.Instance.ImmediateWindow, expectedItems);
+            => CommonExtensions.VerifyCompletionItemsDoNotExist(test.VisualStudio.Instance.ImmediateWindow, expectedItems);
 
         public static void ShowImmediateWindow(this AbstractIntegrationTest test)
             => test.VisualStudio.Instance.ImmediateWindow.ShowWindow();
