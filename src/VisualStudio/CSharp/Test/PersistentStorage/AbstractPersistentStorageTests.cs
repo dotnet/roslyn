@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
         }
 
-        [Fact]
         public async Task PersistentService_Solution_WriteReadDifferentInstances()
         {
             var solution = CreateOrOpenSolution();
@@ -72,7 +71,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact]
         public async Task PersistentService_Solution_WriteReadReopenSolution()
         {
             var solution = CreateOrOpenSolution();
@@ -95,7 +93,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact]
         public async Task PersistentService_Solution_WriteReadSameInstance()
         {
             var solution = CreateOrOpenSolution();
@@ -113,7 +110,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact]
         public async Task PersistentService_Project_WriteReadSameInstance()
         {
             var solution = CreateOrOpenSolution();
@@ -133,7 +129,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact]
         public async Task PersistentService_Document_WriteReadSameInstance()
         {
             var solution = CreateOrOpenSolution();
@@ -153,7 +148,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact]
         public async Task PersistentService_Solution_SimultaneousWrites()
         {
             var solution = CreateOrOpenSolution();
@@ -169,7 +163,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact]
         public async Task PersistentService_Project_SimultaneousWrites()
         {
             var solution = CreateOrOpenSolution();
@@ -185,7 +178,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact]
         public async Task PersistentService_Document_SimultaneousWrites()
         {
             var solution = CreateOrOpenSolution();
@@ -219,7 +211,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             countdown.Wait();
         }
 
-        [Fact]
         public async Task PersistentService_Solution_SimultaneousReads()
         {
             var solution = CreateOrOpenSolution();
@@ -233,7 +224,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact]
         public async Task PersistentService_Project_SimultaneousReads()
         {
             var solution = CreateOrOpenSolution();
@@ -247,7 +237,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact]
         public async Task PersistentService_Document_SimultaneousReads()
         {
             var solution = CreateOrOpenSolution();
