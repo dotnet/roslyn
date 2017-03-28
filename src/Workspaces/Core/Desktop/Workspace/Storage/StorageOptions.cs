@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.Storage
         /// Threshold to start to use a DB (50MB)
         /// </summary>
         public static readonly Option<int> SolutionSizeThreshold = new Option<int>(
-            OptionName, nameof(SolutionSizeThreshold), defaultValue: -1);
+            OptionName, nameof(SolutionSizeThreshold), defaultValue: 50 * 1024 * 1024);
     }
 }
