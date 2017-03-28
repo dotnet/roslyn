@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Storage
         /// </summary>
         private const int SolutionSizeThreshold = 50 * 1024 * 1024;
 
-        internal static readonly IPersistentStorage NoOpPersistentStorageInstance = new NoOpPersistentStorage();
-
         protected readonly IOptionService OptionService;
         private readonly SolutionSizeTracker _solutionSizeTracker;
 
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Storage
         {
             if (!ShouldUseDatabase(solution))
             {
-                return NoOpPersistentStorageInstance;
+                return NoOpPersistentStorage.Instance;
             }
 
             // can't use cached information
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 // check whether the solution actually exist on disk
                 if (!File.Exists(solution.FilePath))
                 {
-                    return NoOpPersistentStorageInstance;
+                    return NoOpPersistentStorage.Instance;
                 }
             }
 
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Storage
             if (workingFolderPath == null)
             {
                 // we don't have place to save db file. don't use db
-                return NoOpPersistentStorageInstance;
+                return NoOpPersistentStorage.Instance;
             }
 
             return GetStorage(solution, workingFolderPath);
@@ -110,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     // previous attempt to create db storage failed.
                     if (storage == null && !SolutionSizeAboveThreshold(solution))
                     {
-                        return NoOpPersistentStorageInstance;
+                        return NoOpPersistentStorage.Instance;
                     }
 
                     // everything seems right, use what we have
@@ -129,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 if (!File.Exists(dbFile) && !SolutionSizeAboveThreshold(solution))
                 {
                     _lookup.Add(solution.FilePath, storage);
-                    return NoOpPersistentStorageInstance;
+                    return NoOpPersistentStorage.Instance;
                 }
 
                 // try create new one
@@ -144,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     return storage;
                 }
 
-                return NoOpPersistentStorageInstance;
+                return NoOpPersistentStorage.Instance;
             }
         }
 
