@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.SQLite
         private readonly ConcurrentDictionary<ProjectId, int> _projectIdToIdMap = new ConcurrentDictionary<ProjectId, int>();
         private readonly ConcurrentDictionary<DocumentId, int> _documentIdToIdMap = new ConcurrentDictionary<DocumentId, int>();
 
+        private readonly ConcurrentSet<ProjectId> _projectBulkPopulatedMap = new ConcurrentSet<ProjectId>();
+
         public SQLitePersistentStorage(
             IOptionService optionService,
             string workingFolderPath,
@@ -121,16 +123,30 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private void BulkPopulateProjectIds(SQLiteConnection connection, Project project)
         {
-            if (_projectIdToIdMap.ContainsKey(project.Id))
+            if (_projectBulkPopulatedMap.Contains(project.Id))
             {
                 // We've already bulk processed this project.  No need to do so again.
                 return;
             }
 
+            if (!BulkPopulateProjectIdsWorker(connection, project))
+            {
+                return;
+            }
+
+            // Successfully bulk populated.  Mark as such so we don't bother doing this again.
+            _projectBulkPopulatedMap.Add(project.Id);
+        }
+
+        /// <summary>
+        /// Returns 'true' if the bulk population succeeds, or false if it doesn't.
+        /// </summary>
+        private bool BulkPopulateProjectIdsWorker(SQLiteConnection connection, Project project)
+        {
             // First, in bulk, get string-ids for all the paths and names for the project and documents.
             if (!AddIndividualProjectAndDocumentComponentIds())
             {
-                return;
+                return false;
             }
 
             // Now, ensure we have the project id known locally.  If this fails for some reason,
@@ -138,12 +154,16 @@ namespace Microsoft.CodeAnalysis.SQLite
             var projectId = TryGetProjectId(connection, project);
             if (projectId == null)
             {
-                return;
+                return false;
             }
 
             // Finally, in bulk, get string-ids for all the documents in the project.
-            AddDocumentIds();
-            return;
+            if (!AddDocumentIds())
+            {
+                return false;
+            }
+            
+            return true;
 
             // Use local functions so that other members of this class don't accidently
             // use these.  There are invariants in the context of PopulateProjectIds that
@@ -191,7 +211,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return true;
             }
 
-            void AddDocumentIds()
+            bool AddDocumentIds()
             {
                 var stringsToAdd = new HashSet<string>();
 
@@ -206,7 +226,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // bulk import these strings, we can't proceed.
                 if (!AddStrings(stringsToAdd))
                 {
-                    return;
+                    return false;
                 }
                 
                 foreach (var document in project.Documents)
@@ -216,6 +236,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                     var id = _stringToIdMap[GetDocumentIdString(document)];
                     _documentIdToIdMap.TryAdd(document.Id, id);
                 }
+
+                return true;
             }
 
             string GetDocumentIdString(Document document)
