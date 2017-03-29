@@ -72,11 +72,11 @@ namespace Microsoft.CodeAnalysis.SQLite
         private static Stream GetStream(byte[] bytes)
             => bytes == null ? null : new MemoryStream(bytes, writable: false);
 
-        private string GetProjectDataId(int id, string name)
-            => Invariant($"{id}-{name}");
+        private string GetProjectDataId(int projectId, int nameId)
+            => Invariant($"{projectId}-{nameId}");
 
-        private string GetDocumentDataId(int id, string name)
-            => Invariant($"{id}-{name}");
+        private string GetDocumentDataId(int documentId, int nameId)
+            => Invariant($"{documentId}-{nameId}");
 
         private byte[] GetBytes(Stream stream)
         {
@@ -166,8 +166,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 linkedSource.Token.ThrowIfCancellationRequested();
 
-                var id = TryGetProjectId(project);
-                if (id == null)
+                var projectID = TryGetProjectId(project);
+                var nameId = TryGetStringId(name);
+                if (projectID == null || nameId == null)
                 {
                     return null;
                 }
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 ProjectData projectData = null;
                 try
                 {
-                    projectData = _connection.Find<ProjectData>(GetProjectDataId(id.Value, name));
+                    projectData = _connection.Find<ProjectData>(GetProjectDataId(projectID.Value, nameId.Value));
                 }
                 catch (Exception ex)
                 {
@@ -194,15 +195,17 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 linkedSource.Token.ThrowIfCancellationRequested();
 
-                var bytes = GetBytes(stream);
-                var id = TryGetProjectId(project);
+                var projectId = TryGetProjectId(project);
+                var nameId = TryGetStringId(name);
 
-                if (id != null)
+                if (projectId != null && nameId != null)
                 {
+                    var bytes = GetBytes(stream);
+
                     try
                     {
                         _connection.InsertOrReplace(
-                            new ProjectData { Id = GetProjectDataId(id.Value, name), Data = bytes });
+                            new ProjectData { Id = GetProjectDataId(projectId.Value, nameId.Value), Data = bytes });
                         return true;
                     }
                     catch (Exception ex)
@@ -227,8 +230,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 linkedSource.Token.ThrowIfCancellationRequested();
 
-                var id = TryGetDocumentId(document);
-                if (id == null)
+                var documentID = TryGetDocumentId(document);
+                var nameId = TryGetStringId(name);
+                if (documentID == null || nameId == null)
                 {
                     return null;
                 }
@@ -236,7 +240,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 DocumentData documentData = null;
                 try
                 {
-                    documentData = _connection.Find<DocumentData>(GetProjectDataId(id.Value, name));
+                    documentData = _connection.Find<DocumentData>(
+                        GetProjectDataId(documentID.Value, nameId.Value));
                 }
                 catch (Exception ex)
                 {
@@ -255,15 +260,17 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 linkedSource.Token.ThrowIfCancellationRequested();
 
-                var bytes = GetBytes(stream);
-                var id = TryGetDocumentId(document);
+                var documentId = TryGetDocumentId(document);
+                var nameId = TryGetStringId(name);
 
-                if (id != null)
+                if (documentId != null && nameId != null)
                 {
+                    var bytes = GetBytes(stream);
+
                     try
                     {
                         _connection.InsertOrReplace(
-                            new DocumentData { Id = GetDocumentDataId(id.Value, name), Data = bytes });
+                            new DocumentData { Id = GetDocumentDataId(documentId.Value, nameId.Value), Data = bytes });
                         return true;
                     }
                     catch (Exception ex)
@@ -309,7 +316,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             // Unique identify the project through the key:  P-projectPathId-projectNameId
             return TryGetStringId(
-                Invariant($"P-{projectPathId.Value}-{projectNameId.Value}"));
+                Invariant($"{projectPathId.Value}-{projectNameId.Value}"));
         }
 
         private int? TryGetDocumentId(Document document)
@@ -351,7 +358,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             // Unique identify the document through the key:  D-projectId-documentPathId-documentNameId
             return TryGetStringId(
-                Invariant($"D-{projectId.Value}-{documentPathId.Value}-{documentNameId.Value}"));
+                Invariant($"{projectId.Value}-{documentPathId.Value}-{documentNameId.Value}"));
         }
 
         #endregion
