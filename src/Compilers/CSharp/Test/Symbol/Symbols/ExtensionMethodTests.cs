@@ -3713,5 +3713,190 @@ o.G().F();";
                 references: references);
             s1.VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(11166, "https://github.com/dotnet/roslyn/issues/11166")]
+        public void SemanticModelLookup_01()
+        {
+            var source =
+@"
+public static class TestClass 
+{
+    public static void Test() 
+    {
+        var Instance = new BaseClass<int>();
+        Instance.SetMember(32);
+    }
+}
+
+public static class Extensions
+{
+    public static BC SetMember<BC, TMember>(this BC This, TMember NewValue) where BC : BaseClass<TMember> {
+        This.Member = NewValue;
+        return This;
+    }
+}
+
+public class BaseClass<TMember>
+{
+    public TMember Member { get; set; }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var instance = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Instance").First();
+            Assert.Equal("Instance.SetMember", instance.Parent.ToString());
+            var baseClass = model.GetTypeInfo(instance).Type;
+            Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
+
+            var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
+            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
+            Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
+        }
+
+        [Fact]
+        [WorkItem(11166, "https://github.com/dotnet/roslyn/issues/11166")]
+        public void SemanticModelLookup_02()
+        {
+            var source =
+@"
+public static class TestClass 
+{
+    public static void Test() 
+    {
+        var Instance = new BaseClass<int>();
+        Instance.SetMember(32);
+    }
+}
+
+public static class Extensions
+{
+    public static BC SetMember<BC, TMember>(this BC This, TMember NewValue) where BC : BaseClass<long> {
+        return This;
+    }
+}
+
+public class BaseClass<TMember>
+{
+    public TMember Member { get; set; }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
+            compilation.VerifyDiagnostics(
+                // (7,9): error CS0311: The type 'BaseClass<int>' cannot be used as type parameter 'BC' in the generic type or method 'Extensions.SetMember<BC, TMember>(BC, TMember)'. There is no implicit reference conversion from 'BaseClass<int>' to 'BaseClass<long>'.
+                //         Instance.SetMember(32);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Instance.SetMember").WithArguments("Extensions.SetMember<BC, TMember>(BC, TMember)", "BaseClass<long>", "BC", "BaseClass<int>").WithLocation(7, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var instance = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Instance").First();
+            Assert.Equal("Instance.SetMember", instance.Parent.ToString());
+            var baseClass = model.GetTypeInfo(instance).Type;
+            Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
+
+            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
+            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true).Where(s => s.Name == "SetMembers"));
+        }
+
+        [Fact]
+        [WorkItem(11166, "https://github.com/dotnet/roslyn/issues/11166")]
+        public void SemanticModelLookup_03()
+        {
+            var source =
+@"
+public static class TestClass 
+{
+    public static void Test() 
+    {
+        var Instance = new BaseClass<int>();
+        Instance.SetMember(32);
+    }
+}
+
+public static class Extensions
+{
+    public static BC SetMember<BC, TMember>(this BC This, TMember NewValue) where BC : BaseClass<TMember>, I1<TMember> {
+        This.Member = NewValue;
+        return This;
+    }
+}
+
+public interface I1<T>{}
+
+public class BaseClass<TMember> : I1<TMember>
+{
+    public TMember Member { get; set; }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var instance = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Instance").First();
+            Assert.Equal("Instance.SetMember", instance.Parent.ToString());
+            var baseClass = model.GetTypeInfo(instance).Type;
+            Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
+
+            var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
+            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
+            Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
+        }
+
+        [Fact]
+        [WorkItem(11166, "https://github.com/dotnet/roslyn/issues/11166")]
+        public void SemanticModelLookup_04()
+        {
+            var source =
+@"
+public static class TestClass 
+{
+    public static void Test() 
+    {
+        var Instance = new BaseClass<int>();
+        Instance.SetMember(32);
+    }
+}
+
+public static class Extensions
+{
+    public static BC SetMember<BC, TMember>(this BC This, TMember NewValue) where BC : BaseClass<TMember>, I1<long> {
+        This.Member = NewValue;
+        return This;
+    }
+}
+
+public interface I1<T>{}
+
+public class BaseClass<TMember> : I1<TMember>
+{
+    public TMember Member { get; set; }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef });
+            compilation.VerifyDiagnostics(
+                // (7,9): error CS0311: The type 'BaseClass<int>' cannot be used as type parameter 'BC' in the generic type or method 'Extensions.SetMember<BC, TMember>(BC, TMember)'. There is no implicit reference conversion from 'BaseClass<int>' to 'I1<long>'.
+                //         Instance.SetMember(32);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Instance.SetMember").WithArguments("Extensions.SetMember<BC, TMember>(BC, TMember)", "I1<long>", "BC", "BaseClass<int>").WithLocation(7, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var instance = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Instance").First();
+            Assert.Equal("Instance.SetMember", instance.Parent.ToString());
+            var baseClass = model.GetTypeInfo(instance).Type;
+            Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
+
+            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
+            Assert.Empty(model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true).Where(s => s.Name == "SetMembers"));
+        }
     }
 }

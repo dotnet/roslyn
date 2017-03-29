@@ -1,9 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -33,7 +35,7 @@ End Class
     End Sub
 
     <Fact, WorkItem(543708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543708")>
-    Public Sub VersionAttribute02()
+    Public Sub VersionAttribute_FourParts()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -47,9 +49,34 @@ End Class
         VerifyAssemblyTable(comp, Sub(r)
                                       Assert.Equal(New Version(1, 22, 333, 4444), r.Version)
                                   End Sub)
+    End Sub
 
-        ' ---------------------------------------------
-        comp = CreateCompilationWithMscorlib(
+    <Fact>
+    Public Sub VersionAttribute_TwoParts()
+        Dim comp = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyVersion("1.2")>
+Public Class C
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        VerifyAssemblyTable(comp, Sub(r)
+                                      Assert.Equal(1, r.Version.Major)
+                                      Assert.Equal(2, r.Version.Minor)
+                                      Assert.Equal(0, r.Version.Build)
+                                      Assert.Equal(0, r.Version.Revision)
+                                  End Sub)
+    End Sub
+
+    <Fact>
+    Public Sub VersionAttribute_WildCard()
+        Dim now = Date.Now
+        Dim days = 0, seconds = 0
+        VersionTestHelpers.GetDefautVersion(now, days, seconds)
+
+        Dim comp = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyVersion("10101.0.*")>
@@ -57,10 +84,34 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, OutputKind.DynamicallyLinkedLibrary)
+</compilation>, options:=TestOptions.ReleaseDll.WithCurrentLocalTime(now))
+
         VerifyAssemblyTable(comp, Sub(r)
                                       Assert.Equal(10101, r.Version.Major)
                                       Assert.Equal(0, r.Version.Minor)
+                                      Assert.Equal(days, r.Version.Build)
+                                      Assert.Equal(seconds, r.Version.Revision)
+                                  End Sub)
+
+    End Sub
+
+    <Fact>
+    Public Sub VersionAttribute_Overflow()
+        Dim comp = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyVersion("10101.0.*")>
+Public Class C
+End Class
+]]>
+    </file>
+</compilation>, options:=TestOptions.ReleaseDll.WithCurrentLocalTime(#2300/1/1#))
+
+        VerifyAssemblyTable(comp, Sub(r)
+                                      Assert.Equal(10101, r.Version.Major)
+                                      Assert.Equal(0, r.Version.Minor)
+                                      Assert.Equal(65535, r.Version.Build)
+                                      Assert.Equal(0, r.Version.Revision)
                                   End Sub)
 
     End Sub
@@ -104,23 +155,6 @@ BC36962: The specified version string does not conform to the required format - 
 
     End Sub
 
-    <Fact>
-    Public Sub FileVersionAttribute()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
-<compilation>
-    <file name="a.vb"><![CDATA[
-<Assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")>
-Public Class C
- Friend Sub Foo()
- End Sub
-End Class
-]]>
-    </file>
-</compilation>, OutputKind.DynamicallyLinkedLibrary)
-        Assert.Empty(other.GetDiagnostics())
-        Assert.Equal("1.2.3.4", DirectCast(other.Assembly, SourceAssemblySymbol).FileVersion)
-    End Sub
-
     <Fact, WorkItem(545948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545948")>
     Public Sub SatelliteContractVersionAttributeErr()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib(
@@ -151,7 +185,58 @@ BC36976: The specified version string does not conform to the recommended format
     End Sub
 
     <Fact>
-    Public Sub FileVersionAttributeWrn()
+    Public Sub FileVersionAttribute()
+        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")>
+Public Class C
+ Friend Sub Foo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        Assert.Empty(other.GetDiagnostics())
+        Assert.Equal("1.2.3.4", DirectCast(other.Assembly, SourceAssemblySymbol).FileVersion)
+    End Sub
+
+    <Fact>
+    Public Sub FileVersionAttribute_MaxValue()
+        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("65535.65535.65535.65535")>
+Public Class C
+ Friend Sub Foo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        Assert.Empty(other.GetDiagnostics())
+        Assert.Equal("65535.65535.65535.65535", DirectCast(other.Assembly, SourceAssemblySymbol).FileVersion)
+    End Sub
+
+    <Fact>
+    Public Sub FileVersionAttribute_MissingParts()
+        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("1.2")>
+Public Class C
+ Friend Sub Foo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        Assert.Empty(other.GetDiagnostics())
+        Assert.Equal("1.2", DirectCast(other.Assembly, SourceAssemblySymbol).FileVersion)
+    End Sub
+
+    <Fact>
+    Public Sub FileVersionAttributeWrn_Wildcard()
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -168,6 +253,27 @@ End Class
 BC42366: The specified version string does not conform to the recommended format - major.minor.build.revision
 <Assembly: System.Reflection.AssemblyFileVersion("1.2.*")>
                                                  ~~~~~~~
+]]></error>)
+    End Sub
+
+    <Fact>
+    Public Sub FileVersionAttributeWrn_OutOfRange()
+        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("1.65536")>
+Public Class C
+ Friend Sub Foo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        CompilationUtils.AssertTheseDiagnostics(other,
+<error><![CDATA[
+BC42366: The specified version string does not conform to the recommended format - major.minor.build.revision
+<Assembly: System.Reflection.AssemblyFileVersion("1.65536")>
+                                                 ~~~~~~~~~
 ]]></error>)
     End Sub
 
@@ -351,7 +457,8 @@ BC36977: Executables cannot be satellite assemblies; culture should always be em
 
     End Sub
 
-    <Fact(Skip:=("https://github.com/dotnet/roslyn/issues/5866"))>
+    <Fact>
+    <WorkItem(5866, "https://github.com/dotnet/roslyn/issues/5866")>
     Public Sub CultureAttributeMismatch()
         Dim neutral As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation name="neutral">
@@ -427,7 +534,7 @@ BC42371: Referenced assembly 'en_UK, Version=0.0.0.0, Culture=en-UK, PublicKeyTo
 </expected>)
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch1">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyCultureAttribute("en-US")>
 
@@ -447,15 +554,20 @@ end class
 </expected>)
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch2">
     <file name="a.vb">
     </file>
 </compilation>, {compilation.EmitToImageReference()}, TestOptions.ReleaseDll)
 
-        CompileAndVerify(compilation).VerifyDiagnostics()
+        CompileAndVerify(compilation,
+                         dependencies:={New ModuleData(en_usRef.Compilation.Assembly.Identity,
+                                                       OutputKind.DynamicallyLinkedLibrary,
+                                                       en_usRef.Compilation.EmitToArray(),
+                                                       ImmutableArray(Of Byte).Empty, False)}).
+            VerifyDiagnostics()
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch3">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyCultureAttribute("en-US")>
 
@@ -475,12 +587,20 @@ end class
 </expected>)
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch4">
     <file name="a.vb">
     </file>
 </compilation>, {compilation.EmitToImageReference()}, TestOptions.ReleaseDll)
 
         CompileAndVerify(compilation,
+                         dependencies:={New ModuleData(en_UKRef.Compilation.Assembly.Identity,
+                                                       OutputKind.DynamicallyLinkedLibrary,
+                                                       en_UKRef.Compilation.EmitToArray(),
+                                                       ImmutableArray(Of Byte).Empty, False),
+                                        New ModuleData(neutralRef.Compilation.Assembly.Identity,
+                                                       OutputKind.DynamicallyLinkedLibrary,
+                                                       neutralRef.Compilation.EmitToArray(),
+                                                       ImmutableArray(Of Byte).Empty, False)},
                          sourceSymbolValidator:=Sub(m As ModuleSymbol)
                                                     Assert.Equal(1, m.GetReferencedAssemblySymbols().Length)
 
@@ -491,7 +611,8 @@ end class
                          symbolValidator:=Sub(m As ModuleSymbol)
                                               Assert.Equal(2, m.GetReferencedAssemblySymbols().Length)
                                               Assert.Equal("neutral, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", m.GetReferencedAssemblySymbols()(1).ToTestDisplayString())
-                                          End Sub).VerifyDiagnostics()
+                                          End Sub).
+            VerifyDiagnostics()
 
         compilation = CreateCompilationWithMscorlibAndReferences(
 <compilation>
@@ -615,7 +736,7 @@ End Class
 ]]>
     </file>
 </compilation>, OutputKind.DynamicallyLinkedLibrary)
-        Assert.Empty(other.GetDiagnostics())
+        other.VerifyEmitDiagnostics()
         Assert.Equal("1.2.3garbage", DirectCast(other.Assembly, SourceAssemblySymbol).InformationalVersion)
     End Sub
 
@@ -1140,6 +1261,8 @@ End Class
         Assert.False(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
         Dim consoleappCompilation = CreateCompilationWithMscorlibAndReferences(consoleappSource, {netModuleWithAssemblyAttributes.GetReference()})
+        Assert.NotNull(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"))
+        Assert.NotNull(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"))
         Dim diagnostics = consoleappCompilation.GetDiagnostics()
 
         Dim attrs = consoleappCompilation.Assembly.GetAttributes()
@@ -1189,6 +1312,117 @@ End Class
         Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count)
 
         token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
+        Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
+    End Sub
+
+    <Fact()>
+    <WorkItem(10550, "https://github.com/dotnet/roslyn/issues/10550")>
+    Public Sub AssemblyAttributesFromNetModule_WithoutAssemblyAttributesGoHereTypes()
+
+        Dim netmoduleSource =
+            <compilation>
+                <file name="a.vb">
+                    <![CDATA[
+Imports System
+
+<Assembly: UserDefinedAssemblyAttrNoAllowMultiple("UserDefinedAssemblyAttrNoAllowMultiple")>
+<Assembly: UserDefinedAssemblyAttrAllowMultiple("UserDefinedAssemblyAttrAllowMultiple")>
+
+Public Class NetModuleClass
+End Class
+
+<AttributeUsage(AttributeTargets.Assembly, AllowMultiple := False)>
+Public Class UserDefinedAssemblyAttrNoAllowMultipleAttribute
+	Inherits Attribute
+	Public Sub New(text1 As String)
+	End Sub
+End Class
+
+<AttributeUsage(AttributeTargets.Assembly, AllowMultiple := True)>
+Public Class UserDefinedAssemblyAttrAllowMultipleAttribute
+	Inherits Attribute
+	Public Sub New(text1 As String)
+	End Sub
+End Class
+]]>
+                </file>
+            </compilation>
+
+        Dim consoleappSource =
+            <compilation>
+                        <file name="a.vb">
+                            <![CDATA[
+Class Program
+	Private Shared Sub Main(args As String())
+	End Sub
+End Class
+                    ]]>
+                        </file>
+                    </compilation>
+
+        Dim netmoduleCompilation = CreateCompilationWithReferences(netmoduleSource, references:={MinCorlibRef}, options:=TestOptions.ReleaseModule)
+        Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"))
+        Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"))
+        Dim bytes = netmoduleCompilation.EmitToArray()
+
+        Dim netModuleWithAssemblyAttributes = ModuleMetadata.CreateFromImage(bytes)
+
+        Dim metadata As PEModule = netModuleWithAssemblyAttributes.Module
+        Dim metadataReader = metadata.GetMetadataReader()
+
+        Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType))
+        Assert.Equal(4, metadataReader.CustomAttributes.Count)
+        Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count)
+
+        Dim token As EntityHandle = metadata.GetTypeRef(metadata.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
+        Assert.False(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
+
+        Dim consoleappCompilation = CreateCompilationWithReferences(consoleappSource, {MinCorlibRef, netModuleWithAssemblyAttributes.GetReference()})
+        Assert.Null(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"))
+        Assert.Null(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"))
+        consoleappCompilation.GetDiagnostics().Verify()
+
+        Dim attrs = consoleappCompilation.Assembly.GetAttributes()
+        Assert.Equal(2, attrs.Length)
+        For Each a In attrs
+            Select Case a.AttributeClass.Name
+                Case "UserDefinedAssemblyAttrNoAllowMultipleAttribute"
+                    Assert.Equal("UserDefinedAssemblyAttrNoAllowMultipleAttribute(""UserDefinedAssemblyAttrNoAllowMultiple"")", a.ToString())
+                    Exit Select
+                Case "UserDefinedAssemblyAttrAllowMultipleAttribute"
+                    Assert.Equal("UserDefinedAssemblyAttrAllowMultipleAttribute(""UserDefinedAssemblyAttrAllowMultiple"")", a.ToString())
+                    Exit Select
+                Case Else
+                    Assert.Equal("Unexpected Attr", a.AttributeClass.Name)
+                    Exit Select
+            End Select
+        Next
+
+        metadata = AssemblyMetadata.CreateFromImage(consoleappCompilation.EmitToArray()).GetAssembly.ManifestModule
+        metadataReader = metadata.GetMetadataReader()
+
+        Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ModuleRef))
+        Assert.Equal(3, metadataReader.GetTableRowCount(TableIndex.ExportedType))
+        Assert.Equal(2, metadataReader.CustomAttributes.Count)
+        Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count)
+
+        token = metadata.GetTypeRef(metadata.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
+        Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
+
+        consoleappCompilation = CreateCompilationWithReferences(consoleappSource, {MinCorlibRef, netModuleWithAssemblyAttributes.GetReference()}, TestOptions.ReleaseModule)
+        Assert.Equal(0, consoleappCompilation.Assembly.GetAttributes().Length)
+
+        Dim modRef = DirectCast(consoleappCompilation.EmitToImageReference(), MetadataImageReference)
+
+        metadata = ModuleMetadata.CreateFromImage(consoleappCompilation.EmitToArray()).Module
+        metadataReader = metadata.GetMetadataReader()
+
+        Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ModuleRef))
+        Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType))
+        Assert.Equal(0, metadataReader.CustomAttributes.Count)
+        Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count)
+
+        token = metadata.GetTypeRef(metadata.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
         Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
     End Sub
 

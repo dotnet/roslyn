@@ -70,15 +70,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void AutoPropInitializers()
         {
-            var experimental = TestOptions.ExperimentalParseOptions;
-            ParseAndRoundTripping("class C { int GetInt { get; } = 0; }", experimental, memberCount: 1);
-            ParseAndRoundTripping("class C { int GetInt { get; } = 0 }", experimental, 1, 1);
-            ParseAndRoundTripping("class C { public int GetInt { get; } = 0; }", experimental, memberCount: 1);
-            ParseAndRoundTripping("class C { int GetInt { get; } = 0;; }", experimental, 1, 1);
-            ParseAndRoundTripping("class C { int GetInt { get;; } = 0;; }", experimental, 2, 1);
-            ParseAndRoundTripping("interface I { int GetInt { get; } = 0; }", experimental, memberCount: 1);
-            ParseAndRoundTripping("interface I { int GetInt { get; } = 0 }", experimental, 1, 1);
-            ParseAndRoundTripping("interface I { public int GetInt { get; } = 0; }", experimental, memberCount: 1);
+            var parseOptions = TestOptions.Regular;
+            ParseAndRoundTripping("class C { int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
+            ParseAndRoundTripping("class C { int GetInt { get; } = 0 }", parseOptions, 1, 1);
+            ParseAndRoundTripping("class C { public int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
+            ParseAndRoundTripping("class C { int GetInt { get; } = 0;; }", parseOptions, 1, 1);
+            ParseAndRoundTripping("class C { int GetInt { get;; } = 0;; }", parseOptions, 2, 1);
+            ParseAndRoundTripping("interface I { int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
+            ParseAndRoundTripping("interface I { int GetInt { get; } = 0 }", parseOptions, 1, 1);
+            ParseAndRoundTripping("interface I { public int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
         }
 
         [Fact()]

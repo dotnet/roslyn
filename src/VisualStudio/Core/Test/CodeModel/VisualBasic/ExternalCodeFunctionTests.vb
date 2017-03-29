@@ -4,14 +4,14 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
-Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp.VisualBasic
+Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
     Public Class ExternalCodeFunctionTests
         Inherits AbstractCodeFunctionTests
 
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName1() As Task
+        Public Sub TestFullName1()
             Dim code =
 <Code>
 Class C
@@ -20,15 +20,15 @@ Class C
 End Class
 </Code>
 
-            Await TestFullName(code, "C.Foo")
-        End Function
+            TestFullName(code, "C.Foo")
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        Public Sub TestName1()
             Dim code =
 <Code>
 Class C
@@ -37,8 +37,8 @@ Class C
 End Class
 </Code>
 
-            Await TestName(code, "Foo")
-        End Function
+            TestName(code, "Foo")
+        End Sub
 
 #End Region
 

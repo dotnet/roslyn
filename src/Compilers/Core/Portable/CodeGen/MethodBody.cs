@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ImmutableArray<Cci.LocalScope> _localScopes;
         private readonly Cci.IImportScope _importScopeOpt;
         private readonly string _stateMachineTypeNameOpt;
-        private readonly ImmutableArray<Cci.StateMachineHoistedLocalScope> _stateMachineHoistedLocalScopes;
+        private readonly ImmutableArray<StateMachineHoistedLocalScope> _stateMachineHoistedLocalScopes;
         private readonly bool _hasDynamicLocalVariables;
         private readonly Cci.AsyncMethodBodyDebugInfo _asyncMethodDebugInfo;
 
@@ -37,6 +38,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         // Data used when emitting EnC delta:
         private readonly ImmutableArray<Cci.ITypeReference> _stateMachineAwaiterSlots;
+
+        // Data used when emitting Dynamic Analysis resource:
+        private readonly DynamicAnalysisMethodBodyData _dynamicAnalysisDataOpt;
 
         public MethodBody(
             ImmutableArray<byte> ilBits,
@@ -53,10 +57,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
             ImmutableArray<ClosureDebugInfo> closureDebugInfo,
             string stateMachineTypeNameOpt,
-            ImmutableArray<Cci.StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
+            ImmutableArray<StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlots,
             ImmutableArray<Cci.ITypeReference> stateMachineAwaiterSlots,
-            Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo)
+            Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo,
+            DynamicAnalysisMethodBodyData dynamicAnalysisDataOpt)
         {
             Debug.Assert(!locals.IsDefault);
             Debug.Assert(!exceptionHandlers.IsDefault);
@@ -80,12 +85,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _stateMachineHoistedLocalScopes = stateMachineHoistedLocalScopes;
             _stateMachineHoistedLocalSlots = stateMachineHoistedLocalSlots;
             _stateMachineAwaiterSlots = stateMachineAwaiterSlots;
+            _dynamicAnalysisDataOpt = dynamicAnalysisDataOpt;
         }
 
         void Cci.IMethodBody.Dispatch(Cci.MetadataVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        DynamicAnalysisMethodBodyData Cci.IMethodBody.DynamicAnalysisData => _dynamicAnalysisDataOpt;
 
         ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions => _exceptionHandlers;
 
@@ -101,18 +109,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public ImmutableArray<byte> IL => _ilBits;
 
-        public ImmutableArray<Cci.SequencePoint> GetSequencePoints()
+        public void GetSequencePoints(ArrayBuilder<Cci.SequencePoint> builder)
         {
-            return HasAnySequencePoints ?
-                _sequencePoints.GetSequencePoints(_debugDocumentProvider) :
-                ImmutableArray<Cci.SequencePoint>.Empty;
+            if (HasAnySequencePoints)
+            {
+                _sequencePoints.GetSequencePoints(_debugDocumentProvider, builder);
+            }
         }
 
         public bool HasAnySequencePoints
             => _sequencePoints != null && !_sequencePoints.IsEmpty;
-
-        public ImmutableArray<Cci.SequencePoint> GetLocations()
-            => GetSequencePoints();
 
         ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes => _localScopes;
 
@@ -123,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         string Cci.IMethodBody.StateMachineTypeName => _stateMachineTypeNameOpt;
 
-        ImmutableArray<Cci.StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes
+        ImmutableArray<StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes
             => _stateMachineHoistedLocalScopes;
 
         ImmutableArray<EncHoistedLocalInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots

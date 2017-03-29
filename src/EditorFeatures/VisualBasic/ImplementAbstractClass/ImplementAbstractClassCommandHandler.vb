@@ -30,8 +30,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
                 Return Nothing
             End If
 
+            Dim classBlock = TryCast(typeSyntax.Parent.Parent, ClassBlockSyntax)
+            If classBlock Is Nothing Then
+                Return Nothing
+            End If
+
             Dim service = document.GetLanguageService(Of IImplementAbstractClassService)()
-            Dim updatedDocument = service.ImplementAbstractClassAsync(document, document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken), typeSyntax, cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim updatedDocument = service.ImplementAbstractClassAsync(document, classBlock, cancellationToken).WaitAndGetResult(cancellationToken)
             If updatedDocument IsNot Nothing AndAlso
                 updatedDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken).Count = 0 Then
                 Return Nothing

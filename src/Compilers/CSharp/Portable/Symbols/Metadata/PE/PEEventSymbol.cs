@@ -86,10 +86,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
+            TypeSymbol originalEventType = _eventType?.TypeSymbol;
             if ((object)_eventType == null)
             {
                 var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
-                var type = TypeSymbolWithAnnotations.Create(metadataDecoder.GetTypeOfToken(eventType));
+                originalEventType = metadataDecoder.GetTypeOfToken(eventType);
+
+                var typeSymbol = DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol);
+                typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, handle, moduleSymbol);
+
+                var type = TypeSymbolWithAnnotations.Create(typeSymbol);
 
                 if (moduleSymbol.UtilizesNullableReferenceTypes)
                 {
@@ -103,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isWindowsRuntimeEvent = IsWindowsRuntimeEvent;
             bool callMethodsDirectly = isWindowsRuntimeEvent
                 ? !DoModifiersMatch(_addMethod, _removeMethod)
-                : !DoSignaturesMatch(moduleSymbol, _eventType.TypeSymbol, _addMethod, _removeMethod);
+                : !DoSignaturesMatch(moduleSymbol, originalEventType, _addMethod, _removeMethod);
 
             if (callMethodsDirectly)
             {

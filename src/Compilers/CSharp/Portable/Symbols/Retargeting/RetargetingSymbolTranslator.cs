@@ -446,6 +446,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public NamedTypeSymbol Retarget(NamedTypeSymbol type, RetargetOptions options)
             {
+                if (type.IsTupleType)
+                {
+                    var newUnderlyingType = Retarget(type.TupleUnderlyingType, options);
+                    if (newUnderlyingType.IsTupleOrCompatibleWithTupleOfCardinality(type.TupleElementTypes.Length))
+                    {
+                        return ((TupleTypeSymbol)type).WithUnderlyingType(newUnderlyingType);
+                    }
+                    else
+                    {
+                        return newUnderlyingType;
+                    }
+                }
+
                 NamedTypeSymbol originalDefinition = type.OriginalDefinition;
 
                 NamedTypeSymbol newDefinition = RetargetNamedTypeDefinition(originalDefinition, options);
@@ -624,6 +637,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     case SymbolKind.NamedType:
 
                         var namedType = (NamedTypeSymbol)symbol;
+                        if (namedType.IsTupleType)
+                        {
+                            namedType = namedType.TupleUnderlyingType;
+                        }
 
                         if ((object)symbol.OriginalDefinition.ContainingModule == (object)_retargetingModule.UnderlyingModule &&
                             namedType.IsExplicitDefinitionOfNoPiaLocalType)
@@ -677,36 +694,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             internal ImmutableArray<CustomModifier> RetargetModifiers(ImmutableArray<CustomModifier> oldModifiers, out bool modifiersHaveChanged)
             {
-                int i;
-                int count = oldModifiers.Length;
-                modifiersHaveChanged = false;
+                ArrayBuilder<CustomModifier> newModifiers = null;
 
-                if (count != 0)
+                for (int i = 0; i < oldModifiers.Length; i++)
                 {
-                    CustomModifier[] newModifiers = new CustomModifier[count];
+                    var oldModifier = oldModifiers[i];
+                    NamedTypeSymbol newModifier = Retarget((NamedTypeSymbol)oldModifier.Modifier, RetargetOptions.RetargetPrimitiveTypesByName); // should be retargeted by name
 
-                    for (i = 0; i < count; i++)
+                    if (!newModifier.Equals(oldModifier.Modifier))
                     {
-                        var oldModifier = oldModifiers[i];
-                        NamedTypeSymbol newModifier = Retarget((NamedTypeSymbol)oldModifier.Modifier, RetargetOptions.RetargetPrimitiveTypesByName); // should be retargeted by name
+                        if (newModifiers == null)
+                        {
+                            newModifiers = ArrayBuilder<CustomModifier>.GetInstance(oldModifiers.Length);
+                            newModifiers.AddRange(oldModifiers, i);
+                        }
 
-                        if (!newModifier.Equals(oldModifier.Modifier))
-                        {
-                            modifiersHaveChanged = true;
-                            newModifiers[i] = oldModifier.IsOptional ?
-                                                CSharpCustomModifier.CreateOptional(newModifier) :
-                                                CSharpCustomModifier.CreateRequired(newModifier);
-                        }
-                        else
-                        {
-                            newModifiers[i] = oldModifier;
-                        }
+                        newModifiers.Add(oldModifier.IsOptional ?
+                                            CSharpCustomModifier.CreateOptional(newModifier) :
+                                            CSharpCustomModifier.CreateRequired(newModifier));
                     }
-
-                    return newModifiers.AsImmutableOrNull();
+                    else if (newModifiers != null) 
+                    {
+                        newModifiers.Add(oldModifier);
+                    }
                 }
 
-                return oldModifiers;
+                Debug.Assert(newModifiers == null || newModifiers.Count == oldModifiers.Length);
+                modifiersHaveChanged = (newModifiers != null);
+                return modifiersHaveChanged ? newModifiers.ToImmutableAndFree() : oldModifiers;
             }
 
             public PointerTypeSymbol Retarget(PointerTypeSymbol type)
@@ -910,12 +925,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     IEqualityComparer<MethodSymbol> retargetedMethodComparer
                 )
                 {
+                    bool modifiersHaveChanged_Ignored; //ignored
+
                     var targetParamsBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(method.Parameters.Length);
                     foreach (var param in method.Parameters)
                     {
                         targetParamsBuilder.Add(
                             new SignatureOnlyParameterSymbol(
                                 translator.Retarget(param.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
+                                translator.RetargetModifiers(param.RefCustomModifiers, out modifiersHaveChanged_Ignored),
                                 param.IsParams,
                                 param.RefKind));
                     }
@@ -931,7 +949,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         method.CallingConvention,
                         IndexedTypeParameterSymbol.Take(method.Arity),
                         targetParamsBuilder.ToImmutableAndFree(),
+                        method.RefKind,
                         translator.Retarget(method.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
+                        translator.RetargetModifiers(method.RefCustomModifiers, out modifiersHaveChanged_Ignored),
                         ImmutableArray<MethodSymbol>.Empty);
 
                     foreach (var retargetedMember in retargetedType.GetMembers(method.Name))
@@ -966,12 +986,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             private PropertySymbol FindPropertyInRetargetedType(PropertySymbol property, NamedTypeSymbol retargetedType, IEqualityComparer<PropertySymbol> retargetedPropertyComparer)
             {
+                bool modifiersHaveChanged_Ignored; //ignored
+
                 var targetParamsBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(property.Parameters.Length);
                 foreach (var param in property.Parameters)
                 {
                     targetParamsBuilder.Add(
                         new SignatureOnlyParameterSymbol(
                             Retarget(param.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
+                            RetargetModifiers(param.RefCustomModifiers, out modifiersHaveChanged_Ignored),
                             param.IsParams,
                             param.RefKind));
                 }
@@ -980,7 +1003,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     property.Name,
                     retargetedType,
                     targetParamsBuilder.ToImmutableAndFree(),
+                    property.RefKind,
                     Retarget(property.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
+                    RetargetModifiers(property.RefCustomModifiers, out modifiersHaveChanged_Ignored),
                     property.IsStatic,
                     ImmutableArray<PropertySymbol>.Empty);
 
@@ -1026,12 +1051,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 {
                     bool modifiersHaveChanged;
                     ImmutableArray<CustomModifier> newModifiers = this.RetargetModifiers(oldModifiers, out modifiersHaveChanged);
-
-                    if (!modifiersHaveChanged)
-                    {
-                        newModifiers = oldModifiers;
-                    }
-
                     ImmutableInterlocked.InterlockedCompareExchange(ref lazyCustomModifiers, newModifiers, default(ImmutableArray<CustomModifier>));
                 }
 

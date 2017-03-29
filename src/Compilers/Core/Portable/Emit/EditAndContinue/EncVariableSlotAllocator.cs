@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> _lambdaMapOpt; // SyntaxOffset -> (Lambda Id, Closure Ordinal)
         private readonly IReadOnlyDictionary<int, DebugId> _closureMapOpt; // SyntaxOffset -> Id
 
+        private readonly LambdaSyntaxFacts _lambdaSyntaxFacts;
+
         public EncVariableSlotAllocator(
             SymbolMatcher symbolMap,
             Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
@@ -48,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Emit
             int hoistedLocalSlotCount,
             IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalSlotsOpt,
             int awaiterCount,
-            IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMapOpt)
+            IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMapOpt,
+            LambdaSyntaxFacts lambdaSyntaxFacts)
         {
             Debug.Assert(symbolMap != null);
             Debug.Assert(previousTopLevelMethod != null);
@@ -66,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _awaiterMapOpt = awaiterMapOpt;
             _lambdaMapOpt = lambdaMapOpt;
             _closureMapOpt = closureMapOpt;
+            _lambdaSyntaxFacts = lambdaSyntaxFacts;
 
             // Create a map from local info to slot.
             var previousLocalInfoToSlot = new Dictionary<EncLocalInfo, int>();
@@ -130,10 +134,10 @@ namespace Microsoft.CodeAnalysis.Emit
             string nameOpt,
             SynthesizedLocalKind kind,
             LocalDebugId id,
-            uint pdbAttributes,
+            LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
-            bool isDynamic,
-            ImmutableArray<TypedConstant> dynamicTransformFlags)
+            ImmutableArray<TypedConstant> dynamicTransformFlags,
+            ImmutableArray<TypedConstant> tupleElementNames)
         {
             if (id.IsNone)
             {
@@ -171,15 +175,26 @@ namespace Microsoft.CodeAnalysis.Emit
                 id,
                 pdbAttributes,
                 constraints,
-                isDynamic,
-                dynamicTransformFlags);
+                dynamicTransformFlags,
+                tupleElementNames);
         }
 
         public override string PreviousStateMachineTypeName => _stateMachineTypeNameOpt;
 
-        public override bool TryGetPreviousHoistedLocalSlotIndex(SyntaxNode currentDeclarator, Cci.ITypeReference currentType, SynthesizedLocalKind synthesizedKind, LocalDebugId currentId, out int slotIndex)
+        public override bool TryGetPreviousHoistedLocalSlotIndex(
+            SyntaxNode currentDeclarator, 
+            Cci.ITypeReference currentType,
+            SynthesizedLocalKind synthesizedKind,
+            LocalDebugId currentId,
+            DiagnosticBag diagnostics, 
+            out int slotIndex)
         {
-            Debug.Assert(_hoistedLocalSlotsOpt != null);
+            // The previous method was not a state machine (it is allowed to change non-state machine to a state machine):
+            if (_hoistedLocalSlotsOpt == null)
+            {
+                slotIndex = -1;
+                return false;
+            }
 
             LocalDebugId previousId;
             if (!TryGetPreviousLocalId(currentDeclarator, currentId, out previousId))
@@ -205,9 +220,15 @@ namespace Microsoft.CodeAnalysis.Emit
         public override int PreviousHoistedLocalSlotCount => _hoistedLocalSlotCount;
         public override int PreviousAwaiterSlotCount => _awaiterCount;
 
-        public override bool TryGetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType, out int slotIndex)
+        public override bool TryGetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType, DiagnosticBag diagnostics, out int slotIndex)
         {
-            Debug.Assert(_awaiterMapOpt != null);
+            // The previous method was not a state machine (it is allowed to change non-state machine to a state machine):
+            if (_awaiterMapOpt == null)
+            {
+                slotIndex = -1;
+                return false;
+            }
+
             return _awaiterMapOpt.TryGetValue(_symbolMap.MapReference(currentType), out slotIndex);
         }
 
@@ -232,7 +253,9 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             // Syntax map contains mapping for lambdas, but not their bodies. 
             // Map the lambda first and then determine the corresponding body.
-            var currentLambdaSyntax = isLambdaBody ? lambdaOrLambdaBodySyntax.GetLambda() : lambdaOrLambdaBodySyntax;
+            var currentLambdaSyntax = isLambdaBody 
+                ? _lambdaSyntaxFacts.GetLambda(lambdaOrLambdaBodySyntax) 
+                : lambdaOrLambdaBodySyntax;
 
             // no syntax map 
             // => the source of the current method is the same as the source of the previous method 
@@ -248,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Emit
             SyntaxNode previousSyntax;
             if (isLambdaBody)
             {
-                previousSyntax = previousLambdaSyntax.TryGetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax);
+                previousSyntax = _lambdaSyntaxFacts.TryGetCorrespondingLambdaBody(previousLambdaSyntax, lambdaOrLambdaBodySyntax);
                 if (previousSyntax == null)
                 {
                     previousSyntaxOffset = 0;

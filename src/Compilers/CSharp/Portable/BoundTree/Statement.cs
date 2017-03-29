@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Semantics;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
 
-        private ImmutableArray<IOperation> ToStatements(BoundStatement statement)
+        private static ImmutableArray<IOperation> ToStatements(BoundStatement statement)
         {
             BoundStatementList statementList = statement as BoundStatementList;
             if (statementList != null)
@@ -262,7 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundForEachStatement : IForEachLoopStatement
     {
-        ILocalSymbol IForEachLoopStatement.IterationVariable => this.IterationVariable;
+        ILocalSymbol IForEachLoopStatement.IterationVariable => this.IterationVariables.Length == 1?
+                                                                        this.IterationVariables.FirstOrDefault():
+                                                                        null;
 
         IOperation IForEachLoopStatement.Collection => this.Expression;
 
@@ -288,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundSwitchStatement, object> s_switchSectionsMappings =
             new ConditionalWeakTable<BoundSwitchStatement, object>();
 
-        IOperation ISwitchStatement.Value => this.BoundExpression;
+        IOperation ISwitchStatement.Value => this.Expression;
 
         ImmutableArray<ISwitchCase> ISwitchStatement.Cases
         {
@@ -319,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public SwitchSection(BoundSwitchSection boundNode)
             {
                 this.Body = boundNode.Statements.As<IOperation>();
-                this.Clauses = boundNode.BoundSwitchLabels.As<ICaseClause>();
+                this.Clauses = boundNode.SwitchLabels.As<ICaseClause>();
                 this.IsInvalid = boundNode.HasErrors;
                 this.Syntax = boundNode.Syntax;
             }
@@ -445,7 +447,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IOperation ICatchClause.Filter => this.ExceptionFilterOpt;
 
-        ILocalSymbol ICatchClause.ExceptionLocal => this.LocalOpt;
+        ILocalSymbol ICatchClause.ExceptionLocal
+        {
+            get
+            {
+                var local = this.Locals.FirstOrDefault();
+                return local?.DeclarationKind == LocalDeclarationKind.CatchVariable ? local : null;
+            }
+        }
 
         OperationKind IOperation.Kind => OperationKind.CatchClause;
 
@@ -487,33 +496,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundUsingStatement : IUsingWithDeclarationStatement, IUsingWithExpressionStatement
+    internal partial class BoundUsingStatement : IUsingStatement
     {
-        IVariableDeclarationStatement IUsingWithDeclarationStatement.Declaration => this.DeclarationsOpt;
+        IVariableDeclarationStatement IUsingStatement.Declaration => this.DeclarationsOpt;
 
-        IOperation IUsingWithExpressionStatement.Value => this.ExpressionOpt;
+        IOperation IUsingStatement.Value => this.ExpressionOpt;
 
         IOperation IUsingStatement.Body => this.Body;
 
-        protected override OperationKind StatementKind => this.ExpressionOpt != null ? OperationKind.UsingWithExpressionStatement : OperationKind.UsingWithDeclarationStatement;
+        protected override OperationKind StatementKind => OperationKind.UsingStatement;
 
         public override void Accept(OperationVisitor visitor)
         {
-            if (this.StatementKind == OperationKind.UsingWithExpressionStatement)
-            {
-                visitor.VisitUsingWithExpressionStatement(this);
-            }
-            else
-            {
-                visitor.VisitUsingWithDeclarationStatement(this);
-            }
+            visitor.VisitUsingStatement(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return this.StatementKind == OperationKind.UsingWithExpressionStatement
-                    ? visitor.VisitUsingWithExpressionStatement(this, argument)
-                    : visitor.VisitUsingWithDeclarationStatement(this, argument);
+            return visitor.VisitUsingStatement(this, argument);
         }
     }
 
@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (ImmutableArray<IVariableDeclaration>) s_variablesMappings.GetValue(this, 
+                return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(this,
                     declaration => ImmutableArray.Create<IVariableDeclaration>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(this,
                     multipleDeclarations =>
-                        multipleDeclarations.LocalDeclarations.SelectAsArray(declaration => 
+                        multipleDeclarations.LocalDeclarations.SelectAsArray(declaration =>
                             (IVariableDeclaration)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
@@ -816,6 +816,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitLocalFunctionStatement(this, argument);
+        }
+    }
+
+    partial class BoundPatternSwitchStatement
+    {
+        // TODO: this may need its own OperationKind.
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 }

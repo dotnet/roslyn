@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class VisualBasicCommandLineArgumentsFactoryServiceTests
         Private Shared ReadOnly s_directory As String = Path.GetTempPath()
 
-        Private ReadOnly _parser As New VisualBasicCommandLineArgumentsFactoryService()
+        Private ReadOnly _parser As New VisualBasicCommandLineParserService()
 
         Private Function GetArguments(ParamArray args As String()) As VisualBasicCommandLineArguments
             Dim arguments = _parser.Parse(args, baseDirectory:=s_directory, isInteractive:=False, sdkDirectory:=s_directory)

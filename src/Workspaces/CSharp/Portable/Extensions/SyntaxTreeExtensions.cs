@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,7 +17,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static partial class SyntaxTreeExtensions
     {
         public static ISet<SyntaxKind> GetPrecedingModifiers(
-            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+            this SyntaxTree syntaxTree,
+            int position,
+            SyntaxToken tokenOnLeftOfPosition,
+            CancellationToken cancellationToken)
+            => syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var _);
+
+        public static ISet<SyntaxKind> GetPrecedingModifiers(
+            this SyntaxTree syntaxTree,
+            int position,
+            SyntaxToken tokenOnLeftOfPosition,
+            out int positionBeforeModifiers)
         {
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
@@ -58,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 break;
             }
 
+            positionBeforeModifiers = token.FullSpan.End;
             return result;
         }
 
@@ -111,18 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static readonly Func<SyntaxKind, bool> s_isDotOrArrowOrColonColon =
             k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken || k == SyntaxKind.ColonColonToken;
 
-        public static bool IsNamespaceDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var namespaceName = token.GetAncestor<NamespaceDeclarationSyntax>();
-            if (namespaceName == null)
-            {
-                return false;
-            }
-
-            return namespaceName.Name.Span.IntersectsWith(position);
-        }
-
         public static bool IsRightOfDotOrArrowOrColonColon(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.IsRightOf(position, s_isDotOrArrowOrColonColon, cancellationToken);
@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return
                 syntaxTree.IsEntirelyWithinNonUserCodeComment(position, cancellationToken) ||
+                syntaxTree.IsEntirelyWithinConflictMarker(position, cancellationToken) ||
                 syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken) ||
                 syntaxTree.IsInInactiveRegion(position, cancellationToken);
         }
@@ -302,6 +303,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
+        public static bool IsEntirelyWithinConflictMarker(
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(position, cancellationToken);
+
+            if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+            {
+                // Check if we're on the newline right at the end of a comment
+                trivia = trivia.GetPreviousTrivia(syntaxTree, cancellationToken);
+            }
+
+            return trivia.Kind() == SyntaxKind.ConflictMarkerTrivia;
+        }
+
         public static bool IsEntirelyWithinTopLevelSingleLineComment(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
@@ -356,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (!token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken))
             {
-                throw new ArgumentException(CSharpWorkspaceResources.ExpectedStringOrCharLiteral, "token");
+                throw new ArgumentException(CSharpWorkspaceResources.Expected_string_or_char_literal, nameof(token));
             }
 
             int startLength = 1;
@@ -500,70 +515,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static IList<MemberDeclarationSyntax> GetMembersInSpan(
-            this SyntaxTree syntaxTree,
-            TextSpan textSpan,
-            CancellationToken cancellationToken)
+        public static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
+            this SyntaxNode root, TextSpan textSpan)
         {
-            var token = syntaxTree.GetRoot(cancellationToken).FindToken(textSpan.Start);
+            var token = root.FindToken(textSpan.Start);
             var firstMember = token.GetAncestors<MemberDeclarationSyntax>().FirstOrDefault();
             if (firstMember != null)
             {
-                var containingType = firstMember.Parent as TypeDeclarationSyntax;
-                if (containingType != null)
+                if (firstMember.Parent is TypeDeclarationSyntax containingType)
                 {
-                    var members = GetMembersInSpan(textSpan, containingType, firstMember);
-                    if (members != null)
-                    {
-                        return members;
-                    }
+                    return GetMembersInSpan(textSpan, containingType, firstMember);
                 }
             }
 
-            return SpecializedCollections.EmptyList<MemberDeclarationSyntax>();
+            return ImmutableArray<MemberDeclarationSyntax>.Empty;
         }
 
-        private static List<MemberDeclarationSyntax> GetMembersInSpan(
+        private static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
             TextSpan textSpan,
             TypeDeclarationSyntax containingType,
             MemberDeclarationSyntax firstMember)
         {
-            List<MemberDeclarationSyntax> selectedMembers = null;
-
-            var members = containingType.Members;
-            var fieldIndex = members.IndexOf(firstMember);
-            if (fieldIndex < 0)
+            var selectedMembers = ArrayBuilder<MemberDeclarationSyntax>.GetInstance();
+            try
             {
-                return null;
-            }
 
-            for (var i = fieldIndex; i < members.Count; i++)
+                var members = containingType.Members;
+                var fieldIndex = members.IndexOf(firstMember);
+                if (fieldIndex < 0)
+                {
+                    return ImmutableArray<MemberDeclarationSyntax>.Empty;
+                }
+
+                for (var i = fieldIndex; i < members.Count; i++)
+                {
+                    var member = members[i];
+                    if (textSpan.Contains(member.Span))
+                    {
+                        selectedMembers.Add(member);
+                    }
+                    else if (textSpan.OverlapsWith(member.Span))
+                    {
+                        return ImmutableArray<MemberDeclarationSyntax>.Empty;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                return selectedMembers.ToImmutable();
+            }
+            finally
             {
-                var member = members[i];
-                if (textSpan.Contains(member.Span))
-                {
-                    selectedMembers = selectedMembers ?? new List<MemberDeclarationSyntax>();
-                    selectedMembers.Add(member);
-                }
-                else if (textSpan.OverlapsWith(member.Span))
-                {
-                    return null;
-                }
-                else
-                {
-                    break;
-                }
+                selectedMembers.Free();
             }
-
-            return selectedMembers;
         }
 
         public static bool IsInPartiallyWrittenGeneric(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            SyntaxToken genericIdentifier;
-            SyntaxToken lessThanToken;
-            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out lessThanToken);
+            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out var genericIdentifier, out var lessThanToken);
         }
 
         public static bool IsInPartiallyWrittenGeneric(
@@ -572,8 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken,
             out SyntaxToken genericIdentifier)
         {
-            SyntaxToken lessThanToken;
-            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out lessThanToken);
+            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out var lessThanToken);
         }
 
         public static bool IsInPartiallyWrittenGeneric(

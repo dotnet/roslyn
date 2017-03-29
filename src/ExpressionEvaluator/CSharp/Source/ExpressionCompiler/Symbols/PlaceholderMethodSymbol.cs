@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -142,6 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
+
         public override TypeSymbolWithAnnotations ReturnType
         {
             get { return _returnType; }
@@ -150,6 +156,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         bool Cci.ISignature.ReturnValueIsByRef
         {
             get { return true; }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments

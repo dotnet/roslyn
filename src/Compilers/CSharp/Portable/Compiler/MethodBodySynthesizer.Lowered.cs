@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var body = F.Block(
                         ImmutableArray.Create<LocalSymbol>(hashCode, i),
-                        ImmutableArray<LocalFunctionSymbol>.Empty,
                         F.If(
                             F.Binary(BinaryOperatorKind.ObjectNotEqual, F.SpecialType(SpecialType.System_Boolean),
                                 F.Parameter(text),
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                     F.Parameter(text),
                                                     F.SpecialMethod(SpecialMember.System_String__Chars),
                                                     F.Local(i)),
-                                                ConversionKind.ImplicitNumeric),
+                                                Conversion.ImplicitNumeric),
                                             F.Local(hashCode)),
                                         F.Literal(16777619))),
                                 F.Assignment(

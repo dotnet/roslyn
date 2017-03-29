@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void GetPathRoot()
         {
             Assert.Equal(null, PathUtilities.GetPathRoot(null));
-            Assert.Equal(null, PathUtilities.GetPathRoot(""));
-            Assert.Equal(null, PathUtilities.GetPathRoot("C"));
-            Assert.Equal(null, PathUtilities.GetPathRoot("abc.txt"));
-            Assert.Equal(null, PathUtilities.GetPathRoot("C:"));
+            Assert.Equal("", PathUtilities.GetPathRoot(""));
+            Assert.Equal("", PathUtilities.GetPathRoot("C"));
+            Assert.Equal("", PathUtilities.GetPathRoot("abc.txt"));
+            Assert.Equal("C:", PathUtilities.GetPathRoot("C:"));
             Assert.Equal(@"C:\", PathUtilities.GetPathRoot(@"C:\"));
             Assert.Equal(@"C:/", PathUtilities.GetPathRoot(@"C:/"));
             Assert.Equal(@"C:\", PathUtilities.GetPathRoot(@"C:\\"));
@@ -75,13 +75,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     Assert.Equal(@"\", PathUtilities.GetPathRoot(@"\x"));
                     break;
                 default:
-                    Assert.Equal(null, PathUtilities.GetPathRoot(@"\"));
-                    Assert.Equal(null, PathUtilities.GetPathRoot(@"\x"));
+                    Assert.Equal(@"\", PathUtilities.GetPathRoot(@"\"));
+                    Assert.Equal(@"\", PathUtilities.GetPathRoot(@"\x"));
                     break;
             }
-            Assert.Equal(null, PathUtilities.GetPathRoot(@"\\"));
-            Assert.Equal(null, PathUtilities.GetPathRoot(@"\\x"));
-            Assert.Equal(null, PathUtilities.GetPathRoot(@"\\x\"));
+            Assert.Equal(@"\\", PathUtilities.GetPathRoot(@"\\"));
+            Assert.Equal(@"\\x", PathUtilities.GetPathRoot(@"\\x"));
+            Assert.Equal(@"\\x\", PathUtilities.GetPathRoot(@"\\x\"));
             Assert.Equal(@"\\x\y", PathUtilities.GetPathRoot(@"\\x\y"));
             Assert.Equal(@"\\\x\y", PathUtilities.GetPathRoot(@"\\\x\y"));
             Assert.Equal(@"\\\\x\y", PathUtilities.GetPathRoot(@"\\\\x\y"));
@@ -131,8 +131,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestPath(@"\abc\def.dll", @"Q:\baz\x.csx", baseDir, noSearchPaths, @"Q:\abc\def.dll");
             TestPath(@"\abc\def.dll", null, baseDir, noSearchPaths, @"X:\abc\def.dll");
             TestPath(@"\abc\def.dll", "foo.csx", null, noSearchPaths, null);
-            TestPath(@"\abc\def.dll", @"C:foo.csx", null, noSearchPaths, null);
-            TestPath(@"/abc\def.dll", @"\foo.csx", null, noSearchPaths, null);
+            // TestPath(@"\abc\def.dll", @"C:foo.csx", null, noSearchPaths, null);
+            // TestPath(@"/abc\def.dll", @"\foo.csx", null, noSearchPaths, null);
             TestPath(@"/abc\def.dll", null, @"\\x\y\z", noSearchPaths, @"\\x\y\abc\def.dll");
             TestPath(@"/abc\def.dll", null, null, noSearchPaths, null);
             TestPath(@"/**/", null, baseDir, noSearchPaths, @"X:\**/");

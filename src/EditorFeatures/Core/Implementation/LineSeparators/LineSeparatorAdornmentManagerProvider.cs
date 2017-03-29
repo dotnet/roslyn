@@ -3,8 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -18,15 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal class LineSeparatorAdornmentManagerProvider : IWpfTextViewCreationListener
+    internal class LineSeparatorAdornmentManagerProvider :
+        AbstractAdornmentManagerProvider<LineSeparatorTag>
     {
-        internal const string AdornmentLayerName = "RoslynLineSeparator";
-
-        private readonly IViewTagAggregatorFactoryService _tagAggregatorFactoryService;
-        private readonly IAsynchronousOperationListener _asyncListener;
+        private const string LayerName = "RoslynLineSeparator";
 
         [Export]
-        [Name(AdornmentLayerName)]
+        [Name(LayerName)]
         [ContentType(ContentTypeNames.RoslynContentType)]
         [Order(After = PredefinedAdornmentLayers.Selection, Before = PredefinedAdornmentLayers.Squiggle)]
 #pragma warning disable 0169
@@ -37,27 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         public LineSeparatorAdornmentManagerProvider(
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            : base(tagAggregatorFactoryService, asyncListeners)
         {
-            _tagAggregatorFactoryService = tagAggregatorFactoryService;
-            _asyncListener = new AggregateAsynchronousOperationListener(
-                asyncListeners,
-                FeatureAttribute.LineSeparators);
         }
 
-        public void TextViewCreated(IWpfTextView textView)
-        {
-            if (textView == null)
-            {
-                throw new ArgumentNullException(nameof(textView));
-            }
-
-            if (!textView.TextBuffer.GetOption(EditorComponentOnOffOptions.Adornment))
-            {
-                return;
-            }
-
-            // the manager keeps itself alive by listening to text view events.
-            AdornmentManager<LineSeparatorTag>.Create(textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
-        }
+        protected override string FeatureAttributeName => FeatureAttribute.LineSeparators;
+        protected override string AdornmentLayerName => LayerName;
     }
 }

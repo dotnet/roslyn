@@ -4,6 +4,8 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
@@ -13,23 +15,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     /// </summary>
     internal class LineSeparatorTag : GraphicsTag
     {
-        public static readonly LineSeparatorTag Instance = new LineSeparatorTag();
-
-        private static Brush s_brush;
-
-        private void Initialize(IWpfTextView view)
+        public LineSeparatorTag(IEditorFormatMap editorFormatMap)
+            : base(editorFormatMap)
         {
-            // TODO: Refresh this when the user changes fonts and colors
+        }
 
-            // TODO: Get from resources
-            var lightGray = Color.FromRgb(0xE0, 0xE0, 0xE0);
-
-            var outliningForegroundBrush = view.VisualElement.TryFindResource("outlining.verticalrule.foreground") as SolidColorBrush;
-            var darkGray = outliningForegroundBrush != null
-                ? outliningForegroundBrush.Color
-                : lightGray;
-
-            s_brush = new SolidColorBrush(darkGray);
+        protected override Color? GetColor(
+            IWpfTextView view, IEditorFormatMap editorFormatMap)
+        {
+            var brush = view.VisualElement.TryFindResource("outlining.verticalrule.foreground") as SolidColorBrush;
+            return brush?.Color;
         }
 
         /// <summary>
@@ -37,17 +32,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         /// </summary>
         public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds)
         {
-            if (s_brush == null)
+            Initialize(view);
+
+            var border = new Border()
             {
-                Initialize(view);
-            }
-
-            var border = new Border();
-            border.BorderBrush = s_brush;
-            border.BorderThickness = new Thickness(0, 0, 0, bottom: 1);
-            border.Height = 1;
-            border.Width = view.ViewportWidth;
-
+                BorderBrush = _graphicsTagBrush,
+                BorderThickness = new Thickness(0, 0, 0, bottom: 1),
+                Height = 1,
+                Width = view.ViewportWidth
+            };
             EventHandler viewportWidthChangedHandler = (s, e) =>
             {
                 border.Width = view.ViewportWidth;

@@ -68,7 +68,7 @@ class C
     public int M() {} => 1;
 }");
             comp.VerifyDiagnostics(
-    // (4,5): error CS8056: Methods cannot combine block bodies with expression bodies.
+    // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     public int M() {} => 1;
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "public int M() {} => 1;").WithLocation(4, 5),
     // (4,16): error CS0161: 'C.M()': not all code paths return a value
@@ -365,6 +365,18 @@ class C
 @"Hello
 2
 World");
+        }
+
+        [Fact]
+        public void RefReturningExpressionBodiedMethod()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public ref int M() => ref field;
+}");
+            comp.VerifyDiagnostics();
         }
     }
 }

@@ -50,6 +50,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         /// <summary>
+        /// Turn off low latency GC mode.
+        /// 
+        /// if there is a pending low latency mode request, Latency mode will go back to its original status as
+        /// pending request timeout. once it goes back to its original status, it will not go back to low latency mode again.
+        /// </summary>
+        internal static void TurnOffLowLatencyMode()
+        {
+            if (s_delayMilliseconds <= 0)
+            {
+                // if it is already turned off, we don't do anything.
+                return;
+            }
+
+            // first set delay to 0 to turn it off
+            s_delayMilliseconds = 0;
+
+            // explictly call Full GC to remove impact of SustainedLowLatency
+            // this is based on finding on https://github.com/dotnet/roslyn/issues/6802
+            // one of reason we do this here is so that GC do compact on fragmented memory.
+            // which will in return let us have bigger continuous free memory chunk.
+            //
+            // we do this 5 times to make sure we release all pending memories. something
+            // most of our tests do. previous collect can put objects in finalizer and running
+            // finalizer can release even more memory so we repeat this 5 times.
+            for (var i = 0; i < 5; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
+
+        /// <summary>
         /// Call this method to suppress expensive blocking Gen 2 garbage GCs in
         /// scenarios where high-latency is unacceptable (e.g. processing typing input).
         /// 

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // are no conflicts.)  This is unnecessary for implicit implementations because, if the custom
             // modifiers don't match, we'll insert bridge methods for the accessors (explicit implementations 
             // that delegate to the implicit implementations) with the correct custom modifiers
-            // (see SourceNamedTypeSymbol.ImplementInterfaceMember).
+            // (see SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation).
 
             // Note: we're checking if the syntax indicates explicit implementation rather,
             // than if explicitInterfaceType is null because we don't want to look for an
@@ -77,17 +78,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (accessor.Kind())
                 {
                     case SyntaxKind.AddAccessorDeclaration:
-                        if (addSyntax == null || addSyntax.Keyword.Span.IsEmpty)
+                        if (addSyntax == null)
                         {
                             addSyntax = accessor;
                         }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
+                        }
                         break;
                     case SyntaxKind.RemoveAccessorDeclaration:
-                        if (removeSyntax == null || removeSyntax.Keyword.Span.IsEmpty)
+                        if (removeSyntax == null)
                         {
                             removeSyntax = accessor;
                         }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
+                        }
                         break;
+                    case SyntaxKind.GetAccessorDeclaration:
+                    case SyntaxKind.SetAccessorDeclaration:
+                        diagnostics.Add(ErrorCode.ERR_AddOrRemoveExpected, accessor.Keyword.GetLocation());
+                        break;
+
+                    case SyntaxKind.UnknownAccessorDeclaration:
+                        // Don't need to handle UnknownAccessorDeclaration.  An error will have 
+                        // already been produced for it in the parser.
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
                 }
             }
 

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             If context.IsAnyExpressionContext Then
                 Return {CreateRecommendedKeywordForIntrinsicOperator(
                     SyntaxKind.NameOfKeyword,
-                    VBFeaturesResources.NameOfFunction,
+                    VBFeaturesResources.NameOf_function,
                     Glyph.MethodPublic,
                     New NameOfExpressionDocumentation(),
                     context.SemanticModel,

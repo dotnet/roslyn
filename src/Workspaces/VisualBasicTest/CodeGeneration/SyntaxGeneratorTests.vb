@@ -443,6 +443,11 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TestNameOfExpressions()
+            VerifySyntax(Of NameOfExpressionSyntax)(_g.NameOfExpression(_g.IdentifierName("x")), "NameOf(x)")
+        End Sub
+
+        <Fact>
         Public Sub TestReturnStatements()
             VerifySyntax(Of ReturnStatementSyntax)(_g.ReturnStatement(), "Return")
             VerifySyntax(Of ReturnStatementSyntax)(_g.ReturnStatement(_g.IdentifierName("x")), "Return x")
@@ -593,6 +598,15 @@ End Using</x>.Value)
 <x>Using y As x = z
     q
 End Using</x>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub TestLockStatements()
+            VerifySyntax(Of SyncLockBlockSyntax)(
+                _g.LockStatement(_g.IdentifierName("x"), {_g.IdentifierName("y")}),
+<x>SyncLock x
+    y
+End SyncLock</x>.Value)
         End Sub
 
         <Fact>

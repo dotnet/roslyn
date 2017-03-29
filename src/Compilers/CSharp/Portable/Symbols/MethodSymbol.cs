@@ -78,6 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// True if the method itself is excluded from code covarage instrumentation.
+        /// True for source methods marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        /// </summary>
+        internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
+
+        /// <summary>
         /// Returns true if this method is an extension method. 
         /// </summary>
         public abstract bool IsExtensionMethod { get; }
@@ -161,6 +167,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Metadata: Returns false; methods from metadata cannot be async.
         /// </summary>
         public abstract bool IsAsync { get; }
+
+        /// <summary>
+        /// Indicates whether or not the method returns by reference
+        /// </summary>
+        public bool ReturnsByRef { get { return this.RefKind != RefKind.None; } }
+
+        /// <summary>
+        /// Gets the ref kind of the method's return value
+        /// </summary>
+        internal abstract RefKind RefKind { get; }
 
         /// <summary>
         /// Gets the return type of the method
@@ -263,6 +279,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// that is why return type is ImmutableArray.
         /// </remarks>
         public abstract ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations { get; }
+
+        /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
         /// Gets the attributes on method's return type.
@@ -836,6 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check return type, custom modifiers, parameters
             if (DeriveUseSiteDiagnosticFromType(ref result, this.ReturnType) ||
+                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers) ||
                 DeriveUseSiteDiagnosticFromParameters(ref result, this.Parameters))
             {
                 return true;
@@ -848,6 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
 
                 if (this.ReturnType.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
+                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.RefCustomModifiers, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.Parameters, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.TypeParameters, this, ref unificationCheckedTypes))
                 {
@@ -1138,6 +1161,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        ImmutableArray<CustomModifier> IMethodSymbol.RefCustomModifiers
+        {
+            get
+            {
+                return this.RefCustomModifiers;
+            }
+        }
+
         ImmutableArray<AttributeData> IMethodSymbol.GetReturnTypeAttributes()
         {
             return this.GetReturnTypeAttributes().Cast<CSharpAttributeData, AttributeData>();
@@ -1186,12 +1217,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
+        /// <summary>
+        /// Is this a method of a tuple type?
+        /// </summary>
+        public virtual bool IsTupleMethod
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// If this is a method of a tuple type, return corresponding underlying method from the
+        /// tuple underlying type. Otherwise, null. 
+        /// </summary>
+        public virtual MethodSymbol TupleUnderlyingMethod
+        {
+            get
+            {
+                return null;
+            }
+        }
+
         #region IMethodSymbolInternal
 
-        int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
-        {
-            return CalculateLocalSyntaxOffset(localPosition, localTree);
-        }
+        bool IMethodSymbolInternal.IsIterator => IsIterator;
+
+        int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => CalculateLocalSyntaxOffset(localPosition, localTree);
 
         #endregion
 

@@ -38,8 +38,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return false;
             }
 
-            var lastToken = select.Expression.GetLastToken(includeSkipped: true);
 
+            // cases:
+            //   select x.|
+            //   select x.i|
+            var lastCompleteToken = token.GetPreviousTokenIfTouchingWord(context.Position);
+            if (lastCompleteToken.Kind() == SyntaxKind.DotToken)
+            {
+                return false;
+            }
+
+            var lastToken = select.Expression.GetLastToken(includeSkipped: true);
             if (lastToken == token)
             {
                 return true;

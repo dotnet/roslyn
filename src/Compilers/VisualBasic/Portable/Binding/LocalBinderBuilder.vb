@@ -24,31 +24,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class LocalBinderBuilder
         Inherits VisualBasicSyntaxVisitor
 
-        Private _nodeMap As ImmutableDictionary(Of VisualBasicSyntaxNode, BlockBaseBinder)
+        Private _nodeMap As ImmutableDictionary(Of SyntaxNode, BlockBaseBinder)
         Private _listMap As ImmutableDictionary(Of SyntaxList(Of StatementSyntax), BlockBaseBinder)
         Private ReadOnly _enclosingMethod As MethodSymbol
         Private _containingBinder As Binder
 
         Public Sub New(enclosingMethod As MethodSymbol)
             _enclosingMethod = enclosingMethod
-            _nodeMap = ImmutableDictionary.Create(Of VisualBasicSyntaxNode, BlockBaseBinder)()
+            _nodeMap = ImmutableDictionary.Create(Of SyntaxNode, BlockBaseBinder)()
             _listMap = ImmutableDictionary.Create(Of SyntaxList(Of StatementSyntax), BlockBaseBinder)()
         End Sub
 
-        Public Sub New(enclosingMethod As MethodSymbol, nodeMap As ImmutableDictionary(Of VisualBasicSyntaxNode, BlockBaseBinder), listMap As ImmutableDictionary(Of SyntaxList(Of StatementSyntax), BlockBaseBinder))
+        Public Sub New(enclosingMethod As MethodSymbol, nodeMap As ImmutableDictionary(Of SyntaxNode, BlockBaseBinder), listMap As ImmutableDictionary(Of SyntaxList(Of StatementSyntax), BlockBaseBinder))
             _enclosingMethod = enclosingMethod
             _nodeMap = nodeMap
             _listMap = listMap
         End Sub
 
-        Public Sub MakeBinder(node As VisualBasicSyntaxNode, containingBinder As Binder)
+        Public Sub MakeBinder(node As SyntaxNode, containingBinder As Binder)
             Dim oldContainingBinder As Binder = Me._containingBinder
             Me._containingBinder = containingBinder
             MyBase.Visit(node)
             Me._containingBinder = oldContainingBinder
         End Sub
 
-        Public ReadOnly Property NodeToBinderMap As ImmutableDictionary(Of VisualBasicSyntaxNode, BlockBaseBinder)
+        Public ReadOnly Property NodeToBinderMap As ImmutableDictionary(Of SyntaxNode, BlockBaseBinder)
             Get
                 Return _nodeMap
             End Get

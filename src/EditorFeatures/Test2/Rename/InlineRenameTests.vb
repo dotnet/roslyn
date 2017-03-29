@@ -4,7 +4,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CSharp.CodeRefactorings.IntroduceVariable
+Imports Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
@@ -12,10 +12,17 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
+Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Public Class InlineRenameTests
+        Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
+
+        Sub New(outputHelper As Abstractions.ITestOutputHelper)
+            _outputHelper = outputHelper
+        End Sub
+
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function SimpleEditAndCommit() As Task
@@ -95,9 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameOverloads, renameOverloads)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInStrings, renameInStrings)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInComments, renameInComments)
-
-            Dim optionService = workspace.Services.GetService(Of IOptionService)()
-            optionService.SetOptions(optionSet)
+            workspace.Options = optionSet
 
             Dim session = StartSession(workspace)
 
@@ -542,7 +547,6 @@ End Class
             End Using
         End Sub
 
-
         <WpfFact>
         <WorkItem(539513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539513")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
@@ -636,7 +640,7 @@ End Class
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameWithInheritenceCascadingWithClass()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
@@ -802,7 +806,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/15225")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VerifyRenameTrackingWorksAfterInlineRenameCommit() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -874,8 +878,8 @@ End Class
 
                 Await VerifyTagsAreCorrect(workspace, "BarFoo")
                 Assert.True(previewService.Called)
-                Assert.Equal(String.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.Rename), previewService.Title)
-                Assert.Equal(String.Format(EditorFeaturesResources.RenameToTitle, "Foo", "BarFoo"), previewService.Description)
+                Assert.Equal(String.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename), previewService.Title)
+                Assert.Equal(String.Format(EditorFeaturesResources.Rename_0_to_1_colon, "Foo", "BarFoo"), previewService.Description)
                 Assert.Equal("Foo", previewService.TopLevelName)
                 Assert.Equal(Glyph.ClassInternal, previewService.TopLevelGlyph)
             End Using
@@ -1065,11 +1069,12 @@ class C
                 Dim notificationService = DirectCast(workspace.Services.GetService(Of INotificationService)(), INotificationServiceCallback)
                 notificationService.NotificationCallback = Sub(message, title, severity) actualSeverity = severity
 
-                editHandler.Apply(
+                Await editHandler.ApplyAsync(
                     workspace,
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
                     Await actions.First().GetOperationsAsync(CancellationToken.None),
                     "unused",
+                    New ProgressTracker(),
                     CancellationToken.None)
 
                 ' CodeAction should be rejected
@@ -1402,5 +1407,90 @@ End Module
                 Await VerifyTagsAreCorrect(workspace, "x")
             End Using
         End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(9117, "https://github.com/dotnet/roslyn/issues/9117")>
+        Public Async Function VerifyVBRenameCrashDoesNotRepro() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document>
+Public Class Class1 
+  Public Property [|$$Field1|] As Integer
+End Class 
+
+Public Class Class2 
+  Public Shared Property DataSource As IEnumerable(Of Class1) 
+  Public ReadOnly Property Dict As IReadOnlyDictionary(Of Integer, IEnumerable(Of Class1)) = 
+  ( 
+    From data 
+    In DataSource 
+    Group By 
+    data.Field1
+    Into Group1 = Group 
+  ).ToDictionary( 
+    Function(group) group.Field1,
+    Function(group) group.Group1) 
+End Class 
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().TextBuffer
+
+                textBuffer.Delete(New Span(caretPosition, 1))
+                textBuffer.Insert(caretPosition, "x")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace, "xield1")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(14554, "https://github.com/dotnet/roslyn/issues/14554")>
+        Public Sub VerifyVBRenameDoesNotCrashOnAsNewClause()
+            Using workspace = CreateWorkspaceWithWaiter(
+                                <Workspace>
+                                    <Project Language="Visual Basic" CommonReferences="true">
+                                        <Document>
+Class C
+    Sub New(a As Action)
+    End Sub
+
+    Public ReadOnly Property Vm As C
+
+    Public ReadOnly Property Crash As New C(Sub()
+                                                Vm.Sav()
+                                            End Sub)
+
+    Public Function Sav$$() As Boolean
+        Return False
+    End Function
+
+    Public Function Save() As Boolean
+        Return False
+    End Function
+End Class
+                                        </Document>
+                                    </Project>
+                                </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().TextBuffer
+
+                ' Ensure the rename doesn't crash
+                textBuffer.Insert(caretPosition, "e")
+                session.Commit()
+            End Using
+        End Sub
     End Class
 End Namespace

@@ -2,10 +2,10 @@
 
 Imports System
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -57,8 +57,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim originalCompilation = compilation
 
-            If syntax IsNot Nothing Then
-                compilation = compilation.AddSyntaxTrees(syntax.SyntaxTree)
+            If syntax IsNot Nothing AndAlso compilation.Options.SuppressEmbeddedDeclarations AndAlso
+               compilation.SyntaxTrees.IsEmpty Then
+                ' We need to add an empty tree to the compilation as 
+                ' a workaround for https://github.com/dotnet/roslyn/issues/16885.
+                compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.Dummy)
             End If
 
             Dim defaultNamespaceName As String = methodDebugInfo.DefaultNamespaceName
@@ -152,8 +155,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Me.Compilation.Compile(
                 moduleBuilder,
-                win32Resources:=Nothing,
-                xmlDocStream:=Nothing,
                 emittingPdb:=False,
                 diagnostics:=diagnostics,
                 filterOpt:=Nothing,
@@ -247,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                                         Dim expression = New BoundLocal(syntax, local, isLValue:=False, type:=local.Type)
                                         Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
                                     End Function)
-                                localBuilder.Add(MakeLocalAndMethod(local, methodName, If(local.IsReadOnly, DkmClrCompilationResultFlags.ReadOnlyResult, DkmClrCompilationResultFlags.None)))
+                                localBuilder.Add(MakeLocalAndMethod(local, aliasMethod, If(local.IsReadOnly, DkmClrCompilationResultFlags.ReadOnlyResult, DkmClrCompilationResultFlags.None)))
                                 methodBuilder.Add(aliasMethod)
                             Next
                         End If
@@ -257,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         If Not m.IsShared AndAlso (Not m.ContainingType.IsClosureOrStateMachineType() OrElse _displayClassVariables.ContainsKey(GeneratedNames.MakeStateMachineCapturedMeName())) Then
                             Dim methodName = GetNextMethodName(methodBuilder)
                             Dim method = Me.GetMeMethod(container, methodName)
-                            localBuilder.Add(New VisualBasicLocalAndMethod("Me", "Me", methodName, DkmClrCompilationResultFlags.None)) ' NOTE: writable in Dev11.
+                            localBuilder.Add(New VisualBasicLocalAndMethod("Me", "Me", method, DkmClrCompilationResultFlags.None)) ' NOTE: writable in Dev11.
                             methodBuilder.Add(method)
                         End If
                     End If
@@ -308,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             localBuilder.Add(New VisualBasicLocalAndMethod(
                                              ExpressionCompilerConstants.TypeVariablesLocalName,
                                              ExpressionCompilerConstants.TypeVariablesLocalName,
-                                             methodName,
+                                             method,
                                              DkmClrCompilationResultFlags.ReadOnlyResult))
                             methodBuilder.Add(method)
                         End If
@@ -330,8 +331,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Me.Compilation.Compile(
                 moduleBuilder,
-                win32Resources:=Nothing,
-                xmlDocStream:=Nothing,
                 emittingPdb:=False,
                 diagnostics:=diagnostics,
                 filterOpt:=Nothing,
@@ -350,7 +349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim methodName = GetNextMethodName(methodBuilder)
             Dim method = Me.GetLocalMethod(container, methodName, local.Name, localIndex)
-            localBuilder.Add(MakeLocalAndMethod(local, methodName, resultFlags))
+            localBuilder.Add(MakeLocalAndMethod(local, method, resultFlags))
             methodBuilder.Add(method)
         End Sub
 
@@ -367,17 +366,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim name = SyntaxHelpers.EscapeKeywordIdentifiers(parameter.Name)
             Dim methodName = GetNextMethodName(methodBuilder)
             Dim method = Me.GetParameterMethod(container, methodName, parameter.Name, parameterIndex)
-            localBuilder.Add(New VisualBasicLocalAndMethod(name, name, methodName, DkmClrCompilationResultFlags.None))
+            localBuilder.Add(New VisualBasicLocalAndMethod(name, name, method, DkmClrCompilationResultFlags.None))
             methodBuilder.Add(method)
         End Sub
 
-        Private Shared Function MakeLocalAndMethod(local As LocalSymbol, methodName As String, flags As DkmClrCompilationResultFlags) As LocalAndMethod
+        Private Shared Function MakeLocalAndMethod(local As LocalSymbol, method As MethodSymbol, flags As DkmClrCompilationResultFlags) As LocalAndMethod
             ' Note: The native EE doesn't do this, but if we don't escape keyword identifiers,
             ' the ResultProvider needs to be able to disambiguate cases Like "Me" And "[Me]",
             ' which it can't do correctly without semantic information.
             Dim escapedName = SyntaxHelpers.EscapeKeywordIdentifiers(local.Name)
             Dim displayName = If(TryCast(local, PlaceholderLocalSymbol)?.DisplayName, escapedName)
-            Return New VisualBasicLocalAndMethod(escapedName, displayName, methodName, flags)
+            Return New VisualBasicLocalAndMethod(escapedName, displayName, method, flags)
         End Function
 
         Private Shared Function CreateModuleBuilder(
@@ -888,19 +887,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function SelectAndInitializeCollection(Of T)(
-            scope As ImportScope,
+            scope As VBImportScopeKind,
             ByRef projectLevelCollection As T,
             ByRef fileLevelCollection As T,
             initializeCollection As Func(Of T)) As T
 
-            If scope = ImportScope.Project Then
+            If scope = VBImportScopeKind.Project Then
                 If projectLevelCollection Is Nothing Then
                     projectLevelCollection = initializeCollection()
                 End If
 
                 Return projectLevelCollection
             Else
-                Debug.Assert(scope = ImportScope.File OrElse scope = ImportScope.Unspecified)
+                Debug.Assert(scope = VBImportScopeKind.File OrElse scope = VBImportScopeKind.Unspecified)
 
                 If fileLevelCollection Is Nothing Then
                     fileLevelCollection = initializeCollection()
@@ -1287,6 +1286,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     ' locals above.  We assert that we are seeing the latter.
                     Debug.Assert((variableKind = DisplayClassVariableKind.Parameter) OrElse
                         (variableKind = DisplayClassVariableKind.Me))
+
+                    If variableKind = DisplayClassVariableKind.Parameter AndAlso GeneratedNames.GetKind(instance.Type.Name) = GeneratedNameKind.LambdaDisplayClass Then
+                        displayClassVariablesBuilder(variableName) = instance.ToVariable(variableName, variableKind, field)
+                    End If
+
                 Else
                     displayClassVariableNamesInOrder.Add(variableName)
                     displayClassVariablesBuilder.Add(variableName, instance.ToVariable(variableName, variableKind, field))

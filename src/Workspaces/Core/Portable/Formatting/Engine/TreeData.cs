@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -17,8 +16,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static TreeData Create(SyntaxNode root)
         {
             // either there is no tree or a tree that is not generated from a text.
-            var text = default(SourceText);
-            if (root.SyntaxTree == null || !root.SyntaxTree.TryGetText(out text))
+            if (root.SyntaxTree == null || !root.SyntaxTree.TryGetText(out var text))
             {
                 return new Node(root);
             }
@@ -51,10 +49,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public abstract string GetTextBetween(SyntaxToken token1, SyntaxToken token2);
         public abstract int GetOriginalColumn(int tabSize, SyntaxToken token);
 
-        public SyntaxNode Root
-        {
-            get { return _root; }
-        }
+        public SyntaxNode Root => _root;
 
         public bool IsFirstToken(SyntaxToken token)
         {

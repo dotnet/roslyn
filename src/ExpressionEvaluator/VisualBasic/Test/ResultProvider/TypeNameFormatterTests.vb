@@ -269,8 +269,8 @@ End Namespace
         <WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")>
         <Fact>
         Public Sub DynamicAttribute_ValidFlags()
-            Assert.Equal("Object", GetType(Object).GetTypeName({True}))
-            Assert.Equal("Object()", GetType(Object()).GetTypeName({False, True}))
+            Assert.Equal("Object", GetType(Object).GetTypeName(MakeCustomTypeInfo(True)))
+            Assert.Equal("Object()", GetType(Object()).GetTypeName(MakeCustomTypeInfo(False, True)))
         End Sub
 
         <WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")>

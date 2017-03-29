@@ -538,14 +538,13 @@ End Module
                 Diagnostic(ERRID.WRN_ObjectAssumed1, "{""a"", New c}").WithArguments("Cannot infer an element type; 'Object' assumed."))
         End Sub
 
-        <Fact(Skip:="529377")>
-        Public Sub TestArrayLiteralInferredElementArgIterator()
+        <Fact>
+        Public Sub TestArrayLiteralInferredElementArgIterator_1()
             Dim source =
 <compilation name="TestArrayLiteralInferredElementTypeDiagnostics">
     <file name="a.vb">
         <![CDATA[
-        Imports System
-Imports System.Collections.Generic
+Imports System
 
 Module Program
     Class c
@@ -553,7 +552,7 @@ Module Program
 
     Sub Main(args As String())
         Dim a As ArgIterator = Nothing
-        Dim x as ArgIterator= {a} ' Error should be reported on ArgIterator not the array literal
+        Dim x as ArgIterator= {a} 
     End Sub
 End Module
 ]]>
@@ -561,12 +560,57 @@ End Module
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=_strictOff)
 
+            Dim expected =
+<expected>
+	BC30311: Value of type 'ArgIterator()' cannot be converted to 'ArgIterator'.
+        Dim x as ArgIterator= {a} 
+                              ~~~
+</expected>
+            comp.AssertTheseDiagnostics(expected)
+
             comp = comp.WithOptions(_strictOn)
-            comp.VerifyDiagnostics() ' Error should be reported on ArgIterator not the array literal
+            comp.AssertTheseDiagnostics(expected)
 
             comp = comp.WithOptions(_strictCustom)
-            comp.VerifyDiagnostics() ' Error should be reported on ArgIterator not the array literal
+            comp.AssertTheseDiagnostics(expected)
+        End Sub
 
+        <Fact>
+        <WorkItem(529377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529377")>
+        Public Sub TestArrayLiteralInferredElementArgIterator_2()
+            Dim source =
+<compilation name="TestArrayLiteralInferredElementTypeDiagnostics">
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+
+Module Program
+    Class c
+    End Class
+
+    Sub Main(args As String())
+        Dim a As ArgIterator = Nothing
+        Dim x as ArgIterator() = {a} 
+    End Sub
+End Module
+]]>
+    </file>
+</compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=_strictOff)
+
+            Dim expected =
+<expected>
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim x as ArgIterator() = {a} 
+                 ~~~~~~~~~~~~~
+</expected>
+            comp.AssertTheseDiagnostics(expected)
+
+            comp = comp.WithOptions(_strictOn)
+            comp.AssertTheseDiagnostics(expected)
+
+            comp = comp.WithOptions(_strictCustom)
+            comp.AssertTheseDiagnostics(expected)
         End Sub
 
         <Fact()>
@@ -1469,10 +1513,20 @@ End Module
     ]]></file>
 </compilation>)
 
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeInferenceFailureAmbiguous2, "fooModules").WithArguments("Public Sub fooModules(Of T)(ParamArray z As T())"))
+            Dim expected =
+<expected>
+BC30311: Value of type 'String()' cannot be converted to 'String'.
+        fooModules({"1"}, {1})
+                   ~~~~~
+BC30311: Value of type 'Integer()' cannot be converted to 'String'.
+        fooModules({"1"}, {1})
+                          ~~~
+</expected>
+
+            AssertTheseDiagnostics(compilation, expected)
 
             compilation = compilation.WithOptions(_strictOn)
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeInferenceFailureAmbiguous2, "fooModules").WithArguments("Public Sub fooModules(Of T)(ParamArray z As T())"))
+            AssertTheseDiagnostics(compilation, expected)
         End Sub
 
         <WorkItem(544352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544352")>

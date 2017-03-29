@@ -20,25 +20,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
-            var result = RewriteIfStatement(syntax, AddConditionSequencePoint(rewrittenCondition, node), rewrittenConsequence, rewrittenAlternative, node.HasErrors);
+            if (this.Instrument && !node.WasCompilerGenerated)
+            {
+                rewrittenCondition = _instrumenter.InstrumentIfStatementCondition(node, rewrittenCondition, _factory);
+            }
+
+            var result = RewriteIfStatement(syntax, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.HasErrors);
 
             // add sequence point before the whole statement
-            if (this.GenerateDebugInfo && !node.WasCompilerGenerated)
+            if (this.Instrument && !node.WasCompilerGenerated)
             {
-                result = new BoundSequencePointWithSpan(
-                    syntax,
-                    result,
-                    TextSpan.FromBounds(
-                        syntax.IfKeyword.SpanStart,
-                        syntax.CloseParenToken.Span.End),
-                    node.HasErrors);
+                result = _instrumenter.InstrumentIfStatement(node, result);
             }
 
             return result;
         }
 
         private static BoundStatement RewriteIfStatement(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenCondition,
             BoundStatement rewrittenConsequence,
             BoundStatement rewrittenAlternativeOpt,
@@ -60,6 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 builder.Add(new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, afterif));
                 builder.Add(rewrittenConsequence);
+                builder.Add(new BoundLabelStatement(syntax, afterif));
+                var statements = builder.ToImmutableAndFree();
+                return new BoundStatementList(syntax, statements, hasErrors);
             }
             else
             {
@@ -84,11 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(new BoundGotoStatement(syntax, afterif));
                 builder.Add(new BoundLabelStatement(syntax, alt));
                 builder.Add(rewrittenAlternativeOpt);
+                builder.Add(new BoundLabelStatement(syntax, afterif));
+                return new BoundStatementList(syntax, builder.ToImmutableAndFree(), hasErrors);
             }
 
-            builder.Add(new BoundLabelStatement(syntax, afterif));
-
-            return new BoundStatementList(syntax, builder.ToImmutableAndFree(), hasErrors);
         }
     }
 }

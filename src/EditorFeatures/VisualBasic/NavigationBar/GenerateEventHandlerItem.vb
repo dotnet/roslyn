@@ -1,12 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
     Friend Class GenerateEventHandlerItem
@@ -57,11 +56,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 accessibility:=Accessibility.Private,
                 modifiers:=New DeclarationModifiers(),
                 returnType:=delegateInvokeMethod.ReturnType,
+                returnsByRef:=delegateInvokeMethod.ReturnsByRef,
                 explicitInterfaceSymbol:=Nothing,
                 name:=methodName,
                 typeParameters:=Nothing,
-                parameters:=delegateInvokeMethod.Parameters.OfType(Of IParameterSymbol).ToList(),
-                handlesExpressions:={handlesSyntax})
+                parameters:=delegateInvokeMethod.Parameters,
+                handlesExpressions:=ImmutableArray.Create(Of SyntaxNode)(handlesSyntax))
             methodSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(methodSymbol)
 
             Return Await CodeGenerator.AddMethodDeclarationAsync(document.Project.Solution,

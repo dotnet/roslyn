@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
             get { return ImmutableArray.Create(CS0103, CS0117, CS0234, CS0246, CS0305, CS0308, CS0426, CS0616); }
         }
 
-        protected override bool IsCandidate(SyntaxNode node, Diagnostic diagnostic)
+        protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         {
             var qualified = node as QualifiedNameSyntax;
             if (qualified != null)
@@ -61,7 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
             return ((ExpressionSyntax)node).GetRightmostName();
         }
 
-        protected override Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+            Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IGenerateTypeService>();
             return service.GenerateTypeAsync(document, node, cancellationToken);

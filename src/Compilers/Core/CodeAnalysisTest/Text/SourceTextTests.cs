@@ -124,12 +124,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             VerifyChecksum(SourceText.From(streamBOM, encodingBOM, checksumAlgorigthm), checksumBOM);
 
             // LargeText from stream no BOM. Checksum should ignore explicit encoding.
-            VerifyChecksum(LargeText.Decode(streamNoBOM, encodingNoBOM, checksumAlgorigthm, throwIfBinaryDetected: false), checksumNoBOM);
-            VerifyChecksum(LargeText.Decode(streamNoBOM, encodingBOM, checksumAlgorigthm, throwIfBinaryDetected: false), checksumNoBOM);
+            VerifyChecksum(LargeText.Decode(streamNoBOM, encodingNoBOM, checksumAlgorigthm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumNoBOM);
+            VerifyChecksum(LargeText.Decode(streamNoBOM, encodingBOM, checksumAlgorigthm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumNoBOM);
 
             // LargeText from stream with BOM. Checksum should include BOM.
-            VerifyChecksum(LargeText.Decode(streamBOM, encodingNoBOM, checksumAlgorigthm, throwIfBinaryDetected: false), checksumBOM);
-            VerifyChecksum(LargeText.Decode(streamBOM, encodingBOM, checksumAlgorigthm, throwIfBinaryDetected: false), checksumBOM);
+            VerifyChecksum(LargeText.Decode(streamBOM, encodingNoBOM, checksumAlgorigthm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumBOM);
+            VerifyChecksum(LargeText.Decode(streamBOM, encodingBOM, checksumAlgorigthm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumBOM);
 
             // LargeText from writer no BOM. Checksum includes BOM
             // from explicit encoding. This is inconsistent with the
@@ -227,6 +227,41 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             var stream = new MemoryStream(bytes);
             Assert.Throws<InvalidDataException>(() => SourceText.From(stream, throwIfBinaryDetected: true));
+        }
+
+        [Fact]
+        public void FromTextReader()
+        {
+            var expected = "Text reader source text test";
+            var expectedSourceText = SourceText.From(expected);
+
+            var actual = new StringReader(expected);
+            var actualSourceText = SourceText.From(actual, expected.Length);
+
+            Assert.Equal<byte>(expectedSourceText.GetChecksum(), actualSourceText.GetChecksum());
+
+            Assert.Same(s_utf8, SourceText.From(actual, expected.Length, s_utf8).Encoding);
+            Assert.Same(s_unicode, SourceText.From(actual, expected.Length, s_unicode).Encoding);
+            Assert.Null(SourceText.From(actual, expected.Length, null).Encoding);
+        }
+
+        [Fact]
+        public void FromTextReader_Large()
+        {
+            var expected = new string('l', SourceText.LargeObjectHeapLimitInChars);
+            var expectedSourceText = SourceText.From(expected);
+
+            var actual = new StringReader(expected);
+            var actualSourceText = SourceText.From(actual, expected.Length);
+
+            Assert.IsType<LargeText>(actualSourceText);
+            Assert.Equal<byte>(expectedSourceText.GetChecksum(), actualSourceText.GetChecksum());
+
+            var utf8NoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
+            Assert.Same(s_utf8, SourceText.From(actual, expected.Length, s_utf8).Encoding);
+            Assert.Same(s_unicode, SourceText.From(actual, expected.Length, s_unicode).Encoding);
+            Assert.Null(SourceText.From(actual, expected.Length, null).Encoding);
         }
 
         private static void TestTryReadByteOrderMark(Encoding expectedEncoding, int expectedPreambleLength, byte[] data)

@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class SyntaxBinderTests : CompilingTestBase
+    public partial class ImplicitlyTypedLocalTests : CompilingTestBase
     {
         [Fact]
         public void ConstVarField1()
@@ -69,16 +69,14 @@ class Program
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (6,23): error CS0841: Cannot use local variable 'x' before it is declared
                 //         var x = y.Foo(x);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x"),
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(6, 23),
                 // (6,17): error CS0841: Cannot use local variable 'y' before it is declared
                 //         var x = y.Foo(x);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y"),
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(6, 17),
                 // (7,23): error CS0841: Cannot use local variable 'y' before it is declared
                 //         var y = x.Foo(y);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y"),
-                // (6,23): error CS0165: Use of unassigned local variable 'x'
-                //         var x = y.Foo(x);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x"));
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 23)
+                );
         }
 
         [WorkItem(545612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545612")]

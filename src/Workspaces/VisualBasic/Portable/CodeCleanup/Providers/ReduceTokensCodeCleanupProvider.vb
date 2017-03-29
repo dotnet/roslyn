@@ -88,7 +88,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                         Dim base = literal.GetBase()
 
-                        If Not base.HasValue Then
+                        Const digitSeperator = "_"c
+                        If Not base.HasValue OrElse idText.Contains(digitSeperator) Then
                             Return newNode
                         End If
 
@@ -273,8 +274,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Case LiteralBase.Octal
                         Dim val1 As ULong = ConvertToULong(value)
                         Return "&O" + ConvertToOctalString(val1)
+                    Case LiteralBase.Binary
+                        Dim asLong = CType(ConvertToULong(value), Long)
+                        Return "&B" + Convert.ToString(asLong, 2)
                     Case Else
-                        Throw ExceptionUtilities.Unreachable
+                        Throw ExceptionUtilities.UnexpectedValue(base)
                 End Select
             End Function
 
@@ -292,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Case SyntaxKind.IntegerLiteralToken
                         Return token.CopyAnnotationsTo(SyntaxFactory.IntegerLiteralToken(leading, newValueString, token.GetBase().Value, token.GetTypeCharacter(), DirectCast(newValue, ULong), trailing))
                     Case Else
-                        Throw ExceptionUtilities.Unreachable
+                        Throw ExceptionUtilities.UnexpectedValue(token.Kind)
                 End Select
             End Function
 

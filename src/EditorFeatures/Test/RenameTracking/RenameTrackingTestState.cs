@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.VisualStudio.Composition;
@@ -26,6 +27,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
@@ -49,13 +51,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         private readonly CodeFixProvider _codeFixProvider;
         private readonly RenameTrackingCancellationCommandHandler _commandHandler = new RenameTrackingCancellationCommandHandler();
 
-        public static async Task<RenameTrackingTestState> CreateAsync(
+        public static RenameTrackingTestState Create(
             string markup,
             string languageName,
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
-            var workspace = await CreateTestWorkspaceAsync(markup, languageName, TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic());
+            var workspace = CreateTestWorkspace(markup, languageName, EditorServicesUtil.CreateExportProvider());
+            return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
+        }
+
+        public static RenameTrackingTestState CreateFromWorkspaceXml(
+            string workspaceXml,
+            string languageName,
+            bool onBeforeGlobalSymbolRenamedReturnValue = true,
+            bool onAfterGlobalSymbolRenamedReturnValue = true)
+        {
+            var workspace = TestWorkspace.Create(
+                workspaceXml,
+                exportProvider: EditorServicesUtil.CreateExportProvider());
+
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
 
@@ -77,8 +92,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 OnBeforeSymbolRenamedReturnValue = onBeforeGlobalSymbolRenamedReturnValue,
                 OnAfterSymbolRenamedReturnValue = onAfterGlobalSymbolRenamedReturnValue
             };
-
-            var optionService = this.Workspace.Services.GetService<IOptionService>();
 
             // Mock the action taken by the workspace INotificationService
             var notificationService = Workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
@@ -111,11 +124,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             }
             else
             {
-                throw new ArgumentException("Invalid language name: " + languageName, "languageName");
+                throw new ArgumentException("Invalid language name: " + languageName, nameof(languageName));
             }
         }
 
-        private static Task<TestWorkspace> CreateTestWorkspaceAsync(string code, string languageName, ExportProvider exportProvider = null)
+        private static TestWorkspace CreateTestWorkspace(string code, string languageName, ExportProvider exportProvider = null)
         {
             var xml = string.Format(@"
 <Workspace>
@@ -124,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
     </Project>
 </Workspace>", languageName, code);
 
-            return TestWorkspace.CreateAsync(xml, exportProvider: exportProvider);
+            return TestWorkspace.Create(xml, exportProvider: exportProvider);
         }
 
         public void SendEscape()
@@ -192,14 +205,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             // There should only be one code action
             Assert.Equal(1, actions.Count);
 
-            Assert.Equal(string.Format(EditorFeaturesResources.RenameTo, expectedFromName, expectedToName), actions[0].Title);
+            Assert.Equal(string.Format(EditorFeaturesResources.Rename_0_to_1, expectedFromName, expectedToName), actions[0].Title);
 
             if (invokeAction)
             {
                 var operations = (await actions[0].GetOperationsAsync(CancellationToken.None)).ToArray();
                 Assert.Equal(1, operations.Length);
 
-                operations[0].Apply(this.Workspace, CancellationToken.None);
+                operations[0].TryApply(this.Workspace, new ProgressTracker(), CancellationToken.None);
             }
         }
 

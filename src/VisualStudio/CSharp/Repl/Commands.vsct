@@ -23,24 +23,8 @@
           <ButtonText>C# Interactive</ButtonText>
         </Strings>
       </Button>
-
-      <Button guid="guidCSharpInteractiveCommandSet" id="cmdidResetInteractiveFromProject" priority="0x0100" type="Button">
-        <Parent guid="guidCSharpInteractiveCommandSet" id="IDG_INTERACTIVE_PROJECT"/>
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
-        <Strings>
-          <ButtonText>Reset C# Interactive from Project</ButtonText>
-          <CanonicalName>ResetC#InteractiveFromProject</CanonicalName>
-          <LocCanonicalName>ResetC#InteractiveFromProject</LocCanonicalName>
-        </Strings>
-      </Button>
     </Buttons>
   </Commands>
-  
-  <VisibilityConstraints>
-    <VisibilityItem context="guidCSProjectContext" guid="guidCSharpInteractiveCommandSet" id="cmdidResetInteractiveFromProject" />
-    <VisibilityItem context="guidVBProjectContext" guid="guidCSharpInteractiveCommandSet" id="cmdidResetInteractiveFromProject" />
-  </VisibilityConstraints>
   
   <!-- https://github.com/dotnet/roslyn/issues/3941
   <KeyBindings>

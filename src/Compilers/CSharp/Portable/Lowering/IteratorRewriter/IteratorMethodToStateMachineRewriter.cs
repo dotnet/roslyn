@@ -94,12 +94,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             // state_0:
             // state = -1;
+            // [optional: cachedThis = capturedThis;] 
             // [[rewritten body]]
-            newBody = F.Block(ImmutableArray.Create(cachedState), ImmutableArray<LocalFunctionSymbol>.Empty,
-                    F.Block(
-                        F.HiddenSequencePoint(),
-                        F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField))
-                    ),
+            newBody = F.Block((object)cachedThis == null?
+                                ImmutableArray.Create(cachedState):
+                                ImmutableArray.Create(cachedState, cachedThis),
+
+                    F.HiddenSequencePoint(),
+                    F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField)),
+                    CacheThisIfNeeded(),
                     Dispatch(),
                     GenerateReturn(finished: true),
                     F.Label(initialLabel),
@@ -153,7 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var disposeBody = F.Block(
                                     ImmutableArray.Create<LocalSymbol>(stateLocal),
-                                    ImmutableArray<LocalFunctionSymbol>.Empty,
                                     F.Assignment(F.Local(stateLocal), F.Field(F.This(), stateField)),
                                     EmitFinallyFrame(rootFrame, state),
                                     F.Return());
@@ -180,7 +182,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   return methodValue;
                 newBody = F.Block(
                         ImmutableArray.Create<LocalSymbol>(_methodValue),
-                        ImmutableArray<LocalFunctionSymbol>.Empty,
                         newBody,
                         F.Assignment(this.F.Local(_methodValue), this.F.Literal(true)),
                         F.Label(_exitLabel),
@@ -388,8 +389,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      return;
             // }
             Debug.Assert(frame.parent.finalizeState == _currentFinallyFrame.finalizeState);
-            rewrittenHandler = F.Block(
+            rewrittenHandler = F.Block((object)this.cachedThis != null?
+                                            ImmutableArray.Create(this.cachedThis):
+                                            ImmutableArray<LocalSymbol>.Empty,
                                 F.Assignment(F.Field(F.This(), stateField), F.Literal(frame.parent.finalizeState)),
+                                CacheThisIfNeeded(),
                                 rewrittenHandler,
                                 F.Return()
                             );

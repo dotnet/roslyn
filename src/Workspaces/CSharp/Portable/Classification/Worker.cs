@@ -1,18 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
@@ -54,23 +46,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void AddClassification(TextSpan span, string type)
         {
-            _result.Add(new ClassifiedSpan(type, span));
+            if (ShouldAddSpan(span))
+            {
+                _result.Add(new ClassifiedSpan(type, span));
+            }
+        }
+
+        private bool ShouldAddSpan(TextSpan span)
+        {
+            return span.Length > 0 && _textSpan.OverlapsWith(span);
         }
 
         private void AddClassification(SyntaxTrivia trivia, string type)
         {
-            if (trivia.Width() > 0 && _textSpan.OverlapsWith(trivia.Span))
-            {
-                AddClassification(trivia.Span, type);
-            }
+            AddClassification(trivia.Span, type);
         }
 
         private void AddClassification(SyntaxToken token, string type)
         {
-            if (token.Width() > 0 && _textSpan.OverlapsWith(token.Span))
-            {
-                AddClassification(token.Span, type);
-            }
+            AddClassification(token.Span, type);
         }
 
         private void ClassifyNodeOrToken(SyntaxNodeOrToken nodeOrToken)
@@ -96,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private void ClassifyToken(SyntaxToken token)
         {
             var span = token.Span;
-            if (span.Length != 0 && _textSpan.OverlapsWith(span))
+            if (ShouldAddSpan(span))
             {
                 var type = ClassificationHelpers.GetClassification(token);
 
@@ -106,44 +100,109 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 }
             }
 
-            foreach (var trivia in token.LeadingTrivia)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-                ClassifyTrivia(trivia);
-            }
-
-            foreach (var trivia in token.TrailingTrivia)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-                ClassifyTrivia(trivia);
-            }
+            ClassifyTriviaList(token.LeadingTrivia);
+            ClassifyTriviaList(token.TrailingTrivia);
         }
 
-        private void ClassifyTrivia(SyntaxTrivia trivia)
+        private void ClassifyTriviaList(SyntaxTriviaList list)
         {
-            if (trivia.IsRegularComment())
+            if (list.Count == 0)
             {
-                AddClassification(trivia, ClassificationTypeNames.Comment);
+                return;
             }
-            else if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
+
+            // We may have long lists of trivia (for example a huge list of // comments after someone
+            // comments out a file).  Try to skip as many as possible if they're not actually in the span
+            // we care about classifying.
+            var classificationSpanStart = _textSpan.Start;
+            var classificationSpanEnd = _textSpan.End;
+
+            // First, skip all the trivia before the span we care about.
+            var enumerator = list.GetEnumerator();
+            while (true)
             {
-                AddClassification(trivia, ClassificationTypeNames.ExcludedCode);
+                _cancellationToken.ThrowIfCancellationRequested();
+
+                if (!enumerator.MoveNext())
+                {
+                    // Reached the end of the trivia.  It was all before the span we want to classify.
+                    // Stop immediately.
+                    return;
+                }
+
+                if (enumerator.Current.FullSpan.End > classificationSpanStart)
+                {
+                    // Found trivia that is after the text span we're classifying.  
+                    break;
+                }
             }
-            else if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
+
+            // Continue processing trivia from this point on until we get past the span we want to classify.
+            do
             {
-                ClassifySkippedTokens((SkippedTokensTriviaSyntax)trivia.GetStructure());
+                _cancellationToken.ThrowIfCancellationRequested();
+
+                var trivia = enumerator.Current;
+                if (trivia.SpanStart >= _textSpan.End)
+                {
+                    // reached trivia that is past what we are classifying.  Stop immediately.
+                    return;
+                }
+
+                ClassifyTrivia(trivia, list);
             }
-            else if (trivia.IsDocComment())
+            while (enumerator.MoveNext());
+        }
+
+        private void ClassifyTrivia(SyntaxTrivia trivia, SyntaxTriviaList triviaList)
+        {
+            switch (trivia.Kind())
             {
-                ClassifyDocumentationComment((DocumentationCommentTriviaSyntax)trivia.GetStructure());
-            }
-            else if (trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia)
-            {
-                AddClassification(trivia, ClassificationTypeNames.XmlDocCommentDelimiter);
-            }
-            else if (SyntaxFacts.IsPreprocessorDirective(trivia.Kind()))
-            {
-                ClassifyPreprocessorDirective((DirectiveTriviaSyntax)trivia.GetStructure());
+                case SyntaxKind.SingleLineCommentTrivia:
+                case SyntaxKind.MultiLineCommentTrivia:
+                case SyntaxKind.ShebangDirectiveTrivia:
+                    AddClassification(trivia, ClassificationTypeNames.Comment);
+                    return;
+
+                case SyntaxKind.DisabledTextTrivia:
+                    ClassifyDisabledText(trivia, triviaList);
+                    return;
+
+                case SyntaxKind.SkippedTokensTrivia:
+                    ClassifySkippedTokens((SkippedTokensTriviaSyntax)trivia.GetStructure());
+                    return;
+
+                case SyntaxKind.SingleLineDocumentationCommentTrivia:
+                case SyntaxKind.MultiLineDocumentationCommentTrivia:
+                    ClassifyDocumentationComment((DocumentationCommentTriviaSyntax)trivia.GetStructure());
+                    return;
+
+                case SyntaxKind.DocumentationCommentExteriorTrivia:
+                    AddClassification(trivia, ClassificationTypeNames.XmlDocCommentDelimiter);
+                    return;
+
+                case SyntaxKind.ConflictMarkerTrivia:
+                    ClassifyConflictMarker(trivia);
+                    return;
+
+                case SyntaxKind.IfDirectiveTrivia:
+                case SyntaxKind.ElifDirectiveTrivia:
+                case SyntaxKind.ElseDirectiveTrivia:
+                case SyntaxKind.EndIfDirectiveTrivia:
+                case SyntaxKind.RegionDirectiveTrivia:
+                case SyntaxKind.EndRegionDirectiveTrivia:
+                case SyntaxKind.DefineDirectiveTrivia:
+                case SyntaxKind.UndefDirectiveTrivia:
+                case SyntaxKind.ErrorDirectiveTrivia:
+                case SyntaxKind.WarningDirectiveTrivia:
+                case SyntaxKind.LineDirectiveTrivia:
+                case SyntaxKind.PragmaWarningDirectiveTrivia:
+                case SyntaxKind.PragmaChecksumDirectiveTrivia:
+                case SyntaxKind.ReferenceDirectiveTrivia:
+                case SyntaxKind.LoadDirectiveTrivia:
+                case SyntaxKind.BadDirectiveTrivia:
+                    ClassifyPreprocessorDirective((DirectiveTriviaSyntax)trivia.GetStructure());
+                    return;
             }
         }
 
@@ -158,6 +217,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             foreach (var tk in tokens)
             {
                 ClassifyToken(tk);
+            }
+        }
+
+        private void ClassifyConflictMarker(SyntaxTrivia trivia)
+        {
+            AddClassification(trivia, ClassificationTypeNames.Comment);
+        }
+
+        private void ClassifyDisabledText(SyntaxTrivia trivia, SyntaxTriviaList triviaList)
+        {
+            var index = triviaList.IndexOf(trivia);
+            if (index >= 2 &&
+                triviaList[index - 1].Kind() == SyntaxKind.EndOfLineTrivia &&
+                triviaList[index - 2].Kind() == SyntaxKind.ConflictMarkerTrivia)
+            {
+                // for the ======== add a comment for the first line, and then lex all
+                // subsequent lines up until the end of the conflict marker.
+                foreach (var token in SyntaxFactory.ParseTokens(text: trivia.ToFullString(), initialTokenPosition: trivia.SpanStart))
+                { 
+                    ClassifyToken(token);
+                }
+            }
+            else
+            {
+                AddClassification(trivia, ClassificationTypeNames.ExcludedCode);
             }
         }
     }

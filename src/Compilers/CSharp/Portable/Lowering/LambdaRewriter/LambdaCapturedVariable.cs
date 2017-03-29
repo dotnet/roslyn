@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
@@ -65,6 +65,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, uniqueId++);
                 }
+
+                if (local.SynthesizedKind == SynthesizedLocalKind.InstrumentationPayload)
+                {
+                    return GeneratedNames.MakeSynthesizedInstrumentationPayloadLocalFieldName(uniqueId++);
+                }
+
+                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined && local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection)
+                {
+                    return GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, uniqueId++, local.Name);
+                }
             }
 
             Debug.Assert(variable.Name != null);
@@ -104,6 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return _isThis;
+            }
+        }
+
+        internal override bool SuppressDynamicAttribute
+        {
+            get
+            {
+                return false;
             }
         }
     }

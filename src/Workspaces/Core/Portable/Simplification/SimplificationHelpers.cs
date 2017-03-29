@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -97,6 +99,32 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             // name bound to only one symbol is valid
             return symbol != null && !symbol.IsErrorType();
+        }
+
+        internal static bool ShouldSimplifyMemberAccessExpression(SemanticModel semanticModel, SyntaxNode expression, OptionSet optionSet)
+        {
+            var symbol = GetOriginalSymbolInfo(semanticModel, expression);
+            if (symbol == null ||
+                (!symbol.IsStatic &&
+                 (symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(CodeStyleOptions.QualifyFieldAccess, semanticModel.Language).Value ||
+                 (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(CodeStyleOptions.QualifyPropertyAccess, semanticModel.Language).Value) ||
+                 (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(CodeStyleOptions.QualifyMethodAccess, semanticModel.Language).Value) ||
+                 (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(CodeStyleOptions.QualifyEventAccess, semanticModel.Language).Value))))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        internal static bool PreferPredefinedTypeKeywordInDeclarations(OptionSet optionSet, string language)
+        {
+            return optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language).Value;
+        }
+
+        internal static bool PreferPredefinedTypeKeywordInMemberAccess(OptionSet optionSet, string language)
+        {
+            return optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language).Value;
         }
     }
 }

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If DEBUG Then
         Private Sub Validate()
             Debug.Assert(UnderlyingLValue.IsLValue)
-            Debug.Assert(UnderlyingLValue.Type.IsSameTypeIgnoringCustomModifiers(Type))
+            Debug.Assert(UnderlyingLValue.Type.IsSameTypeIgnoringAll(Type))
         End Sub
 #End If
 

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 End If
 
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.Method Or PossibleDeclarationTypes.IteratorFunction) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Function", VBFeaturesResources.FunctionKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Function", VBFeaturesResources.Declares_the_name_parameters_and_code_that_define_a_Function_procedure_that_is_a_procedure_that_returns_a_value_to_the_calling_code))
                 End If
             End If
 
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                context.IsInStatementBlockOfKind(SyntaxKind.FunctionBlock, SyntaxKind.MultiLineFunctionLambdaExpression) AndAlso
                Not context.IsInStatementBlockOfKind(SyntaxKind.FinallyBlock) Then
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Function", VBFeaturesResources.FunctionKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Function", VBFeaturesResources.Declares_the_name_parameters_and_code_that_define_a_Function_procedure_that_is_a_procedure_that_returns_a_value_to_the_calling_code))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

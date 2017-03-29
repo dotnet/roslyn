@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 
@@ -18,9 +19,7 @@ namespace Microsoft.CodeAnalysis.Options.Providers
             _options = options;
         }
 
-        public IEnumerable<IOption> GetOptions()
-        {
-            return _options.Select(lazy => lazy.Value);
-        }
+        public ImmutableArray<IOption> Options 
+            => _options.Select(lazy => lazy.Value).ToImmutableArray();
     }
 }

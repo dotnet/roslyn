@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SourceText.From(newFullText);
         }
 
-        internal static SourceText WithReplaceFirst(this SourceText text, string oldText, string newText)
+        public static SourceText WithReplaceFirst(this SourceText text, string oldText, string newText)
         {
             var oldFullText = text.ToString();
             int offset = oldFullText.IndexOf(oldText, StringComparison.Ordinal);

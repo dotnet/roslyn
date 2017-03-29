@@ -1,15 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.ComponentModel.Design;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -21,6 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly IErrorList _errorList;
         private readonly LiveTableDataSource _liveTableSource;
         private readonly BuildTableDataSource _buildTableSource;
+
+        private const string TypeScriptLanguageName = "TypeScript";
 
         [ImportingConstructor]
         public VisualStudioDiagnosticListTable(

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new EnumAndCompletionListTagCompletionProvider();
         }
@@ -464,6 +464,32 @@ enum Colors
 }
 ";
             await VerifyItemExistsAsync(markup, "Colors");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotAfterDot()
+        {
+            var markup =
+@"namespace ConsoleApplication253
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            M(E.$$)
+        }
+
+        static void M(E e) { }
+    }
+
+    enum E
+    {
+        A,
+        B,
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
         }
     }
 }

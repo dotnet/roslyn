@@ -72,11 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             userDefined = this.GetAttributes();
             this.AddSynthesizedAttributes(compilationState, ref synthesized);
 
-            if (userDefined.IsEmpty && synthesized == null)
-            {
-                return SpecializedCollections.EmptyEnumerable<CSharpAttributeData>();
-            }
-
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             // all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
             return GetCustomAttributesToEmit(userDefined, synthesized, isReturnType: false, emittingAssemblyAttributesInNetModule: emittingAssemblyAttributesInNetModule);
@@ -87,6 +82,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The <paramref name="synthesized"/> builder is freed after all its items are enumerated.
         /// </summary>
         internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(
+            ImmutableArray<CSharpAttributeData> userDefined,
+            ArrayBuilder<SynthesizedAttributeData> synthesized,
+            bool isReturnType,
+            bool emittingAssemblyAttributesInNetModule)
+        {
+            CheckDefinitionInvariant();
+
+            //PERF: Avoid creating an iterator for the common case of no attributes.
+            if (userDefined.IsEmpty && synthesized == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<CSharpAttributeData>();
+            }
+
+            return GetCustomAttributesToEmitIterator(userDefined, synthesized, isReturnType, emittingAssemblyAttributesInNetModule);
+        }
+
+        private IEnumerable<CSharpAttributeData> GetCustomAttributesToEmitIterator(
             ImmutableArray<CSharpAttributeData> userDefined,
             ArrayBuilder<SynthesizedAttributeData> synthesized,
             bool isReturnType,

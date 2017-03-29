@@ -31,6 +31,9 @@ using ShellInterop = Microsoft.VisualStudio.Shell.Interop;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 using VsThreading = Microsoft.VisualStudio.Threading;
 using Document = Microsoft.CodeAnalysis.Document;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 {
@@ -79,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         private EmitBaseline _pendingBaseline;
         private Project _projectBeingEmitted;
 
-        private ImmutableArray<DocumentId> _documentsWithEmitError;
+        private ImmutableArray<DocumentId> _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
 
         /// <summary>
         /// Initialized when the project switches to debug state.
@@ -87,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         /// </summary>
         private ModuleMetadata _metadata;
 
-        private ISymUnmanagedReader _pdbReader;
+        private ISymUnmanagedReader3 _pdbReader;
 
         private IntPtr _pdbReaderObjAsStream;
 
@@ -102,9 +105,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         {
             _vsProject = project;
 
-            _encService = _vsProject.VisualStudioWorkspace.Services.GetService<IEditAndContinueWorkspaceService>();
-            _trackingService = _vsProject.VisualStudioWorkspace.Services.GetService<IActiveStatementTrackingService>();
-            _notifications = _vsProject.VisualStudioWorkspace.Services.GetService<INotificationService>();
+            _encService = _vsProject.Workspace.Services.GetService<IEditAndContinueWorkspaceService>();
+            _trackingService = _vsProject.Workspace.Services.GetService<IActiveStatementTrackingService>();
+            _notifications = _vsProject.Workspace.Services.GetService<INotificationService>();
 
             _debugEncNotify = (IDebugEncNotify)project.ServiceProvider.GetService(typeof(ShellInterop.SVsShellDebugger));
 
@@ -121,9 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         // called from an edit filter if an edit of a read-only buffer is attempted:
         internal bool OnEdit(DocumentId documentId)
         {
-            SessionReadOnlyReason sessionReason;
-            ProjectReadOnlyReason projectReason;
-            if (_encService.IsProjectReadOnly(documentId.ProjectId, out sessionReason, out projectReason))
+            if (_encService.IsProjectReadOnly(documentId.ProjectId, out var sessionReason, out var projectReason))
             {
                 OnReadOnlyDocumentEditAttempt(documentId, sessionReason, projectReason);
                 return true;
@@ -143,15 +144,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 return;
             }
 
-            var hostProject = _vsProject.VisualStudioWorkspace.GetHostProject(documentId.ProjectId) as AbstractRoslynProject;
+            var visualStudioWorkspace = _vsProject.Workspace as VisualStudioWorkspaceImpl;
+            var hostProject = visualStudioWorkspace?.GetHostProject(documentId.ProjectId) as AbstractProject;
             if (hostProject?.EditAndContinueImplOpt?._metadata != null)
             {
-                var projectHierarchy = _vsProject.VisualStudioWorkspace.GetHierarchy(documentId.ProjectId);
-                _debugEncNotify.NotifyEncEditDisallowedByProject(projectHierarchy);
+                _debugEncNotify.NotifyEncEditDisallowedByProject(hostProject.Hierarchy);
                 return;
             }
 
             // NotifyEncEditDisallowedByProject is broken if the project isn't built at the time the debugging starts (debugger bug 877586).
+            // TODO: localize messages https://github.com/dotnet/roslyn/issues/16656
 
             string message;
             if (sessionReason == SessionReadOnlyReason.Running)
@@ -165,7 +167,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 switch (projectReason)
                 {
                     case ProjectReadOnlyReason.MetadataNotAvailable:
-                        message = "Changes are not allowed if the project wasn't built when debugging started.";
+                        // TODO: Remove once https://github.com/dotnet/roslyn/issues/16657 is addressed
+                        bool deferredLoad = (_vsProject.ServiceProvider.GetService(typeof(SVsSolution)) as IVsSolution7)?.IsSolutionLoadDeferred() == true;
+                        if (deferredLoad)
+                        {
+                            message = "Changes are not allowed if the project wasn't loaded and built when debugging started." + Environment.NewLine + 
+                                      Environment.NewLine +
+                                      "'Lightweight solution load' is enabled for the current solution. " +
+                                      "Disable it to ensure that all projects are loaded when debugging starts.";
+
+                            s_encDebuggingSessionInfo?.LogReadOnlyEditAttemptedProjectNotBuiltOrLoaded();
+                        }
+                        else
+                        {
+                            message = "Changes are not allowed if the project wasn't built when debugging started.";
+                        }
                         break;
 
                     case ProjectReadOnlyReason.NotLoaded:
@@ -177,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 }
             }
 
-            _notifications.SendNotification(message, title: FeaturesResources.EditAndContinue, severity: NotificationSeverity.Error);
+            _notifications.SendNotification(message, title: FeaturesResources.Edit_and_Continue1, severity: NotificationSeverity.Error);
         }
 
         /// <summary>
@@ -219,13 +235,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     _encService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
 
-                    _encService.StartDebuggingSession(_vsProject.VisualStudioWorkspace.CurrentSolution);
+                    _encService.StartDebuggingSession(_vsProject.Workspace.CurrentSolution);
                     s_encDebuggingSessionInfo = new EncDebuggingSessionInfo();
 
                     s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService, _vsProject);
                 }
 
-                string outputPath = _vsProject.TryGetObjOutputPath();
+                string outputPath = _vsProject.ObjOutputPath;
 
                 // The project doesn't produce a debuggable binary or we can't read it.
                 // Continue on since the debugger ignores HResults and we need to handle subsequent calls.
@@ -234,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     try
                     {
                         InjectFault_MvidRead();
-                        _metadata = ModuleMetadata.CreateFromFile(outputPath);
+                        _metadata = ModuleMetadata.CreateFromStream(new FileStream(outputPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete));
                         _metadata.GetModuleVersionId();
                     }
                     catch (FileNotFoundException)
@@ -249,13 +265,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         log.Write("StartDebuggingPE: error reading MVID of '{0}' ('{1}'): {2}", _vsProject.DisplayName, outputPath, e.Message);
                         _metadata = null;
 
-                        var descriptor = new DiagnosticDescriptor("Metadata", "Metadata", ServicesVSResources.ErrorWhileReading, DiagnosticCategory.EditAndContinue, DiagnosticSeverity.Error, isEnabledByDefault: true, customTags: DiagnosticCustomTags.EditAndContinue);
+                        var descriptor = new DiagnosticDescriptor("Metadata", "Metadata", ServicesVSResources.Error_while_reading_0_colon_1, DiagnosticCategory.EditAndContinue, DiagnosticSeverity.Error, isEnabledByDefault: true, customTags: DiagnosticCustomTags.EditAndContinue);
 
-                        _diagnosticProvider.ReportDiagnostics(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId, _vsProject.Id, _encService.DebuggingSession.InitialSolution,
-                            new[]
-                            {
-                                Diagnostic.Create(descriptor, Location.None, outputPath, e.Message)
-                            });
+                        _diagnosticProvider.ReportDiagnostics(
+                            new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId),
+                            _encService.DebuggingSession.InitialSolution,
+                            _vsProject.Id,
+                            new[] { Diagnostic.Create(descriptor, Location.None, outputPath, e.Message) });
                     }
                 }
                 else
@@ -322,19 +338,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 else
                 {
                     // an error might have been reported:
-                    _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.VisualStudioWorkspace, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId, _vsProject.Id, documentId: null);
+                    var errorId = new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId);
+                    _diagnosticProvider.ClearDiagnostics(errorId, _vsProject.Workspace.CurrentSolution, _vsProject.Id, documentIdOpt: null);
                 }
 
                 _activeMethods = null;
                 _exceptionRegions = null;
                 _committedBaseline = null;
                 _activeStatementIds = null;
+                _projectBeingEmitted = null;
 
-                Debug.Assert((_pdbReaderObjAsStream == IntPtr.Zero) || (_pdbReader == null));
+                Debug.Assert(_pdbReaderObjAsStream == IntPtr.Zero || _pdbReader == null);
 
                 if (_pdbReader != null)
                 {
-                    Marshal.ReleaseComObject(_pdbReader);
+                    if (Marshal.IsComObject(_pdbReader))
+                    {
+                        Marshal.ReleaseComObject(_pdbReader);
+                    }
+
                     _pdbReader = null;
                 }
 
@@ -403,7 +425,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
             if (pbstrPEName != null && pbstrPEName.Length != 0)
             {
-                var outputPath = _vsProject.TryGetObjOutputPath();
+                var outputPath = _vsProject.ObjOutputPath;
                 Debug.Assert(outputPath != null);
 
                 pbstrPEName[0] = Path.GetFileName(outputPath);
@@ -436,7 +458,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     {
                         _encService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
 
-                        s_breakStateEntrySolution = _vsProject.VisualStudioWorkspace.CurrentSolution;
+                        s_breakStateEntrySolution = _vsProject.Workspace.CurrentSolution;
 
                         // TODO: This is a workaround for a debugger bug in which not all projects exit the break state.
                         // Reset the project count.
@@ -720,26 +742,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     var session = _encService.EditSession;
                     var ids = _activeStatementIds;
-
                     // Can be called anytime, even outside of an edit/debug session.
                     // We might not have an active statement available if PDB got out of sync with the source.
-                    ActiveStatementId id;
-                    if (session == null || ids == null || !ids.TryGetValue(vsId, out id))
+                    if (session == null || ids == null || !ids.TryGetValue(vsId, out var id))
                     {
                         log.Write("GetCurrentActiveStatementPosition failed for AS {0}.", vsId);
                         return VSConstants.E_FAIL;
                     }
 
-                    Document document = _vsProject.VisualStudioWorkspace.CurrentSolution.GetDocument(id.DocumentId);
+                    Document document = _vsProject.Workspace.CurrentSolution.GetDocument(id.DocumentId);
                     SourceText text = document.GetTextAsync(default(CancellationToken)).Result;
-
+                    LinePositionSpan lineSpan;
                     // Try to get spans from the tracking service first.
                     // We might get an imprecise result if the document analysis hasn't been finished yet and 
                     // the active statement has structurally changed, but that's ok. The user won't see an updated tag
                     // for the statement until the analysis finishes anyways.
-                    TextSpan span;
-                    LinePositionSpan lineSpan;
-                    if (_trackingService.TryGetSpan(id, text, out span) && span.Length > 0)
+                    if (_trackingService.TryGetSpan(id, text, out var span) && span.Length > 0)
                     {
                         lineSpan = text.Lines.GetLinePositionSpan(span);
                     }
@@ -801,7 +819,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     {
                         // Fetch the latest snapshot of the project and get an analysis summary for any changes 
                         // made since the break mode was entered.
-                        var currentProject = _vsProject.VisualStudioWorkspace.CurrentSolution.GetProject(_vsProject.Id);
+                        var currentProject = _vsProject.Workspace.CurrentSolution.GetProject(_vsProject.Id);
                         if (currentProject == null)
                         {
                             // If the project has yet to be loaded into the solution (which may be the case,
@@ -841,7 +859,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                             break;
 
                         default:
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.UnexpectedValue(_lastEditSessionSummary);
                     }
 
                     log.Write("EnC state of '{0}' queried: {1}{2}",
@@ -908,8 +926,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Debug.Assert(s_breakStateProjectCount >= 0);
 
                     _changesApplied = false;
-                    _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.VisualStudioWorkspace, EditAndContinueDiagnosticUpdateSource.EmitErrorId, _vsProject.Id, _documentsWithEmitError);
-                    _documentsWithEmitError = default(ImmutableArray<DocumentId>);
+
+                    _diagnosticProvider.ClearDiagnostics(
+                        new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId), 
+                        _vsProject.Workspace.CurrentSolution,
+                        _vsProject.Id, 
+                        _documentsWithEmitError);
+
+                    _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
                 }
 
                 // HResult ignored by the debugger
@@ -952,7 +976,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 var updater = (IDebugUpdateInMemoryPE2)pUpdatePE;
                 if (_committedBaseline == null)
                 {
-                    var hr = MarshalPdbReader(updater, out _pdbReaderObjAsStream);
+                    var hr = MarshalPdbReader(updater, out _pdbReaderObjAsStream, out _pdbReader);
                     if (hr != VSConstants.S_OK)
                     {
                         return hr;
@@ -969,31 +993,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 using (NonReentrantContext)
                 {
                     delta = emitTask.Result;
+
+                    if (delta == null)
+                    {
+                        // Non-fatal Watson has already been reported by the emit task
+                        return VSConstants.E_FAIL;
+                    }
                 }
 
+                var errorId = new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId);
+
                 // Clear diagnostics, in case the project was built before and failed due to errors.
-                _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.VisualStudioWorkspace, EditAndContinueDiagnosticUpdateSource.EmitErrorId, _vsProject.Id, _documentsWithEmitError);
+                _diagnosticProvider.ClearDiagnostics(errorId, _projectBeingEmitted.Solution, _vsProject.Id, _documentsWithEmitError);
 
                 if (!delta.EmitResult.Success)
                 {
                     var errors = delta.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
-                    _documentsWithEmitError = _diagnosticProvider.ReportDiagnostics(
-                        _encService.DebuggingSession,
-                        EditAndContinueDiagnosticUpdateSource.EmitErrorId,
-                        _vsProject.Id,
-                        _projectBeingEmitted.Solution,
-                        errors);
-
+                    _documentsWithEmitError = _diagnosticProvider.ReportDiagnostics(errorId, _projectBeingEmitted.Solution, _vsProject.Id, errors);
                     _encService.EditSession.LogEmitProjectDeltaErrors(errors.Select(e => e.Id));
 
                     return VSConstants.E_FAIL;
                 }
 
-                _documentsWithEmitError = default(ImmutableArray<DocumentId>);
+                _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
                 SetFileUpdates(updater, delta.LineEdits);
 
                 updater.SetDeltaIL(delta.IL.Value, (uint)delta.IL.Value.Length);
-                updater.SetDeltaPdb(new ComStreamWrapper(delta.Pdb.Stream));
+                updater.SetDeltaPdb(SymUnmanagedStreamFactory.CreateStream(delta.Pdb.Stream));
                 updater.SetRemapMethods(delta.Pdb.UpdatedMethods, (uint)delta.Pdb.UpdatedMethods.Length);
                 updater.SetDeltaMetadata(delta.Metadata.Bytes, (uint)delta.Metadata.Bytes.Length);
 
@@ -1002,7 +1028,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 #if DEBUG
                 fixed (byte* deltaMetadataPtr = &delta.Metadata.Bytes[0])
                 {
-                    var reader = new MetadataReader(deltaMetadataPtr, delta.Metadata.Bytes.Length);
+                    var reader = new System.Reflection.Metadata.MetadataReader(deltaMetadataPtr, delta.Metadata.Bytes.Length);
                     var moduleDef = reader.GetModuleDefinition();
 
                     log.DebugWrite("Gen {0}: MVID={1}, BaseId={2}, EncId={3}",
@@ -1067,42 +1093,131 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             return emitTask.Result;
         }
 
+        /// <summary>
+        /// Returns EnC debug information for initial version of the specified method.
+        /// </summary>
+        /// <exception cref="InvalidDataException">The debug information data is corrupt or can't be retrieved from the debugger.</exception>
         private EditAndContinueMethodDebugInformation GetBaselineEncDebugInfo(MethodDefinitionHandle methodHandle)
+        {
+            Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
+
+            InitializePdbReader();
+            return GetEditAndContinueMethodDebugInfo(_pdbReader, methodHandle);
+        }
+
+        private void InitializePdbReader()
         {
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
 
             if (_pdbReader == null)
             {
                 // Unmarshal the symbol reader (being marshalled cross thread from STA -> MTA).
+
                 Debug.Assert(_pdbReaderObjAsStream != IntPtr.Zero);
-                object pdbReaderObjMta;
-                int hr = NativeMethods.GetObjectForStream(_pdbReaderObjAsStream, out pdbReaderObjMta);
+                var exception = Marshal.GetExceptionForHR(NativeMethods.GetObjectForStream(_pdbReaderObjAsStream, out object pdbReaderObjMta));
+                if (exception != null)
+                {
+                    // likely a bug in the compiler/debugger
+                    FatalError.ReportWithoutCrash(exception);
+
+                    throw new InvalidDataException(exception.Message, exception);
+                }
+
                 _pdbReaderObjAsStream = IntPtr.Zero;
-                if (hr != VSConstants.S_OK)
-                {
-                    log.Write("Error unmarshaling object from stream.");
-                    return default(EditAndContinueMethodDebugInformation);
-                }
-                _pdbReader = (ISymUnmanagedReader)pdbReaderObjMta;
+                _pdbReader = (ISymUnmanagedReader3)pdbReaderObjMta;
             }
+        }
 
-            int methodToken = MetadataTokens.GetToken(methodHandle);
-            byte[] debugInfo = _pdbReader.GetCustomDebugInfoBytes(methodToken, methodVersion: 1);
-            if (debugInfo != null)
+        private static EditAndContinueMethodDebugInformation GetEditAndContinueMethodDebugInfo(ISymUnmanagedReader3 symReader, MethodDefinitionHandle methodHandle)
+        {
+            return TryGetPortableEncDebugInfo(symReader, methodHandle, out var info) ? info : GetNativeEncDebugInfo(symReader, methodHandle);
+        }
+
+        private static unsafe bool TryGetPortableEncDebugInfo(ISymUnmanagedReader symReader, MethodDefinitionHandle methodHandle, out EditAndContinueMethodDebugInformation info)
+        {
+            if (!(symReader is ISymUnmanagedReader5 symReader5))
             {
-                try
-                {
-                    var localSlots = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLocalSlotMap);
-                    var lambdaMap = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLambdaMap);
-                    return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
-                }
-                catch (Exception e) when (e is InvalidOperationException || e is InvalidDataException)
-                {
-                    log.Write($"Error reading CDI of method 0x{methodToken:X8}: {e.Message}");
-                }
+                info = default(EditAndContinueMethodDebugInformation);
+                return false;
             }
 
-            return default(EditAndContinueMethodDebugInformation);
+            int hr = symReader5.GetPortableDebugMetadataByVersion(version: 1, metadata: out byte* metadata, size: out int size);
+            Marshal.ThrowExceptionForHR(hr);
+
+            if (hr != 0)
+            {
+                info = default(EditAndContinueMethodDebugInformation);
+                return false;
+            }
+
+            var pdbReader = new System.Reflection.Metadata.MetadataReader(metadata, size);
+
+            ImmutableArray<byte> GetCdiBytes(Guid kind) =>
+                TryGetCustomDebugInformation(pdbReader, methodHandle, kind, out var cdi) ? pdbReader.GetBlobContent(cdi.Value) : default(ImmutableArray<byte>);
+
+            info = EditAndContinueMethodDebugInformation.Create(
+                compressedSlotMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLocalSlotMap),
+                compressedLambdaMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap));
+
+            return true;
+        }
+
+        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
+        private static bool TryGetCustomDebugInformation(System.Reflection.Metadata.MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
+        {
+            bool foundAny = false;
+            customDebugInfo = default(CustomDebugInformation);
+            foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
+            {
+                var info = reader.GetCustomDebugInformation(infoHandle);
+                var id = reader.GetGuid(info.Kind);
+                if (id == kind)
+                {
+                    if (foundAny)
+                    {
+                        throw new BadImageFormatException();
+                    }
+                    customDebugInfo = info;
+                    foundAny = true;
+                }
+            }
+            return foundAny;
+        }
+
+        private static EditAndContinueMethodDebugInformation GetNativeEncDebugInfo(ISymUnmanagedReader3 symReader, MethodDefinitionHandle methodHandle)
+        {
+            int methodToken = MetadataTokens.GetToken(methodHandle);
+
+            byte[] debugInfo;
+            try
+            {
+                debugInfo = symReader.GetCustomDebugInfoBytes(methodToken, methodVersion: 1);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
+            {
+                throw new InvalidDataException(e.Message, e);
+            }
+
+            try
+            {
+                ImmutableArray<byte> localSlots, lambdaMap;
+                if (debugInfo != null)
+                {
+                    localSlots = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLocalSlotMap);
+                    lambdaMap = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLambdaMap);
+                }
+                else
+                {
+                    localSlots = lambdaMap = default(ImmutableArray<byte>);
+                }
+
+                return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
+            }
+            catch (InvalidOperationException e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
+            {
+                // TODO: CustomDebugInfoReader should throw InvalidDataException
+                throw new InvalidDataException(e.Message, e);
+            }
         }
 
         public int EncApplySucceeded(int hrApplyResult)
@@ -1174,7 +1289,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             }
         }
 
-        private static int MarshalPdbReader(IDebugUpdateInMemoryPE2 updater, out IntPtr pdbReaderPointer)
+        private static int MarshalPdbReader(IDebugUpdateInMemoryPE2 updater, out IntPtr pdbReaderPointer, out ISymUnmanagedReader3 managedSymReader)
         {
             // ISymUnmanagedReader can only be accessed from an MTA thread, however, we need
             // fetch the IUnknown instance (call IENCSymbolReaderProvider.GetSymbolReader) here
@@ -1191,14 +1306,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             // Another way to achieve this would be for the symbol reader to implement IAgileObject,
             // but the symbol reader we use today does not.  If that changes, we should consider
             // removing this marshal/unmarshal code.
-            IENCDebugInfo debugInfo;
-            updater.GetENCDebugInfo(out debugInfo);
+            updater.GetENCDebugInfo(out IENCDebugInfo debugInfo);
+
             var symbolReaderProvider = (IENCSymbolReaderProvider)debugInfo;
-            object pdbReaderObjSta;
-            symbolReaderProvider.GetSymbolReader(out pdbReaderObjSta);
-            int hr = NativeMethods.GetStreamForObject(pdbReaderObjSta, out pdbReaderPointer);
-            Marshal.ReleaseComObject(pdbReaderObjSta);
-            return hr;
+            symbolReaderProvider.GetSymbolReader(out object pdbReaderObjSta);
+            if (Marshal.IsComObject(pdbReaderObjSta))
+            {
+                int hr = NativeMethods.GetStreamForObject(pdbReaderObjSta, out pdbReaderPointer);
+                Marshal.ReleaseComObject(pdbReaderObjSta);
+                managedSymReader = null;
+                return hr;
+            }
+            else
+            {
+                pdbReaderPointer = IntPtr.Zero;
+                managedSymReader = (ISymUnmanagedReader3)pdbReaderObjSta;
+                return 0;
+            }
         }
 
         #region Testing 

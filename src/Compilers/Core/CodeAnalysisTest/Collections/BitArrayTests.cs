@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         private const int seed = 128129347;
         private const int rounds = 200;
         private const int maxBits = 132;
+
         [Fact]
         public void UpperBitsUnset()
         {
@@ -103,33 +104,50 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var r = new Random(seed);
             for (int capacity = 0; capacity < maxBits; capacity++)
-                CheckUnionCore(capacity, r);
+            {
+                CheckUnionCore(capacity, capacity, r);
+            }
+
             for (int i = 0; i < rounds; i++)
             {
-                CheckUnionCore(r.Next(maxBits), r);
+                CheckUnionCore(r.Next(maxBits), r.Next(maxBits), r);
             }
         }
 
-        private void CheckUnionCore(int capacity, Random r)
+        private void CheckUnionCore(int capacity1, int capacity2, Random r)
         {
             BitVector b1 = BitVector.Empty, b2 = BitVector.Empty;
-            b1.EnsureCapacity(capacity);
-            b2.EnsureCapacity(capacity);
-            bool[] a1 = new bool[capacity], a2 = new bool[capacity];
-            for (int i = 0; i < capacity; i++)
+            b1.EnsureCapacity(capacity1);
+            b2.EnsureCapacity(capacity2);
+
+            var maxCapacity = Math.Max(capacity1, capacity2);
+            bool[] a1 = new bool[maxCapacity],
+                   a2 = new bool[maxCapacity];
+
+            for (int i = 0; i < capacity1; i++)
             {
                 b1[i] = a1[i] = r.NextBool();
+            }
+
+            for (int i = 0; i < capacity2; i++)
+            {
                 b2[i] = a2[i] = r.NextBool();
             }
-            b1.UnionWith(b2);
-            for (int i = 0; i < capacity; i++)
+
+            bool changed = b1.UnionWith(b2);
+            bool changed2 = false;
+
+            for (int i = 0; i < maxCapacity; i++)
             {
+                bool a = a1[i];
                 a1[i] |= a2[i];
+                changed2 |= (a != a1[i]);
             }
-            for (int i = 0; i < capacity; i++)
+            for (int i = 0; i < maxCapacity; i++)
             {
                 Assert.Equal(a1[i], b1[i]);
             }
+            Assert.Equal(changed2, changed);
         }
 
         [Fact]
@@ -146,6 +164,67 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 var capacity = r1.Next(maxBits);
                 Assert.Equal(capacity, r2.Next(maxBits));
                 CheckTrueBitsCore(capacity, r1, r2);
+            }
+        }
+
+        [Fact]
+        public void CheckWords()
+        {
+            for (int capacity = 0; capacity < maxBits; capacity++)
+            {
+                BitVector b = BitVector.Create(capacity);
+                for (int i = 0; i < capacity; i++)
+                {
+                    b[i] = false;
+                }
+
+                var required = BitVector.WordsRequired(capacity);
+                var count = BitVector.AllSet(capacity).Words().Count();
+
+                Assert.Equal(required, count);
+            }
+        }
+
+        [Fact]
+        public void CheckIsTrue()
+        {
+            var r1 = new Random(seed);
+
+            for (int capacity = 0; capacity < maxBits; capacity++)
+            {
+                BitVector b = BitVector.Create(capacity);
+                for (int i = 0; i < capacity; i++)
+                {
+                    b[i] = r1.NextBool();
+                }
+
+                var index = 0;
+                foreach (var word in b.Words())
+                {
+                    for (var i = 0; i < BitVector.BitsPerWord; i++)
+                    {
+                        if (index >= capacity)
+                        {
+                            break;
+                        }
+
+                        Assert.Equal(b[index], BitVector.IsTrue(word, index));
+
+                        index++;
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void CheckWordsRequired()
+        {
+            for (int capacity = 0; capacity < maxBits; capacity++)
+            {
+                var required = BitVector.WordsRequired(capacity);
+                var count = BitVector.AllSet(capacity).Words().Count();
+
+                Assert.Equal(count, required);
             }
         }
 

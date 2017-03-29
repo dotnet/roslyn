@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal class MissingTokenWithTrivia : SyntaxTokenWithTrivia
         {
-            internal MissingTokenWithTrivia(SyntaxKind kind, CSharpSyntaxNode leading, CSharpSyntaxNode trailing)
+            internal MissingTokenWithTrivia(SyntaxKind kind, GreenNode leading, GreenNode trailing)
                 : base(kind, leading, trailing)
             {
                 this.flags &= ~NodeFlags.IsNotMissing;
             }
 
-            internal MissingTokenWithTrivia(SyntaxKind kind, CSharpSyntaxNode leading, CSharpSyntaxNode trailing, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+            internal MissingTokenWithTrivia(SyntaxKind kind, GreenNode leading, GreenNode trailing, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
                 : base(kind, leading, trailing, diagnostics, annotations)
             {
                 this.flags &= ~NodeFlags.IsNotMissing;
@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.flags &= ~NodeFlags.IsNotMissing;
             }
 
-            internal override Func<ObjectReader, object> GetReader()
+            static MissingTokenWithTrivia()
             {
-                return r => new MissingTokenWithTrivia(r);
+                ObjectBinder.RegisterTypeReader(typeof(MissingTokenWithTrivia), r => new MissingTokenWithTrivia(r));
             }
 
             public override string Text
@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            internal override SyntaxToken WithLeadingTrivia(CSharpSyntaxNode trivia)
+            public override SyntaxToken TokenWithLeadingTrivia(GreenNode trivia)
             {
                 return new MissingTokenWithTrivia(this.Kind, trivia, this.TrailingField, this.GetDiagnostics(), this.GetAnnotations());
             }
 
-            internal override SyntaxToken WithTrailingTrivia(CSharpSyntaxNode trivia)
+            public override SyntaxToken TokenWithTrailingTrivia(GreenNode trivia)
             {
                 return new MissingTokenWithTrivia(this.Kind, this.LeadingField, trivia, this.GetDiagnostics(), this.GetAnnotations());
             }

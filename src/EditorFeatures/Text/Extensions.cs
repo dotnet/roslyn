@@ -2,14 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -25,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Text
             var textBuffer = TryGetTextBuffer(textContainer);
             if (textBuffer == null)
             {
-                throw new ArgumentException(TextEditorResources.TextContainerNotFromTextBuffer, nameof(textContainer));
+                throw new ArgumentException(TextEditorResources.textContainer_is_not_a_SourceTextContainer_that_was_created_from_an_ITextBuffer, nameof(textContainer));
             }
 
             return textBuffer;
@@ -50,6 +46,11 @@ namespace Microsoft.CodeAnalysis.Text
             return t == null ? null : t.EditorSnapshot;
         }
 
+        internal static TextLine AsTextLine(this ITextSnapshotLine line)
+        {
+            return line.Snapshot.AsText().Lines[line.LineNumber];
+        }
+
         public static SourceText AsText(this ITextSnapshot textSnapshot)
         {
             return SnapshotSourceText.From(textSnapshot);
@@ -66,9 +67,7 @@ namespace Microsoft.CodeAnalysis.Text
         public static Workspace GetWorkspace(this ITextBuffer buffer)
         {
             var container = buffer.AsTextContainer();
-
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(container, out workspace))
+            if (Workspace.TryGetWorkspace(container, out var workspace))
             {
                 return workspace;
             }
@@ -127,8 +126,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal static bool CanApplyChangeDocumentToWorkspace(this ITextBuffer buffer)
         {
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(buffer.AsTextContainer(), out workspace))
+            if (Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace))
             {
                 return workspace.CanApplyChange(ApplyChangesKind.ChangeDocument);
             }
@@ -148,8 +146,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         internal static Encoding GetEncodingOrUTF8(this ITextBuffer textBuffer)
         {
-            ITextDocument textDocument;
-            if (textBuffer.Properties.TryGetProperty(typeof(ITextDocument), out textDocument))
+            if (textBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument textDocument))
             {
                 return textDocument.Encoding;
             }

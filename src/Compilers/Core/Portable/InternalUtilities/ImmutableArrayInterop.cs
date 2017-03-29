@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace Roslyn.Utilities
 {
-    internal static class ImmutableArrayInterop
+    internal static class ImmutableByteArrayInterop
     {
         internal static byte[] DangerousGetUnderlyingArray(this ImmutableArray<byte> array)
         {
@@ -15,7 +15,7 @@ namespace Roslyn.Utilities
             return union.MutableArray;
         }
 
-        internal static ImmutableArray<byte> DangerousToImmutableArray(ref byte[] array)
+        internal static ImmutableArray<byte> DangerousCreateFromUnderlyingArray(ref byte[] array)
         {
             var union = new ByteArrayUnion();
             union.MutableArray = array;

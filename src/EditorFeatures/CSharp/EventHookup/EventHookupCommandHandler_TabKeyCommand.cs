@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
         {
             AssertIsForeground();
-            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.EventHookup))
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.EventHookup))
             {
                 nextHandler();
                 return;
@@ -129,13 +130,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 }
 
                 var position = textView.GetCaretPoint(subjectBuffer).Value.Position;
-                int plusEqualTokenEndPosition;
-
                 var solutionWithEventHandler = CreateSolutionWithEventHandler(
                     document,
                     eventHandlerMethodName,
                     position,
-                    out plusEqualTokenEndPosition,
+                    out var plusEqualTokenEndPosition,
                     cancellationToken);
 
                 if (solutionWithEventHandler == null)
@@ -178,15 +177,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 return null;
             }
 
-            var simplifiedDocument = Simplifier.ReduceAsync(documentWithNameAndAnnotationsAdded.WithSyntaxRoot(updatedRoot), Simplifier.Annotation, null, cancellationToken).WaitAndGetResult(cancellationToken);
+            var simplifiedDocument = Simplifier.ReduceAsync(documentWithNameAndAnnotationsAdded.WithSyntaxRoot(updatedRoot), Simplifier.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
             var formattedDocument = Formatter.FormatAsync(simplifiedDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
 
-            plusEqualTokenEndPosition = formattedDocument
-                .GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
-                .GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation)
-                .Single().Span.End;
+            var newRoot = formattedDocument.GetSyntaxRootSynchronously(cancellationToken);
+            plusEqualTokenEndPosition = newRoot.GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation)
+                                               .Single().Span.End;
 
-            return document.Project.Solution.WithDocumentText(formattedDocument.Id, formattedDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken));
+            return document.Project.Solution.WithDocumentText(
+                formattedDocument.Id, formattedDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken));
         }
 
         private Document AddMethodNameAndAnnotationsToSolution(
@@ -196,21 +195,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             SyntaxAnnotation plusEqualsTokenAnnotation,
             CancellationToken cancellationToken)
         {
-            // Perform a textual insertion of the event handler method name
+            // First find the event hookup to determine if we are in a static context.
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var plusEqualsToken = root.FindTokenOnLeftOfPosition(position);
+            var eventHookupExpression = plusEqualsToken.GetAncestor<AssignmentExpressionSyntax>();
 
-            var textChange = new TextChange(new TextSpan(position, 0), eventHandlerMethodName + ";");
+            var textToInsert = eventHandlerMethodName + ";";
+            if (!eventHookupExpression.IsInStaticContext())
+            {
+                // This will be simplified later if it's not needed.
+                textToInsert = "this." + textToInsert;
+            }
+
+            // Next, perform a textual insertion of the event handler method name.
+            var textChange = new TextChange(new TextSpan(position, 0), textToInsert);
             var newText = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChange);
             var documentWithNameAdded = document.WithText(newText);
 
-            var syntaxTree = documentWithNameAdded.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var plusEqualsToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var eventHookupExpression = plusEqualsToken.GetAncestor<AssignmentExpressionSyntax>();
+            // Now find the event hookup again to add the appropriate annotations.
+            root = documentWithNameAdded.GetSyntaxRootSynchronously(cancellationToken);
+            plusEqualsToken = root.FindTokenOnLeftOfPosition(position);
+            eventHookupExpression = plusEqualsToken.GetAncestor<AssignmentExpressionSyntax>();
 
             var updatedEventHookupExpression = eventHookupExpression
                 .ReplaceToken(plusEqualsToken, plusEqualsToken.WithAdditionalAnnotations(plusEqualsTokenAnnotation))
-                .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
+                .WithRight(eventHookupExpression.Right.WithAdditionalAnnotations(Simplifier.Annotation))
+                .WithAdditionalAnnotations(Formatter.Annotation);
 
-            var rootWithUpdatedEventHookupExpression = syntaxTree.GetRoot(cancellationToken).ReplaceNode(eventHookupExpression, updatedEventHookupExpression);
+            var rootWithUpdatedEventHookupExpression = root.ReplaceNode(eventHookupExpression, updatedEventHookupExpression);
             return documentWithNameAdded.WithSyntaxRoot(rootWithUpdatedEventHookupExpression);
         }
 
@@ -262,18 +274,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             var syntaxFactory = document.Project.LanguageServices.GetService<SyntaxGenerator>();
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: Accessibility.Private,
                 modifiers: new DeclarationModifiers(isStatic: eventHookupExpression.IsInStaticContext()),
                 returnType: delegateType.DelegateInvokeMethod.ReturnType,
+                returnsByRef: delegateType.DelegateInvokeMethod.ReturnsByRef,
                 explicitInterfaceSymbol: null,
                 name: eventHandlerMethodName,
-                typeParameters: null,
+                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                 parameters: delegateType.DelegateInvokeMethod.Parameters,
-                statements: new List<SyntaxNode>
-                    {
-                        CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, document, "System.NotImplementedException", cancellationToken)
-                    });
+                statements: ImmutableArray.Create(
+                    CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, document, "System.NotImplementedException", cancellationToken)));
         }
 
         private void BeginInlineRename(Workspace workspace, ITextView textView, ITextBuffer subjectBuffer, int plusEqualTokenEndPosition, CancellationToken cancellationToken)
@@ -286,12 +297,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 if (document != null)
                 {
                     // In the middle of a user action, cannot cancel.
-                    var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                    var token = syntaxTree.FindTokenOnRightOfPosition(plusEqualTokenEndPosition, cancellationToken);
+                    var root = document.GetSyntaxRootSynchronously(cancellationToken);
+                    var token = root.FindTokenOnRightOfPosition(plusEqualTokenEndPosition);
+                    var editSpan = token.Span;
+                    var memberAccessExpression = token.GetAncestor<MemberAccessExpressionSyntax>();
+                    if (memberAccessExpression != null)
+                    {
+                        // the event hookup might look like `MyEvent += this.GeneratedHandlerName;`
+                        editSpan = memberAccessExpression.Name.Span;
+                    }
 
-                    _inlineRenameService.StartInlineSession(document, token.Span, cancellationToken);
-
-                    textView.SetSelection(token.Span.ToSnapshotSpan(textView.TextSnapshot));
+                    _inlineRenameService.StartInlineSession(document, editSpan, cancellationToken);
+                    textView.SetSelection(editSpan.ToSnapshotSpan(textView.TextSnapshot));
                 }
             }
         }

@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -145,27 +146,55 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Some nodes have special binder's for their contents (like Block's)
+        /// Some nodes have special binders for their contents (like Blocks)
         /// </summary>
-        internal virtual Binder GetBinder(CSharpSyntaxNode node)
+        internal virtual Binder GetBinder(SyntaxNode node)
         {
             return this.Next.GetBinder(node);
         }
 
         /// <summary>
-        /// Get locals declared immediately in scope represented by the node.
+        /// Get locals declared immediately in scope designated by the node.
         /// </summary>
-        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope()
+        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
-            return this.Next.GetDeclaredLocalsForScope();
+            return this.Next.GetDeclaredLocalsForScope(scopeDesignator);
         }
 
         /// <summary>
-        /// Get local functions declared immediately in scope represented by the node.
+        /// Get local functions declared immediately in scope designated by the node.
         /// </summary>
-        internal virtual ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope()
+        internal virtual ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            return this.Next.GetDeclaredLocalFunctionsForScope();
+            return this.Next.GetDeclaredLocalFunctionsForScope(scopeDesignator);
+        }
+
+        /// <summary>
+        /// If this binder owns a scope for locals, return syntax node that is used
+        /// as the scope designator. Otherwise, null.
+        /// </summary>
+        internal virtual SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        internal virtual bool IsLocalFunctionsScopeBinder
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal virtual bool IsLabelsScopeBinder
+        {
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -262,16 +291,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.GetIteratorElementType(node, diagnostics);
         }
 
-        public virtual ConsList<LocalSymbol> ImplicitlyTypedLocalsBeingBound
-        {
-            get
-            {
-                return _next.ImplicitlyTypedLocalsBeingBound;
-            }
-        }
-
         /// <summary>
-        /// The Imports for all containing namespace declarations (innermost-to-outermost, including global).
+        /// The imports for all containing namespace declarations (innermost-to-outermost, including global),
+        /// or null if there are none.
         /// </summary>
         internal virtual ImportChain ImportChain
         {
@@ -388,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void Error(DiagnosticBag diagnostics, DiagnosticInfo info, CSharpSyntaxNode syntax)
+        internal static void Error(DiagnosticBag diagnostics, DiagnosticInfo info, SyntaxNode syntax)
         {
             diagnostics.Add(new CSDiagnostic(info, syntax.Location));
         }
@@ -533,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// NOTE: The return value reflects obsolete-ness, not whether or not the diagnostic was reported.
         /// </returns>
-        private static ThreeState ReportDiagnosticsIfObsoleteInternal(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol containingMember, BinderFlags location)
+        internal static ThreeState ReportDiagnosticsIfObsoleteInternal(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol containingMember, BinderFlags location)
         {
             Debug.Assert(diagnostics != null);
 
@@ -588,6 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ThreeState.True;
         }
 
+<<<<<<< HEAD
         internal void ResolveOverloads<TMember>(
             ImmutableArray<TMember> members,
             ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
@@ -625,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             unusedDiagnostics.Free();
         }
 
-        internal bool IsSymbolAccessibleConditional(
+        internal static bool IsSymbolAccessibleConditional(
             Symbol symbol,
             AssemblySymbol within,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -698,9 +721,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundAssignment,
 
             /// <summary>
-            /// Expression is an out parameter.
+            /// Expression is passed as a ref or out parameter or assigned to a byref variable.
             /// </summary>
-            OutParameter,
+            RefOrOut,
 
             /// <summary>
             /// Expression is the operand of an address-of operation (&amp;).
@@ -711,6 +734,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Expression is the receiver of a fixed buffer field access
             /// </summary>
             FixedReceiver,
+
+            /// <summary>
+            /// Expression is assigned by reference.
+            /// </summary>
+            RefAssign,
+
+            /// <summary>
+            /// Expression is returned by reference.
+            /// </summary>
+            RefReturn,
         }
 
         /// <summary>
@@ -745,5 +778,102 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
+        internal BoundExpression WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundExpression expression)
+        {
+            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            return (locals.IsEmpty)
+                ? expression
+                : new BoundSequence(scopeDesignator, locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type) { WasCompilerGenerated = true };
+        }
+
+        internal BoundStatement WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundStatement statement)
+        {
+            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            if (locals.IsEmpty)
+            {
+                return statement;
+            }
+
+            return new BoundBlock(statement.Syntax, locals, ImmutableArray.Create(statement))
+                { WasCompilerGenerated = true };
+        }
+
+        /// <summary>
+        /// Should only be used with scopes that could declare local functions.
+        /// </summary>
+        internal BoundStatement WrapWithVariablesAndLocalFunctionsIfAny(CSharpSyntaxNode scopeDesignator, BoundStatement statement)
+        {
+            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            var localFunctions = this.GetDeclaredLocalFunctionsForScope(scopeDesignator);
+            if (locals.IsEmpty && localFunctions.IsEmpty)
+            {
+                return statement;
+            }
+
+            return new BoundBlock(statement.Syntax, locals, localFunctions,
+                                  ImmutableArray.Create(statement))
+            { WasCompilerGenerated = true };
+        }
+
+        internal string Dump()
+        {
+            return TreeDumper.DumpCompact(DumpAncestors());
+
+            TreeDumperNode DumpAncestors()
+            {
+                TreeDumperNode current = null;
+
+                for (Binder scope = this; scope != null; scope = scope.Next)
+                {
+                    var(description, snippet, locals) = Print(scope);
+                    var sub = new List<TreeDumperNode>();
+                    if (!locals.IsEmpty())
+                    {
+                        sub.Add(new TreeDumperNode("locals", locals, null));
+                    }
+                    var currentContainer = scope.ContainingMemberOrLambda;
+                    if (currentContainer != null && currentContainer != scope.Next?.ContainingMemberOrLambda)
+                    {
+                        sub.Add(new TreeDumperNode("containing symbol", currentContainer.ToDisplayString(), null));
+                    }
+                    if (snippet != null)
+                    {
+                        sub.Add(new TreeDumperNode($"scope", $"{snippet} ({scope.ScopeDesignator.Kind()})", null));
+                    }
+                    if (current != null)
+                    {
+                        sub.Add(current);
+                    }
+                    current = new TreeDumperNode(description, null, sub);
+                }
+
+                return current;
+            }
+
+            (string description, string snippet, string locals) Print(Binder scope)
+            {
+                var locals = string.Join(", ", scope.Locals.SelectAsArray(s => s.Name));
+                string snippet = null;
+                if (scope.ScopeDesignator != null)
+                {
+                    var lines = scope.ScopeDesignator.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                    if (lines.Length == 1)
+                    {
+                        snippet = lines[0];
+                    }
+                    else
+                    {
+                        var first = lines[0];
+                        var last = lines[lines.Length - 1].Trim();
+                        var lastSize = Math.Min(last.Length, 12);
+                        snippet = first.Substring(0, Math.Min(first.Length, 12)) + " ... " + last.Substring(last.Length - lastSize, lastSize);
+                    }
+                    snippet = snippet.IsEmpty() ? null : snippet;
+                }
+
+                var description = scope.GetType().Name;
+                return (description, snippet, locals);
+            }
+        }
     }
 }

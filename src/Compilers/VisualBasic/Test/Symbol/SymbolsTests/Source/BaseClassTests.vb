@@ -2243,7 +2243,7 @@ End Class
         End Sub
 
         <WorkItem(862536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862536")>
-        <Fact(Skip:="862536")>
+        <Fact>
         Public Sub Repro862536()
             Dim source =
                 <compilation>
@@ -2273,7 +2273,7 @@ BC30296: Interface 'A(Of T).B(Of S).B(Of U)' cannot inherit from itself:
         End Sub
 
         <WorkItem(862536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862536")>
-        <Fact(Skip:="862536")>
+        <Fact>
         Public Sub ExpandingBaseInterface()
             Dim source =
                 <compilation>
@@ -2304,7 +2304,7 @@ Interface B : Inherits C(Of Integer).NotFound
         End Sub
 
         <WorkItem(862536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862536")>
-        <Fact(Skip:="862536")>
+        <Fact>
         Public Sub ExpandingBaseInterfaceChain()
             Dim source =
                 <compilation>
@@ -2339,7 +2339,7 @@ Interface B : Inherits C(Of Integer).NotFound
         End Sub
 
         <WorkItem(862536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862536")>
-        <Fact(Skip:="862536")>
+        <Fact>
         Public Sub ExpandingBaseClass()
             Dim source =
                 <compilation>
@@ -2361,41 +2361,6 @@ Class C(Of T) : Inherits C(Of C(Of T))
 BC30002: Type 'C.NotFound' is not defined.
 Class B : Inherits C(Of Integer).NotFound
                    ~~~~~~~~~~~~~~~~~~~~~~
-]]></errors>)
-
-            Dim model = comp.GetSemanticModel(comp.SyntaxTrees.Single())
-            Dim typeC = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").Construct(comp.GetSpecialType(SpecialType.System_Int32))
-            Assert.Equal(0, model.LookupSymbols(0, typeC, "NotFound").Length)
-        End Sub
-
-        <WorkItem(862536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862536")>
-        <Fact(Skip:="862536")>
-        Public Sub ExpandingBaseClassChain()
-            Dim source =
-                <compilation>
-                    <file name="a.vb">
-Class C(Of T) : Inherits D(Of C(Of T))
-End Class
-
-Class D(Of T) : Inherits C(Of D(Of T))
-End Class
-
-Class B : Inherits C(Of Integer).NotFound
-End Class
-    </file>
-                </compilation>
-
-            ' Can't find NotFound in C(Of Integer), so we check the base type D(Of C(Of Integer)), etc.
-            Dim comp = CreateCompilationWithMscorlib(source)
-            comp.AssertTheseDiagnostics(<errors><![CDATA[
-BC30296: Class 'C(Of T)' cannot inherit from itself: 
-    'C(Of T)' inherits from 'D(Of C(Of T))'.
-    'D(Of C(Of T))' inherits from 'C(Of T)'.
-Class C(Of T) : Inherits D(Of C(Of T))
-                         ~~~~~~~~~~~~~
-BC30002: Type 'C.NotFound' is not defined.
-Interface B : Inherits C(Of Integer).NotFound
-                       ~~~~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
 
             Dim model = comp.GetSemanticModel(comp.SyntaxTrees.Single())

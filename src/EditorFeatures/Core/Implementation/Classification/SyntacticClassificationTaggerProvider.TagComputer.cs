@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -95,9 +94,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private void OnWorkspaceRegistrationChanged(object sender, EventArgs e)
             {
-                DisconnectFromWorkspace();
-
+                // We both try to connect synchronously, and register for workspace registration events.
+                // It's possible (particularly in tests), to connect in the startup path, but then get a
+                // previously scheduled, but not yet delivered event.  Don't bother connecting to the
+                // same workspace again in that case.
                 var newWorkspace = _workspaceRegistration.Workspace;
+                if (newWorkspace == _workspace)
+                {
+                    return;
+                }
+
+                DisconnectFromWorkspace();
 
                 if (newWorkspace != null)
                 {
@@ -293,8 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private void AddClassifiedSpansForCurrentTree(
                 IEditorClassificationService classificationService, SnapshotSpan span, Document document, List<ClassifiedSpan> classifiedSpans)
             {
-                List<ClassifiedSpan> tempList;
-                if (!_lastLineCache.TryUseCache(span, out tempList))
+                if (!_lastLineCache.TryUseCache(span, out var tempList))
                 {
                     tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
@@ -382,11 +388,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     span.Snapshot.AsText(), span.Span.ToTextSpan(), classifiedSpans, CancellationToken.None);
             }
 
-            private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs args)
+            private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs args)
             {
-                if (_workspace != null)
+                if (_workspace != null && _workspace == args.Solution.Workspace)
                 {
-                    ParseIfThisDocument(null, args.Document.Project.Solution, args.Document.Id);
+                    ParseIfThisDocument(null, args.Solution, args.NewActiveContextDocumentId);
                 }
             }
 

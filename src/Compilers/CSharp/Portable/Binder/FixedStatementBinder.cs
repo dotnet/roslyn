@@ -29,6 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
                 {
                     locals.Add(MakeLocal(_syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable));
+
+                    // also gather expression-declared variables from the bracketed argument lists and the initializers
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator);
                 }
 
                 return locals.ToImmutable();
@@ -37,14 +40,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope()
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
-            return this.Locals;
+            if (_syntax == scopeDesignator)
+            {
+                return this.Locals;
+            }
+
+            throw ExceptionUtilities.Unreachable;
         }
 
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope()
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            return ImmutableArray<LocalFunctionSymbol>.Empty;
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                return _syntax;
+            }
         }
     }
 }

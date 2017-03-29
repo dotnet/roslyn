@@ -22,16 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
-            BoundStatement ifConditionGotoStart = new BoundConditionalGoto(syntax, AddConditionSequencePoint(rewrittenCondition, node), true, startLabel);
-
-            if (this.GenerateDebugInfo)
+            if (!node.WasCompilerGenerated && this.Instrument)
             {
-                var doSyntax = (DoStatementSyntax)syntax;
-                var span = TextSpan.FromBounds(
-                    doSyntax.WhileKeyword.SpanStart,
-                    doSyntax.SemicolonToken.Span.End);
+                rewrittenCondition = _instrumenter.InstrumentDoStatementCondition(node, rewrittenCondition, _factory);
+            }
 
-                ifConditionGotoStart = new BoundSequencePointWithSpan(doSyntax, ifConditionGotoStart, span);
+            BoundStatement ifConditionGotoStart = new BoundConditionalGoto(syntax, rewrittenCondition, true, startLabel);
+
+            if (!node.WasCompilerGenerated && this.Instrument)
+            {
+                ifConditionGotoStart = _instrumenter.InstrumentDoStatementConditionalGotoStart(node, ifConditionGotoStart);
             }
 
             // do
@@ -49,11 +49,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             // break:
 
+            if (node.Locals.IsEmpty)
+            {
+                return BoundStatementList.Synthesized(syntax, node.HasErrors,
+                    new BoundLabelStatement(syntax, startLabel),
+                    rewrittenBody,
+                    new BoundLabelStatement(syntax, node.ContinueLabel),
+                    ifConditionGotoStart,
+                    new BoundLabelStatement(syntax, node.BreakLabel));
+            }
+
             return BoundStatementList.Synthesized(syntax, node.HasErrors,
                 new BoundLabelStatement(syntax, startLabel),
-                rewrittenBody,
-                new BoundLabelStatement(syntax, node.ContinueLabel),
-                ifConditionGotoStart,
+                new BoundBlock(syntax,
+                               node.Locals,
+                               ImmutableArray.Create<BoundStatement>(rewrittenBody,
+                                                                     new BoundLabelStatement(syntax, node.ContinueLabel),
+                                                                     ifConditionGotoStart)),
                 new BoundLabelStatement(syntax, node.BreakLabel));
         }
     }

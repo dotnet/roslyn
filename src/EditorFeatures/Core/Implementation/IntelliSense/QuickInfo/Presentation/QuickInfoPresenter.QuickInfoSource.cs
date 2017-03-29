@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             public void AugmentQuickInfoSession(IQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
             {
                 AssertIsForeground();
-                QuickInfoPresenterSession presenterSession;
-                if (!session.Properties.TryGetProperty<QuickInfoPresenterSession>(s_augmentSessionKey, out presenterSession))
+                if (!session.Properties.TryGetProperty<QuickInfoPresenterSession>(s_augmentSessionKey, out var presenterSession))
                 {
                     applicableToSpan = session.ApplicableToSpan;
                     return;

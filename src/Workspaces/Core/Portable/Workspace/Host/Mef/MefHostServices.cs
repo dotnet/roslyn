@@ -4,13 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Composition.Convention;
 using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Host.Mef
 {
@@ -40,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 throw new ArgumentNullException(nameof(assemblies));
             }
 
-            var compositionConfiguration = new ContainerConfiguration().WithAssemblies(assemblies);
+            var compositionConfiguration = new ContainerConfiguration().WithAssemblies(assemblies.Distinct());
             var container = compositionConfiguration.CreateContainer();
             return new MefHostServices(container);
         }
@@ -102,11 +99,15 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         private static ImmutableArray<Assembly> LoadDefaultAssemblies()
         {
             // build a MEF composition using the main workspaces assemblies and the known VisualBasic/CSharp workspace assemblies.
+            // updated: includes feature assemblies since they now have public API's.
             var assemblyNames = new string[]
             {
                 "Microsoft.CodeAnalysis.Workspaces",
                 "Microsoft.CodeAnalysis.CSharp.Workspaces",
                 "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
+                "Microsoft.CodeAnalysis.Features",
+                "Microsoft.CodeAnalysis.CSharp.Features",
+                "Microsoft.CodeAnalysis.VisualBasic.Features"
             };
 
             return LoadNearbyAssemblies(assemblyNames);

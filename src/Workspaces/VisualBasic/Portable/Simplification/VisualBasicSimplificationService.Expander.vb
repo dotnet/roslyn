@@ -622,14 +622,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     If DirectCast(symbol, IMethodSymbol).TypeArguments.Length <> 0 Then
                         Dim typeArguments = DirectCast(symbol, IMethodSymbol).TypeArguments
 
-                        newNode = SyntaxFactory.GenericName(
+                        Dim genericName = SyntaxFactory.GenericName(
                                         DirectCast(newNode, IdentifierNameSyntax).Identifier,
                                         SyntaxFactory.TypeArgumentList(
                                             SyntaxFactory.SeparatedList(typeArguments.Select(Function(p) SyntaxFactory.ParseTypeName(p.ToDisplayParts(typeNameFormatWithGenerics).ToDisplayString()))))) _
                             .WithLeadingTrivia(newNode.GetLeadingTrivia()) _
                             .WithTrailingTrivia(newNode.GetTrailingTrivia()) _
                             .WithAdditionalAnnotations(Simplifier.Annotation)
-
+                        genericName = newNode.CopyAnnotationsTo(genericName)
+                        Return genericName
                     End If
                 End If
 

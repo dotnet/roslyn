@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class LongKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal class LongKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
     {
         public LongKeywordRecommender()
             : base(SyntaxKind.LongKeyword)
@@ -39,11 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken) ||
                 context.IsDelegateReturnTypeContext ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+                context.IsPossibleTupleContext ||
                 context.IsMemberDeclarationContext(
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }
+
+        protected override SpecialType SpecialType => SpecialType.System_Int64;
     }
 }

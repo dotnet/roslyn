@@ -22,11 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return ArrayTypeSymbol.CreateMDArray(moduleSymbol.ContainingAssembly, TypeSymbolWithAnnotations.Create(elementType, CSharpCustomModifier.Convert(customModifiers)), rank, sizes, lowerBounds);
         }
 
-        internal override TypeSymbol GetByRefReturnTypeSymbol(PEModuleSymbol moduleSymbol, TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef)
-        {
-            return new ByRefReturnErrorTypeSymbol(referencedType, countOfCustomModifiersPrecedingByRef);
-        }
-
         internal override TypeSymbol GetSpecialType(PEModuleSymbol moduleSymbol, SpecialType specialType)
         {
             return moduleSymbol.ContainingAssembly.GetSpecialType(specialType);

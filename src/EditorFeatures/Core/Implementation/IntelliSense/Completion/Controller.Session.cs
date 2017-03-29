@@ -12,22 +12,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             #region Fields that can be accessed from either thread
 
-            private readonly CompletionRules _completionRules;
-
             // When we issue filter tasks, provide them with a (monotonically increasing) id.  That
             // way, when they run we can bail on computation if they've been superseded by another
-            // filter task.  
+            // filter task.
             private int _filterId;
 
             #endregion
 
-            public Session(Controller controller, ModelComputation<Model> computation, CompletionRules completionRules, ICompletionPresenterSession presenterSession)
+            public Session(Controller controller, ModelComputation<Model> computation, ICompletionPresenterSession presenterSession)
                 : base(controller, computation, presenterSession)
             {
-                _completionRules = completionRules;
-
                 this.PresenterSession.ItemCommitted += OnPresenterSessionItemCommitted;
                 this.PresenterSession.ItemSelected += OnPresenterSessionItemSelected;
+                this.PresenterSession.FilterStateChanged += OnPresenterSessionCompletionItemFilterStateChanged;
             }
 
             private ITextBuffer SubjectBuffer
@@ -69,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 AssertIsForeground();
                 this.PresenterSession.ItemSelected -= OnPresenterSessionItemSelected;
                 this.PresenterSession.ItemCommitted -= OnPresenterSessionItemCommitted;
+                this.PresenterSession.FilterStateChanged -= OnPresenterSessionCompletionItemFilterStateChanged;
                 base.Stop();
             }
 
@@ -91,7 +89,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 AssertIsForeground();
                 Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
 
-                SetModelSelectedItem(m => e.CompletionItem.IsBuilder ? m.DefaultBuilder : e.CompletionItem);
+                SetModelSelectedItem(m => e.CompletionItem);
+            }
+
+            private void OnPresenterSessionCompletionItemFilterStateChanged(
+                object sender, CompletionItemFilterStateChangedEventArgs e)
+            {
+                AssertIsForeground();
+                Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
+
+                // Update the filter state for the model.  Note: if we end up filtering everything
+                // out we do *not* want to dismiss the completion list. 
+                this.FilterModel(CompletionFilterReason.Other, filterState: e.FilterState);
             }
         }
     }

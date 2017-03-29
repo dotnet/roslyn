@@ -140,6 +140,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Case SyntaxKind.RangeArgument
                     semanticModel.TryGetSpeculativeSemanticModel(position, DirectCast(nodeToSpeculate, RangeArgumentSyntax), speculativeModel)
                     Return speculativeModel
+
+                Case SyntaxKind.AsNewClause
+                    ' Speculation is not supported for AsNewClauseSyntax nodes.
+                    ' Generate an EqualsValueSyntax node with the inner NewExpression of the AsNewClauseSyntax node for speculation.
+
+                    Dim asNewClauseNode = DirectCast(nodeToSpeculate, AsNewClauseSyntax)
+                    nodeToSpeculate = SyntaxFactory.EqualsValue(asNewClauseNode.NewExpression)
+                    nodeToSpeculate = asNewClauseNode.CopyAnnotationsTo(nodeToSpeculate)
+                    semanticModel.TryGetSpeculativeSemanticModel(position, DirectCast(nodeToSpeculate, EqualsValueSyntax), speculativeModel)
+                    Return speculativeModel
             End Select
 
             ' CONSIDER: Do we care about this case?

@@ -13,34 +13,29 @@ namespace RunTests.Cache
 {
     internal sealed class ContentUtil
     {
-        private readonly Options _options;
+        private readonly TestExecutionOptions _options;
         private readonly MD5 _hash = MD5.Create();
         private readonly Dictionary<string, string> _fileToChecksumMap = new Dictionary<string, string>();
 
-        internal ContentUtil(Options options)
+        internal ContentUtil(TestExecutionOptions options)
         {
             _options = options;
         }
 
-        internal ContentFile GetTestResultContentFile(string assemblyPath)
+        internal ContentFile GetTestResultContentFile(AssemblyInfo assemblyInfo)
         {
-            try
-            {
-                var content = BuildTestResultContent(assemblyPath);
-                var checksum = GetChecksum(content);
-                return new ContentFile(checksum: checksum, content: content);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"Error creating log file {ex.Message} {ex.StackTrace}");
-                return ContentFile.Empty;
-            }
+            var content = BuildTestResultContent(assemblyInfo);
+            var checksum = GetChecksum(content);
+            return new ContentFile(checksum: checksum, content: content);
         }
 
-        private string BuildTestResultContent(string assemblyPath)
+        private string BuildTestResultContent(AssemblyInfo assemblyInfo)
         {
             var builder = new StringBuilder();
+            var assemblyPath = assemblyInfo.AssemblyPath;
             builder.AppendLine($"Assembly: {Path.GetFileName(assemblyPath)} {GetFileChecksum(assemblyPath)}");
+            builder.AppendLine($"Display Name: {assemblyInfo.DisplayName}");
+            builder.AppendLine($"Results File Name; {assemblyInfo.ResultsFileName}");
 
             var configFilePath = $"{assemblyPath}.config";
             var configFileChecksum = File.Exists(configFilePath)
@@ -55,9 +50,9 @@ namespace RunTests.Cache
             builder.AppendLine($"\t{nameof(_options.UseHtml)} - {_options.UseHtml}");
             builder.AppendLine($"\t{nameof(_options.Trait)} - {_options.Trait}");
             builder.AppendLine($"\t{nameof(_options.NoTrait)} - {_options.NoTrait}");
+            builder.AppendLine($"Extra Options: {assemblyInfo.ExtraArguments}");
+            AppendExtra(builder, assemblyPath);
 
-            // TODO: Need to include dependency information here, option data, etc ...
-            // Test file alone isn't enough.  Makes it easy to test though.
             return builder.ToString();
         }
 
@@ -65,38 +60,39 @@ namespace RunTests.Cache
         {
             builder.AppendLine("References:");
 
-            var initialAssembly = Assembly.ReflectionOnlyLoadFrom(assemblyPath);
-            var set = new HashSet<string>();
-            var toVisit = new Queue<AssemblyName>(initialAssembly.GetReferencedAssemblies());
-            var binariesPath = Path.GetDirectoryName(initialAssembly.Location);
+            var binariesPath = Path.GetDirectoryName(assemblyPath);
+            var assemblyUtil = new AssemblyUtil(binariesPath);
+            var visitedSet = new HashSet<string>();
+            var missingSet = new HashSet<string>();
+            var toVisit = new Queue<AssemblyName>(assemblyUtil.GetReferencedAssemblies(assemblyPath));
             var references = new List<Tuple<string, string>>();
 
             while (toVisit.Count > 0)
             {
                 var current = toVisit.Dequeue();
-                if (!set.Add(current.FullName))
+                if (!visitedSet.Add(current.FullName))
                 {
                     continue;
                 }
 
-                try
+                string currentPath;
+                if (assemblyUtil.TryGetAssemblyPath(current, out currentPath))
                 {
-                    var currentPath = Path.Combine(binariesPath, Path.ChangeExtension(current.Name, "dll"));
-                    var currentAssembly = File.Exists(currentPath)
-                        ? Assembly.ReflectionOnlyLoadFrom(currentPath)
-                        : Assembly.ReflectionOnlyLoad(current.FullName);
-
-                    foreach (var name in currentAssembly.GetReferencedAssemblies())
+                    foreach (var name in assemblyUtil.GetReferencedAssemblies(currentPath))
                     {
                         toVisit.Enqueue(name);
                     }
 
-                    var currentHash = GetFileChecksum(currentAssembly.Location);
+                    var currentHash = GetFileChecksum(currentPath);
                     references.Add(Tuple.Create(current.Name, currentHash));
                 }
-                catch
+                else if (assemblyUtil.IsKnownMissingAssembly(current))
                 {
-                    references.Add(Tuple.Create(current.Name, "<could not calculate checksum>"));
+                    references.Add(Tuple.Create(current.Name, "<missing light up reference>"));
+                }
+                else
+                {
+                    missingSet.Add(current.FullName);
                 }
             }
 
@@ -104,6 +100,37 @@ namespace RunTests.Cache
             foreach (var pair in references)
             {
                 builder.AppendLine($"\t{pair.Item1} {pair.Item2}");
+            }
+
+            // Error if there are any referenced assemblies that we were unable to resolve.
+            if (missingSet.Count > 0)
+            {
+                var errorBuilder = new StringBuilder();
+                errorBuilder.AppendLine($"Unable to resolve {missingSet.Count} referenced assemblies");
+                foreach (var item in missingSet.OrderBy(x => x))
+                {
+                    errorBuilder.AppendLine($"\t{item}");
+                }
+                throw new Exception(errorBuilder.ToString());
+            }
+        }
+
+        private void AppendExtra(StringBuilder builder, string assemblyPath)
+        {
+            builder.AppendLine("Extra Files:");
+            var all = new[]
+            {
+                "*.targets",
+                "*.props"
+            };
+
+            var binariesPath = Path.GetDirectoryName(assemblyPath);
+            foreach (var ext in all)
+            {
+                foreach (var file in Directory.EnumerateFiles(binariesPath, ext))
+                {
+                    builder.AppendLine($"\t{Path.GetFileName(file)} - {GetFileChecksum(file)}");
+                }
             }
         }
 

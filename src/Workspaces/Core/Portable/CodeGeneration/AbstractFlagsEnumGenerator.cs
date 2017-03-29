@@ -4,14 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal abstract class AbstractFlagsEnumGenerator : IComparer<ValueTuple<IFieldSymbol, ulong>>
+    internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol field, ulong value)>
     {
         protected abstract SyntaxGenerator GetSyntaxGenerator();
         protected abstract SyntaxNode CreateExplicitlyCastedLiteralValue(INamedTypeSymbol enumType, SpecialType underlyingSpecialType, object constantValue);
@@ -65,18 +63,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private SyntaxNode CreateFlagsEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
         {
             // These values are sorted by value. Don't change this.
-            var allFieldsAndValues = new List<ValueTuple<IFieldSymbol, ulong>>();
+            var allFieldsAndValues = new List<(IFieldSymbol field, ulong value)>();
             GetSortedEnumFieldsAndValues(enumType, allFieldsAndValues);
 
-            var usedFieldsAndValues = new List<ValueTuple<IFieldSymbol, ulong>>();
+            var usedFieldsAndValues = new List<(IFieldSymbol field, ulong value)>();
             return CreateFlagsEnumConstantValue(enumType, constantValue, allFieldsAndValues, usedFieldsAndValues);
         }
 
         private SyntaxNode CreateFlagsEnumConstantValue(
             INamedTypeSymbol enumType,
             object constantValue,
-            List<ValueTuple<IFieldSymbol, ulong>> allFieldsAndValues,
-            List<ValueTuple<IFieldSymbol, ulong>> usedFieldsAndValues)
+            List<(IFieldSymbol field, ulong value)> allFieldsAndValues,
+            List<(IFieldSymbol field, ulong value)> usedFieldsAndValues)
         {
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
             var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
@@ -90,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             for (int index = allFieldsAndValues.Count - 1; index >= 0 && result != 0; index--)
             {
                 var fieldAndValue = allFieldsAndValues[index];
-                var valueAtIndex = fieldAndValue.Item2;
+                var valueAtIndex = fieldAndValue.value;
 
                 if (valueAtIndex != 0 && (result & valueAtIndex) == valueAtIndex)
                 {
@@ -109,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 for (int i = usedFieldsAndValues.Count - 1; i >= 0; i--)
                 {
                     var field = usedFieldsAndValues[i];
-                    var node = CreateMemberAccessExpression(field.Item1, enumType, underlyingSpecialType);
+                    var node = CreateMemberAccessExpression(field.field, enumType, underlyingSpecialType);
                     if (finalNode == null)
                     {
                         finalNode = node;
@@ -156,14 +154,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        private IFieldSymbol GetZeroField(List<ValueTuple<IFieldSymbol, ulong>> allFieldsAndValues)
+        private IFieldSymbol GetZeroField(List<(IFieldSymbol field, ulong value)> allFieldsAndValues)
         {
             for (int i = allFieldsAndValues.Count - 1; i >= 0; i--)
             {
                 var tuple = allFieldsAndValues[i];
-                if (tuple.Item2 == 0)
+                if (tuple.value == 0)
                 {
-                    return tuple.Item1;
+                    return tuple.field;
                 }
             }
 
@@ -172,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private void GetSortedEnumFieldsAndValues(
             INamedTypeSymbol enumType,
-            List<ValueTuple<IFieldSymbol, ulong>> allFieldsAndValues)
+            List<(IFieldSymbol field, ulong value)> allFieldsAndValues)
         {
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
             foreach (var member in enumType.GetMembers())
@@ -182,8 +180,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     var field = (IFieldSymbol)member;
                     if (field.HasConstantValue)
                     {
-                        allFieldsAndValues.Add(ValueTuple.Create(field,
-                            EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType)));
+                        var value = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
+                        allFieldsAndValues.Add((field, value));
                     }
                 }
             }
@@ -217,16 +215,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return CreateExplicitlyCastedLiteralValue(enumType, underlyingSpecialType, constantValue);
         }
 
-        int IComparer<ValueTuple<IFieldSymbol, ulong>>.Compare(ValueTuple<IFieldSymbol, ulong> x, ValueTuple<IFieldSymbol, ulong> y)
+        int IComparer<(IFieldSymbol field, ulong value)>.Compare((IFieldSymbol field, ulong value) x, (IFieldSymbol field, ulong value) y)
         {
             unchecked
             {
                 return
-                    (long)x.Item2 < (long)y.Item2
+                    (long)x.value < (long)y.value
                         ? -1
-                        : (long)x.Item2 > (long)y.Item2
+                        : (long)x.value > (long)y.value
                             ? 1
-                            : -x.Item1.Name.CompareTo(y.Item1.Name);
+                            : -x.field.Name.CompareTo(y.field.Name);
             }
         }
     }

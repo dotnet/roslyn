@@ -6,11 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ScriptParsingTests : ParsingTests
     {
+        public ScriptParsingTests(ITestOutputHelper output) : base(output) { }
+
         #region Helpers
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
@@ -8299,7 +8302,6 @@ Console.Foo()
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1031, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 1 },
-                new ErrorDescription { Code = 1019, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1026, Line = 1, Column = 9 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 9 });
         }
@@ -8312,7 +8314,6 @@ Console.Foo()
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1031, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
-                new ErrorDescription { Code = 1019, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1026, Line = 1, Column = 9 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 9 });
         }
@@ -8325,7 +8326,6 @@ Console.Foo()
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1031, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
-                new ErrorDescription { Code = 1019, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1026, Line = 1, Column = 9 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 9 });
         }

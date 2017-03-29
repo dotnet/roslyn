@@ -5224,5 +5224,73 @@ public class BadBaby
 }";
             CompileAndVerify(source, new[] { SystemCoreRef });
         }
+
+        [WorkItem(9131, "https://github.com/dotnet/roslyn/issues/9131")]
+        [Fact]
+        public void ClosureInSwitchStatementWithNullableExpression()
+        {
+            string source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        int? i = null;
+        switch (i)
+        {
+        default:
+            object o = null;
+            Func<object> f = () => o;
+            Console.Write(""{0}"", f() == null);
+            break;
+        case 0:
+            o = 1;
+            break;
+        }
+    }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"True");
+            compilation.VerifyIL("C.Main",
+@"{
+  // Code size       92 (0x5c)
+  .maxstack  3
+  .locals init (int? V_0, //i
+                C.<>c__DisplayClass0_0 V_1, //CS$<>8__locals0
+                int V_2,
+                System.Func<object> V_3) //f
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""int?""
+  IL_0008:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  call       ""bool int?.HasValue.get""
+  IL_0015:  brfalse.s  IL_0022
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int int?.GetValueOrDefault()""
+  IL_001e:  stloc.2
+  IL_001f:  ldloc.2
+  IL_0020:  brfalse.s  IL_004f
+  IL_0022:  ldloc.1
+  IL_0023:  ldnull
+  IL_0024:  stfld      ""object C.<>c__DisplayClass0_0.o""
+  IL_0029:  ldloc.1
+  IL_002a:  ldftn      ""object C.<>c__DisplayClass0_0.<Main>b__0()""
+  IL_0030:  newobj     ""System.Func<object>..ctor(object, System.IntPtr)""
+  IL_0035:  stloc.3
+  IL_0036:  ldstr      ""{0}""
+  IL_003b:  ldloc.3
+  IL_003c:  callvirt   ""object System.Func<object>.Invoke()""
+  IL_0041:  ldnull
+  IL_0042:  ceq
+  IL_0044:  box        ""bool""
+  IL_0049:  call       ""void System.Console.Write(string, object)""
+  IL_004e:  ret
+  IL_004f:  ldloc.1
+  IL_0050:  ldc.i4.1
+  IL_0051:  box        ""int""
+  IL_0056:  stfld      ""object C.<>c__DisplayClass0_0.o""
+  IL_005b:  ret
+}");
+        }
     }
 }

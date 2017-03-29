@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return syntaxTree.WithChangedText(newFullText);
         }
 
-        internal static SyntaxTree WithReplaceFirst(this SyntaxTree syntaxTree, string oldText, string newText)
+        public static SyntaxTree WithReplaceFirst(this SyntaxTree syntaxTree, string oldText, string newText)
         {
             var oldFullText = syntaxTree.GetText().ToString();
             int offset = oldFullText.IndexOf(oldText, StringComparison.Ordinal);

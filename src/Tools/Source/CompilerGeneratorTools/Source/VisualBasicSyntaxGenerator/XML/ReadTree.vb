@@ -71,23 +71,11 @@ Public Module ReadTree
     Private Function GetXDocument(fileName As String, <Out> ByRef validationError As Boolean) As XDocument
         s_currentFile = fileName
 
-        Dim hadError = False
-        Dim onValidationError =
-            Sub(sender As Object, e As ValidationEventArgs)
-                ' A validation error occurred while reading the document. Tell the user.
-                Console.Error.WriteLine("{0}({1},{2}): Invalid input: {3}", s_currentFile, e.Exception.LineNumber, e.Exception.LinePosition, e.Exception.Message)
-                hadError = True
-            End Sub
-
         Dim xDoc As XDocument
-        Using schemaReader = XmlReader.Create(Assembly.GetExecutingAssembly().GetManifestResourceStream("VBSyntaxModelSchema.xsd"))
+        Using schemaReader = XmlReader.Create(GetType(ReadTree).GetTypeInfo().Assembly.GetManifestResourceStream("VBSyntaxModelSchema.xsd"))
 
             Dim readerSettings As New XmlReaderSettings()
             readerSettings.DtdProcessing = DtdProcessing.Prohibit
-            readerSettings.XmlResolver = Nothing
-            readerSettings.Schemas.Add(Nothing, schemaReader)
-            readerSettings.ValidationType = ValidationType.Schema
-            AddHandler readerSettings.ValidationEventHandler, onValidationError
 
             Dim fileStream As New FileStream(fileName, FileMode.Open, FileAccess.Read)
             Using reader = XmlReader.Create(fileStream, readerSettings)
@@ -95,7 +83,7 @@ Public Module ReadTree
             End Using
         End Using
 
-        validationError = hadError
+        validationError = False
         Return xDoc
     End Function
 

@@ -18,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             End If
 
             If context.TargetToken.IsChildToken(Of DelegateStatementSyntax)(Function(delegateDeclaration) delegateDeclaration.DelegateKeyword) Then
-                Return {New RecommendedKeyword("Function", VBFeaturesResources.FunctionKeywordToolTip),
-                        New RecommendedKeyword("Sub", VBFeaturesResources.SubKeywordToolTip)}
+                Return {New RecommendedKeyword("Function", VBFeaturesResources.Declares_the_name_parameters_and_code_that_define_a_Function_procedure_that_is_a_procedure_that_returns_a_value_to_the_calling_code),
+                        New RecommendedKeyword("Sub", VBFeaturesResources.Declares_the_name_parameters_and_code_that_define_a_Sub_procedure_that_is_a_procedure_that_does_not_return_a_value_to_the_calling_code)}
             Else
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If

@@ -738,7 +738,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // These are ignored by this specific MemberSignatureComparer.
                                 containingType: null,
                                 name: null,
+                                refKind: RefKind.None,
                                 returnType: null,
+                                refCustomModifiers: ImmutableArray<CustomModifier>.Empty,
                                 explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);
                             break;
                         }
@@ -751,7 +753,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // These are ignored by this specific MemberSignatureComparer.
                                 containingType: null,
                                 name: null,
+                                refKind: RefKind.None,
                                 type: null,
+                                refCustomModifiers: ImmutableArray<CustomModifier>.Empty,
                                 isStatic: false,
                                 explicitInterfaceImplementations: ImmutableArray<PropertySymbol>.Empty);
                             break;
@@ -867,7 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbol type = BindCrefParameterOrReturnType(parameter.Type, (MemberCrefSyntax)parameterListSyntax.Parent, diagnostics);
 
-                parameterBuilder.Add(new SignatureOnlyParameterSymbol(TypeSymbolWithAnnotations.Create(type), isParams: false, refKind: refKind));
+                parameterBuilder.Add(new SignatureOnlyParameterSymbol(TypeSymbolWithAnnotations.Create(type), ImmutableArray<CustomModifier>.Empty, isParams: false, refKind: refKind));
             }
 
             return parameterBuilder.ToImmutableAndFree();

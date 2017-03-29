@@ -117,61 +117,97 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AnalyzersFolderItem_Name" xml:space="preserve">
+  <data name="Analyzers" xml:space="preserve">
     <value>Analyzers</value>
   </data>
-  <data name="AnalyzersFolderItem_PropertyWindowClassName" xml:space="preserve">
+  <data name="Folder_Properties" xml:space="preserve">
     <value>Folder Properties</value>
   </data>
-  <data name="AnalyzerItem_PropertyWindowClassName" xml:space="preserve">
+  <data name="Analyzer_Properties" xml:space="preserve">
     <value>Analyzer Properties</value>
   </data>
-  <data name="AddAnalyzer" xml:space="preserve">
+  <data name="Add_Analyzer" xml:space="preserve">
     <value>Add Analyzer</value>
   </data>
-  <data name="AnalyzerFiles" xml:space="preserve">
+  <data name="Analyzer_Files" xml:space="preserve">
     <value>Analyzer Files</value>
   </data>
-  <data name="DiagnosticItem_PropertyWindowClassName" xml:space="preserve">
+  <data name="Diagnostic_Properties" xml:space="preserve">
     <value>Diagnostic Properties</value>
   </data>
-  <data name="AnalyzersCommandHandler_CouldNotFindProject" xml:space="preserve">
+  <data name="Could_not_find_project_0" xml:space="preserve">
     <value>Could not find project {0}.</value>
   </data>
-  <data name="AnalyzersCommandHandler_NoRuleSetFile" xml:space="preserve">
+  <data name="No_rule_set_file_is_specified_or_the_file_does_not_exist" xml:space="preserve">
     <value>No rule set file is specified, or the file does not exist.</value>
   </data>
-  <data name="AnalyzersCommandHandler_RuleSetFileCouldNotBeOpened" xml:space="preserve">
+  <data name="The_rule_set_file_could_not_be_opened" xml:space="preserve">
     <value>The rule set file could not be opened.</value>
   </data>
-  <data name="AnalyzersCommandHandler_RuleSetFileCouldNotBeUpdated" xml:space="preserve">
+  <data name="The_rule_set_file_could_not_be_updated" xml:space="preserve">
     <value>The rule set file could not be updated.</value>
   </data>
-  <data name="AnalyzersCommandHandler_CouldNotCreateRuleSetFile" xml:space="preserve">
+  <data name="Could_not_create_a_rule_set_for_project_0" xml:space="preserve">
     <value>Could not create a rule set for project {0}.</value>
   </data>
-  <data name="Severity_Default" xml:space="preserve">
+  <data name="Default_" xml:space="preserve">
     <value>Default</value>
   </data>
-  <data name="Severity_Error" xml:space="preserve">
+  <data name="Error_" xml:space="preserve">
     <value>Error</value>
   </data>
-  <data name="Severity_Warning" xml:space="preserve">
+  <data name="Warning" xml:space="preserve">
     <value>Warning</value>
   </data>
-  <data name="Severity_Info" xml:space="preserve">
+  <data name="Info" xml:space="preserve">
     <value>Info</value>
   </data>
-  <data name="Severity_Hidden" xml:space="preserve">
+  <data name="Hidden" xml:space="preserve">
     <value>Hidden</value>
   </data>
-  <data name="Severity_Suppressed" xml:space="preserve">
+  <data name="Suppressed" xml:space="preserve">
     <value>Suppressed</value>
   </data>
-  <data name="AnalyzersCommandHandler_RuleSet" xml:space="preserve">
+  <data name="Rule_Set" xml:space="preserve">
     <value>Rule Set</value>
   </data>
-  <data name="AnalyzersCommandHandler_CheckingOutRuleSet" xml:space="preserve">
+  <data name="Checking_out_0_for_editing" xml:space="preserve">
     <value>Checking out {0} for editing...</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>(Name)</value>
+  </data>
+  <data name="Path" xml:space="preserve">
+    <value>Path</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Default_severity" xml:space="preserve">
+    <value>Default severity</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Effective_severity" xml:space="preserve">
+    <value>Effective severity</value>
+  </data>
+  <data name="Enabled_by_default" xml:space="preserve">
+    <value>Enabled by default</value>
+  </data>
+  <data name="Help_link" xml:space="preserve">
+    <value>Help link</value>
+  </data>
+  <data name="ID" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="Message" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="Tags" xml:space="preserve">
+    <value>Tags</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Title</value>
   </data>
 </root>

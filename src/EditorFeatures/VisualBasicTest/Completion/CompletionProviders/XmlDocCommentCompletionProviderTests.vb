@@ -1,9 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Tests
     Public Class XmlDocCommentCompletionProviderTests
@@ -13,8 +14,17 @@ Namespace Tests
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New XmlDocCommentCompletionProvider()
+        End Function
+
+        Protected Overrides Async Function VerifyWorkerAsync(
+                code As String, position As Integer,
+                expectedItemOrNull As String, expectedDescriptionOrNull As String,
+                sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
+                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?) As Task
+            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
+            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
         End Function
 
         Private Async Function VerifyItemsExistAsync(markup As String, ParamArray items() As String) As Task
@@ -98,7 +108,35 @@ Class C
 End Class
 "
 
-            Await VerifyItemsExistAsync(text, "code", "list", "para", "paramref", "typeparamref")
+            Await VerifyItemsExistAsync(text, "code", "list", "para")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRepeatableNestedParamRefAndTypeParamRefTagsOnMethod() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <$$
+    ''' </summary>
+    Sub Foo(Of T)(i as Integer)
+    End Sub
+End Class
+"
+
+            Await VerifyItemsExistAsync(text, "paramref name=""i""", "typeparamref name=""T""")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRepeatableNestedTypeParamRefTagOnClass() As Task
+            Dim text = "
+''' <summary>
+''' <$$
+''' </summary>
+Class C(Of T)
+End Class
+"
+
+            Await VerifyItemsExistAsync(text, "typeparamref name=""T""")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -254,6 +292,53 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "param name=""bar""")
         End Function
 
+        <WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNoRepeatTypeParam() As Task
+            Dim text = "
+Class C(Of T)
+    ''' <typeparam name=""T""></param>
+    ''' <$$
+    Sub Foo(Of T)(bar as T)
+    End Sub
+End Class
+"
+
+            Await VerifyItemIsAbsentAsync(text, "typeparam name=""T""")
+        End Function
+
+        <WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNoNestedParam() As Task
+            Dim text = "
+Class C(Of T)
+    ''' <summary>
+    ''' <$$
+    ''' </summary>
+    Sub Foo(Of T)(bar as T)
+    End Sub
+End Class
+"
+
+            Await VerifyItemIsAbsentAsync(text, "param name=""bar""")
+        End Function
+
+        <WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNoNestedTypeParam() As Task
+            Dim text = "
+Class C(Of T)
+    ''' <summary>
+    ''' <$$
+    ''' </summary>
+    Sub Foo(Of T)(bar as T)
+    End Sub
+End Class
+"
+
+            Await VerifyItemIsAbsentAsync(text, "typeparam name=""T""")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAttributeAfterName() As Task
             Dim text = "
@@ -340,7 +425,9 @@ Class C
 End Class
 "
 
-            Await VerifyItemExistsAsync(text, "foo", usePreviousCharAsTrigger:=True)
+            Await VerifyItemExistsAsync(
+                text, "foo",
+                usePreviousCharAsTrigger:=True)
         End Function
 
         <WorkItem(638805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638805")>
@@ -368,7 +455,7 @@ Module Program
 End Module
 "
 
-            Await VerifyItemsExistAsync(text, "code", "list", "para", "paramref", "typeparamref")
+            Await VerifyItemsExistAsync(text, "code", "list", "para")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

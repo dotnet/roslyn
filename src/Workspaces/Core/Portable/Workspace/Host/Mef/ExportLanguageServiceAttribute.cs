@@ -41,13 +41,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (language == null)
-            {
-                throw new ArgumentNullException(nameof(language));
-            }
-
             this.ServiceType = type.AssemblyQualifiedName;
-            this.Language = language;
+            this.Language = language ?? throw new ArgumentNullException(nameof(language));
             this.Layer = layer;
         }
     }

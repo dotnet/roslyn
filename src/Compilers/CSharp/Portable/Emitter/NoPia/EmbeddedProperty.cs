@@ -37,41 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
         }
 
-        protected override Cci.CallingConvention CallingConvention
+        protected override Cci.ISignature UnderlyingPropertySignature
         {
             get
             {
-                return UnderlyingProperty.CallingConvention;
+                return (Cci.ISignature)UnderlyingProperty;
             }
-        }
-
-        protected override bool ReturnValueIsModified
-        {
-            get
-            {
-                return UnderlyingProperty.Type.CustomModifiers.Length != 0;
-            }
-        }
-
-        protected override ImmutableArray<Cci.ICustomModifier> ReturnValueCustomModifiers
-        {
-            get
-            {
-                return UnderlyingProperty.Type.CustomModifiers.As<Cci.ICustomModifier>();
-            }
-        }
-
-        protected override bool ReturnValueIsByRef
-        {
-            get
-            {
-                return UnderlyingProperty.Type.TypeSymbol is ByRefReturnErrorTypeSymbol;
-            }
-        }
-
-        protected override Cci.ITypeReference GetType(PEModuleBuilder moduleBuilder, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
-        {
-            return moduleBuilder.Translate(UnderlyingProperty.Type.TypeSymbol, syntaxNodeOpt, diagnostics);
         }
 
         protected override EmbeddedType ContainingType

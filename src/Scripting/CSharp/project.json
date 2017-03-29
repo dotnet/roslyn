@@ -1,7 +1,10 @@
 {
-  "dependencies": {},
+  "dependencies": {
+    "Microsoft.CSharp": "4.3.0",
+    "System.Dynamic.Runtime": "4.3.0"
+  },
   "frameworks": {
-    "dotnet": {
+    "netstandard1.3": {
       "imports": "portable-net452"
     }
   }

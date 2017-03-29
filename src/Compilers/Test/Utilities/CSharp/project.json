@@ -1,6 +1,10 @@
-{
-  "dependencies": { },
+﻿{
+  "dependencies": {
+    "System.Runtime.Extensions": "4.3.0"
+  },
   "frameworks": {
-    "net45": { }
+    "netstandard1.3": {
+      "imports": "portable-net452"
+    }
   }
 }

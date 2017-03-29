@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return;
             }
 
-            var hostContext = workspace.Services.GetService<IHostContextService>();
+            var projectTypeLookup = workspace.Services.GetService<IProjectTypeLookupService>();
 
-            projectType = hostContext.GetProjectType(workspace, projectId);
+            projectType = projectTypeLookup.GetProjectType(workspace, projectId);
 
             // if projectId doesn't exist, not much we need to do.
             if (projectId == null)

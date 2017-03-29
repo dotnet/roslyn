@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("Foo, 2 refs", referencedSymbol.GetDebuggerDisplay());
         }
 
-        private static ReferencedSymbol CreateReferencedSymbol(string symbolName, int referenceCount)
+        private static ReferencedSymbol CreateReferencedSymbol(
+            string symbolName, int referenceCount)
         {
             var symbol = new StubSymbol(symbolName);
 
@@ -48,7 +49,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 locations.Add(new ReferenceLocation());
             }
 
-            var referencedSymbol = new ReferencedSymbol(symbol, locations);
+            var referencedSymbol = new ReferencedSymbol(
+                SymbolAndProjectId.Create(symbol, projectId: null), locations);
             return referencedSymbol;
         }
 

@@ -1653,5 +1653,66 @@ class B : A
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(baseMethodWrapper.GetAttributes()));
             }
         }
+
+        [Fact, WorkItem(7809, "https://github.com/dotnet/roslyn/issues/7809")]
+        public void SynthesizeAttributeWithUseSiteErrorFails()
+        {
+            #region "mslib"
+            var mslibNoString = @"
+namespace System
+{
+    public class Object { }
+    public struct Int32 { }
+    public class ValueType { }
+    public class Attribute { }
+    public struct Void { }
+}";
+            var mslib = mslibNoString + @"
+namespace System
+{
+    public class String { }
+}";
+            #endregion
+
+            // Build an mscorlib including String
+            var mslibComp = CreateCompilation(new string[] { mslib }).VerifyDiagnostics();
+            var mslibRef = mslibComp.EmitToImageReference();
+
+            // Build an mscorlib without String
+            var mslibNoStringComp = CreateCompilation(new string[] { mslibNoString }).VerifyDiagnostics();
+            var mslibNoStringRef = mslibNoStringComp.EmitToImageReference();
+
+            var diagLibSource = @"
+namespace System.Diagnostics
+{
+    public class DebuggerDisplayAttribute : System.Attribute
+    {
+        public DebuggerDisplayAttribute(System.String s) { }
+        public System.String Type { get { return null; } set { } }
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class CompilerGeneratedAttribute { } 
+}";
+            // Build Diagnostics referencing mscorlib with String
+            var diagLibComp = CreateCompilation(new string[] { diagLibSource }, references: new[] { mslibRef }).VerifyDiagnostics();
+            var diagLibRef = diagLibComp.EmitToImageReference();
+
+            // Create compilation using Diagnostics but referencing mscorlib without String
+            var comp = CreateCompilation(new SyntaxTree[] { Parse("") }, references: new[] { diagLibRef, mslibNoStringRef });
+
+            // Attribute cannot be synthesized because ctor has a use-site error (String type missing)
+            var attribute = comp.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor);
+            Assert.Equal(null, attribute);
+
+            // Attribute cannot be synthesized because type in named argument has use-site error (String type missing)
+            var attribute2 = comp.TrySynthesizeAttribute(
+                                WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor,
+                                namedArguments: ImmutableArray.Create(new KeyValuePair<WellKnownMember, TypedConstant>(
+                                                    WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type,
+                                                    new TypedConstant(comp.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, "unused"))));
+            Assert.Equal(null, attribute2);
+        }
     }
 }

@@ -4,11 +4,17 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class LocalConflictTests
+        Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
+
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
+            _outputHelper = outputHelper
+        End Sub
+
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(539939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539939")>
         Public Sub ConflictingLocalWithLocal()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -33,7 +39,7 @@ class Program
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(539939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539939")>
         Public Sub ConflictingLocalWithParameter()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -56,7 +62,7 @@ class Program
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithForEachRangeVariable()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -81,7 +87,7 @@ class Program
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithForLoopVariable()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -106,7 +112,7 @@ class Program
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithUsingBlockVariable()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -131,7 +137,7 @@ class Program : IDisposable
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithSimpleLambdaParameter()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -157,7 +163,7 @@ class Program
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithParenthesizedLambdaParameter()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -183,7 +189,7 @@ class Program
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingFromClauseWithLetClause()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -215,7 +221,7 @@ class C
         <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabelsInSameMethod()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document FilePath="Test.cs">
@@ -243,7 +249,7 @@ public class C
         <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabelInMethodAndLambda()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document FilePath="Test.cs">
@@ -271,7 +277,7 @@ public class C
         <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabelsInLambda()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document FilePath="Test.cs">
@@ -298,7 +304,7 @@ public class C
         <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictBetweenLabelsInTwoNonNestedLambdas()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document FilePath="Test.cs">
@@ -324,7 +330,7 @@ public class C
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(545468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545468")>
         Public Sub NoConflictsWithCatchBlockWithoutExceptionVariable()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -353,7 +359,7 @@ class Test
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1081066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081066")>
         Public Sub NoConflictsBetweenCatchClauses()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -378,7 +384,7 @@ class Test
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1081066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081066")>
         Public Sub ConflictsWithinCatchClause()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -404,7 +410,7 @@ class Test
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(546163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546163")>
         Public Sub NoConflictsWithCatchExceptionWithoutDeclaration()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -433,7 +439,7 @@ class Test
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(992721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992721")>
         Public Sub ConflictingLocalWithFieldWithExtensionMethodInvolved()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
                     <Document>

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // Construct a list with no sequence points.
         private SequencePointList()
         {
-            _points = SpecializedCollections.EmptyArray<OffsetAndSpan>();
+            _points = Array.Empty<OffsetAndSpan>();
         }
 
         // Construct a list with sequence points from exactly one syntax tree.
@@ -109,23 +109,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// file names to debug documents with the given mapping function.
         /// </summary>
         /// <param name="documentProvider">Function that maps file paths to CCI debug documents</param>
-        public ImmutableArray<Cci.SequencePoint> GetSequencePoints(DebugDocumentProvider documentProvider)
+        /// <param name="builder">where sequence points should be deposited</param>
+        public void GetSequencePoints(
+            DebugDocumentProvider documentProvider,
+            ArrayBuilder<Cci.SequencePoint> builder)
         {
             bool lastPathIsMapped = false;
             string lastPath = null;
             Cci.DebugSourceDocument lastDebugDocument = null;
 
-            // First, count the number of sequence points.
-            int count = 0;
-            SequencePointList current = this;
-            while (current != null)
+            FileLinePositionSpan? firstReal = FindFirstRealSequencePoint();
+            if (!firstReal.HasValue)
             {
-                count += current._points.Length;
-                current = current._next;
+                return;
             }
+            lastPath = firstReal.Value.Path;
+            lastPathIsMapped = firstReal.Value.HasMappedPath;
+            lastDebugDocument = documentProvider(lastPath, basePath: lastPathIsMapped ? this._tree.FilePath : null);
 
-            ArrayBuilder<Cci.SequencePoint> result = ArrayBuilder<Cci.SequencePoint>.GetInstance(count);
-            current = this;
+            SequencePointList current = this;
             while (current != null)
             {
                 SyntaxTree currentTree = current._tree;
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         if (lastDebugDocument != null)
                         {
-                            result.Add(new Cci.SequencePoint(
+                            builder.Add(new Cci.SequencePoint(
                                 lastDebugDocument,
                                 offset: offsetAndSpan.Offset,
                                 startLine: HiddenSequencePointLine,
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         if (lastDebugDocument != null)
                         {
-                            result.Add(new Cci.SequencePoint(
+                            builder.Add(new Cci.SequencePoint(
                                 lastDebugDocument,
                                 offset: offsetAndSpan.Offset,
                                 startLine: (fileLinePositionSpan.StartLinePosition.Line == -1) ? 0 : fileLinePositionSpan.StartLinePosition.Line + 1,
@@ -189,8 +191,33 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 current = current._next;
             }
+        }
 
-            return result.ToImmutableAndFree();
+        // Find the document for the first non-hidden sequence point (issue #4370)
+        // Returns null if a real sequence point was not found.
+        private FileLinePositionSpan? FindFirstRealSequencePoint()
+        {
+            SequencePointList current = this;
+            
+            while (current != null)
+            {
+                foreach (var offsetAndSpan in current._points)
+                {
+                    TextSpan span = offsetAndSpan.Span;
+                    bool isHidden = span == RawSequencePoint.HiddenSequencePointSpan;
+                    if (!isHidden)
+                    {
+                        FileLinePositionSpan fileLinePositionSpan = current._tree.GetMappedLineSpanAndVisibility(span, out isHidden);
+                        if (!isHidden)
+                        {
+                            return fileLinePositionSpan;
+                        }
+                    }
+                }
+                current = current._next;
+            }
+
+            return null;
         }
 
         /// <summary>

@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             public AnalyzerAssemblyLoader()
             {
-                _fallbackLoader = new SimpleAnalyzerAssemblyLoader();
+                _fallbackLoader = new DesktopAnalyzerAssemblyLoader();
             }
 
             public void AddDependencyLocation(string fullPath)

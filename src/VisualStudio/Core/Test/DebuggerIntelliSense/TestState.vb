@@ -7,12 +7,14 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Commands
+Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
@@ -20,7 +22,6 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.BraceCompletion
-Imports Microsoft.VisualStudio.Text.BraceCompletion.Implementation
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.TextManager
@@ -42,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Friend Property CurrentCompletionPresenterSession As TestCompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
 
         Private Sub New(workspaceElement As XElement,
-                        extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)),
+                        extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
                         extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
                         isImmediateWindow As Boolean)
 
@@ -56,10 +57,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
 
-            Dim completionProviders = GetExports(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)() _
-                .Where(Function(f) f.Metadata.Language = language) _
-                .Concat(extraCompletionProviders) _
-                .ToList()
+            If extraCompletionProviders IsNot Nothing Then
+                Dim completionService = DirectCast(languageServices.GetService(Of CompletionService), CommonCompletionService)
+                completionService.SetTestProviders(extraCompletionProviders.Select(Function(lz) lz.Value).ToList())
+            End If
 
             Me.AsyncCompletionService = New AsyncCompletionService(
                 GetService(Of IEditorOperationsFactoryService)(),
@@ -67,8 +68,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 GetService(Of IInlineRenameService)(),
                 New TestCompletionPresenter(Me),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
-                completionProviders,
-                GetExports(Of IBraceCompletionSessionProvider, IBraceCompletionMetadata)())
+                GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
             Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)
 
@@ -79,8 +79,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)())
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
-
-            languageServices.GetService(Of ICompletionService).ClearMRUCache()
 
             Dim spanDocument = Workspace.Documents.First(Function(x) x.SelectedSpans.Any())
             Dim statementSpan = spanDocument.SelectedSpans.First()
@@ -129,7 +127,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Shared Function CreateVisualBasicTestState(
                 documentElement As XElement,
                 isImmediateWindow As Boolean,
-                Optional extraCompletionProviders As CompletionListProvider() = Nothing,
+                Optional extraCompletionProviders As CompletionProvider() = Nothing,
                 Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing) As TestState
 
             Return New TestState(documentElement,
@@ -141,7 +139,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Shared Function CreateCSharpTestState(
                 workspaceElement As XElement,
                 isImmediateWindow As Boolean,
-                Optional extraCompletionProviders As CompletionListProvider() = Nothing,
+                Optional extraCompletionProviders As CompletionProvider() = Nothing,
                 Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing) As TestState
 
             Return New TestState(
@@ -197,6 +195,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
             AssertNoAsynchronousOperationsRunning()
             CurrentCompletionPresenterSession.SetSelectedItem(item)
+        End Sub
+
+        Public Overloads Sub SendToggleCompletionMode()
+            Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of ToggleCompletionModeCommandArgs))
+            MyBase.SendToggleCompletionmode(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
         Public Async Function AssertNoCompletionSession(Optional block As Boolean = True) As Task
@@ -267,7 +270,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 #End If
 
             If description IsNot Nothing Then
-                Assert.Equal(description, (Await Me.CurrentCompletionPresenterSession.SelectedItem.GetDescriptionAsync()).GetFullText())
+                Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim service = CompletionService.GetService(document)
+                Dim itemDescription = Await service.GetDescriptionAsync(document, Me.CurrentCompletionPresenterSession.SelectedItem)
+                Assert.Equal(description, itemDescription.Text)
             End If
         End Function
 
@@ -326,7 +332,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 suffix)
         End Function
 
-        Private Function GetDisplayText(parts As IEnumerable(Of SymbolDisplayPart)) As String
+        Private Function GetDisplayText(parts As IEnumerable(Of TaggedText)) As String
             Return String.Join(String.Empty, parts.Select(Function(p) p.ToString()))
         End Function
 

@@ -1,17 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Generic;
+
+using static System.Linq.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -345,6 +342,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return csSymbol;
+        }
+
+        internal static TypeSymbolWithAnnotations GetTypeOrReturnType(this Symbol symbol)
+        {
+            RefKind refKind;
+            TypeSymbolWithAnnotations returnType;
+            ImmutableArray<CustomModifier> customModifiers_Ignored;
+            GetTypeOrReturnType(symbol, out refKind, out returnType, out customModifiers_Ignored);
+            return returnType;
+        }
+
+        internal static void GetTypeOrReturnType(this Symbol symbol, out RefKind refKind, out TypeSymbolWithAnnotations returnType,
+                                                 out ImmutableArray<CustomModifier> refCustomModifiers)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Field:
+                    FieldSymbol field = (FieldSymbol)symbol;
+                    refKind = RefKind.None;
+                    returnType = field.Type;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    break;
+                case SymbolKind.Method:
+                    MethodSymbol method = (MethodSymbol)symbol;
+                    refKind = method.RefKind;
+                    returnType = method.ReturnType;
+                    refCustomModifiers = method.RefCustomModifiers;
+                    break;
+                case SymbolKind.Property:
+                    PropertySymbol property = (PropertySymbol)symbol;
+                    refKind = property.RefKind;
+                    returnType = property.Type;
+                    refCustomModifiers = property.RefCustomModifiers;
+                    break;
+                case SymbolKind.Event:
+                    EventSymbol @event = (EventSymbol)symbol;
+                    refKind = RefKind.None;
+                    returnType = @event.Type;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    break;
+                case SymbolKind.Local:
+                    LocalSymbol local = (LocalSymbol)symbol;
+                    refKind = local.RefKind;
+                    returnType = local.Type;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
         }
     }
 }

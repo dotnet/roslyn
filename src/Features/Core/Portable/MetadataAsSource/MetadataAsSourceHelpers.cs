@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
             else if (!MetadataAsSourceHelpers.ValidSymbolKinds.Contains(symbol.Kind))
             {
-                throw new ArgumentException(FeaturesResources.GeneratingSourceForSymbols, parameterName);
+                throw new ArgumentException(FeaturesResources.generating_source_for_symbols_of_this_type_is_not_supported, parameterName);
             }
         }
 #endif
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             })
             .FirstOrDefault();
 
-            return assemblyReference?.Display ?? FeaturesResources.LocationUnknown;
+            return assemblyReference?.Display ?? FeaturesResources.location_unknown;
         }
 
         public static INamedTypeSymbol GetTopLevelContainingNamedType(ISymbol symbol)

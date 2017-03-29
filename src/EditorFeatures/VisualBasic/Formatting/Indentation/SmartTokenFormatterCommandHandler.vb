@@ -6,9 +6,8 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
         End Function
 
         Protected Overrides Function UseSmartTokenFormatter(root As SyntaxNode,
-                                                            line As ITextSnapshotLine,
+                                                            line As TextLine,
                                                             formattingRules As IEnumerable(Of IFormattingRule),
                                                             options As OptionSet,
                                                             cancellationToken As CancellationToken) As Boolean

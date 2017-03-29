@@ -24,15 +24,16 @@ namespace Microsoft.CodeAnalysis
             _ => new ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>();
 
         internal static MetadataReference GetOrBuildReference(
-            Solution solution,
+            SolutionState solution,
             ProjectReference projectReference,
             Compilation finalCompilation,
             VersionStamp version,
             CancellationToken cancellationToken)
         {
-            MetadataReference reference;
-            if (TryGetReference(solution, projectReference, finalCompilation, version, out reference))
+            solution.Workspace.LogTestMessage($"Looking to see if we already have a skeleton assembly for {projectReference.ProjectId} before we build one...");
+            if (TryGetReference(solution, projectReference, finalCompilation, version, out var reference))
             {
+                solution.Workspace.LogTestMessage($"A reference was found {projectReference.ProjectId} so we're skipping the build.");
                 return reference;
             }
 
@@ -41,12 +42,15 @@ namespace Microsoft.CodeAnalysis
             // first, prepare image
             // * NOTE * image is cancellable, do not create it inside of conditional weak table.
             var service = solution.Workspace.Services.GetService<ITemporaryStorageService>();
-            var image = MetadataOnlyImage.Create(service, finalCompilation, cancellationToken);
+            var image = MetadataOnlyImage.Create(solution.Workspace, service, finalCompilation, cancellationToken);
+
             if (image.IsEmpty)
             {
                 // unfortunately, we couldn't create one. do best effort
                 if (TryGetReference(solution, projectReference, finalCompilation, VersionStamp.Default, out reference))
                 {
+                    solution.Workspace.LogTestMessage($"We failed to create metadata so we're using the one we just found from an earlier version.");
+
                     // we have one from previous compilation!!, it might be out-of-date big time, but better than nothing.
                     // re-use it
                     return reference;
@@ -71,6 +75,10 @@ namespace Microsoft.CodeAnalysis
                 // return new reference
                 return referenceSet.GetMetadataReference(finalCompilation, projectReference.Aliases, projectReference.EmbedInteropTypes);
             }
+            else
+            {
+                solution.Workspace.LogTestMessage($"Successfully stored the metadata generated for {projectReference.ProjectId}");
+            }
 
             // record it to version based cache as well. snapshot cache always has a higher priority. we don't need to check returned set here
             // since snapshot based cache will take care of same compilation for us.
@@ -81,12 +89,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static bool TryGetReference(
-            Solution solution, ProjectReference projectReference, Compilation finalOrDeclarationCompilation, VersionStamp version, out MetadataReference reference)
+            SolutionState solution, ProjectReference projectReference, Compilation finalOrDeclarationCompilation, VersionStamp version, out MetadataReference reference)
         {
             // if we have one from snapshot cache, use it. it will make sure same compilation will get same metadata reference always.
-            MetadataOnlyReferenceSet referenceSet;
-            if (s_snapshotCache.TryGetValue(finalOrDeclarationCompilation, out referenceSet))
+            if (s_snapshotCache.TryGetValue(finalOrDeclarationCompilation, out var referenceSet))
             {
+                solution.Workspace.LogTestMessage($"Found already cached metadata in {nameof(s_snapshotCache)} for the exact compilation");
                 reference = referenceSet.GetMetadataReference(finalOrDeclarationCompilation, projectReference.Aliases, projectReference.EmbedInteropTypes);
                 return true;
             }
@@ -96,6 +104,7 @@ namespace Microsoft.CodeAnalysis
             // get one for the branch
             if (TryGetReferenceFromBranch(solution.BranchId, projectReference, finalOrDeclarationCompilation, version, out reference))
             {
+                solution.Workspace.LogTestMessage($"Found already cached metadata for the branch and version {version}");
                 return true;
             }
 
@@ -104,6 +113,7 @@ namespace Microsoft.CodeAnalysis
             if (solution.BranchId != primaryBranchId &&
                 TryGetReferenceFromBranch(primaryBranchId, projectReference, finalOrDeclarationCompilation, version, out reference))
             {
+                solution.Workspace.LogTestMessage($"Found already cached metadata for the primary branch and version {version}");
                 return true;
             }
 
@@ -117,10 +127,8 @@ namespace Microsoft.CodeAnalysis
         {
             // get map for the branch
             var mapFromBranch = s_cache.GetValue(branchId, s_createReferenceSetMap);
-
             // if we have one, return it
-            MetadataOnlyReferenceSet referenceSet;
-            if (mapFromBranch.TryGetValue(projectReference.ProjectId, out referenceSet) &&
+            if (mapFromBranch.TryGetValue(projectReference.ProjectId, out var referenceSet) &&
                (version == VersionStamp.Default || referenceSet.Version == version))
             {
                 // record it to snapshot based cache.
@@ -155,13 +163,7 @@ namespace Microsoft.CodeAnalysis
                 _image = image;
             }
 
-            public VersionStamp Version
-            {
-                get
-                {
-                    return _version;
-                }
-            }
+            public VersionStamp Version => _version;
 
             public MetadataReference GetMetadataReference(Compilation compilation, ImmutableArray<string> aliases, bool embedInteropTypes)
             {
@@ -169,9 +171,7 @@ namespace Microsoft.CodeAnalysis
 
                 using (_gate.DisposableWait())
                 {
-                    WeakReference<MetadataReference> weakMetadata;
-                    MetadataReference metadataReference;
-                    if (!_metadataReferences.TryGetValue(key, out weakMetadata) || !weakMetadata.TryGetTarget(out metadataReference))
+                    if (!_metadataReferences.TryGetValue(key, out var weakMetadata) || !weakMetadata.TryGetTarget(out var metadataReference))
                     {
                         // here we give out strong reference to compilation. so there is possibility that we end up making 2 compilations for same project alive.
                         // one for final compilation and one for declaration only compilation. but the final compilation will be eventually kicked out from compilation cache

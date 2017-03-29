@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
@@ -13247,33 +13248,47 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="11461640193")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6077")>
+        <Fact>
         <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_03()
-            Dim source =
+
+            Dim diagnostics = ImmutableArray(Of Diagnostic).Empty
+
+            Const start = 8192
+            Const [step] = 4096
+            Const limit = start * 4
+
+            For count As Integer = start To limit Step [step]
+                Dim source =
 $"
 Class Test
     Shared Sub Main()
     End Sub
 
     Shared Function Calculate(a As Boolean(), f As Boolean()) As Boolean
-        Return {BuildSequenceOfBinaryExpressions_03()}
+        Return {BuildSequenceOfBinaryExpressions_03(count)}
     End Function
 End Class
 "
-            Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
+                Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
+                diagnostics = compilation.GetEmitDiagnostics()
 
-            compilation.VerifyEmitDiagnostics(
+                If Not diagnostics.IsEmpty Then
+                    Exit For
+                End If
+            Next
+
+            diagnostics.Verify(
     Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "a").WithLocation(7, 16)
                 )
         End Sub
 
-        Private Shared Function BuildSequenceOfBinaryExpressions_03() As String
+        Private Shared Function BuildSequenceOfBinaryExpressions_03(Optional count As Integer = 8192) As String
             Dim builder = New System.Text.StringBuilder()
             Dim i As Integer
 
-            For i = 0 To 8192 - 1
+            For i = 0 To count - 1
                 builder.Append("a(")
                 builder.Append(i)
                 builder.Append(")")
@@ -13565,5 +13580,90 @@ End Class
 ]]>)
         End Sub
 
+
+        <Fact, WorkItem(9703, "https://github.com/dotnet/roslyn/issues/9703")>
+        Public Sub IgnoredConversion()
+            CompileAndVerify(
+                <compilation>
+                    <file name="ignoreNullableValue.vb">
+Module MainModule
+    Public Class Form1
+        Public Class BadCompiler
+            Public Property Value As Date?
+        End Class
+
+        Private TestObj As BadCompiler = New BadCompiler()
+
+        Public Sub IPE()
+            Dim o as Object
+            o = TestObj.Value
+        End Sub
+    End Class
+
+    Public Sub Main()
+        Dim f = new Form1
+        f.IPE()
+    End Sub
+End Module
+                    </file>
+                </compilation>).
+                            VerifyIL("MainModule.Form1.IPE",
+            <![CDATA[
+{
+// Code size       13 (0xd)
+.maxstack  1
+IL_0000:  ldarg.0
+IL_0001:  ldfld      "MainModule.Form1.TestObj As MainModule.Form1.BadCompiler"
+IL_0006:  callvirt   "Function MainModule.Form1.BadCompiler.get_Value() As Date?"
+IL_000b:  pop
+IL_000c:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(15672, "https://github.com/dotnet/roslyn/pull/15672")>
+        Public Sub ConditionalAccessOffOfUnconstrainedDefault1()
+            Dim c = CompileAndVerify(
+                <compilation>
+                    <file name="ignoreNullableValue.vb">
+Module Module1
+    Public Sub Main()
+        Test(42)
+        Test("")
+    End Sub
+
+    Public Sub Test(of T)(arg as T)
+        System.Console.WriteLine(DirectCast(Nothing, T)?.ToString())
+    End Sub
+End Module
+                    </file>
+                </compilation>, options:=TestOptions.ReleaseExe,
+                expectedOutput:="0")
+
+            c.VerifyIL("Module1.Test",
+            <![CDATA[
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "T"
+  IL_0008:  ldloc.0
+  IL_0009:  box        "T"
+  IL_000e:  brtrue.s   IL_0013
+  IL_0010:  ldnull
+  IL_0011:  br.s       IL_002a
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  initobj    "T"
+  IL_001b:  ldloc.0
+  IL_001c:  stloc.0
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  constrained. "T"
+  IL_0025:  callvirt   "Function Object.ToString() As String"
+  IL_002a:  call       "Sub System.Console.WriteLine(String)"
+  IL_002f:  ret
+}
+]]>)
+        End Sub
     End Class
 End Namespace

@@ -161,10 +161,29 @@
   </data>
   <data name="109" xml:space="preserve">
     <value>Code Style</value>
-    <comment>"Code Style" node under Tools &gt;Options, Basic editor.</comment>
+    <comment>"Code Style" category node under Tools &gt;Options, Basic editor.</comment>
   </data>
   <data name="10161" xml:space="preserve">
     <value>Qualify with Me;Prefer intrinsic types;Style;Code Style</value>
     <comment>Code Style options page keywords</comment>
+  </data>
+  <data name="110" xml:space="preserve">
+    <value>Naming</value>
+    <comment>"Naming Style" node under Tools &gt;Options &gt; Basic editor &gt;Code Style.</comment>
+  </data>
+  <data name="10162" xml:space="preserve">
+    <value>Naming Style;Name Styles;Naming Rule;Naming Conventions</value>
+    <comment>Naming Style options page keywords</comment>
+  </data>
+  <data name="111" xml:space="preserve">
+    <value>General</value>
+    <comment>"General" node under Tools &gt;Options &gt;Basic editor &gt;Code Style.</comment>
+  </data>
+  <data name="112" xml:space="preserve">
+    <value>IntelliSense</value>
+  </data>
+  <data name="312" xml:space="preserve">
+    <value>Change completion list settings;Pre-select most recently used member</value>
+    <comment>IntelliSense options page keywords</comment>
   </data>
 </root>

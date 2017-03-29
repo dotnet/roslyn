@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// Report CS0656 for missing Decimal to int conversion.
         /// </summary>
         [WorkItem(530860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530860")]
-        [Fact(Skip = "530860")]
+        [Fact]
         public void NoDecimalConversion()
         {
             var source1 =
@@ -248,8 +248,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var compilation2 = CreateCompilation(source2, new[] { reference1 });
             // Should report "CS0656: Missing compiler required member 'System.Decimal.op_Explicit_ToInt32'".
             // Instead, we report no errors and assert during emit.
+
+            // no errors for compat reasons.
             compilation2.VerifyDiagnostics();
-            var verifier = CompileAndVerify(compilation2);
+
+            // The bug has been resolved as Won't Fix for being extremely niche scenario and being a compat concern.
+            // uncomment the following code if we are fixing this
+            //var verifier = CompileAndVerify(compilation2);
         }
 
         [Fact, WorkItem(3593, "https://github.com/dotnet/roslyn/issues/3593")]

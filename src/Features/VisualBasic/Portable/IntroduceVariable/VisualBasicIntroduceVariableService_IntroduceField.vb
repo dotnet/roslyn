@@ -10,23 +10,26 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     Friend Partial Class VisualBasicIntroduceVariableService
-        Protected Overrides Async Function IntroduceFieldAsync(document As SemanticDocument,
-                                                    expression As ExpressionSyntax,
-                                                    allOccurrences As Boolean,
-                                                    isConstant As Boolean,
-                                                    cancellationToken As CancellationToken) As Task(Of Tuple(Of Document, SyntaxNode, Integer))
+        Protected Overrides Async Function IntroduceFieldAsync(
+                document As SemanticDocument,
+                expression As ExpressionSyntax,
+                allOccurrences As Boolean,
+                isConstant As Boolean,
+                cancellationToken As CancellationToken) As Task(Of Tuple(Of Document, SyntaxNode, Integer))
 
             Dim oldTypeDeclaration = expression.GetAncestorOrThis(Of TypeBlockSyntax)()
             Dim oldType = If(oldTypeDeclaration IsNot Nothing,
                 document.SemanticModel.GetDeclaredSymbol(oldTypeDeclaration.BlockStatement, cancellationToken),
                 Nothing)
 
-            Dim newNameToken = GenerateUniqueLocalName(document, expression, isConstant, cancellationToken)
+            Dim newNameToken = GenerateUniqueLocalName(
+                document, expression, isConstant, container:=Nothing,
+                cancellationToken:=cancellationToken)
 
             Dim newQualifiedName = SyntaxFactory.SimpleMemberAccessExpression(
-                    expression:=SyntaxFactory.ParseName(oldType.ToNameDisplayString()),
-                    operatorToken:=SyntaxFactory.Token(SyntaxKind.DotToken),
-                    name:=SyntaxFactory.IdentifierName(newNameToken)).WithAdditionalAnnotations(Simplifier.Annotation)
+                expression:=SyntaxFactory.ParseName(oldType.ToNameDisplayString()),
+                operatorToken:=SyntaxFactory.Token(SyntaxKind.DotToken),
+                name:=SyntaxFactory.IdentifierName(newNameToken)).WithAdditionalAnnotations(Simplifier.Annotation)
 
             If oldType IsNot Nothing Then
                 Return Await IntroduceFieldIntoTypeAsync(
@@ -43,6 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
                 Dim newRoot = newCompilationUnit.WithMembers(
                     newCompilationUnit.Members.Insert(insertionIndex, newFieldDeclaration))
+
                 Return Tuple.Create(document.Document.WithSyntaxRoot(newRoot), destination, insertionIndex)
             End If
         End Function

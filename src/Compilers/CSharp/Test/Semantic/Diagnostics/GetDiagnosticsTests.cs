@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -172,7 +173,7 @@ namespace N1
             Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7477"), WorkItem(7477, "https://github.com/dotnet/roslyn/issues/7477")]
+        [Fact, WorkItem(7477, "https://github.com/dotnet/roslyn/issues/7477")]
         public void TestCompilationEventsForPartialMethod()
         {
             var source1 = @"
@@ -181,6 +182,8 @@ namespace N1
     partial class Class
     {
         private void NonPartialMethod1() { }
+        partial void ImpartialMethod1();
+        partial void ImpartialMethod2() { }
         partial void PartialMethod();
     }
 } 
@@ -216,8 +219,31 @@ namespace N1
             Assert.True(declaredSymbolNames.Contains("N1"));
             Assert.True(declaredSymbolNames.Contains("Class"));
             Assert.True(declaredSymbolNames.Contains("NonPartialMethod1"));
+            Assert.True(declaredSymbolNames.Contains("ImpartialMethod1"));
+            Assert.True(declaredSymbolNames.Contains("ImpartialMethod2"));
             Assert.True(declaredSymbolNames.Contains("PartialMethod"));
             Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
+        }
+
+        [Fact, WorkItem(8178, "https://github.com/dotnet/roslyn/issues/8178")]
+        public void TestEarlyCancellation()
+        {
+            var source = @"
+namespace N1
+{
+    partial class Class
+    {
+        private void NonPartialMethod1() { }
+        partial void PartialMethod();
+    }
+} 
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "file1");
+            var eventQueue = new AsyncQueue<CompilationEvent>();
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree }).WithEventQueue(eventQueue);
+            eventQueue.TryComplete(); // complete the queue before the compiler is finished with it
+            var model = compilation.GetSemanticModel(tree);
+            model.GetDiagnostics(tree.GetRoot().FullSpan);
         }
 
         private static bool DequeueCompilationEvents(AsyncQueue<CompilationEvent> eventQueue, out bool compilationStartedFired, out HashSet<string> declaredSymbolNames, out HashSet<string> completedCompilationUnits)
@@ -243,8 +269,11 @@ namespace N1
                     var symbolDeclaredEvent = compEvent as SymbolDeclaredCompilationEvent;
                     if (symbolDeclaredEvent != null)
                     {
-                        var added = declaredSymbolNames.Add(symbolDeclaredEvent.Symbol.Name);
-                        Assert.True(added, "Unexpected multiple symbol declared events for symbol " + symbolDeclaredEvent.Symbol);
+                        var symbol = symbolDeclaredEvent.Symbol;
+                        var added = declaredSymbolNames.Add(symbol.Name);
+                        Assert.True(added, "Unexpected multiple symbol declared events for symbol " + symbol);
+                        var method = symbol as Symbols.MethodSymbol;
+                        Assert.Null(method?.PartialDefinitionPart); // we should never get a partial method's implementation part
                     }
                     else
                     {
@@ -258,6 +287,17 @@ namespace N1
             }
 
             return true;
+        }
+
+        [Fact]
+        public void TestEventQueueCompletionForEmptyCompilation()
+        {
+            var compilation = CreateCompilationWithMscorlib45(SpecializedCollections.EmptyEnumerable<SyntaxTree>()).WithEventQueue(new AsyncQueue<CompilationEvent>());
+            
+            // Force complete compilation event queue
+            var unused = compilation.GetDiagnostics();
+
+            Assert.True(compilation.EventQueue.IsCompleted);
         }
     }
 }

@@ -70,11 +70,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
             {
-                var propertySymbol = symbol as PropertySymbol;
+                if (symbol.ReturnsByRef)
+                {
+                    AddRefIfRequired();
+                }
 
+                AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
+
+                var propertySymbol = symbol as PropertySymbol;
                 if ((object)propertySymbol == null)
                 {
-                symbol.Type.Accept(this.NotFirstVisitor);
+                    symbol.Type.Accept(this.NotFirstVisitor);
                 }
                 else
                 {
@@ -256,6 +262,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // to visualize a symbol *during its construction*, the parameters and return type might 
                             // still be null. 
 
+                            if (symbol.ReturnsByRef)
+                            {
+                                AddRefIfRequired();
+                            }
+
+                            AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
+
                             if (symbol.ReturnsVoid)
                             {
                                 AddKeyword(SyntaxKind.VoidKeyword);
@@ -266,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             AddSpace();
-                            AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers);
+                            AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers); 
                             break;
                     }
                 }
@@ -494,54 +507,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeType)
             {
-                if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
-                {
-                    switch (symbol.RefKind)
-                    {
-                        case RefKind.Out:
-                            AddKeyword(SyntaxKind.OutKeyword);
-                            AddSpace();
-                            break;
-                        case RefKind.Ref:
-                            AddKeyword(SyntaxKind.RefKeyword);
-                            AddSpace();
-                            break;
-                    }
+                AddRefKindIfRequired(symbol.RefKind);
+                AddCustomModifiersIfRequired(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
 
-                    if (symbol.IsParams)
-                    {
-                        AddKeyword(SyntaxKind.ParamsKeyword);
-                        AddSpace();
-                    }
+                if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
+                {
+                    AddKeyword(SyntaxKind.ParamsKeyword);
+                    AddSpace();
                 }
 
-                ushort countOfCustomModifiersPrecedingByRef = 0;
                 var parameter = symbol as ParameterSymbol;
                 if ((object)parameter != null)
                 {
-                    countOfCustomModifiersPrecedingByRef = parameter.CountOfCustomModifiersPrecedingByRef; 
-
-                if (countOfCustomModifiersPrecedingByRef > 0)
-                {
-                    AddCustomModifiersIfRequired(ImmutableArray.Create(symbol.CustomModifiers, 0, countOfCustomModifiersPrecedingByRef), leadingSpace: false, trailingSpace: true);
-                }
-
                     VisitTypeSymbolWithAnnotations(parameter.Type);
                 }
                 else
                 {
-                symbol.Type.Accept(this.NotFirstVisitor);
-                }
-
-                if (countOfCustomModifiersPrecedingByRef == 0)
-                {
+                    symbol.Type.Accept(this.NotFirstVisitor);
                     AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
-                }
-                else if (countOfCustomModifiersPrecedingByRef < symbol.CustomModifiers.Length)
-                {
-                    AddCustomModifiersIfRequired(ImmutableArray.Create(symbol.CustomModifiers, countOfCustomModifiersPrecedingByRef, 
-                                                                       symbol.CustomModifiers.Length - countOfCustomModifiersPrecedingByRef), 
-                                                 leadingSpace: true, trailingSpace: false);
                 }
             }
 
@@ -719,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddSpace();
                 if (method.DeclaredAccessibility != property.DeclaredAccessibility)
                 {
-                    AddAccessibilityIfRequired(method);
+                    AddAccessibility(method);
                 }
 
                 AddKeyword(keyword);
@@ -764,6 +747,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (trailingSpace)
                 {
                     AddSpace();
+                }
+            }
+        }
+
+        private void AddRefIfRequired()
+        {
+            if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
+            {
+                AddKeyword(SyntaxKind.RefKeyword);
+                AddSpace();
+            }
+        }
+
+        private void AddRefKindIfRequired(RefKind refKind)
+        {
+            if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
+            {
+                switch (refKind)
+                {
+                    case RefKind.Out:
+                        AddKeyword(SyntaxKind.OutKeyword);
+                        AddSpace();
+                        break;
+                    case RefKind.Ref:
+                        AddKeyword(SyntaxKind.RefKeyword);
+                        AddSpace();
+                        break;
                 }
             }
         }

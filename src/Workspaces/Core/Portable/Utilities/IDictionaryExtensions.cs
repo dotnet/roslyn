@@ -11,8 +11,7 @@ namespace Roslyn.Utilities
         // Copied from ConcurrentDictionary since IDictionary doesn't have this useful method
         public static V GetOrAdd<K, V>(this IDictionary<K, V> dictionary, K key, Func<K, V> function)
         {
-            V value;
-            if (!dictionary.TryGetValue(key, out value))
+            if (!dictionary.TryGetValue(key, out var value))
             {
                 value = function(key);
                 dictionary.Add(key, value);
@@ -23,8 +22,7 @@ namespace Roslyn.Utilities
 
         public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
         {
-            TValue value;
-            if (dictionary.TryGetValue(key, out value))
+            if (dictionary.TryGetValue(key, out var value))
             {
                 return value;
             }
@@ -49,8 +47,7 @@ namespace Roslyn.Utilities
         public static void MultiAdd<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
             where TCollection : ICollection<TValue>, new()
         {
-            TCollection collection;
-            if (!dictionary.TryGetValue(key, out collection))
+            if (!dictionary.TryGetValue(key, out var collection))
             {
                 collection = new TCollection();
                 dictionary.Add(key, collection);
@@ -62,8 +59,7 @@ namespace Roslyn.Utilities
         public static void MultiRemove<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
             where TCollection : ICollection<TValue>
         {
-            TCollection collection;
-            if (dictionary.TryGetValue(key, out collection))
+            if (dictionary.TryGetValue(key, out var collection))
             {
                 collection.Remove(value);
 
@@ -77,8 +73,7 @@ namespace Roslyn.Utilities
         public static void MultiAddRange<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, IEnumerable<TValue> values)
             where TCollection : ICollection<TValue>, new()
         {
-            TCollection collection;
-            if (!dictionary.TryGetValue(key, out collection))
+            if (!dictionary.TryGetValue(key, out var collection))
             {
                 collection = new TCollection();
                 dictionary.Add(key, collection);

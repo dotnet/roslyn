@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -30,17 +31,21 @@ namespace Microsoft.CodeAnalysis.Rename
             return token;
         }
 
-        internal static IEnumerable<ISymbol> GetSymbolsTouchingPosition(int position, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
+        internal static IEnumerable<ISymbol> GetSymbolsTouchingPosition(
+            int position, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
         {
             var bindableToken = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
-            var symbols = semanticModel.GetSymbols(bindableToken, workspace, bindLiteralsToUnderlyingType: false, cancellationToken: cancellationToken).ToArray();
+            var semanticInfo = semanticModel.GetSemanticInfo(bindableToken, workspace, cancellationToken);
+            var symbols = semanticInfo.DeclaredSymbol != null
+                ? ImmutableArray.Create<ISymbol>(semanticInfo.DeclaredSymbol)
+                : semanticInfo.GetSymbols(includeType: false);
 
             // if there are more than one symbol, then remove the alias symbols.
             // When using (not declaring) an alias, the alias symbol and the target symbol are returned
             // by GetSymbols
             if (symbols.Length > 1)
             {
-                symbols = symbols.Where(s => s.Kind != SymbolKind.Alias).ToArray();
+                symbols = symbols.WhereAsArray(s => s.Kind != SymbolKind.Alias);
             }
 
             if (symbols.Length == 0)
@@ -79,9 +84,8 @@ namespace Microsoft.CodeAnalysis.Rename
                     .Concat(documentsOfRenameSymbolDeclaration.First().Id)
                     .Select(d => d.ProjectId).Distinct();
 
-                if (symbol.DeclaredAccessibility == Accessibility.Private)
+                if (ShouldRenameOnlyAffectDeclaringProject(symbol))
                 {
-                    // private members or classes cannot be used outside of the project they are declared in
                     var isSubset = renameLocations.Select(l => l.DocumentId.ProjectId).Distinct().Except(projectIdsOfRenameSymbolDeclaration).IsEmpty();
                     Contract.ThrowIfFalse(isSubset);
                     return projectIdsOfRenameSymbolDeclaration.SelectMany(p => solution.GetProject(p).Documents);
@@ -95,6 +99,17 @@ namespace Microsoft.CodeAnalysis.Rename
                     return relevantProjects.SelectMany(p => solution.GetProject(p).Documents);
                 }
             }
+        }
+
+        /// <summary>
+        /// Renaming a private symbol typically confines the set of references and potential
+        /// conflicts to that symbols declaring project. However, rename may cascade to
+        /// non-public symbols which may then require other projects be considered.
+        /// </summary>
+        private static bool ShouldRenameOnlyAffectDeclaringProject(ISymbol symbol)
+        {
+            // Explicit interface implementations can cascade to other projects
+            return symbol.DeclaredAccessibility == Accessibility.Private && !symbol.ExplicitInterfaceImplementations().Any();
         }
 
         internal static TokenRenameInfo GetTokenRenameInfo(
@@ -112,6 +127,11 @@ namespace Microsoft.CodeAnalysis.Rename
             var symbolInfo = semanticModel.GetSymbolInfo(token, cancellationToken);
             if (symbolInfo.Symbol != null)
             {
+                if (symbolInfo.Symbol.IsTupleType())
+                {
+                    return TokenRenameInfo.NoSymbolsTokenInfo;
+                }
+
                 return TokenRenameInfo.CreateSingleSymbolTokenInfo(symbolInfo.Symbol);
             }
 
@@ -119,6 +139,15 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 // This is a reference from a nameof expression. Allow the rename but set the RenameOverloads option
                 return TokenRenameInfo.CreateMemberGroupTokenInfo(symbolInfo.CandidateSymbols);
+            }
+
+            if (RenameLocation.ShouldRename(symbolInfo.CandidateReason) &&
+                symbolInfo.CandidateSymbols.Length == 1)
+            {
+                // TODO(cyrusn): We're allowing rename here, but we likely should let the user
+                // know that there is an error in the code and that rename results might be
+                // inaccurate.
+                return TokenRenameInfo.CreateSingleSymbolTokenInfo(symbolInfo.CandidateSymbols[0]);
             }
 
             return TokenRenameInfo.NoSymbolsTokenInfo;

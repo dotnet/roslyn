@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -53,8 +51,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            ImmutableHashSet<ProjectId> projectIds;
-            if (_referencesMap.TryGetValue(projectId, out projectIds))
+            if (_referencesMap.TryGetValue(projectId, out var projectIds))
             {
                 return projectIds;
             }
@@ -95,8 +92,7 @@ namespace Microsoft.CodeAnalysis
                 _lazyReverseReferencesMap = this.ComputeReverseReferencesMap();
             }
 
-            ImmutableHashSet<ProjectId> reverseReferences;
-            if (_lazyReverseReferencesMap.TryGetValue(projectId, out reverseReferences))
+            if (_lazyReverseReferencesMap.TryGetValue(projectId, out var reverseReferences))
             {
                 return reverseReferences;
             }
@@ -115,8 +111,7 @@ namespace Microsoft.CodeAnalysis
                 var references = kvp.Value;
                 foreach (var referencedId in references)
                 {
-                    HashSet<ProjectId> reverseReferences;
-                    if (!reverseReferencesMap.TryGetValue(referencedId, out reverseReferences))
+                    if (!reverseReferencesMap.TryGetValue(referencedId, out var reverseReferences))
                     {
                         reverseReferences = new HashSet<ProjectId>();
                         reverseReferencesMap.Add(referencedId, reverseReferences);
@@ -143,8 +138,7 @@ namespace Microsoft.CodeAnalysis
 
             // first try without lock for speed
             var currentMap = _transitiveReferencesMap;
-            ImmutableHashSet<ProjectId> transitiveReferences;
-            if (currentMap.TryGetValue(projectId, out transitiveReferences))
+            if (currentMap.TryGetValue(projectId, out var transitiveReferences))
             {
                 return transitiveReferences;
             }
@@ -159,8 +153,7 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableHashSet<ProjectId> GetProjectsThatThisProjectTransitivelyDependsOn_NoLock(ProjectId projectId)
         {
-            ImmutableHashSet<ProjectId> transitiveReferences;
-            if (!_transitiveReferencesMap.TryGetValue(projectId, out transitiveReferences))
+            if (!_transitiveReferencesMap.TryGetValue(projectId, out var transitiveReferences))
             {
                 using (var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
                 {
@@ -199,8 +192,7 @@ namespace Microsoft.CodeAnalysis
 
             // first try without lock for speed
             var currentMap = _reverseTransitiveReferencesMap;
-            ImmutableHashSet<ProjectId> reverseTransitiveReferences;
-            if (currentMap.TryGetValue(projectId, out reverseTransitiveReferences))
+            if (currentMap.TryGetValue(projectId, out var reverseTransitiveReferences))
             {
                 return reverseTransitiveReferences;
             }
@@ -215,9 +207,7 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableHashSet<ProjectId> GetProjectsThatTransitivelyDependOnThisProject_NoLock(ProjectId projectId)
         {
-            ImmutableHashSet<ProjectId> reverseTransitiveReferences;
-
-            if (!_reverseTransitiveReferencesMap.TryGetValue(projectId, out reverseTransitiveReferences))
+            if (!_reverseTransitiveReferencesMap.TryGetValue(projectId, out var reverseTransitiveReferences))
             {
                 using (var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
                 {
@@ -291,8 +281,7 @@ namespace Microsoft.CodeAnalysis
                 if (seenProjects.Add(projectId))
                 {
                     // Recurse and add anything this project depends on before adding the project itself.
-                    ImmutableHashSet<ProjectId> projectReferenceIds;
-                    if (_referencesMap.TryGetValue(projectId, out projectReferenceIds))
+                    if (_referencesMap.TryGetValue(projectId, out var projectReferenceIds))
                     {
                         TopologicalSort(projectReferenceIds, seenProjects, resultList, cancellationToken);
                     }

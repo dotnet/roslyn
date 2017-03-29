@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(SymbolKind.Event, instanceEvent.Kind);
             Assert.False(instanceEvent.IsStatic);
-            Assert.Equal(eventTypeDisplayString, instanceEvent.Type.ToTestDisplayString());
+            Assert.Equal(eventTypeDisplayString, instanceEvent.Type.TypeSymbol.ToTestDisplayString());
 
             CheckAccessorShape(instanceEvent.AddMethod, instanceEvent);
             CheckAccessorShape(instanceEvent.RemoveMethod, instanceEvent);
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(SymbolKind.Event, staticEvent.Kind);
             Assert.True(staticEvent.IsStatic);
-            Assert.Equal(eventTypeDisplayString, staticEvent.Type.ToTestDisplayString());
+            Assert.Equal(eventTypeDisplayString, staticEvent.Type.TypeSymbol.ToTestDisplayString());
 
             CheckAccessorShape(staticEvent.AddMethod, staticEvent);
             CheckAccessorShape(staticEvent.RemoveMethod, staticEvent);

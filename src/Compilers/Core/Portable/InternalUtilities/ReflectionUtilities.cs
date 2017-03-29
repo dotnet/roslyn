@@ -10,6 +10,8 @@ namespace Roslyn.Utilities
 {
     internal static class ReflectionUtilities
     {
+        private static readonly Type Missing = typeof(void);
+
         public static Type TryGetType(string assemblyQualifiedName)
         {
             try
@@ -21,6 +23,16 @@ namespace Roslyn.Utilities
             {
                 return null;
             }
+        }
+
+        public static Type TryGetType(ref Type lazyType, string assemblyQualifiedName)
+        {
+            if (lazyType == null)
+            {
+                lazyType = TryGetType(assemblyQualifiedName) ?? Missing;
+            }
+
+            return (lazyType == Missing) ? null : lazyType;
         }
 
         /// <summary>
@@ -37,6 +49,16 @@ namespace Roslyn.Utilities
             }
 
             return type;
+        }
+
+        public static Type GetTypeFromEither(ref Type lazyType, string contractName, string desktopName)
+        {
+            if (lazyType == null)
+            {
+                lazyType = GetTypeFromEither(contractName, desktopName) ?? Missing;
+            }
+
+            return (lazyType == Missing) ? null : lazyType;
         }
 
         public static T FindItem<T>(IEnumerable<T> collection, params Type[] paramTypes)

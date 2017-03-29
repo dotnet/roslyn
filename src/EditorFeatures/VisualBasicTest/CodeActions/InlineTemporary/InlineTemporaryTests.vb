@@ -1,15 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
-
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.InlineTemporary
     Public Class InlineTemporaryTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As Object
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New InlineTemporaryCodeRefactoringProvider()
         End Function
 
@@ -106,7 +105,7 @@ Console.WriteLine(i)
 Console.WriteLine(0)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -140,7 +139,7 @@ Class C1
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545259")>
@@ -171,7 +170,7 @@ Class C1
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(540330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540330")>
@@ -197,7 +196,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -213,7 +212,7 @@ Console.WriteLine(i)
 Console.WriteLine(0)
 </PropertyGetter>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -230,7 +229,7 @@ Dim j As Integer = 1
 Console.WriteLine(0)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -247,7 +246,7 @@ Dim i As Integer = 0
 Console.WriteLine(1)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -264,7 +263,7 @@ Dim j As Integer = 1, k As Integer = 2
 Console.WriteLine(0)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -281,7 +280,7 @@ Dim i As Integer = 0, k As Integer = 2
 Console.WriteLine(1)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -298,7 +297,7 @@ Dim i As Integer = 0, j As Integer = 1
 Console.WriteLine(2)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545704")>
@@ -318,7 +317,7 @@ x.ToString()
 Call New Integer.ToString()
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(16601, "DevDiv_Projects/Roslyn")>
@@ -334,7 +333,7 @@ Dim [||]x As Action = Sub() Console.WriteLine(), y = x
 Dim y = CType(Sub() Console.WriteLine(), Action)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -351,7 +350,7 @@ Dim j As New String(" "c, 10)
 Console.WriteLine(New String(" "c, 10))
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -368,7 +367,7 @@ Dim i As New String(" "c, 10)
 Console.WriteLine(New String(" "c, 10))
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -385,7 +384,7 @@ Dim j, k As New String(" "c, 10)
 Console.WriteLine(New String(" "c, 10))
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -402,7 +401,7 @@ Dim i, k As New String(" "c, 10)
 Console.WriteLine(New String(" "c, 10))
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -419,7 +418,7 @@ Dim i, j As New String(" "c, 10)
 Console.WriteLine(New String(" "c, 10))
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -439,7 +438,7 @@ Dim k As Integer = 2 + 3
 Console.WriteLine(0 + j * k)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -459,7 +458,7 @@ Dim k As Integer = 2 + 3
 Console.WriteLine(i + 1 * k)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact(Skip:="551797"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -476,7 +475,7 @@ Console.Write(x + 10)
 Console.Write(New Int32 + 10)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -496,7 +495,7 @@ Dim j As Integer = 1
 Console.WriteLine(i + j * (2 + 3))
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -512,7 +511,7 @@ Console.WriteLine(s.Length)
 Console.WriteLine(New String(" "c, 10).Length)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -528,7 +527,7 @@ Console.WriteLine(s.Length)
 Console.WriteLine(("a" &amp; "b").Length)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(540374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540374")>
@@ -545,7 +544,7 @@ Console.Write(i)
 Console.Write(New String(" "c, 10).Length)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(541965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541965")>
@@ -563,7 +562,7 @@ Call x.ToString
 Call New Int32().ToString
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -591,7 +590,7 @@ Sub Test()
 End Sub
 </ClassDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -619,7 +618,7 @@ Sub Test()
 End Sub
 </ClassDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542060")>
@@ -636,7 +635,7 @@ Console.WriteLine(z.First())
 Console.WriteLine((From x In "ABC" Select x).First())
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(546726, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546726")>
@@ -653,7 +652,7 @@ x.ToString()
 Call New List(Of Integer)().ToString()
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -683,7 +682,7 @@ Sub Test()
 End Sub
 </ClassDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -713,7 +712,7 @@ Sub Test()
 End Sub
 </ClassDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -743,7 +742,7 @@ Sub Test()
 End Sub
 </ClassDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -773,7 +772,7 @@ Sub Test()
 End Sub
 </ClassDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -803,7 +802,7 @@ Sub Test()
 End Sub
 </ClassDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(544981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544981")>
@@ -833,7 +832,7 @@ Class M
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(544982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544982")>
@@ -864,7 +863,7 @@ Module M
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545130, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545130")>
@@ -892,7 +891,7 @@ Class M
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545162")>
@@ -919,7 +918,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545177")>
@@ -946,7 +945,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545600")>
@@ -986,7 +985,7 @@ Public Class X
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")>
@@ -1015,7 +1014,7 @@ Module M
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(568917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568917")>
@@ -1048,7 +1047,7 @@ Module M
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(546700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546700")>
@@ -1065,7 +1064,7 @@ Dim x = &lt;x &lt;%= s %&gt;/&gt;
 Dim x = &lt;x &lt;%= Sub() If True Then Else %&gt;/&gt;
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1081,7 +1080,7 @@ Dim x = &lt;x &lt;%= s %&gt;/&gt;
 Dim x = &lt;x &lt;%= Sub() If True Then Else %&gt;/&gt;
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1097,7 +1096,7 @@ Dim i = f.Invoke()
 Dim i = (Function() 1).Invoke()
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1117,7 +1116,7 @@ Dim i = Function()
         End Function.Invoke()
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1137,7 +1136,7 @@ Dim f As Func(Of Integer) = Function()
                             End Function
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1157,7 +1156,7 @@ Dim f As Func(Of Integer) = Function()
                             End Function
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1174,7 +1173,7 @@ Console.WriteLine(i * 2)
 Console.WriteLine((1 + 1) * 2)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545544")>
@@ -1192,7 +1191,7 @@ Dim y = x
 Dim y = 1
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1209,7 +1208,7 @@ Dim j As Integer = 2 ' First
 Console.WriteLine((1 + 1) * j)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1225,7 +1224,7 @@ Dim j As Integer = i
 Dim j As Integer = 1 + 1
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1243,7 +1242,7 @@ Dim j As Integer = (1 + 1) * 2
 Console.WriteLine(j)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1261,7 +1260,7 @@ Dim y As Action = Sub()
                   End Sub
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(543215, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543215")>
@@ -1288,7 +1287,7 @@ Sub M(o As Object)
 End Sub
 </ClassDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(543280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543280")>
@@ -1319,7 +1318,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(544973, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544973")>
@@ -1352,7 +1351,7 @@ Module M
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545975")>
@@ -1379,7 +1378,7 @@ Module M
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545846")>
@@ -1488,7 +1487,7 @@ x.ToString
 Call New Exception().ToString
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1504,7 +1503,7 @@ x.ToString
 Call New Exception().ToString
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1520,7 +1519,7 @@ s
 Call (Sub() Exit Sub)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1536,7 +1535,7 @@ q.Distinct()
 Call (From x in "abc").Distinct()
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1552,7 +1551,7 @@ s.ToLower()
 Call "abc".ToLower()
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1568,7 +1567,7 @@ x.ToString()
 Call 1.ToString()
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1584,7 +1583,7 @@ x.ToString()
 Call (1 + 1).ToString()
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -1600,7 +1599,7 @@ x.ToString
 Call New Exception().Message.ToString
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542819")>
@@ -1617,7 +1616,7 @@ x.ToString
 Call If(True, 1, 2).ToString
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542819")>
@@ -1634,7 +1633,7 @@ x.ToString
 Call If(Nothing, "").ToString
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
@@ -1651,7 +1650,7 @@ Dim a = x, b
 Dim a = (From y In "" Select y), b
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
@@ -1668,7 +1667,7 @@ Dim a = Nothing, b = x
 Dim a = Nothing, b = From y In "" Select y
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
@@ -1684,7 +1683,7 @@ Dim a = x, b
 <MethodBody>
 Dim a = CType((Function() From y In "" Select y), Func(Of IEnumerable(Of Char))), b
 </MethodBody>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542096")>
@@ -1701,7 +1700,7 @@ Dim y = New IEnumerable(Of Char)() {z, z}
 Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), From x In "ABC" Select x}
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542096")>
@@ -1718,7 +1717,7 @@ Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), z}
 Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), From x In "ABC" Select x}
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542096")>
@@ -1746,7 +1745,7 @@ Sub Bar(Of T)(x As T, y As T)
 End Sub
 </ModuleDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542795")>
@@ -1773,7 +1772,7 @@ Sub Bar(x As Func(Of IEnumerable(Of Char)), y As Func(Of IEnumerable(Of Char)))
 End Sub
 </ModuleDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
@@ -1790,7 +1789,7 @@ Dim a = x, b
 Dim a = (From y In "" Select y Order By y), b
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542795")>
@@ -1817,7 +1816,7 @@ Sub Bar(x As Func(Of IEnumerable(Of IEnumerable(Of Char))), y As Func(Of IEnumer
 End Sub
 </ModuleDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542840")>
@@ -1834,7 +1833,7 @@ Dim y = x(0)
 Dim y = (New Collections.ArrayList())(0)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542842")>
@@ -1851,7 +1850,7 @@ Dim a As Action = y, b = a
 Dim a As Action = (Sub() If True Then Dim x), b = a
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542667")>
@@ -1868,7 +1867,7 @@ Dim a = x, b
 Dim a = (From y In "" Select y Order By y Ascending), b
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542840")>
@@ -1885,7 +1884,7 @@ Dim y = x(0)
 Dim y = (New Collections.ArrayList)(0)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542931")>
@@ -1902,7 +1901,7 @@ Dim p = From y In "", z In q Distinct
 Dim p = From y In "", z In (From x In "") Distinct
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542989")>
@@ -1919,7 +1918,7 @@ Dim y = z(0)
 Dim y = (From x In "" Group By x Into Count)(0)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542990")>
@@ -1936,7 +1935,7 @@ Dim y As String = x()
 Dim y As String = (Function() Console.ReadLine)()
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542997")>
@@ -1953,7 +1952,7 @@ Dim q = From x In "" Select z = s Distinct
 Dim q = From x In "" Select z = (Sub() Return) Distinct
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542997")>
@@ -1972,7 +1971,7 @@ Dim q = From x In "" Select z = (Sub() Return) _
         Distinct
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542997")>
@@ -1989,7 +1988,7 @@ Dim q = From x In "" Select z = s
 Dim q = From x In "" Select z = Sub() Return
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(529694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529694")>
@@ -2014,7 +2013,7 @@ With ""
 End With
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545571")>
@@ -2031,7 +2030,7 @@ y.Invoke()
 Call (Sub() Exit Sub).Invoke()
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545849")>
@@ -2050,7 +2049,7 @@ Dim y = {({Sub() Return})}
 Console.WriteLine(y.Rank)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(531578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531578")>
@@ -2089,7 +2088,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(531582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531582")>
@@ -2110,7 +2109,7 @@ Select 1
 End Select
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(549182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/549182")>
@@ -2145,7 +2144,7 @@ Module Preserve
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542985")>
@@ -2178,7 +2177,7 @@ Function Foo(x As Integer) As Integer()
 End Function
 </ModuleDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542985")>
@@ -2211,7 +2210,7 @@ Function Foo(Of T)(x As Integer) As Integer()
 End Function
 </ModuleDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(542985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542985")>
@@ -2246,7 +2245,7 @@ ReadOnly Property Foo(x As Integer) As Integer()
 End Property
 </ModuleDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545174")>
@@ -2272,7 +2271,7 @@ Module Program
 End Module
 </ModuleDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(529542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529542")>
@@ -2301,7 +2300,7 @@ Module Program
 End Module
 </ModuleDeclaration>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -2320,7 +2319,7 @@ Dim i As Integer = 1
 Console.WriteLine(1)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -2339,7 +2338,7 @@ Dim i As Integer = 1
 Console.WriteLine(1)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -2358,7 +2357,7 @@ Dim i As Integer = 1
 Console.WriteLine(1)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -2377,7 +2376,7 @@ Dim i As Integer = 1
 Console.WriteLine(1)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -2396,7 +2395,7 @@ Dim i As Integer = 1
 Console.WriteLine(1)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -2415,7 +2414,7 @@ Dim i As Integer = 1
 Console.WriteLine(1)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -2434,7 +2433,7 @@ Dim i As Integer = 1
 Console.WriteLine(1)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -2453,7 +2452,7 @@ Dim i As Integer = 1
 Console.WriteLine(1)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -2472,7 +2471,7 @@ Dim i As Integer = 1
 Console.WriteLine(1)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -2491,7 +2490,7 @@ Dim i As Integer = 1
 Console.WriteLine(1)
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(529627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529627")>
@@ -2527,7 +2526,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545342")>
@@ -2554,7 +2553,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
@@ -2584,7 +2583,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
@@ -2614,7 +2613,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545398")>
@@ -2643,7 +2642,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(545539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545539")>
@@ -2672,7 +2671,7 @@ Module M
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(546069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546069")>
@@ -2752,7 +2751,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(531473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531473")>
@@ -2787,7 +2786,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(531473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531473")>
@@ -2822,7 +2821,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(547153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547153")>
@@ -2857,7 +2856,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(531584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531584")>
@@ -2894,7 +2893,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
@@ -2945,7 +2944,7 @@ Module M
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(580495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580495")>
@@ -2972,7 +2971,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(607520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607520")>
@@ -2999,7 +2998,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(607520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607520")>
@@ -3024,7 +3023,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(621407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621407")>
@@ -3050,7 +3049,7 @@ Module Program
     End Sub
 End Module
 </File>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(608208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608208")>
@@ -3076,7 +3075,7 @@ Module Program
     End Sub
 End Module
 </File>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(621407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621407")>
@@ -3102,7 +3101,7 @@ Module Program
     End Sub
 End Module
 </File>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(621407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/621407")>
@@ -3128,7 +3127,7 @@ Module Program
     End Sub
 End Module
 </File>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(608995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608995")>
@@ -3154,7 +3153,7 @@ Module M
     End Sub
 End Module
 </File>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(588344, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588344")>
@@ -3181,7 +3180,7 @@ Module M
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(608204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608204")>
@@ -3210,7 +3209,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(635364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635364")>
@@ -3245,7 +3244,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(635373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635373")>
@@ -3284,7 +3283,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(608202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608202")>
@@ -3321,7 +3320,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(530129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530129")>
@@ -3353,7 +3352,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(529796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529796")>
@@ -3416,7 +3415,7 @@ Module N
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(601907, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601907")>
@@ -3461,7 +3460,7 @@ Module M
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(530903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530903")>
@@ -3489,7 +3488,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(530945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530945")>
@@ -3521,7 +3520,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(530926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530926")>
@@ -3546,7 +3545,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(529833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529833")>
@@ -3580,7 +3579,7 @@ Module M
 End Module
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(529833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529833")>
@@ -3631,7 +3630,7 @@ Public Class X
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(529833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529833")>
@@ -3682,7 +3681,7 @@ Public Class X
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(529840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529840")>
@@ -3732,7 +3731,7 @@ Public Class A
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(718152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718152")>
@@ -3767,7 +3766,7 @@ Class X
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(718152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718152")>
@@ -3806,7 +3805,7 @@ Class X
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -3830,7 +3829,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -3862,7 +3861,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(1025, "https://github.com/dotnet/roslyn/issues/1025")>
@@ -3887,7 +3886,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -3911,7 +3910,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -3964,7 +3963,7 @@ Class C
 End Class]]>
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -4023,7 +4022,7 @@ Class C
 End Class]]>
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -4049,7 +4048,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(2671, "https://github.com/dotnet/roslyn/issues/2671")>
@@ -4070,7 +4069,7 @@ With "test"
 End With
 </MethodBody>
             ' Introduction of the Call keyword in this scenario is by design, see bug 529694.
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
@@ -4087,7 +4086,7 @@ Dim s2 = AscW(s1)
 Dim s2 = AscW($"hello")
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
@@ -4106,7 +4105,7 @@ Dim x = 42
 Dim s2 = AscW($"hello {x}")
 </MethodBody>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
@@ -4139,7 +4138,7 @@ Class C
 End Class
 "
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")>
@@ -4178,7 +4177,7 @@ Class C
 End Class
 "
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(8119, "https://github.com/dotnet/roslyn/issues/8119")>
@@ -4205,7 +4204,7 @@ Class C
 End Class
 "
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
     End Class

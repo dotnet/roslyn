@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// </summary>
             public OperationBlockAnalyzerStateData OperationBlockAnalysisState { get; }
 
-            public static readonly DeclarationAnalyzerStateData FullyProcessedInstance = CreateFullyProcessedInstance();
+            public new static readonly DeclarationAnalyzerStateData FullyProcessedInstance = CreateFullyProcessedInstance();
 
             public DeclarationAnalyzerStateData()
             {

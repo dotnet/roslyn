@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
@@ -62,9 +63,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // We act as a source of events ourselves.  When the diagnostics service tells
                 // us about new diagnostics, we'll use that to kick of the asynchronous tagging
                 // work.
-                return TaggerEventSources.Compose(
+                
+                var eventSource = TaggerEventSources.Compose(
                     TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.Medium),
                     this);
+
+                // See if our owner has any additional events for us to listen to.
+                var ownerEventSource = _owner.GetTaggerEventSource();
+                return ownerEventSource == null
+                    ? eventSource
+                    : TaggerEventSources.Compose(ownerEventSource, eventSource);
             }
 
             protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
@@ -85,6 +93,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     return;
                 }
+
+                // See if we've marked any spans as those we want to suppress diagnostics for.
+                // This can happen for buffers used in the preview workspace where some feature
+                // is generating code that it doesn't want errors shown for.
+                var buffer = spanToTag.SnapshotSpan.Snapshot.TextBuffer;
+                var suppressedDiagnosticsSpans = default(NormalizedSnapshotSpanCollection);
+                buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
                 // Producing tags is simple.  We just grab the diagnostics we were already told about,
                 // and we convert them to tag spans.
@@ -120,7 +135,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                             .ToSnapshotSpan(editorSnapshot)
                             .TranslateTo(requestedSnapshot, SpanTrackingMode.EdgeExclusive);
 
-                        if (actualSpan.IntersectsWith(requestedSpan))
+                        if (actualSpan.IntersectsWith(requestedSpan) &&
+                            !IsSuppressed(suppressedDiagnosticsSpans, actualSpan))
                         {
                             var tagSpan = _owner.CreateTagSpan(isLiveUpdate, actualSpan, diagnosticData);
                             if (tagSpan != null)
@@ -130,6 +146,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         }
                     }
                 }
+            }
+
+            private bool IsSuppressed(NormalizedSnapshotSpanCollection suppressedSpans, SnapshotSpan span)
+            {
+                return suppressedSpans != null && suppressedSpans.IntersectsWith(span);
             }
 
             internal void OnDiagnosticsUpdated(DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
@@ -149,6 +170,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // taken cared by the external service (diagnostic service).
                 this.Changed?.Invoke(this, new TaggerEventArgs(TaggerDelay.NearImmediate));
             }
+        }
+
+        protected virtual ITaggerEventSource GetTaggerEventSource()
+        {
+            return null;
         }
     }
 }

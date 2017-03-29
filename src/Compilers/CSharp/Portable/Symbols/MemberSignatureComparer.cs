@@ -137,6 +137,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             useSpecialHandlingForNullableTypes: true);
 
         /// <summary>
+        /// This instance checks whether two signatures match including tuples names, in both return type and parameters.
+        /// It is used to detect tuple-name-only differences.
+        /// </summary>
+        public static readonly MemberSignatureComparer CSharpWithTupleNamesComparer = new MemberSignatureComparer(
+            considerName: true,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerCallingConvention: false, //ignore static-ness
+            considerRefOutDifference: false,
+            considerCustomModifiers: false,
+            ignoreDynamic: true,
+            ignoreTupleNames: false);
+
+        /// <summary>
+        /// This instance checks whether two signatures match excluding tuples names, in both return type and parameters.
+        /// It is used to detect tuple-name-only differences.
+        /// </summary>
+        public static readonly MemberSignatureComparer CSharpWithoutTupleNamesComparer = new MemberSignatureComparer(
+            considerName: true,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerCallingConvention: false, //ignore static-ness
+            considerRefOutDifference: false,
+            considerCustomModifiers: false,
+            ignoreDynamic: true,
+            ignoreTupleNames: true);
+
+        /// <summary>
         /// This instance is used to check whether one property or event overrides another, according to the C# definition.
         /// <para>NOTE: C# ignores accessor member names.</para>
         /// <para>CAVEAT: considers return types so that getters and setters will be treated the same.</para>
@@ -232,20 +262,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerRefOutDifference: false,
             typeSymbolEqualityOptions: TypeSymbolEqualityOptions.IgnoreDynamic);
 
-        // NOTE: Not used anywhere. Do we still need to keep it?
-        /// <summary>
-        /// This instance is used to search for members that have the same name, parameters, (return) type, and constraints (if any)
-        /// according to the C# definition. Custom modifiers are ignored.
-        /// </summary>
-        public static readonly MemberSignatureComparer CSharpSignatureAndConstraintsAndReturnTypeComparer = new MemberSignatureComparer(
-            considerName: true,
-            considerExplicitlyImplementedInterfaces: true,
-            considerReturnType: true,
-            considerTypeConstraints: true,
-            considerCallingConvention: true,
-            considerRefOutDifference: true,
-            typeSymbolEqualityOptions: TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeSymbolEqualityOptions.IgnoreDynamic); //intended for source types
-
         /// <summary>
         /// This instance is used to search for members that have identical signatures in every regard.
         /// </summary>
@@ -293,6 +309,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbolEqualityOptions _typeSymbolEqualityOptions;
 
         private readonly bool _useSpecialHandlingForNullableTypes;
+
+        // Ignore the names of the tuple elements
+        private readonly bool _ignoreTupleNames;
 
         private MemberSignatureComparer(
             bool considerName,
@@ -359,6 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeMap typeMap1;
             TypeMap typeMap2;
 
+<<<<<<< HEAD
             if (arity > 0 && _useSpecialHandlingForNullableTypes)
             {
                 // We need this special handling in order to avoid forcing resolution of nullable types 
@@ -463,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int hash = 1;
             if ((object)member != null)
             {
-                hash = Hash.Combine(hash, (int)member.Kind);
+                hash = Hash.Combine((int)member.Kind, hash);
 
                 if (_considerName)
                 {
@@ -479,8 +499,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // CONSIDER: modify hash for constraints?
 
-                hash = Hash.Combine(hash, member.GetMemberArity());
-                hash = Hash.Combine(hash, member.GetParameterCount());
+                hash = Hash.Combine(member.GetMemberArity(), hash);
+                hash = Hash.Combine(member.GetParameterCount(), hash);
             }
             return hash;
         }
@@ -494,10 +514,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool HaveSameReturnTypes(Symbol member1, TypeMap typeMap1, Symbol member2, TypeMap typeMap2, TypeSymbolEqualityOptions typeSymbolEqualityOptions)
         {
-            TypeSymbolWithAnnotations unsubstitutedReturnType1 = member1.GetTypeOrReturnType();
-            TypeSymbolWithAnnotations unsubstitutedReturnType2 = member2.GetTypeOrReturnType();
+            RefKind refKind1;
+            TypeSymbolWithAnnotations unsubstitutedReturnType1;
+            ImmutableArray<CustomModifier> refCustomModifiers1;
+            member1.GetTypeOrReturnType(out refKind1, out unsubstitutedReturnType1, out refCustomModifiers1);
+
+            RefKind refKind2;
+            TypeSymbolWithAnnotations unsubstitutedReturnType2;
+            ImmutableArray<CustomModifier> refCustomModifiers2;
+            member2.GetTypeOrReturnType(out refKind2, out unsubstitutedReturnType2, out refCustomModifiers2);
 
             // short-circuit type map building in the easiest cases
+            if ((refKind1 != RefKind.None) != (refKind2 != RefKind.None))
+            {
+                return false;
+            }
+
             var isVoid1 = unsubstitutedReturnType1.IsVoid;
             var isVoid2 = unsubstitutedReturnType2.IsVoid;
 
@@ -589,8 +621,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var substitutedTypes1 = new HashSet<TypeSymbol>(TypeSymbol.EqualsIgnoringDynamicComparer);
-            var substitutedTypes2 = new HashSet<TypeSymbol>(TypeSymbol.EqualsIgnoringDynamicComparer);
+            var substitutedTypes1 = new HashSet<TypeSymbol>(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
+            var substitutedTypes2 = new HashSet<TypeSymbol>(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
 
             SubstituteConstraintTypes(constraintTypes1, typeMap1, substitutedTypes1);
             SubstituteConstraintTypes(constraintTypes2, typeMap2, substitutedTypes2);
@@ -657,12 +689,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var type2 = SubstituteType(typeMap2, param2.Type);
 
                 if (!type1.Equals(type2, typeSymbolEqualityOptions))
-                    {
-                        return false;
-                    }
-
-                if ((typeSymbolEqualityOptions & TypeSymbolEqualityOptions.IgnoreCustomModifiers) == 0 &&
-                    param1.CountOfCustomModifiersPrecedingByRef != param2.CountOfCustomModifiersPrecedingByRef)
                 {
                     return false;
                 }
@@ -695,6 +721,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return typeMap == null ? typeSymbol : typeSymbol.SubstituteType(typeMap);
         }
 
+        private static ImmutableArray<CustomModifier> SubstituteModifiers(TypeMap typeMap, ImmutableArray<CustomModifier> customModifiers)
+        {
+            return typeMap == null ? customModifiers : typeMap.SubstituteCustomModifiers(customModifiers);
+        }
+
         private static Cci.CallingConvention GetCallingConvention(Symbol member)
         {
             switch (member.Kind)
@@ -712,6 +743,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static bool IsVarargMethod(Symbol member)
         {
             return member.Kind == SymbolKind.Method && ((MethodSymbol)member).IsVararg;
+        }
+
+        /// <summary>
+        /// Do the members differ in terms of tuple names (both in their return type and parameters), but would match ignoring names?
+        ///
+        /// We'll look at the result of equality without tuple names (1) and with tuple names (2).
+        /// The question is whether there is a change in tuple element names only (3).
+        ///
+        /// member1                  vs. member2                   | (1) | (2) |    (3)    |
+        /// `(int a, int b) M()`     vs. `(int a, int b) M()`      | yes | yes |   match   |
+        /// `(int a, int b) M()`     vs. `(int x, int y) M()`      | yes | no  | different |
+        /// `void M((int a, int b))` vs. `void M((int x, int y))`  | yes | no  | different |
+        /// `int M()`                vs. `string M()`              | no  | no  |   match   |
+        ///
+        /// </summary>
+        internal static bool ConsideringTupleNamesCreatesDifference(Symbol member1, Symbol member2)
+        {
+            return !CSharpWithTupleNamesComparer.Equals(member1, member2) &&
+                CSharpWithoutTupleNamesComparer.Equals(member1, member2);
         }
     }
 }

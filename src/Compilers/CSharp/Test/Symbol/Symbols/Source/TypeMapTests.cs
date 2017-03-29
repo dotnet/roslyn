@@ -150,7 +150,7 @@ class C1<C1T1, C1T2>
             var v1 = c1OfByteChar_c2OfIntInt_c3OfIntByte.GetMembers().OfType<FieldSymbol>().First();
             var type = v1.Type;
 
-            Assert.Equal("C1<System.Int32, System.Byte>.C2<System.Byte, System.Byte>.C3<System.Char, System.Byte>", type.ToTestDisplayString());
+            Assert.Equal("C1<System.Int32, System.Byte>.C2<System.Byte, System.Byte>.C3<System.Char, System.Byte>", type.TypeSymbol.ToTestDisplayString());
         }
 
         [Fact]

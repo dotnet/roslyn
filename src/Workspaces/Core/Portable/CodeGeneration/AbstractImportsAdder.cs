@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -43,6 +42,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             foreach (var annotatedNode in annotatedNodes)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                if (annotatedNode.GetAnnotations(DoNotAddImportsAnnotation.Kind).Any())
+                {
+                    continue;
+                }
 
                 SyntaxNode namespaceScope = null;
                 var annotations = annotatedNode.GetAnnotations(SymbolAnnotation.Kind);

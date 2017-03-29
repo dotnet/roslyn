@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Cci.CallingConvention _callingConvention;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
+        private readonly RefKind _refKind;
         private readonly TypeSymbolWithAnnotations _returnType;
+        private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
 
         public SignatureOnlyMethodSymbol(
@@ -30,12 +32,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Cci.CallingConvention callingConvention,
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
+            RefKind refKind,
             TypeSymbolWithAnnotations returnType,
+            ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations)
         {
             _callingConvention = callingConvention;
             _typeParameters = typeParameters;
+            _refKind = refKind;
             _returnType = returnType;
+            _refCustomModifiers = refCustomModifiers;
             _parameters = parameters;
             _explicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
             _containingType = containingType;
@@ -55,7 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid { get { return _returnType.SpecialType == SpecialType.System_Void; } }
 
+        internal override RefKind RefKind { get { return _refKind; } }
+
         public override TypeSymbolWithAnnotations ReturnType { get { return _returnType; } }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
         public override ImmutableArray<ParameterSymbol> Parameters { get { return _parameters; } }
 

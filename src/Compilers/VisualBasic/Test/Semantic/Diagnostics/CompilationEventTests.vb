@@ -109,7 +109,6 @@ End Namespace
                 "SymbolDeclaredCompilationEvent(I C(Of T1).I As Integer @ TestQueuedSymbols.vb: (7,15)-(7,16))",
                 "SymbolDeclaredCompilationEvent(C C(Of T1) @ TestQueuedSymbols.vb: (1,4)-(11,13), TestQueuedSymbols.vb: (12,4)-(15,13))",
                 "SymbolDeclaredCompilationEvent(M Sub C(Of T1).M(x1 As Integer) @ TestQueuedSymbols.vb: (2,8)-(2,44))",
-                "SymbolDeclaredCompilationEvent(M Sub C(Of T1).M(x1 As Integer) @ TestQueuedSymbols.vb: (13,8)-(13,36))",
                 "SymbolDeclaredCompilationEvent(M2 Sub Mod1.M2() @ TestQueuedSymbols.vb: (17,8)-(17,24))",
                 "SymbolDeclaredCompilationEvent(get_P Property Get C(Of T1).P() As Integer)",
                 "SymbolDeclaredCompilationEvent(set_P Property Set C(Of T1).P(AutoPropertyValue As Integer))",

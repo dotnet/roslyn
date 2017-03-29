@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Removes from symbol collection overridden methods or properties
         ''' </summary>
-        Protected Sub RemoveOverriddenMethodsAndProperties(symbols As ArrayBuilder(Of Symbol))
+        Protected Shared Sub RemoveOverriddenMethodsAndProperties(symbols As ArrayBuilder(Of Symbol))
             If symbols Is Nothing OrElse symbols.Count < 2 Then
                 Return
             End If

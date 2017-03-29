@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         private readonly Type[] _typeParameters;
         private readonly Type[] _typeArguments;
-        private readonly DynamicFlagsMap _dynamicFlagsMap;
+        private readonly CustomTypeInfoTypeArgumentMap _customTypeInfoMap;
 
         internal TypeVariablesExpansion(TypeAndCustomInfo declaredTypeAndInfo)
         {
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(declaredType.IsGenericType);
             Debug.Assert(!declaredType.IsGenericTypeDefinition);
 
-            _dynamicFlagsMap = DynamicFlagsMap.Create(declaredTypeAndInfo);
+            _customTypeInfoMap = CustomTypeInfoTypeArgumentMap.Create(declaredTypeAndInfo);
 
             var typeDef = declaredType.GetGenericTypeDefinition();
             _typeParameters = typeDef.GetGenericArguments();
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             var typeParameter = _typeParameters[index];
             var typeArgument = _typeArguments[index];
-            var typeArgumentInfo = _dynamicFlagsMap.SubstituteDynamicFlags(typeParameter, default(DynamicFlagsCustomTypeInfo)).GetCustomTypeInfo();
+            var typeArgumentInfo = _customTypeInfoMap.SubstituteCustomTypeInfo(typeParameter, customInfo: null);
             var formatSpecifiers = Formatter.NoFormatSpecifiers;
             return new EvalResult(
                 ExpansionKind.TypeVariable,

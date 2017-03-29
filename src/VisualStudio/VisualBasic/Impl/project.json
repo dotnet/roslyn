@@ -1,14 +1,15 @@
 {
   "dependencies": {
-    "Microsoft.Composition": "1.0.27",
-    "System.Collections": "4.0.10",
-    "System.Diagnostics.Debug": "4.0.10",
-    "System.Globalization": "4.0.10",
-    "System.Runtime": "4.0.20",
-    "System.Runtime.Extensions": "4.0.10",
-    "System.Threading": "4.0.10"
+    "EnvDTE": "8.0.0",
+    "EnvDTE80": "8.0.0",
+    "Microsoft.VisualStudio.Editor": "15.0.26201-alpha",
+    "Microsoft.VisualStudio.Language.Intellisense": "15.0.26201-alpha",
+    "Microsoft.VisualStudio.GraphModel": "15.0.26201-alpha",
+    "Microsoft.VisualStudio.ComponentModelHost": "15.0.26201-alpha",
+    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.26201-alpha",
+    "Microsoft.VisualStudio.Shell.Design": "15.0.26201-alpha"
   },
   "frameworks": {
-    "net46": { }
+    "net46": {}
   }
 }

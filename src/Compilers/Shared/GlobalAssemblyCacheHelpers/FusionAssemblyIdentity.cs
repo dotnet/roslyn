@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis
 
             if (IsKeyOrTokenEmpty(nameObject, PropertyId.NULL_PUBLIC_KEY_TOKEN))
             {
-                return SpecializedCollections.EmptyArray<byte>();
+                return Array.Empty<byte>();
             }
 
             return null;
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis
 
             if (IsKeyOrTokenEmpty(nameObject, PropertyId.NULL_PUBLIC_KEY))
             {
-                return SpecializedCollections.EmptyArray<byte>();
+                return Array.Empty<byte>();
             }
 
             return null;
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis
 
 #elif WORKSPACE_DESKTOP
 
-                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.InvalidCharactersInAssemblyName, nameof(name));
+                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.Invalid_characters_in_assembly_name, nameof(name));
 
 #else
 
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis
 
 #elif WORKSPACE_DESKTOP
 
-                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.InvalidCharactersInAssemblyName, nameof(name));
+                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.Invalid_characters_in_assembly_name, nameof(name));
 
 #else
 

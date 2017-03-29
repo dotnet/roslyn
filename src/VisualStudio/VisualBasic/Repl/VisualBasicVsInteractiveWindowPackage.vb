@@ -29,21 +29,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property LanguageName As String
-            Get
-                Return "Visual Basic"
-            End Get
-        End Property
-
         Protected Overrides ReadOnly Property LanguageServiceGuid As Guid
             Get
                 Return LanguageServiceGuids.VisualBasicLanguageServiceId
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property ProjectKind As String
-            Get
-                Return VSLangProj.PrjKind.prjKindVBProject
             End Get
         End Property
 
@@ -54,18 +42,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
 
             menuCommandService.AddCommand(openInteractiveCommand)
         End Sub
-
-        Protected Overrides Function GetResetInteractiveFromProjectCommandID() As CommandID
-            Return New CommandID(VisualBasicInteractiveCommands.InteractiveCommandSetId, VisualBasicInteractiveCommands.ResetInteractiveFromProject)
-        End Function
-
-        Protected Overrides Function CreateReference(referenceName As String) As String
-            Return String.Format("#R ""{0}""", referenceName)
-        End Function
-
-        Protected Overrides Function CreateImport(namespaceName As String) As String
-            Return String.Format("Imports {0}", namespaceName)
-        End Function
     End Class
 End Namespace
 

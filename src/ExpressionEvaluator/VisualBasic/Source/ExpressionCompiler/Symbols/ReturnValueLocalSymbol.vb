@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overrides Function RewriteLocal(
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             isLValue As Boolean,
             diagnostics As DiagnosticBag) As BoundExpression
 

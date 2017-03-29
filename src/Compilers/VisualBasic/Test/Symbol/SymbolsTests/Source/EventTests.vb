@@ -782,7 +782,7 @@ BC30456: 'E1' is not a member of 'Class1'.
 </expected>)
         End Sub
 
-        <Fact(Skip:="behaves as in Dev10 - unverifiable code. Should we do something more useful?")>
+        <Fact>
         Public Sub EventProtectedAccessor()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit ClassLibrary1.Class1
@@ -905,11 +905,14 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
-    VerifyIL("C.M",
-            <![CDATA[
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll)
 
-]]>)
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30390: 'Class1.Protected Overloads RemoveHandler Event E1(value As Action)' is not accessible in this context because it is 'Protected'.
+        RemoveHandler x.E1, h
+                      ~~~~
+</expected>)
         End Sub
 
         ' Check that both errors are reported
@@ -1642,8 +1645,9 @@ End Class
         ''' Avoid redundant errors from handlers when
         ''' a custom event type has errors.
         ''' </summary>
+        <Fact>
+        <WorkItem(101185, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=101185")>
         <WorkItem(530406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530406")>
-        <Fact(Skip:="530406")>
         Public Sub CustomEventTypeDuplicateErrors()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
@@ -1665,6 +1669,12 @@ End Class
 BC30508: 'E' cannot expose type 'C.D' in namespace '<Default>' through class 'C'.
     Public Custom Event E As D
                         ~
+BC30508: 'value' cannot expose type 'C.D' in namespace '<Default>' through class 'C'.
+        AddHandler(value As D)
+                            ~
+BC30508: 'value' cannot expose type 'C.D' in namespace '<Default>' through class 'C'.
+        RemoveHandler(value As D)
+                               ~
      ]]></errors>)
         End Sub
 
@@ -2207,6 +2217,190 @@ End Enum
             Dim symbolInfo = semanticModel.GetSymbolInfo(node)
             Assert.Null(symbolInfo.Symbol)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+        End Sub
+
+        <WorkItem(9400, "https://github.com/dotnet/roslyn/issues/9400")>
+        <Fact()>
+        Public Sub HandlesNoMyBase()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I
+    Sub F() Handles MyBase.E
+End Interface
+]]></file>
+</compilation>)
+            compilation.AssertTheseDiagnostics(<expected>
+BC30270: 'Handles' is not valid on an interface method declaration.
+    Sub F() Handles MyBase.E
+            ~~~~~~~~~~~~~~~~
+BC30590: Event 'E' cannot be found.
+    Sub F() Handles MyBase.E
+                           ~
+                           </expected>)
+        End Sub
+
+        <WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")>
+        <Fact()>
+        Public Sub SemanticModelOnParameters_01()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class A
+
+    Public Event E1(x As Integer) 
+
+End Class]]></file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            compilation.AssertTheseDiagnostics(<expected></expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim x = tree.GetRoot().DescendantNodes().OfType(Of ParameterSyntax)().Single().Identifier
+
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim xSym = model.GetDeclaredSymbol(x)
+            Assert.Equal("x As System.Int32", xSym.ToTestDisplayString())
+            Assert.False(xSym.IsImplicitlyDeclared)
+            Assert.Equal("x As Integer", xSym.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+
+            Dim e1EventHandler = compilation.GetTypeByMetadataName("A+E1EventHandler").DelegateInvokeMethod
+            Assert.Same(e1EventHandler.ContainingType, DirectCast(e1EventHandler.ContainingType.AssociatedSymbol, EventSymbol).Type)
+            Assert.True(e1EventHandler.IsImplicitlyDeclared)
+            Assert.True(e1EventHandler.ContainingType.IsImplicitlyDeclared)
+            Assert.Same(e1EventHandler, xSym.ContainingSymbol)
+            Assert.Same(xSym, e1EventHandler.Parameters.First())
+        End Sub
+
+        <WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")>
+        <Fact()>
+        Public Sub SemanticModelOnParameters_02()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I1
+    Delegate Sub D (z As Integer)
+    Event E1 As D
+End Interface
+
+Class A
+    Implements I1
+    Public Event E1(x As Integer) Implements I1.E1
+End Class]]></file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            compilation.AssertTheseDiagnostics(<expected></expected>)
+
+            Dim a = compilation.GetTypeByMetadataName("A")
+            Dim e1 = a.GetMember(Of EventSymbol)("E1")
+            Assert.Equal("I1.D", e1.Type.ToTestDisplayString())
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim x = tree.GetRoot().DescendantNodes().OfType(Of ParameterSyntax)().ElementAt(1).Identifier
+
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim xSym = model.GetDeclaredSymbol(x)
+            Assert.Null(xSym)
+        End Sub
+
+        <WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")>
+        <Fact()>
+        Public Sub SemanticModelOnParameters_03()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I1
+End Interface
+
+Class A
+    Implements I1
+    Public Event E1(x As Integer) Implements I1.E1
+End Class]]></file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30401: 'E1' cannot implement 'E1' because there is no matching event on interface 'I1'.
+    Public Event E1(x As Integer) Implements I1.E1
+                                             ~~~~~
+</expected>)
+
+            Dim a = compilation.GetTypeByMetadataName("A")
+            Dim e1 = a.GetMember(Of EventSymbol)("E1")
+            Assert.Equal("Event A.E1(x As System.Int32)", e1.ToTestDisplayString())
+
+            Assert.Equal("A.E1EventHandler", e1.Type.ToTestDisplayString())
+            Assert.True(e1.Type.IsDelegateType())
+            Assert.DoesNotContain(e1.Type, a.GetMembers())
+            Assert.Same(a, e1.Type.ContainingType)
+            Assert.True(e1.Type.IsImplicitlyDeclared)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim x = tree.GetRoot().DescendantNodes().OfType(Of ParameterSyntax)().Single().Identifier
+
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim xSym = model.GetDeclaredSymbol(x)
+
+            Assert.Equal("x As System.Int32", xSym.ToTestDisplayString())
+            Assert.False(xSym.IsImplicitlyDeclared)
+            Assert.Equal("x As Integer", xSym.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.True(xSym.ContainingSymbol.IsImplicitlyDeclared)
+            Assert.Same(e1.Type, xSym.ContainingType)
+            Assert.Same(xSym, xSym.ContainingType.DelegateInvokeMethod.Parameters.First())
+        End Sub
+
+        <WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")>
+        <Fact()>
+        Public Sub SemanticModelOnParameters_04()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I1
+End Interface
+
+Class A
+    Implements I1
+    Public Event E1(x As Integer) Implements I1.E1
+
+    class E1EventHandler
+    End Class
+End Class]]></file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30401: 'E1' cannot implement 'E1' because there is no matching event on interface 'I1'.
+    Public Event E1(x As Integer) Implements I1.E1
+                                             ~~~~~
+</expected>)
+
+            Dim e1EventHandler = compilation.GetTypeByMetadataName("A+E1EventHandler")
+            Assert.False(e1EventHandler.IsImplicitlyDeclared)
+            Assert.Equal("A.E1EventHandler", e1EventHandler.ToTestDisplayString())
+            Assert.Null(e1EventHandler.AssociatedSymbol)
+
+            Dim a = compilation.GetTypeByMetadataName("A")
+            Dim e1 = a.GetMember(Of EventSymbol)("E1")
+            Assert.Equal("Event A.E1(x As System.Int32)", e1.ToTestDisplayString())
+
+            Assert.Equal("A.E1EventHandler", e1.Type.ToTestDisplayString())
+            Assert.True(e1.Type.IsDelegateType())
+            Assert.DoesNotContain(e1.Type, a.GetMembers())
+            Assert.Same(a, e1.Type.ContainingType)
+            Assert.True(e1.Type.IsImplicitlyDeclared)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim x = tree.GetRoot().DescendantNodes().OfType(Of ParameterSyntax)().Single().Identifier
+
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim xSym = model.GetDeclaredSymbol(x)
+
+            Assert.Equal("x As System.Int32", xSym.ToTestDisplayString())
+            Assert.False(xSym.IsImplicitlyDeclared)
+            Assert.Equal("x As Integer", xSym.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.True(xSym.ContainingSymbol.IsImplicitlyDeclared)
+            Assert.Same(e1.Type, xSym.ContainingType)
+            Assert.Same(xSym, xSym.ContainingType.DelegateInvokeMethod.Parameters.First())
         End Sub
 
     End Class

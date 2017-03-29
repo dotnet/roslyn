@@ -615,7 +615,6 @@ class Query
             }
         }
 
-
         [ClrOnlyFact]
         public void AnonymousTypeSymbol_Empty()
         {
@@ -1298,7 +1297,7 @@ class Query
         {
             // test AnonymousType.ToString()
             var currCulture = System.Threading.Thread.CurrentThread.CurrentCulture;
-            System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
             try
             {
                 var source = @"
@@ -1927,6 +1926,39 @@ class C
                         new TypeDescr() { FieldNames = new[] { "L" } },
                         new TypeDescr() { FieldNames = new[] { "M" } },
                         new TypeDescr() { FieldNames = new[] { "N" } }));
+        }
+
+        [ClrOnlyFact]
+        public void CallingCreateAnonymousTypeDoesNotChangeIL()
+        {
+            var source = @"
+class C
+{
+    public static void Main(string[] args)
+    {
+        var v = new { m1 = 1, m2 = true };
+    }
+}";
+
+            var expectedIL = @"{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""<>f__AnonymousType0<int, bool>..ctor(int, bool)""
+  IL_0007:  pop
+  IL_0008:  ret
+}";
+
+
+            CompileAndVerify(source).VerifyIL("C.Main", expectedIL);
+
+            var compilation = GetCompilationForEmit(new[] { source }, additionalRefs: null, options: null, parseOptions: null);
+            compilation.CreateAnonymousTypeSymbol(
+                ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
+                ImmutableArray.Create("m1", "m2"));
+
+            this.CompileAndVerify(compilation).VerifyIL("C.Main", expectedIL);
         }
     }
 }

@@ -1,6 +1,8 @@
-Building a new Mono toolset
+Building a new Unix toolset
 ====
-This document describes building a new Mono toolset for use in our Mac or Linux Jenkins jobs.  
+This document describes building a new toolset for use in Mac or Linux.
+Because the toolsets contain various targets and reference assemblies that
+only exist on Windows, the toolsets currently must be built on Windows.
 
 ### Building Roslyn Toolset
 The new *toolset name* will be chosen as one of the follownig:
@@ -12,45 +14,16 @@ The value of *version number* will simply be the one number higher than the curr
 
 To build the toolset do the following:
 
-- Run `make bootstrap` locally
-- Rename `Binaries/Bootstrap` to the *toolset name* above
-- Bzip the directory: `tar -jcvf <toolset name>.tar.bz2 Binaries/<toolset name>`.
-- Upload the file to the Azure in the dotnetci storage account in the roslyn container.  
+- If necessary, make modifications to the dependencies in the 
+ `build/MSBuildToolset/project.json` file to bring in anything new.
+- Run the `build/MSBuildToolset/build-toolset.ps1` file.
+- The script produces two zip files in bin\Debug\netcoreapp1.0 subdirectory:
+    - Rename `osx.10.10-x64.zip` to roslyn.mac.`<version number>.zip`
+    - Rename `ubuntu.14.04-x64.zip` to roslyn.linux.`<version number>.zip`
+- Upload the files to the Azure in the dotnetci storage account in the roslyn container:
+
+```
+azcopy /Pattern:*.zip /Source:build\MSBuildToolset\bin\Debug\netcoreapp1.0 /Dest:https://dotnetci.blob.core.windows.net/roslyn /DestKey:<<key>>
+```
+
 - Send a PR to change [Makefile](https://github.com/dotnet/roslyn/blob/master/Makefile) to use the new toolset.  
-
-### Existing Roslyn Toolsets
-This table describes the existing Mono toolsets and the commit they were built from.  
-
-| Version | Linux | Mac |
-| --- | --- | --- |
-| 1 | [8dbfd942f07be971f423722891717e2ba9d9bebb](https://github.com/dotnet/roslyn/commit/8dbfd942f07be971f423722891717e2ba9d9bebb) | [8dbfd942f07be971f423722891717e2ba9d9bebb](https://github.com/dotnet/roslyn/commit/8dbfd942f07be971f423722891717e2ba9d9bebb) |
-| 2 | [5486cb18322e9782fccff6741f18933b545be0fa](https://github.com/dotnet/roslyn/commit/5486cb18322e9782fccff6741f18933b545be0fa) | [34870a4d27547b9ba628cbbc4a02028648d62d82](https://github.com/dotnet/roslyn/commit/34870a4d27547b9ba628cbbc4a02028648d62d82)|
-
-### Building Mono
-The new *toolset name* will be chosen as one of the following:
-
-- Linux: mono.linux.`<version number>`
-- Mac: mono.mac.`<version number>`
-
-The value of *version number* will simply be the one number higher than the current version number of the toolset.  
-
-To build the toolset execute the following:
-
-- Set `$PREFIX` to `/tmp/<toolset name>`
-- Follow the remainder of the [Compiling Mono](http://www.mono-project.com/docs/compiling-mono/) instructions.
-- From the previous drop, copy the following things from the old drop to the new, in the same locations:
-  - lib/mono/xbuild-frameworks/.NETPortable/*
-  - lib/mono/xbuild/Microsoft/*
-- Bzip the resulting directory.  `tar -jcvf <toolset name>.tar.bz2 /tmp/<toolset name>`
-- Upload the file to the Azure in the dotnetci storage account in the roslyn container.  
-- Send a PR to change [cibuild.sh](https://github.com/dotnet/roslyn/blob/master/cibuild.sh) to use the new toolset.  
-
-Note: This process needs to be repeated for both Mac and Linux.  
-
-### Existing Mono Toolsets
-This table describes the existing Mono toolsets and the commit they were built from.  
-
-| Version | Linux | Mac |
-| --- | --- | --- |
-| 1 | [43af8d475d853c8408ddaddbed4cfd61d2919780](https://github.com/jaredpar/mono/commit/43af8d475d853c8408ddaddbed4cfd61d2919780) | [43af8d475d853c8408ddaddbed4cfd61d2919780](https://github.com/jaredpar/mono/commit/43af8d475d853c8408ddaddbed4cfd61d2919780) |
-| 5 | [<not migrated> | [Mono 4.2.1.60](https://github.com/mono/mono/tree/mono-4.2.1.60) |

@@ -11,19 +11,16 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     internal abstract class AbstractDocumentationCommentFormattingService : IDocumentationCommentFormattingService
     {
-        private int _position;
-        private SemanticModel _semanticModel;
-
         private class FormatterState
         {
             private bool _anyNonWhitespaceSinceLastPara;
             private bool _pendingParagraphBreak;
             private bool _pendingSingleSpace;
 
-            private static SymbolDisplayPart s_spacePart = new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
-            private static SymbolDisplayPart s_newlinePart = new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
+            private static TaggedText s_spacePart = new TaggedText(TextTags.Space, " ");
+            private static TaggedText s_newlinePart = new TaggedText(TextTags.LineBreak, "\r\n");
 
-            internal readonly List<SymbolDisplayPart> Builder = new List<SymbolDisplayPart>();
+            internal readonly List<TaggedText> Builder = new List<TaggedText>();
 
             internal SemanticModel SemanticModel { get; set; }
             internal int Position { get; set; }
@@ -47,12 +44,12 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             {
                 EmitPendingChars();
 
-                Builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, s));
+                Builder.Add(new TaggedText(TextTags.Text, s));
 
                 _anyNonWhitespaceSinceLastPara = true;
             }
 
-            public void AppendParts(IEnumerable<SymbolDisplayPart> parts)
+            public void AppendParts(IEnumerable<TaggedText> parts)
             {
                 EmitPendingChars();
 
@@ -117,7 +114,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return state.GetText();
         }
 
-        public IEnumerable<SymbolDisplayPart> Format(string rawXmlText, SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
+        public IEnumerable<TaggedText> Format(string rawXmlText, SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
         {
             if (rawXmlText == null)
             {
@@ -195,18 +192,20 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var attributeName = attribute.Name.LocalName;
             if (attributeNameToParse == attributeName)
             {
-                state.AppendParts(CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format));
+                state.AppendParts(
+                    CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format).ToTaggedText());
             }
             else
             {
                 var displayKind = attributeName == "langword"
-                    ? SymbolDisplayPartKind.Keyword
-                    : SymbolDisplayPartKind.Text;
-                state.AppendParts(SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(kind: displayKind, symbol: null, text: attribute.Value)));
+                    ? TextTags.Keyword
+                    : TextTags.Text;
+                state.AppendParts(SpecializedCollections.SingletonEnumerable(new TaggedText(displayKind, attribute.Value)));
             }
         }
 
-        internal static IEnumerable<SymbolDisplayPart> CrefToSymbolDisplayParts(string crefValue, int position, SemanticModel semanticModel, SymbolDisplayFormat format = null)
+        internal static IEnumerable<SymbolDisplayPart> CrefToSymbolDisplayParts(
+            string crefValue, int position, SemanticModel semanticModel, SymbolDisplayFormat format = null)
         {
             // first try to parse the symbol
             if (semanticModel != null)
@@ -224,7 +223,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             // if any of that fails fall back to just displaying the raw text
-            return SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: TrimCrefPrefix(crefValue)));
+            return SpecializedCollections.SingletonEnumerable(
+                new SymbolDisplayPart(SymbolDisplayPartKind.Text, symbol: null, text: TrimCrefPrefix(crefValue)));
         }
 
         private static string TrimCrefPrefix(string value)

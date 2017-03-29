@@ -13,19 +13,14 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class SpeculativeTCompletionProvider : CompletionListProvider
+    internal class SpeculativeTCompletionProvider : CommonCompletionProvider
     {
-        private TextSpan GetTextChangeSpan(SourceText text, int position)
-        {
-            return CompletionUtilities.GetTextChangeSpan(text, position);
-        }
-
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
             var position = context.Position;
@@ -38,10 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (showSpeculativeT)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var filterSpan = this.GetTextChangeSpan(text, position);
 
                 const string T = nameof(T);
-                context.AddItem(new CompletionItem(this, T, filterSpan, descriptionFactory: null, glyph: Glyph.TypeParameter));
+                context.AddItem(CommonCompletionItem.Create(
+                    T, CompletionItemRules.Default, glyph: Glyph.TypeParameter));
             }
         }
 
@@ -63,8 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken, semanticModel))
             {
                 // Walk out until we find the start of the partial written generic
-                SyntaxToken nameToken;
-                while (syntaxTree.IsInPartiallyWrittenGeneric(testPosition, cancellationToken, out nameToken))
+                while (syntaxTree.IsInPartiallyWrittenGeneric(testPosition, cancellationToken, out var nameToken))
                 {
                     testPosition = nameToken.SpanStart;
                 }
@@ -86,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if ((!leftToken.GetPreviousTokenIfTouchingWord(position).IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) &&
                 syntaxTree.IsMemberDeclarationContext(testPosition, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken)) ||
+                syntaxTree.IsStatementContext(testPosition, leftToken, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(testPosition, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 syntaxTree.IsGlobalStatementContext(testPosition, cancellationToken) ||
                 syntaxTree.IsDelegateReturnTypeContext(testPosition, syntaxTree.FindTokenOnLeftOfPosition(testPosition, cancellationToken), cancellationToken))

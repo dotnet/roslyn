@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(context.Module.IsPlatformType(fileArg.Type, Cci.PlatformType.SystemString));
 
             // Named argument value must be a non-empty string
-            Debug.Assert(fileArg.ArgumentValue is Cci.IMetadataConstant);
-            var fileName = (string)((Cci.IMetadataConstant)fileArg.ArgumentValue).Value;
+            Debug.Assert(fileArg.ArgumentValue is MetadataConstant);
+            var fileName = (string)((MetadataConstant)fileArg.ArgumentValue).Value;
             Debug.Assert(!String.IsNullOrEmpty(fileName));
 
             // PermissionSetAttribute type must have a writable public string type property member 'Hex'
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Read the file contents at the resolved file path into a byte array.
             // May throw PermissionSetFileReadException, which is handled in Compilation.Emit.
-            var resolver = context.ModuleBuilder.CommonCompilation.Options.XmlReferenceResolver;
+            var resolver = context.Module.CommonCompilation.Options.XmlReferenceResolver;
 
             // If the resolver isn't available we won't get here since we had to use it to resolve the path.
             Debug.Assert(resolver != null);

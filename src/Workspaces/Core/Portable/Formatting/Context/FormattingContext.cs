@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -97,9 +96,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode, endToken);
             var results = initialContextFinder.Do(startToken, endToken);
 
-            if (results.Item1 != null)
+            if (results.indentOperations != null)
             {
-                var indentationOperations = results.Item1;
+                var indentationOperations = results.indentOperations;
 
                 var initialOperation = indentationOperations[0];
                 var baseIndentationFinder = new BottomUpBaseIndentationFinder(
@@ -121,10 +120,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _initialIndentBlockOperations = indentationOperations;
             }
 
-            if (results.Item2 != null)
-            {
-                results.Item2.Do(o => this.AddInitialSuppressOperation(o));
-            }
+            results.suppressOperations?.Do(o => this.AddInitialSuppressOperation(o));
         }
 
         public void AddIndentBlockOperations(
@@ -270,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             List<SuppressOperation> operations,
             CancellationToken cancellationToken)
         {
-            var valuePairs = new ValueTuple<SuppressOperation, bool, bool>[operations.Count];
+            var valuePairs = new (SuppressOperation operation, bool shouldSuppress, bool onSameLine)[operations.Count];
 
             // TODO: think about a way to figure out whether it is already suppressed and skip the expensive check below.
             _engine.TaskExecutor.For(0, operations.Count, i =>
@@ -282,21 +278,21 @@ namespace Microsoft.CodeAnalysis.Formatting
                 if (operation.ContainsElasticTrivia(_tokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElastic))
                 {
                     // don't bother to calculate line alignment between tokens
-                    valuePairs[i] = ValueTuple.Create(operation, false, false);
+                    valuePairs[i] = (operation, shouldSuppress: false, onSameLine: false);
                     return;
                 }
 
                 var onSameLine = _tokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
-                valuePairs[i] = ValueTuple.Create(operation, true, onSameLine);
+                valuePairs[i] = (operation, shouldSuppress: true, onSameLine: onSameLine);
             }, cancellationToken);
 
             valuePairs.Do(v =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (v.Item2)
+                if (v.shouldSuppress)
                 {
-                    AddSuppressOperation(v.Item1, v.Item3);
+                    AddSuppressOperation(v.operation, v.onSameLine);
                 }
             });
         }
@@ -384,8 +380,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         [Conditional("DEBUG")]
         private void DebugCheckEmpty<T>(ContextIntervalTree<T> tree, TextSpan textSpan)
         {
-            var intervals = tree.GetContainingIntervals(textSpan.Start, textSpan.Length);
-            Contract.ThrowIfFalse(intervals.IsEmpty());
+            var intervals = tree.GetIntervalsThatContain(textSpan.Start, textSpan.Length);
+            Contract.ThrowIfFalse(intervals.Length == 0);
         }
 
         public int GetBaseIndentation(SyntaxToken token)
@@ -407,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public IEnumerable<IndentBlockOperation> GetAllRelativeIndentBlockOperations()
         {
-            return _relativeIndentationTree.GetIntersectingIntervals(this.TreeData.StartPosition, this.TreeData.EndPosition, this).Select(i => i.Operation);
+            return _relativeIndentationTree.GetIntervalsThatIntersectWith(this.TreeData.StartPosition, this.TreeData.EndPosition, this).Select(i => i.Operation);
         }
 
         public bool TryGetEndTokenForRelativeIndentationSpan(SyntaxToken token, int maxChainDepth, out SyntaxToken endToken, CancellationToken cancellationToken)
@@ -518,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // below, we will try to flat the overlapped anchor span, and find the last position (token) of that span
 
             // find other anchors overlapping with current anchor span
-            var anchorData = _anchorTree.GetOverlappingIntervals(baseAnchorData.TextSpan.Start, baseAnchorData.TextSpan.Length);
+            var anchorData = _anchorTree.GetIntervalsThatOverlapWith(baseAnchorData.TextSpan.Start, baseAnchorData.TextSpan.Length);
 
             // among those anchors find the biggest end token
             var lastEndToken = baseAnchorData.EndToken;
@@ -549,8 +545,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             AnchorData lastBaseAnchorData = null;
             while (tokenData.IndexInStream >= 0)
             {
-                AnchorData tempAnchorData;
-                if (_anchorBaseTokenMap.TryGetValue(tokenData.Token, out tempAnchorData))
+                if (_anchorBaseTokenMap.TryGetValue(tokenData.Token, out var tempAnchorData))
                 {
                     lastBaseAnchorData = tempAnchorData;
                 }
@@ -605,19 +600,10 @@ namespace Microsoft.CodeAnalysis.Formatting
             return IsSpacingSuppressed(spanBetweenTwoTokens);
         }
 
-        public OptionSet OptionSet
-        {
-            get { return _engine.OptionSet; }
-        }
+        public OptionSet OptionSet => _engine.OptionSet;
 
-        public TreeData TreeData
-        {
-            get { return _engine.TreeData; }
-        }
+        public TreeData TreeData => _engine.TreeData;
 
-        public TokenStream TokenStream
-        {
-            get { return _tokenStream; }
-        }
+        public TokenStream TokenStream => _tokenStream;
     }
 }

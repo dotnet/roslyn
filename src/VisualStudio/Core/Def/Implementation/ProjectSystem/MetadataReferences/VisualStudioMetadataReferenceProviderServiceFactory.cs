@@ -14,24 +14,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var manager = workspaceServices.GetService<VisualStudioMetadataReferenceManager>();
-            Debug.Assert(manager != null);
-
-            return new Service(manager);
+            return new Service(workspaceServices);
         }
 
         private sealed class Service : IMetadataService
         {
-            private readonly VisualStudioMetadataReferenceManager _manager;
+            private readonly Lazy<VisualStudioMetadataReferenceManager> _manager;
 
-            public Service(VisualStudioMetadataReferenceManager manager)
+            public Service(HostWorkspaceServices workspaceServices)
             {
-                _manager = manager;
+                // We will defer creation of this reference manager until we have to to avoid it being constructed too
+                // early and potentially causing deadlocks. We do initialize it on the UI thread in the
+                // VisualStudioWorkspaceImpl.DeferredState constructor to ensure it gets created there.
+                _manager = new Lazy<VisualStudioMetadataReferenceManager>(
+                    () => workspaceServices.GetRequiredService<VisualStudioMetadataReferenceManager>());
             }
 
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
             {
-                return _manager.CreateMetadataReferenceSnapshot(resolvedPath, properties);
+                return _manager.Value.CreateMetadataReferenceSnapshot(resolvedPath, properties);
             }
         }
     }

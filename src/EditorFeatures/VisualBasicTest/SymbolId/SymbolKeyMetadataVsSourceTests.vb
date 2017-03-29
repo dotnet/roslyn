@@ -88,11 +88,11 @@ End Class
             ' 'E'
             Dim mtSym05 = (TryCast(typesym.GetMembers("Item").[Single](), IPropertySymbol)).Type
 
-            ResolveAndVerifySymbol(mtSym03, comp2, originalSymbols(0), comp1, SymbolIdComparison.CaseSensitive)
-            ResolveAndVerifySymbol(mtSym01, comp2, originalSymbols(1), comp1, SymbolIdComparison.CaseSensitive)
-            ResolveAndVerifySymbol(mtSym05, comp2, originalSymbols(2), comp1, SymbolIdComparison.CaseSensitive)
-            ResolveAndVerifySymbol(mtSym02, comp2, originalSymbols(3), comp1, SymbolIdComparison.CaseInsensitive)
-            ResolveAndVerifySymbol(mtSym04, comp2, originalSymbols(4), comp1, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(mtSym03, originalSymbols(0), comp1, SymbolIdComparison.None)
+            ResolveAndVerifySymbol(mtSym01, originalSymbols(1), comp1, SymbolIdComparison.None)
+            ResolveAndVerifySymbol(mtSym05, originalSymbols(2), comp1, SymbolIdComparison.None)
+            ResolveAndVerifySymbol(mtSym02, originalSymbols(3), comp1, SymbolIdComparison.IgnoreCase)
+            ResolveAndVerifySymbol(mtSym04, originalSymbols(4), comp1, SymbolIdComparison.IgnoreCase)
         End Sub
 
         <Fact>
@@ -167,15 +167,15 @@ End Class
             Dim list = GetBindNodes(Of ExpressionSyntax)(comp2, "b.vb", 5)
             Assert.Equal(5, list.Count)
 
-            ResolveAndVerifySymbol(list(0), originalSymbols(5), model, comp1, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(list(0), originalSymbols(5), model, comp1, SymbolIdComparison.IgnoreCase)
             ''  field
-            ResolveAndVerifySymbol(list(1), originalSymbols(6), model, comp1, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(list(1), originalSymbols(6), model, comp1, SymbolIdComparison.IgnoreCase)
             ''  prop
-            ResolveAndVerifySymbol(list(2), originalSymbols(7), model, comp1, SymbolIdComparison.CaseSensitive)
+            ResolveAndVerifySymbol(list(2), originalSymbols(7), model, comp1, SymbolIdComparison.None)
             ''  default prop
-            ResolveAndVerifySymbol(list(3), originalSymbols(0), model, comp1, SymbolIdComparison.CaseSensitive)
+            ResolveAndVerifySymbol(list(3), originalSymbols(0), model, comp1, SymbolIdComparison.None)
             ''  M(params short[] ary)
-            ResolveAndVerifySymbol(list(4), originalSymbols(2), model, comp1, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(list(4), originalSymbols(2), model, comp1, SymbolIdComparison.IgnoreCase)
         End Sub
 
 #End Region
@@ -245,13 +245,13 @@ End Class
             Dim localSymbols = ver40Symbols.OrderBy(Function(s) s.Name).[Select](Function(s) DirectCast(s, ILocalSymbol)).ToList()
 
             ' a
-            ResolveAndVerifySymbol(localSymbols(0).Type, comp40, typeA, comp20, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(localSymbols(0).Type, typeA, comp20, SymbolIdComparison.IgnoreCase)
             ' ary
-            ResolveAndVerifySymbol(localSymbols(1).Type, comp40, DirectCast(ver20Symbols(0), IParameterSymbol).Type, comp20, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(localSymbols(1).Type, DirectCast(ver20Symbols(0), IParameterSymbol).Type, comp20, SymbolIdComparison.IgnoreCase)
             ' dt
-            ResolveAndVerifySymbol(localSymbols(2).Type, comp40, DirectCast(ver20Symbols(4), IParameterSymbol).Type, comp20, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(localSymbols(2).Type, DirectCast(ver20Symbols(4), IParameterSymbol).Type, comp20, SymbolIdComparison.IgnoreCase)
             ' fi
-            ResolveAndVerifySymbol(localSymbols(3).Type, comp40, DirectCast(ver20Symbols(1), IMethodSymbol).ReturnType, comp20, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(localSymbols(3).Type, DirectCast(ver20Symbols(1), IMethodSymbol).ReturnType, comp20, SymbolIdComparison.IgnoreCase)
 
         End Sub
 
@@ -401,11 +401,9 @@ End Class
             ' ifoo(Nothing)
             ResolveAndVerifySymbol(list(1), ver20Symbols(0), model, comp20)
             ResolveAndVerifyTypeSymbol(list(1), DirectCast(ver20Symbols(0), IPropertySymbol).Type, model, comp20)
-
         End Sub
 
 #End Region
 
     End Class
-
 End Namespace
