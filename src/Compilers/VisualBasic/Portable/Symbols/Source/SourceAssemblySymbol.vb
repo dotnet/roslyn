@@ -1383,6 +1383,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ''' <summary>
+        ''' True if internals are exposed at all.
+        ''' </summary>
+        ''' <remarks>
+        ''' Forces binding and decoding of attributes.
+        ''' This property shouldn't be accessed during binding as it can lead to attribute binding cycle.
+        ''' </remarks>
+        Public ReadOnly Property InternalsAreVisible As Boolean Implements ISourceAssemblySymbolInternal.InternalsAreVisible
+            Get
+                EnsureAttributesAreBound()
+                Return _lazyInternalsVisibleToMap IsNot Nothing
+            End Get
+        End Property
+
+        ''' <summary>
         ''' We may synthesize some well-known attributes for this assembly symbol.  However, at synthesis time, it is
         ''' too late to report diagnostics or cancel the emit.  Instead, we check for use site errors on the types and members
         ''' we know we'll need at synthesis time.
@@ -1422,7 +1436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.Unknown)
@@ -1652,8 +1666,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-                    keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
-                Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
+            keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
+            Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
         End Sub
 
         Private Function ComputeIdentity() As AssemblyIdentity

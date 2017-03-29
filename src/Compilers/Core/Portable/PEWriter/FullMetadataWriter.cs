@@ -38,6 +38,7 @@ namespace Microsoft.Cci
             EmitContext context,
             CommonMessageProvider messageProvider,
             bool metadataOnly,
+            bool includePrivateMembers,
             bool deterministic,
             bool hasPdbStream,
             CancellationToken cancellationToken)
@@ -63,7 +64,7 @@ namespace Microsoft.Cci
                 new DynamicAnalysisDataWriter(context.Module.DebugDocumentCount, context.Module.HintNumberOfMethodDefinitions) : 
                 null;
 
-            return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, metadataOnly, deterministic, cancellationToken);
+            return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, metadataOnly, includePrivateMembers, deterministic, cancellationToken);
         }
 
         private FullMetadataWriter(
@@ -73,9 +74,10 @@ namespace Microsoft.Cci
             DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
             CommonMessageProvider messageProvider,
             bool metadataOnly,
+            bool includePrivateMembers,
             bool deterministic,
             CancellationToken cancellationToken)
-            : base(builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, metadataOnly, deterministic, cancellationToken)
+            : base(builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, metadataOnly, includePrivateMembers, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
@@ -374,6 +376,7 @@ namespace Microsoft.Cci
 
         protected override void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
         {
+            // All types must be included, even private ones in ref assemblies
             _typeDefs.Add(typeDef);
 
             IEnumerable<IGenericTypeParameter> typeParameters = this.GetConsolidatedTypeParameters(typeDef);
@@ -387,30 +390,44 @@ namespace Microsoft.Cci
 
             foreach (MethodImplementation methodImplementation in typeDef.GetExplicitImplementationOverrides(Context))
             {
+                // PROTOTYPE(refout) Do something here?
                 this.methodImplList.Add(methodImplementation);
             }
 
             foreach (IEventDefinition eventDef in typeDef.Events)
             {
-                _eventDefs.Add(eventDef);
+                if (!Context.Filter(eventDef))
+                {
+                    _eventDefs.Add(eventDef);
+                }
             }
 
             _fieldDefIndex.Add(typeDef, _fieldDefs.NextRowId);
+            bool inStruct = typeDef.IsValueType;
             foreach (IFieldDefinition fieldDef in typeDef.GetFields(Context))
             {
-                _fieldDefs.Add(fieldDef);
+                if (inStruct || !Context.Filter(fieldDef))
+                {
+                    _fieldDefs.Add(fieldDef);
+                }
             }
 
             _methodDefIndex.Add(typeDef, _methodDefs.NextRowId);
             foreach (IMethodDefinition methodDef in typeDef.GetMethods(Context))
             {
-                this.CreateIndicesFor(methodDef);
-                _methodDefs.Add(methodDef);
+                if (!Context.Filter(methodDef))
+                {
+                    this.CreateIndicesFor(methodDef);
+                    _methodDefs.Add(methodDef);
+                }
             }
 
             foreach (IPropertyDefinition propertyDef in typeDef.GetProperties(Context))
             {
-                _propertyDefs.Add(propertyDef);
+                if (!Context.Filter(propertyDef))
+                {
+                    _propertyDefs.Add(propertyDef);
+                }
             }
         }
 

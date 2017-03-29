@@ -9118,6 +9118,7 @@ class Verifier
 
             var src = dir.CreateFile("a.cs");
             src.WriteAllText(@"
+using System;
 class C
 {
     /// <summary>Main method</summary>
@@ -9125,12 +9126,19 @@ class C
     {
         error(); // semantic error in method body
     }
+    private event Action E1
+    {
+        add { }
+        remove { }
+    }
+    private event Action E2;
 }");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, dir.Path,
                 new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/doc:doc.xml", "a.cs" });
             int exitCode = csc.Run(outWriter);
+            Assert.Equal("", outWriter.ToString());
             Assert.Equal(0, exitCode);
 
             var refDll = Path.Combine(dir.Path, "a.dll");
@@ -9142,7 +9150,7 @@ class C
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 new[] { "TypeDef:<Module>", "TypeDef:C" },
                 new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
-                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
+                new[] { "CompilationRelaxationsAttribute", "DebuggerBrowsableAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
                 );
 
             var pdb = Path.Combine(dir.Path, "a.pdb");

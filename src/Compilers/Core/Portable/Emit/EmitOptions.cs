@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Emit
             SubsystemVersion subsystemVersion = default(SubsystemVersion),
             string runtimeMetadataVersion = null,
             bool tolerateErrors = false,
-            bool includePrivateMembers = false,
+            bool includePrivateMembers = true,
             ImmutableArray<InstrumentationKind> instrumentationKinds = default(ImmutableArray<InstrumentationKind>))
         {
             this.EmitMetadataOnly = metadataOnly;
@@ -247,6 +247,11 @@ namespace Microsoft.CodeAnalysis.Emit
             if (!SubsystemVersion.Equals(SubsystemVersion.None) && !SubsystemVersion.IsValid)
             {
                 diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidSubsystemVersion, Location.None, SubsystemVersion.ToString()));
+            }
+
+            if (!IncludePrivateMembers && !EmitMetadataOnly)
+            {
+                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_RequiresMetadataOnly, Location.None, nameof(IncludePrivateMembers)));
             }
         }
 

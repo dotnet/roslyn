@@ -4980,6 +4980,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
   </data>
+  <data name="ERR_RequiresMetadataOnly" xml:space="preserve">
+    <value>Emit option '{0}' requires the EmitMetadataOnly option also be set.</value>
+  </data>
   <data name="ERR_VarInvocationLvalueReserved" xml:space="preserve">
     <value>The syntax 'var (...)' as an lvalue is reserved.</value>
   </data>

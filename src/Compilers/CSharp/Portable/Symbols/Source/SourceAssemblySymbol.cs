@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Forces binding and decoding of attributes.
         /// This property shouldn't be accessed during binding as it can lead to attribute binding cycle.
         /// </remarks>
-        private bool InternalsAreVisible
+        public bool InternalsAreVisible
         {
             get
             {

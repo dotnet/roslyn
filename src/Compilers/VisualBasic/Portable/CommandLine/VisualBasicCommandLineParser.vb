@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim utf8output As Boolean = False
             Dim outputFileName As String = Nothing
             Dim outputRefFileName As String = Nothing
-            Dim metadataOnly As Boolean = False
+            Dim refOnly As Boolean = False
             Dim outputDirectory As String = baseDirectory
             Dim documentationPath As String = Nothing
             Dim errorLogPath As String = Nothing
@@ -471,7 +471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "refonly")
                             End If
 
-                            metadataOnly = True
+                            refOnly = True
                             Continue For
 
 
@@ -1197,11 +1197,11 @@ lVbRuntimePlus:
                 specificDiagnosticOptions(item.Key) = item.Value
             Next
 
-            If metadataOnly AndAlso outputRefFileName IsNot Nothing Then
+            If refOnly AndAlso outputRefFileName IsNot Nothing Then
                 AddDiagnostic(diagnostics, ERRID.ERR_NoRefOutWhenRefOnly)
             End If
 
-            If outputKind = OutputKind.NetModule AndAlso (metadataOnly OrElse outputRefFileName IsNot Nothing) Then
+            If outputKind = OutputKind.NetModule AndAlso (refOnly OrElse outputRefFileName IsNot Nothing) Then
                 AddDiagnostic(diagnostics, ERRID.ERR_NoNetModuleOutputWhenRefOutOrRefOnly)
             End If
 
@@ -1353,7 +1353,8 @@ lVbRuntimePlus:
                 reportSuppressedDiagnostics:=reportSuppressedDiagnostics)
 
             Dim emitOptions = New EmitOptions(
-                metadataOnly:=metadataOnly,
+                metadataOnly:=refOnly,
+                includePrivateMembers:=Not refOnly,
                 debugInformationFormat:=debugInformationFormat,
                 pdbFilePath:=Nothing, ' to be determined later
                 outputNameOverride:=Nothing,  ' to be determined later
@@ -1413,7 +1414,7 @@ lVbRuntimePlus:
                 .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
                 .TouchedFilesPath = touchedFilesPath,
                 .OutputLevel = outputLevel,
-                .EmitPdb = emitPdb AndAlso Not metadataOnly, ' Silently ignore emitPdb when metadataOnly is set
+                .EmitPdb = emitPdb AndAlso Not refOnly, ' Silently ignore emitPdb when metadataOnly is set
                 .SourceLink = sourceLink,
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,

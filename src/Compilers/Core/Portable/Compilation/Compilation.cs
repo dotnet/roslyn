@@ -2216,7 +2216,8 @@ namespace Microsoft.CodeAnalysis
                         (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
                         testData?.SymWriterFactory,
                         diagnostics,
-                        metadataOnly: (options != null) && options.EmitMetadataOnly,
+                        metadataOnly: options?.EmitMetadataOnly == true,
+                        includePrivateMembers: options?.IncludePrivateMembers == true,
                         cancellationToken: cancellationToken);
                 }
             }
@@ -2384,6 +2385,7 @@ namespace Microsoft.CodeAnalysis
             Func<object> testSymWriterFactory,
             DiagnosticBag diagnostics,
             bool metadataOnly,
+            bool includePrivateMembers,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -2523,6 +2525,7 @@ namespace Microsoft.CodeAnalysis
                         nativePdbWriter,
                         pePdbPath,
                         metadataOnly,
+                        includePrivateMembers,
                         deterministic,
                         cancellationToken))
                     {
@@ -2606,6 +2609,7 @@ namespace Microsoft.CodeAnalysis
              Cci.PdbWriter nativePdbWriterOpt,
              string pdbPathOpt,
              bool metadataOnly,
+             bool includePrivateMembers,
              bool isDeterministic,
              CancellationToken cancellationToken)
         {
@@ -2617,6 +2621,7 @@ namespace Microsoft.CodeAnalysis
                 nativePdbWriterOpt,
                 pdbPathOpt,
                 metadataOnly,
+                includePrivateMembers,
                 isDeterministic,
                 cancellationToken))
             {
@@ -2636,6 +2641,7 @@ namespace Microsoft.CodeAnalysis
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     metadataOnly: true,
+                    includePrivateMembers: includePrivateMembers,
                     isDeterministic: isDeterministic,
                     cancellationToken: cancellationToken))
                 {

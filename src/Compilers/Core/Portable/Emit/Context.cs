@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -18,6 +19,28 @@ namespace Microsoft.CodeAnalysis.Emit
             Module = module;
             SyntaxNodeOpt = syntaxNodeOpt;
             Diagnostics = diagnostics;
+        }
+
+        public bool Filter(IMethodDefinition method)
+        {
+            if (method.IsVirtual)
+            {
+                return false;
+            }
+
+            return Filter((ITypeDefinitionMember) method);
+        }
+
+        public bool Filter(ITypeDefinitionMember member)
+        {
+            switch (member.Visibility)
+            {
+                case TypeMemberVisibility.Private:
+                    return !Module.EmitOptions.IncludePrivateMembers;
+                case TypeMemberVisibility.Assembly:
+                    return !Module.EmitOptions.IncludePrivateMembers && Module.SourceAssemblyOpt?.InternalsAreVisible == false;
+            }
+            return false;
         }
     }
 }

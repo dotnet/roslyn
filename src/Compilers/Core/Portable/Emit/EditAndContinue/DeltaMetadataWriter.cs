@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.Emit
                    dynamicAnalysisDataWriterOpt: null,
                    context: context,
                    messageProvider: messageProvider,
-                   metadataOnly: false, 
+                   metadataOnly: false,
+                   includePrivateMembers: true,
                    deterministic: false,
                    cancellationToken: cancellationToken)
         {

@@ -794,6 +794,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                         null, null,
                         metadataOnly: true,
                         isDeterministic: false,
+                        includePrivateMembers: true,
                         cancellationToken: default(CancellationToken));
 
                     peBytes = peStream.ToImmutable();

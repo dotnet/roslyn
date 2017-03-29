@@ -1707,7 +1707,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_ExplicitTupleElementNamesAttribute = 37269
         ERR_TupleLiteralDisallowsTypeChar = 37270
 
-        ' Available 37270
         ERR_DuplicateProcDefWithDifferentTupleNames2 = 37271
         ERR_InterfaceImplementedTwiceWithDifferentTupleNames2 = 37272
         ERR_InterfaceImplementedTwiceWithDifferentTupleNames3 = 37273
@@ -1733,6 +1732,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_NoRefOutWhenRefOnly = 37300
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 37301
+        ERR_RequiresMetadataOnly = 37302
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

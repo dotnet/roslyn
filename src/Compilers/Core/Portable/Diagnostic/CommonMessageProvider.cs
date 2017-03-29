@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_InvalidSubsystemVersion { get; }
         public abstract int ERR_InvalidOutputName { get; }
         public abstract int ERR_InvalidInstrumentationKind { get; }
+        public abstract int ERR_RequiresMetadataOnly { get; }
 
         // reference manager:
         public abstract int ERR_MetadataFileNotAssembly { get; }

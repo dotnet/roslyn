@@ -9749,6 +9749,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Emit option &apos;{0}&apos; requires the EmitMetadataOnly option also be set..
+        '''</summary>
+        Friend ReadOnly Property ERR_RequiresMetadataOnly() As String
+            Get
+                Return ResourceManager.GetString("ERR_RequiresMetadataOnly", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to The assembly name &apos;{0}&apos; is reserved and cannot be used as a reference in an interactive session.
         '''</summary>
         Friend ReadOnly Property ERR_ReservedAssemblyName() As String

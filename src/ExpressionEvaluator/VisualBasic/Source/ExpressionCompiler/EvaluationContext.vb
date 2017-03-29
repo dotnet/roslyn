@@ -400,6 +400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         pdbPathOpt:=Nothing,
                         metadataOnly:=False,
                         isDeterministic:=False,
+                        includePrivateMembers:=True,
                         cancellationToken:=Nothing)
 
                 If diagnostics.HasAnyErrors() Then
@@ -447,6 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         pdbPathOpt:=Nothing,
                         metadataOnly:=False,
                         isDeterministic:=False,
+                        includePrivateMembers:=True,
                         cancellationToken:=Nothing)
 
                 If diagnostics.HasAnyErrors() Then
@@ -495,6 +497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         pdbPathOpt:=Nothing,
                         metadataOnly:=False,
                         isDeterministic:=False,
+                        includePrivateMembers:=True,
                         cancellationToken:=Nothing)
 
                     If Not diagnostics.HasAnyErrors() Then

@@ -298,6 +298,13 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub IncludePrivateMembersRequiresEmitMetadataOnly()
+            Dim comp = CreateCompilationWithMscorlib("")
+            comp.VerifyEmitDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(False).WithIncludePrivateMembers(False),
+                                       Diagnostic(ERRID.ERR_RequiresMetadataOnly).WithArguments("IncludePrivateMembers").WithLocation(1, 1))
+        End Sub
+
+        <Fact>
         Public Sub RefAssembly_InvariantToSomeChanges()
 
             RefAssembly_InvariantToSomeChanges(

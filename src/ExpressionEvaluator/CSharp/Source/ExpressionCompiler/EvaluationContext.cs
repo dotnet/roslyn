@@ -266,6 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             pdbPathOpt: null,
                             metadataOnly: false,
                             isDeterministic: false,
+                            includePrivateMembers: true,
                             cancellationToken: default(CancellationToken));
                         if (!diagnostics.HasAnyErrors())
                         {
@@ -327,6 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     pdbPathOpt: null,
                     metadataOnly: false,
                     isDeterministic: false,
+                    includePrivateMembers: true,
                     cancellationToken: default(CancellationToken));
 
                 if (diagnostics.HasAnyErrors())
@@ -411,6 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     pdbPathOpt: null,
                     metadataOnly: false,
                     isDeterministic: false,
+                    includePrivateMembers: true,
                     cancellationToken: default(CancellationToken));
 
                 if (diagnostics.HasAnyErrors())
@@ -458,6 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         pdbPathOpt: null,
                         metadataOnly: false,
                         isDeterministic: false,
+                        includePrivateMembers: true,
                         cancellationToken: default(CancellationToken));
 
                     if (!diagnostics.HasAnyErrors())

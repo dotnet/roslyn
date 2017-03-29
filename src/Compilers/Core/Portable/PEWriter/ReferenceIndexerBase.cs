@@ -280,7 +280,7 @@ namespace Microsoft.Cci
             VisitTypeDefinitionNoMembers(typeDefinition);
 
             this.Visit(typeDefinition.Events);
-            this.Visit(typeDefinition.GetFields(Context));
+            this.Visit(typeDefinition, typeDefinition.GetFields(Context));
             this.Visit(typeDefinition.GetMethods(Context));
             this.VisitNestedTypes(typeDefinition.GetNestedTypes(Context));
             this.Visit(typeDefinition.GetProperties(Context));

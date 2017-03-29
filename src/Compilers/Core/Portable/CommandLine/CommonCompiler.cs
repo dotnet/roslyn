@@ -761,6 +761,7 @@ namespace Microsoft.CodeAnalysis
                                     testSymWriterFactory: null,
                                     diagnostics: diagnosticBag,
                                     metadataOnly: emitOptions.EmitMetadataOnly,
+                                    includePrivateMembers: emitOptions.IncludePrivateMembers,
                                     cancellationToken: cancellationToken);
                             }
                             finally
