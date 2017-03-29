@@ -599,5 +599,88 @@ class Program
 }";
             await TestInRegularAndScriptAsync(initial, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        public async Task AddAsyncInLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        void M2()
+        {
+            [|await M3Async();|]
+        }
+    }
+
+    async Task<int> M3Async()
+    {
+        return 1;
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        async Task M2Async()
+        {
+            await M3Async();
+        }
+    }
+
+    async Task<int> M3Async()
+    {
+        return 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        public async Task AddAsyncInLocalFunctionKeepVoidReturn()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        void M2()
+        {
+            [|await M3Async();|]
+        }
+    }
+
+    async Task<int> M3Async()
+    {
+        return 1;
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        async void M2Async()
+        {
+            await M3Async();
+        }
+    }
+
+    async Task<int> M3Async()
+    {
+        return 1;
+    }
+}",
+index: 1);
+        }
     }
 }

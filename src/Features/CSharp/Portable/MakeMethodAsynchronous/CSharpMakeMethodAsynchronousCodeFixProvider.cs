@@ -35,7 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         protected override bool IsMethodOrAnonymousFunction(SyntaxNode node)
         {
-            return node.IsKind(SyntaxKind.MethodDeclaration) || node.IsAnyLambdaOrAnonymousMethod();
+            return node.IsKind(SyntaxKind.MethodDeclaration)
+                || node.IsAnyLambdaOrAnonymousMethod()
+                || node.IsKind(SyntaxKind.LocalFunctionStatement);
         }
 
         protected override SyntaxNode AddAsyncTokenAndFixReturnType(
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             switch (node)
             {
                 case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, taskType, taskOfTType, valueTaskOfTType);
+                case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(keepVoid, methodSymbolOpt, localFunction, taskType, taskOfTType, valueTaskOfTType);
                 case AnonymousMethodExpressionSyntax method: return FixAnonymousMethod(method);
                 case ParenthesizedLambdaExpressionSyntax lambda: return FixParenthesizedLambda(lambda);
                 case SimpleLambdaExpressionSyntax lambda: return FixSimpleLambda(lambda);
@@ -56,7 +59,25 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             bool keepVoid, IMethodSymbol methodSymbol, MethodDeclarationSyntax method,
             INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType)
         {
-            var newReturnType = method.ReturnType;
+            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, taskType, taskOfTType, valueTaskOfTType);
+            var newModifiers = method.Modifiers.Add(s_asyncToken);
+            return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
+        }
+
+        private SyntaxNode FixLocalFunction(
+            bool keepVoid, IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction,
+            INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType)
+        {
+            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, localFunction.ReturnType, taskType, taskOfTType, valueTaskOfTType);
+            var newModifiers = localFunction.Modifiers.Add(s_asyncToken);
+            return localFunction.WithReturnType(newReturnType).WithModifiers(newModifiers);
+        }
+
+        private static TypeSyntax FixMethodReturnType(
+            bool keepVoid, IMethodSymbol methodSymbol, TypeSyntax returnType,
+            INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType)
+        {
+            var newReturnType = returnType;
 
             if (methodSymbol.ReturnsVoid)
             {
@@ -75,8 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                 }
             }
 
-            var newModifiers = method.Modifiers.Add(s_asyncToken);
-            return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
+            return newReturnType;
         }
 
         private SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
