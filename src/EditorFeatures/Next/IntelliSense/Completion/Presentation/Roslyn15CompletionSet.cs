@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
@@ -71,22 +73,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public IReadOnlyList<Span> GetHighlightedSpansInDisplayText(string displayText)
         {
-            if (_highlightMatchingPortions && !string.IsNullOrWhiteSpace(FilterText))
+            if (SuggestionModeItem != null && SuggestionModeItem.DisplayText == displayText)
+            {
+                // Don't highlight the builder-completion-item.
+                return null;
+            }
+
+            var pattern = this.FilterText;
+            if (_highlightMatchingPortions && !string.IsNullOrWhiteSpace(pattern))
             {
                 var completionHelper = this.GetCompletionHelper();
                 if (completionHelper != null)
                 {
-                    var completionItem = this.CompletionItemMap.Keys.FirstOrDefault(k => k.DisplayText == displayText);
+                    var highlightedSpans = completionHelper.GetHighlightedSpans(
+                        displayText, pattern, CultureInfo.CurrentCulture);
 
-                    if (completionItem != null && completionItem != SuggestionModeItem)
-                    {
-                        var highlightedSpans = completionHelper.GetHighlightedSpans(
-                            completionItem, FilterText, CultureInfo.CurrentCulture);
-                        if (highlightedSpans != null)
-                        {
-                            return highlightedSpans.Select(s => s.ToSpan()).ToArray();
-                        }
-                    }
+                    return highlightedSpans.SelectAsArray(s => s.ToSpan());
                 }
             }
 

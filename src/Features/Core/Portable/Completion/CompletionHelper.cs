@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Globalization;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PatternMatching;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -49,58 +48,61 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public ImmutableArray<TextSpan> GetHighlightedSpans(
-            CompletionItem completionItem, string filterText, CultureInfo culture)
+            string text, string pattern, CultureInfo culture)
         {
-            var match = GetMatch(completionItem, filterText, includeMatchSpans: true, culture: culture);
+            var match = GetMatch(text, pattern, includeMatchSpans: true, culture: culture);
             return match == null ? ImmutableArray<TextSpan>.Empty : match.Value.MatchedSpans;
         }
 
         /// <summary>
-        /// Returns true if the completion item matches the filter text typed so far.  Returns 'true'
+        /// Returns true if the completion item matches the pattern so far.  Returns 'true'
         /// iff the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
         /// </summary>
-        public bool MatchesFilterText(CompletionItem item, string filterText, CultureInfo culture)
-        {
-            return GetMatch(item, filterText, culture) != null;
-        }
+        public bool MatchesPattern(string text, string pattern, CultureInfo culture)
+            => GetMatch(text, pattern, culture) != null;
 
-        private PatternMatch? GetMatch(CompletionItem item, string filterText, CultureInfo culture)
-        {
-            return GetMatch(item, filterText, includeMatchSpans: false, culture: culture);
-        }
+        private PatternMatch? GetMatch(string text, string pattern, CultureInfo culture)
+            => GetMatch(text, pattern, includeMatchSpans: false, culture: culture);
 
         private PatternMatch? GetMatch(
-            CompletionItem item, string filterText,
+            string completionItemText, string pattern,
             bool includeMatchSpans, CultureInfo culture)
         {
             // If the item has a dot in it (i.e. for something like enum completion), then attempt
             // to match what the user wrote against the last portion of the name.  That way if they
-            // write "Bl" and we have "Blub" and "Color.Black", we'll consider hte latter to be a
+            // write "Bl" and we have "Blub" and "Color.Black", we'll consider the latter to be a
             // better match as they'll both be prefix matches, and the latter will have a higher
             // priority.
 
-            var lastDotIndex = item.FilterText.LastIndexOf('.');
+            var lastDotIndex = completionItemText.LastIndexOf('.');
             if (lastDotIndex >= 0)
             {
-                var textAfterLastDot = item.FilterText.Substring(lastDotIndex + 1);
-                var match = GetMatchWorker(textAfterLastDot, filterText, includeMatchSpans, culture);
+                var afterDotPosition = lastDotIndex + 1;
+                var textAfterLastDot = completionItemText.Substring(afterDotPosition);
+
+                var match = GetMatchWorker(textAfterLastDot, pattern, includeMatchSpans, culture);
                 if (match != null)
                 {
-                    return match;
+                    return AdjustMatchedSpans(match.Value, afterDotPosition);
                 }
             }
 
             // Didn't have a dot, or the user text didn't match the portion after the dot.
             // Just do a normal check against the entire completion item.
-            return GetMatchWorker(item.FilterText, filterText, includeMatchSpans, culture);
+            return GetMatchWorker(completionItemText, pattern, includeMatchSpans, culture);
         }
 
+        private PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
+            => value.MatchedSpans.IsDefaultOrEmpty
+                ? value
+                : value.WithMatchedSpans(value.MatchedSpans.SelectAsArray(s => new TextSpan(s.Start + offset, s.Length)));
+
         private PatternMatch? GetMatchWorker(
-            string completionItemText, string filterText,
+            string completionItemText, string pattern,
             bool includeMatchSpans, CultureInfo culture)
         {
-            var patternMatcher = this.GetPatternMatcher(filterText, culture);
+            var patternMatcher = this.GetPatternMatcher(pattern, culture);
             var match = patternMatcher.GetFirstMatch(completionItemText, includeMatchSpans);
 
             if (match != null)
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // Start with the culture-specific comparison, and fall back to en-US.
             if (!culture.Equals(EnUSCultureInfo))
             {
-                patternMatcher = this.GetEnUSPatternMatcher(filterText);
+                patternMatcher = this.GetEnUSPatternMatcher(pattern);
                 match = patternMatcher.GetFirstMatch(completionItemText);
                 if (match != null)
                 {
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private PatternMatcher GetPatternMatcher(
-            string value, CultureInfo culture, Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> map)
+            string pattern, CultureInfo culture, Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> map)
         {
             lock (_gate)
             {
@@ -133,36 +135,32 @@ namespace Microsoft.CodeAnalysis.Completion
                     map[culture] = innerMap;
                 }
 
-                if (!innerMap.TryGetValue(value, out var patternMatcher))
+                if (!innerMap.TryGetValue(pattern, out var patternMatcher))
                 {
-                    patternMatcher = new PatternMatcher(value, culture,
+                    patternMatcher = new PatternMatcher(pattern, culture,
                         verbatimIdentifierPrefixIsWordCharacter: true,
                         allowFuzzyMatching: false);
-                    innerMap.Add(value, patternMatcher);
+                    innerMap.Add(pattern, patternMatcher);
                 }
 
                 return patternMatcher;
             }
         }
 
-        private PatternMatcher GetPatternMatcher(string value, CultureInfo culture)
-        {
-            return GetPatternMatcher(value, culture, _patternMatcherMap);
-        }
+        private PatternMatcher GetPatternMatcher(string pattern, CultureInfo culture)
+            => GetPatternMatcher(pattern, culture, _patternMatcherMap);
 
-        private PatternMatcher GetEnUSPatternMatcher(string value)
-        {
-            return GetPatternMatcher(value, EnUSCultureInfo, _fallbackPatternMatcherMap);
-        }
+        private PatternMatcher GetEnUSPatternMatcher(string pattern)
+            => GetPatternMatcher(pattern, EnUSCultureInfo, _fallbackPatternMatcherMap);
 
         /// <summary>
         /// Returns true if item1 is a better completion item than item2 given the provided filter
         /// text, or false if it is not better.
         /// </summary>
-        public int CompareItems(CompletionItem item1, CompletionItem item2, string filterText, CultureInfo culture)
+        public int CompareItems(CompletionItem item1, CompletionItem item2, string pattern, CultureInfo culture)
         {
-            var match1 = GetMatch(item1, filterText, culture);
-            var match2 = GetMatch(item2, filterText, culture);
+            var match1 = GetMatch(item1.FilterText, pattern, culture);
+            var match2 = GetMatch(item2.FilterText, pattern, culture);
 
             if (match1 != null && match2 != null)
             {

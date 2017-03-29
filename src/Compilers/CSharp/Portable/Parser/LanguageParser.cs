@@ -1826,7 +1826,7 @@ tryAgain:
                 }
                 else
                 {
-                    TypeSyntax firstType = this.ParseDeclarationType();
+                    TypeSyntax firstType = this.ParseType();
 
                     list.Add(_syntaxFactory.SimpleBaseType(firstType));
 
@@ -1847,7 +1847,7 @@ tryAgain:
                             }
                             else
                             {
-                                list.Add(_syntaxFactory.SimpleBaseType(this.ParseDeclarationType()));
+                                list.Add(_syntaxFactory.SimpleBaseType(this.ParseType()));
                             }
 
                             continue;
@@ -1994,17 +1994,6 @@ tryAgain:
                 p => this.CurrentToken.Kind != SyntaxKind.CommaToken && !this.IsPossibleTypeParameterConstraint(),
                 p => this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || this.IsPossibleTypeParameterConstraintClauseStart() || this.IsTerminator(),
                 expected);
-        }
-
-        private TypeSyntax ParseDeclarationType()
-        {
-            var type = this.ParseType();
-            if (type.Kind != SyntaxKind.PredefinedType && !SyntaxFacts.IsName(type.Kind))
-            {
-                type = this.AddError(type, ErrorCode.ERR_BadBaseType);
-            }
-
-            return type;
         }
 
         private bool IsPossibleMemberStart()
