@@ -63,7 +63,10 @@ namespace Microsoft.CodeAnalysis.SQLite
         public override void Close()
         {
             _shutdownCancellationSource.Cancel();
-            _connection.Dispose();
+            using (_gate.DisposableWait())
+            {
+                _connection.Dispose();
+            }
         }
 
         private static Stream GetStream(byte[] bytes)
@@ -112,6 +115,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
             using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
             {
+                linkedSource.Token.ThrowIfCancellationRequested();
+
                 SolutionData data = null;
                 try
                 {
@@ -131,6 +136,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
             using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
             {
+                linkedSource.Token.ThrowIfCancellationRequested();
+
                 var bytes = GetBytes(stream);
 
                 try
@@ -157,6 +164,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
             using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
             {
+                linkedSource.Token.ThrowIfCancellationRequested();
+
                 var id = TryGetProjectId(project);
                 if (id == null)
                 {
@@ -183,6 +192,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
             using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
             {
+                linkedSource.Token.ThrowIfCancellationRequested();
+
                 var bytes = GetBytes(stream);
                 var id = TryGetProjectId(project);
 
@@ -214,6 +225,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
             using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
             {
+                linkedSource.Token.ThrowIfCancellationRequested();
+
                 var id = TryGetDocumentId(document);
                 if (id == null)
                 {
@@ -240,6 +253,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
             using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
             {
+                linkedSource.Token.ThrowIfCancellationRequested();
+
                 var bytes = GetBytes(stream);
                 var id = TryGetDocumentId(document);
 
