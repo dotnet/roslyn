@@ -1589,8 +1589,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((interpolatedString as InterpolatedStringExpressionSyntax)?.Contents).Value;
         }
 
-        public bool IsStringLiteral(SyntaxToken token)
+        public override bool IsStringLiteral(SyntaxToken token)
             => token.IsKind(SyntaxKind.StringLiteralToken);
+
+        public override bool IsInterpolatedStringTextToken(SyntaxToken token)
+            => token.IsKind(SyntaxKind.InterpolatedStringTextToken);
 
         public bool IsStringLiteralExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.StringLiteralExpression;
@@ -1989,5 +1992,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan)
             => ImmutableArray<SyntaxNode>.CastUp(root.GetMembersInSpan(textSpan));
+
+        protected override bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
+            => token.ContainsInterleavedDirective(span, cancellationToken);
     }
 }

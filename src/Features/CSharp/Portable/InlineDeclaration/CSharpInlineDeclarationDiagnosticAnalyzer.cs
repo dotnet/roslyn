@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 var compilation = compilationContext.Compilation;
-                var expressionTypeOpt = compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+                var expressionTypeOpt = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
                 compilationContext.RegisterSyntaxNodeAction(
                     syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionTypeOpt), SyntaxKind.Argument);
             });
@@ -111,6 +112,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var identifierName = (IdentifierNameSyntax)argumentExpression;
+
+            // Don't offer to inline variables named "_".  It can cause is to create a discard symbol
+            // which would cause a break.
+            if (identifierName.Identifier.ValueText == "_")
+            {
+                return;
+            }
 
             var containingStatement = argumentExpression.FirstAncestorOrSelf<StatementSyntax>();
             if (containingStatement == null)

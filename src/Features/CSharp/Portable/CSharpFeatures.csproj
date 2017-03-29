@@ -63,6 +63,9 @@
     <Compile Include="AddPackage\CSharpAddSpecificPackageCodeFixProvider.cs" />
     <Compile Include="AddParameter\CSharpAddParameterCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnusedVariable\RemoveUnusedVariableCodeFixProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.NameGenerator.cs" />
+    <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.DeclarationInfo.cs" />
+    <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider_BuiltInStyles.cs" />
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.cs" />
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.Pattern.cs" />
     <Compile Include="ConvertNumericLiteral\CSharpConvertNumericLiteralCodeRefactoringProvider.cs" />
@@ -75,8 +78,10 @@
       <DependentUpon>CSharpFeaturesResources.resx</DependentUpon>
     </Compile>
     <Compile Include="DesignerAttributes\CSharpDesignerAttributeService.cs" />
+    <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.cs" />
     <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="ImplementInterface\CSharpImplementInterfaceCodeFixProvider.cs" />
+    <Compile Include="ReplacePropertyWithMethods\ConvertValueToReturnsRewriter.cs" />
     <Compile Include="Structure\Providers\ArrowExpressionClauseStructureProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\CSharpConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
@@ -104,6 +109,7 @@
     <Compile Include="UseCollectionInitializer\CSharpUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="UseNullPropagation\CSharpUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="UseNullPropagation\CSharpUseNullPropagationDiagnosticAnalyzer.cs" />
+    <Compile Include="UseObjectInitializer\UseInitializerHelpers.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzer.cs" />
     <Compile Include="UsePatternMatching\CSharpAsAndNullCheckDiagnosticAnalyzer.cs" />

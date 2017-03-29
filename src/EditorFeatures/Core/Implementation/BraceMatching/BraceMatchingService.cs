@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -13,14 +14,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
     [Export(typeof(IBraceMatchingService))]
     internal class BraceMatchingService : IBraceMatchingService
     {
-        private readonly List<Lazy<IBraceMatcher, LanguageMetadata>> _braceMatchers;
+        private readonly ImmutableArray<Lazy<IBraceMatcher, LanguageMetadata>> _braceMatchers;
 
         [ImportingConstructor]
         public BraceMatchingService(
             [ImportMany] IEnumerable<Lazy<IBraceMatcher, LanguageMetadata>> braceMatchers)
         {
-            ////braceMatchers.RealizeImports();
-            _braceMatchers = braceMatchers.ToList();
+            _braceMatchers = braceMatchers.ToImmutableArray();
         }
 
         public async Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, CancellationToken cancellationToken)

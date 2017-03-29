@@ -10,19 +10,20 @@
     <BinariesPath>$(RepoRoot)Binaries\$(Configuration)</BinariesPath>
     <RoslynNuGetApiKey Condition="'$(RoslynNuGetApiKey)' == ''">"no key"</RoslynNuGetApiKey>
     <PublishAssetsArgs Condition="'$(SkipPublish)' == 'true'">-test</PublishAssetsArgs>
+    <SignRoslynArgs>-msbuildPath "$(MSBuildBinPath)\msbuild.exe"</SignRoslynArgs>
   </PropertyGroup>
 
   <!-- Non-official builds / local testing have different defaults -->
   <PropertyGroup Condition="'$(OfficialBuild)' != 'true'">
     <BranchName Condition="'$(BranchName)' == ''">master</BranchName>
-    <SignRoslynArgs>-test</SignRoslynArgs>
+    <SignRoslynArgs>$(SignRoslynArgs) -test</SignRoslynArgs>
     <PublishAssetsArgs>-test</PublishAssetsArgs>
     <CopyInsertionFileArgs>-test</CopyInsertionFileArgs>
     <SetupStep2Properties>FinalizeValidate=false;ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6</SetupStep2Properties>
   </PropertyGroup>
 
   <Target Name="Build">
-    <Exec Command="powershell -noprofile -executionPolicy ByPass -file build\scripts\restore.ps1 -clean -msbuildDir &quot;$(MSBuildBinPath)&quot;" WorkingDirectory="$(RepoRoot)" />
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(RepoRoot)build\scripts\restore.ps1 -msbuildDir &quot;$(MSBuildBinPath)&quot;" Condition="'$(SkipRestore)' != 'true'" />
 
     <MSBuild Projects="$(RepoRoot)Roslyn.sln" BuildInParallel="true" Properties="DeployExtension=false" />
 

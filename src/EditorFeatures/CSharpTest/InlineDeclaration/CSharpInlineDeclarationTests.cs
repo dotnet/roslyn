@@ -1610,5 +1610,25 @@ class C
     }
 }", ignoreTrivia: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingOnUnderscore()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        [|int|] _;
+        if (N(out _)
+        {
+            Console.WriteLine(_);
+        }
+    }
+}");
+        }
     }
 }

@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Automation;
+using System.Windows.Documents;
 using System.Windows.Forms;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
@@ -16,14 +17,13 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Hosting.Diagnostics.Waiters;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
-    internal class Editor_InProc : InProcComponent
+    internal class Editor_InProc : TextViewWindow_InProc
     {
         private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static Editor_InProc Create()
             => new Editor_InProc();
 
-        private static IWpfTextView GetActiveTextView()
+        protected override IWpfTextView GetActiveTextView()
             => GetActiveTextViewHost().TextView;
 
         private static IVsTextView GetActiveVsTextView()
@@ -44,36 +44,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             return vsTextView;
         }
-
-        public string[] GetCurrentClassifications()
-            => InvokeOnUIThread(() =>
-            {
-                IClassifier classifier = null;
-                try
-                {
-                    var textView = GetActiveTextView();
-                    var selectionSpan = textView.Selection.StreamSelectionSpan.SnapshotSpan;
-                    if (selectionSpan.Length == 0)
-                    {
-                        var textStructureNavigatorSelectorService = GetComponentModelService<ITextStructureNavigatorSelectorService>();
-                        selectionSpan = textStructureNavigatorSelectorService
-                            .GetTextStructureNavigator(textView.TextBuffer)
-                            .GetExtentOfWord(selectionSpan.Start).Span;
-                    }
-
-                    var classifierAggregatorService = GetComponentModelService<IViewClassifierAggregatorService>();
-                    classifier = classifierAggregatorService.GetClassifier(textView);
-                    var classifiedSpans = classifier.GetClassificationSpans(selectionSpan);
-                    return classifiedSpans.Select(x => x.ClassificationType.Classification).ToArray();
-                }
-                finally
-                {
-                    if (classifier is IDisposable classifierDispose)
-                    {
-                        classifierDispose.Dispose();
-                    }
-                }
-            });
 
         private static IWpfTextViewHost GetActiveTextViewHost()
         {
@@ -92,25 +62,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// <summary>
         /// Non-blocking version of <see cref="ExecuteOnActiveView"/>
         /// </summary>
-        private static void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
+        private void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
             => BeginInvokeOnUIThread(GetExecuteOnActionViewCallback(action));
 
-        private static void ExecuteOnActiveView(Action<IWpfTextView> action)
-            => InvokeOnUIThread(GetExecuteOnActionViewCallback(action));
+        public string GetActiveBufferName()
+        {
+            return GetDTE().ActiveDocument.Name;
+        }
 
-        private static Action GetExecuteOnActionViewCallback(Action<IWpfTextView> action)
-            => () =>
-            {
-                var view = GetActiveTextView();
-                action(view);
-            };
-
-        private static T ExecuteOnActiveView<T>(Func<IWpfTextView, T> action)
-            => InvokeOnUIThread(() =>
-            {
-                var view = GetActiveTextView();
-                return action(view);
-            });
+        public void WaitForActiveView(string expectedView)
+        {
+            Retry(GetActiveBufferName, (actual) => actual == expectedView, TimeSpan.FromMilliseconds(100));
+        }
 
         public void Activate()
             => GetDTE().ActiveDocument.Activate();
@@ -136,15 +99,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return line.GetText();
             });
 
-        public int GetCaretPosition()
-            => ExecuteOnActiveView(view =>
-            {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var bufferPosition = view.Caret.Position.BufferPosition;
-
-                return bufferPosition.Position;
-            });
-
         public string GetLineTextBeforeCaret()
             => ExecuteOnActiveView(view =>
             {
@@ -167,6 +121,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return text.Substring(bufferPosition.Position - line.Start);
             });
 
+        public string GetSelectedText()
+            => ExecuteOnActiveView(view =>
+            {
+                var subjectBuffer = view.GetBufferContainingCaret();
+                var selectedSpan = view.Selection.SelectedSpans[0];
+                return subjectBuffer.CurrentSnapshot.GetText(selectedSpan);
+            });
+
         public void MoveCaret(int position)
             => ExecuteOnActiveView(view =>
             {
@@ -174,122 +136,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
 
                 view.Caret.MoveTo(point);
-            });
-
-        public void PlaceCaret(string marker, int charsOffset, int occurrence, bool extendSelection, bool selectBlock)
-            => ExecuteOnActiveView(view =>
-            {
-                var dte = GetDTE();
-                dte.Find.FindWhat = marker;
-                dte.Find.MatchCase = true;
-                dte.Find.MatchInHiddenText = true;
-                dte.Find.Target = EnvDTE.vsFindTarget.vsFindTargetCurrentDocument;
-                dte.Find.Action = EnvDTE.vsFindAction.vsFindActionFind;
-
-                var originalPosition = GetCaretPosition();
-                view.Caret.MoveTo(new Microsoft.VisualStudio.Text.SnapshotPoint(view.GetBufferContainingCaret().CurrentSnapshot, 0));
-
-                if (occurrence > 0)
-                {
-                    var result = EnvDTE.vsFindResult.vsFindResultNotFound;
-                    for (var i = 0; i < occurrence; i++)
-                    {
-                        result = dte.Find.Execute();
-                    }
-
-                    if (result != EnvDTE.vsFindResult.vsFindResultFound)
-                    {
-                        throw new Exception("Occurrence " + occurrence + " of marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
-                    }
-                }
-                else
-                {
-                    var result = dte.Find.Execute();
-                    if (result != EnvDTE.vsFindResult.vsFindResultFound)
-                    {
-                        throw new Exception("Marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
-                    }
-                }
-
-                if (charsOffset > 0)
-                {
-                    for (var i = 0; i < charsOffset - 1; i++)
-                    {
-                        view.Caret.MoveToNextCaretPosition();
-                    }
-
-                    view.Selection.Clear();
-                }
-
-                if (charsOffset < 0)
-                {
-                    // On the first negative charsOffset, move to anchor-point position, as if the user hit the LEFT key
-                    view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, view.Selection.AnchorPoint.Position.Position));
-
-                    for (var i = 0; i < -charsOffset - 1; i++)
-                    {
-                        view.Caret.MoveToPreviousCaretPosition();
-                    }
-
-                    view.Selection.Clear();
-                }
-
-                if (extendSelection)
-                {
-                    var newPosition = view.Selection.ActivePoint.Position.Position;
-                    view.Selection.Select(new VirtualSnapshotPoint(view.TextSnapshot, originalPosition), new VirtualSnapshotPoint(view.TextSnapshot, newPosition));
-                    view.Selection.Mode = selectBlock ? TextSelectionMode.Box : TextSelectionMode.Stream;
-                }
-            });
-
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
-        public string[] GetCompletionItems()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ICompletionBroker>();
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
-                }
-
-                var selectedCompletionSet = sessions[0].SelectedCompletionSet;
-
-                return selectedCompletionSet.Completions.Select(c => c.DisplayText).ToArray();
-            });
-
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
-        public string GetCurrentCompletionItem()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ICompletionBroker>();
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
-                }
-
-                var selectedCompletionSet = sessions[0].SelectedCompletionSet;
-                return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
-            });
-
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
-        public bool IsCompletionActive()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ICompletionBroker>();
-                return broker.IsCompletionActive(view);
             });
 
         /// <remarks>
@@ -328,15 +174,29 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public Signature GetCurrentSignature()
             => ExecuteOnActiveView(view =>
             {
-                var broken = GetComponentModelService<ISignatureHelpBroker>();
+                var broker = GetComponentModelService<ISignatureHelpBroker>();
 
-                var sessions = broken.GetSessions(view);
+                var sessions = broker.GetSessions(view);
                 if (sessions.Count != 1)
                 {
                     throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
                 }
 
                 return new Signature(sessions[0].SelectedSignature);
+            });
+
+        public string GetQuickInfo()
+            => ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModelService<IQuickInfoBroker>();
+
+                var sessions = broker.GetSessions(view);
+                if (sessions.Count != 1)
+                {
+                    throw new InvalidOperationException($"Expected exactly one QuickInfo session, but found {sessions.Count}");
+                }
+
+                return QuickInfoToStringConverter.GetStringFromBulkContent(sessions[0].QuickInfoContent);
             });
 
         public bool IsCaretOnScreen()
@@ -556,6 +416,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             SendKeys.SendWait(keys);
         }
 
+        public void SendKeysToNavigateTo(string keys)
+        {
+            var dialogAutomationElement = FindNavigateTo();
+            if (dialogAutomationElement == null)
+            {
+                throw new InvalidOperationException($"Expected the NavigateTo dialog to be open, but it is not.");
+            }
+
+            dialogAutomationElement.SetFocus();
+            SendKeys.SendWait(keys);
+        }
+
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
             DialogHelpers.PressButton(GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
@@ -578,6 +450,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
 
             return vsAutomationElement.FindFirst(TreeScope.Descendants, elementCondition);
+        }
+
+        private static AutomationElement FindNavigateTo()
+        {
+            var vsAutomationElement = AutomationElement.FromHandle(new IntPtr(GetDTE().MainWindow.HWnd));
+            return vsAutomationElement.FindDescendantByAutomationId("PART_SearchBox");
         }
 
         private T Retry<T>(Func<T> action, Func<T, bool> stoppingCondition, TimeSpan delay)
@@ -785,5 +663,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void Undo()
             => GetDTE().ExecuteCommand("Edit.Undo");
+
+        protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
+        {
+            return view.GetBufferContainingCaret();
+        }
     }
 }
