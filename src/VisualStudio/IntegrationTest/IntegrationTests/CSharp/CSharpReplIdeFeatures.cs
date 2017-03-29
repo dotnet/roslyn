@@ -35,17 +35,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void VerifyCodeActionsAvailableInCurrentSubmission()
         {
             this.InsertCode("Directory.Exists(\"foo\");");
-            //      <VerifyCodeActions ApplyFix = "using System.IO;" >
-            //        < ExpectedItems >
-            //          < string >using System.IO;</string>
-            //          <string>System.IO.Directory</string>
-            //        </ExpectedItems>
-            //      </VerifyCodeActions>
-            //      <VerifyReplInput>
-            //        <![CDATA[using System.IO;
-
-            //Directory.Exists("foo");]]>
-            //      </VerifyReplInput>
+            this.VerifyCodeActions(
+                new string[] { "using System.IO;", "System.IO.Directory"}, 
+                "using System.IO;");
+            this.VerifyLastReplInput(@"using System.IO;
+Directory.Exists(""foo"");");            
         }
 
         [Fact]
@@ -71,7 +65,6 @@ static void TestMethod(int y)
 }");
 
             this.PlaceCaret("loc");
-            //      <PlaceCursor Marker = "loc" />
             //      < Rename />
             //      < VerifyRenameTags ExpectedCount="3" SpanLength="3" SpanText="loc">
             //        <SpanStart Capacity = "3" >
@@ -119,7 +112,6 @@ static void TestMethod(int y)
         public void MethodSignatureHelp()
         {
             this.InsertCode("Console.WriteLine(tr");
-
             //      <InvokeSignatureHelp />
             //      <VerifySignatureHelp>
             //        <ExpectedSelectedSignature>
@@ -240,18 +232,12 @@ static void TestMethod(int y)
         {
             // see bug 711467
             this.InsertCode("Process");
-
-            //      < VerifyCodeActions ApplyFix="using System.Diagnostics;">
-            //        <ExpectedItems>
-            //          <string>using System.Diagnostics;</string>
-            //          <string>System.Diagnostics.Process</string>
-            //        </ExpectedItems>
-            //      </VerifyCodeActions>
-            //      <VerifyReplInput>
-            //        <![CDATA[using System.Diagnostics;
-
-            //Process]]>
-            //      </VerifyReplInput>
+            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            this.VerifyCodeActions(
+                new string[] { "using System.Diagnostics;", "System.Diagnostics.Process" },
+                "using System.Diagnostics;");
+            this.VerifyLastReplInput(@"using System.Diagnostics;
+Process");
         }
 
         [Fact]
@@ -308,31 +294,14 @@ typeof(ArrayList)");
         [Fact(Skip = "No support of quick actions in ETA scenario")]
         public void QualifyName()
         {
-            //      < !- -ETA doesn't handle ctrl-. in tool windows - ->
-            //      <ExcludeScenarioInHost HostName = "ETA" />
             this.InsertCode("typeof(ArrayList)");
-
-            //      < WaitForWorkspace />
+            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
             this.PlaceCaret("ArrayList");
-
-            //      <WaitForWorkspace />
-            //      <VerifyCodeActions ApplyFix = "System.Collections.ArrayList" >
-            //        < ExpectedItems >
-            //          < string >using System.Collections;</string>
-            //          <string>System.Collections.ArrayList</string>
-            //        </ExpectedItems>
-            //      </VerifyCodeActions>
-            //      <VerifyReplInput>
-            //        <![CDATA[typeof(System.Collections.ArrayList)]]>
-            //      </VerifyReplInput>
-            //    </Scenario>
-            //    -->
-            //  </ScenarioList>
-
-            //  <CleanupScenario>
-            //    <SendKeys>{ESC}{ESC}{ESC}</SendKeys>
-            //    <SubmitReplText>#cls</SubmitReplText>
-            //  </CleanupScenario>
+            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            this.VerifyCodeActions(
+    new string[] { "using System.Collections;", "System.Collections.ArrayList" },
+    "System.Collections.ArrayList");
+            this.VerifyLastReplInput("System.Collections.ArrayList");
         }
     }
 }
