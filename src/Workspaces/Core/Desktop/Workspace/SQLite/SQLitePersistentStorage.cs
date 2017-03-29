@@ -72,11 +72,14 @@ namespace Microsoft.CodeAnalysis.SQLite
         private static Stream GetStream(byte[] bytes)
             => bytes == null ? null : new MemoryStream(bytes, writable: false);
 
-        private string GetProjectDataId(int projectId, int nameId)
-            => Invariant($"{projectId}-{nameId}");
+        private long GetProjectDataId(int projectId, int nameId)
+            => CombineInt32ToInt64(projectId, nameId);
 
-        private string GetDocumentDataId(int documentId, int nameId)
-            => Invariant($"{documentId}-{nameId}");
+        private long GetDocumentDataId(int documentId, int nameId)
+            => CombineInt32ToInt64(documentId, nameId);
+
+        private long CombineInt32ToInt64(int v1, int v2)
+            => ((long)v1 << 32) | (long)v2;
 
         private byte[] GetBytes(Stream stream)
         {
@@ -475,7 +478,7 @@ namespace Microsoft.CodeAnalysis.SQLite
     internal class ProjectData
     {
         [PrimaryKey]
-        public string Id { get; set; }
+        public long Id { get; set; }
 
         public byte[] Data { get; set; }
     }
@@ -483,7 +486,7 @@ namespace Microsoft.CodeAnalysis.SQLite
     internal class DocumentData
     {
         [PrimaryKey]
-        public string Id { get; set; }
+        public long Id { get; set; }
 
         public byte[] Data { get; set; }
     }
