@@ -491,7 +491,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private static ImmutableArray<byte> SerializeBitVector(ImmutableArray<TypedConstant> vector)
+        private static ImmutableArray<byte> SerializeBitVector(ImmutableArray<bool> vector)
         {
             var builder = ArrayBuilder<byte>.GetInstance();
 
@@ -499,7 +499,7 @@ namespace Microsoft.Cci
             int shift = 0;
             for (int i = 0; i < vector.Length; i++)
             {
-                if ((bool)vector[i].Value)
+                if (vector[i])
                 {
                     b |= 1 << shift;
                 }
@@ -535,11 +535,11 @@ namespace Microsoft.Cci
             return builder.ToImmutableAndFree();
         }
 
-        private static void SerializeTupleElementNames(BlobBuilder builder, ImmutableArray<TypedConstant> names)
+        private static void SerializeTupleElementNames(BlobBuilder builder, ImmutableArray<string> names)
         {
             foreach (var name in names)
             {
-                WriteUtf8String(builder, (string)name.Value ?? string.Empty);
+                WriteUtf8String(builder, name ?? string.Empty);
             }
         }
 

@@ -14,8 +14,12 @@ try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Write-Host "Calling Get-MSBuildKindAndDir"
     Get-MSBuildKindAndDir
+    Write-Host "Calling Get-MSBuildKindAndDir -xcopy"
+    Get-MSBuildKindAndDir -xcopy
     Write-Host "Calling Get-MSBuildDir"
     Get-MSBuildDir
+    Write-Host "Calling Get-MSBuildDir -xcopy"
+    Get-MSBuildDir -xcopy
     
     try {
         Write-Host "Calling Get-VisualStudioDir"
@@ -24,7 +28,23 @@ try {
     catch { 
         Write-Host "Unable to find Visual Studio (expected on a machine without VS)"
         Write-Host $_
+        Write-Host $_.Exception
     }
+
+    try { 
+
+        $vswhere = Ensure-BasicTool "vswhere" "1.0.50"
+        Write-Host "VSWhere is $vswhere"
+    }
+    catch { 
+        Write-Host "Error gettin vswhere"
+        Write-Host $_
+        Write-Host $_.Exception
+    }
+
+    Write-Host "Enumerate packages dir"
+    $d = Get-PackagesDir
+    Get-ChildItem $d
 
 }
 catch {

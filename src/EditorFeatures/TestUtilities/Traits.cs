@@ -22,6 +22,7 @@ namespace Roslyn.Test.Utilities
             public const string BlockCommentEditing = nameof(BlockCommentEditing);
             public const string BraceHighlighting = nameof(BraceHighlighting);
             public const string BraceMatching = nameof(BraceMatching);
+            public const string Build = nameof(Build);
             public const string CallHierarchy = nameof(CallHierarchy);
             public const string CaseCorrection = nameof(CaseCorrection);
             public const string ChangeSignature = nameof(ChangeSignature);
@@ -30,6 +31,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsAddConstructorParametersFromMembers = "CodeActions.AddConstructorParametersFromMembers";
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
+            public const string CodeActionsUpgradeProject = "CodeActions.UpgradeProject";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";

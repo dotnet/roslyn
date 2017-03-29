@@ -210,13 +210,13 @@ namespace Microsoft.CodeAnalysis.Remote
             return session;
         }
 
-        private static PersistentStorageService GetPersistentStorageService()
+        private static AbstractPersistentStorageService GetPersistentStorageService()
         {
             // A bit slimy.  We just create an adhoc workspace so it will create the singleton
             // PersistentStorageService.  This service will be shared among all Workspaces we 
             // create in this process.  So updating it will be seen by all.
             var workspace = new AdhocWorkspace(RoslynServices.HostServices);
-            var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
+            var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
             return persistentStorageService;
         }
     }

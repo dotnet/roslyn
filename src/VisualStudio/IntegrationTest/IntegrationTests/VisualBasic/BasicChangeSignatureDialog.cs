@@ -5,7 +5,11 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -20,7 +24,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             : base(instanceFactory, nameof(BasicChangeSignatureDialog))
         {
         }
-        
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17393"),
          Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCodeRefactoringOffered()
@@ -31,8 +35,8 @@ Class C
     End Sub
 End Class");
 
-            InvokeCodeActionList();
-            VerifyCodeAction("Change signature...", applyFix: false);
+            this.InvokeCodeActionList();
+            this.VerifyCodeAction("Change signature...", applyFix: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -48,12 +52,12 @@ End Class");
             ChangeSignatureDialog.VerifyOpen();
             ChangeSignatureDialog.ClickCancel();
             ChangeSignatureDialog.VerifyClosed();
-
-            VerifyTextContains(@"
+            var actualText = Editor.GetText();
+            Assert.Contains(@"
 Class C
     Sub Method(a As Integer, b As String)
     End Sub
-End Class");
+End Class", actualText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -71,12 +75,12 @@ End Class");
             ChangeSignatureDialog.ClickDownButton();
             ChangeSignatureDialog.ClickOK();
             ChangeSignatureDialog.VerifyClosed();
-
-            VerifyTextContains(@"
+            var actualText = Editor.GetText();
+            Assert.Contains(@"
 Class C
     Sub Method(b As String, a As Integer)
     End Sub
-End Class");
+End Class", actualText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -89,8 +93,8 @@ Class VBTest
         x.Method$$(0, ""str"", 3.0)
     End Sub
 End Class");
-
-            VisualStudio.Instance.SolutionExplorer.AddProject("CSharpProject", WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
+            var csharpProject = new ProjectUtils.Project("CSharpProject");
+            this.AddProject(WellKnownProjectTemplates.ClassLibrary, csharpProject, LanguageNames.CSharp);
             Editor.SetText(@"
 public class CSharpClass
 {
@@ -106,11 +110,13 @@ public class CSharpClass
         return 1;
     }
 }");
-            VisualStudio.Instance.SolutionExplorer.SaveAll();
-            VisualStudio.Instance.SolutionExplorer.AddProjectReference(ProjectName, "CSharpProject");
-            VisualStudio.Instance.SolutionExplorer.OpenFile(ProjectName, "Class1.vb");
+            this.SaveAll();
+            var project = new ProjectUtils.Project(ProjectName);
+            var csharpProjectReference = new ProjectUtils.ProjectReference("CSharpProject");
+            this.AddProjectReference(project, csharpProjectReference);
+            this.OpenFile("Class1.vb", project);
 
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
+            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
 
             ChangeSignatureDialog.Invoke();
             ChangeSignatureDialog.VerifyOpen();
@@ -125,11 +131,11 @@ public class CSharpClass
             ChangeSignatureDialog.ClickRestoreButton();
             ChangeSignatureDialog.ClickOK();
             ChangeSignatureDialog.VerifyClosed();
-
-            VerifyTextContains(@"x.Method(""str"")");
-
-            VisualStudio.Instance.SolutionExplorer.OpenFile("CSharpProject", "Class1.cs");
-            VerifyTextContains(@"
+            var actualText = Editor.GetText();
+            Assert.Contains(@"x.Method(""str"")", actualText);
+            this.OpenFile("Class1.cs", csharpProject);
+            actualText = Editor.GetText();
+            var expectedText = @"
 public class CSharpClass
 {
     /// <summary>
@@ -143,7 +149,8 @@ public class CSharpClass
     {
         return 1;
     }
-}");
+}";
+            Assert.Contains(expectedText, actualText);
         }
     }
 }

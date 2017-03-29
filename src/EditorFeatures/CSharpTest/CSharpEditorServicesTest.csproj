@@ -199,11 +199,14 @@
     <Compile Include="ConflictMarkerResolution\ConflictMarkerResolutionTests.cs" />
     <Compile Include="Completion\CompletionProviders\OverrideCompletionProviderTests_ExpressionBody.cs" />
     <Compile Include="Completion\CompletionProviders\TupleNameCompletionProviderTests.cs" />
+    <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProviderTests.cs" />
     <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.cs" />
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.cs" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.cs" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.cs" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
+    <Compile Include="Diagnostics\UpgradeProject\UpgradeProjectTests.cs" />
+    <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProviderTests_NameDeclarationInfoTests.cs" />
     <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.cs" />
     <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.cs" />
     <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.cs" />

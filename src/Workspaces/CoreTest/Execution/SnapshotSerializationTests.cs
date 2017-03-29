@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Linq;
@@ -396,32 +397,48 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task RoundTrip_Analyzer_Serailization_Test()
         {
-            var workspace = new AdhocWorkspace();
-            var serializer = new Serializer(workspace);
+            using (var tempRoot = new TempRoot())
+            {
+                var workspace = new AdhocWorkspace();
+                var serializer = new Serializer(workspace);
 
-            var reference = new AnalyzerFileReference(typeof(object).Assembly.Location, new MockShadowCopyAnalyzerAssemblyLoader());
+                // actually shadow copy content
+                var location = typeof(object).Assembly.Location;
+                var file = tempRoot.CreateFile("shadow", "dll");
+                file.CopyContentFrom(location);
 
-            // make sure this doesn't throw
-            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
-            var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
-            var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+                var reference = new AnalyzerFileReference(location, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(location, file.Path)));
+
+                // make sure this doesn't throw
+                var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+                var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
+                var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+            }
         }
 
         [Fact]
         public async Task RoundTrip_Analyzer_Serailization_Desktop_Test()
         {
-            var hostServices = MefHostServices.Create(
+            using (var tempRoot = new TempRoot())
+            {
+                var hostServices = MefHostServices.Create(
                 MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
 
-            var workspace = new AdhocWorkspace(hostServices);
-            var serializer = new Serializer(workspace);
+                var workspace = new AdhocWorkspace(hostServices);
+                var serializer = new Serializer(workspace);
 
-            var reference = new AnalyzerFileReference(typeof(object).Assembly.Location, new MockShadowCopyAnalyzerAssemblyLoader());
+                // actually shadow copy content
+                var location = typeof(object).Assembly.Location;
+                var file = tempRoot.CreateFile("shadow", "dll");
+                file.CopyContentFrom(location);
 
-            // make sure this doesn't throw
-            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
-            var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
-            var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+                var reference = new AnalyzerFileReference(location, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(location, file.Path)));
+
+                // make sure this doesn't throw
+                var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+                var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
+                var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+            }
         }
 
         [Fact]
@@ -774,14 +791,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class MockShadowCopyAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
         {
+            private readonly ImmutableDictionary<string, string> _map;
+
+            public MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string> map)
+            {
+                _map = map;
+            }
+
             public void AddDependencyLocation(string fullPath)
             {
             }
 
             public Assembly LoadFromPath(string fullPath)
             {
-                // return something other than given one. mimicing behavior of shadow copy 
-                return typeof(SharedAttribute).Assembly;
+                return Assembly.LoadFrom(_map[fullPath]);
             }
         }
 

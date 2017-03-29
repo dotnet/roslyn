@@ -37,13 +37,13 @@ class C
 }
 ";
             CreateCompilationWithMscorlib(test, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (9,13): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (9,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //             case 2 when args.Length == 2:
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case 2 when args.Length == 2:").WithArguments("pattern matching", "7").WithLocation(9, 13),
-                // (11,13): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (11,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //             case string s:
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case string s:").WithArguments("pattern matching", "7").WithLocation(11, 13),
-                // (15,18): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (15,18): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //         bool b = args[0] is string s;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "args[0] is string s").WithArguments("pattern matching", "7").WithLocation(15, 18)
             );
@@ -68,28 +68,28 @@ class C
 }";
             CreateCompilationWithMscorlib(test).VerifyDiagnostics();
             CreateCompilationWithMscorlib(test, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
                 //         void NeverReturnsFunction() => throw new NullReferenceException();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "NeverReturnsFunction").WithArguments("local functions", "7").WithLocation(6, 14),
-                // (6,40): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,40): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7 or greater.
                 //         void NeverReturnsFunction() => throw new NullReferenceException();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7").WithLocation(6, 40),
-                // (7,21): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                // (7,21): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7 or greater.
                 //         int x = b ? throw new NullReferenceException() : 1;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7").WithLocation(7, 21),
-                // (8,21): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                // (8,21): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7 or greater.
                 //         x = b ? 2 : throw new NullReferenceException();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7").WithLocation(8, 21),
-                // (9,18): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                // (9,18): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7 or greater.
                 //         s = s ?? throw new NullReferenceException();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7").WithLocation(9, 18),
-                // (11,47): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                // (11,47): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7 or greater.
                 //         throw new NullReferenceException() ?? throw new NullReferenceException() ?? throw null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException() ?? throw null").WithArguments("throw expression", "7").WithLocation(11, 47),
-                // (11,85): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                // (11,85): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7 or greater.
                 //         throw new NullReferenceException() ?? throw new NullReferenceException() ?? throw null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw null").WithArguments("throw expression", "7").WithLocation(11, 85),
-                // (13,42): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                // (13,42): error CS8059: Feature 'throw expression' is not available in C# 6. Please use language version 7 or greater.
                 //     public static void NeverReturns() => throw new NullReferenceException();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7").WithLocation(13, 42)
                 );
