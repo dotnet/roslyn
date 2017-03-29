@@ -232,7 +232,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (!AreEquivalent(rangeDiagnostics, wholeDiagnostics))
                 {
                     // otherwise, report non-fatal watson so that we can fix those cases
-                    FatalError.ReportWithoutCrash(new Exception("Bug in GetDiagnostics"));
+                    try
+                    {
+                        throw new Exception("Bug in GetDiagnostics");
+                    }
+                    catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                    {
+                    }
 
                     // make sure we hold onto these for debugging.
                     GC.KeepAlive(rangeDeclaractionDiagnostics);

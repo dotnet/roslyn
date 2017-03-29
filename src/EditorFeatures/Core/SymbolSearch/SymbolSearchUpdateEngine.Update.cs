@@ -564,15 +564,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         await action().ConfigureAwait(false);
                         return;
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (IOUtilities.IsNormalIOException(e) || _service._reportAndSwallowException(e))
                     {
-                        // Normal IO exception. Don't bother reporting it.  We don't want to get
-                        // lots of hits just because we couldn't write a file because of something
-                        // like an anti-virus tool lockign the file.
-                        if (!IOUtilities.IsNormalIOException(e))
-                        {
-                            _service._reportAndSwallowException(e);
-                        }
+                        // The exception filter above might be a little funny looking. We always
+                        // want to enter this catch block, but if we ran into a normal IO exception
+                        // we shouldn't bother reporting it. We don't want to get lots of hits just
+                        // because something like an anti-virus tool locked the file and we
+                        // couldn't write to it. The call to IsNormalIOException will shortcut
+                        // around the reporting in this case.
 
                         var delay = _service._delayService.FileWriteDelay;
                         await _service.LogExceptionAsync(e, $"Operation failed. Trying again after {delay}").ConfigureAwait(false);
@@ -587,8 +586,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 var contentsAttribute = element.Attribute(ContentAttributeName);
                 if (contentsAttribute == null)
                 {
-                    _service._reportAndSwallowException(
-                        new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute"));
+                    try
+                    {
+                        throw new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute");
+                    }
+                    catch (FormatException e) when (_service._reportAndSwallowException(e))
+                    {
+                    }
 
                     return ValueTuple.Create(false, (byte[])null);
                 }
@@ -607,8 +611,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                     if (!StringComparer.Ordinal.Equals(expectedChecksum, actualChecksum))
                     {
-                        _service._reportAndSwallowException(
-                            new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}"));
+                        try
+                        {
+                            throw new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}");
+                        }
+                        catch (FormatException e) when (_service._reportAndSwallowException(e))
+                        {
+                        }
 
                         return ValueTuple.Create(false, (byte[])null);
                     }

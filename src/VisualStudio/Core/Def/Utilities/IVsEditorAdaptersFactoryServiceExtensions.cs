@@ -30,8 +30,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
                 var message = contextDocumentId == null
                     ? $"{nameof(contextDocumentId)} was null."
                     : $"{nameof(contextDocumentId)} was not null.";
-                FatalError.ReportWithoutCrash(new InvalidOperationException(
-                    "Could not retrieve document. " + message));
+
+                try
+                {
+                    throw new InvalidOperationException("Could not retrieve document. " + message);
+                }
+                catch(InvalidOperationException e) when (FatalError.ReportWithoutCrash(e))
+                {
+                }
+
                 return null;
             }
 

@@ -88,7 +88,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 $@"Invalid span in {nameof(declaredSymbolInfo)}.
 {nameof(declaredSymbolInfo.Span)} = {declaredSymbolInfo.Span}
 {nameof(root.FullSpan)} = {root.FullSpan}";
-                                    FatalError.ReportWithoutCrash(new InvalidOperationException(message));
+
+                                    try
+                                    {
+                                        throw new InvalidOperationException(message);
+                                    }
+                                    catch (InvalidOperationException e) when (FatalError.ReportWithoutCrash(e))
+                                    {
+                                    }
                                 }
                             }
                         }

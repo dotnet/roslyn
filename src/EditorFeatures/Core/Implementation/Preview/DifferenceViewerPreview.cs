@@ -41,7 +41,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 return;
             }
 
-            FatalError.ReportWithoutCrash(new Exception($"Dispose is not called how? viewer state : {_viewer.IsClosed}"));
+            try
+            {
+                throw new Exception($"Dispose is not called how? viewer state : {_viewer.IsClosed}");
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            {
+            }
         }
     }
 }
