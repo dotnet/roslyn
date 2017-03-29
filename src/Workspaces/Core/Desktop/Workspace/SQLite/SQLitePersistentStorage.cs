@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.SQLite
         private readonly ConcurrentDictionary<ProjectId, int> _projectIdToIdMap = new ConcurrentDictionary<ProjectId, int>();
         private readonly ConcurrentDictionary<DocumentId, int> _documentIdToIdMap = new ConcurrentDictionary<DocumentId, int>();
 
-        private readonly ConcurrentSet<ProjectId> _projectBulkPopulatedMap = new ConcurrentSet<ProjectId>();
+        private readonly ConcurrentDictionary<ProjectId, object> _projectBulkPopulatedLock = new ConcurrentDictionary<ProjectId, object>();
+        private readonly HashSet<ProjectId> _projectBulkPopulatedMap = new HashSet<ProjectId>();
 
         public SQLitePersistentStorage(
             IOptionService optionService,
@@ -55,14 +56,23 @@ namespace Microsoft.CodeAnalysis.SQLite
             connection.CreateTable<DocumentData>();
 
             // Also get the known set of string-to-id mappings we already have in the DB.
-            foreach (var v in connection.Table<StringInfo>())
-            {
-                _stringToIdMap.TryAdd(v.Value, v.Id);
-            }
+            FetchStringTable(connection);
 
             // Try to bulk populate all the IDs we'll need for strings/projects/documents.
             // Bulk population is much faster than trying to do everythign individually.
             BulkPopulateIds(connection, solution);
+        }
+
+        private void FetchStringTable(SQLiteConnection connection)
+        {
+            foreach (var v in connection.Table<StringInfo>())
+            {
+                // Note that TryAdd won't overwrite an existing string->id pair.  That's what
+                // we want.  we don't want the strings we've allocated from the DB to be what
+                // we hold onto.  We'd rather hold onto the strings we get from sources like
+                // the workspaces, to prevent excessice duplication.
+                _stringToIdMap.TryAdd(v.Value, v.Id);
+            }
         }
 
         public override void Close()
@@ -123,19 +133,28 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private void BulkPopulateProjectIds(SQLiteConnection connection, Project project)
         {
-            if (_projectBulkPopulatedMap.Contains(project.Id))
+            // Ensure that only one caller is trying to bulk populate a project at a time.
+            var gate = _projectBulkPopulatedLock.GetOrAdd(project.Id, _ => new object());
+            lock (gate)
             {
-                // We've already bulk processed this project.  No need to do so again.
-                return;
-            }
+                if (_projectBulkPopulatedMap.Contains(project.Id))
+                {
+                    // We've already bulk processed this project.  No need to do so again.
+                    return;
+                }
 
-            if (!BulkPopulateProjectIdsWorker(connection, project))
-            {
-                return;
-            }
+                // Ensure our string table is up to date with the DB.
+                FetchStringTable(connection);
 
-            // Successfully bulk populated.  Mark as such so we don't bother doing this again.
-            _projectBulkPopulatedMap.Add(project.Id);
+                if (!BulkPopulateProjectIdsWorker(connection, project))
+                {
+                    // Something went wrong.  Try to bulk populate this project later.
+                    return;
+                }
+
+                // Successfully bulk populated.  Mark as such so we don't bother doing this again.
+                _projectBulkPopulatedMap.Add(project.Id);
+            }
         }
 
         /// <summary>
@@ -254,7 +273,14 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             void AddIfUnknownId(string value, HashSet<string> stringsToAdd)
             {
-                if (!_stringToIdMap.ContainsKey(value))
+                if (_stringToIdMap.TryGetValue(value, out int id))
+                {
+                    // The value was in the map.  However, we want to ensure that we're pointing
+                    // to our own copy of the string, and not the copy we got from teh DB (so that
+                    // we don't duplicate lots of string).
+                    _stringToIdMap[value] = id;
+                }
+                else 
                 {
                     stringsToAdd.Add(value);
                 }
