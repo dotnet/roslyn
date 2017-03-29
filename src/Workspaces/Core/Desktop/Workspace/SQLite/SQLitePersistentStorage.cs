@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -55,6 +57,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 _stringToIdMap.TryAdd(v.Value, v.Id);
             }
+
+            // Try to bulk populate all the IDs we'll need for strings/projects/documents.
+            // Bulk population is much faster than trying to do everythign individually.
+            BulkPopulateIds(connection, solution);
         }
 
         public override void Close()
@@ -67,8 +73,14 @@ namespace Microsoft.CodeAnalysis.SQLite
         private long GetProjectDataId(int projectId, int nameId)
             => CombineInt32ToInt64(projectId, nameId);
 
+        private static string GetProjectIdString(int projectPathId, int projectNameId)
+            => Invariant($"{projectPathId}-{projectNameId}");
+
         private long GetDocumentDataId(int documentId, int nameId)
             => CombineInt32ToInt64(documentId, nameId);
+
+        private static string GetDocumentIdString(int projectId, int documentPathId, int documentNameId)
+            => Invariant($"{projectId}-{documentPathId}-{documentNameId}");
 
         private long CombineInt32ToInt64(int v1, int v2)
             => ((long)v1 << 32) | (long)v2;
@@ -95,6 +107,134 @@ namespace Microsoft.CodeAnalysis.SQLite
                 {
                     stream.CopyTo(tempStream);
                     return tempStream.ToArray();
+                }
+            }
+        }
+
+        private void BulkPopulateIds(SQLiteConnection connection, Solution solution)
+        {
+            foreach (var project in solution.Projects)
+            {
+                BulkPopulateProjectIds(connection, project);
+            }
+        }
+
+        private void BulkPopulateProjectIds(SQLiteConnection connection, Project project)
+        {
+            if (_projectIdToIdMap.ContainsKey(project.Id))
+            {
+                // We've already bulk processed this project.  No need to do so again.
+                return;
+            }
+
+            // First, in bulk, get string-ids for all the paths and names for the project and documents.
+            if (!AddIndividualProjectAndDocumentComponentIds())
+            {
+                return;
+            }
+
+            // Now, ensure we have the project id known locally.  If this fails for some reason,
+            // we can't proceed.
+            var projectId = TryGetProjectId(connection, project);
+            if (projectId == null)
+            {
+                return;
+            }
+
+            // Finally, in bulk, get string-ids for all the documents in the project.
+            AddDocumentIds();
+            return;
+
+            // Use local functions so that other members of this class don't accidently
+            // use these.  There are invariants in the context of PopulateProjectIds that
+            // these functions can depend on.
+            bool AddIndividualProjectAndDocumentComponentIds()
+            {
+                var stringsToAdd = new HashSet<string>();
+                AddIfUnknownId(project.FilePath, stringsToAdd);
+                AddIfUnknownId(project.Name, stringsToAdd);
+
+                foreach (var document in project.Documents)
+                {
+                    AddIfUnknownId(document.FilePath, stringsToAdd);
+                    AddIfUnknownId(document.Name, stringsToAdd);
+                }
+
+                return AddStrings(stringsToAdd);
+            }
+
+            bool AddStrings(HashSet<string> stringsToAdd)
+            {
+                if (stringsToAdd.Count > 0)
+                {
+                    var stringInfos = stringsToAdd.Select(s => new StringInfo { Value = s }).ToArray();
+                    try
+                    {
+                        connection.InsertAll(stringInfos, runInTransaction: true);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Something failed. Log the issue, and let the caller know we should stop
+                        // with the bulk population.
+                        StorageDatabaseLogger.LogException(ex);
+                        return false;
+                    }
+
+                    // We succeeded inserting all the strings.  Ensure our local cache has all the
+                    // values we added.
+                    foreach (var stringInfo in stringInfos)
+                    {
+                        _stringToIdMap.TryAdd(stringInfo.Value, stringInfo.Id);
+                    }
+                }
+
+                return true;
+            }
+
+            void AddDocumentIds()
+            {
+                var stringsToAdd = new HashSet<string>();
+
+                foreach (var document in project.Documents)
+                {
+                    // Produce the string like "projId-docPathId-docNameId" so that we can get a
+                    // unique ID for it.
+                    AddIfUnknownId(GetDocumentIdString(document), stringsToAdd);
+                }
+
+                // Ensure we have unique IDs for all these document string ids.  If we fail to 
+                // bulk import these strings, we can't proceed.
+                if (!AddStrings(stringsToAdd))
+                {
+                    return;
+                }
+                
+                foreach (var document in project.Documents)
+                {
+                    // Get the integral ID for this document.  It's safe to directly index into
+                    // the map as we just successfully added these strings to the DB.
+                    var id = _stringToIdMap[GetDocumentIdString(document)];
+                    _documentIdToIdMap.TryAdd(document.Id, id);
+                }
+            }
+
+            string GetDocumentIdString(Document document)
+            {
+                // We should always be able to index directly into these maps.  This function is only
+                // ever called after we called AddIndividualProjectAndDocumentComponentIds.
+                var documentPathId = _stringToIdMap[document.FilePath];
+                var documentNameId = _stringToIdMap[document.Name];
+
+                var documentIdString = SQLitePersistentStorage.GetDocumentIdString(
+                    projectId.Value, documentPathId, documentNameId);
+                return documentIdString;
+            }
+
+            void AddIfUnknownId(string value, HashSet<string> stringsToAdd)
+            {
+                if (!_stringToIdMap.ContainsKey(value))
+                {
+                    stringsToAdd.Add(value);
                 }
             }
         }
@@ -141,6 +281,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             Project project, string name, CancellationToken cancellationToken)
         {
             var connection = CreateConnection();
+            BulkPopulateProjectIds(connection, project);
+
             var projectID = TryGetProjectId(connection, project);
             var nameId = TryGetStringId(connection, name);
             if (projectID == null || nameId == null)
@@ -165,6 +307,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             Project project, string name, Stream stream, CancellationToken cancellationToken)
         {
             var connection = CreateConnection();
+            BulkPopulateProjectIds(connection, project);
 
             var projectId = TryGetProjectId(connection, project);
             var nameId = TryGetStringId(connection, name);
@@ -196,6 +339,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             Document document, string name, CancellationToken cancellationToken)
         {
             var connection = CreateConnection();
+            BulkPopulateProjectIds(connection, document.Project);
 
             var documentID = TryGetDocumentId(connection, document);
             var nameId = TryGetStringId(connection, name);
@@ -222,6 +366,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             Document document, string name, Stream stream, CancellationToken cancellationToken)
         {
             var connection = CreateConnection();
+            BulkPopulateProjectIds(connection, document.Project);
 
             var documentId = TryGetDocumentId(connection, document);
             var nameId = TryGetStringId(connection, name);
@@ -322,7 +467,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             // Unique identify the document through the key:  D-projectId-documentPathId-documentNameId
             return TryGetStringId(
                 connection,
-                Invariant($"{projectId.Value}-{documentPathId.Value}-{documentNameId.Value}"));
+                GetDocumentIdString(projectId.Value, documentPathId.Value, documentNameId.Value));
         }
 
         #endregion
