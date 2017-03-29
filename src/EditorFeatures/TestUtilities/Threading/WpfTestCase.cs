@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +19,13 @@ namespace Roslyn.Test.Utilities
     public class WpfTestCase : XunitTestCase
     {
         private readonly SemaphoreSlim _wpfTestSerializationGate;
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Called by the de-serializer; should only be called by deriving classes for de-serialization purposes")]
+        public WpfTestCase()
+        {
+            _wpfTestSerializationGate = new SemaphoreSlim(1);
+        }
 
         public WpfTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, SemaphoreSlim wpfTestSerializationGate, object[] testMethodArguments = null)
             : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments)
