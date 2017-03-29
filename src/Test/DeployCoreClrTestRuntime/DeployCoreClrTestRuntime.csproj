@@ -37,6 +37,10 @@
       <Project>{5ff1e493-69cc-4d0b-83f2-039f469a04e1}</Project>
       <Name>CodeStyleFixes</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\CodeStyle\Core\Tests\CodeStyleTests.csproj">
+      <Project>{9ff1205f-1d7c-4ee4-b038-3456fe6ebeaf}</Project>
+      <Name>CodeStyleTests</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\CodeStyle\CSharp\Analyzers\CSharpCodeStyle.csproj">
       <Project>{aa87bfed-089a-4096-b8d5-690bdc7d5b24}</Project>
       <Name>CSharpCodeStyle</Name>
@@ -45,6 +49,10 @@
       <Project>{a07abcf5-bc43-4ee9-8fd8-b2d77fd54d73}</Project>
       <Name>CSharpCodeStyleFixes</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\CodeStyle\CSharp\Tests\CSharpCodeStyleTests.csproj">
+      <Project>{5018d049-5870-465a-889b-c742ce1e31cb}</Project>
+      <Name>CSharpCodeStyleTests</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\CodeStyle\VisualBasic\Analyzers\BasicCodeStyle.vbproj">
       <Project>{2531a8c4-97dd-47bc-a79c-b7846051e137}</Project>
       <Name>BasicCodeStyle</Name>
@@ -52,6 +60,10 @@
     <ProjectReference Include="..\..\CodeStyle\VisualBasic\CodeFixes\BasicCodeStyleFixes.vbproj">
       <Project>{0141285d-8f6c-42c7-baf3-3c0ccd61c716}</Project>
       <Name>BasicCodeStyleFixes</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\CodeStyle\VisualBasic\Tests\BasicCodeStyleTests.vbproj">
+      <Project>{e512c6c1-f085-4ad7-b0d9-e8f1a0a2a510}</Project>
+      <Name>BasicCodeStyleTests</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>

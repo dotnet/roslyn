@@ -32,6 +32,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Tests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CSharpCodeStyleResources.Designer.cs">

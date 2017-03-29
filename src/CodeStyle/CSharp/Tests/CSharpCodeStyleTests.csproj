@@ -3,16 +3,18 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
+    <NonShipping>True</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{A07ABCF5-BC43-4EE9-8FD8-B2D77FD54D73}</ProjectGuid>
+    <ProjectGuid>{5018D049-5870-465A-889B-C742CE1E31CB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
-    <AssemblyName>Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes</AssemblyName>
+    <AssemblyName>Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests</AssemblyName>
     <TargetExt>.dll</TargetExt>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <RoslynProjectType>UnitTestPortable</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -43,32 +45,15 @@
       <Project>{aa87bfed-089a-4096-b8d5-690bdc7d5b24}</Project>
       <Name>CSharpCodeStyle</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CodeFixes\CSharpCodeStyleFixes.csproj">
+      <Project>{a07abcf5-bc43-4ee9-8fd8-b2d77fd54d73}</Project>
+      <Name>CSharpCodeStyleFixes</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Tests" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CSharpCodeStyleFixesResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CSharpCodeStyleFixesResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="CSharpCodeStyleFixesResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>CSharpCodeStyleFixesResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <PublicAPI Include="PublicAPI.Shipped.txt" />
-    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
