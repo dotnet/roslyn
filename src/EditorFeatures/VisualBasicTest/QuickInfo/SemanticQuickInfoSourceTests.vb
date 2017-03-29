@@ -112,13 +112,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestInt32() As Task
             Await TestInClassAsync("Dim i As $$Int32",
-             MainDescription("Structure System.Int32"))
+             MainDescription("Integer"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestInteger() As Task
             Await TestInClassAsync("Dim i As $$Integer",
-             MainDescription("Structure System.Int32",
+             MainDescription("Integer",
               ExpectedClassifications(
                Keyword("Structure"),
                WhiteSpace(" "),
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestString() As Task
             Await TestInClassAsync("Dim i As $$String",
-             MainDescription("Class System.String",
+             MainDescription("String",
               ExpectedClassifications(
                Keyword("Class"),
                WhiteSpace(" "),
@@ -142,23 +142,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestStringAtEndOfToken() As Task
             Await TestInClassAsync("Dim i As String$$",
-             MainDescription("Class System.String"))
+             MainDescription("String"))
         End Function
 
         <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestStringLiteral() As Task
             Await TestInClassAsync("Dim i = ""cat""$$",
-             MainDescription("Class System.String"))
+             MainDescription("String"))
         End Function
 
         <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestInterpolatedStringLiteral() As Task
-            Await TestInClassAsync("Dim i = $""cat""$$", MainDescription("Class System.String"))
-            Await TestInClassAsync("Dim i = $""c$$at""", MainDescription("Class System.String"))
-            Await TestInClassAsync("Dim i = $""$$cat""", MainDescription("Class System.String"))
-            Await TestInClassAsync("Dim i = $""cat {1$$ + 2} dog""", MainDescription("Structure System.Int32"))
+            Await TestInClassAsync("Dim i = $""cat""$$", MainDescription("String"))
+            Await TestInClassAsync("Dim i = $""c$$at""", MainDescription("String"))
+            Await TestInClassAsync("Dim i = $""$$cat""", MainDescription("String"))
+            Await TestInClassAsync("Dim i = $""cat {1$$ + 2} dog""", MainDescription("Integer"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -585,12 +585,12 @@ class C
     End Sub
 End class
 </Text>.NormalizedValue,
-            MainDescription("Structure System.Int32"))
+            MainDescription("Integer"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimInFieldDeclaration() As Task
-            Await TestInClassAsync("Dim$$ a As Integer", MainDescription("Structure System.Int32"))
+            Await TestInClassAsync("Dim$$ a As Integer", MainDescription("Integer"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -612,7 +612,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimInLocalDeclaration() As Task
-            Await TestInMethodAsync("Dim$$ a As Integer", MainDescription("Structure System.Int32"))
+            Await TestInMethodAsync("Dim$$ a As Integer", MainDescription("Integer"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1803,7 +1803,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %> Structure System.Int32</File>.ConvertTestSourceTag()
+            Dim description = <File><%= FeaturesResources.Awaited_task_returns %> Integer</File>.ConvertTestSourceTag()
 
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
@@ -1898,7 +1898,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %> Structure System.Int32</File>.ConvertTestSourceTag()
+            Dim description = <File><%= FeaturesResources.Awaited_task_returns %> Integer</File>.ConvertTestSourceTag()
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
 
