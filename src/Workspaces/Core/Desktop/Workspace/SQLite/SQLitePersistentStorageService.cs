@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         protected override bool TryCreatePersistentStorage(
-            string workingFolderPath, string solutionPath,
+            Solution solution, string workingFolderPath,
             out AbstractPersistentStorage persistentStorage)
         {
             persistentStorage = null;
@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             try
             {
                 database = new SQLitePersistentStorage(OptionService, 
-                    workingFolderPath, solutionPath, GetDatabaseFilePath(workingFolderPath),
+                    workingFolderPath, solution.FilePath, GetDatabaseFilePath(workingFolderPath),
                     this.Release);
-                database.Initialize();
+                database.Initialize(solution);
 
                 persistentStorage = database;
                 return true;

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Esent
         }
 
         protected override bool TryCreatePersistentStorage(
-            string workingFolderPath, string solutionPath,
+            Solution solution, string workingFolderPath,
             out AbstractPersistentStorage persistentStorage)
         {
             persistentStorage = null;
@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Esent
             try
             {
                 database = new EsentPersistentStorage(OptionService, 
-                    workingFolderPath, solutionPath, GetDatabaseFilePath(workingFolderPath), this.Release);
-                database.Initialize();
+                    workingFolderPath, solution.FilePath, GetDatabaseFilePath(workingFolderPath), this.Release);
+                database.Initialize(solution);
 
                 persistentStorage = database;
                 return true;

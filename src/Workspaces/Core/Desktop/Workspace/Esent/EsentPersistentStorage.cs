@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Esent
             _esentStorage = new EsentStorage(DatabaseFile, enablePerformanceMonitor);
         }
 
-        public override void Initialize()
+        public override void Initialize(Solution solution)
         {
             _esentStorage.Initialize();
         }

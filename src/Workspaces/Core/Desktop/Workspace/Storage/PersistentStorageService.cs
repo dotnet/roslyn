@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Storage
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
 
         protected abstract bool TryCreatePersistentStorage(
-            string workingFolderPath, string solutionPath,
+            Solution solution, string workingFolderPath,
             out AbstractPersistentStorage persistentStorage);
 
         public IPersistentStorage GetStorage(Solution solution)
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 }
 
                 // try create new one
-                storage = TryCreatePersistentStorage(workingFolderPath, solution.FilePath);
+                storage = TryCreatePersistentStorage(solution, workingFolderPath);
                 _lookup.Add(solution.FilePath, storage);
 
                 if (storage != null)
@@ -192,16 +192,16 @@ namespace Microsoft.CodeAnalysis.Storage
             return locationService?.GetStorageLocation(solution);
         }
 
-        private AbstractPersistentStorage TryCreatePersistentStorage(string workingFolderPath, string solutionPath)
+        private AbstractPersistentStorage TryCreatePersistentStorage(Solution solution, string workingFolderPath)
         {
-            if (TryCreatePersistentStorage(workingFolderPath, solutionPath, out var persistentStorage))
+            if (TryCreatePersistentStorage(solution, workingFolderPath, out var persistentStorage))
             {
                 return persistentStorage;
             }
 
             // first attempt could fail if there was something wrong with existing db.
             // try one more time in case the first attempt fixed the problem.
-            if (TryCreatePersistentStorage(workingFolderPath, solutionPath, out persistentStorage))
+            if (TryCreatePersistentStorage(solution, workingFolderPath, out persistentStorage))
             {
                 return persistentStorage;
             }

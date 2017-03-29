@@ -16,20 +16,11 @@ namespace Microsoft.CodeAnalysis.SQLite
 {
     internal class SQLitePersistentStorage : AbstractPersistentStorage
     {
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
-
-        /// <summary>
-        /// A persistent connection we keep around to make async requests to the db.
-        /// </summary>
-        private readonly SQLiteConnection _connection;
-
         // Caches from local data to the corresponding database ID for that data.
         // Kept locally so we can avoid hitting the DB for common data.
         private readonly ConcurrentDictionary<string, int> _stringToIdMap = new ConcurrentDictionary<string, int>();
         private readonly ConcurrentDictionary<ProjectId, int> _projectIdToIdMap = new ConcurrentDictionary<ProjectId, int>();
         private readonly ConcurrentDictionary<DocumentId, int> _documentIdToIdMap = new ConcurrentDictionary<DocumentId, int>();
-
-        private readonly CancellationTokenSource _shutdownCancellationSource = new CancellationTokenSource();
 
         public SQLitePersistentStorage(
             IOptionService optionService,
@@ -39,22 +30,28 @@ namespace Microsoft.CodeAnalysis.SQLite
             Action<AbstractPersistentStorage> disposer)
             : base(optionService, workingFolderPath, solutionFilePath, databaseFile, disposer)
         {
-            _connection = new SQLiteConnection(
-                databaseFile,
-                openFlags: SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.FullMutex);
-            _connection.BusyTimeout = TimeSpan.FromMinutes(1);
         }
 
-        public override void Initialize()
+        private SQLiteConnection CreateConnection()
+        {
+            var connection = new SQLiteConnection(
+                this.DatabaseFile,
+                SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite);
+            connection.BusyTimeout = TimeSpan.FromMinutes(1);
+            return connection;
+        }
+
+        public override void Initialize(Solution solution)
         {
             // Create a sync connection to the DB and ensure it has tables for the types we care about. 
-            _connection.CreateTable<StringInfo>();
-            _connection.CreateTable<SolutionData>();
-            _connection.CreateTable<ProjectData>();
-            _connection.CreateTable<DocumentData>();
+            var connection = CreateConnection();
+            connection.CreateTable<StringInfo>();
+            connection.CreateTable<SolutionData>();
+            connection.CreateTable<ProjectData>();
+            connection.CreateTable<DocumentData>();
 
-            // Also getthe known set of string-to-id mappings we already have in the DB.
-            foreach (var v in _connection.Table<StringInfo>())
+            // Also get the known set of string-to-id mappings we already have in the DB.
+            foreach (var v in connection.Table<StringInfo>())
             {
                 _stringToIdMap.TryAdd(v.Value, v.Id);
             }
@@ -62,11 +59,6 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         public override void Close()
         {
-            _shutdownCancellationSource.Cancel();
-            using (_gate.DisposableWait())
-            {
-                _connection.Dispose();
-            }
         }
 
         private static Stream GetStream(byte[] bytes)
@@ -107,186 +99,153 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private CancellationTokenSource CreateLinkedTokenSource(CancellationToken cancellationToken)
-            => CancellationTokenSource.CreateLinkedTokenSource(
-                _shutdownCancellationSource.Token, cancellationToken);
-
         #region Solution Serialization
 
-        public override async Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
+        public override Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
         {
-            using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
-            using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
+            SolutionData data = null;
+            try
             {
-                linkedSource.Token.ThrowIfCancellationRequested();
+                data = CreateConnection().Find<SolutionData>(name);
+            }
+            catch (Exception ex)
+            {
+                StorageDatabaseLogger.LogException(ex);
+            }
 
-                SolutionData data = null;
-                try
-                {
-                    data = _connection.Find<SolutionData>(name);
-                }
-                catch (Exception ex)
-                {
-                    StorageDatabaseLogger.LogException(ex);
-                }
+            return Task.FromResult(GetStream(data?.Data));
+        }
 
-                return GetStream(data?.Data);
+        public override Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken)
+        {
+            var bytes = GetBytes(stream);
+
+            try
+            {
+                CreateConnection().InsertOrReplace(
+                    new SolutionData { Id = name, Data = bytes });
+                return SpecializedTasks.True;
+            }
+            catch (Exception ex)
+            {
+                StorageDatabaseLogger.LogException(ex);
+                return SpecializedTasks.False;
             }
         }
 
-        public override async Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken)
-        {
-            using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
-            using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
-            {
-                linkedSource.Token.ThrowIfCancellationRequested();
+        #endregion
 
+        #region Project Serialization
+
+        public override Task<Stream> ReadStreamAsync(
+            Project project, string name, CancellationToken cancellationToken)
+        {
+            var connection = CreateConnection();
+            var projectID = TryGetProjectId(connection, project);
+            var nameId = TryGetStringId(connection, name);
+            if (projectID == null || nameId == null)
+            {
+                return SpecializedTasks.Default<Stream>();
+            }
+
+            ProjectData projectData = null;
+            try
+            {
+                projectData = connection.Find<ProjectData>(GetProjectDataId(projectID.Value, nameId.Value));
+            }
+            catch (Exception ex)
+            {
+                StorageDatabaseLogger.LogException(ex);
+            }
+
+            return Task.FromResult(GetStream(projectData?.Data));
+        }
+
+        public override Task<bool> WriteStreamAsync(
+            Project project, string name, Stream stream, CancellationToken cancellationToken)
+        {
+            var connection = CreateConnection();
+
+            var projectId = TryGetProjectId(connection, project);
+            var nameId = TryGetStringId(connection, name);
+
+            if (projectId != null && nameId != null)
+            {
                 var bytes = GetBytes(stream);
 
                 try
                 {
-                    _connection.InsertOrReplace(
-                        new SolutionData { Id = name, Data = bytes });
-                    return true;
+                    connection.InsertOrReplace(
+                        new ProjectData { Id = GetProjectDataId(projectId.Value, nameId.Value), Data = bytes });
+                    return SpecializedTasks.True;
                 }
                 catch (Exception ex)
                 {
                     StorageDatabaseLogger.LogException(ex);
-                    return false;
                 }
             }
+
+            return SpecializedTasks.False;
         }
 
         #endregion
 
         #region Project Serialization
 
-        public override async Task<Stream> ReadStreamAsync(
-            Project project, string name, CancellationToken cancellationToken)
-        {
-            using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
-            using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
-            {
-                linkedSource.Token.ThrowIfCancellationRequested();
-
-                var projectID = TryGetProjectId(project);
-                var nameId = TryGetStringId(name);
-                if (projectID == null || nameId == null)
-                {
-                    return null;
-                }
-
-                ProjectData projectData = null;
-                try
-                {
-                    projectData = _connection.Find<ProjectData>(GetProjectDataId(projectID.Value, nameId.Value));
-                }
-                catch (Exception ex)
-                {
-                    StorageDatabaseLogger.LogException(ex);
-                }
-
-                return GetStream(projectData?.Data);
-            }
-        }
-
-        public override async Task<bool> WriteStreamAsync(
-            Project project, string name, Stream stream, CancellationToken cancellationToken)
-        {
-            using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
-            using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
-            {
-                linkedSource.Token.ThrowIfCancellationRequested();
-
-                var projectId = TryGetProjectId(project);
-                var nameId = TryGetStringId(name);
-
-                if (projectId != null && nameId != null)
-                {
-                    var bytes = GetBytes(stream);
-
-                    try
-                    {
-                        _connection.InsertOrReplace(
-                            new ProjectData { Id = GetProjectDataId(projectId.Value, nameId.Value), Data = bytes });
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        StorageDatabaseLogger.LogException(ex);
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        #endregion
-
-        #region Project Serialization
-
-        public override async Task<Stream> ReadStreamAsync(
+        public override Task<Stream> ReadStreamAsync(
             Document document, string name, CancellationToken cancellationToken)
         {
-            using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
-            using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
+            var connection = CreateConnection();
+
+            var documentID = TryGetDocumentId(connection, document);
+            var nameId = TryGetStringId(connection, name);
+            if (documentID == null || nameId == null)
             {
-                linkedSource.Token.ThrowIfCancellationRequested();
+                return SpecializedTasks.Default<Stream>();
+            }
 
-                var documentID = TryGetDocumentId(document);
-                var nameId = TryGetStringId(name);
-                if (documentID == null || nameId == null)
-                {
-                    return null;
-                }
+            DocumentData documentData = null;
+            try
+            {
+                documentData = connection.Find<DocumentData>(
+                    GetProjectDataId(documentID.Value, nameId.Value));
+            }
+            catch (Exception ex)
+            {
+                StorageDatabaseLogger.LogException(ex);
+            }
 
-                DocumentData documentData = null;
+            return Task.FromResult(GetStream(documentData?.Data));
+        }
+
+        public override Task<bool> WriteStreamAsync(
+            Document document, string name, Stream stream, CancellationToken cancellationToken)
+        {
+            var connection = CreateConnection();
+
+            var documentId = TryGetDocumentId(connection, document);
+            var nameId = TryGetStringId(connection, name);
+
+            if (documentId != null && nameId != null)
+            {
+                var bytes = GetBytes(stream);
+
                 try
                 {
-                    documentData = _connection.Find<DocumentData>(
-                        GetProjectDataId(documentID.Value, nameId.Value));
+                    connection.InsertOrReplace(
+                        new DocumentData { Id = GetDocumentDataId(documentId.Value, nameId.Value), Data = bytes });
+                    return SpecializedTasks.True;
                 }
                 catch (Exception ex)
                 {
                     StorageDatabaseLogger.LogException(ex);
                 }
-
-                return GetStream(documentData?.Data);
             }
+
+            return SpecializedTasks.False;
         }
 
-        public override async Task<bool> WriteStreamAsync(
-            Document document, string name, Stream stream, CancellationToken cancellationToken)
-        {
-            using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
-            using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
-            {
-                linkedSource.Token.ThrowIfCancellationRequested();
-
-                var documentId = TryGetDocumentId(document);
-                var nameId = TryGetStringId(name);
-
-                if (documentId != null && nameId != null)
-                {
-                    var bytes = GetBytes(stream);
-
-                    try
-                    {
-                        _connection.InsertOrReplace(
-                            new DocumentData { Id = GetDocumentDataId(documentId.Value, nameId.Value), Data = bytes });
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        StorageDatabaseLogger.LogException(ex);
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        private int? TryGetProjectId(Project project)
+        private int? TryGetProjectId(SQLiteConnection connection, Project project)
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
@@ -295,7 +254,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return existingId;
             }
 
-            var id = TryGetProjectIdFromDatabase(project);
+            var id = TryGetProjectIdFromDatabase(connection, project);
             if (id != null)
             {
                 // Cache the value locally so we don't need to go back to the DB in the future.
@@ -305,12 +264,12 @@ namespace Microsoft.CodeAnalysis.SQLite
             return id;
         }
 
-        private int? TryGetProjectIdFromDatabase(Project project)
+        private int? TryGetProjectIdFromDatabase(SQLiteConnection connection, Project project)
         {
             // Key the project off both its path and name.  That way we work properly
             // in host and test scenarios.
-            var projectPathId = TryGetStringId(project.FilePath);
-            var projectNameId = TryGetStringId(project.Name);
+            var projectPathId = TryGetStringId(connection, project.FilePath);
+            var projectNameId = TryGetStringId(connection, project.Name);
 
             if (projectPathId == null || projectNameId == null)
             {
@@ -319,10 +278,11 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             // Unique identify the project through the key:  P-projectPathId-projectNameId
             return TryGetStringId(
+                connection,
                 Invariant($"{projectPathId.Value}-{projectNameId.Value}"));
         }
 
-        private int? TryGetDocumentId(Document document)
+        private int? TryGetDocumentId(SQLiteConnection connection, Document document)
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
@@ -331,7 +291,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return existingId;
             }
 
-            var id = TryGetDocumentIdFromDatabase(document);
+            var id = TryGetDocumentIdFromDatabase(connection, document);
             if (id != null)
             {
                 // Cache the value locally so we don't need to go back to the DB in the future.
@@ -341,9 +301,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             return id;
         }
 
-        private int? TryGetDocumentIdFromDatabase(Document document)
+        private int? TryGetDocumentIdFromDatabase(SQLiteConnection connection, Document document)
         {
-            var projectId = TryGetProjectId(document.Project);
+            var projectId = TryGetProjectId(connection, document.Project);
             if (projectId == null)
             {
                 return null;
@@ -351,8 +311,8 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             // Key the document off its project id, and its path and name.  That way we work properly
             // in host and test scenarios.
-            var documentPathId = TryGetStringId(document.FilePath);
-            var documentNameId = TryGetStringId(document.Name);
+            var documentPathId = TryGetStringId(connection, document.FilePath);
+            var documentNameId = TryGetStringId(connection, document.Name);
 
             if (documentPathId == null || documentNameId == null)
             {
@@ -361,12 +321,13 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             // Unique identify the document through the key:  D-projectId-documentPathId-documentNameId
             return TryGetStringId(
+                connection,
                 Invariant($"{projectId.Value}-{documentPathId.Value}-{documentNameId.Value}"));
         }
 
         #endregion
 
-        private int? TryGetStringId(string value)
+        private int? TryGetStringId(SQLiteConnection connection, string value)
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
@@ -376,7 +337,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             // Otherwise, try to get or add the string to the string table in the database.
-            var id = TryGetStringIdFromDatabase(value);
+            var id = TryGetStringIdFromDatabase(connection, value);
             if (id != null)
             {
                 _stringToIdMap.TryAdd(value, id.Value);
@@ -385,10 +346,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             return id;
         }
 
-        private int? TryGetStringIdFromDatabase(string value)
+        private int? TryGetStringIdFromDatabase(SQLiteConnection connection, string value)
         {
             // First, check if we can find that string in the string table.
-            var stringInfo = TryGetStringIdFromDatabaseWorker(value, canReturnNull: true);
+            var stringInfo = TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: true);
             if (stringInfo != null)
             {
                 // Found the value already in the db.  Another process (or thread) might have added it.
@@ -402,7 +363,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             try
             {
                 stringInfo = new StringInfo { Value = value };
-                _connection.Insert(stringInfo);
+                connection.Insert(stringInfo);
 
                 // Successfully added the string.  Return the ID it was given.
                 return stringInfo.Id;
@@ -411,7 +372,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 // We got a constraint violation.  This means someone else beat us to adding this
                 // string to the string-table.  We should always be able to find the string now.
-                stringInfo = TryGetStringIdFromDatabaseWorker(value, canReturnNull: false);
+                stringInfo = TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: false);
                 return stringInfo.Id;
             }
             catch (Exception ex)
@@ -423,13 +384,14 @@ namespace Microsoft.CodeAnalysis.SQLite
             return null;
         }
 
-        private StringInfo TryGetStringIdFromDatabaseWorker(string value, bool canReturnNull)
+        private StringInfo TryGetStringIdFromDatabaseWorker(
+            SQLiteConnection connection, string value, bool canReturnNull)
         {
             StringInfo stringInfo = null;
 
             try
             {
-                stringInfo = _connection.Table<StringInfo>()
+                stringInfo = connection.Table<StringInfo>()
                     .Where(i => i.Value == value)
                     .FirstOrDefault();
             }

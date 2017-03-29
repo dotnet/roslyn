@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        public abstract void Initialize();
+        public abstract void Initialize(Solution solution);
 
         public abstract Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default(CancellationToken));
