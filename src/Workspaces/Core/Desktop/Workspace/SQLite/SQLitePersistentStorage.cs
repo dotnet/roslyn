@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             _connection = new SQLiteConnection(
                 databaseFile,
                 openFlags: SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.FullMutex);
+            _connection.BusyTimeout = TimeSpan.FromMinutes(1);
         }
 
         public override void Initialize()
