@@ -22791,7 +22791,7 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
-                // (14,18): error CS8026: Feature 'null propagation operator' is not available in C# 5.  Please use language version 6 or greater.
+                // (14,18): error CS8026: Feature 'null propagation operator' is not available in C# 5. Please use language version 6 or greater.
                 //         var x1 = p.P1 ?.ToString;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "p.P1 ?.ToString").WithArguments("null propagating operator", "6").WithLocation(14, 18),
                 // (14,23): error CS0023: Operator '?' cannot be applied to operand of type 'method group'
@@ -23199,7 +23199,7 @@ class Program
             CreateCompilationWithMscorlib45(text,
                 new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef },
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
-    // (8,46): error CS8026: Feature 'dictionary initializer' is not available in C# 5.  Please use language version 6 or greater.
+    // (8,46): error CS8026: Feature 'dictionary initializer' is not available in C# 5. Please use language version 6 or greater.
     //         var s = new Dictionary<int, int> () {[1] = 2};
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "[1] = 2").WithArguments("dictionary initializer", "6").WithLocation(8, 46)
                );
@@ -23335,6 +23335,26 @@ namespace ConsoleApplication1
                 // (16,49): error CS8188: An expression tree may not contain a throw-expression.
                 //             Expression<Func<object>> e4 = () => throw null;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsThrowExpression, "throw null").WithLocation(16, 49)
+                );
+        }
+
+        [Fact, WorkItem(17674, "https://github.com/dotnet/roslyn/issues/17674")]
+        public void VoidDiscardAssignment()
+        {
+            var text = @"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        _ = M();
+    }
+    static void M() { }
+}
+";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (6,9): error CS8209: A value of type 'void' may not be assigned.
+                //         _ = M();
+                Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9)
                 );
         }
     }

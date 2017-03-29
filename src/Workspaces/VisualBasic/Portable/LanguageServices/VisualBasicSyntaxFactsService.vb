@@ -1400,8 +1400,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return token.Kind() = SyntaxKind.CharacterLiteralToken
         End Function
 
-        Public Function IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
+        Public Overrides Function IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
             Return token.IsKind(SyntaxKind.StringLiteralToken)
+        End Function
+
+        Public Overrides Function IsInterpolatedStringTextToken(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsInterpolatedStringTextToken
+            Return token.IsKind(SyntaxKind.InterpolatedStringTextToken)
         End Function
 
         Public Function IsStringLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStringLiteralExpression
@@ -1754,6 +1758,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function ISyntaxFactsService_GetFileBanner(root As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetFileBanner
             Return GetFileBanner(root)
+        End Function
+
+        Protected Overrides Function ContainsInterleavedDirective(span As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+            Return token.ContainsInterleavedDirective(span, cancellationToken)
+        End Function
+
+        Private Function ISyntaxFactsService_ContainsInterleavedDirective(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.ContainsInterleavedDirective
+            Return ContainsInterleavedDirective(node, cancellationToken)
+        End Function
+
+        Private Function ISyntaxFactsService_ContainsInterleavedDirective1(nodes As ImmutableArray(Of SyntaxNode), cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.ContainsInterleavedDirective
+            Return ContainsInterleavedDirective(nodes, cancellationToken)
         End Function
     End Class
 End Namespace

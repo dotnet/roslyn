@@ -366,5 +366,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         RemoteHost_Connect,
         RemoteHost_Disconnect,
         CodeAnalysisService_GetTodoCommentsAsync,
+        CodeLens_GetReferenceCountAsync,
+        CodeLens_FindReferenceLocationsAsync,
+        CodeLens_FindReferenceMethodsAsync,
+        CodeLens_GetFullyQualifiedName,
+        RemoteHostClientService_Restarted,
     }
 }

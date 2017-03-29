@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Xunit;
@@ -16,15 +17,16 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected readonly CSharpInteractiveWindow_OutOfProc InteractiveWindow;
 
         protected AbstractInteractiveWindowTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+            : base(instanceFactory, visualStudio => visualStudio.Instance.CSharpInteractiveWindow)
         {
-            InteractiveWindow = VisualStudio.Instance.CSharpInteractiveWindow;
+            InteractiveWindow = (CSharpInteractiveWindow_OutOfProc)TextViewWindow;
             ClearInteractiveWindow();
         }
 
         protected void ClearInteractiveWindow()
         {
             InteractiveWindow.Initialize();
+            InteractiveWindow.ClearScreen();
             InteractiveWindow.ShowWindow();
             InteractiveWindow.Reset();
         }
@@ -38,16 +40,44 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.Instance.ExecuteCommand(Edit_SelectionCancelCommand);
         }
 
+        protected void DisableSuggestionMode()
+            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
+
+        protected void EnableSuggestionMode()
+            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
+
         protected void Reset(bool waitForPrompt = true)
             => InteractiveWindow.Reset(waitForPrompt: true);
 
         protected void SubmitText(string text, bool waitForPrompt = true)
             => InteractiveWindow.SubmitText(text, waitForPrompt);
 
+        protected void SendKeys(params object[] input)
+        {
+            VisualStudio.Instance.SendKeys.Send(input);
+        }
+
+        protected void InsertCode(string text)
+            => InteractiveWindow.InsertCode(text);
+
+        protected void PlaceCaret(string text, int charsOffset = 0)
+              => InteractiveWindow.PlaceCaret(
+                  text,
+                  charsOffset: charsOffset,
+                  occurrence: 0,
+                  extendSelection: false,
+                  selectBlock: false);
+
         protected void VerifyLastReplOutput(string expectedReplOutput)
         {
             var lastReplOutput = InteractiveWindow.GetLastReplOutput();
             Assert.Equal(expectedReplOutput, lastReplOutput);
+        }
+
+        protected void VerifyLastReplInput(string expectedReplInput)
+        {
+            var lastReplInput = InteractiveWindow.GetLastReplInput();
+            Assert.Equal(expectedReplInput, lastReplInput);
         }
 
         protected void VerifyLastReplOutputContains(string expectedReplOutput)

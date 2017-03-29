@@ -197,7 +197,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Breaks an identifier string into constituent parts.
         /// </summary>
-        public static StringBreaks BreakIntoCharacterParts(string identifier) => StringBreaks.Create(identifier, s_characterPartsGenerator);
+        public static StringBreaks BreakIntoCharacterParts(string identifier) 
+            => StringBreaks.Create(identifier, s_characterPartsGenerator);
 
         /// <summary>
         /// Breaks an identifier string into constituent parts.

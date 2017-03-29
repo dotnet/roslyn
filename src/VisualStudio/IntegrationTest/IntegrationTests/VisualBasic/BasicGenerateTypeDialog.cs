@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -35,7 +35,7 @@ Class C
     End Sub
 End Class
 ");
-            VerifyCodeAction("Generate new type...",
+            this.VerifyCodeAction("Generate new type...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -46,23 +46,24 @@ End Class
             GenerateTypeDialog.SetTargetFileToNewName("GenerateTypeTest.cs");
             GenerateTypeDialog.ClickOK();
             GenerateTypeDialog.VerifyClosed();
-
-            VerifyTextContains(@"Imports CSProj
+            var actualText = Editor.GetText();
+            Assert.Contains(@"Imports CSProj
 
 Class C
     Sub Method()
         Dim _A As A
     End Sub
 End Class
-");
+", actualText);
 
             VisualStudio.Instance.SolutionExplorer.OpenFile("CSProj", "GenerateTypeTest.cs");
-            VerifyTextContains(@"namespace CSProj
+            actualText = Editor.GetText();
+            Assert.Contains(@"namespace CSProj
 {
     public struct A
     {
     }
-}");
+}", actualText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -76,7 +77,7 @@ Class C
 End Class
 ");
 
-            VerifyCodeAction("Generate new type...",
+            this.VerifyCodeAction("Generate new type...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -88,20 +89,22 @@ End Class
             GenerateTypeDialog.VerifyClosed();
 
             VisualStudio.Instance.SolutionExplorer.OpenFile(ProjectName, "GenerateTypeTest.vb");
-            VerifyTextContains(@"Public Structure A
+            var actualText = Editor.GetText();
+            Assert.Contains(@"Public Structure A
 End Structure
-");
+", actualText);
 
             VisualStudio.Instance.SolutionExplorer.OpenFile(ProjectName, "Class1.vb");
-            VerifyTextContains(@"Class C
+            actualText = Editor.GetText();
+            Assert.Contains(@"Class C
     Sub Method()
         Dim _A As A
     End Sub
 End Class
-");
+", actualText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"), 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"),
          Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void CheckFoldersPopulateComboBox()
         {
@@ -113,7 +116,7 @@ End Class
     End Sub
 End Class
 ");
-            VerifyCodeAction("Generate new type...",
+            this.VerifyCodeAction("Generate new type...",
                 applyFix: true,
                 blockUntilComplete: false);
 

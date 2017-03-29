@@ -20,6 +20,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.CloseSolution(saveFirst);
 
         /// <summary>
+        /// The full file path to the solution file.
+        /// </summary>
+        public string SolutionFileFullPath => _inProc.SolutionFileFullPath;
+
+        /// <summary>
         /// Creates and loads a new solution in the host process, optionally saving the existing solution if one exists.
         /// </summary>
         public void CreateSolution(string solutionName, bool saveExistingSolutionIfExists = false)
@@ -36,6 +41,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void AddProjectReference(string fromProjectName, string toProjectName)
             => _inProc.AddProjectReference(fromProjectName, toProjectName);
+
+        public void RemoveProjectReference(string projectName, string projectReferenceName)
+            => _inProc.RemoveProjectReference(projectName, projectReferenceName);
+
+        public void AddMetadataReference(string assemblyName, string projectName)
+            => _inProc.AddMetadataReference(assemblyName, projectName);
+
+        public void RemoveMetadataReference(string assemblyName, string projectName)
+            => _inProc.RemoveMetadataReference(assemblyName, projectName);
 
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
@@ -93,5 +107,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public string[] GetAssemblyReferences(string projectName)
             => _inProc.GetAssemblyReferences(projectName);
+
+        public void EditProjectFile(string projectName)
+            => _inProc.EditProjectFile(projectName);
     }
 }
