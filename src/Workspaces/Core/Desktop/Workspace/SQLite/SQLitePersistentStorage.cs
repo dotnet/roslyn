@@ -39,11 +39,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             Action<AbstractPersistentStorage> disposer)
             : base(optionService, workingFolderPath, solutionFilePath, databaseFile, disposer)
         {
-            _connection = new SQLiteConnection(databaseFile, openFlags: GetOpenFlags());
+            _connection = new SQLiteConnection(
+                databaseFile,
+                openFlags: SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.FullMutex);
         }
-
-        private static SQLiteOpenFlags GetOpenFlags()
-            => SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.FullMutex;
 
         public override void Initialize()
         {
