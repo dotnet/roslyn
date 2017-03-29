@@ -89,7 +89,7 @@ class C
         {
             var source = @"
 class C {
-    async public C() { } 
+    async public C() { }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("async"));
@@ -216,7 +216,7 @@ using System.Threading.Tasks;
 class C
 {
     static void InferTask(Func<Task> x) { }
-    
+
     static void InferTaskOrTaskT(Func<Task> x) { }
     static void InferTaskOrTaskT(Func<Task<int>> x) { }
 
@@ -940,7 +940,7 @@ using System.Threading.Tasks;
 
 class Test
 {
-    async static Task M1() 
+    async static Task M1()
     {
         try
         {
@@ -1068,7 +1068,7 @@ class Driver
         object o = new object();
         lock(await Task.Factory.StartNew(() => o))
         {
-            
+
         }
     }
 
@@ -1189,7 +1189,7 @@ using System.Threading.Tasks;
 
 interface IInterface
 {
-    void F(); 
+    void F();
 }
 
 class C : IInterface
@@ -1201,7 +1201,7 @@ class C : IInterface
 
     static void Main()
     {
-        
+
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
@@ -1213,11 +1213,11 @@ class C : IInterface
             var source = @"
 interface IInterface
 {
-    async void F(); 
+    async void F();
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (4,16): error CS0106: The modifier 'async' is not valid for this item
-                //     async void F(); 
+                //     async void F();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F").WithArguments("async"));
         }
 
@@ -1237,12 +1237,29 @@ class A
             var sources = new string[] { origSource, origSource.Replace("async ", "").Replace("await", "return") };
             foreach (var source in sources)
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
                 compilation.VerifyDiagnostics();
                 var entry = compilation.GetEntryPoint(CancellationToken.None);
                 Assert.NotNull(entry);
                 Assert.Equal("System.Threading.Tasks.Task A.Main(System.String[] args)", entry.ToTestDisplayString());
             }
+        }
+
+        [Fact]
+        public void MainCantBeAsyncWithArgs_CSharp7()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    async static Task Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => { });
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            compilation.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 23));
         }
 
         [Fact]
@@ -1261,7 +1278,7 @@ class A
             var sources = new string[] { origSource, origSource.Replace("async ", "").Replace("await", "return") };
             foreach (var source in sources)
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
                 compilation.VerifyDiagnostics();
                 var entry = compilation.GetEntryPoint(CancellationToken.None);
                 Assert.NotNull(entry);
@@ -1282,7 +1299,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics(
                 // (6,23): warning CS0028: 'A.Main()' has the wrong signature to be an entry point
                 //     async static void Main()
@@ -1291,6 +1308,27 @@ class A
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
             var entry = compilation.GetEntryPoint(CancellationToken.None);
             Assert.Null(entry);
+        }
+
+        [Fact]
+        public void MainCantBeAsyncVoid_CSharp7()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    async static void Main()
+    {
+        await Task.Factory.StartNew(() => { });
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            compilation.VerifyDiagnostics(
+                // (6,23): error CS4009: 'A.Main()': an entry point cannot be marked with the 'async' modifier
+                //     async static void Main()
+                Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 23)
+            );
         }
 
         [Fact]
@@ -1306,7 +1344,7 @@ class A
         return await Task.Factory.StartNew(() => 5);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics(
                 // (6,22): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async static int Main()
@@ -1318,6 +1356,29 @@ class A
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
             var entry = compilation.GetEntryPoint(CancellationToken.None);
             Assert.Null(entry);
+        }
+
+        [Fact]
+        public void MainCantBeAsyncInt_CSharp7()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    async static int Main()
+    {
+        return await Task.Factory.StartNew(() => 5);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            compilation.VerifyDiagnostics(
+                // (6,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async static int Main()
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(6, 22),
+                // (6,22): error CS4009: 'A.Main()': an entry point cannot be marked with the 'async' modifier
+                //     async static int Main()
+                Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 22));
         }
 
         [Fact]
@@ -1336,12 +1397,32 @@ class A
             var sources = new string[] { origSource, origSource.Replace("async ", "").Replace("await", "") };
             foreach (var source in sources)
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
                 compilation.VerifyDiagnostics();
                 var entry = compilation.GetEntryPoint(CancellationToken.None);
                 Assert.NotNull(entry);
                 Assert.Equal("System.Threading.Tasks.Task<System.Int32> A.Main(System.String[] args)", entry.ToTestDisplayString());
             }
+        }
+
+        [Fact]
+        public void MainCantBeAsyncAndGenericOnIntWithArgs_Csharp7()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    async static Task<int> Main(string[] args)
+    {
+        return await Task.Factory.StartNew(() => 5);
+    }
+}";
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                compilation.VerifyDiagnostics(
+                    // (6,28): error CS4009: 'A.Main(string[])': an entry point cannot be marked with the 'async' modifier
+                    //     async static Task<int> Main(string[] args)
+                    Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 28));
         }
 
         [Fact]
@@ -1360,12 +1441,32 @@ class A
             var sources = new string[] { origSource, origSource.Replace("async ", "").Replace("await", "") };
             foreach (var source in sources)
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
                 compilation.VerifyDiagnostics();
                 var entry = compilation.GetEntryPoint(CancellationToken.None);
                 Assert.NotNull(entry);
                 Assert.Equal("System.Threading.Tasks.Task<System.Int32> A.Main()", entry.ToTestDisplayString());
             }
+        }
+
+        [Fact]
+        public void MainCantBeAsyncAndGenericOnInt_CSharp7()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    async static Task<int> Main()
+    {
+        return await Task.Factory.StartNew(() => 5);
+    }
+}";
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                compilation.VerifyDiagnostics(
+                    // (6,28): error CS4009: 'A.Main()': an entry point cannot be marked with the 'async' modifier
+                    //     async static Task<int> Main()
+                    Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 28));
         }
 
         [Fact]
@@ -1382,7 +1483,7 @@ class A
         return 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics(
                 // (6,30): warning CS0028: 'A.Main()' has the wrong signature to be an entry point
                 //     async static Task<float> Main()
@@ -1404,7 +1505,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
                 // (4,23): warning CS0402: 'A.Main<T>()': an entry point cannot be generic or in a generic type
                 //     async static void Main<T>()
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main<T>()"),
@@ -1981,7 +2082,7 @@ class Test
     {
         return Task.Run(async () => { return t; });
     }
-    
+
     static int Main()
     {
         return 0;
@@ -2017,7 +2118,7 @@ class Test
     static async Task<dynamic> Meth1()
     {
         throw new EntryPointNotFoundException();
-        Foo();       
+        Foo();
         return """";
     }
 
@@ -2043,10 +2144,10 @@ class Test
                 //     static async Task<dynamic> Meth1()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth1"),
                 // (23,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();       
+                //         Foo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"),
                 // (23,9): warning CS0162: Unreachable code detected
-                //         Foo();       
+                //         Foo();
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "Foo"),
                 // (27,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async Task<decimal?> Meth2()
@@ -3060,7 +3161,7 @@ class Test
                                 Foo();
                             });
                     };
-            });      
+            });
     }
 
     static int Main()
@@ -3102,7 +3203,7 @@ class Test
                     return """";
                 };
             del3();
-            
+
         };
     }
 
@@ -3133,7 +3234,7 @@ static class Extension
         return (Task<int>) Foo();
     }
 }
-class Test 
+class Test
 {
     public static int amount=0;
     static int Main()
@@ -3218,7 +3319,7 @@ class Testcase
         return Task.Run(() => { });
     }
 }
-class Test 
+class Test
 {
     static int Main()
     {
@@ -3249,7 +3350,7 @@ class Test : IDisposable
     {
         await Task.Delay(10);
     }
-    public void Dispose() 
+    public void Dispose()
     {
         Foo();
     }
@@ -3645,10 +3746,30 @@ class Test
     {
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
                 // (4,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async public static void Main()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main"));
+        }
+
+        [Fact, WorkItem(547081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547081")]
+        public void Repro_17885_CSharp7()
+        {
+            var source = @"
+using System.Threading.Tasks;
+class Test
+{
+    async public static Task Main()
+    {
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
+                // (5,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async public static Task Main()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(5, 30),
+                // (5,30): error CS4009: 'Test.Main()': an entry point cannot be marked with the 'async' modifier
+                //     async public static Task Main()
+                Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("Test.Main()").WithLocation(5, 30));
         }
 
         [Fact, WorkItem(547088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547088")]
@@ -3661,7 +3782,7 @@ class Driver
     {
         return 1;
     }
- 
+
     public async void Foo(ref int x)
     { }
 }";
@@ -3732,7 +3853,7 @@ public class C
             var source =
 @"using System;
 using A;
- 
+
 namespace A
 {
     public class IAS<T>
@@ -3867,7 +3988,7 @@ public class C
         {
             string source = @"
 using System.Threading.Tasks;
- 
+
 class Program
 {
     static async Task<T> Foo<T>()
@@ -3890,9 +4011,9 @@ class Program
             string source = @"
 using System;
 using System.Threading.Tasks;
- 
+
 delegate Task D(ref int x);
- 
+
 class C
 {
     static void Main()
@@ -3902,7 +4023,7 @@ class C
             await Task.Delay(500);
             Console.WriteLine(i++);
         };
- 
+
         int x = 5;
         d(ref x).Wait();
         Console.WriteLine(x);
@@ -3980,7 +4101,7 @@ public class Program
 @".class public auto ansi sealed D`1<T>
        extends [mscorlib]System.MulticastDelegate
 {
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor(object 'object',
                                native int 'method') runtime managed
   {
