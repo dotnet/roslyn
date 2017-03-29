@@ -25,10 +25,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             public Arg(string value)
             {
-                Debug.Assert(value != null);
-
                 Int32 = 0;
-                String = value;
+                String = value ?? "<null>";
             }
 
             public Arg(int value)

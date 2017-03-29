@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
             log.Write("a");
             log.Write("b {0} {1} {2}", 1, "x", 3);
             log.Write("c");
-            log.Write("d {0}", 1);
+            log.Write("d {0} {1}", null, null);
             log.Write("e");
             log.Write("f");
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 "f",
                 "b 1 x 3",
                 "c",
-                "d 1",
+                "d <null> <null>",
                 "e"
             }, log.GetEntries().Select(e => e.ToString()));
         }

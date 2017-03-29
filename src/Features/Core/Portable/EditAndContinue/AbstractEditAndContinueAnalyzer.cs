@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (diagnostics.Count > 0)
                 {
-                    DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: {1}", diagnostics.Count, document.FilePath);
+                    DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: '{1}'", diagnostics.Count, document.FilePath);
                     return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
                 }
 
