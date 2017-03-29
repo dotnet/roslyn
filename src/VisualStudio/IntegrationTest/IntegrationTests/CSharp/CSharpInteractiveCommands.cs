@@ -110,13 +110,16 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             this.ExecuteCommand(WellKnownCommandNames.Edit_Copy);
             this.ExecuteCommand(WellKnownCommandNames.Edit_Cut);
             this.ExecuteCommand(WellKnownCommandNames.Edit_Paste);
+            this.WaitForLastReplInputContains("Text");
             this.VerifyLastReplInput("Text");
             this.ExecuteCommand(WellKnownCommandNames.Edit_Delete);
             this.ExecuteCommand(WellKnownCommandNames.Edit_LineUp);
             this.ExecuteCommand(WellKnownCommandNames.Edit_LineDown);
             this.ExecuteCommand(WellKnownCommandNames.Edit_Paste);
+            this.WaitForLastReplInputContains("TextText");
             this.VerifyLastReplInput("TextText");
             this.ExecuteCommand(WellKnownCommandNames.Edit_Paste);
+            this.WaitForLastReplInputContains("TextTextText");
             this.VerifyLastReplInput("TextTextText");
             this.SendKeys(VirtualKey.Escape);
         }
