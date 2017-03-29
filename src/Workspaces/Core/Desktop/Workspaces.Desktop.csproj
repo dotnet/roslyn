@@ -111,6 +111,15 @@
     <Compile Include="Workspace\SQLite\SQLite.cs" />
     <Compile Include="Workspace\SQLite\SQLitePersistentStorage.cs" />
     <Compile Include="Workspace\SQLite\SQLitePersistentStorageService.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_ProjectIds.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_DocumentSerialization.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_ProjectSerialization.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_Helpers.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_DocumentIds.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_StringIds.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_SolutionSerialization.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_WriteBatching.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_BulkPopulateIds.cs" />
     <Compile Include="Workspace\Storage\PersistenceStorageServiceFactory.cs" />
     <Compile Include="Workspace\Storage\PersistentStorageService.cs" />
     <Compile Include="Workspace\Storage\StorageDatabase.cs" />
