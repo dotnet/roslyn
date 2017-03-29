@@ -5,6 +5,10 @@ using System.Linq;
 using System.Windows.Automation;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -57,6 +61,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void MoveCaret(int position)
             => _editorInProc.MoveCaret(position);
+
+        public ImmutableArray<TextSpan> GetTagSpans(string tagId)
+        {
+            var tagInfo = _editorInProc.GetTagSpans(tagId).ToList();
+
+            // The spans are returned in an array:
+            //    [s1.Start, s1.Length, s2.Start, s2.Length, ...]
+            // Reconstruct the spans from their component parts
+
+            var builder = ArrayBuilder<TextSpan>.GetInstance();
+
+            for (int i = 0; i < tagInfo.Count; i += 2)
+            {
+                builder.Add(new TextSpan(tagInfo[i], tagInfo[i + 1]));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
 
         public string GetCurrentCompletionItem()
         {

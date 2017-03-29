@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Linq;
@@ -11,11 +12,13 @@ using System.Windows.Automation;
 using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 
@@ -537,5 +540,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void GoToImplementation()
             => GetDTE().ExecuteCommand("Edit.GoToImplementation");
+
+		/// <summary>
+        /// Gets the spans where a particular tag appears in the active text view.
+        /// </summary>
+        /// <returns>
+        /// Given a list of tag spans [s1, s2, ...], returns a decomposed array for serialization:
+        ///     [s1.Start, s1.Length, s2.Start, s2.Length, ...]
+        /// </returns>
+        public int[] GetTagSpans(string tagId)
+            => InvokeOnUIThread(() =>
+            {
+                var view = GetActiveTextView();
+                var tagAggregatorFactory = GetComponentModel().GetService<IViewTagAggregatorFactoryService>();
+                var tagAggregator = tagAggregatorFactory.CreateTagAggregator<ITextMarkerTag>(view);
+                var matchingTags = tagAggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length)).Where(t => t.Tag.Type == tagId);
+
+                return matchingTags.Select(t => t.Span.GetSpans(view.TextBuffer).Single().Span.ToTextSpan()).SelectMany(t => new List<int> { t.Start, t.Length }).ToArray();
+            });
     }
 }
