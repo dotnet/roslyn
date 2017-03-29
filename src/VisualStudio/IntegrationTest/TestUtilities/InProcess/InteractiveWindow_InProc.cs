@@ -219,7 +219,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (!predicate())
             {
-                throw new Exception($"Predicate never assigned a value after {_timeoutInMilliseconds} milliseconds and no exceptions were thrown");
+                var replText = GetReplText();
+                throw new Exception($"Predicate never assigned a value after {_timeoutInMilliseconds} milliseconds and no exceptions were thrown. REPL text: {replText}.");
             }
         }
 
