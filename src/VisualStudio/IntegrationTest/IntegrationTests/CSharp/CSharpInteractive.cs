@@ -44,7 +44,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             this.WaitForLastReplOutputContains(@"c:\windows\win.ini");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17634")]
+        [Fact]
         public void TopLevelMethod()
         {
             this.SubmitText(@"int Fac(int x)
