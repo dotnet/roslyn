@@ -304,18 +304,16 @@ IIfStatement (OperationKind.IfStatement)
         public void IIfstatementWithElseIfConditionOutVar()
         {
             string source = @"
-using System;
-
 class P
 {
     private void M()
     {
         var s = """";
         /*<bind>*/if (int.TryParse(s, out var i))
-           Console.WriteLine($""i={i}, s={s}"");
+            System.Console.WriteLine($""i ={ i}, s ={ s}"");
         else
-          Console.WriteLine($""i={i}, s={s}"");/*</bind>*/ 
-        
+            System.Console.WriteLine($""i ={ i}, s ={ s}"");/*</bind>*/
+
     }
 }
 ";
@@ -339,7 +337,48 @@ IIfStatement (OperationKind.IfStatement)
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-        public void IIfstatementWithPattern()
+        public void IIfstatementWithOutVar()
+        {
+            string source = @"
+class P
+{
+    private void M()
+    {
+        
+        /*<bind>*/if (true)
+            System.Console.WriteLine(A());/*</bind>*/
+    }
+    private int A()
+    {
+        var s = """";
+        if (int.TryParse(s, out var i))
+        {
+            return i;
+        }
+        else
+        {
+            return -1;
+        }
+
+    }
+    
+}
+
+";
+            string expectedOperationTree = @"
+IIfStatement (OperationKind.IfStatement)
+  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
+  IExpressionStatement (OperationKind.ExpressionStatement)
+    IInvocationExpression (static void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void)
+      IArgument (Matching Parameter: value) (OperationKind.Argument)
+        IInvocationExpression ( System.Int32 P.A()) (OperationKind.InvocationExpression, Type: System.Int32)
+          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P)
+";
+            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithConditionPattern()
         {
             string source = @"
 using System;
@@ -365,6 +404,38 @@ IIfStatement (OperationKind.IfStatement)
       IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void)
         IArgument (Matching Parameter: value) (OperationKind.Argument)
           ILocalReferenceExpression: str (OperationKind.LocalReferenceExpression, Type: System.String)
+";
+            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithPattern()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        /*<bind>*/if (true)
+            A(25);/*</bind>*/
+    }
+
+    private static void A(object o)
+    {
+        if (o is null) return;
+        if (!(o is int i)) return;
+        System.Console.WriteLine(new string('*', i));
+    }
+}
+";
+            string expectedOperationTree = @"
+IIfStatement (OperationKind.IfStatement)
+  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
+  IExpressionStatement (OperationKind.ExpressionStatement)
+    IInvocationExpression (static void Program.A(System.Object o)) (OperationKind.InvocationExpression, Type: System.Void)
+      IArgument (Matching Parameter: o) (OperationKind.Argument)
+        IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object)
+          ILiteralExpression (Text: 25) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 25)
 ";
             VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
         }

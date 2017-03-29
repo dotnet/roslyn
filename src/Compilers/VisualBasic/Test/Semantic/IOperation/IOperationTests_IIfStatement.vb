@@ -38,41 +38,6 @@ IIfStatement (OperationKind.IfStatement)
         End Sub
 
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
-        Public Sub IIfstatementMultiLineIf()
-            Dim source = <![CDATA[
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Program
-    Sub Main(args As String())
-        Dim count As Integer = 0
-        Dim returnValue As Integer = -1
-        If count > 0 Then'BIND:"If count > 0 Then"
-            returnValue = count
-        End If"
-            returnValue = count
-        End If
-    End Sub
-End Module
-    ]]>.Value
-
-            Dim expectedOperationTree = <![CDATA[
-IIfStatement (OperationKind.IfStatement)
-  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
-      Left: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32)
-      Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32)
-        Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32)
-        Right: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32)
-]]>.Value
-
-            VerifyOperationTreeForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree)
-        End Sub
-
-        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSingleLineIfAndElse()
             Dim source = <![CDATA[
 Module Program
@@ -452,6 +417,49 @@ IIfStatement (OperationKind.IfStatement)
             VerifyOperationTreeForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        Public Sub IIfstatementWithElseIfSingleLine()
+            Dim source = <![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim m As Integer = 9
+        Dim n As Integer = 7
+        If (m > 20) Then System.Console.WriteLine("Result1") Else If (n > 10) Then System.Console.WriteLine("Result2") Else System.Console.WriteLine("Result3") End If'BIND:"If (m > 20) Then System.Console.WriteLine("Result1") Else If (n > 10) Then System.Console.WriteLine("Result2") Else System.Console.WriteLine("Result3")"
+    End Sub
+End Module
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIfStatement (OperationKind.IfStatement)
+  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean)
+      IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
+        Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32)
+        Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20)
+  IBlockStatement (1 statements) (OperationKind.BlockStatement)
+    IExpressionStatement (OperationKind.ExpressionStatement)
+      IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void)
+        IArgument (Matching Parameter: value) (OperationKind.Argument)
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: Result1)
+  IBlockStatement (1 statements) (OperationKind.BlockStatement)
+    IIfStatement (OperationKind.IfStatement)
+      Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean)
+          IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
+            Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32)
+            Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10)
+      IBlockStatement (1 statements) (OperationKind.BlockStatement)
+        IExpressionStatement (OperationKind.ExpressionStatement)
+          IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void)
+            IArgument (Matching Parameter: value) (OperationKind.Argument)
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: Result2)
+      IBlockStatement (1 statements) (OperationKind.BlockStatement)
+        IExpressionStatement (OperationKind.ExpressionStatement)
+          IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void)
+            IArgument (Matching Parameter: value) (OperationKind.Argument)
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: Result3)
+]]>.Value
+
+            VerifyOperationTreeForTest(Of SingleLineIfStatementSyntax)(source, expectedOperationTree)
+        End Sub
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithElseMissing()
             Dim source = <![CDATA[
