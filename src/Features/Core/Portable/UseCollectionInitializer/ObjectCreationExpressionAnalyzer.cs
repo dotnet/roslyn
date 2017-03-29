@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         private TStatementSyntax _containingStatement;
         private SyntaxNodeOrToken _valuePattern;
-        private ISymbol _variableSymbol;
 
         public ObjectCreationExpressionAnalyzer(
             SemanticModel semanticModel,
@@ -159,20 +158,29 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             // If we're initializing a variable, then we can't reference that variable on the right 
             // side of the initialization.  Rewriting this into a collection initializer would lead
             // to a definite-assignment error.
-            if (_variableSymbol != null)
+            if (ExpressionContainsValuePattern(right))
             {
-                foreach (var child in right.DescendantNodesAndSelf().OfType<TExpressionSyntax>())
-                {
-                    if (ValuePatternMatches(child) &&
-                        _variableSymbol.Equals(_semanticModel.GetSymbolInfo(child, _cancellationToken).GetAnySymbol()))
-                    {
-                        return false;
-                    }
-                }
+                return false;
             }
 
             instance = _syntaxFacts.GetExpressionOfElementAccessExpression(left);
             return true;
+        }
+
+        private bool ExpressionContainsValuePattern(SyntaxNode expression)
+        {
+            foreach (var subExpression in expression.DescendantNodesAndSelf().OfType<TExpressionSyntax>())
+            {
+                if (!_syntaxFacts.IsNameOfMemberAccessExpression(subExpression))
+                {
+                    if (ValuePatternMatches(subExpression))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private bool TryAnalyzeAddInvocation(
@@ -293,7 +301,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             _valuePattern = _syntaxFacts.GetIdentifierOfVariableDeclarator(containingDeclarator);
-            _variableSymbol = _semanticModel.GetDeclaredSymbol(containingDeclarator);
             return true;
         }
     }
