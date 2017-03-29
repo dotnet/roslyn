@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Receivers of struct methods are required to be at least RValues but can be assignable variables.
         /// Whether the mutations from the method are propagated back to the 
         /// receiver instance is conditional on whether the receiver is a variable that can be assigned. 
-        /// If not, then the invokation is performed on a copy.
+        /// If not, then the invocation is performed on a copy.
         /// 
         /// An inconvenient situation may arise when the receiver is an RValue expression (like a ternary operator),
         /// which is trivially reduced during lowering to one of its operands and 

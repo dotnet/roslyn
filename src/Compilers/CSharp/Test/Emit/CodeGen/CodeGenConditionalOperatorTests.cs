@@ -2354,7 +2354,7 @@ static class LiveList
 
             System.Console.WriteLine(v.field);
 
-            System.Console.WriteLine((true ? v : default(S1)).Increment());
+            System.Console.WriteLine((false ? default(S1): v).Increment());
 
             System.Console.WriteLine(v.field);
 
@@ -2407,6 +2407,43 @@ class Program
             string expectedOutput = @"1
 1";
             CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe);
+        }
+
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void TestConditionalOperatorNotLvalueRefCall()
+        {
+            var source = @"
+class Program
+{
+
+    struct S1 
+    {
+        public int field;
+        public int Increment() => field++;
+    }
+
+    private static S1 sv;
+
+    private static ref S1 M1()
+    {
+        return ref sv;
+    }
+
+    static void Main()
+    {
+        sv.Increment();
+
+        System.Console.WriteLine(sv.field);
+
+        (true ? M1() : default(S1)).Increment();
+
+        System.Console.WriteLine(sv.field);
+    }
+}
+";
+            string expectedOutput = @"1
+1";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
     }
