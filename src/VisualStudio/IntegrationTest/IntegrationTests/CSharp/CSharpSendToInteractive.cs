@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -14,6 +15,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     public class CSharpSendToInteractive : AbstractInteractiveWindowTest
     {
         private const string FileName = "test.cs";
+
         public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
@@ -22,7 +24,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             this.AddProject(WellKnownProjectTemplates.ConsoleApplication, project, Microsoft.CodeAnalysis.LanguageNames.CSharp);
 
             this.AddFile(
-                FileName, 
+                FileName,
                 project,
                 @"using System;
 
@@ -211,6 +213,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             this.SubmitText("public class MyClass { public string MyFunc() { return \"MyClass.MyFunc()\"; } }");
             this.SubmitText("(new MyClass()).MyFunc()");
             this.WaitForLastReplOutput("\"MyClass.MyFunc()\"");
+            this.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
         }
 
         [Fact]
@@ -237,9 +240,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             this.SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"foo\";");
             this.SubmitText("f.Text");
             this.WaitForLastReplOutput("\"foo\"");
-
-            // TODO https://github.com/dotnet/roslyn/issues/18133
-            Wait(seconds: 5);
+            this.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
         }
     }
 }
