@@ -421,10 +421,9 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return null;
             }
 
-            // Unique identify the project through the key:  P-projectPathId-projectNameId
             return TryGetStringId(
                 connection,
-                Invariant($"{projectPathId.Value}-{projectNameId.Value}"));
+                GetProjectIdString(projectPathId.Value, projectNameId.Value));
         }
 
         private int? TryGetDocumentId(SQLiteConnection connection, Document document)
