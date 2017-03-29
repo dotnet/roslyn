@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
 using SQLite;
 using static System.FormattableString;
 
@@ -15,10 +16,12 @@ namespace Microsoft.CodeAnalysis.SQLite
 {
     internal class SQLitePersistentStorage : AbstractPersistentStorage
     {
+        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+
         /// <summary>
         /// A persistent connection we keep around to make async requests to the db.
         /// </summary>
-        private readonly SQLiteAsyncConnection _connection;
+        private readonly SQLiteConnection _connection;
 
         // Caches from local data to the corresponding database ID for that data.
         // Kept locally so we can avoid hitting the DB for common data.
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             Action<AbstractPersistentStorage> disposer)
             : base(optionService, workingFolderPath, solutionFilePath, databaseFile, disposer)
         {
-            _connection = new SQLiteAsyncConnection(databaseFile, openFlags: GetOpenFlags());
+            _connection = new SQLiteConnection(databaseFile, openFlags: GetOpenFlags());
         }
 
         private static SQLiteOpenFlags GetOpenFlags()
@@ -45,25 +48,22 @@ namespace Microsoft.CodeAnalysis.SQLite
         public override void Initialize()
         {
             // Create a sync connection to the DB and ensure it has tables for the types we care about. 
-            using (var syncConnection = new SQLiteConnection(DatabaseFile, GetOpenFlags()))
-            {
-                syncConnection.CreateTable<StringInfo>();
-                syncConnection.CreateTable<SolutionData>();
-                syncConnection.CreateTable<ProjectData>();
-                syncConnection.CreateTable<DocumentData>();
+            _connection.CreateTable<StringInfo>();
+            _connection.CreateTable<SolutionData>();
+            _connection.CreateTable<ProjectData>();
+            _connection.CreateTable<DocumentData>();
 
-                // Also getthe known set of string-to-id mappings we already have in the DB.
-                foreach (var v in syncConnection.Table<StringInfo>())
-                {
-                    _stringToIdMap.TryAdd(v.Value, v.Id);
-                }
+            // Also getthe known set of string-to-id mappings we already have in the DB.
+            foreach (var v in _connection.Table<StringInfo>())
+            {
+                _stringToIdMap.TryAdd(v.Value, v.Id);
             }
         }
 
         public override void Close()
         {
             _shutdownCancellationSource.Cancel();
-            SQLiteAsyncConnection.ResetPool();
+            _connection.Dispose();
         }
 
         private static Stream GetStream(byte[] bytes)
@@ -110,11 +110,12 @@ namespace Microsoft.CodeAnalysis.SQLite
         public override async Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
         {
             using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
+            using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
             {
                 SolutionData data = null;
                 try
                 {
-                    data = await _connection.FindAsync<SolutionData>(name, linkedSource.Token).ConfigureAwait(false);
+                    data = _connection.Find<SolutionData>(name);
                 }
                 catch (Exception ex)
                 {
@@ -128,14 +129,14 @@ namespace Microsoft.CodeAnalysis.SQLite
         public override async Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken)
         {
             using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
+            using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
             {
                 var bytes = GetBytes(stream);
 
                 try
                 {
-                    await _connection.InsertOrReplaceAsync(
-                        new SolutionData { Id = name, Data = bytes },
-                        linkedSource.Token).ConfigureAwait(false);
+                    _connection.InsertOrReplace(
+                        new SolutionData { Id = name, Data = bytes });
                     return true;
                 }
                 catch (Exception ex)
@@ -154,8 +155,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             Project project, string name, CancellationToken cancellationToken)
         {
             using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
+            using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
             {
-                var id = await TryGetProjectIdAsync(project, linkedSource.Token).ConfigureAwait(false);
+                var id = TryGetProjectId(project);
                 if (id == null)
                 {
                     return null;
@@ -164,8 +166,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 ProjectData projectData = null;
                 try
                 {
-                    projectData = await _connection.FindAsync<ProjectData>(
-                        GetProjectDataId(id.Value, name), linkedSource.Token).ConfigureAwait(false);
+                    projectData = _connection.Find<ProjectData>(GetProjectDataId(id.Value, name));
                 }
                 catch (Exception ex)
                 {
@@ -180,17 +181,17 @@ namespace Microsoft.CodeAnalysis.SQLite
             Project project, string name, Stream stream, CancellationToken cancellationToken)
         {
             using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
+            using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
             {
                 var bytes = GetBytes(stream);
-                var id = await TryGetProjectIdAsync(project, linkedSource.Token).ConfigureAwait(false);
+                var id = TryGetProjectId(project);
 
                 if (id != null)
                 {
                     try
                     {
-                        await _connection.InsertOrReplaceAsync(
-                            new ProjectData { Id = GetProjectDataId(id.Value, name), Data = bytes },
-                            linkedSource.Token).ConfigureAwait(false);
+                        _connection.InsertOrReplace(
+                            new ProjectData { Id = GetProjectDataId(id.Value, name), Data = bytes });
                         return true;
                     }
                     catch (Exception ex)
@@ -211,8 +212,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             Document document, string name, CancellationToken cancellationToken)
         {
             using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
+            using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
             {
-                var id = await TryGetDocumentIdAsync(document, linkedSource.Token).ConfigureAwait(false);
+                var id = TryGetDocumentId(document);
                 if (id == null)
                 {
                     return null;
@@ -221,9 +223,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 DocumentData documentData = null;
                 try
                 {
-                    documentData = await _connection.FindAsync<DocumentData>(
-                        GetProjectDataId(id.Value, name),
-                        linkedSource.Token).ConfigureAwait(false);
+                    documentData = _connection.Find<DocumentData>(GetProjectDataId(id.Value, name));
                 }
                 catch (Exception ex)
                 {
@@ -238,17 +238,17 @@ namespace Microsoft.CodeAnalysis.SQLite
             Document document, string name, Stream stream, CancellationToken cancellationToken)
         {
             using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
+            using (await _gate.DisposableWaitAsync(linkedSource.Token).ConfigureAwait(false))
             {
                 var bytes = GetBytes(stream);
-                var id = await TryGetDocumentIdAsync(document, linkedSource.Token).ConfigureAwait(false);
+                var id = TryGetDocumentId(document);
 
                 if (id != null)
                 {
                     try
                     {
-                        await _connection.InsertOrReplaceAsync(
-                            new DocumentData { Id = GetDocumentDataId(id.Value, name), Data = bytes },
-                            linkedSource.Token).ConfigureAwait(false);
+                        _connection.InsertOrReplace(
+                            new DocumentData { Id = GetDocumentDataId(id.Value, name), Data = bytes });
                         return true;
                     }
                     catch (Exception ex)
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private async Task<int?> TryGetProjectIdAsync(Project project, CancellationToken cancellationToken)
+        private int? TryGetProjectId(Project project)
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return existingId;
             }
 
-            var id = await TryGetProjectIdFromDatabaseAsync(project, cancellationToken).ConfigureAwait(false);
+            var id = TryGetProjectIdFromDatabase(project);
             if (id != null)
             {
                 // Cache the value locally so we don't need to go back to the DB in the future.
@@ -280,13 +280,12 @@ namespace Microsoft.CodeAnalysis.SQLite
             return id;
         }
 
-        private async Task<int?> TryGetProjectIdFromDatabaseAsync(
-            Project project, CancellationToken cancellationToken)
+        private int? TryGetProjectIdFromDatabase(Project project)
         {
             // Key the project off both its path and name.  That way we work properly
             // in host and test scenarios.
-            var projectPathId = await TryGetStringIdAsync(project.FilePath, cancellationToken).ConfigureAwait(false);
-            var projectNameId = await TryGetStringIdAsync(project.Name, cancellationToken).ConfigureAwait(false);
+            var projectPathId = TryGetStringId(project.FilePath);
+            var projectNameId = TryGetStringId(project.Name);
 
             if (projectPathId == null || projectNameId == null)
             {
@@ -294,13 +293,11 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             // Unique identify the project through the key:  P-projectPathId-projectNameId
-            return await TryGetStringIdAsync(
-                Invariant($"P-{projectPathId.Value}-{projectNameId.Value}"),
-                cancellationToken).ConfigureAwait(false);
+            return TryGetStringId(
+                Invariant($"P-{projectPathId.Value}-{projectNameId.Value}"));
         }
 
-        private async Task<int?> TryGetDocumentIdAsync(
-            Document document, CancellationToken cancellationToken)
+        private int? TryGetDocumentId(Document document)
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
@@ -309,7 +306,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return existingId;
             }
 
-            var id = await TryGetDocumentIdFromDatabaseAsync(document, cancellationToken).ConfigureAwait(false);
+            var id = TryGetDocumentIdFromDatabase(document);
             if (id != null)
             {
                 // Cache the value locally so we don't need to go back to the DB in the future.
@@ -319,10 +316,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             return id;
         }
 
-        private async Task<int?> TryGetDocumentIdFromDatabaseAsync(
-            Document document, CancellationToken cancellationToken)
+        private int? TryGetDocumentIdFromDatabase(Document document)
         {
-            var projectId = await TryGetProjectIdAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            var projectId = TryGetProjectId(document.Project);
             if (projectId == null)
             {
                 return null;
@@ -330,8 +326,8 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             // Key the document off its project id, and its path and name.  That way we work properly
             // in host and test scenarios.
-            var documentPathId = await TryGetStringIdAsync(document.FilePath, cancellationToken).ConfigureAwait(false);
-            var documentNameId = await TryGetStringIdAsync(document.Name, cancellationToken).ConfigureAwait(false);
+            var documentPathId = TryGetStringId(document.FilePath);
+            var documentNameId = TryGetStringId(document.Name);
 
             if (documentPathId == null || documentNameId == null)
             {
@@ -339,14 +335,13 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             // Unique identify the document through the key:  D-projectId-documentPathId-documentNameId
-            return await TryGetStringIdAsync(
-                Invariant($"D-{projectId.Value}-{documentPathId.Value}-{documentNameId.Value}"),
-                cancellationToken).ConfigureAwait(false);
+            return TryGetStringId(
+                Invariant($"D-{projectId.Value}-{documentPathId.Value}-{documentNameId.Value}"));
         }
 
         #endregion
 
-        private async Task<int?> TryGetStringIdAsync(string value, CancellationToken cancellationToken)
+        private int? TryGetStringId(string value)
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
@@ -356,7 +351,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             // Otherwise, try to get or add the string to the string table in the database.
-            var id = await TryGetStringIdFromDatabaseAsync(value, cancellationToken).ConfigureAwait(false);
+            var id = TryGetStringIdFromDatabase(value);
             if (id != null)
             {
                 _stringToIdMap.TryAdd(value, id.Value);
@@ -365,12 +360,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             return id;
         }
 
-        private async Task<int?> TryGetStringIdFromDatabaseAsync(
-            string value, CancellationToken cancellationToken)
+        private int? TryGetStringIdFromDatabase(string value)
         {
             // First, check if we can find that string in the string table.
-            var stringInfo = await TryGetStringIdFromDatabaseWorkerAsync(
-                value, canReturnNull: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var stringInfo = TryGetStringIdFromDatabaseWorker(value, canReturnNull: true);
             if (stringInfo != null)
             {
                 // Found the value already in the db.  Another process (or thread) might have added it.
@@ -384,7 +377,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             try
             {
                 stringInfo = new StringInfo { Value = value };
-                await _connection.InsertAsync(stringInfo, cancellationToken).ConfigureAwait(false);
+                _connection.Insert(stringInfo);
 
                 // Successfully added the string.  Return the ID it was given.
                 return stringInfo.Id;
@@ -393,8 +386,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 // We got a constraint violation.  This means someone else beat us to adding this
                 // string to the string-table.  We should always be able to find the string now.
-                stringInfo = await TryGetStringIdFromDatabaseWorkerAsync(
-                    value, canReturnNull: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                stringInfo = TryGetStringIdFromDatabaseWorker(value, canReturnNull: false);
                 return stringInfo.Id;
             }
             catch (Exception ex)
@@ -406,16 +398,15 @@ namespace Microsoft.CodeAnalysis.SQLite
             return null;
         }
 
-        private async Task<StringInfo> TryGetStringIdFromDatabaseWorkerAsync(
-            string value, bool canReturnNull, CancellationToken cancellationToken)
+        private StringInfo TryGetStringIdFromDatabaseWorker(string value, bool canReturnNull)
         {
             StringInfo stringInfo = null;
 
             try
             {
-                stringInfo = await _connection.Table<StringInfo>()
+                stringInfo = _connection.Table<StringInfo>()
                     .Where(i => i.Value == value)
-                    .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+                    .FirstOrDefault();
             }
             catch (Exception ex)
             {
