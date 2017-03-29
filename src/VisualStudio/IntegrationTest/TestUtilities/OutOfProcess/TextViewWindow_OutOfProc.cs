@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -27,10 +28,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void PlaceCaret(
             string marker,
-            int charsOffset,
-            int occurrence,
-            bool extendSelection,
-            bool selectBlock)
+            int charsOffset = 0,
+            int occurrence = 0,
+            bool extendSelection = false,
+            bool selectBlock = false)
             => _textViewWindowInProc.PlaceCaret(
                 marker,
                 charsOffset,
@@ -40,5 +41,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public string[] GetCurrentClassifications()
             => _textViewWindowInProc.GetCurrentClassifications();
+
+        public string GetQuickInfo()
+        {
+            WaitForQuickInfo();
+            return _textViewWindowInProc.GetQuickInfo();
+        }
+
+        public void VerifyTags(string tagTypeName, int expectedCount)
+            => _textViewWindowInProc.VerifyTags(tagTypeName, expectedCount);
+
+        public void ShowLightBulb()
+            => _textViewWindowInProc.ShowLightBulb();
+
+        public void WaitForLightBulbSession()
+            => _textViewWindowInProc.WaitForLightBulbSession();
+
+        public bool IsLightBulbSessionExpanded()
+            => _textViewWindowInProc.IsLightBulbSessionExpanded();
+
+        public void DismissLightBulbSession()
+            => _textViewWindowInProc.DismissLightBulbSession();
+
+        public string[] GetLightBulbActions()
+            => _textViewWindowInProc.GetLightBulbActions();
+
+        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
+            => _textViewWindowInProc.ApplyLightBulbAction(action, fixAllScope, blockUntilComplete);
     }
 }

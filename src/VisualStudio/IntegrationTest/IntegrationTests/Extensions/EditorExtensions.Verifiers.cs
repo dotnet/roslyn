@@ -1,11 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Xunit;
 
@@ -18,17 +14,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
             CommonExtensions.VerifyCurrentTokenType(test, tokenType, test.VisualStudio.Instance.Editor);
         }
 
-        public static void VerifyCompletionItemExists(this AbstractIntegrationTest test, params string[] expectedItems)
-        {
-            CommonExtensions.VerifyCompletionItemExists(test.VisualStudio.Instance.Editor, expectedItems);
-        }
-
-        public static void VerifyCaretPosition(this AbstractIntegrationTest test, int expectedCaretPosition)
-        {
-            CommonExtensions.VerifyCaretPosition(test.VisualStudio.Instance.Editor, expectedCaretPosition);
-        }
-
-        public static void VerifyCurrentLineText(this AbstractIntegrationTest test, string expectedText, bool assertCaretPosition = false, bool trimWhitespace = true)
+        public static void VerifyCurrentLineText(
+            this AbstractIntegrationTest test, 
+            string expectedText, 
+            bool assertCaretPosition = false, 
+            bool trimWhitespace = true)
         {
             if (assertCaretPosition)
             {
@@ -47,7 +37,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
             }
         }
 
-        private static void VerifyCurrentLineTextAndAssertCaretPosition(AbstractIntegrationTest test, string expectedText, bool trimWhitespace)
+        private static void VerifyCurrentLineTextAndAssertCaretPosition(
+            AbstractIntegrationTest test, 
+            string expectedText, 
+            bool trimWhitespace)
         {
             var caretStartIndex = expectedText.IndexOf("$$");
             if (caretStartIndex < 0)
@@ -62,6 +55,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
 
             var lineText = test.VisualStudio.Instance.Editor.GetCurrentLineText();
 
+            // Asserts below perform separate verifications of text before and after the caret.
+            // Depending on the position of the caret, if trimWhitespace, we trim beginnig, end or both sides.
             if (trimWhitespace)
             {
                 if (caretStartIndex == 0)
@@ -91,7 +86,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
             Assert.Equal(expectedTextBeforeCaret.Length + expectedTextAfterCaret.Length, lineText.Length);
         }
 
-        public static void VerifyTextContains(this AbstractIntegrationTest test, string expectedText, bool assertCaretPosition = false)
+        public static void VerifyTextContains(
+            this AbstractIntegrationTest test, 
+            string expectedText, 
+            bool assertCaretPosition = false)
         {
             if (assertCaretPosition)
             {
@@ -104,7 +102,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
             }
         }
 
-        private static void VerifyTextContainsAndAssertCaretPosition(AbstractIntegrationTest test, string expectedText)
+        private static void VerifyTextContainsAndAssertCaretPosition(
+            AbstractIntegrationTest test, 
+            string expectedText)
         {
             var caretStartIndex = expectedText.IndexOf("$$");
             if (caretStartIndex < 0)
@@ -128,7 +128,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
             Assert.Equal(caretStartIndex + index, caretPosition);
         }
 
-        public static void VerifyCompletionItemDoesNotExist(this AbstractIntegrationTest test, params string[] expectedItems)
+        public static void VerifyCompletionItemDoNotExist(
+            this AbstractIntegrationTest test, 
+            params string[] expectedItems)
         {
             var completionItems = test.VisualStudio.Instance.Editor.GetCompletionItems();
             foreach (var expectedItem in expectedItems)
@@ -137,13 +139,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
             }
         }
 
-        public static void VerifyCurrentCompletionItem(this AbstractIntegrationTest test, string expectedItem)
+        public static void VerifyCurrentCompletionItem(
+            this AbstractIntegrationTest test, 
+            string expectedItem)
         {
             var currentItem = test.VisualStudio.Instance.Editor.GetCurrentCompletionItem();
             Assert.Equal(expectedItem, currentItem);
         }
 
-        public static void VerifyCurrentSignature(this AbstractIntegrationTest test, Signature expectedSignature)
+        public static void VerifyCurrentSignature(
+            this AbstractIntegrationTest test, 
+            Signature expectedSignature)
         {
             var currentSignature = test.VisualStudio.Instance.Editor.GetCurrentSignature();
             Assert.Equal(expectedSignature, currentSignature);
@@ -155,69 +161,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
             Assert.Equal(content, currentSignature.Content);
         }
 
-        public static void VerifyCodeAction(
-            this AbstractIntegrationTest test,
-            string expectedItem,
-            bool applyFix = false,
-            bool verifyNotShowing = false,
-            bool ensureExpectedItemsAreOrdered = false,
-            FixAllScope? fixAllScope = null,
-            bool blockUntilComplete = true)
-        {
-            var expectedItems = new[] { expectedItem };
-            test.VerifyCodeActions(
-                expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
-                ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete);
-        }
-
-        public static void VerifyCodeActions(
-            this AbstractIntegrationTest test,
-            IEnumerable<string> expectedItems,
-            string applyFix = null,
-            bool verifyNotShowing = false,
-            bool ensureExpectedItemsAreOrdered = false,
-            FixAllScope? fixAllScope = null,
-            bool blockUntilComplete = true)
-        {
-            test.VisualStudio.Instance.Editor.ShowLightBulb();
-            test.VisualStudio.Instance.Editor.WaitForLightBulbSession();
-
-            if (verifyNotShowing)
-            {
-                test.VerifyCodeActionsNotShowing();
-                return;
-            }
-
-            var actions = test.VisualStudio.Instance.Editor.GetLightBulbActions();
-
-            if (expectedItems != null && expectedItems.Any())
-            {
-                if (ensureExpectedItemsAreOrdered)
-                {
-                    TestUtilities.ThrowIfExpectedItemNotFoundInOrder(
-                        actions,
-                        expectedItems);
-                }
-                else
-                {
-                    TestUtilities.ThrowIfExpectedItemNotFound(
-                        actions,
-                        expectedItems);
-                }
-            }
-
-            if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
-            {
-                test.VisualStudio.Instance.Editor.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
-
-                if (blockUntilComplete)
-                {
-                    // wait for action to complete
-                    test.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-                }
-            }
-        }
-
         public static void VerifyCodeActionsNotShowing(this AbstractIntegrationTest test)
         {
             if (test.VisualStudio.Instance.Editor.IsLightBulbSessionExpanded())
@@ -226,14 +169,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
             }
         }
 
-        public static void VerifyCurrentParameter(this AbstractIntegrationTest test, string name, string documentation)
+        public static void VerifyCurrentParameter(
+            this AbstractIntegrationTest test, 
+            string name, 
+            string documentation)
         {
             var currentParameter = test.VisualStudio.Instance.Editor.GetCurrentSignature().CurrentParameter;
             Assert.Equal(name, currentParameter.Name);
             Assert.Equal(documentation, currentParameter.Documentation);
         }
 
-        public static void VerifyParameters(this AbstractIntegrationTest test, params (string name, string documentation)[] parameters)
+        public static void VerifyParameters(
+            this AbstractIntegrationTest test, 
+            params (string name, string documentation)[] parameters)
         {
             var currentParameters = test.VisualStudio.Instance.Editor.GetCurrentSignature().Parameters;
             for (var i = 0; i < parameters.Length; i++)
@@ -244,7 +192,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
             }
         }
 
-        public static void VerifyDialog(this AbstractIntegrationTest test, string dialogName, bool isOpen)
+        public static void VerifyDialog(
+            this AbstractIntegrationTest test, 
+            string dialogName, 
+            bool isOpen)
         {
             test.VisualStudio.Instance.Editor.VerifyDialog(dialogName, isOpen);
         }

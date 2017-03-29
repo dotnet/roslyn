@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml.Linq;
 using EnvDTE80;
@@ -200,6 +199,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var project = GetProject(projectName);
             var projectToReference = GetProject(projectToReferenceName);
             ((VSProject)project.Object).References.AddProject(projectToReference);
+        }
+
+        public void AddReference(string projectName, string fullyQualifiedAssemblyName)
+        {
+            var project = GetProject(projectName);
+            ((VSProject)project.Object).References.Add(fullyQualifiedAssemblyName);
         }
 
         public void RemoveProjectReference(string projectName, string projectReferenceName)
@@ -429,14 +434,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void BuildSolution(bool waitForBuildToFinish)
         {
-            ExecuteCommand("Build.BuildSolution");
-            if (waitForBuildToFinish)
-            {
-                WaitForBuildToFinish();
-            }
+            var buildOutputWindowPane = GetBuildOutputWindowPane();
+            buildOutputWindowPane.Clear();
+            ExecuteCommand(WellKnownCommandNames.Build_BuildSolution);
+            WaitForBuildToFinish(buildOutputWindowPane);
         }
 
-        private void WaitForBuildToFinish()
+        public void ClearBuildOutputWindowPane()
+        {
+            var buildOutputWindowPane = GetBuildOutputWindowPane();
+            buildOutputWindowPane.Clear();
+        }
+
+        public void WaitForBuildToFinish()
+        {
+            var buildOutputWindowPane = GetBuildOutputWindowPane();
+            WaitForBuildToFinish(buildOutputWindowPane);
+        }
+
+        private EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
+        {
+            var dte = (DTE2)GetDTE();
+            var outputWindow = dte.ToolWindows.OutputWindow;
+            return outputWindow.OutputWindowPanes.Item("Build");
+        }
+
+        private void WaitForBuildToFinish(EnvDTE.OutputWindowPane buildOutputWindowPane)
         {
             var buildManager = GetGlobalService<SVsSolutionBuildManager, IVsSolutionBuildManager2>();
             using (var semaphore = new SemaphoreSlim(1))
@@ -623,7 +646,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var filePath = GetFilePath(projectName, relativeFilePath);
             var fileName = Path.GetFileName(filePath);
 
-            ExecuteCommand("File.OpenFile", filePath);
+            ExecuteCommand(WellKnownCommandNames.File_OpenFile, filePath);
 
             var dte = GetDTE();
             while (!dte.ActiveWindow.Caption.Contains(fileName))
@@ -696,18 +719,57 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void RestoreNuGetPackages()
-            => ExecuteCommand("ProjectAndSolutionContextMenus.Solution.RestoreNuGetPackages");
+            => ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages);
 
         public void SaveAll()
-            => ExecuteCommand("File.SaveAll");
+            => ExecuteCommand(WellKnownCommandNames.File_SaveAll);
+
+        public void ShowErrorList()
+            => ExecuteCommand(WellKnownCommandNames.View_ErrorList);
 
         public void ShowOutputWindow()
-            => ExecuteCommand("View.Output");
+            => ExecuteCommand(WellKnownCommandNames.View_Output);
 
         public void UnloadProject(string projectName)
         {
             var project = _solution.Projects.Item(projectName);
             _solution.Remove(project);
+        }
+
+        public void SelectItem(string itemName)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
+            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+            solutionExplorer.Parent.Activate();
+        }
+
+        private static EnvDTE.UIHierarchyItem FindFirstItemRecursively(
+            EnvDTE.UIHierarchyItems currentItems,
+            string itemName)
+        {
+            if (currentItems == null)
+            {
+                return null;
+            }
+
+            foreach (var item in currentItems.Cast<EnvDTE.UIHierarchyItem>())
+            {
+                if (item.Name == itemName)
+                {
+                    return item;
+                }
+
+                var result = FindFirstItemRecursively(item.UIHierarchyItems, itemName);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
         }
     }
 }

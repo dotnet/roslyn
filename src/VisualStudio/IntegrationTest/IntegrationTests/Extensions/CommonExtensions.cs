@@ -13,10 +13,29 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions
         public static void WaitForAsyncOperations(this AbstractIntegrationTest test, params string[] featuresToWaitFor)
             => test.VisualStudio.Instance.VisualStudioWorkspace.WaitForAsyncOperations(string.Join(";", featuresToWaitFor));
 
-        public static void InvokeCompletionList(AbstractIntegrationTest test)
+        public static void InvokeCompletionList(this AbstractIntegrationTest test)
         {
             test.ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
             test.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
         }
+
+        public static void InvokeQuickInfo(this AbstractIntegrationTest test)
+        {
+            test.ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
+            test.WaitForAsyncOperations(FeatureAttribute.QuickInfo);
+        }
+
+        public static void InvokeCodeActionList(this AbstractIntegrationTest test)
+        {
+            test.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
+            test.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
+
+            test.VisualStudio.Instance.Editor.ShowLightBulb();
+            test.VisualStudio.Instance.Editor.WaitForLightBulbSession();
+            test.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+        }
+
+        public static int GetErrorListErrorCount(this AbstractIntegrationTest test)
+            => test.VisualStudio.Instance.ErrorListErrorCount;
     }
 }

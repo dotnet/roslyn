@@ -3,6 +3,7 @@
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -18,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyColorOfSomeTokens()
         {
-            InsertCode(@"using System.Console;
+            this.InsertCode(@"using System.Console;
 /// <summary>innertext
 /// </summary>
 /// <see cref=""System.Environment"" />
@@ -30,32 +31,32 @@ public static void Main(string[] args)
                 WriteLine(""Hello World"");
             }");
 
-            PlaceCaret("using");
+            this.PlaceCaret("using");
             this.VerifyCurrentTokenType(tokenType: "keyword");
-            PlaceCaret("{");
+            this.PlaceCaret("{");
             this.VerifyCurrentTokenType(tokenType: "punctuation");
-            PlaceCaret("Main");
+            this.PlaceCaret("Main");
             this.VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Hello");
+            this.PlaceCaret("Hello");
             this.VerifyCurrentTokenType(tokenType: "string");
-            PlaceCaret("<summary", charsOffset: -1);
-            SendKeys(new KeyPress(VirtualKey.Right, ShiftState.Alt));
+            this.PlaceCaret("<summary", charsOffset: -1);
+            this.SendKeys(new KeyPress(VirtualKey.Right, ShiftState.Alt));
             this.VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("summary");
+            this.PlaceCaret("summary");
             this.VerifyCurrentTokenType(tokenType: "xml doc comment - name");
-            PlaceCaret("innertext");
+            this.PlaceCaret("innertext");
             this.VerifyCurrentTokenType(tokenType: "xml doc comment - text");
-            PlaceCaret("!--");
+            this.PlaceCaret("!--");
             this.VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("comment");
+            this.PlaceCaret("comment");
             this.VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
-            PlaceCaret("CDATA");
+            this.PlaceCaret("CDATA");
             this.VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("cdata");
+            this.PlaceCaret("cdata");
             this.VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
-            PlaceCaret("attribute");
+            this.PlaceCaret("attribute");
             this.VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Environment");
+            this.PlaceCaret("Environment");
             this.VerifyCurrentTokenType(tokenType: "class name");
         }
     }
