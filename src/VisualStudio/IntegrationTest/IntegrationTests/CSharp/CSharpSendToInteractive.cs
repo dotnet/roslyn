@@ -235,7 +235,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             this.WaitForLastReplOutputContains("CS0103");
 
             this.SubmitText("(new TestProj.C()).M()");
-            this.WaitForLastReplOutput("\"C.M()\"");
+            this.WaitForLastReplOutputContains("\"C.M()\"");
 
             this.SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"foo\";");
             this.SubmitText("f.Text");
