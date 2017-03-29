@@ -53,9 +53,9 @@ class Program
             var process = Process.Start(pathToDevenv, commandLine);
             process.WaitForExit();
 
-            Assert.Equal(0, process.ExitCode);
-
             Assert.Contains("Rebuild All: 1 succeeded, 0 failed, 0 skipped", File.ReadAllText(logFileName));
+
+            Assert.Equal(0, process.ExitCode);
         }
     }
 }
