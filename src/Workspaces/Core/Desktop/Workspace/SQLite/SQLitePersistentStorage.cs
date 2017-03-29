@@ -67,12 +67,17 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             foreach (var v in connection.Table<StringInfo>())
             {
-                // Note that TryAdd won't overwrite an existing string->id pair.  That's what
-                // we want.  we don't want the strings we've allocated from the DB to be what
-                // we hold onto.  We'd rather hold onto the strings we get from sources like
-                // the workspaces, to prevent excessice duplication.
-                _stringToIdMap.TryAdd(v.Value, v.Id);
+                AddToStringTable(v);
             }
+        }
+
+        private bool AddToStringTable(StringInfo stringInfo)
+        {
+            // Note that TryAdd won't overwrite an existing string->id pair.  That's what
+            // we want.  we don't want the strings we've allocated from the DB to be what
+            // we hold onto.  We'd rather hold onto the strings we get from sources like
+            // the workspaces, to prevent excessice duplication.
+            return _stringToIdMap.TryAdd(stringInfo.Value, stringInfo.Id);
         }
 
         public override void Close()
@@ -223,7 +228,16 @@ namespace Microsoft.CodeAnalysis.SQLite
                     // values we added.
                     foreach (var stringInfo in stringInfos)
                     {
-                        _stringToIdMap.TryAdd(stringInfo.Value, stringInfo.Id);
+                        AddToStringTable(stringInfo);
+                    }
+
+                    // However, this will have made it so that we're not holding onto a lot of db
+                    // strings.  That can lead to a lot of duplication.  So go over and ensure
+                    // that the strings we're actually using as keys are the ones we got from 
+                    // the workspace.
+                    foreach (var s in stringsToAdd)
+                    {
+                        _stringToIdMap[s] = _stringToIdMap[s];
                     }
                 }
 
@@ -273,14 +287,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             void AddIfUnknownId(string value, HashSet<string> stringsToAdd)
             {
-                if (_stringToIdMap.TryGetValue(value, out int id))
-                {
-                    // The value was in the map.  However, we want to ensure that we're pointing
-                    // to our own copy of the string, and not the copy we got from teh DB (so that
-                    // we don't duplicate lots of string).
-                    _stringToIdMap[value] = id;
-                }
-                else 
+                if (!_stringToIdMap.ContainsKey(value))
                 {
                     stringsToAdd.Add(value);
                 }
