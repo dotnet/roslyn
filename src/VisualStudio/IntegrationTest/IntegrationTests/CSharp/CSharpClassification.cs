@@ -122,7 +122,8 @@ namespace ClassLibrary1
     }
 }
 ");
-            this.ExecuteCommand("Build.SolutionConfigurations", argument: "Debug");
+
+            this.ExecuteCommand(WellKnownCommandNames.Build_SolutionConfigurations, argument: "Debug");
             this.PlaceCaret("Foo");
             this.VerifyCurrentTokenType(tokenType: "identifier");
             this.PlaceCaret("Bar");
@@ -134,6 +135,5 @@ namespace ClassLibrary1
             this.PlaceCaret("Bar");
             this.VerifyCurrentTokenType(tokenType: "identifier");
         }
-
     }
 }

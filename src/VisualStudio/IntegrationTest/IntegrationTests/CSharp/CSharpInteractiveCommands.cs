@@ -19,103 +19,112 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyPreviousAndNextHistory()
         {
-            SubmitText("1 + 2");
-            SubmitText("1.ToString()");
-            SendKeys(Alt(VirtualKey.Up));
-            VerifyLastReplInput("1.ToString()");
-            SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("\"1\"");
-            SendKeys(Alt(VirtualKey.Up));
-            VerifyLastReplInput("1.ToString()");
-            SendKeys(Alt(VirtualKey.Up));
-            VerifyLastReplInput("1 + 2");
-            SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("3");
-            SendKeys(Alt(VirtualKey.Down));
-            VerifyLastReplInput("1.ToString()");
-            SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("\"1\"");
+            this.SubmitText("1 + 2");
+            this.SubmitText("1.ToString()");
+            this.WaitForLastReplOutput("\"1\"");
+            this.SendKeys(Alt(VirtualKey.Up));
+            this.VerifyLastReplInput("1.ToString()");
+            this.SendKeys(VirtualKey.Enter);
+            this.WaitForLastReplOutput("\"1\"");
+            this.SendKeys(Alt(VirtualKey.Up));
+            this.VerifyLastReplInput("1.ToString()");
+            this.SendKeys(Alt(VirtualKey.Up));
+            this.VerifyLastReplInput("1 + 2");
+            this.SendKeys(VirtualKey.Enter);
+            this.WaitForLastReplOutput("3");
+            this.SendKeys(Alt(VirtualKey.Down));
+            this.VerifyLastReplInput("1.ToString()");
+            this.SendKeys(VirtualKey.Enter);
+            this.WaitForLastReplOutput("\"1\"");
         }
 
         [Fact]
         public void VerifyMaybeExecuteInput()
         {
-            InsertCode("2 + 3");
-            SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("5");
+            this.InsertCode("2 + 3");
+            this.SendKeys(VirtualKey.Enter);
+            this.WaitForLastReplOutput("5");
         }
 
         [Fact]
         public void VerifyNewLineAndIndent()
         {
-            InsertCode("3 + ");
-            SendKeys(VirtualKey.Enter);
-            InsertCode("4");
-            SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("7");
+            this.InsertCode("3 + ");
+            this.SendKeys(VirtualKey.Enter);
+            this.InsertCode("4");
+            this.SendKeys(VirtualKey.Enter);
+            this.WaitForLastReplOutput("7");
         }
 
         [Fact]
         public void VerifyExecuteInput()
         {
-            SubmitText("1 + ");
-            VerifyLastReplOutputContains("CS1733");
+            this.SubmitText("1 + ");
+            this.WaitForLastReplOutputContains("CS1733");
         }
 
         [Fact]
         public void VerifyForceNewLineAndIndent()
         {
-            InsertCode("1 + 2");
-            SendKeys(VirtualKey.Enter);
-            SubmitText("+ 3");
-            VerifyReplPromptConsistency("<![CDATA[1 + 2 + 3]]>", "6");
+            this.InsertCode("1 + 2");
+            this.SendKeys(VirtualKey.Enter);
+            this.SubmitText("+ 3");
+            this.WaitForLastReplOutputContains("3");
+            this.VerifyReplPromptConsistency("<![CDATA[1 + 2 + 3]]>", "6");
         }
 
         [Fact]
         public void VerifyCancelInput()
         {
-            InsertCode("1 + 4");
-            SendKeys(Shift(VirtualKey.Enter));
-            SendKeys(VirtualKey.Escape);
-            VerifyLastReplInput(string.Empty);
+            this.InsertCode("1 + 4");
+            this.SendKeys(Shift(VirtualKey.Enter));
+            this.SendKeys(VirtualKey.Escape);
+            this.VerifyLastReplInput(string.Empty);
         }
 
         [Fact]
         public void VerifyUndoAndRedo()
         {
-            ClearReplText();
-            InsertCode(" 2 + 4 ");
-            SendKeys(Ctrl(VirtualKey.Z));
-            VerifyReplPromptConsistency("< ![CDATA[]] >", string.Empty);
-            SendKeys(Ctrl(VirtualKey.Y));
-            VerifyLastReplInput(" 2 + 4 ");
-            SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("6");
+            this.ClearReplText();
+            this.InsertCode(" 2 + 4 ");
+            this.SendKeys(Ctrl(VirtualKey.Z));
+            this.VerifyReplPromptConsistency("< ![CDATA[]] >", string.Empty);
+            this.SendKeys(Ctrl(VirtualKey.Y));
+            this.VerifyLastReplInput(" 2 + 4 ");
+            this.SendKeys(VirtualKey.Enter);
+            this.WaitForLastReplOutput("6");
         }
 
         [Fact]
         public void CutDeletePasteSelectAll()
         {
-            SendKeys("Text");
-            this.ExecuteCommand("Edit.LineStart");
-            this.ExecuteCommand("Edit.LineEnd");
-            this.ExecuteCommand("Edit.LineStartExtend");
-            this.ExecuteCommand("Edit.SelectionCancel");
-            this.ExecuteCommand("Edit.LineEndExtend");
-            this.ExecuteCommand("Edit.SelectAll");
-            this.ExecuteCommand("Edit.SelectAll");
-            this.ExecuteCommand("Edit.Copy");
-            this.ExecuteCommand("Edit.Cut");
-            this.ExecuteCommand("Edit.Paste");
-            this.ExecuteCommand("Edit.Delete");
-            this.ExecuteCommand("Edit.LineUp");
-            this.ExecuteCommand("Edit.LineDown");
-            this.ExecuteCommand("Edit.Paste");
-            this.ExecuteCommand("Edit.Paste");
-            SendKeys(VirtualKey.Escape);
+            this.ClearReplText();
+            this.SendKeys("Text");
+            this.ExecuteCommand(WellKnownCommandNames.Edit_LineStart);
+            this.ExecuteCommand(WellKnownCommandNames.Edit_LineEnd);
+            this.ExecuteCommand(WellKnownCommandNames.Edit_LineStartExtend);
+            this.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
+            this.ExecuteCommand(WellKnownCommandNames.Edit_LineEndExtend);
+            this.ExecuteCommand(WellKnownCommandNames.Edit_SelectAll);
+            this.ExecuteCommand(WellKnownCommandNames.Edit_SelectAll);
+            this.ExecuteCommand(WellKnownCommandNames.Edit_Copy);
+            this.ExecuteCommand(WellKnownCommandNames.Edit_Cut);
+            this.ExecuteCommand(WellKnownCommandNames.Edit_Paste);
+            this.WaitForLastReplInputContains("Text");
+            this.VerifyLastReplInput("Text");
+            this.ExecuteCommand(WellKnownCommandNames.Edit_Delete);
+            this.ExecuteCommand(WellKnownCommandNames.Edit_LineUp);
+            this.ExecuteCommand(WellKnownCommandNames.Edit_LineDown);
+            this.ExecuteCommand(WellKnownCommandNames.Edit_Paste);
+            this.WaitForLastReplInputContains("TextText");
+            this.VerifyLastReplInput("TextText");
+            this.ExecuteCommand(WellKnownCommandNames.Edit_Paste);
+            this.WaitForLastReplInputContains("TextTextText");
+            this.VerifyLastReplInput("TextTextText");
+            this.SendKeys(VirtualKey.Escape);
         }
 
-        //<!-- Regression test for bug 13731.
+        //<!-- Regression test for bug 13731. 
         //     Unfortunately we don't have good unit-test infrastructure to test InteractiveWindow.cs.
         //     For now, since we don't have coverage of InteractiveWindow.IndentCurrentLine at all,
         //     I'd rather have a quick integration test scenario rather than no coverage at all.
@@ -127,10 +136,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void VerifyReturnIndentCurrentLine()
         {
             InteractiveWindow.ClearScreen();
-            SendKeys(" (");
-            SendKeys(")");
-            SendKeys(VirtualKey.Left);
-            SendKeys(VirtualKey.Enter);
+            this.SendKeys(" (");
+            this.SendKeys(")");
+            this.SendKeys(VirtualKey.Left);
+            this.SendKeys(VirtualKey.Enter);
             this.VerifyCaretPosition(12);
         }
     }

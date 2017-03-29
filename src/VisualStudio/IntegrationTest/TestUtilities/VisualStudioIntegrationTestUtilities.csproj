@@ -24,6 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomationElementExtensions.cs" />
+    <Compile Include="AutomationElementHelper.cs" />
     <Compile Include="CaptureTestNameAttribute.cs" />
     <Compile Include="Common\Comparison.cs" />
     <Compile Include="Common\ErrorListItem.cs" />
@@ -79,6 +80,7 @@
     <Compile Include="OutOfProcess\InteractiveWindow_OutOfProc.cs" />
     <Compile Include="WellKnownProjectTemplates.cs" />
     <Compile Include="OutOfProcess\VisualStudioWorkspace_OutOfProc.cs" />
+    <Compile Include="WellKnownTagNames.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
