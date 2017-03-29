@@ -216,6 +216,10 @@
     <Compile Include="ProjectSystemShim\CPS\SourceFileHandlingTests.cs" />
     <Compile Include="ProjectSystemShim\LegacyProject\SourceFileHandlingTests.cs" />
     <Compile Include="ProjectSystemShim\TempPECompilerServiceTests.cs" />
+    <Content Include="..\..\Setup\e_sqlite3.dll">
+      <Link>e_sqlite3.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Debugging\ProximityExpressionsGetterTestFile.cs" />
     <Compile Include="Debugging\ProximityExpressionsGetterTests.cs" />
     <Compile Include="Debugging\ProximityExpressionsGetterTests.Lines.cs" />

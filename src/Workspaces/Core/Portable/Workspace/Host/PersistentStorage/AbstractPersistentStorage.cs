@@ -83,8 +83,6 @@ namespace Microsoft.CodeAnalysis.Host
             return changedValue == 0;
         }
 
-        public virtual void Close()
-        {
-        }
+        public abstract void Close();
     }
 }

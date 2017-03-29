@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.SQLite
         private readonly ConcurrentDictionary<ProjectId, int> _projectIdToIdMap = new ConcurrentDictionary<ProjectId, int>();
         private readonly ConcurrentDictionary<DocumentId, int> _documentIdToIdMap = new ConcurrentDictionary<DocumentId, int>();
 
+        private readonly CancellationTokenSource _shutdownCancellationSource = new CancellationTokenSource();
+
         public SQLitePersistentStorage(
             IOptionService optionService,
             string workingFolderPath,
@@ -56,6 +58,12 @@ namespace Microsoft.CodeAnalysis.SQLite
                     _stringToIdMap.TryAdd(v.Value, v.Id);
                 }
             }
+        }
+
+        public override void Close()
+        {
+            _shutdownCancellationSource.Cancel();
+            SQLiteAsyncConnection.ResetPool();
         }
 
         private static Stream GetStream(byte[] bytes)
@@ -93,38 +101,48 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
+        private CancellationTokenSource CreateLinkedTokenSource(CancellationToken cancellationToken)
+            => CancellationTokenSource.CreateLinkedTokenSource(
+                _shutdownCancellationSource.Token, cancellationToken);
+
         #region Solution Serialization
 
         public override async Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
         {
-            SolutionData data = null;
-            try
+            using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
             {
-                data = await _connection.FindAsync<SolutionData>(name, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                StorageDatabaseLogger.LogException(ex);
-            }
+                SolutionData data = null;
+                try
+                {
+                    data = await _connection.FindAsync<SolutionData>(name, linkedSource.Token).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    StorageDatabaseLogger.LogException(ex);
+                }
 
-            return GetStream(data?.Data);
+                return GetStream(data?.Data);
+            }
         }
 
         public override async Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken)
         {
-            var bytes = GetBytes(stream);
+            using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
+            {
+                var bytes = GetBytes(stream);
 
-            try
-            {
-                await _connection.InsertOrReplaceAsync(
-                    new SolutionData { Id = name, Data = bytes }, 
-                    cancellationToken).ConfigureAwait(false);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                StorageDatabaseLogger.LogException(ex);
-                return false;
+                try
+                {
+                    await _connection.InsertOrReplaceAsync(
+                        new SolutionData { Id = name, Data = bytes },
+                        linkedSource.Token).ConfigureAwait(false);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    StorageDatabaseLogger.LogException(ex);
+                    return false;
+                }
             }
         }
 
@@ -135,48 +153,54 @@ namespace Microsoft.CodeAnalysis.SQLite
         public override async Task<Stream> ReadStreamAsync(
             Project project, string name, CancellationToken cancellationToken)
         {
-            var id = await TryGetProjectIdAsync(project, cancellationToken).ConfigureAwait(false);
-            if (id == null)
+            using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
             {
-                return null;
-            }
+                var id = await TryGetProjectIdAsync(project, linkedSource.Token).ConfigureAwait(false);
+                if (id == null)
+                {
+                    return null;
+                }
 
-            ProjectData projectData = null;
-            try
-            {
-                projectData = await _connection.FindAsync<ProjectData>(
-                    GetProjectDataId(id.Value, name), cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                StorageDatabaseLogger.LogException(ex);
-            }
-
-            return GetStream(projectData?.Data);
-        }
-
-        public override async Task<bool> WriteStreamAsync(
-            Project project, string name, Stream stream, CancellationToken cancellationToken)
-        {
-            var bytes = GetBytes(stream);
-            var id = await TryGetProjectIdAsync(project, cancellationToken).ConfigureAwait(false);
-
-            if (id != null)
-            {
+                ProjectData projectData = null;
                 try
                 {
-                    await _connection.InsertOrReplaceAsync(
-                        new ProjectData { Id = GetProjectDataId(id.Value, name), Data = bytes },
-                        cancellationToken).ConfigureAwait(false);
-                    return true;
+                    projectData = await _connection.FindAsync<ProjectData>(
+                        GetProjectDataId(id.Value, name), linkedSource.Token).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
                     StorageDatabaseLogger.LogException(ex);
                 }
-            }
 
-            return false;
+                return GetStream(projectData?.Data);
+            }
+        }
+
+        public override async Task<bool> WriteStreamAsync(
+            Project project, string name, Stream stream, CancellationToken cancellationToken)
+        {
+            using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
+            {
+                var bytes = GetBytes(stream);
+                var id = await TryGetProjectIdAsync(project, linkedSource.Token).ConfigureAwait(false);
+
+                if (id != null)
+                {
+                    try
+                    {
+                        await _connection.InsertOrReplaceAsync(
+                            new ProjectData { Id = GetProjectDataId(id.Value, name), Data = bytes },
+                            linkedSource.Token).ConfigureAwait(false);
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        StorageDatabaseLogger.LogException(ex);
+                    }
+                }
+
+                return false;
+            }
         }
 
         #endregion
@@ -186,49 +210,55 @@ namespace Microsoft.CodeAnalysis.SQLite
         public override async Task<Stream> ReadStreamAsync(
             Document document, string name, CancellationToken cancellationToken)
         {
-            var id = await TryGetDocumentIdAsync(document, cancellationToken).ConfigureAwait(false);
-            if (id == null)
+            using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
             {
-                return null;
-            }
+                var id = await TryGetDocumentIdAsync(document, linkedSource.Token).ConfigureAwait(false);
+                if (id == null)
+                {
+                    return null;
+                }
 
-            DocumentData documentData = null;
-            try
-            {
-                documentData = await _connection.FindAsync<DocumentData>(
-                    GetProjectDataId(id.Value, name),
-                    cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                StorageDatabaseLogger.LogException(ex);
-            }
-
-            return GetStream(documentData?.Data);
-        }
-
-        public override async Task<bool> WriteStreamAsync(
-            Document document, string name, Stream stream, CancellationToken cancellationToken)
-        {
-            var bytes = GetBytes(stream);
-            var id = await TryGetDocumentIdAsync(document, cancellationToken).ConfigureAwait(false);
-
-            if (id != null)
-            {
+                DocumentData documentData = null;
                 try
                 {
-                    await _connection.InsertOrReplaceAsync(
-                        new DocumentData { Id = GetDocumentDataId(id.Value, name), Data = bytes },
-                        cancellationToken).ConfigureAwait(false);
-                    return true;
+                    documentData = await _connection.FindAsync<DocumentData>(
+                        GetProjectDataId(id.Value, name),
+                        linkedSource.Token).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
                     StorageDatabaseLogger.LogException(ex);
                 }
-            }
 
-            return false;
+                return GetStream(documentData?.Data);
+            }
+        }
+
+        public override async Task<bool> WriteStreamAsync(
+            Document document, string name, Stream stream, CancellationToken cancellationToken)
+        {
+            using (var linkedSource = CreateLinkedTokenSource(cancellationToken))
+            {
+                var bytes = GetBytes(stream);
+                var id = await TryGetDocumentIdAsync(document, linkedSource.Token).ConfigureAwait(false);
+
+                if (id != null)
+                {
+                    try
+                    {
+                        await _connection.InsertOrReplaceAsync(
+                            new DocumentData { Id = GetDocumentDataId(id.Value, name), Data = bytes },
+                            linkedSource.Token).ConfigureAwait(false);
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        StorageDatabaseLogger.LogException(ex);
+                    }
+                }
+
+                return false;
+            }
         }
 
         private async Task<int?> TryGetProjectIdAsync(Project project, CancellationToken cancellationToken)
