@@ -96,75 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(arguments.Length == targetElementTypes.Length);
 
-            // SPEC: If F contains an anonymous-function-signature, then D and F have the same number of parameters.
-            // SPEC: If F does not contain an anonymous-function-signature, then D may have zero or more parameters 
-            // SPEC: of any type, as long as no parameter of D has the out parameter modifier.
-
-            if (anonymousFunction.HasSignature)
-            {
-                if (anonymousFunction.ParameterCount != invokeMethod.ParameterCount)
-                {
-                    return LambdaConversionResult.BadParameterCount;
-                }
-
-                // SPEC: If F has an explicitly typed parameter list, each parameter in D has the same type 
-                // SPEC: and modifiers as the corresponding parameter in F.
-                // SPEC: If F has an implicitly typed parameter list, D has no ref or out parameters.
-
-                if (anonymousFunction.HasExplicitlyTypedParameterList)
-                {
-                    for (int p = 0; p < delegateParameters.Length; ++p)
-                    {
-                        if (delegateParameters[p].RefKind != anonymousFunction.RefKind(p) ||
-                            !delegateParameters[p].Type.TypeSymbol.Equals(anonymousFunction.ParameterType(p).TypeSymbol, TypeSymbolEqualityOptions.SameType))
-                        {
-                            return LambdaConversionResult.MismatchedParameterType;
-                        }
-                    }
-                }
-                else
-                {
-                    for (int p = 0; p < delegateParameters.Length; ++p)
-                    {
-                        if (delegateParameters[p].RefKind != RefKind.None)
-                        {
-                            return LambdaConversionResult.RefInImplicitlyTypedLambda;
-                        }
-                    }
-
-                    // In C# it is not possible to make a delegate type
-                    // such that one of its parameter types is a static type. But static types are 
-                    // in metadata just sealed abstract types; there is nothing stopping someone in
-                    // another language from creating a delegate with a static type for a parameter,
-                    // though the only argument you could pass for that parameter is null.
-                    // 
-                    // In the native compiler we forbid conversion of an anonymous function that has
-                    // an implicitly-typed parameter list to a delegate type that has a static type
-                    // for a formal parameter type. However, we do *not* forbid it for an explicitly-
-                    // typed lambda (because we already require that the explicitly typed parameter not
-                    // be static) and we do not forbid it for an anonymous method with the entire
-                    // parameter list missing (because the body cannot possibly have a parameter that
-                    // is of static type, even though this means that we will be generating a hidden
-                    // method with a parameter of static type.)
-                    //
-                    // We also allow more exotic situations to work in the native compiler. For example,
-                    // though it is not possible to convert x=>{} to Action<GC>, it is possible to convert
-                    // it to Action<List<GC>> should there be a language that allows you to construct 
-                    // a variable of that type.
-                    //
-                    // We might consider beefing up this rule to disallow a conversion of *any* anonymous
-                    // function to *any* delegate that has a static type *anywhere* in the parameter list.
-
-                    for (int p = 0; p < delegateParameters.Length; ++p)
-                    {
-                        if (delegateParameters[p].Type.IsStatic)
-                        {
-                            return LambdaConversionResult.StaticTypeInImplicitlyTypedLambda;
-                        }
-                    }
-                }
-            }
-            else
+            // check arguments against flattened list of target element types 
+            var argumentConversions = ArrayBuilder<Conversion>.GetInstance(arguments.Length);
+            for (int i = 0; i < arguments.Length; i++)
             {
                 var result = ClassifyConversionFromExpression(arguments[i], targetElementTypes[i], ref useSiteDiagnostics, forCast);
                 if (!result.Exists)

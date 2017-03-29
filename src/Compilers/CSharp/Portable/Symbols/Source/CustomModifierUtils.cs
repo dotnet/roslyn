@@ -95,13 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool transformResult = resultType.ApplyNullableTransforms(flagsBuilder.ToImmutableAndFree(), ref position, out resultType);
             Debug.Assert(transformResult && position == length);
 
-            Debug.Assert(resultType.Equals(sourceType, TypeSymbolEqualityOptions.IgnoreDynamic)); // Same custom modifiers as source type.
-            Debug.Assert(resultType.Equals(destinationType,
-                                           TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds | // Same object/dynamic as destination type.
-                                           TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes)); // Same nullability as destination type. 
-
             Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames)); // Same custom modifiers as source type.
-            Debug.Assert(resultType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds)); // Same object/dynamic and tuple names as destination type.
+            Debug.Assert(resultType.Equals(destinationType,
+                                           TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | // Same object/dynamic and tuple names as destination type.
+                                           TypeCompareKind.CompareNullableModifiersForReferenceTypes)); // Same nullability as destination type.
+
             return resultType;
         }
 

@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        protected CommonEventWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        protected EventWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -321,8 +321,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes,
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
+
+            if (type.ContainsNullableReferenceTypes())
+            {
+                var compilation = this.DeclaringCompilation;
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(type));
+            }
         }
-        
+
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
 
@@ -675,17 +681,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             this.CheckModifiersAndType(diagnostics);
             this.Type.CheckAllConstraints(conversions, this.Locations[0], diagnostics);
-        }
-
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
-
-            if (this.Type.ContainsNullableReferenceTypes())
-            {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(this.Type));
-            }
         }
     }
 }

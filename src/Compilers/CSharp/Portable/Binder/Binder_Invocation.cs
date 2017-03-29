@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax, 
             OverloadResolutionResult<TMethodOrPropertySymbol> overloadResolutionResult,
             BoundExpression receiverOpt,
-            ImmutableArray<TypeSymbol> typeArgumentsOpt,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt,
             DiagnosticBag diagnostics) where TMethodOrPropertySymbol : Symbol
         {
             Debug.Assert(overloadResolutionResult.HasAnyApplicableMember);

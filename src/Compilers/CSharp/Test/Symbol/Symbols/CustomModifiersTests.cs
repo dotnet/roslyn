@@ -2389,8 +2389,8 @@ Implemented B");
             var t1 = test1.Parameters[0].Type;
             var t2 = test2.Parameters[0].Type;
 
-            Assert.False(t1.Equals(t2, TypeSymbolEqualityOptions.None));
-            Assert.False(t2.Equals(t1, TypeSymbolEqualityOptions.None));
+            Assert.False(t1.Equals(t2, TypeCompareKind.ConsiderEverything));
+            Assert.False(t2.Equals(t1, TypeCompareKind.ConsiderEverything));
             Assert.False(t1.TypeSymbol.Equals(t2.TypeSymbol));
             Assert.False(t2.TypeSymbol.Equals(t1.TypeSymbol));
 

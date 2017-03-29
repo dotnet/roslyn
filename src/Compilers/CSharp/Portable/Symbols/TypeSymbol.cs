@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// A comparator that pays attention to nullable modifiers in addition to default behavior.
         /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIncludingNullableComparer = new EqualsIgnoringComparer(TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes);
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIncludingNullableComparer = new EqualsIgnoringComparer(TypeCompareKind.CompareNullableModifiersForReferenceTypes);
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -278,7 +278,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
-            var options = ignoreDynamic ? TypeSymbolEqualityOptions.IgnoreDynamic : TypeSymbolEqualityOptions.None;
             while ((object)t != null)
             {
                 if (type.Equals(t, comparison))
@@ -1157,10 +1156,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbolWithAnnotations implementedMemberType = compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(implementedMember);
 
                 if (!implementingMemberType.Equals(implementedMemberType, 
-                                                   TypeSymbolEqualityOptions.SameType | 
-                                                       TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes |
-                                                       TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny) &&
-                    implementingMemberType.Equals(implementedMemberType, TypeSymbolEqualityOptions.SameType))
+                                                   TypeCompareKind.AllIgnoreOptions | 
+                                                       TypeCompareKind.CompareNullableModifiersForReferenceTypes |
+                                                       TypeCompareKind.UnknownNullableModifierMatchesAny) &&
+                    implementingMemberType.Equals(implementedMemberType, TypeCompareKind.AllIgnoreOptions))
                 {
                     diagnostics.Add(implementingMember.Kind == SymbolKind.Method ?
                                         (isExplicit ? 
@@ -1180,10 +1179,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var implementedParameterType = compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(implementedParameters[i]);
 
                     if (!implementingParameters[i].Type.Equals(implementedParameterType, 
-                                                               TypeSymbolEqualityOptions.SameType | 
-                                                                   TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes |
-                                                                   TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny) &&
-                        implementingParameters[i].Type.Equals(implementedParameterType, TypeSymbolEqualityOptions.SameType))
+                                                               TypeCompareKind.AllIgnoreOptions | 
+                                                                   TypeCompareKind.CompareNullableModifiersForReferenceTypes |
+                                                                   TypeCompareKind.UnknownNullableModifierMatchesAny) &&
+                        implementingParameters[i].Type.Equals(implementedParameterType, TypeCompareKind.AllIgnoreOptions))
                     {
                         diagnostics.Add(isExplicit ? 
                                             ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation : 

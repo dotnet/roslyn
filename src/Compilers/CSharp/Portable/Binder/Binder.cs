@@ -610,7 +610,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ThreeState.True;
         }
 
-<<<<<<< HEAD
         internal void ResolveOverloads<TMember>(
             ImmutableArray<TMember> members,
             ImmutableArray<TypeSymbolWithAnnotations> typeArguments,

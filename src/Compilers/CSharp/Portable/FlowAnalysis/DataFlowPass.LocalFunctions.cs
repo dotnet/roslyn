@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (slot >= this.State.Assigned.Capacity)
                     {
-                        Normalize(ref this.State);
+                        NormalizeAssigned(ref this.State);
                     }
 
                     if (slot > 0 && !this.State.IsAssigned(slot))

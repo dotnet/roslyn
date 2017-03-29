@@ -240,11 +240,6 @@ class X
                         case ErrorCode.WRN_PdbLocalNameTooLong:
                             Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
                             break;
-                        case ErrorCode.WRN_AnalyzerCannotBeCreated:
-                        case ErrorCode.WRN_NoAnalyzerInAssembly:
-                        case ErrorCode.WRN_UnableToLoadAnalyzer:
-                        case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
-                        case ErrorCode.WRN_AlignmentMagnitude:
                         case ErrorCode.WRN_NullReferenceAssignment:
                         case ErrorCode.WRN_NullReferenceReceiver:
                         case ErrorCode.WRN_NullReferenceReturn:

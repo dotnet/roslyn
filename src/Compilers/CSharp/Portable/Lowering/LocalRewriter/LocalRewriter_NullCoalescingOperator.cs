@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenRight != null);
             Debug.Assert(leftConversion.IsValid);
             Debug.Assert((object)rewrittenResultType != null);
-            Debug.Assert(rewrittenRight.Type.Equals(rewrittenResultType, TypeSymbolEqualityOptions.IgnoreDynamicAndTupleNames));
+            Debug.Assert(rewrittenRight.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             if (_inExpressionLambda)
             {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // MakeConversion(temp, rewrittenResultType)
             BoundExpression convertedLeft = GetConvertedLeftForNullCoalescingOperator(boundTemp, leftConversion, rewrittenResultType);
-            Debug.Assert(convertedLeft.Type.Equals(rewrittenResultType, TypeSymbolEqualityOptions.IgnoreDynamicAndTupleNames));
+            Debug.Assert(convertedLeft.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             // (temp != null) ? MakeConversion(temp, LeftConversion) : RightOperand
             BoundExpression conditionalExpression = RewriteConditionalOperator(

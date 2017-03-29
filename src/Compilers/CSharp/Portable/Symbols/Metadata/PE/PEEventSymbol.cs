@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
                 originalEventType = metadataDecoder.GetTypeOfToken(eventType);
 
+                const int targetSymbolCustomModifierCount = 0;
                 var typeSymbol = DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol);
                 typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, handle, moduleSymbol);
 

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             (boundArguments.Length > argumentIndex + 1 ||
                              ((object)argument.Type != null && // If argument type is null, we are in an error scenario and cannot tell if it is a param array, or not. 
                               (argument.Type.TypeKind != TypeKind.Array ||
-                             !argument.Type.Equals(parameters[parameters.Length - 1].Type.TypeSymbol, TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds)))
+                             !argument.Type.Equals(parameters[parameters.Length - 1].Type.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds)))))
                         {
                             return new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex, invocationSyntax));
                         }

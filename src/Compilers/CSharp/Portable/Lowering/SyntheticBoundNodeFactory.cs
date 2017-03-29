@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, RefKind refKind = RefKind.None)
         {
-            Debug.Assert(left.Type.Equals(right.Type, TypeSymbolEqualityOptions.IgnoreDynamicAndTupleNames) ||
+            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
                     right.Type.IsErrorType() || left.Type.IsErrorType());
 
             return new BoundAssignmentOperator(Syntax, left, right, left.Type, refKind: refKind) { WasCompilerGenerated = true };
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Coalesce(BoundExpression left, BoundExpression right)
         {
-            Debug.Assert(left.Type.Equals(right.Type, TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Debug.Assert(left.Type.IsReferenceType);
 
             return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, left.Type) { WasCompilerGenerated = true };

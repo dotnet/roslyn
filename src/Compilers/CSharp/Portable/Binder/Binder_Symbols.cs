@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            diagnostics.Add(new LasyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
+                            diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
                         }
 
                         return constructedType;

@@ -251,6 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     string interfacePropertyName = isIndexer ? WellKnownMemberNames.Indexer : name;
                     explicitlyImplementedProperty = this.FindExplicitlyImplementedProperty(_explicitInterfaceType, interfacePropertyName, interfaceSpecifier, diagnostics);
+                    this.FindExplicitlyImplementedMemberVerification(explicitlyImplementedProperty, diagnostics);
                     overriddenOrImplementedProperty = explicitlyImplementedProperty;
                 }
 

@@ -719,9 +719,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 !overridingMember.NullableOptOut &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMemberType.Equals(compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenProperty), 
-                                                             TypeSymbolEqualityOptions.SameType | 
-                                                                TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes |
-                                                                TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny))
+                                                             TypeCompareKind.AllIgnoreOptions | 
+                                                                TypeCompareKind.CompareNullableModifiersForReferenceTypes |
+                                                                TypeCompareKind.UnknownNullableModifierMatchesAny))
                             {
                                 diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, overridingMemberLocation);
                             }
@@ -766,9 +766,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 !overridingMember.NullableOptOut &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMemberType.Equals(compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenEvent), 
-                                                             TypeSymbolEqualityOptions.SameType | 
-                                                                TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes |
-                                                                TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny))
+                                                             TypeCompareKind.AllIgnoreOptions | 
+                                                                TypeCompareKind.CompareNullableModifiersForReferenceTypes |
+                                                                TypeCompareKind.UnknownNullableModifierMatchesAny))
                             {
                                 diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, overridingMemberLocation);
                             }
@@ -780,18 +780,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var overridingMethod = (MethodSymbol)overridingMember;
                             var overriddenMethod = (MethodSymbol)overriddenMember;
 
+                            if (overridingMethod.IsGenericMethod)
+                            {
+                                overriddenMethod = overriddenMethod.Construct(overridingMethod.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                            }
+
                             // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
                             if ((overridingMethod.RefKind != RefKind.None) != (overriddenMethod.RefKind != RefKind.None))
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overridingMethod.RefKind != RefKind.None ? "not " : "");
                             }
-                            else if (!MemberSignatureComparer.HaveSameReturnTypes(overridingMethod, overriddenMethod, considerCustomModifiers: false))
-                            {
-                                overriddenMethod = overriddenMethod.Construct(overridingMethod.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
-                            }
-
-                            // Ignore custom modifiers, because this diagnostic is based on the C# semantics.
-                            if (!overridingMethod.ReturnType.Equals(overriddenMethod.ReturnType, TypeSymbolEqualityOptions.SameType))
+                            else if (!overridingMethod.ReturnType.Equals(overriddenMethod.ReturnType, TypeCompareKind.AllIgnoreOptions))
                             {
                                 // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
                                 diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType.TypeSymbol);
@@ -805,9 +804,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 !overridingMember.NullableOptOut &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMethod.ReturnType.Equals(compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenMethod), 
-                                                                    TypeSymbolEqualityOptions.SameType | 
-                                                                        TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes |
-                                                                        TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny))
+                                                                    TypeCompareKind.AllIgnoreOptions | 
+                                                                        TypeCompareKind.CompareNullableModifiersForReferenceTypes |
+                                                                        TypeCompareKind.UnknownNullableModifierMatchesAny))
                             {
                                 diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, overridingMemberLocation);
                             }
@@ -835,10 +834,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 var overridenParameterType = compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenParameters[i]);
                                 if (!overridingParameters[i].Type.Equals(overridenParameterType, 
-                                                                         TypeSymbolEqualityOptions.SameType | 
-                                                                            TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes |
-                                                                            TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny) &&
-                                    overridingParameters[i].Type.Equals(overridenParameterType, TypeSymbolEqualityOptions.SameType))
+                                                                         TypeCompareKind.AllIgnoreOptions | 
+                                                                            TypeCompareKind.CompareNullableModifiersForReferenceTypes |
+                                                                            TypeCompareKind.UnknownNullableModifierMatchesAny) &&
+                                    overridingParameters[i].Type.Equals(overridenParameterType, TypeCompareKind.AllIgnoreOptions))
                                 {
                                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, overridingMemberLocation, new FormattedSymbol(overridingParameters[i], SymbolDisplayFormat.ShortFormat));
                                 }

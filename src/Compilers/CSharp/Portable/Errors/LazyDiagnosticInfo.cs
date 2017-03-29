@@ -1,18 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract class LasyDiagnosticsInfo : DiagnosticInfo
+    internal abstract class LazyDiagnosticsInfo : DiagnosticInfo
     {
         private DiagnosticInfo _lazyInfo;
 
-        private readonly TypeSymbolWithAnnotations _possiblyNullableTypeSymbol;
-
-        protected LasyDiagnosticsInfo()
+        protected LazyDiagnosticsInfo()
             : base(CSharp.MessageProvider.Instance, (int)ErrorCode.Unknown)
         {
         }

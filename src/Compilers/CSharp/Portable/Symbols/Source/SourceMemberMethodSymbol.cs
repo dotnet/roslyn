@@ -136,34 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (this.IsPartial)
-            {
-                // Partial methods must be completed early because they are matched up
-                // by signature while producing the enclosing type's member list. However,
-                // that means any type parameter constraints will be bound before the method
-                // is added to the containing type. To enable binding of constraints before the
-                // .ctor completes we hold on to the current binder while the .ctor is executing.
-                // If we change the handling of partial methods, so that partial methods are
-                // completed lazily, the 'constraintClauseBinder' field should be removed.
-                _constraintClauseBinder = withTypeParamsBinder;
-
-                // Force necessary binding needed to answer question whether a type parameter is a reference type.
-                // This information is needed to properly match nullable reference types during signature comparison.
-                // If we don't do this now, while _constraintClauseBinder is set, SourceMemberContainerTypeSymbol.MergePartialMethods
-                // will cause reentrance into SourceMemberContainerTypeSymbol.GetMembersByNameSlow and we'll sit there
-                // forever, waiting for completion for CompletionPart.Members. Reentancy happens because BinderFactory is used
-                // to recreate a binder, unless _constraintClauseBinder is set, which calls GetMembers(string) on the containing type.
-                foreach (var typeParameter in this.TypeParameters)
-                {
-                    var notUsed = typeParameter.IsReferenceType;
-                }
-
-                state.NotePartComplete(CompletionPart.StartMethodChecks);
-                MethodChecks(syntax, withTypeParamsBinder, diagnostics);
-                state.NotePartComplete(CompletionPart.FinishMethodChecks);
-                _constraintClauseBinder = null;
-            }
-
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
@@ -373,8 +345,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(implementedMethod);
 
                     CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType,
+                                                                  out _lazyRefCustomModifiers,
                                                                   out _lazyParameters, alsoCopyParamsModifier: false);
 
+                    this.FindExplicitlyImplementedMemberVerification(implementedMethod, diagnostics);
                     TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, implementedMethod, true, diagnostics);
                 }
                 else
@@ -1105,8 +1079,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 for (int i = 0; i < implementationParameters.Length; i++)
                 {
-                    if (!implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes) &&
-                        implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeSymbolEqualityOptions.SameType))
+                    if (!implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes) &&
+                        implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeCompareKind.AllIgnoreOptions))
                     {
                         diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementation.Locations[0], new FormattedSymbol(implementationParameters[i], SymbolDisplayFormat.ShortFormat));
                     }

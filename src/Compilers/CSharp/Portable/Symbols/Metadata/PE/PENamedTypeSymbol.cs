@@ -431,15 +431,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (!token.IsNil)
                     {
                         TypeSymbol decodedType = new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
-                        decodedType = DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
-                        decodedType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType, _handle, moduleSymbol);
+                        var result = (NamedTypeSymbol)DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
+                        result = (NamedTypeSymbol)TupleTypeDecoder.DecodeTupleTypesIfApplicable(result, _handle, moduleSymbol);
 
                         if (moduleSymbol.UtilizesNullableReferenceTypes)
                         {
-                            decodedType = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(decodedType), _handle, moduleSymbol).TypeSymbol;
+                            result = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(result), _handle, moduleSymbol).TypeSymbol;
                         }
 
-                        return decodedType;
+                        return result;
                     }
                 }
                 catch (BadImageFormatException mrEx)

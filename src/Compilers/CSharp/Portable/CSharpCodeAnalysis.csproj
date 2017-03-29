@@ -321,7 +321,7 @@
     <Compile Include="Errors\DiagnosticBagExtensions.cs" />
     <Compile Include="Errors\DiagnosticInfoWithSymbols.cs" />
     <Compile Include="Errors\ErrorFacts.cs" />
-    <Compile Include="Errors\LasyUseSiteDiagnosticsInfoForNullableType.cs" />
+    <Compile Include="Errors\LazyUseSiteDiagnosticsInfoForNullableType.cs" />
     <Compile Include="Errors\LazyArrayElementCantBeRefAnyDiagnosticInfo.cs" />
     <Compile Include="Errors\LazyDiagnosticInfo.cs" />
     <Compile Include="Errors\LazyObsoleteDiagnosticInfo.cs" />
@@ -733,7 +733,6 @@
     <Compile Include="Symbols\TypeParameterSymbolExtensions.cs" />
     <Compile Include="Symbols\TypeSymbol.cs" />
     <Compile Include="Symbols\TypeSymbol.SymbolAndDiagnostics.cs" />
-    <Compile Include="Symbols\TypeSymbolEqualityOptions.cs" />
     <Compile Include="Symbols\TypeSymbolExtensions.cs" />
     <Compile Include="Symbols\TypeUnification.cs" />
     <Compile Include="Symbols\UnboundGenericType.cs" />

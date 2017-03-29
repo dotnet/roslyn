@@ -313,17 +313,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitArrayType(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeSymbolEqualityOptions options)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
-            return this.Equals(t2 as ArrayTypeSymbol, options);
+            return this.Equals(t2 as ArrayTypeSymbol, comparison);
         }
 
         internal bool Equals(ArrayTypeSymbol other)
         {
-            return Equals(other, TypeSymbolEqualityOptions.None);
+            return Equals(other, TypeCompareKind.ConsiderEverything);
         }
 
-        private bool Equals(ArrayTypeSymbol other, TypeSymbolEqualityOptions options)
+        private bool Equals(ArrayTypeSymbol other, TypeCompareKind comparison)
         {
             if (ReferenceEquals(this, other))
             {
@@ -331,13 +331,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((object)other == null || !other.HasSameShapeAs(this) || 
-                !other.ElementType.Equals(ElementType, options))
+                !other.ElementType.Equals(ElementType, comparison))
             {
                 return false;
             }
 
             // Make sure bounds are the same.
-            if ((options & TypeSymbolEqualityOptions.IgnoreArraySizesAndLowerBounds) == 0 && !this.HasSameSizesAndLowerBoundsAs(other))
+            if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0 && !this.HasSameSizesAndLowerBoundsAs(other))
             {
                 return false;
             }

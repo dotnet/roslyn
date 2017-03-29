@@ -141,12 +141,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = SubstituteType(previous);
 
             // Make it a tuple if it became compatible with one.
+            // PROTOTYPE(NullableReferenceTypes): Avoid resolving result.TypeSymbol eagerly.
             var type = result.TypeSymbol;
             if ((object)type != null && !previous.IsTupleCompatible())
             {
                 var possiblyTuple = TupleTypeSymbol.TransformToTupleIfCompatible(type);
                 if ((object)type != possiblyTuple)
                 {
+                    // PROTOTYPE(NullableReferenceTypes): This ignores the particular TypeSymbolWithAnnotations
+                    // derived type from result (for instance, NullableReferenceTypeWithoutCustomModifiers)
+                    // so nullable-ness may be lost.
                     result = TypeSymbolWithAnnotations.Create(possiblyTuple, result.CustomModifiers);
                 }
             }

@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
-            internal override bool Equals(TypeSymbol t2, TypeSymbolEqualityOptions options)
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
             {
                 if (ReferenceEquals(this, t2))
                 {
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var other = t2 as AnonymousTypePublicSymbol;
-                return (object)other != null && this.TypeDescriptor.Equals(other.TypeDescriptor, options);
+                return (object)other != null && this.TypeDescriptor.Equals(other.TypeDescriptor, comparison);
             }
 
             public override int GetHashCode()

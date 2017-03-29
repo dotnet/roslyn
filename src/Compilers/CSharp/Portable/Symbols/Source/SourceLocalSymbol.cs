@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     inferredType.SpecialType != SpecialType.System_Void)
                 {
                     // Default inferred reference types to a nullable state.
-                    declType = TypeSymbolWithAnnotations.Create(inferredType, isNullableIfReferenceType: _typeSyntax.IsFeatureStaticNullCheckingEnabled());
+                    declType = TypeSymbolWithAnnotations.Create(inferredType.TypeSymbol, isNullableIfReferenceType: _typeSyntax.IsFeatureStaticNullCheckingEnabled());
                 }
                 else
                 {

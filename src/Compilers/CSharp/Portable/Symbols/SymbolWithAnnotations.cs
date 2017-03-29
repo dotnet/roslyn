@@ -279,27 +279,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public virtual bool IsVoid => TypeSymbol.SpecialType == SpecialType.System_Void;
         public virtual bool IsSZArray() => TypeSymbol.IsSZArray();
 
-        public bool Equals(TypeSymbolWithAnnotations other, TypeSymbolEqualityOptions options)
+        public bool Equals(TypeSymbolWithAnnotations other, TypeCompareKind comparison)
         {
             if (ReferenceEquals(this, other))
             {
                 return true;
             }
 
-            if ((object)other == null || !TypeSymbolEquals(other, options))
+            if ((object)other == null || !TypeSymbolEquals(other, comparison))
             {
                 return false;
             }
 
             // Make sure custom modifiers are the same.
-            if ((options & TypeSymbolEqualityOptions.IgnoreCustomModifiers) == 0 && !this.CustomModifiers.SequenceEqual(other.CustomModifiers))
+            if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0 && !this.CustomModifiers.SequenceEqual(other.CustomModifiers))
             {
                 return false;
             }
 
-            if ((options & TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes) != 0 && other.IsNullable != this.IsNullable)
+            if ((comparison & TypeCompareKind.CompareNullableModifiersForReferenceTypes) != 0 && other.IsNullable != this.IsNullable)
             {
-                if ((options & TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny) == 0 || (this.IsNullable.HasValue && other.IsNullable.HasValue))
+                if ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0 || (this.IsNullable.HasValue && other.IsNullable.HasValue))
                 {
                     return false;
                 }
@@ -308,9 +308,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        protected virtual bool TypeSymbolEquals(TypeSymbolWithAnnotations other, TypeSymbolEqualityOptions options)
+        protected virtual bool TypeSymbolEquals(TypeSymbolWithAnnotations other, TypeCompareKind comparison)
         {
-            return this.TypeSymbol.Equals(other.TypeSymbol, options);
+            return this.TypeSymbol.Equals(other.TypeSymbol, comparison);
         }
 
         public bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
@@ -332,10 +332,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public virtual TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap)
         {
+            return SubstituteType(typeMap, (map, type) => map.SubstituteType(type));
+        }
+
+        private TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap, Func<AbstractTypeMap, TypeSymbol, TypeSymbolWithAnnotations> substituteType)
+        {
             var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
-            var newTypeWithModifiers = typeMap.SubstituteType(this.TypeSymbol);
+            var newTypeWithModifiers = substituteType(typeMap, this.TypeSymbol);
             bool? newIsNullable = this.IsNullable;
-            
+
             if (newIsNullable == false)
             {
                 newIsNullable = newTypeWithModifiers.IsNullable;
@@ -352,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(newIsNullable == true);
             }
 
-            if (!TypeSymbolEquals(newTypeWithModifiers, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes) ||
+            if (!TypeSymbolEquals(newTypeWithModifiers, TypeCompareKind.CompareNullableModifiersForReferenceTypes) ||
                 !newTypeWithModifiers.CustomModifiers.IsEmpty ||
                 newIsNullable != this.IsNullable ||
                 newCustomModifiers != this.CustomModifiers)
@@ -419,16 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap)
         {
-            var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
-            var newTypeWithModifiers = typeMap.SubstituteTypeWithTupleUnification(this.TypeSymbol);
-            if (!newTypeWithModifiers.Is(this.TypeSymbol) || newCustomModifiers != this.CustomModifiers)
-            {
-                return DoUpdate(newTypeWithModifiers.TypeSymbol, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
-            }
-            else
-            {
-                return this; // substitution had no effect on the type or modifiers
-            }
+            return SubstituteType(typeMap, (map, type) => map.SubstituteTypeWithTupleUnification(type));
         }
 
         /// <summary>
@@ -444,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeSymbolWithAnnotations Update(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
         {
-            if (CustomModifiers != customModifiers || !TypeSymbol.Equals(typeSymbol, TypeSymbolEqualityOptions.AllAspects))
+            if (CustomModifiers != customModifiers || !TypeSymbol.Equals(typeSymbol, TypeCompareKind.AllAspects))
             {
                 return DoUpdate(typeSymbol, customModifiers);
             }
@@ -564,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public override TypeSymbol AsTypeSymbolOnly() => _typeSymbol;
-            public override bool Is(TypeSymbol other) => _typeSymbol.Equals(other, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes);
+            public override bool Is(TypeSymbol other) => _typeSymbol.Equals(other, TypeCompareKind.CompareNullableModifiersForReferenceTypes);
 
             protected sealed override TypeSymbolWithAnnotations DoUpdate(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
             {
@@ -755,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                return TypeSymbol.Equals(other, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes);
+                return TypeSymbol.Equals(other, TypeCompareKind.CompareNullableModifiersForReferenceTypes);
             }
 
             public override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty; 
@@ -814,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var newUnderlying = typeMap.SubstituteType(this._underlying);
                 if ((object)newUnderlying != this._underlying)
                 {
-                    if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeSymbolEqualityOptions.AllAspects) || 
+                    if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeCompareKind.AllAspects) || 
                             newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
                         newUnderlying.CustomModifiers.IsEmpty)
                     {
@@ -841,16 +837,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            protected override bool TypeSymbolEquals(TypeSymbolWithAnnotations other, TypeSymbolEqualityOptions options)
+            protected override bool TypeSymbolEquals(TypeSymbolWithAnnotations other, TypeCompareKind comparison)
             {
                 var otherLazy = other as LazyNullableType;
 
                 if ((object)otherLazy != null)
                 {
-                    return _underlying.TypeSymbolEquals(otherLazy._underlying, options);
+                    return _underlying.TypeSymbolEquals(otherLazy._underlying, comparison);
                 }
 
-                return base.TypeSymbolEquals(other, options);
+                return base.TypeSymbolEquals(other, comparison);
             }
         }
 

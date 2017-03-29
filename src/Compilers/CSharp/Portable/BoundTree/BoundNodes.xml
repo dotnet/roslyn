@@ -1616,4 +1616,9 @@
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
   </Node>
+
+  <!-- Special node, used only during Data Flow Pass -->
+  <Node Name="BoundValuePlaceholder" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
 </Tree>

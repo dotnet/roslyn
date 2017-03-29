@@ -36,16 +36,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             Symbol containingSymbol,
             UnboundLambda unboundLambda,
-            ImmutableArray<TypeSymbol> parameterTypes, 
+            ImmutableArray<TypeSymbolWithAnnotations> parameterTypes, 
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind,
-            TypeSymbol returnType)
+            TypeSymbolWithAnnotations returnType)
         {
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
             _refKind = refKind;
-            _returnType = (object)returnType == null ? ReturnTypeIsBeingInferred : TypeSymbolWithAnnotations.Create(returnType);
+            _returnType = returnType ?? ReturnTypeIsBeingInferred;
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> MakeParameters(
             CSharpCompilation compilation,
             UnboundLambda unboundLambda,
-            ImmutableArray<TypeSymbol> parameterTypes,
+            ImmutableArray<TypeSymbolWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds)
         {
             Debug.Assert(parameterTypes.Length == parameterRefKinds.Length);
@@ -327,14 +327,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return parameterTypes.SelectAsArray((type, ordinal, arg) =>
                                                         SynthesizedParameterSymbol.Create(
                                                             arg.owner,
-                                                            TypeSymbolWithAnnotations.Create(type),
+                                                            type,
                                                             ordinal,
                                                             arg.refKinds[ordinal],
                                                             GeneratedNames.LambdaCopyParameterName(ordinal)), // Make sure nothing binds to this.
                                                      (owner: this, refKinds: parameterRefKinds));
             }
 
-            builder = ArrayBuilder<ParameterSymbol>.GetInstance(unboundLambda.ParameterCount);
+            var builder = ArrayBuilder<ParameterSymbol>.GetInstance(unboundLambda.ParameterCount);
             var hasExplicitlyTypedParameterList = unboundLambda.HasExplicitlyTypedParameterList;
             var numDelegateParameters = parameterTypes.Length;
 
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (p < numDelegateParameters)
                 {
-                    type = TypeSymbolWithAnnotations.Create(parameterTypes[p]);
+                    type = parameterTypes[p];
                     refKind = parameterRefKinds[p];
                 }
                 else

@@ -2,9 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -35,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _type = BindEventType(binder, syntax.Type, diagnostics);
 
             var explicitlyImplementedEvent = this.FindExplicitlyImplementedEvent(_explicitInterfaceType, nameToken.ValueText, interfaceSpecifier, diagnostics);
+            this.FindExplicitlyImplementedMemberVerification(explicitlyImplementedEvent, diagnostics);
 
             // The runtime will not treat the accessors of this event as overrides or implementations
             // of those of another event unless both the signatures and the custom modifiers match.

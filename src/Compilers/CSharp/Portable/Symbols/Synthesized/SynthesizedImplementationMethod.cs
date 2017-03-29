@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (returnType.ContainsNullableReferenceTypes())
             {
-                var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(returnType));
             }
         }

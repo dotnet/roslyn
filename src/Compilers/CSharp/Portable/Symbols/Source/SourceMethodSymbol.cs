@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        protected CommonMethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        protected MethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -972,10 +972,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
-            if (returnType.ContainsNullableReferenceTypes())
+            if (type.ContainsNullableReferenceTypes())
             {
                 var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(returnType));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(type));
             }
         }
 

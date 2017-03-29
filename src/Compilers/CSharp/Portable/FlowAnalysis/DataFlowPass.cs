@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        private void Normalize(ref LocalState state)
+        private void NormalizeAssigned(ref LocalState state)
         {
             int oldNext = state.Assigned.Capacity;
             state.Assigned.EnsureCapacity(nextVariableSlot);
@@ -1425,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.TupleLiteral:
-                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, refKind: refKind), this);
+                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, valueIsNotNull: self.State.ResultIsNotNull, refKind: refKind), this);
                     break;
 
                 default:
@@ -1492,9 +1492,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (value != null && (object)value.Type != null &&
-                    targetType.TypeSymbol.Equals(value.Type, TypeSymbolEqualityOptions.SameType) &&
+                    targetType.TypeSymbol.Equals(value.Type, TypeCompareKind.AllIgnoreOptions) &&
                     !targetType.TypeSymbol.Equals(value.Type, 
-                                       TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes | TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny))
+                                       TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny))
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, value.Syntax, value.Type, targetType.TypeSymbol);
                 }
@@ -1880,7 +1880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeclarationPattern:
                     {
                         var pat = (BoundDeclarationPattern)pattern;
-                        Assign(pat, null, RefKind.None, false);
+                        Assign(pat, null, State.ResultIsNotNull, RefKind.None, false);
                         break;
                     }
                 case BoundKind.WildcardPattern:
@@ -1965,9 +1965,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if ((object)node.ExpressionOpt.Type != null &&
-                    returnType.TypeSymbol.Equals(node.ExpressionOpt.Type, TypeSymbolEqualityOptions.SameType) &&
+                    returnType.TypeSymbol.Equals(node.ExpressionOpt.Type, TypeCompareKind.AllIgnoreOptions) &&
                     !returnType.TypeSymbol.Equals(node.ExpressionOpt.Type,
-                                       TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes | TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny))
+                                       TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny))
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, node.ExpressionOpt.Syntax, node.ExpressionOpt.Type, returnType.TypeSymbol);
                 }
@@ -2206,7 +2206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
-#if MERGE_CONFLICT
             Debug.Assert(!IsConditionalState);
             this.State.ResultIsNotNull = null;
             var result = base.VisitExpressionWithoutStackGuard(node);
@@ -2219,16 +2218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (constant != null && node.Type?.IsReferenceType == true)
                 {
                     this.State.ResultIsNotNull = !constant.IsNull;
-                } 
-#else
-            // Always visit the arguments first
-            var result = base.VisitCall(node);
-
-            if (node.Method.MethodKind == MethodKind.LocalFunction)
-            {
-                var localFunc = (LocalFunctionSymbol)node.Method.OriginalDefinition;
-                ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
-#endif
+                }
             }
 
             return result;
@@ -2236,7 +2226,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
-#if MERGE_CONFLICT
             LocalSymbol saveImplicitReceiver = _implicitReceiver;
             _implicitReceiver = null;
 
@@ -2246,14 +2235,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _implicitReceiver = GetOrCreateObjectCreationPlaceholder(node);
                 InheritNullableStateOfTrackableStruct(node.Type, MakeSlot(node), -1, false);
-#else
-            if (node.ConversionKind == ConversionKind.MethodGroup
-                && node.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
-            {
-                var localFunc = (LocalFunctionSymbol)node.SymbolOpt.OriginalDefinition;
-                var syntax = node.Syntax;
-                ReplayReadsAndWrites(localFunc, syntax, writes: false);
-#endif
             }
 
             var result = base.VisitObjectCreationExpression(node);
@@ -2269,7 +2250,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
-#if MERGE_CONFLICT
                 if (node.Type?.IsReferenceType == true)
                 {
                     this.State.ResultIsNotNull = true;
@@ -2278,11 +2258,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     this.State.ResultIsNotNull = null;
                 }
-#else
-                var syntax = node.Syntax;
-                var localFunc = (LocalFunctionSymbol)node.MethodOpt.OriginalDefinition;
-                ReplayReadsAndWrites(localFunc, syntax, writes: false);
-#endif
             }
         }
 
@@ -2291,7 +2266,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ObjectCreationPlaceholderLocal placeholder;
             if (_placeholderLocals == null)
             {
-#if MERGE_CONFLICT
                 _placeholderLocals = PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal>.GetInstance();
                 placeholder = null;
             }
@@ -2304,12 +2278,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 placeholder = new ObjectCreationPlaceholderLocal(_member, node);
                 _placeholderLocals.Add(node, placeholder);
-#else
-                if (method.MethodKind == MethodKind.LocalFunction)
-                {
-                    _usedLocalFunctions.Add((LocalFunctionSymbol)method);
-                }
-#endif
             }
 
             return placeholder;
@@ -2317,7 +2285,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
         {
-#if MERGE_CONFLICT
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
@@ -2372,49 +2339,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbolWithAnnotations elementType = (arrayCreation.Type as ArrayTypeSymbol)?.ElementType;
 
                 if (elementType?.IsReferenceType == true)
-#else
-            var oldMethodOrLambda = this.currentMethodOrLambda;
-            this.currentMethodOrLambda = node.Symbol;
-
-            var oldPending = SavePending(); // we do not support branches into a lambda
-
-            // State after the lambda declaration
-            LocalState stateAfterLambda = this.State;
-
-            this.State = this.State.Reachable ? this.State.Clone() : AllBitsSet();
-
-            if (!node.WasCompilerGenerated) EnterParameters(node.Symbol.Parameters);
-            var oldPending2 = SavePending();
-            VisitAlways(node.Body);
-            RestorePending(oldPending2); // process any forward branches within the lambda body
-            ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
-            RestorePending(oldPending);
-            LeaveParameters(node.Symbol.Parameters, node.Syntax, null);
-
-            IntersectWith(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
-            foreach (PendingBranch pending in pendingReturns)
-            {
-                this.State = pending.State;
-                if (pending.Branch.Kind == BoundKind.ReturnStatement)
-                {
-                    // ensure out parameters are definitely assigned at each return
-                    LeaveParameters(node.Symbol.Parameters, pending.Branch.Syntax, null);
-                    IntersectWith(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
-                }
-                else
-#endif
                 {
                     // Pass array type symbol as the target for the assignment. 
                     TrackNullableStateForAssignment(elementInitializer, arrayCreation.Type, -1, elementInitializer, this.State.ResultIsNotNull);
                 }
             }
 
-#if MERGE_CONFLICT
-#else
-            this.State = stateAfterLambda;
-
-            this.currentMethodOrLambda = oldMethodOrLambda;
-#endif
             return null;
         }
 
@@ -2450,18 +2380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#if MERGE_CONFLICT
         private bool? InferResultNullability(BoundBinaryOperator node, bool? leftIsNotNull, bool? rightIsNotNull)
-#else
-        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
-        {
-            base.VisitDeconstructionAssignmentOperator(node);
-            Assign(node.Left, node.Right);
-            return null;
-        }
-
-        public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
-#endif
         {
             return InferResultNullability(node.OperatorKind, node.MethodOpt, node.Type, leftIsNotNull, rightIsNotNull);
         }
@@ -2524,7 +2443,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (warnOnNullReferenceArgument)
                 {
-#if MERGE_CONFLICT
                     WarnOnNullReferenceArgument(binary.Left, leftIsNotNull, binary.MethodOpt.Parameters[0], expanded: false);
                 }
 
@@ -2551,14 +2469,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool? operandComparedToNullIsNotNull = null;
 
                     if (binary.Right.ConstantValue?.IsNull == true)
-#else
-                    // The goal here is to treat address-of as a read in cases where
-                    // we (a) care about a read happening (e.g. for DataFlowsIn) and
-                    // (b) have information indicating that this will not result in
-                    // a read to an unassigned variable (i.e. the operand is definitely
-                    // assigned).
-                    if (_unassignedVariableAddressOfSyntaxes?.Contains(node.Syntax as PrefixUnaryExpressionSyntax) == false)
-#endif
                     {
                         operandComparedToNull = binary.Left;
                         operandComparedToNullIsNotNull = leftIsNotNull;
@@ -2664,11 +2574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-#if MERGE_CONFLICT
         public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
-#else
-        protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
-#endif
         {
             Debug.Assert(!IsConditionalState);
 
@@ -2861,7 +2767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private void ReportNullabilityMismatchWithTargetDelegate(CSharpSyntaxNode syntax, NamedTypeSymbol delegateType, MethodSymbol method)
+        private void ReportNullabilityMismatchWithTargetDelegate(SyntaxNode syntax, NamedTypeSymbol delegateType, MethodSymbol method)
         {
             if ((object)delegateType == null || (object)method == null)
             {
@@ -2875,8 +2781,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!invoke.ReturnType.Equals(method.ReturnType, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes | TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny) &&
-                invoke.ReturnType.Equals(method.ReturnType, TypeSymbolEqualityOptions.SameType))
+            if (!invoke.ReturnType.Equals(method.ReturnType, TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny) &&
+                invoke.ReturnType.Equals(method.ReturnType, TypeCompareKind.AllIgnoreOptions))
             {
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, syntax,
                     new FormattedSymbol(method, SymbolDisplayFormat.MinimallyQualifiedFormat), 
@@ -2887,8 +2793,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < count; i++)
             {
-                if (!invoke.Parameters[i].Type.Equals(method.Parameters[i].Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes | TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny) &&
-                    invoke.Parameters[i].Type.Equals(method.Parameters[i].Type, TypeSymbolEqualityOptions.SameType))
+                if (!invoke.Parameters[i].Type.Equals(method.Parameters[i].Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny) &&
+                    invoke.Parameters[i].Type.Equals(method.Parameters[i].Type, TypeCompareKind.AllIgnoreOptions))
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
                         new FormattedSymbol(method.Parameters[i], SymbolDisplayFormat.ShortFormat),
@@ -3022,12 +2928,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitUnboundLambda(node);
             SetUnknownResultNullability();
             return result;
-        }
-
-        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
-        {
-            Assign(node, value: null, valueIsNotNull: null);
-            return VisitLambdaOrLocalFunction(node);
         }
 
         private BoundNode VisitLambdaOrLocalFunction(IBoundLambdaOrFunction node)
@@ -3359,9 +3259,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if ((object)argument.Type != null &&
-                paramType.TypeSymbol.Equals(argument.Type, TypeSymbolEqualityOptions.SameType) &&
+                paramType.TypeSymbol.Equals(argument.Type, TypeCompareKind.AllIgnoreOptions) &&
                 !paramType.TypeSymbol.Equals(argument.Type,
-                                             TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes | TypeSymbolEqualityOptions.UnknownNullableModifierMatchesAny))
+                                             TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny))
             {
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInArgument, argument.Syntax, argument.Type, paramType.TypeSymbol,
                         new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
@@ -3437,7 +3337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected void CheckAssigned(BoundExpression expr, CSharpSyntaxNode node)
+        protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
         {
             if (!this.State.Reachable) return;
             int slot = MakeSlot(expr);
@@ -3523,13 +3423,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region TryStatements
 
-        private LocalState? _tryState;
+        private OptionalState _tryState;
 
         protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref LocalState tryState)
         {
             if (trackUnassignments)
             {
-                LocalState? oldTryState = _tryState;
+                OptionalState oldTryState = _tryState;
                 _tryState = AllBitsSet();
                 base.VisitTryBlock(tryBlock, node, ref tryState);
                 var tts = _tryState.Value;
@@ -3552,7 +3452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (trackUnassignments)
             {
-                LocalState? oldTryState = _tryState;
+                OptionalState oldTryState = _tryState;
                 _tryState = AllBitsSet();
                 VisitCatchBlockInternal(catchBlock, ref finallyState);
                 var tts = _tryState.Value;
@@ -3573,10 +3473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitCatchBlockInternal(BoundCatchBlock catchBlock, ref LocalState finallyState)
         {
-            if ((object)catchBlock.LocalOpt != null)
-            {
-                DeclareVariable(catchBlock.LocalOpt);
-            }
+            DeclareVariables(catchBlock.Locals);
 
             var exceptionSource = catchBlock.ExceptionSourceOpt;
             if (exceptionSource != null)
@@ -3586,9 +3483,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             base.VisitCatchBlock(catchBlock, ref finallyState);
 
-            if ((object)catchBlock.LocalOpt != null)
+            foreach (var local in catchBlock.Locals)
             {
-                ReportIfUnused(catchBlock.LocalOpt, assigned: false);
+                ReportIfUnused(local, assigned: local.DeclarationKind != LocalDeclarationKind.CatchVariable);
             }
         }
 
@@ -3596,7 +3493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (trackUnassignments)
             {
-                LocalState? oldTryState = _tryState;
+                OptionalState oldTryState = _tryState;
                 _tryState = AllBitsSet();
                 base.VisitFinallyBlock(finallyBlock, ref unsetInFinally);
                 var tts = _tryState.Value;
@@ -3654,7 +3551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.VisitPropertyAccess(node);
 
-            if (Binder.AccessingAutopropertyFromConstructor(node, this.currentMethodOrLambda))
+            if (Binder.AccessingAutoPropertyFromConstructor(node, this.currentMethodOrLambda))
             {
                 var property = node.PropertySymbol;
                 var backingField = (property as SourcePropertySymbol)?.BackingField;
@@ -3719,14 +3616,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override void VisitForEachIterationVariable(BoundForEachStatement node)
+        public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
-            var local = node.IterationVariable;
-            if ((object)local != null)
+            // declare and assign all iteration variables
+            foreach (var iterationVariable in node.IterationVariables)
             {
-                GetOrCreateSlot(local);
-                Assign(node, value: null, valueIsNotNull: null); // TODO: valueIsNotNull
-                // TODO: node needed? NoteRead(local); // Never warn about unused foreach variables.
+                Debug.Assert((object)iterationVariable != null);
+                int slot = GetOrCreateSlot(iterationVariable);
+                if (slot > 0) SetSlotAssigned(slot);
+                // NOTE: do not report unused iteration variables. They are always considered used.
+                NoteWrite(iterationVariable, null, read: true);
             }
         }
 
@@ -4189,7 +4088,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-#if MERGE_CONFLICT
         public override BoundNode VisitRangeVariable(BoundRangeVariable node)
         {
             var result = base.VisitRangeVariable(node);
@@ -4203,40 +4101,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetUnknownResultNullability();
             return result;
         }
-#else
-#region TryStatements
-        private OptionalState _tryState;
-#endif
 
         public override BoundNode VisitDynamicMemberAccess(BoundDynamicMemberAccess node)
         {
-#if MERGE_CONFLICT
             var result = base.VisitDynamicMemberAccess(node);
 
             Debug.Assert(node.Type.IsDynamic());
             SetUnknownResultNullability();
             return result;
-#else
-            if (trackUnassignments)
-            {
-                OptionalState oldTryState = _tryState;
-                _tryState = AllBitsSet();
-                base.VisitTryBlock(tryBlock, node, ref tryState);
-                var tts = _tryState.Value;
-                IntersectWith(ref tryState, ref tts);
-                if (oldTryState.HasValue)
-                {
-                    var ots = oldTryState.Value;
-                    IntersectWith(ref ots, ref tts);
-                    oldTryState = ots;
-                }
-                _tryState = oldTryState;
-            }
-            else
-            {
-                base.VisitTryBlock(tryBlock, node, ref tryState);
-            }
-#endif
         }
 
         public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
@@ -4247,16 +4119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
-#if MERGE_CONFLICT
                 if (node.Type?.IsReferenceType == true)
-#else
-                OptionalState oldTryState = _tryState;
-                _tryState = AllBitsSet();
-                VisitCatchBlockInternal(catchBlock, ref finallyState);
-                var tts = _tryState.Value;
-                IntersectWith(ref finallyState, ref tts);
-                if (oldTryState.HasValue)
-#endif
                 {
                     this.State.ResultIsNotNull = InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableMethods));
                 }
@@ -4271,14 +4134,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
-#if MERGE_CONFLICT
             var result = base.VisitEventAssignmentOperator(node);
             SetUnknownResultNullability();
             return result;
         }
-#else
-            DeclareVariables(catchBlock.Locals);
-#endif
 
         protected override void VisitReceiverOfEventAssignmentAsRvalue(BoundEventAssignmentOperator node)
         {
@@ -4300,42 +4159,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-#if MERGE_CONFLICT
         public override BoundNode VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
         {
             var result = base.VisitObjectInitializerExpression(node);
             SetUnknownResultNullability();
             return result;
-#else
-            foreach (var local in catchBlock.Locals)
-            {
-                ReportIfUnused(local, assigned: local.DeclarationKind != LocalDeclarationKind.CatchVariable);
-            }
-#endif
         }
 
         public override BoundNode VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node)
         {
-#if MERGE_CONFLICT
             var result = base.VisitCollectionInitializerExpression(node);
             SetUnknownResultNullability();
             return result;
         }
-#else
-            if (trackUnassignments)
-            {
-                OptionalState oldTryState = _tryState;
-                _tryState = AllBitsSet();
-                base.VisitFinallyBlock(finallyBlock, ref unsetInFinally);
-                var tts = _tryState.Value;
-                IntersectWith(ref unsetInFinally, ref tts);
-                if (oldTryState.HasValue)
-                {
-                    var ots = oldTryState.Value;
-                    IntersectWith(ref ots, ref tts);
-                    oldTryState = ots;
-                }
-#endif
 
         public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
@@ -4395,7 +4231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#if MERGE_CONFLICT
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
         {
             var result = base.VisitStackAllocArrayCreation(node);
@@ -4403,9 +4238,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetUnknownResultNullability();
             return result;
         }
-#else
-#endregion TryStatements
-#endif
 
         public override BoundNode VisitHoistedFieldAccess(BoundHoistedFieldAccess node)
         {
@@ -4436,16 +4268,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitReceiverOfDynamicAccessAsRvalue(BoundExpression receiverOpt)
         {
-#if MERGE_CONFLICT
             base.VisitReceiverOfDynamicAccessAsRvalue(receiverOpt);
 
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable &&
                 receiverOpt != null && (object)receiverOpt.Type != null && receiverOpt.Type.IsReferenceType && this.State.ResultIsNotNull == false)
-#else
-            var result = base.VisitPropertyAccess(node);
-            if (Binder.AccessingAutoPropertyFromConstructor(node, this.currentMethodOrLambda))
-#endif
             {
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
             }
@@ -4496,25 +4323,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-#if MERGE_CONFLICT
         public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
         {
             var result = base.VisitNameOfOperator(node);
             SetResultIsNotNull(node);
             return result;
-#else
-        public override void VisitForEachIterationVariables(BoundForEachStatement node)
-        {
-            // declare and assign all iteration variables
-            foreach (var iterationVariable in node.IterationVariables)
-            {
-                Debug.Assert((object)iterationVariable != null);
-                int slot = GetOrCreateSlot(iterationVariable);
-                if (slot > 0) SetSlotAssigned(slot);
-                // NOTE: do not report unused iteration variables. They are always considered used.
-                NoteWrite(iterationVariable, null, read: true);
-            }
-#endif
         }
 
         public override BoundNode VisitNamespaceExpression(BoundNamespaceExpression node)
@@ -4544,7 +4357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitPropertyGroup(node);
         }
 
-#endregion Visitors
+        #endregion Visitors
 
         protected override string Dump(LocalState state)
         {

@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options;
         }
 
-        public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
+        public static CSharpParseOptions WithNullCheckingFeature(this CSharpParseOptions options)
         {
-            return options;
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("staticNullChecking", "true") }));
         }
 
         internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)
