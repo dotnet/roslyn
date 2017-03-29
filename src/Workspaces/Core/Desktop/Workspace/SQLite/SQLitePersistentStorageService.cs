@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
-using SQLite.Net;
+using SQLite;
 
 namespace Microsoft.CodeAnalysis.SQLite
 {
