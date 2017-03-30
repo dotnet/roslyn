@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using System.Threading;
+using Microsoft.CodeAnalysis.Esent;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -27,7 +29,16 @@ namespace Microsoft.CodeAnalysis.Storage
             if (_singleton == null)
             {
                 var optionService = workspaceServices.GetService<IOptionService>();
-                Interlocked.CompareExchange(ref _singleton, new PersistentStorageService(optionService, _solutionSizeTracker), null);
+                var database = optionService.GetOption(StorageOptions.Database);
+                switch (database)
+                {
+                    case StorageDatabase.Esent:
+                        Interlocked.CompareExchange(ref _singleton, new EsentPersistentStorageService(optionService, _solutionSizeTracker), null);
+                        break;
+                    default:
+                        Interlocked.CompareExchange(ref _singleton, NoOpPersistentStorageService.Instance, null);
+                        break;
+                }
             }
 
             return _singleton;

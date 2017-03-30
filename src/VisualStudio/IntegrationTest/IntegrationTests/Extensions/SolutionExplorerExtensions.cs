@@ -13,11 +13,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer
         public static void CloseSolution(this AbstractIntegrationTest test, bool saveFirst = false)
             => test.VisualStudio.Instance.SolutionExplorer.CloseSolution(saveFirst);
 
+        public static void BuildSolution(this AbstractIntegrationTest test, bool waitForBuildToFinish)
+            => test.VisualStudio.Instance.SolutionExplorer.BuildSolution(waitForBuildToFinish);
+
         public static void AddProject(this AbstractIntegrationTest test, string projectTemplate, ProjectUtils.Project project, string languageName)
             => test.VisualStudio.Instance.SolutionExplorer.AddProject(project.Name, projectTemplate, languageName);
 
         public static void AddFile(this AbstractIntegrationTest test, string fileName, ProjectUtils.Project project, string contents = null, bool open = false)
             => test.VisualStudio.Instance.SolutionExplorer.AddFile(project.Name, fileName, contents, open);
+
+        public static void AddReference(this AbstractIntegrationTest test, string projectName, string fullyQualifiedAssemblyName)
+         => test.VisualStudio.Instance.SolutionExplorer.AddReference(projectName, fullyQualifiedAssemblyName);
 
         public static void AddMetadataReference(this AbstractIntegrationTest test, ProjectUtils.AssemblyReference referenceName, ProjectUtils.Project projectName)
         {
@@ -58,13 +64,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer
         public static void SaveAll(this AbstractIntegrationTest test)
             => test.VisualStudio.Instance.SolutionExplorer.SaveAll();
 
-        public static void BuildSolution(this AbstractIntegrationTest test, bool waitForBuildToFinish)
-            => test.VisualStudio.Instance.SolutionExplorer.BuildSolution(waitForBuildToFinish);
-
-        public static int GetErrorListErrorCount(this AbstractIntegrationTest test)
-            => test.VisualStudio.Instance.SolutionExplorer.ErrorListErrorCount;
-
         public static void EditProjectFile(this AbstractIntegrationTest test, ProjectUtils.Project project)
             => test.VisualStudio.Instance.SolutionExplorer.EditProjectFile(project.Name);
+
+        public static void CloseFile(this AbstractIntegrationTest test, string projectName, string fileName, bool saveFile = true)
+            => test.VisualStudio.Instance.SolutionExplorer.CloseFile(projectName, fileName, saveFile);
+
+        public static void SaveFile(this AbstractIntegrationTest test, string projectName, string fileName)
+            => test.VisualStudio.Instance.SolutionExplorer.SaveFile(projectName, fileName);
     }
 }

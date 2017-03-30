@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.VisualStudio.IntegrationTests.Extensions;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.ErrorList;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
@@ -41,14 +42,14 @@ End Class");
             this.VerifyCompletionItemExists("Settings");
             this.VerifyCompletionItemExists("User");
             this.VerifyCompletionItemExists("WebServices");
-            this.VerifyCompletionItemDoesNotExist("Equals");
-            this.VerifyCompletionItemDoesNotExist("MyApplication");
+            this.VerifyCompletionItemDoNotExist("Equals");
+            this.VerifyCompletionItemDoNotExist("MyApplication");
 
             this.SendKeys("Forms.");
             this.VerifyCompletionItemExists("Form1");
-            this.VerifyCompletionItemDoesNotExist("Equals");
-            this.VerifyCompletionItemDoesNotExist("GetHashCode");
-            this.VerifyCompletionItemDoesNotExist("ToString");
+            this.VerifyCompletionItemDoNotExist("Equals");
+            this.VerifyCompletionItemDoNotExist("GetHashCode");
+            this.VerifyCompletionItemDoNotExist("ToString");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]

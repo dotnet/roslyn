@@ -3,7 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic

@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Threading;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Xunit;
+using System;
+using System.Threading;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -15,8 +12,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
     public abstract class AbstractIntegrationTest : IDisposable
     {
         public readonly VisualStudioInstanceContext VisualStudio;
-        protected readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
-        protected readonly TextViewWindow_OutOfProc TextViewWindow;
+        public readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
+        public readonly TextViewWindow_OutOfProc TextViewWindow;
+
+        protected readonly string ProjectName = "TestProj";
+        protected readonly string SolutionName = "TestSolution";
 
         protected AbstractIntegrationTest(
             VisualStudioInstanceFactory instanceFactory,
@@ -35,9 +35,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             var timeout = TimeSpan.FromMilliseconds(seconds * 1000);
             Thread.Sleep(timeout);
         }
-
-        protected KeyPress KeyPress(VirtualKey virtualKey, ShiftState shiftState)
-            => new KeyPress(virtualKey, shiftState);
 
         protected KeyPress Ctrl(VirtualKey virtualKey)
             => new KeyPress(virtualKey, ShiftState.Ctrl);
