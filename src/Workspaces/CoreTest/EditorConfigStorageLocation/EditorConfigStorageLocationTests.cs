@@ -77,10 +77,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         }
 
         [Fact]
-        public static void TestObjectTypeThrowsNotSupportedException()
+        public static void TestObjectTypeThrowsInvalidOperationException()
         {
             var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
-            Assert.Throws<NotSupportedException>(() =>
+            Assert.Throws<InvalidOperationException>(() =>
             {
                 editorConfigStorageLocation.TryGetOption(new object(), new Dictionary<string, object>(), typeof(object), out var @object);
             });

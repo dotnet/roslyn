@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -41,8 +43,11 @@ namespace Microsoft.CodeAnalysis.Options
                 // no existing naming styles were passed so just return the set of styles that were parsed from editorconfig
                 return (result: editorconfigNamingStylePreferences, succeeded: true);
             }
-
-            return (result: null, succeeded: false);
+            else
+            {
+                return Contract.FailWithReturn<(object, bool)>(
+                    $"{nameof(NamingStylePreferenceEditorConfigStorageLocation)} can only be called with {nameof(PerLanguageOption<NamingStylePreferences>)}<{nameof(NamingStylePreferences)}>.");
+            }
         }
     }
 }
