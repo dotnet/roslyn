@@ -2,11 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Storage;
-using Roslyn.Utilities;
 using SQLite;
 
 namespace Microsoft.CodeAnalysis.SQLite
@@ -96,6 +92,8 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             try
             {
+                // Note: the lambda is actually an expression tree that gets compiled
+                // to the right query and is evaluatedon inside the DB.
                 stringInfo = connection.Find<StringInfo>(i => i.Value == value);
             }
             catch (Exception ex)
