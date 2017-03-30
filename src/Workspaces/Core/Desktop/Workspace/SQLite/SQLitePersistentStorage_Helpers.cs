@@ -10,9 +10,6 @@ namespace Microsoft.CodeAnalysis.SQLite
         private static Stream GetStream(byte[] bytes)
             => bytes == null ? null : new MemoryStream(bytes, writable: false);
 
-        private static long GetProjectDataId(int projectId, int nameId)
-            => CombineInt32ToInt64(projectId, nameId);
-
         private static string GetProjectIdString(int projectPathId, int projectNameId)
             => Invariant($"{projectPathId}-{projectNameId}");
 

@@ -14,9 +14,18 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// </summary>
         private readonly ConcurrentDictionary<ProjectId, int> _projectIdToIdMap = new ConcurrentDictionary<ProjectId, int>();
 
+        /// <summary>
+        /// Given a project, and the name of a stream to read/write, gets the integral DB ID to 
+        /// use to find the data inside the <see cref="ProjectData"/> table.
+        /// </summary>
         private bool TryGetProjectDataId(Project project, string name, out long dataId)
         {
             dataId = 0;
+
+            // First, try to get all the IDs for this project in sync with the DB.
+            // This will only be expensive the first time we do this.  But will save
+            // us from tons of back-and-forth as any BG analyzer processes all the
+            // documents in a solution.
             var connection = CreateConnection();
             BulkPopulateProjectIds(connection, project, fetchStringTable: true);
 
@@ -27,7 +36,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return false;
             }
 
-            dataId = GetProjectDataId(projectId.Value, nameId.Value);
+            // Our data ID is just a 64bit int combining the two 32bit values of our projectId and nameId.
+            dataId = CombineInt32ToInt64(projectId.Value, nameId.Value);
             return true;
         }
 

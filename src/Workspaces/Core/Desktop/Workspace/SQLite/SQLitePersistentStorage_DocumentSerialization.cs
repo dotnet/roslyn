@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 try
                 {
+                    // Lookup the row from the DocumentData table corresponding to our data-id.
                     documentData = CreateConnection().Find<DocumentData>(dataId);
                 }
                 catch (Exception ex)
@@ -33,12 +34,15 @@ namespace Microsoft.CodeAnalysis.SQLite
         public override Task<bool> WriteStreamAsync(
             Document document, string name, Stream stream, CancellationToken cancellationToken)
         {
+            // Determine the appropriate data-id to store this stream at.
             if (TryGetDocumentDataId(document, name, out var dataId))
             {
                 var bytes = GetBytes(stream);
 
                 AddWriteTask(con =>
                 {
+                    // Add the data to the DocumentData table, overwriting existing data with this ID
+                    // if it exists.
                     con.InsertOrReplace(
                         new DocumentData { Id = dataId, Data = bytes });
                 });
