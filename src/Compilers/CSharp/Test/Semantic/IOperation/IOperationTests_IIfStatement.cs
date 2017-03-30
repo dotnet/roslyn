@@ -373,7 +373,7 @@ IIfStatement (OperationKind.IfStatement)
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-        public void IIfstatementEmbeddedOutVar()
+        public void IIfstatementExplictEmbeddedOutVar()
         {
             string source = @"
 class P
@@ -411,6 +411,43 @@ IIfStatement (OperationKind.IfStatement)
               ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String)
             IArgument (Matching Parameter: result) (OperationKind.Argument)
               ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32)
+";
+            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementImplicitEmbeddedOutVar()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object o = 25;
+        /*<bind>*/if (true)
+            A(o is int i, 1);/*</bind>*/
+    }
+
+    private static void A(bool flag, int number)
+    {
+        if (flag)
+        {
+            System.Console.WriteLine(new string('*', number));
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IIfStatement (OperationKind.IfStatement)
+  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
+  IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement)
+    Local_1: System.Int32 i
+    IExpressionStatement (OperationKind.ExpressionStatement)
+      IInvocationExpression (static void Program.A(System.Boolean flag, System.Int32 number)) (OperationKind.InvocationExpression, Type: System.Void)
+        IArgument (Matching Parameter: flag) (OperationKind.Argument)
+          IOperation:  (OperationKind.None)
+        IArgument (Matching Parameter: number) (OperationKind.Argument)
+          ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
 ";
             VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
         }
