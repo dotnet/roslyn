@@ -774,8 +774,6 @@ IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationSt
             VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
         End Sub
 
-
-
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticMulipleDeclarationAsNew()
             Dim source = <![CDATA[
