@@ -7,5 +7,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal static class DiagnosticPropertyConstants
     {
         public const string UnreferencedAssemblyIdentity = nameof(UnreferencedAssemblyIdentity);
+        public const string RequiredLanguageVersion = nameof(RequiredLanguageVersion);
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -70,10 +71,17 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var syntaxFacts = GetSyntaxFactsService();
             var analyzer = new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>(
-                syntaxFacts, objectCreationExpression);
+                context.SemanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
             var result = analyzer.Analyze();
 
             if (result == null || result.Value.Length == 0)
+            {
+                return;
+            }
+
+            var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
+            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(result.Value.Select(m => m.Statement));
+            if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             {
                 return;
             }

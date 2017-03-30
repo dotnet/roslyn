@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
-using System.Threading.Tasks;
-using System.Windows.Automation;
 using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -37,16 +37,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
 
+        public ErrorList_OutOfProc ErrorList { get; }
+
         public VisualStudioWorkspace_OutOfProc VisualStudioWorkspace { get; }
 
         internal DTE Dte { get; }
 
         internal Process HostProcess { get; }
 
-        public VisualStudioInstance(Process hostProcess, DTE dte)
+        /// <summary>
+        /// The set of Visual Studio packages that are installed into this instance.
+        /// </summary>
+        public ImmutableHashSet<string> SupportedPackageIds { get; }
+
+        /// <summary>
+        /// The path to the root of this installed version of Visual Studio. This is the folder that contains
+        /// Common7\IDE.
+        /// </summary>
+        public string InstallationPath { get; }
+
+        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath)
         {
             HostProcess = hostProcess;
             Dte = dte;
+            SupportedPackageIds = supportedPackageIds;
+            InstallationPath = installationPath;
 
             StartRemoteIntegrationService(dte);
 
@@ -69,6 +84,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             CSharpInteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
+            ErrorList = new ErrorList_OutOfProc(this);
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
@@ -106,51 +122,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public void ExecuteCommand(string commandName, string argument = "")
             => _inProc.ExecuteCommand(commandName, argument);
 
+        public bool IsCommandAvailable(string commandName)
+            => _inProc.IsCommandAvailable(commandName);
+
+        public string[] GetAvailableCommands()
+            => _inProc.GetAvailableCommands();
+
+        public int ErrorListErrorCount
+            => _inProc.GetErrorListErrorCount();
+
+        public void WaitForNoErrorsInErrorList()
+            => _inProc.WaitForNoErrorsInErrorList();
+
         public bool IsRunning => !HostProcess.HasExited;
-
-        public async Task ClickAutomationElementAsync(string elementName, bool recursive = false)
-        {
-            var element = await FindAutomationElementAsync(elementName, recursive).ConfigureAwait(false);
-
-            if (element != null)
-            {
-                var tcs = new TaskCompletionSource<object>();
-
-                Automation.AddAutomationEventHandler(InvokePattern.InvokedEvent, element, TreeScope.Element, (src, e) => {
-                    tcs.SetResult(null);
-                });
-
-                if (element.TryGetCurrentPattern(InvokePattern.Pattern, out var invokePatternObj))
-                {
-                    var invokePattern = (InvokePattern)invokePatternObj;
-                    invokePattern.Invoke();
-                }
-
-                await tcs.Task;
-            }
-        }
-
-        private async Task<AutomationElement> FindAutomationElementAsync(string elementName, bool recursive = false)
-        {
-            AutomationElement element = null;
-            var scope = recursive ? TreeScope.Descendants : TreeScope.Children;
-            var condition = new PropertyCondition(AutomationElement.NameProperty, elementName);
-
-            // TODO(Dustin): This is code is a bit terrifying. If anything goes wrong and the automation
-            // element can't be found, it'll continue to spin until the heat death of the universe.
-            await IntegrationHelper.WaitForResultAsync(
-                () => (element = AutomationElement.RootElement.FindFirst(scope, condition)) != null, expectedResult: true
-            ).ConfigureAwait(false);
-
-            return element;
-        }
 
         public void CleanUp()
         {
             VisualStudioWorkspace.CleanUpWaitingService();
             VisualStudioWorkspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
-            CSharpInteractiveWindow.CleanUpInteractiveWindow();
+            CSharpInteractiveWindow.CloseInteractiveWindow();
         }
 
         public void Close(bool exitHostProcess = true)

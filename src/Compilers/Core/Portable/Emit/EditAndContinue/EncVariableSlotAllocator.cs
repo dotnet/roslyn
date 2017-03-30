@@ -136,8 +136,8 @@ namespace Microsoft.CodeAnalysis.Emit
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
-            ImmutableArray<TypedConstant> dynamicTransformFlags,
-            ImmutableArray<TypedConstant> tupleElementNames)
+            ImmutableArray<bool> dynamicTransformFlags,
+            ImmutableArray<string> tupleElementNames)
         {
             if (id.IsNone)
             {

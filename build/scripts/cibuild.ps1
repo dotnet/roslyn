@@ -28,7 +28,7 @@ function Run-MSBuild() {
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    & $msbuild /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal @args
+    & $msbuild /warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal @args
     if (-not $?) {
         throw "Build failed"
     }
@@ -54,13 +54,13 @@ try {
     }
 
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
-    $msbuildDir = Get-MSBuildDir
-    $msbuild = Join-Path $msbuildDir "msbuild.exe"
+    $msbuild = Ensure-MSBuild
+    $msbuildDir = Split-Path -parent $msbuild
     $configDir = Join-Path $binariesDIr $buildConfiguration
 
     if (-not $skipRestore) { 
         Write-Host "Running restore"
-        & ".\build\scripts\restore.ps1" -msbuildDir $msbuildDir
+        Restore-All -msbuildDir $msbuildDir 
     }
 
     # Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
@@ -80,7 +80,6 @@ try {
     # Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
     $bootstrapLog = Join-Path $binariesDir "Bootstrap.log"
     Run-MSBuild /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP "build\Toolset\Toolset.csproj" /p:Configuration=$buildConfiguration /fileloggerparameters:LogFile=$($bootstrapLog)
-    Exec { & ".\build\scripts\check-msbuild.ps1" $bootstrapLog }
     $bootstrapDir = Join-Path $binariesDir "Bootstrap"
     Remove-Item -re $bootstrapDir -ErrorAction SilentlyContinue
     Create-Directory $bootstrapDir
@@ -104,15 +103,16 @@ try {
         Run-MSBuild Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false
 
         # Check if we have credentials to upload to benchview
-        if ((Test-Path env:\GIT_BRANCH) -and (Test-Path BV_UPLOAD_SAS_TOKEN)) {
-            $extraArgs="--report-benchview --branch $(env:GIT_BRANCH)"
+        $extraArgs = ""
+        if ((Test-Path env:\GIT_BRANCH) -and (Test-Path env:\BV_UPLOAD_SAS_TOKEN)) {
+            $extraArgs = "--report-benchview --branch $($env:GIT_BRANCH)"
 
             # Check if we are in a PR or this is a rolling submission
             if (Test-Path env:\ghprbPullTitle) {
-                $extraArgs='$($extraArgs) --benchview-submission-name "[$($env:ghprbPullAuthorLogin)] PR $($env:ghprbPullId): $($env:ghprbPullTitle)" --benchview-submission-type private'
+                $extraArgs = '$($extraArgs) --benchview-submission-name "[$($env:ghprbPullAuthorLogin)] PR $($env:ghprbPullId): $($env:ghprbPullTitle)" --benchview-submission-type private'
             } 
             else {
-                $extraArgs='$(4extraArgs) --benchview-submission-type rolling'
+                $extraArgs = '$(4extraArgs) --benchview-submission-type rolling'
             }
 
             Create-Directory ".\Binaries\$buildConfiguration\tools\"
@@ -121,7 +121,10 @@ try {
         }
 
         Terminate-BuildProcesses
-        Exec { & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe"  --search-directory=".\\Binaries\\$buildConfiguration\\Dlls\\" --no-trace-upload $extraArgs }
+        & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe"  --search-directory=".\\Binaries\\$buildConfiguration\\Dlls\\" --no-trace-upload $extraArgs 
+        if (-not $?) { 
+            throw "Perf run failed"
+        }
         exit 0
     }
 
@@ -131,7 +134,6 @@ try {
     $buildLog = Join-Path $binariesdir "Build.log"
 
     Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
-    Exec { & ".\build\scripts\check-msbuild.ps1" $buildLog }
     exit 0
 }
 catch {

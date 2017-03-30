@@ -344,6 +344,7 @@
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
     <Compile Include="CodeStyle\CodeStyleHelpers.cs" />
     <Compile Include="CodeStyle\CodeStyleOptions.cs" />
+    <Compile Include="CodeStyle\ExpressionBodyPreference.cs" />
     <Compile Include="CodeStyle\NotificationOption.cs" />
     <Compile Include="CodeStyle\CodeStyleOption.cs" />
     <Compile Include="Diagnostics\AbstractDiagnosticPropertiesService.cs" />
@@ -388,8 +389,9 @@
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.IdentifierInfo.cs" />
     <Compile Include="NamingStyles\Serialization\NamingStylePreferencesExtensions.cs" />
     <Compile Include="PatternMatching\PatternMatch.cs" />
+    <Compile Include="PatternMatching\PatternMatcher.AllLowerCamelCaseMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatcher.cs" />
-    <Compile Include="PatternMatching\PatternMatcher.Segment.cs" />
+    <Compile Include="PatternMatching\PatternMatcher.PatternSegment.cs" />
     <Compile Include="PatternMatching\PatternMatcher.TextChunk.cs" />
     <Compile Include="PatternMatching\PatternMatches.cs" />
     <Compile Include="PatternMatching\PatternMatchKind.cs" />
@@ -406,6 +408,8 @@
     <Compile Include="Shared\Utilities\TextReaderWithLength.cs" />
     <Compile Include="Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
+    <Compile Include="Workspace\Host\ParseOptions\IParseOptionsService.cs" />
+    <Compile Include="Workspace\Host\PersistentStorage\NoOpPersistentStorageService.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.WorkspaceTaskScheduler.cs" />
     <Compile Include="Tags\WellKnownTags.cs" />
     <Compile Include="Workspace\Solution\Checksum.cs" />

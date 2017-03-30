@@ -4182,10 +4182,10 @@ var (x, y) = (1, 2);
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6), options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics(
-                // (2,5): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (2,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 // var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(x, y)").WithArguments("tuples", "7").WithLocation(2, 5),
-                // (2,14): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (2,14): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 // var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7").WithLocation(2, 14)
                 );
@@ -5192,7 +5192,7 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //         _ = M();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7").WithLocation(6, 9)
                 );
@@ -5229,37 +5229,37 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular6, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //         (_, var _, int _) = (1, 2, 3);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, var _, int _)").WithArguments("tuples", "7").WithLocation(6, 9),
-                // (6,29): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,29): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //         (_, var _, int _) = (1, 2, 3);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2, 3)").WithArguments("tuples", "7").WithLocation(6, 29),
-                // (7,13): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (7,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //         var (_, _) = (1, 2);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, _)").WithArguments("tuples", "7").WithLocation(7, 13),
-                // (7,22): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (7,22): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //         var (_, _) = (1, 2);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7").WithLocation(7, 22),
-                // (8,18): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (8,18): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //         bool b = 3 is int _;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is int _").WithArguments("pattern matching", "7").WithLocation(8, 18),
-                // (16,13): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (16,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //             case int _:
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case int _:").WithArguments("pattern matching", "7").WithLocation(16, 13),
-                // (19,19): error CS8059: Feature 'out variable declaration' is not available in C# 6.  Please use language version 7 or greater.
+                // (19,19): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7 or greater.
                 //         M(out var _);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7").WithLocation(19, 19),
-                // (20,19): error CS8059: Feature 'out variable declaration' is not available in C# 6.  Please use language version 7 or greater.
+                // (20,19): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7 or greater.
                 //         M(out int _);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7").WithLocation(20, 19),
-                // (6,10): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,10): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //         (_, var _, int _) = (1, 2, 3);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7").WithLocation(6, 10),
                 // (11,18): error CS0103: The name '_' does not exist in the current context
                 //             case _: // not a discard
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18),
-                // (21,15): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (21,15): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //         M(out _);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7").WithLocation(21, 15),
                 // (12,17): warning CS0162: Unreachable code detected
@@ -6573,6 +6573,33 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "3");
+        }
+
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void TestDiscardedAssignmentNotLvalue()
+        {
+            var source = @"
+class Program
+{
+    struct S1
+    {
+        public int field;
+        public int Increment() => field++;
+    }
+
+    static void Main()
+    {
+        S1 v = default(S1);
+        v.Increment(); 
+
+        (_ = v).Increment();
+
+        System.Console.WriteLine(v.field);
+    }
+}
+";
+            string expectedOutput = @"1";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
     }
 }

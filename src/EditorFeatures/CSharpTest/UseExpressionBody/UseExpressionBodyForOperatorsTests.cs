@@ -20,17 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             => (new UseExpressionBodyForOperatorsDiagnosticAnalyzer(),
                 new UseExpressionBodyForOperatorsCodeFixProvider());
 
-        private static readonly Dictionary<OptionKey, object> UseExpressionBody =
-            new Dictionary<OptionKey, object>
-            {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.TrueWithNoneEnforcement }
-            };
+        private IDictionary<OptionKey, object> UseExpressionBody =>
+            Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement);
 
-        private static readonly Dictionary<OptionKey, object> UseBlockBody =
-            new Dictionary<OptionKey, object>
-            {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.FalseWithNoneEnforcement }
-            };
+        private IDictionary<OptionKey, object> UseBlockBody =>
+            Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()

@@ -3336,10 +3336,10 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>'id#' syntax is no longer supported. Use '$id' instead.</value>
   </data>
   <data name="WRN_DefineIdentifierRequired" xml:space="preserve">
-    <value>Invalid value for '/define'; '{0}' is not a valid identifier</value>
+    <value>Invalid name for a preprocessing symbol; '{0}' is not a valid identifier</value>
   </data>
   <data name="WRN_DefineIdentifierRequired_Title" xml:space="preserve">
-    <value>Invalid value for '/define'; not a valid identifier</value>
+    <value>Invalid name for a preprocessing symbol; not a valid identifier</value>
   </data>
   <data name="FTL_OutputFileExists" xml:space="preserve">
     <value>Cannot create short filename '{0}' when a long filename with the same short filename already exists</value>
@@ -4345,25 +4345,25 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>lambda expression</value>
   </data>
   <data name="ERR_FeatureNotAvailableInVersion1" xml:space="preserve">
-    <value>Feature '{0}' is not available in C# 1.  Please use language version {1} or greater.</value>
+    <value>Feature '{0}' is not available in C# 1. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_FeatureNotAvailableInVersion2" xml:space="preserve">
-    <value>Feature '{0}' is not available in C# 2.  Please use language version {1} or greater.</value>
+    <value>Feature '{0}' is not available in C# 2. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_FeatureNotAvailableInVersion3" xml:space="preserve">
-    <value>Feature '{0}' is not available in C# 3.  Please use language version {1} or greater.</value>
+    <value>Feature '{0}' is not available in C# 3. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_FeatureNotAvailableInVersion4" xml:space="preserve">
-    <value>Feature '{0}' is not available in C# 4.  Please use language version {1} or greater.</value>
+    <value>Feature '{0}' is not available in C# 4. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_FeatureNotAvailableInVersion5" xml:space="preserve">
-    <value>Feature '{0}' is not available in C# 5.  Please use language version {1} or greater.</value>
+    <value>Feature '{0}' is not available in C# 5. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_FeatureNotAvailableInVersion6" xml:space="preserve">
-    <value>Feature '{0}' is not available in C# 6.  Please use language version {1} or greater.</value>
+    <value>Feature '{0}' is not available in C# 6. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_FeatureNotAvailableInVersion7" xml:space="preserve">
-    <value>Feature '{0}' is not available in C# 7.  Please use language version {1} or greater.</value>
+    <value>Feature '{0}' is not available in C# 7. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_FeatureIsExperimental" xml:space="preserve">
     <value>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</value>
@@ -5043,5 +5043,29 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PatternDynamicType" xml:space="preserve">
     <value>It is not legal to use the type 'dynamic' in a pattern.</value>
+  </data>
+  <data name="ERR_BadDocumentationMode" xml:space="preserve">
+    <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_BadSourceCodeKind" xml:space="preserve">
+    <value>Provided source code kind is unsupported or invalid: '{0}'</value>
+  </data>
+  <data name="ERR_BadLanguageVersion" xml:space="preserve">
+    <value>Provided language version is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_InvalidPreprocessingSymbol" xml:space="preserve">
+    <value>Invalid name for a preprocessing symbol; '{0}' is not a valid identifier</value>
+  </data>
+  <data name="ERR_FeatureNotAvailableInVersion7_1" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 7.1. Please use language version {1} or greater.</value>
+  </data>
+  <data name="ERR_LanguageVersionCannotHaveLeadingZeroes" xml:space="preserve">
+    <value>Specified language version '{0}' cannot have leading zeroes</value>
+  </data>
+  <data name="ERR_VoidAssignment" xml:space="preserve">
+    <value>A value of type 'void' may not be assigned.</value>
+  </data>
+  <data name="ERR_CompilerAndLanguageVersion" xml:space="preserve">
+    <value>Compiler version: '{0}'. Language version: {1}.</value>
   </data>
 </root>

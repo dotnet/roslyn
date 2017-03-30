@@ -139,10 +139,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             return _hostSerializationService.ReadMetadataReferenceFrom(reader, cancellationToken);
         }
 
-        public void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, bool usePathFromAssembly, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            _hostSerializationService.WriteTo(reference, writer, cancellationToken);
+            _hostSerializationService.WriteTo(reference, writer, usePathFromAssembly, cancellationToken);
         }
 
         private AnalyzerReference DeserializeAnalyzerReference(ObjectReader reader, CancellationToken cancellationToken)

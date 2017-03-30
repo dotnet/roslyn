@@ -1826,7 +1826,7 @@ tryAgain:
                 }
                 else
                 {
-                    TypeSyntax firstType = this.ParseDeclarationType();
+                    TypeSyntax firstType = this.ParseType();
 
                     list.Add(_syntaxFactory.SimpleBaseType(firstType));
 
@@ -1847,7 +1847,7 @@ tryAgain:
                             }
                             else
                             {
-                                list.Add(_syntaxFactory.SimpleBaseType(this.ParseDeclarationType()));
+                                list.Add(_syntaxFactory.SimpleBaseType(this.ParseType()));
                             }
 
                             continue;
@@ -1994,17 +1994,6 @@ tryAgain:
                 p => this.CurrentToken.Kind != SyntaxKind.CommaToken && !this.IsPossibleTypeParameterConstraint(),
                 p => this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || this.IsPossibleTypeParameterConstraintClauseStart() || this.IsTerminator(),
                 expected);
-        }
-
-        private TypeSyntax ParseDeclarationType()
-        {
-            var type = this.ParseType();
-            if (type.Kind != SyntaxKind.PredefinedType && !SyntaxFacts.IsName(type.Kind))
-            {
-                type = this.AddError(type, ErrorCode.ERR_BadBaseType);
-            }
-
-            return type;
         }
 
         private bool IsPossibleMemberStart()
@@ -6508,7 +6497,7 @@ tryAgain:
         public StatementSyntax ParseStatement()
         {
             return ParseWithStackGuard(
-                ParseStatementCore,
+                () => ParseStatementCore() ?? ParseExpressionStatement(),
                 () => SyntaxFactory.EmptyStatement(SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken)));
         }
 
@@ -7374,14 +7363,34 @@ tryAgain:
                 statement = SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
             }
 
-            // An "embedded" statement is simply a statement that is not a labelled
-            // statement or a declaration statement.
             switch (statement.Kind)
             {
+                // An "embedded" statement is simply a statement that is not a labelled
+                // statement or a declaration statement.
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.LocalFunctionStatement:
                     statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
+                    break;
+                // In scripts, stand-alone expression statements may not be followed by semicolons.
+                // ParseExpressionStatement hides the error.
+                // However, embedded expression statements are required to be followed by semicolon. 
+                case SyntaxKind.ExpressionStatement:
+                    if (IsScript)
+                    {
+                        var expressionStatementSyntax = (ExpressionStatementSyntax)statement;
+                        var semicolonToken = expressionStatementSyntax.SemicolonToken;
+
+                        // Do not add a new error if the same error was already added.
+                        if (semicolonToken.IsMissing  
+                            && (!semicolonToken.ContainsDiagnostics
+                            || !semicolonToken.GetDiagnostics()
+                            .Contains(diagnosticInfo => (ErrorCode)diagnosticInfo.Code == ErrorCode.ERR_SemicolonExpected)))
+                        {
+                            semicolonToken = this.AddError(semicolonToken, ErrorCode.ERR_SemicolonExpected);
+                            statement = expressionStatementSyntax.Update(expressionStatementSyntax.Expression, semicolonToken);
+                        }
+                    }
                     break;
             }
 
@@ -9413,7 +9422,7 @@ tryAgain:
                         // there is a new declaration on the next line.
                         if (this.CurrentToken.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia) &&
                             this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
-                            this.PeekToken(2).Kind == SyntaxKind.IdentifierToken)
+                            this.PeekToken(2).ContextualKind == SyntaxKind.IdentifierToken)
                         {
                             expr = _syntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(),

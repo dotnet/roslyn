@@ -1110,7 +1110,7 @@ class C
                 // (5,15): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
-                // (5,15): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (5,15): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(5, 15),
                 // (5,16): error CS8124: Tuple must contain at least two elements.
@@ -1965,7 +1965,7 @@ class B : A
     // (8,34): error CS0112: A static member 'B.Q' cannot be marked as override, virtual, or abstract
     //     public static virtual object Q { get; }
     Diagnostic(ErrorCode.ERR_StaticNotVirtual, "Q").WithArguments("B.Q").WithLocation(8, 34),
-    // (8,34): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5.  Please use language version 6 or greater.
+    // (8,34): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5. Please use language version 6 or greater.
     //     public static virtual object Q { get; }
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Q").WithArguments("readonly automatically implemented properties", "6").WithLocation(8, 34),
     // (9,37): error CS0112: A static member 'B.R' cannot be marked as override, virtual, or abstract

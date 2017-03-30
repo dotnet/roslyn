@@ -486,5 +486,37 @@ namespace N {
     }
 }");
         }
+
+        [WorkItem(18053, "https://github.com/dotnet/roslyn/issues/18053")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingWhenTypesDoNotMatch()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class SyntaxNode
+{
+    public SyntaxNode Parent;
+}
+
+class BaseParameterListSyntax : SyntaxNode
+{
+}
+
+class ParameterSyntax : SyntaxNode
+{
+
+}
+
+public static class C
+{
+    static void N(ParameterSyntax parameter)
+    {
+        if (parameter.Parent is BaseParameterListSyntax)
+        {
+            [|SyntaxNode|] parent = (BaseParameterListSyntax)parameter.Parent;
+            parent = parent.Parent;
+        }
+    }
+}");
+        }
     }
 }

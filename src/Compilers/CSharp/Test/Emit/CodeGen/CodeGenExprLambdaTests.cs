@@ -3185,6 +3185,36 @@ public class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void ConditionalWithTrivialCondition()
+        {
+            var text =
+@"using System;
+using System.Linq.Expressions;
+
+public class Test
+{
+    static void Main()
+    {
+        S1 v = default(S1);
+
+        Expression<Func<int>> testExpr = () => (true ? v : default(S1)).Increment();
+        Console.WriteLine(testExpr);
+    }
+
+    struct S1
+    {
+        public int field;
+        public int Increment() => field++;
+    }
+}";
+            string expectedOutput = @"() => value(Test+<>c__DisplayClass0_0).v.Increment()";
+
+            CompileAndVerify(
+                new[] { text, TreeWalkerLib },
+                new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
+        }
+
         [WorkItem(544413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544413")]
         [Fact]
         public void ExplicitConversionLambdaToExprTree()
@@ -3652,7 +3682,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,19): error CS1001: Identifier expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 19),
-                // (2,20): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (2,20): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(System.Linq.Expressions.Expression<System.Func<B>>)").WithArguments("tuples", "7").WithLocation(2, 20),
                 // (2,76): error CS1026: ) expected
@@ -3676,7 +3706,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,93): error CS1002: ; expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 93),
-                // (2,93): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (2,93): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(2, 93),
                 // (2,94): error CS8124: Tuple must contain at least two elements.
