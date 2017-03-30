@@ -766,7 +766,7 @@ class C
 {
     void M()
     {
-        var t = new List<int>(new int[] { 1, 2, 3 });
+        var t = [||]new List<int>(new int[] { 1, 2, 3 });
         t.Add(t.Min() - 1);
     }
 }");
