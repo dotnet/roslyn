@@ -3,45 +3,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
     /// Specifies that an option should be read from an .editorconfig file.
     /// </summary>
-    internal sealed class EditorConfigStorageLocation : OptionStorageLocation
+    internal sealed class EditorConfigStorageLocation<T> : OptionStorageLocation, IEditorConfigStorageLocation
     {
         public string KeyName { get; }
 
-        private Func<string, Type, object> _parseValue;
+        private readonly Func<string, Type, Optional<T>> _parseValue;
 
-        private static Func<string, Type, object> _cachedParseValue = (s, type) =>
-        {
-            if (type == typeof(int))
-            {
-                var value = 0;
-                return int.TryParse(s, out value) ? (object)value : null;
-            }
-            else if (type == typeof(bool))
-            {
-                var value = false;
-                return bool.TryParse(s, out value) ? (object)value : null;
-            }
-            else if (type == typeof(CodeStyleOption<bool>))
-            {
-                var value = CodeStyleOption<bool>.Default;
-                return TryParseEditorConfigCodeStyleOption(s, out value) ? value : null;
-            }
-            else
-            {
-                throw new NotSupportedException(WorkspacesResources.Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function);
-            }
-        };
-
-        private Func<object, IReadOnlyDictionary<string, object>, Type, (object result, bool succeeded)> _tryParseDictionary;
+        private readonly Func<object, IReadOnlyDictionary<string, object>, Type, (object result, bool succeeded)> _tryParseDictionary;
 
         private static Func<object, IReadOnlyDictionary<string, object>, Type, (object result, bool succeeded)> _cachedTryParseDictionary = (underlyingOption, dictionary, type) =>
         {
@@ -74,13 +49,22 @@ namespace Microsoft.CodeAnalysis.Options
             }
         };
 
-        public bool TryGetOption(object underlyingOption, IReadOnlyDictionary<string, object> allRawConventions, Type type, out object result)
+        bool IEditorConfigStorageLocation.TryGetOption(object underlyingOption, IReadOnlyDictionary<string, object> allRawConventions, Type type, out object result)
         {
             if (_parseValue != null && KeyName != null)
             {
                 if (allRawConventions.TryGetValue(KeyName, out object value))
                 {
-                    result = _parseValue(value.ToString(), type);
+                    var optionalValue = _parseValue(value.ToString(), type);
+                    if (optionalValue.HasValue)
+                    {
+                        result = optionalValue.Value;
+                    }
+                    else
+                    {
+                        result = null;
+                    }
+
                     return result != null;
                 }
             }
@@ -95,13 +79,7 @@ namespace Microsoft.CodeAnalysis.Options
             return false;
         }
 
-        public EditorConfigStorageLocation(string keyName)
-        {
-            KeyName = keyName;
-            _parseValue = _cachedParseValue;
-        }
-
-        public EditorConfigStorageLocation(string keyName, Func<string, object> parseValue)
+        public EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue)
         {
             KeyName = keyName;
 
