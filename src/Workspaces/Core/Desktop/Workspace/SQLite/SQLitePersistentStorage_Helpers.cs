@@ -16,9 +16,6 @@ namespace Microsoft.CodeAnalysis.SQLite
         private static string GetProjectIdString(int projectPathId, int projectNameId)
             => Invariant($"{projectPathId}-{projectNameId}");
 
-        private static long GetDocumentDataId(int documentId, int nameId)
-            => CombineInt32ToInt64(documentId, nameId);
-
         private static string GetDocumentIdString(int projectId, int documentPathId, int documentNameId)
             => Invariant($"{projectId}-{documentPathId}-{documentNameId}");
 

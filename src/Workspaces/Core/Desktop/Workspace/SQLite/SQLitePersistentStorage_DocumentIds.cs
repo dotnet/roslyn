@@ -14,10 +14,18 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// </summary>
         private readonly ConcurrentDictionary<DocumentId, int> _documentIdToIdMap = new ConcurrentDictionary<DocumentId, int>();
 
+        /// <summary>
+        /// Given a document, and the name of a stream to read/write, gets the integral DB ID to 
+        /// use to find the data inside the <see cref="DocumentData"/> table.
+        /// </summary>
         private bool TryGetDocumentDataId(Document document, string name, out long dataId)
         {
             dataId = 0;
 
+            // First, try to get all the IDs for our project in sync with the DB.
+            // This will only be expensive the first time we do this.  But will save
+            // us from tons of back-and-forth as any BG analyzer processes all the
+            // documents in a solution.
             var connection = CreateConnection();
             BulkPopulateProjectIds(connection, document.Project, fetchStringTable: true);
 
@@ -28,7 +36,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return false;
             }
 
-            dataId = GetDocumentDataId(documentId.Value, nameId.Value);
+            // Our data ID is just a 64bit int combining the two 32bit values of our documentId and nameId.
+            dataId = CombineInt32ToInt64(documentId.Value, nameId.Value);
             return true;
         }
 
@@ -69,7 +78,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return null;
             }
 
-            // Unique identify the document through the key:  D-projectId-documentPathId-documentNameId
+            // Unique identify the document through the key:  projectId-documentPathId-documentNameId
             return TryGetStringId(
                 connection,
                 GetDocumentIdString(projectId.Value, documentPathId.Value, documentNameId.Value));
