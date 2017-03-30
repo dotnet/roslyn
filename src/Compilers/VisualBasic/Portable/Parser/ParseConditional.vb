@@ -8,8 +8,6 @@
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureUtils
-
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
@@ -438,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             If statement IsNot Nothing Then
-                statement = statement.CheckFeatureAvailable(Feature.WarningDirectives, Options)
+                statement = statement.CheckFeatureAvailability(Feature.WarningDirectives, Options)
             End If
 
             Me._pool.Free(errorCodes)
