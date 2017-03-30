@@ -472,7 +472,7 @@ IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationSt
 
         #region Using Statements
 
-        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementDeclaration()
         {
             string source = @"
@@ -491,11 +491,9 @@ class Program : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IUsingStatement (OperationKind.UsingStatement)
-  IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-    IVariableDeclaration: Program p1 (OperationKind.VariableDeclaration)
-      Initializer: IObjectCreationExpression (Constructor: Program..ctor()) (OperationKind.ObjectCreationExpression, Type: Program)
-  IBlockStatement (0 statements) (OperationKind.BlockStatement)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
+  IVariableDeclaration: Program p1 (OperationKind.VariableDeclaration)
+    Initializer: IObjectCreationExpression (Constructor: Program..ctor()) (OperationKind.ObjectCreationExpression, Type: Program)
 ";
             VerifyOperationTreeForTest<VariableDeclarationSyntax>(source, expectedOperationTree);
         }
