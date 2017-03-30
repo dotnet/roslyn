@@ -2542,7 +2542,7 @@ class Program
 
         [Fact]
         [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
-        [WorkItem(16066, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
         public void SwitchAwaitGenericsAndOptimization()
         {
             var source =
@@ -2582,7 +2582,7 @@ default");
 
         [Fact]
         [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
-        [WorkItem(16066, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
         public void SwitchLambdaGenericsAndOptimization()
         {
             var source =
@@ -2621,7 +2621,7 @@ default");
 
         [Fact]
         [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
-        [WorkItem(16066, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
         public void SwitchIteratorGenericsAndOptimization()
         {
             var source =
