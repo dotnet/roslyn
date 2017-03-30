@@ -1,7 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Semantics
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -35,6 +33,36 @@ IIfStatement (OperationKind.IfStatement)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of SingleLineIfStatementSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
+        Public Sub IIfstatementMultiLineIf()
+            Dim source = <![CDATA[
+Module Program		
+     Sub Main(args As String())		
+         Dim count As Integer = 0		
+         Dim returnValue As Integer = 1
+        If count > 0 Then'BIND:"If count > 0 Then"
+            returnValue = count
+        End If
+    End Sub		
+ End Module		
+ 
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIfStatement (OperationKind.IfStatement)
+  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
+      Left: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32)
+      Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
+  IBlockStatement (1 statements) (OperationKind.BlockStatement)
+    IExpressionStatement (OperationKind.ExpressionStatement)
+      IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32)
+        Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32)
+        Right: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32)
+]]>.Value
+
+            VerifyOperationTreeForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree)
         End Sub
 
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
@@ -162,7 +190,6 @@ IIfStatement (OperationKind.IfStatement)
             VerifyOperationTreeForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree)
         End Sub
 
-
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementSingleLineWithOperator()
             Dim source = <![CDATA[
@@ -204,10 +231,6 @@ Module Program
         Dim count As Integer = 0
         Dim returnValue As Integer = -1
         If count > 0 Then'BIND:"If count > 0 Then"
-            returnValue = count
-        Else
-            returnValue = -1
-        End If"
             returnValue = count
         Else
             returnValue = -1
@@ -460,6 +483,7 @@ IIfStatement (OperationKind.IfStatement)
 
             VerifyOperationTreeForTest(Of SingleLineIfStatementSyntax)(source, expectedOperationTree)
         End Sub
+
         <Fact(), WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")>
         Public Sub IIfstatementWithElseMissing()
             Dim source = <![CDATA[
@@ -583,5 +607,6 @@ IIfStatement (OperationKind.IfStatement)
 
             VerifyOperationTreeForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree)
         End Sub
+
     End Class
 End Namespace

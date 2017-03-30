@@ -219,7 +219,6 @@ class P
         {
             Console.WriteLine(""Nothing is larger than m."");
         }/*</bind>*/
-
     }
 }
 ";
@@ -246,10 +245,6 @@ IIfStatement (OperationKind.IfStatement)
         {
             string source = @"
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 class P
 {
     private void M()
@@ -378,6 +373,49 @@ IIfStatement (OperationKind.IfStatement)
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementEmbeddedOutVar()
+        {
+            string source = @"
+class P
+{
+    private void M()
+    {
+        var s = ""data"";
+        /*<bind>*/if (true)
+        {
+            A(int.TryParse(s, out var i));
+        }/*</bind>*/
+     }
+    private void A(bool flag)
+    {
+       if (flag)
+        {
+            System.Console.WriteLine(""Result1"");
+        }
+    }
+    
+}
+
+";
+            string expectedOperationTree = @"
+IIfStatement (OperationKind.IfStatement)
+  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
+  IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement)
+    Local_1: System.Int32 i
+    IExpressionStatement (OperationKind.ExpressionStatement)
+      IInvocationExpression ( void P.A(System.Boolean flag)) (OperationKind.InvocationExpression, Type: System.Void)
+        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P)
+        IArgument (Matching Parameter: flag) (OperationKind.Argument)
+          IInvocationExpression (static System.Boolean System.Int32.TryParse(System.String s, out System.Int32 result)) (OperationKind.InvocationExpression, Type: System.Boolean)
+            IArgument (Matching Parameter: s) (OperationKind.Argument)
+              ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String)
+            IArgument (Matching Parameter: result) (OperationKind.Argument)
+              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32)
+";
+            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
         public void IIfstatementWithConditionPattern()
         {
             string source = @"
@@ -436,6 +474,45 @@ IIfStatement (OperationKind.IfStatement)
       IArgument (Matching Parameter: o) (OperationKind.Argument)
         IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object)
           ILiteralExpression (Text: 25) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 25)
+";
+            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithEmbeddedPattern()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object o = 25;
+        /*<bind>*/if (true)
+        {
+            A(o is int i, 1);
+        }/*</bind>*/
+    }
+
+    private static void A(bool flag, int number)
+    {
+        if (flag)
+        {
+            System.Console.WriteLine(new string('*', number));
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IIfStatement (OperationKind.IfStatement)
+  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
+  IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement)
+    Local_1: System.Int32 i
+    IExpressionStatement (OperationKind.ExpressionStatement)
+      IInvocationExpression (static void Program.A(System.Boolean flag, System.Int32 number)) (OperationKind.InvocationExpression, Type: System.Void)
+        IArgument (Matching Parameter: flag) (OperationKind.Argument)
+          IOperation:  (OperationKind.None)
+        IArgument (Matching Parameter: number) (OperationKind.Argument)
+          ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
 ";
             VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
         }
