@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RefTypeSyntax GenerateRefType()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RefType(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.RefKeyword), GenerateIdentifierName());
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RefType(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.RefKeyword), null, GenerateIdentifierName());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParenthesizedExpressionSyntax GenerateParenthesizedExpression()
@@ -1182,6 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateRefType();
             
             Assert.Equal(SyntaxKind.RefKeyword, node.RefKeyword.Kind);
+            Assert.Null(node.ReadOnlyKeyword);
             Assert.NotNull(node.Type);
             
             AttachAndCheckDiagnostics(node);
@@ -8994,7 +8995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static RefTypeSyntax GenerateRefType()
         {
-            return SyntaxFactory.RefType(SyntaxFactory.Token(SyntaxKind.RefKeyword), GenerateIdentifierName());
+            return SyntaxFactory.RefType(SyntaxFactory.Token(SyntaxKind.RefKeyword), default(SyntaxToken), GenerateIdentifierName());
         }
         
         private static ParenthesizedExpressionSyntax GenerateParenthesizedExpression()
@@ -10100,8 +10101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateRefType();
             
             Assert.Equal(SyntaxKind.RefKeyword, node.RefKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.ReadOnlyKeyword.Kind());
             Assert.NotNull(node.Type);
-            var newNode = node.WithRefKeyword(node.RefKeyword).WithType(node.Type);
+            var newNode = node.WithRefKeyword(node.RefKeyword).WithReadOnlyKeyword(node.ReadOnlyKeyword).WithType(node.Type);
             Assert.Equal(node, newNode);
         }
         
