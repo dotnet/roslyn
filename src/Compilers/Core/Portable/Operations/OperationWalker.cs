@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.FinallyHandler);
         }
 
-        public override void VisitCatch(ICatchClause operation)
+        public override void VisitCatchClause(ICatchClause operation)
         {
             Visit(operation.Filter);
             Visit(operation.Handler);

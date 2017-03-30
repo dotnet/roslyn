@@ -425,13 +425,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitTryStatement(operation);
         }
 
-        public override void VisitCatch(ICatchClause operation)
+        public override void VisitCatchClause(ICatchClause operation)
         {
             LogString(nameof(ICatchClause));
             LogString($" (Exception type: {operation.Type?.ToTestDisplayString()}, Exception local: {operation.ExceptionLocal?.ToTestDisplayString()})");
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitCatch(operation);
+            base.VisitCatchClause(operation);
         }
 
         public override void VisitUsingStatement(IUsingStatement operation)
