@@ -12,8 +12,20 @@ namespace Microsoft.CodeAnalysis.SQLite
     {
         // Batch up writes for performance.  Clients requesting data to be written will have
         // their requests added to _writeQueue.
+
+        /// <summary>
+        /// Lock protecting <see cref="_writeQueue"/> and <see cref="_writeQueueTask"/>.
+        /// </summary>
         private readonly object _writeQueueGate = new object();
+
+        /// <summary>
+        /// Queue of actions we want to perform all at once against the DB in a single transaction.
+        /// </summary>
         private readonly List<Action<SQLiteConnection>> _writeQueue = new List<Action<SQLiteConnection>>();
+
+        /// <summary>
+        /// Task kicked off to actually do the writing.
+        /// </summary>
         private Task _writeQueueTask;
 
         private void AddWriteTask(Action<SQLiteConnection> action)
@@ -79,10 +91,9 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             // Create a single connection we'll perform all our writes against.  Do all the
             // writes in a single transaction for large perf increase.
-            var connection = CreateConnection();
             try
             {
-                connection.RunInTransaction(() =>
+                CreateConnection().RunInTransaction(() =>
                 {
                     foreach (var action in tempQueue)
                     {
