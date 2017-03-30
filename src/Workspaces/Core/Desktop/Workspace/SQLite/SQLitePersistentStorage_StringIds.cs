@@ -96,9 +96,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             try
             {
-                stringInfo = connection.Table<StringInfo>()
-                    .Where(i => i.Value == value)
-                    .FirstOrDefault();
+                stringInfo = connection.Find<StringInfo>(i => i.Value == value);
             }
             catch (Exception ex)
             {
