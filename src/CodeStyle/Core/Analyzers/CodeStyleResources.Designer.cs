@@ -60,5 +60,14 @@ namespace Microsoft.CodeAnalysis {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove this value when another is added..
+        /// </summary>
+        internal static string EmptyResource {
+            get {
+                return ResourceManager.GetString("EmptyResource", resourceCulture);
+            }
+        }
     }
 }

@@ -60,5 +60,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBCodeStyleFixesResources
                 resourceCulture = value
             End Set
         End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Remove this value when another is added..
+        '''</summary>
+        Friend ReadOnly Property EmptyResource() As String
+            Get
+                Return ResourceManager.GetString("EmptyResource", resourceCulture)
+            End Get
+        End Property
     End Module
 End Namespace
