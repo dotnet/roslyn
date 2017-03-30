@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
         };
 
-        bool IEditorConfigStorageLocation.TryGetOption(object underlyingOption, IReadOnlyDictionary<string, object> allRawConventions, Type type, out object result)
+        public bool TryGetOption(object underlyingOption, IReadOnlyDictionary<string, object> allRawConventions, Type type, out object result)
         {
             if (_parseValue != null && KeyName != null)
             {
@@ -89,6 +90,9 @@ namespace Microsoft.CodeAnalysis.Options
 
         public EditorConfigStorageLocation()
         {
+            Contract.ThrowIfFalse(typeof(T) == typeof(NamingStylePreferences),
+                $"Using {nameof(EditorConfigStorageLocation)}() with arguments is only supported for {nameof(NamingStylePreferences)}");
+
             // If the user didn't pass a keyName assume we need to parse the entire dictionary
             _tryParseDictionary = _cachedTryParseDictionary;
         }
