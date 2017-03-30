@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (syntaxErrorCount > 0)
                     {
-                        DocumentAnalysisResults.Log.Write("{0}: unchanged with syntax errors ({1})", document.Name, syntaxDiagnostics.First().Location);
+                        DocumentAnalysisResults.Log.Write("{0}: unchanged with syntax errors", document.Name);
                     }
                     else
                     {
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                     // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
-                    DocumentAnalysisResults.Log.Write("{0}: syntax error ({1} total)", syntaxDiagnostics.First().Location, syntaxErrorCount);
+                    DocumentAnalysisResults.Log.Write("Syntax errors: {0} total", syntaxErrorCount);
 
                     return DocumentAnalysisResults.SyntaxErrors(ImmutableArray<RudeEditDiagnostic>.Empty);
                 }
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (diagnostics.Count > 0)
                 {
-                    DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: {1}{2}", diagnostics.Count, document.FilePath, diagnostics.First().Span);
+                    DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: '{1}'", diagnostics.Count, document.FilePath);
                     return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
                 }
 
@@ -443,7 +443,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var firstError = newCompilation.GetDiagnostics(cancellationToken).FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
                 if (firstError != null)
                 {
-                    DocumentAnalysisResults.Log.Write("Semantic errors, first: {0}", firstError.Location);
+                    var location = firstError.Location;
+                    DocumentAnalysisResults.Log.Write("Semantic errors, first: {0}", location.IsInSource ? location.SourceTree.FilePath : location.MetadataModule.Name);
 
                     return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), ImmutableArray.Create<RudeEditDiagnostic>(), hasSemanticErrors: true);
                 }
@@ -467,7 +468,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (diagnostics.Count > 0)
                 {
-                    DocumentAnalysisResults.Log.Write("{0} trivia rude edits, first: {1}{2}", diagnostics.Count, document.FilePath, diagnostics.First().Span);
+                    DocumentAnalysisResults.Log.Write("{0} trivia rude edits, first: {1}@{2}", diagnostics.Count, document.FilePath, diagnostics.First().Span.Start);
                     return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
                 }
 
@@ -495,7 +496,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (diagnostics.Count > 0)
                     {
-                        DocumentAnalysisResults.Log.Write("{0}{1}: semantic rude edit ({2} total)", document.FilePath, diagnostics.First().Span, diagnostics.Count);
+                        DocumentAnalysisResults.Log.Write("{0}@{1}: semantic rude edit ({2} total)", document.FilePath, diagnostics.First().Span.Start, diagnostics.Count);
                         return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
                     }
                 }
@@ -620,7 +621,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                      trackingService.TryGetSpan(new ActiveStatementId(documentId, i), newText, out trackedSpan);
                     if (!TryGetTextSpan(oldText.Lines, oldActiveStatements[i].Span, out var oldStatementSpan))
                     {
-                        DocumentAnalysisResults.Log.Write("Invalid active statement span: {0}", oldStatementSpan);
+                        DocumentAnalysisResults.Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
                         newExceptionRegions[i] = ImmutableArray.Create<LinePositionSpan>();
                         continue;
                     }
@@ -630,7 +631,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Guard against invalid active statement spans (in case PDB was somehow out of sync with the source).
                     if (oldMember == null)
                     {
-                        DocumentAnalysisResults.Log.Write("Invalid active statement span: {0}", oldStatementSpan);
+                        DocumentAnalysisResults.Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
                         newExceptionRegions[i] = ImmutableArray.Create<LinePositionSpan>();
                         continue;
                     }
@@ -644,7 +645,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Guard against invalid active statement spans (in case PDB was somehow out of sync with the source).
                     if (oldBody == null || newBody == null)
                     {
-                        DocumentAnalysisResults.Log.Write("Invalid active statement span: {0}", oldStatementSpan);
+                        DocumentAnalysisResults.Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
                         newExceptionRegions[i] = ImmutableArray.Create<LinePositionSpan>();
                         continue;
                     }
