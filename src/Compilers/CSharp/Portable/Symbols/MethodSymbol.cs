@@ -646,6 +646,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
+            if (RefKind != RefKind.None)
+            {
+                return false;
+            }
+
             if (Parameters.Length == 0)
             {
                 return true;
