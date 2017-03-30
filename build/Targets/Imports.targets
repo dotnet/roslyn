@@ -340,7 +340,6 @@
 
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateInternalsVisibleTo.targets" />
-  <Import Project="GenerateCompilerInternals.targets" />
 
   <ItemDefinitionGroup>
     <VSIXSourceItem>

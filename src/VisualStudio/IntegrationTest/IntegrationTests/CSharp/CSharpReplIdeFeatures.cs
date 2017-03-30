@@ -24,22 +24,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             base.Dispose();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/801")]
+        [Fact]
         public void VerifyDefaultUsingStatements()
         {
             this.SubmitText("Console.WriteLine(42);");
             this.WaitForLastReplOutput("42");
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/801")]
-        public void VerifyCodeActionsAvailableInCurrentSubmission()
-        {
-            this.InsertCode("Directory.Exists(\"foo\");");
-            this.VerifyCodeActions(
-                new string[] { "using System.IO;", "System.IO.Directory"}, 
-                "using System.IO;");
-            this.VerifyLastReplInput(@"using System.IO;
-Directory.Exists(""foo"");");            
         }
 
         [Fact]
@@ -47,44 +36,6 @@ Directory.Exists(""foo"");");
         {
             this.InsertCode("Console.WriteLine(42);");
             this.VerifyCodeActionsNotShowing();
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/3785")]
-        public void SimpleRenameOnLocalsVerifySpansAndResult()
-        {
-            this.InsertCode(@"static void Main(string[] args)
-{
-    int loc = 0;
-    loc = 5;
-    TestMethod(loc);
-}
-
-static void TestMethod(int y)
-    {
-
-}");
-
-            this.PlaceCaret("loc");
-            //      < Rename />
-            //      < VerifyRenameTags ExpectedCount="3" SpanLength="3" SpanText="loc">
-            //        <SpanStart Capacity = "3" >
-            //          < int > 60 </ int >
-            //          < int > 74 </ int >
-            //          < int > 99 </ int >
-            //        </ SpanStart >
-            //      </ VerifyRenameTags >
-            //      < SendKeys > y{ENTER}</SendKeys>
-            //      <!- -Commit On Rename is a blocking operation, however, for the integration test perspective, we are not directly speaking
-            //      with the Rename Service.We just send keys to the editor and when control returns we really don't know if Rename has finished.
-            //      The below action checks to see if Rename Tags have disappeared which signals the end of a rename session. This isn't required
-            //      for editor test app as it appears to be fast enough to beat us before we check for the renamed symbol.- ->
-            //      <WaitForRenameCompletion />
-            //      <VerifyEditorTextInRange StartPosition = "60" EndPosition= "61" Text = "y" />
-            //      < VerifyEditorTextInRange StartPosition= "72" EndPosition= "73" Text = "y" />
-            //      < VerifyEditorTextInRange StartPosition= "95" EndPosition= "96" Text = "y" />
-            //      < ClearReplText />
-            //    </ Scenario >
-            //    -->
         }
 
         [Fact]
@@ -106,26 +57,6 @@ static void TestMethod(int y)
             this.InvokeQuickInfo();
             var s = InteractiveWindow.GetQuickInfo();
             Assert.Equal("‎(field‎)‎ العربية‎ func", s);
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5013")]
-        public void MethodSignatureHelp()
-        {
-            this.InsertCode("Console.WriteLine(tr");
-            //      <InvokeSignatureHelp />
-            //      <VerifySignatureHelp>
-            //        <ExpectedSelectedSignature>
-            //          <Signature Content="void Console.WriteLine(bool value)&#13;&#10;Writes the text representation of the specified Boolean value, followed by the current line terminator, to the standard output stream.">
-            //            <CurrentParameter>
-            //              <Parameter Name="value" Documentation="The value to write." />
-            //            </CurrentParameter>
-            //            <Parameters>
-            //              <Parameter Name="value" Documentation="The value to write." />
-            //            </Parameters>
-            //          </Signature>
-            //        </ExpectedSelectedSignature>
-            //      </VerifySignatureHelp>
-            //      <DismissSignatureHelp />
         }
 
         [Fact]
@@ -227,19 +158,6 @@ static void TestMethod(int y)
             InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 0);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/801")]
-        public void VerifyCodeActionListNotEmpty()
-        {
-            // see bug 711467
-            this.InsertCode("Process");
-            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            this.VerifyCodeActions(
-                new string[] { "using System.Diagnostics;", "System.Diagnostics.Process" },
-                "using System.Diagnostics;");
-            this.VerifyLastReplInput(@"using System.Diagnostics;
-Process");
-        }
-
         [Fact]
         public void DisabledCommandsPart1()
         {
@@ -281,7 +199,6 @@ Process");
             this.InsertCode("typeof(ArrayList)");
             this.PlaceCaret("ArrayList");
             this.WaitForAsyncOperations(FeatureAttribute.Workspace);
-
             this.InvokeCodeActionList();
             this.VerifyCodeActions(
                 new string[] { "using System.Collections;", "System.Collections.ArrayList" },
@@ -291,7 +208,7 @@ Process");
 typeof(ArrayList)");
         }
 
-        [Fact(Skip = "No support of quick actions in ETA scenario")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6587, No support of quick actions in ETA scenario")]
         public void QualifyName()
         {
             this.InsertCode("typeof(ArrayList)");

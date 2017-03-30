@@ -48,17 +48,6 @@
          Microsoft.Common.CurrentVersion.targets to see how it is consumed -->
     <WindowsAppContainer>false</WindowsAppContainer>
 
-    <!-- Workaround for Live Unit Testing bug (https://github.com/dotnet/testimpact/issues/1393) 
-         When building a solution LUT follows dependency graph provided by a Roslyn Solution. 
-         Such dependency graph doesn't include edges for P2P references marked ReferenceOutputAssembly=false. 
-         CSharpCodeAnalysis and BasicCodeAnalysis reference DeployCompilerGeneratorToolsRuntime with ReferenceOutputAssembly=false.
-         
-         If we are building for Live Unit Testing we use the uninstrumented generator tools
-         (for this to work we require that the solution has been built to the original directory).
-    -->
-    <CompilerGeneratorToolsDir Condition="'$(LiveUnitTestingOriginalBaseOutputPath)' == ''">$(OutDir)\Exes\DeployCompilerGeneratorToolsRuntime\</CompilerGeneratorToolsDir>
-    <CompilerGeneratorToolsDir Condition="'$(LiveUnitTestingOriginalBaseOutputPath)' != ''">$(LiveUnitTestingOriginalBaseOutputPath)$(Configuration)\Exes\DeployCompilerGeneratorToolsRuntime\</CompilerGeneratorToolsDir>
-    
     <MSBuildAssemblyNameFragment>Core</MSBuildAssemblyNameFragment>
 
     <!-- To copy .dll.config and .exe.config files of the referenced projects to the output dir

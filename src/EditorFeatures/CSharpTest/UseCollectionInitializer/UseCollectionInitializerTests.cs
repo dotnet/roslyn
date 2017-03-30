@@ -275,7 +275,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestMissingBeforeCSharp3()
         {
 
@@ -789,7 +789,7 @@ class C
         }
 
         [WorkItem(17853, "https://github.com/dotnet/roslyn/issues/17853")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestMissingForDynamic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -806,7 +806,7 @@ class C
         }
 
         [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestMissingAcrossPreprocessorDirective()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -826,7 +826,7 @@ public class Foo
         }
 
         [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestAvailableInsidePreprocessorDirective()
         {
             await TestInRegularAndScript1Async(
@@ -858,6 +858,72 @@ public class Foo
 #endif
     }
 }", ignoreTrivia: false);
+        }
+
+        [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestObjectInitializerAssignmentAmbiguity()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+        int lastItem;
+        var list = [||]new List<int>();
+        list.Add(lastItem = 5);
+    }
+}",
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+        int lastItem;
+        var list = new List<int>
+        {
+            (lastItem = 5)
+        };
+    }
+}");
+        }
+
+        [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestObjectInitializerCompoundAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+        int lastItem = 0;
+        var list = [||]new List<int>();
+        list.Add(lastItem += 5);
+    }
+}",
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+        int lastItem = 0;
+        var list = new List<int>
+        {
+            (lastItem += 5)
+        };
+    }
+}");
         }
     }
 }
