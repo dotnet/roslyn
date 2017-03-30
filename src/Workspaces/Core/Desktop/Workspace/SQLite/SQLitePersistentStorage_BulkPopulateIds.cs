@@ -14,6 +14,14 @@ namespace Microsoft.CodeAnalysis.SQLite
         private readonly ConcurrentDictionary<ProjectId, object> _projectBulkPopulatedLock = new ConcurrentDictionary<ProjectId, object>();
         private readonly HashSet<ProjectId> _projectBulkPopulatedMap = new HashSet<ProjectId>();
 
+        /// <remarks>
+        /// We have a lot of ID information to put into the DB. IDs for all strings we intend to 
+        /// intern, as well as compound IDs for our projects and documents. Inserting these 
+        /// individually is far too slow as SQLite will lock the DB for each insert and will have
+        /// to do all the journalling work to ensure ACID semantics.  To avoid that, we attempt
+        /// to precompute all the information we'd need to put in the ID tables and perform it
+        /// all at once per project.
+        /// </remarks>
         private void BulkPopulateIds(SQLiteConnection connection, Solution solution, bool fetchStringTable)
         {
             foreach (var project in solution.Projects)
@@ -69,15 +77,20 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return false;
             }
 
-            // Now, ensure we have the project id known locally.  If this fails for some reason,
-            // we can't proceed.
+            // Now, ensure we have the project id known locally.  We cannot do this until we've 
+            // gotten all the IDs for the individual project components as the project ID is built
+            // from a compound key using the IDs for the project's FilePath and Name.
+            //
+            // If this fails for any reason, we can't proceed.
             var projectId = TryGetProjectId(connection, project);
             if (projectId == null)
             {
                 return false;
             }
 
-            // Finally, in bulk, get string-ids for all the documents in the project.
+            // Finally, in bulk, determine the final DB IDs for all our documents. We cannot do 
+            // this until we have the project-id as the document IDs are built from a compound
+            // ID including the project-id.
             return AddDocumentIds();
 
             // Local functions below.
