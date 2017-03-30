@@ -14,19 +14,17 @@ namespace Microsoft.CodeAnalysis.SQLite
         public override Task<Stream> ReadStreamAsync(
             Project project, string name, CancellationToken cancellationToken)
         {
-            if (!TryGetProjectDataId(project, name, out var dataId))
-            {
-                return SpecializedTasks.Default<Stream>();
-            }
-
             ProjectData projectData = null;
-            try
+            if (TryGetProjectDataId(project, name, out var dataId))
             {
-                projectData = CreateConnection().Find<ProjectData>(dataId);
-            }
-            catch (Exception ex)
-            {
-                StorageDatabaseLogger.LogException(ex);
+                try
+                {
+                    projectData = CreateConnection().Find<ProjectData>(dataId);
+                }
+                catch (Exception ex)
+                {
+                    StorageDatabaseLogger.LogException(ex);
+                }
             }
 
             return Task.FromResult(GetStream(projectData?.Data));
