@@ -1,72 +1,27 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\build\Targets\Analyzers.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{6762EB1D-517C-4746-80EB-D11717ACD469}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <TargetFramework>net46</TargetFramework>
+    <TestProject>true</TestProject>
     <RootNamespace>Text.Analyzers.UnitTests</RootNamespace>
     <AssemblyName>Text.Analyzers.UnitTests</AssemblyName>
-    <Nonshipping>true</Nonshipping>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <SemanticVersion>$(TextAnalyzersSemanticVersion)</SemanticVersion>
     <PreReleaseVersion>$(TextAnalyzersPreReleaseVersion)</PreReleaseVersion>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Label="Start settings">
     <StartAction>Program</StartAction>
-    <StartProgram>$(NuGetPackageRoot)\xunit.runner.console\2.1.0\tools\xunit.console.x86.exe</StartProgram>
+    <StartProgram>$(NuGetPackageRoot)\xunit.runner.console\$(XUnitVersion)\tools\xunit.console.x86.exe</StartProgram>
     <StartArguments>$(AssemblyName).dll -noshadow -wait</StartArguments>
     <StartWorkingDirectory>$(OutDir)</StartWorkingDirectory>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Dependencies\xUnit\xUnit.csproj">
-      <Project>{f21bc39a-3c97-4d8f-bfa8-9e4bd9b56413}</Project>
-      <Name>xUnit</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Test.Utilities.csproj">
-      <Project>{0A0621F2-D1DC-47FF-B643-C6646557505E}</Project>
-      <Name>Test.Utilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Core\Text.Analyzers.Core.csproj">
-      <Project>{730C2D1C-0276-4132-85EA-675CE60068BB}</Project>
-      <Name>Text.Analyzers.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CSharp\Text.CSharp.Analyzers.csproj">
-      <Project>{0EA928BE-51C1-4087-B48A-ECE9C5E0C5B0}</Project>
-      <Name>Text.CSharp.Analyzers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\Text.VisualBasic.Analyzers.vbproj">
-      <Project>{938F2420-14B8-4C7C-93BE-C9E89E08E823}</Project>
-      <Name>Text.VisualBasic.Analyzers</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <Content Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="IdentifiersShouldBeSpelledCorrectlyTests.cs" />
-    <Compile Include="IdentifiersShouldBeSpelledCorrectlyTests.Fixer.cs" />
+    <ProjectReference Include="..\..\Test\Utilities\Test.Utilities.csproj" />
+    <ProjectReference Include="..\Core\Text.Analyzers.Core.csproj" />
+    <ProjectReference Include="..\CSharp\Text.CSharp.Analyzers.csproj" />
+    <ProjectReference Include="..\VisualBasic\Text.VisualBasic.Analyzers.vbproj" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\Analyzers.Imports.targets" />

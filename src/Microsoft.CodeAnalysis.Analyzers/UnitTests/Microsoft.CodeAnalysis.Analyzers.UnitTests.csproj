@@ -1,85 +1,30 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\build\Targets\Analyzers.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{0C2925AD-CD97-46FA-A686-E2C1AD19DAD8}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <TargetFramework>net46</TargetFramework>
+    <TestProject>true</TestProject>
     <RootNamespace>Microsoft.CodeAnalysis.Analyzers.UnitTests</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Analyzers.UnitTests</AssemblyName>
-    <Nonshipping>true</Nonshipping>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <SemanticVersion>$(MicrosoftCodeAnalysisAnalyzersSemanticVersion)</SemanticVersion>
     <PreReleaseVersion>$(MicrosoftCodeAnalysisAnalyzersPreReleaseVersion)</PreReleaseVersion>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Label="Start settings">
     <StartAction>Program</StartAction>
-    <StartProgram>$(NuGetPackageRoot)\xunit.runner.console\2.1.0\tools\xunit.console.x86.exe</StartProgram>
+    <StartProgram>$(NuGetPackageRoot)\xunit.runner.console\$(XUnitVersion)\tools\xunit.console.x86.exe</StartProgram>
     <StartArguments>$(AssemblyName).dll -noshadow -wait</StartArguments>
     <StartWorkingDirectory>$(OutDir)</StartWorkingDirectory>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Dependencies\xUnit\xUnit.csproj">
-      <Project>{f21bc39a-3c97-4d8f-bfa8-9e4bd9b56413}</Project>
-      <Name>xUnit</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Test.Utilities.csproj">
-      <Project>{0a0621f2-d1dc-47ff-b643-c6646557505e}</Project>
-      <Name>Test.Utilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Analyzers.Core.csproj">
-      <Project>{d8762a0a-3832-47be-bcf6-8b1060be6b28}</Project>
-      <Name>Microsoft.CodeAnalysis.Analyzers.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.Analyzers.csproj">
-      <Project>{921b412a-5551-4853-82b4-46ad5a05a03e}</Project>
-      <Name>Microsoft.CodeAnalysis.CSharp.Analyzers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Analyzers.vbproj">
-      <Project>{b1a6a74b-e484-48fb-8745-7a30a06db631}</Project>
-      <Name>Microsoft.CodeAnalysis.VisualBasic.Analyzers</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
+    <ProjectReference Include="..\..\Test\Utilities\Test.Utilities.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Analyzers.Core.csproj" />
+    <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.Analyzers.csproj" />
+    <ProjectReference Include="..\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Analyzers.vbproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
-    <Content Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="FixAnalyzers\FixerWithFixAllAnalyzerTests.cs" />
-    <Compile Include="InternalImplementationOnlyTests.cs" />
-    <Compile Include="MetaAnalyzers\DoNotStorePerCompilationDataOntoFieldsRuleTests.cs" />
-    <Compile Include="MetaAnalyzers\InvalidReportDiagnosticRuleTests.cs" />
-    <Compile Include="MetaAnalyzers\StartActionWithOnlyEndActionRuleTests.cs" />
-    <Compile Include="MetaAnalyzers\StartActionWithNoRegisteredActionsRuleTests.cs" />
-    <Compile Include="MetaAnalyzers\InvalidSyntaxKindTypeArgumentRuleTests.cs" />
-    <Compile Include="MetaAnalyzers\UnsupportedSymbolKindArgumentRuleTests.cs" />
-    <Compile Include="MetaAnalyzers\MissingKindArgumentToRegisterActionRuleTests.cs" />
-    <Compile Include="MetaAnalyzers\UseLocalizableStringsInDescriptorTests.cs" />
-    <Compile Include="MetaAnalyzers\AddLanguageSupportToAnalyzerRuleTests.cs" />
-    <Compile Include="MetaAnalyzers\MissingDiagnosticAnalyzerAttributeRuleTests.cs" />
-    <Compile Include="UseReturnValueFromImmutableObjectMethodTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\Analyzers.Imports.targets" />

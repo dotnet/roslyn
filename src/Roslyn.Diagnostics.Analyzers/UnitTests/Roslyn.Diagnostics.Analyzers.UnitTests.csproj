@@ -1,78 +1,30 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\build\Targets\Analyzers.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{D90E7402-70E7-4A95-A292-47EA163D6309}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <TargetFramework>net46</TargetFramework>
+    <TestProject>true</TestProject>
     <RootNamespace>Roslyn.Diagnostics.Analyzers.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Diagnostics.Analyzers.UnitTests</AssemblyName>
-    <Nonshipping>true</Nonshipping>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <SemanticVersion>$(RoslynDiagnosticsAnalyzersSemanticVersion)</SemanticVersion>
     <PreReleaseVersion>$(RoslynDiagnosticsAnalyzersPreReleaseVersion)</PreReleaseVersion>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Label="Start settings">
     <StartAction>Program</StartAction>
-    <StartProgram>$(NuGetPackageRoot)\xunit.runner.console\2.1.0\tools\xunit.console.x86.exe</StartProgram>
+    <StartProgram>$(NuGetPackageRoot)\xunit.runner.console\$(XUnitVersion)\tools\xunit.console.x86.exe</StartProgram>
     <StartArguments>$(AssemblyName).dll -noshadow -wait</StartArguments>
     <StartWorkingDirectory>$(OutDir)</StartWorkingDirectory>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Dependencies\xUnit\xUnit.csproj">
-      <Project>{f21bc39a-3c97-4d8f-bfa8-9e4bd9b56413}</Project>
-      <Name>xUnit</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Test.Utilities.csproj">
-      <Project>{0A0621F2-D1DC-47FF-B643-C6646557505E}</Project>
-      <Name>Test.Utilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.Core.csproj">
-      <Project>{B475C173-A39D-4A75-93FF-69C3D2742CAD}</Project>
-      <Name>Roslyn.Diagnostics.Analyzers.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CSharp\Roslyn.Diagnostics.CSharp.Analyzers.csproj">
-      <Project>{697E2991-39A8-46C2-AA9C-FE576FBBCD90}</Project>
-      <Name>Roslyn.Diagnostics.CSharp.Analyzers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\Roslyn.Diagnostics.VisualBasic.Analyzers.vbproj">
-      <Project>{70BBA457-2CC1-4929-8FEE-359EBB7C398A}</Project>
-      <Name>Roslyn.Diagnostics.VisualBasic.Analyzers</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
+    <ProjectReference Include="..\..\Test\Utilities\Test.Utilities.csproj" />
+    <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.Core.csproj" />
+    <ProjectReference Include="..\CSharp\Roslyn.Diagnostics.CSharp.Analyzers.csproj" />
+    <ProjectReference Include="..\VisualBasic\Roslyn.Diagnostics.VisualBasic.Analyzers.vbproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
-    <Content Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="DeclarePublicAPIAnalyzerTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTests.cs" />
-    <Compile Include="DoNotUseGenericCodeActionCreateToCreateCodeActionTests.cs" />
-    <Compile Include="SpecializedEnumerableCreationAnalyzerTests.cs" />
-    <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\Analyzers.Imports.targets" />

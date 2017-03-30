@@ -1,29 +1,17 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\build\Targets\Analyzers.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
-    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D8762A0A-3832-47BE-BCF6-8B1060BE6B28}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <PackageTargetFallback>portable-net45+win8+wp8+wpa81</PackageTargetFallback>
     <AnalyzerProject>true</AnalyzerProject>
     <RootNamespace>Microsoft.CodeAnalysis.Analyzers</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Analyzers</AssemblyName>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <RestorePackages>true</RestorePackages>
+    <PackageId>Microsoft.CodeAnalysis.Analyzers.Core</PackageId>
     <SemanticVersion>$(MicrosoftCodeAnalysisAnalyzersSemanticVersion)</SemanticVersion>
     <PreReleaseVersion>$(MicrosoftCodeAnalysisAnalyzersPreReleaseVersion)</PreReleaseVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Analyzers" />
@@ -31,46 +19,21 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Analyzers.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
-    <None Include="Microsoft.CodeAnalysis.Analyzers.nuspec" />
-    <None Include="install.ps1" />
-    <Content Include="project.json" />
-    <None Include="ThirdPartyNotices.rtf" />
-    <None Include="uninstall.ps1" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="CodeAnalysisDiagnosticsResources.resx">
+    <EmbeddedResource Update="CodeAnalysisDiagnosticsResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CodeAnalysisDiagnosticsResources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeAnalysisDiagnosticsResources.Designer.cs">
+    <Compile Update="CodeAnalysisDiagnosticsResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>CodeAnalysisDiagnosticsResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="AnalyzerDiagnosticCategory.cs" />
-    <Compile Include="DiagnosticIds.cs" />
-    <Compile Include="FixAnalyzers\FixerWithFixAllAnalyzer.cs" />
-    <Compile Include="InternalImplementationOnlyAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\DiagnosticAnalyzerFieldsAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\DiagnosticAnalyzerAttributeAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerSymbolAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\DiagnosticDescriptorCreationAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\Fixers\ApplyDiagnosticAnalyzerAttributeFix.cs" />
-    <Compile Include="MetaAnalyzers\RegisterActionAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\ReportDiagnosticAnalyzer.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Analyzer.Utilities\Analyzer.Utilities.csproj">
-      <Project>{f8502e24-5eb1-4cdc-8887-1a0cc8008d96}</Project>
-      <Name>Analyzer.Utilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Analyzer.Utilities\Analyzer.Utilities.csproj" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\Analyzers.Imports.targets" />
