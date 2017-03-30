@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             // Note that TryAdd won't overwrite an existing string->id pair.  That's what
             // we want.  we don't want the strings we've allocated from the DB to be what
             // we hold onto.  We'd rather hold onto the strings we get from sources like
-            // the workspaces, to prevent excessice duplication.
+            // the workspaces, to prevent excessive duplication.
             return _stringToIdMap.TryAdd(stringInfo.Value, stringInfo.Id);
         }
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             var id = TryGetStringIdFromDatabase(connection, value);
             if (id != null)
             {
-                _stringToIdMap.TryAdd(value, id.Value);
+                _stringToIdMap[value] = id.Value;
             }
 
             return id;
