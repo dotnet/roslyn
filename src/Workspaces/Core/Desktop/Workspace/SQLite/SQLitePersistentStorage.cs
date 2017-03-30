@@ -1,18 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Storage;
-using Roslyn.Utilities;
 using SQLite;
-using static System.FormattableString;
 
 namespace Microsoft.CodeAnalysis.SQLite
 {
@@ -41,12 +33,13 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         public override void Close()
         {
+            // Notify any outstanding async work that it should stop.
             _shutdownTokenSource.Cancel();
         }
 
         public override void Initialize(Solution solution)
         {
-            // Create a sync connection to the DB and ensure it has tables for the types we care about. 
+            // Create a connection to the DB and ensure it has tables for the types we care about. 
             var connection = CreateConnection();
             connection.CreateTable<StringInfo>();
             connection.CreateTable<SolutionData>();
