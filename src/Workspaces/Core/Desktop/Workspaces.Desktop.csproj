@@ -108,7 +108,6 @@
     <Compile Include="Workspace\MSBuild\MSBuildProjectLoader.cs" />
     <Compile Include="Workspace\SolutionSize\SolutionSizeTracker.cs" />
     <Compile Include="Workspace\Esent\EsentPersistentStorageService.cs" />
-    <Compile Include="Workspace\SQLite\SQLite.cs" />
     <Compile Include="Workspace\SQLite\SQLitePersistentStorage.cs" />
     <Compile Include="Workspace\SQLite\SQLitePersistentStorageService.cs" />
     <Compile Include="Workspace\SQLite\SQLitePersistentStorage_ProjectIds.cs" />
