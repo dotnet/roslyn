@@ -592,7 +592,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             foreach (var vsActiveStatement in vsActiveStatements)
             {
                 log.DebugWrite("+AS[{0}]: {1} {2} {3} {4} '{5}'",
-                    vsActiveStatement.id,
+                    unchecked((int)vsActiveStatement.id),
                     vsActiveStatement.tsPosition.iStartLine,
                     vsActiveStatement.tsPosition.iStartIndex,
                     vsActiveStatement.tsPosition.iEndLine,
@@ -746,7 +746,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     // We might not have an active statement available if PDB got out of sync with the source.
                     if (session == null || ids == null || !ids.TryGetValue(vsId, out var id))
                     {
-                        log.Write("GetCurrentActiveStatementPosition failed for AS {0}.", vsId);
+                        log.Write("GetCurrentActiveStatementPosition failed for AS {0}.", unchecked((int)vsId));
                         return VSConstants.E_FAIL;
                     }
 
@@ -767,7 +767,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         if (activeSpans.IsDefault)
                         {
                             // The document has syntax errors and the tracking span is gone.
-                            log.Write("Position not available for AS {0} due to syntax errors", vsId);
+                            log.Write("Position not available for AS {0} due to syntax errors", unchecked((int)vsId));
                             return VSConstants.E_FAIL;
                         }
 
@@ -775,8 +775,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     }
 
                     ptsNewPosition[0] = lineSpan.ToVsTextSpan();
-                    log.DebugWrite("AS position: {0} {1} {2}", vsId, lineSpan,
-                        session.BaseActiveStatements[id.DocumentId][id.Ordinal].Flags);
+                    log.DebugWrite("AS position: {0} ({1},{2})-({3},{4}) {5}", 
+                        unchecked((int)vsId), 
+                        lineSpan.Start.Line, lineSpan.Start.Character, lineSpan.End.Line, lineSpan.End.Character,
+                        (int)session.BaseActiveStatements[id.DocumentId][id.Ordinal].Flags);
 
                     return VSConstants.S_OK;
                 }
@@ -827,7 +829,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                             // been modified.
                             // TODO (https://github.com/dotnet/roslyn/issues/1204): this check should be unnecessary.
                             _lastEditSessionSummary = ProjectAnalysisSummary.NoChanges;
-                            log.Write($"Project '{_vsProject.DisplayName}' has not yet been loaded into the solution");
+                            log.Write("Project '{0}' has not yet been loaded into the solution", _vsProject.DisplayName);
                         }
                         else
                         {
@@ -864,7 +866,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     log.Write("EnC state of '{0}' queried: {1}{2}",
                         _vsProject.DisplayName,
-                        pENCBuildState[0],
+                        EncStateToString(pENCBuildState[0]),
                         _encService.EditSession != null ? "" : " (no session)");
 
                     return VSConstants.S_OK;
@@ -873,6 +875,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 return VSConstants.E_FAIL;
+            }
+        }
+
+        private static string EncStateToString(ENC_BUILD_STATE state)
+        {
+            switch (state)
+            {
+                case ENC_BUILD_STATE.ENC_NOT_MODIFIED: return "ENC_NOT_MODIFIED";
+                case ENC_BUILD_STATE.ENC_NONCONTINUABLE_ERRORS: return "ENC_NONCONTINUABLE_ERRORS";
+                case ENC_BUILD_STATE.ENC_COMPILE_ERRORS: return "ENC_COMPILE_ERRORS";
+                case ENC_BUILD_STATE.ENC_APPLY_READY: return "ENC_APPLY_READY";
+                default: return state.ToString();
             }
         }
 
@@ -1033,9 +1047,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     log.DebugWrite("Gen {0}: MVID={1}, BaseId={2}, EncId={3}",
                         moduleDef.Generation,
-                        reader.GetGuid(moduleDef.Mvid),
-                        reader.GetGuid(moduleDef.BaseGenerationId),
-                        reader.GetGuid(moduleDef.GenerationId));
+                        reader.GetGuid(moduleDef.Mvid).ToString(),
+                        reader.GetGuid(moduleDef.BaseGenerationId).ToString(),
+                        reader.GetGuid(moduleDef.GenerationId).ToString());
                 }
 #endif
 

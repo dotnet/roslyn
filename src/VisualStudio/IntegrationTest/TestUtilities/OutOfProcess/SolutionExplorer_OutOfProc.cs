@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
@@ -41,6 +40,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void AddProjectReference(string fromProjectName, string toProjectName)
             => _inProc.AddProjectReference(fromProjectName, toProjectName);
+
+        public void AddReference(string projectName, string fullyQualifiedAssemblyName)
+            => _inProc.AddReference(projectName, fullyQualifiedAssemblyName);
 
         public void RemoveProjectReference(string projectName, string projectReferenceName)
             => _inProc.RemoveProjectReference(projectName, projectReferenceName);
@@ -98,6 +100,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public string[] GetAssemblyReferences(string projectName)
             => _inProc.GetAssemblyReferences(projectName);
+
+        public void SelectItem(string itemName)
+            => _inProc.SelectItem(itemName);
+
+        public void ClearBuildOutputWindowPane()
+            => _inProc.ClearBuildOutputWindowPane();
+
+        public void WaitForBuildToFinish()
+            => _inProc.WaitForBuildToFinish();
 
         public void EditProjectFile(string projectName)
             => _inProc.EditProjectFile(projectName);

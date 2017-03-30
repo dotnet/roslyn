@@ -42,14 +42,14 @@ End Class");
             this.VerifyCompletionItemExists("Settings");
             this.VerifyCompletionItemExists("User");
             this.VerifyCompletionItemExists("WebServices");
-            this.VerifyCompletionItemDoesNotExist("Equals");
-            this.VerifyCompletionItemDoesNotExist("MyApplication");
+            this.VerifyCompletionItemDoNotExist("Equals");
+            this.VerifyCompletionItemDoNotExist("MyApplication");
 
             this.SendKeys("Forms.");
             this.VerifyCompletionItemExists("Form1");
-            this.VerifyCompletionItemDoesNotExist("Equals");
-            this.VerifyCompletionItemDoesNotExist("GetHashCode");
-            this.VerifyCompletionItemDoesNotExist("ToString");
+            this.VerifyCompletionItemDoNotExist("Equals");
+            this.VerifyCompletionItemDoNotExist("GetHashCode");
+            this.VerifyCompletionItemDoNotExist("ToString");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
