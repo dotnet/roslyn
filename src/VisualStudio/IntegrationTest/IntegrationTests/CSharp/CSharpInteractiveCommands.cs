@@ -98,8 +98,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void CutDeletePasteSelectAll()
         {
-            this.ClearReplText();
-            this.SendKeys("Text");
+            ClearInteractiveWindow();
+            this.InsertCode("Text");
             this.ExecuteCommand(WellKnownCommandNames.Edit_LineStart);
             this.ExecuteCommand(WellKnownCommandNames.Edit_LineEnd);
             this.ExecuteCommand(WellKnownCommandNames.Edit_LineStartExtend);
