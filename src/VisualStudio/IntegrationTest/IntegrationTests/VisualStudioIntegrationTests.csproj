@@ -29,6 +29,7 @@
     <Compile Include="CSharp\CSharpErrorListNetCore.cs" />
     <Compile Include="CSharp\CSharpFindReferences.cs" />
     <Compile Include="CSharp\CSharpGenerateTypeDialog.cs" />
+    <Compile Include="CSharp\CSharpGoToDefinition.cs" />
     <Compile Include="CSharp\CSharpInteractiveAsyncOutput.cs" />
     <Compile Include="CSharp\CSharpAutomaticBraceCompletion.cs" />
     <Compile Include="CSharp\CSharpBuild.cs" />
@@ -86,6 +87,7 @@
     <Compile Include="VisualBasic\BasicWinForms.cs" />
     <Compile Include="VisualBasic\BasicQuickInfo.cs" />
     <Compile Include="VisualBasic\BasicNavigateTo.cs" />
+    <Compile Include="VisualBasic\BasicGoToDefinition.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
