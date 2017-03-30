@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         private ExpressionStatement(IOperation expression, SyntaxNode syntax) :
             this(expression, expression.IsInvalid, syntax, type: null, constantValue: default(Optional<object>))
         {
-            Expression = expression;
         }
 
         private static bool IsInvalidOperation(IOperation target, IOperation value)
