@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             try
             {
                 // Note: the lambda is actually an expression tree that gets compiled
-                // to the right query and is evaluatedon inside the DB.
+                // to the right query and is evaluated inside the DB.
                 stringInfo = connection.Find<StringInfo>(i => i.Value == value);
             }
             catch (Exception ex)
