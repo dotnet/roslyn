@@ -85,29 +85,37 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var originalObjectCreation = originalObjectCreationNodes.Pop();
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
-                var analyzer = new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>(
-                    semanticModel, syntaxFacts, objectCreation, cancellationToken);
-                var matches = analyzer.Analyze();
-                if (matches == null || matches.Value.Length == 0)
+                var analyzer = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Allocate();
+                analyzer.Initialize(semanticModel, syntaxFacts, objectCreation, cancellationToken);
+
+                try
                 {
-                    continue;
+                    var matches = analyzer.Analyze();
+                    if (matches == null || matches.Value.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
+                    var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
+                        .WithAdditionalAnnotations(Formatter.Annotation);
+
+                    var subEditor = new SyntaxEditor(currentRoot, workspace);
+
+                    subEditor.ReplaceNode(statement, newStatement);
+                    foreach (var match in matches)
+                    {
+                        subEditor.RemoveNode(match);
+                    }
+
+                    document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
+                    semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 }
-
-                var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
-                var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
-                    .WithAdditionalAnnotations(Formatter.Annotation);
-
-                var subEditor = new SyntaxEditor(currentRoot, workspace);
-
-                subEditor.ReplaceNode(statement, newStatement);
-                foreach (var match in matches)
+                finally
                 {
-                    subEditor.RemoveNode(match);
+                    analyzer.Free();
                 }
-
-                document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
-                semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
             editor.ReplaceNode(originalRoot, currentRoot);

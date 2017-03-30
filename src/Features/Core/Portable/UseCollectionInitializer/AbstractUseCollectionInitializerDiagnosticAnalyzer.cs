@@ -91,31 +91,38 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return;
             }
 
-            var analyzer = new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>(
-                semanticModel, GetSyntaxFactsService(), objectCreationExpression, cancellationToken);
-            var matches = analyzer.Analyze();
-            if (matches == null || matches.Value.Length == 0)
+            var analyzer = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Allocate();
+            analyzer.Initialize(semanticModel, GetSyntaxFactsService(), objectCreationExpression, cancellationToken);
+            try
             {
-                return;
-            }
+                var matches = analyzer.Analyze();
+                if (matches == null || matches.Value.Length == 0)
+                {
+                    return;
+                }
 
-            var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
-            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
-            var syntaxFacts = GetSyntaxFactsService();
-            if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
+                var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
+                var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
+                var syntaxFacts = GetSyntaxFactsService();
+                if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
+                {
+                    return;
+                }
+
+                var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
+
+                var severity = option.Notification.Value;
+                context.ReportDiagnostic(Diagnostic.Create(
+                    CreateDescriptorWithSeverity(severity),
+                    objectCreationExpression.GetLocation(),
+                    additionalLocations: locations));
+
+                FadeOutCode(context, optionSet, matches.Value, locations);
+            }
+            finally
             {
-                return;
+                analyzer.Free();
             }
-
-            var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
-
-            var severity = option.Notification.Value;
-            context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptorWithSeverity(severity),
-                objectCreationExpression.GetLocation(),
-                additionalLocations: locations));
-
-            FadeOutCode(context, optionSet, matches.Value, locations);
         }
 
         private void FadeOutCode(
