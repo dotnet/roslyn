@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureUtils
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -467,9 +468,9 @@ DoneWithErrorReporting:
                        implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing Then
 
                     errorReported = errorReported Or
-                                    Not InternalSyntax.Parser.CheckFeatureAvailability(diagBag, implementedMemberSyntax.GetLocation(),
-                                        DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
-                                        InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite)
+                                    Not InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite.IsAvailable(DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options,
+                                      diagBag,
+                                      implementedMemberSyntax.GetLocation())
                 End If
             End If
 
