@@ -40,6 +40,7 @@ try
         "dev15.0.x" { } 
         "dev15.1.x" { } 
         "master" { } 
+        "features/readonly-ref" { }
         default
         {
             if (-not $test)
