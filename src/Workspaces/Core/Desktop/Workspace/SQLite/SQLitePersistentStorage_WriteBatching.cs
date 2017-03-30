@@ -93,7 +93,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             // writes in a single transaction for large perf increase.
             try
             {
-                CreateConnection().RunInTransaction(() =>
+                var connection = CreateConnection();
+                connection.RunInTransaction(() =>
                 {
                     foreach (var action in tempQueue)
                     {
