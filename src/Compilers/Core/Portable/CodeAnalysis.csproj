@@ -31,6 +31,7 @@
     </Content>
     <Compile Include="CommitHashAttribute.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerExecutionContext.cs" />
+    <Compile Include="Generated\Operations.xml.Generated.cs" />
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="InternalUtilities\GeneratedCodeUtilities.cs" />
     <Compile Include="InternalUtilities\NoThrowStreamDisposer.cs" />
@@ -130,7 +131,6 @@
     <Compile Include="Operations\IWhileUntilLoopStatement.cs" />
     <Compile Include="Operations\IWithStatement.cs" />
     <Compile Include="Operations\LoopKind.cs" />
-    <Compile Include="Operations\Operations.xml.Generated.cs" />
     <Compile Include="Operations\SimpleBinaryOperationKind.cs" />
     <Compile Include="Operations\SimpleUnaryOperationKind.cs" />
     <Compile Include="Operations\SyntheticLocalKind.cs" />

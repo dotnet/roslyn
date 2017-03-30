@@ -7,10 +7,6 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Root type for representing the abstract semantics of C# and VB statements and expressions.
     /// </summary>
-    /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
-    /// </remarks>
     internal abstract class Operation : IOperation
     {
         public Operation(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
