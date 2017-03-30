@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Symbols;
+using static Microsoft.CodeAnalysis.CSharp.Binder;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -1470,9 +1471,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (candidate.IsAsync && LanguageVersion < LanguageVersion.CSharp7_1)
+                    if (candidate.IsAsync)
                     {
-                        diagnostics.Add(ErrorCode.ERR_MainCantBeAsync, candidate.Locations.First(), candidate);
+                        CheckFeatureAvailability(candidate.DeclaringSyntaxReferences.Single().GetSyntax(), MessageID.IDS_FeatureAsyncMain, diagnostics);
                     }
 
                     viableEntryPoints.Add(candidate);

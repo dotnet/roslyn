@@ -1259,7 +1259,13 @@ class A
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
-            compilation.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 23));
+            compilation.VerifyDiagnostics(
+                // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+                //     async static Task Main(string[] args)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static Task Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => { });
+    }").WithArguments("async main", "7.1").WithLocation(6, 5));
         }
 
         [Fact]
@@ -1325,10 +1331,12 @@ class A
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
-                // (6,23): error CS4009: 'A.Main()': an entry point cannot be marked with the 'async' modifier
+                // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async static void Main()
-                Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 23)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static void Main()
+    {
+        await Task.Factory.StartNew(() => { });
+    }").WithArguments("async main", "7.1").WithLocation(6, 5));
         }
 
         [Fact]
@@ -1375,10 +1383,14 @@ class A
             compilation.VerifyDiagnostics(
                 // (6,22): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async static int Main()
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(6, 22),
-                // (6,22): error CS4009: 'A.Main()': an entry point cannot be marked with the 'async' modifier
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main"),
+                // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async static int Main()
-                Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static int Main()
+    {
+        return await Task.Factory.StartNew(() => 5);
+    }").WithArguments("async main", "7.1").WithLocation(6, 5)
+);
         }
 
         [Fact]
@@ -1420,9 +1432,13 @@ class A
 }";
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
                 compilation.VerifyDiagnostics(
-                    // (6,28): error CS4009: 'A.Main(string[])': an entry point cannot be marked with the 'async' modifier
-                    //     async static Task<int> Main(string[] args)
-                    Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 28));
+// (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+                //     async static Task<int> Main(string[] args)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static Task<int> Main(string[] args)
+    {
+        return await Task.Factory.StartNew(() => 5);
+    }").WithArguments("async main", "7.1").WithLocation(6, 5)
+);
         }
 
         [Fact]
@@ -1464,9 +1480,13 @@ class A
 }";
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
                 compilation.VerifyDiagnostics(
-                    // (6,28): error CS4009: 'A.Main()': an entry point cannot be marked with the 'async' modifier
+                    // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                     //     async static Task<int> Main()
-                    Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 28));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static Task<int> Main()
+    {
+        return await Task.Factory.StartNew(() => 5);
+    }").WithArguments("async main", "7.1").WithLocation(6, 5)
+                    );
         }
 
         [Fact]
@@ -3747,8 +3767,8 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
-                // (4,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async public static void Main()
+                // (5,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async public static Task Main()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main"));
         }
 
@@ -3766,10 +3786,12 @@ class Test
             CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
                 // (5,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async public static Task Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(5, 30),
-                // (5,30): error CS4009: 'Test.Main()': an entry point cannot be marked with the 'async' modifier
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main"),
+                // (5,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async public static Task Main()
-                Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("Test.Main()").WithLocation(5, 30));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async public static Task Main()
+    {
+    }").WithArguments("async main", "7.1").WithLocation(5, 5));
         }
 
         [Fact, WorkItem(547088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547088")]
