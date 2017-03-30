@@ -8,6 +8,9 @@ using SQLite;
 
 namespace Microsoft.CodeAnalysis.SQLite
 {
+    /// <summary>
+    /// Implementatoin of an <see cref="IPersistentStorage"/> backed by SQLite.
+    /// </summary>
     internal partial class SQLitePersistentStorage : AbstractPersistentStorage
     {
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();

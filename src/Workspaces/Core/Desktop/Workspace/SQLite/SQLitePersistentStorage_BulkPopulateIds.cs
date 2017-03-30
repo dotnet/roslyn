@@ -78,12 +78,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             // Finally, in bulk, get string-ids for all the documents in the project.
-            if (!AddDocumentIds())
-            {
-                return false;
-            }
+            return AddDocumentIds();
 
-            return true;
+            // Local functions below.
 
             // Use local functions so that other members of this class don't accidently
             // use these.  There are invariants in the context of PopulateProjectIds that
