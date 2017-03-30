@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
@@ -29,6 +30,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         private SyntaxNodeOrToken _valuePattern;
         private readonly SemanticModel _semanticModel;
         private readonly CancellationToken _cancellationToken;
+
+        private ISymbol _initializedSymbol;
 
         public ObjectCreationExpressionAnalyzer(
             SemanticModel semanticModel,
@@ -130,7 +133,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 // 
                 // In the second case we'd change semantics because we'd access the old value 
                 // before the new value got written.
-                if (ExpressionContainsValuePattern(rightExpression))
+                if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(rightExpression))
                 {
                     break;
                 }
@@ -198,7 +201,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             return false;
         }
 
-        private bool ExpressionContainsValuePattern(TExpressionSyntax expression)
+        private bool ExpressionContainsValuePatternOrReferencesInitializedSymbol(TExpressionSyntax expression)
         {
             foreach (var subExpression in expression.DescendantNodesAndSelf().OfType<TExpressionSyntax>())
             {
@@ -208,6 +211,13 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     {
                         return true;
                     }
+                }
+
+                if (_initializedSymbol != null &&
+                    _initializedSymbol.Equals(_semanticModel.GetSymbolInfo(
+                        subExpression, _cancellationToken).GetAnySymbol()))
+                {
+                    return true;
                 }
             }
 
@@ -252,6 +262,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 return false;
             }
 
+            _initializedSymbol = _semanticModel.GetSymbolInfo(left, _cancellationToken).GetAnySymbol();
             _valuePattern = left;
             return true;
         }
@@ -269,8 +280,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 return false;
             }
 
-            var symbol = _semanticModel.GetDeclaredSymbol(containingDeclarator, _cancellationToken);
-            if (symbol is ILocalSymbol local &&
+            _initializedSymbol = _semanticModel.GetDeclaredSymbol(containingDeclarator, _cancellationToken);
+            if (_initializedSymbol is ILocalSymbol local &&
                 local.Type is IDynamicTypeSymbol)
             {
                 // Not supported if we're creating a dynamic local.  The object we're instantiating

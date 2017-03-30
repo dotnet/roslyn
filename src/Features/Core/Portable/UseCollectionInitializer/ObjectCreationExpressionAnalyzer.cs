@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private TStatementSyntax _containingStatement;
         private SyntaxNodeOrToken _valuePattern;
 
+        private ISymbol _initializedSymbol;
+
         public ObjectCreationExpressionAnalyzer(
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             // If we're initializing a variable, then we can't reference that variable on the right 
             // side of the initialization.  Rewriting this into a collection initializer would lead
             // to a definite-assignment error.
-            if (ExpressionContainsValuePattern(right))
+            if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(right))
             {
                 return false;
             }
@@ -167,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             return true;
         }
 
-        private bool ExpressionContainsValuePattern(SyntaxNode expression)
+        private bool ExpressionContainsValuePatternOrReferencesInitializedSymbol(SyntaxNode expression)
         {
             foreach (var subExpression in expression.DescendantNodesAndSelf().OfType<TExpressionSyntax>())
             {
@@ -177,6 +179,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     {
                         return true;
                     }
+                }
+
+                if (_initializedSymbol != null &&
+                    _initializedSymbol.Equals(
+                        _semanticModel.GetSymbolInfo(subExpression, _cancellationToken).GetAnySymbol()))
+                {
+                    return true;
                 }
             }
 
@@ -203,6 +212,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             foreach (var argument in arguments)
             {
                 if (!_syntaxFacts.IsSimpleArgument(argument))
+                {
+                    return false;
+                }
+
+                var argumentExpression = _syntaxFacts.GetExpressionOfArgument(argument);
+                if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(argumentExpression))
                 {
                     return false;
                 }
@@ -270,6 +285,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             _valuePattern = left;
+            _initializedSymbol = _semanticModel.GetSymbolInfo(left, _cancellationToken).GetAnySymbol();
             return true;
         }
 
@@ -286,8 +302,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
-            var symbol = _semanticModel.GetDeclaredSymbol(containingDeclarator, _cancellationToken);
-            if (symbol is ILocalSymbol local &&
+            _initializedSymbol = _semanticModel.GetDeclaredSymbol(containingDeclarator, _cancellationToken);
+            if (_initializedSymbol is ILocalSymbol local &&
                 local.Type is IDynamicTypeSymbol)
             {
                 // Not supported if we're creating a dynamic local.  The object we're instantiating
