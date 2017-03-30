@@ -1473,6 +1473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (candidate.IsAsync)
                     {
+                        // PROTOTYPE: Get the diagnostic to point to a smaller syntax piece.
                         CheckFeatureAvailability(candidate.DeclaringSyntaxReferences.Single().GetSyntax(), MessageID.IDS_FeatureAsyncMain, diagnostics);
                     }
 

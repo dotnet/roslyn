@@ -1246,6 +1246,28 @@ class A
         }
 
         [Fact]
+        public void MainCantBeAsyncWithRefTask()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static ref Task Main(string[] args)
+    {
+        throw new System.Exception();
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            compilation.VerifyDiagnostics(
+                // (6,21): warning CS0028: 'A.Main(string[])' has the wrong signature to be an entry point
+                //     static ref Task Main(string[] args)
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(string[])").WithLocation(6, 21),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
+
+        [Fact]
         public void MainCantBeAsyncWithArgs_CSharp7()
         {
             var source = @"
