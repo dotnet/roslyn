@@ -63,7 +63,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Editor
 
         public static AutomationElement GetDialog(this AbstractIntegrationTest test, string dialogAutomationId)
         {
-            var dialog = DialogHelpers.FindDialog(test.VisualStudio.Instance.Shell.GetHWnd(), dialogAutomationId, isOpen: true);
+            var dialog = DialogHelpers.FindDialogByAutomationId(test.VisualStudio.Instance.Shell.GetHWnd(), dialogAutomationId, isOpen: true);
             return dialog;
         }
     }
