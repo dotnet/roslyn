@@ -4,7 +4,10 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -21,43 +24,45 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void SimpleGoToImplementation()
         {
-            AddFile("FileImplementation.cs");
-            OpenFile(ProjectName, "FileImplementation.cs");
+            var project = new ProjectUtils.Project(ProjectName);
+            this.AddFile("FileImplementation.cs", project);
+            this.OpenFile("FileImplementation.cs", project);
             Editor.SetText(
 @"class Implementation : IFoo
 {
 }");
-            AddFile("FileInterface.cs");
-            OpenFile(ProjectName, "FileInterface.cs");
+            this.AddFile("FileInterface.cs", project);
+            this.OpenFile("FileInterface.cs", project);
             Editor.SetText(
 @"interface IFoo 
 {
 }");
-            PlaceCaret("interface IFoo");
+            this.PlaceCaret("interface IFoo");
             Editor.GoToImplementation();
-            VerifyTextContains(@"class Implementation$$", assertCaretPosition: true);
+            this.VerifyTextContains(@"class Implementation$$", assertCaretPosition: true);
             Assert.False(VisualStudio.Instance.Shell.IsActiveTabProvisional());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationOpensProvisionalTabIfDocumentNotOpen()
         {
-            AddFile("FileImplementation.cs");
-            OpenFile(ProjectName, "FileImplementation.cs");
+            var project = new ProjectUtils.Project(ProjectName);
+            this.AddFile("FileImplementation.cs", project);
+            this.OpenFile("FileImplementation.cs", project);
             Editor.SetText(
 @"class Implementation : IBar
 {
 }");
-            CloseFile(ProjectName, "FileImplementation.cs");
-            AddFile("FileInterface.cs");
-            OpenFile(ProjectName, "FileInterface.cs");
+            this.CloseFile("FileImplementation.cs", project);
+            this.AddFile("FileInterface.cs", project);
+            this.OpenFile("FileInterface.cs", project);
             Editor.SetText(
 @"interface IBar
 {
 }");
-            PlaceCaret("interface IBar");
+            this.PlaceCaret("interface IBar");
             Editor.GoToImplementation();
-            VerifyTextContains(@"class Implementation$$", assertCaretPosition: true);
+            this.VerifyTextContains(@"class Implementation$$", assertCaretPosition: true);
             Assert.True(VisualStudio.Instance.Shell.IsActiveTabProvisional());
         }
 
@@ -66,8 +71,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationFromMetadataAsSource()
         {
-            AddFile("FileImplementation.cs");
-            OpenFile(ProjectName, "FileImplementation.cs");
+            var project = new ProjectUtils.Project(ProjectName);
+            this.AddFile("FileImplementation.cs", project);
+            this.OpenFile("FileImplementation.cs", project);
             Editor.SetText(
 @"using System;
 
@@ -78,10 +84,10 @@ class Implementation : IDisposable
         IDisposable d;
     }
 }");
-            PlaceCaret("IDisposable d", charsOffset: -1);
+            this.PlaceCaret("IDisposable d", charsOffset: -1);
             Editor.GoToDefinition();
             Editor.GoToImplementation();
-            VerifyTextContains(@"class Implementation$$ : IDisposable", assertCaretPosition: true);
+            this.VerifyTextContains(@"class Implementation$$ : IDisposable", assertCaretPosition: true);
         }
     }
 }
