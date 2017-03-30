@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected abstract void AddMatches(ArrayBuilder<TMatch> matches);
 
-        public ImmutableArray<TMatch>? Analyze()
+        protected ImmutableArray<TMatch>? AnalyzeWorker()
         {
             if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
             {

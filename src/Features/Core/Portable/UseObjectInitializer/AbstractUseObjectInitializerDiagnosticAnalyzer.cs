@@ -70,39 +70,30 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
 
             var syntaxFacts = GetSyntaxFactsService();
-            var analyzer = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Allocate();
-            analyzer.Initialize(context.SemanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
+            var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                context.SemanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
 
-            try
+            if (matches == null || matches.Value.Length == 0)
             {
-                var result = analyzer.Analyze();
-
-                if (result == null || result.Value.Length == 0)
-                {
-                    return;
-                }
-
-                var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
-                var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(result.Value.Select(m => m.Statement));
-                if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
-                {
-                    return;
-                }
-
-                var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
-
-                var severity = option.Notification.Value;
-                context.ReportDiagnostic(Diagnostic.Create(
-                    CreateDescriptorWithSeverity(severity),
-                    objectCreationExpression.GetLocation(),
-                    additionalLocations: locations));
-
-                FadeOutCode(context, optionSet, result.Value, locations);
+                return;
             }
-            finally
+
+            var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
+            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value.Select(m => m.Statement));
+            if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             {
-                analyzer.Free();
+                return;
             }
+
+            var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
+
+            var severity = option.Notification.Value;
+            context.ReportDiagnostic(Diagnostic.Create(
+                CreateDescriptorWithSeverity(severity),
+                objectCreationExpression.GetLocation(),
+                additionalLocations: locations));
+
+            FadeOutCode(context, optionSet, matches.Value, locations);
         }
 
         private void FadeOutCode(

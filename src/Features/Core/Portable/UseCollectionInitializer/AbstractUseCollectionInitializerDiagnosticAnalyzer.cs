@@ -91,38 +91,31 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return;
             }
 
-            var analyzer = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Allocate();
-            analyzer.Initialize(semanticModel, GetSyntaxFactsService(), objectCreationExpression, cancellationToken);
-            try
+            var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                semanticModel, GetSyntaxFactsService(), objectCreationExpression, cancellationToken);
+
+            if (matches == null || matches.Value.Length == 0)
             {
-                var matches = analyzer.Analyze();
-                if (matches == null || matches.Value.Length == 0)
-                {
-                    return;
-                }
-
-                var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
-                var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
-                var syntaxFacts = GetSyntaxFactsService();
-                if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
-                {
-                    return;
-                }
-
-                var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
-
-                var severity = option.Notification.Value;
-                context.ReportDiagnostic(Diagnostic.Create(
-                    CreateDescriptorWithSeverity(severity),
-                    objectCreationExpression.GetLocation(),
-                    additionalLocations: locations));
-
-                FadeOutCode(context, optionSet, matches.Value, locations);
+                return;
             }
-            finally
+
+            var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
+            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
+            var syntaxFacts = GetSyntaxFactsService();
+            if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             {
-                analyzer.Free();
+                return;
             }
+
+            var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
+
+            var severity = option.Notification.Value;
+            context.ReportDiagnostic(Diagnostic.Create(
+                CreateDescriptorWithSeverity(severity),
+                objectCreationExpression.GetLocation(),
+                additionalLocations: locations));
+
+            FadeOutCode(context, optionSet, matches.Value, locations);
         }
 
         private void FadeOutCode(

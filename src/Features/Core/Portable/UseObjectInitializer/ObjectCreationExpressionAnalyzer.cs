@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
 
@@ -26,17 +29,27 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             = new ObjectPool<ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>>(
                 () => new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>());
 
-        public static ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax> Allocate()
-            => s_pool.Allocate();
-
         private ObjectCreationExpressionAnalyzer()
         {
         }
 
-        public void Free()
+        public static ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>? Analyze(
+            SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts,
+            TObjectCreationExpressionSyntax objectCreationExpression,
+            CancellationToken cancellationToken)
         {
-            this.Clear();
-            s_pool.Free(this);
+            var analyzer = s_pool.Allocate();
+            analyzer.Initialize(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
+            try
+            {
+                return analyzer.AnalyzeWorker();
+            }
+            finally
+            {
+                analyzer.Clear();
+                s_pool.Free(analyzer);
+            }
         }
 
         protected override void AddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
