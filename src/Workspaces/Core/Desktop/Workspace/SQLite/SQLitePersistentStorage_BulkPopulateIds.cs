@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     var stringInfos = stringsToAdd.Select(s => new StringInfo { Value = s }).ToArray();
                     try
                     {
+                        // SQLite will populate the StringInfo.Id property when it inserts these.
                         connection.InsertAll(stringInfos, runInTransaction: true);
                     }
                     catch (Exception ex)
@@ -124,8 +125,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                         AddToStringTable(stringInfo);
                     }
 
-                    // However, this will have made it so that we're not holding onto a lot of db
-                    // strings.  That can lead to a lot of duplication.  So go over and ensure
+                    // However, this will have made it so that we're now holding onto a lot of db
+                    // strings.  That can lead to a lot of string duplication.  So go over and ensure
                     // that the strings we're actually using as keys are the ones we got from 
                     // the workspace.
                     foreach (var s in stringsToAdd)
@@ -180,9 +181,20 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             void AddIfUnknownId(string value, HashSet<string> stringsToAdd)
             {
-                if (!_stringToIdMap.ContainsKey(value))
+                if (!_stringToIdMap.TryGetValue(value, out var id))
                 {
                     stringsToAdd.Add(value);
+                }
+                else
+                {
+                    // We did know about this string.  However, we want to ensure that the 
+                    // actual string instance we're pointing to is the one produced by the
+                    // rest of the workspace, and not by the database.  This way we don't
+                    // end up having tons of duplicate strings in the storage service.
+                    //
+                    // So overwrite whatever we have so far in the table so we can release
+                    // the DB strings.
+                    _stringToIdMap[value] = id;
                 }
             }
         }
