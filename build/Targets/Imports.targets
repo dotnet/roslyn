@@ -230,7 +230,7 @@
     </SuggestedBindingRedirects>
   </ItemGroup>
 
-  <Import Project="$(MSBuildTargetsFilePath)" />
+  <Import Project="$(MSBuildTargetsFilePath)" Condition="'$(RoslynSdkProject)' != 'true'" />
 
   <!-- On *nix the NuGet targets aren't imported by default, so we do that here -->
   <Import Project="$(MSBuildBinPath)\Microsoft.NuGet.targets" Condition="'$(OS)' != 'Windows_NT'" />

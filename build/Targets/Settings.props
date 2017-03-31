@@ -22,14 +22,14 @@
     <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.Build.Util\0.9.4-portable\lib\dotnet\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
     <Features>strict,IOperation</Features>
-    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <SignAssembly>true</SignAssembly>
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
     <BaseOutputPath Condition="'$(BaseOutputPath)' == ''">$(RepoRoot)Binaries\</BaseOutputPath>
     <OutDir>$(BaseOutputPath)$(Configuration)\</OutDir>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$(RepoRoot)Binaries\Obj\</BaseIntermediateOutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
 
     <NetStandard20RefPath>$(NuGetPackageRoot)/NETStandard.Library/$(NETStandardLibraryVersion)/build/netstandard2.0/ref/</NetStandard20RefPath>
     <MicrosoftCSharpRefPath>$(NuGetPackageRoot)/Microsoft.CSharp/$(MicrosoftCSharpVersion)/ref/netstandard1.0/</MicrosoftCSharpRefPath>
@@ -224,7 +224,7 @@
 
   <!-- This file is imported by all projects at the beginning of the project files -->
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
-          Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(MSBuildProjectExtension)' != '.vcxproj'" />
+          Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(RoslynSdkProject)' != 'true'" />
 
   <Import Project="$(RoslynDiagnosticsPropsFilePath)" Condition="'$(UseRoslynAnalyzers)' == 'true' AND Exists('$(RoslynDiagnosticsPropsFilePath)')" />
 
