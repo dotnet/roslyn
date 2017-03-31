@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Storage;
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         // their requests added to _writeQueue.
 
         /// <summary>
-        /// Lock protecting the write queues and <see cref="_writeQueueTask"/>.
+        /// Lock protecting the write queues and <see cref="_flushAllTask"/>.
         /// </summary>
         private readonly object _writeQueueGate = new object();
 
@@ -28,103 +27,60 @@ namespace Microsoft.CodeAnalysis.SQLite
         private readonly MultiDictionary<(DocumentId, string), Action<SQLiteConnection>> _documentWriteQueue = new MultiDictionary<(DocumentId, string), Action<SQLiteConnection>>();
 
         /// <summary>
-        /// Task kicked off to actually do the writing.
+        /// Task kicked off to actually do the work of flushing all data to the DB.
         /// </summary>
-        private Task _writeQueueTask;
+        private Task _flushAllTask;
 
         private void AddSolutionWriteTask(string name, Action<SQLiteConnection> action)
-        {
-            lock (_writeQueueGate)
-            {
-                _solutionWriteQueue.Add(name, action);
-                CreateWriteTaskIfNecessary();
-            }
-        }
+            => AddSpecificWriteTask(_solutionWriteQueue, name, action);
 
         private void AddProjectWriteTask(ProjectId projectId, string name, Action<SQLiteConnection> action)
-        {
-            lock (_writeQueueGate)
-            {
-                _projectWriteQueue.Add((projectId, name), action);
-                CreateWriteTaskIfNecessary();
-            }
-        }
+            => AddSpecificWriteTask(_projectWriteQueue, (projectId, name), action);
 
         private void AddDocumentWriteTask(DocumentId documentId, string name, Action<SQLiteConnection> action)
+            => AddSpecificWriteTask(_documentWriteQueue, (documentId, name), action);
+
+        private void AddSpecificWriteTask<TKey>(MultiDictionary<TKey, Action<SQLiteConnection>> queue, TKey key, Action<SQLiteConnection> action)
         {
             lock (_writeQueueGate)
             {
-                _documentWriteQueue.Add((documentId, name), action);
-                CreateWriteTaskIfNecessary();
-            }
-        }
+                queue.Add(key, action);
 
-        private void CreateWriteTaskIfNecessary()
-        {
-            // If we don't have an outstanding request to write the queue to the DB
-            // then create one to run a short while from now.  If there is an outstanding
-            // request, then it will see this write request when it runs.
-            if (_writeQueueTask == null)
-            {
-                _writeQueueTask =
-                    Task.Delay(500, _shutdownTokenSource.Token)
-                        .ContinueWith(
-                            _ => FlushAllPendingWrites(),
-                            _shutdownTokenSource.Token,
-                            TaskContinuationOptions.None,
-                            TaskScheduler.Default);
-            }
-        }
-
-        private void FlushPendingSolutionWrites(string name, SQLiteConnection connection)
-        {
-            var writesToProcess = ArrayBuilder<Action<SQLiteConnection>>.GetInstance();
-            try
-            {
-                lock (_writeQueueGate)
+                // If we don't have an outstanding request to write the queue to the DB
+                // then create one to run a short while from now.  If there is an outstanding
+                // request, then it will see this write request when it runs.
+                if (_flushAllTask == null)
                 {
-                    writesToProcess.AddRange(_solutionWriteQueue[name]);
-                    _solutionWriteQueue.Remove(name);
+                    _flushAllTask =
+                        Task.Delay(500, _shutdownTokenSource.Token)
+                            .ContinueWith(
+                                _ => FlushAllPendingWrites(),
+                                _shutdownTokenSource.Token,
+                                TaskContinuationOptions.None,
+                                TaskScheduler.Default);
                 }
-
-                ProcessWriteQueue(connection, writesToProcess);
-            }
-            finally
-            {
-                writesToProcess.Free();
             }
         }
+
+        private void FlushPendingSolutionWrites(SQLiteConnection connection, string name)
+            => FlushSpecificWrites(connection, _solutionWriteQueue, key: name);
 
         private void FlushPendingProjectWrites(SQLiteConnection connection, ProjectId projectId, string name)
-        {
-            var writesToProcess = ArrayBuilder<Action<SQLiteConnection>>.GetInstance();
-            try
-            {
-                lock (_writeQueueGate)
-                {
-                    var tuple = (projectId, name);
-                    writesToProcess.AddRange(_projectWriteQueue[tuple]);
-                    _projectWriteQueue.Remove(tuple);
-                }
-
-                ProcessWriteQueue(connection, writesToProcess);
-            }
-            finally
-            {
-                writesToProcess.Free();
-            }
-        }
+            => FlushSpecificWrites(connection, _projectWriteQueue, key: (projectId, name));
 
         private void FlushPendingDocumentWrites(SQLiteConnection connection, DocumentId documentId, string name)
+            => FlushSpecificWrites(connection, _documentWriteQueue, key: (documentId, name));
+
+        private void FlushSpecificWrites<TKey>(
+            SQLiteConnection connection, MultiDictionary<TKey, Action<SQLiteConnection>> queue, TKey key)
         {
             var writesToProcess = ArrayBuilder<Action<SQLiteConnection>>.GetInstance();
             try
             {
                 lock (_writeQueueGate)
                 {
-                    var tuple = (documentId, name);
-                    writesToProcess.AddRange(_documentWriteQueue[tuple]);
-                    _documentWriteQueue.Remove(tuple);
+                    writesToProcess.AddRange(queue[key]);
+                    queue.Remove(key);
                 }
 
                 ProcessWriteQueue(connection, writesToProcess);
@@ -155,7 +111,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                     // Indicate that there is no outstanding write task.  The next request to 
                     // write will cause one to be kicked off.
-                    _writeQueueTask = null;
+                    _flushAllTask = null;
                 }
 
                 ProcessWriteQueue(CreateConnection(), writesToProcess);

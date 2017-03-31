@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 var connection = CreateConnection();
                 if (TryGetProjectDataId(project, name, out var dataId, connection))
                 {
-                    // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
+                    // Ensure all pending project writes to this name are flushed to the DB so that 
+                    // we can find them below.
                     FlushPendingProjectWrites(connection, project.Id, name);
 
                     try
