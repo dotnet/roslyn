@@ -251,6 +251,45 @@ IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationSt
             VerifyOperationTreeForTest<VariableDeclarationSyntax>(source, expectedOperationTree);
         }
 
+        [Fact]
+        public void InvalidArrayDeclaration()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        /*<bind>*/int[2, 3] a/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
+  IVariableDeclaration: System.Int32[,] a (OperationKind.VariableDeclaration)
+";
+            VerifyOperationTreeForTest<VariableDeclarationSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact]
+        public void InvalidArrayMultipleDeclaration()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        /*<bind>*/int[2, 3] a, b/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
+  IVariableDeclaration: System.Int32[,] a (OperationKind.VariableDeclaration)
+  IVariableDeclaration: System.Int32[,] b (OperationKind.VariableDeclaration)
+";
+            VerifyOperationTreeForTest<VariableDeclarationSyntax>(source, expectedOperationTree);
+        }
+
         #endregion
 
         #region Fixed Statements

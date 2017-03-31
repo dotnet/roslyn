@@ -336,6 +336,28 @@ IVariableDeclarationStatement (3 variables) (OperationKind.VariableDeclarationSt
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        Public Sub MixedDimAsNewAndEqualsDeclarationsReversedOrder()
+            Dim source = <![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim b1 As Boolean, i1, i2 As New Integer'BIND:"Dim b1 As Boolean, i1, i2 As New Integer"
+    End Sub
+End Module
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (3 variables) (OperationKind.VariableDeclarationStatement)
+  IVariableDeclaration: b1 As System.Boolean (OperationKind.VariableDeclaration)
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
+    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32)
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
+    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32)
+]]>.Value
+
+            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub DimAsNewMultipleDeclarationsSameInitializerInstance()
             Dim source = <![CDATA[
 Module Program
@@ -364,6 +386,67 @@ End Module
             Assert.NotNull(var2.InitialValue)
 
             Assert.Same(var1.InitialValue, var2.InitialValue)
+        End Sub
+
+        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        Public Sub ArrayDeclarationWithLength()
+            Dim source = <![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim i1(2) As Integer'BIND:"Dim i1(2) As Integer"
+    End Sub
+End Module
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
+  IVariableDeclaration: i1 As System.Int32() (OperationKind.VariableDeclaration)
+    Initializer: IArrayCreationExpression (Dimension sizes: 1, Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32())
+        IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3)
+          Left: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+]]>.Value
+
+            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        Public Sub ArrayDeclarationMultipleVariables()
+            Dim source = <![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim i1(), i2 As Integer'BIND:"Dim i1(), i2 As Integer"
+
+    End Sub
+End Module
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
+  IVariableDeclaration: i1 As System.Int32() (OperationKind.VariableDeclaration)
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
+]]>.Value
+
+            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
+        Public Sub ArrayDeclarationInvalidAsNew()
+            Dim source = <![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim i1(2) As New Integer'BIND:"Dim i1(2) As New Integer"
+    End Sub
+End Module
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
+  IVariableDeclaration: i1 As System.Int32() (OperationKind.VariableDeclaration, IsInvalid)
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid)
+]]>.Value
+
+            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
         End Sub
 
 #End Region
