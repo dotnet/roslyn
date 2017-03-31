@@ -21,19 +21,35 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// <summary>
         /// Queue of actions we want to perform all at once against the DB in a single transaction.
         /// </summary>
-        private readonly List<Action<SQLiteConnection>> _writeQueue = new List<Action<SQLiteConnection>>();
+        private readonly List<(bool isSolution, ProjectId, DocumentId, Action<SQLiteConnection>)> _writeQueue =
+            new List<(bool isSolution, ProjectId, DocumentId, Action<SQLiteConnection>)>();
 
         /// <summary>
         /// Task kicked off to actually do the writing.
         /// </summary>
         private Task _writeQueueTask;
 
-        private void AddWriteTask(Action<SQLiteConnection> action)
+        private void AddSolutionWriteTask(Action<SQLiteConnection> action)
+        {
+            AddWriteTask((isSolution: true, projectId: null, documentId: null, action));
+        }
+
+        private void AddProjectWriteTask(ProjectId projectId, Action<SQLiteConnection> action)
+        {
+            AddWriteTask((isSolution: false, projectId, documentId: null, action));
+        }
+
+        private void AddDocumentWriteTask(DocumentId documentId, Action<SQLiteConnection> action)
+        {
+            AddWriteTask((isSolution: false, projectId: null, documentId, action));
+        }
+
+        private void AddWriteTask((bool isSolution, ProjectId projectId, DocumentId documentId, Action<SQLiteConnection>) writeAction)
         {
             lock (_writeQueueGate)
             {
                 // Add this action to the list of work to do.
-                _writeQueue.Add(action);
+                _writeQueue.Add(writeAction);
 
                 // If we don't have an outstanding request to write the queue to the DB
                 // then create one to run a short while from now.  If there is an outstanding
@@ -43,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     _writeQueueTask =
                         Task.Delay(500, _shutdownTokenSource.Token)
                             .ContinueWith(
-                                _ => FlushPendingWrites(),
+                                _ => FlushPendingWrites((_1, _2, _3) => true),
                                 _shutdownTokenSource.Token,
                                 TaskContinuationOptions.None,
                                 TaskScheduler.Default);
@@ -51,37 +67,53 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private void FlushPendingWrites()
+        private void FlushPendingWrites(Func<bool, ProjectId, DocumentId, bool> predicate)
         {
             // Copy the work from _writeQueue to a local list that we can process.
-            var tempQueue = ArrayBuilder<Action<SQLiteConnection>>.GetInstance();
+            var writesToProcess = ArrayBuilder<Action<SQLiteConnection>>.GetInstance();
             try
             {
-                ProcessWriteQueue(tempQueue);
+                ProcessWriteQueue(predicate, writesToProcess);
             }
             finally
             {
-                tempQueue.Free();
+                writesToProcess.Free();
             }
         }
 
         private void ProcessWriteQueue(
-            ArrayBuilder<Action<SQLiteConnection>> tempQueue)
+            Func<bool, ProjectId, DocumentId, bool> predicate,
+            ArrayBuilder<Action<SQLiteConnection>> writesToProcess)
         {
             lock (_writeQueueGate)
             {
                 // Copy the work from the shared list to the local copy.
-                tempQueue.AddRange(_writeQueue);
+
+                var writesToKeep = ArrayBuilder<(bool, ProjectId, DocumentId, Action<SQLiteConnection>)>.GetInstance();
+
+                foreach (var (isSolution, projId, docId, action) in _writeQueue)
+                {
+                    if (predicate(isSolution, projId, docId))
+                    {
+                        writesToProcess.Add(action);
+                    }
+                    else
+                    {
+                        writesToKeep.Add((isSolution, projId, docId, action));
+                    }
+                }
 
                 // clear the shared list so we don't process things multiple times.
                 _writeQueue.Clear();
+                _writeQueue.AddRange(writesToKeep);
+                writesToKeep.Free();
 
                 // Indicate that there is no outstanding write task.  The next request to 
                 // write will cause one to be kicked off.
                 _writeQueueTask = null;
             }
 
-            if (tempQueue.Count == 0)
+            if (writesToProcess.Count == 0)
             {
                 return;
             }
@@ -101,7 +133,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 var connection = CreateConnection();
                 connection.RunInTransaction(() =>
                 {
-                    foreach (var action in tempQueue)
+                    foreach (var action in writesToProcess)
                     {
                         action(connection);
                     }

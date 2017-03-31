@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 TryGetDocumentDataId(document, name, out var dataId))
             {
                 // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
-                // FlushPendingWrites();
+                FlushPendingWrites((_1, _2, docId) => docId == document.Id);
 
                 try
                 {

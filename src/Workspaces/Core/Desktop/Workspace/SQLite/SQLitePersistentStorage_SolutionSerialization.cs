@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             if (!_shutdownTokenSource.IsCancellationRequested)
             {
                 // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
-                // FlushPendingWrites();
+                FlushPendingWrites((isSolution, _2, _3) => isSolution);
 
                 try
                 {
