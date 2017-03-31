@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionSize;
 using Roslyn.Utilities;
 
@@ -15,7 +16,8 @@ namespace Microsoft.CodeAnalysis.Storage
     /// A service that enables storing and retrieving of information associated with solutions,
     /// projects or documents across runtime sessions.
     /// </summary>
-    internal abstract partial class AbstractPersistentStorageService : IPersistentStorageService
+    internal abstract partial class AbstractPersistentStorageService<TDatabaseException> : IPersistentStorageService
+        where TDatabaseException : Exception
     {
         protected readonly IOptionService OptionService;
         private readonly SolutionSizeTracker _solutionSizeTracker;
@@ -52,10 +54,8 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
-
-        protected abstract bool TryCreatePersistentStorage(
-            Solution solution, string workingFolderPath,
-            out AbstractPersistentStorage persistentStorage);
+        protected abstract AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath);
+        protected abstract bool ShouldDeleteDatabase(TDatabaseException ex);
 
         public IPersistentStorage GetStorage(Solution solution)
         {
@@ -209,6 +209,56 @@ namespace Microsoft.CodeAnalysis.Storage
             // okay, can't recover, then use no op persistent service 
             // so that things works old way (cache everything in memory)
             return null;
+        }
+
+        private bool TryCreatePersistentStorage(
+            Solution solution, string workingFolderPath,
+            out AbstractPersistentStorage persistentStorage)
+        {
+            persistentStorage = null;
+            AbstractPersistentStorage database = null;
+
+            try
+            {
+                database = OpenDatabase(solution, workingFolderPath);
+                database.Initialize(solution);
+
+                persistentStorage = database;
+                return true;
+            }
+            catch (TDatabaseException ex)
+            {
+                // Got an exception from the database library itself.  If we successfully opened
+                // the DB, then close it.
+                if (database != null)
+                {
+                    database.Close();
+                }
+
+                StorageDatabaseLogger.LogException(ex);
+
+                if (!ShouldDeleteDatabase(ex))
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Got some other exception entirely.  Fall through and try to delete this database.
+                if (database != null)
+                {
+                    database.Close();
+                }
+
+                StorageDatabaseLogger.LogException(ex);
+            }
+
+            if (database != null)
+            {
+                IOUtilities.PerformIO(() => Directory.Delete(database.DatabaseDirectory, recursive: true));
+            }
+
+            return false;
         }
 
         protected void Release(AbstractPersistentStorage storage)

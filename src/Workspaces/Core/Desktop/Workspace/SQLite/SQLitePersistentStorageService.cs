@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -12,7 +13,7 @@ using SQLite;
 
 namespace Microsoft.CodeAnalysis.SQLite
 {
-    internal partial class SQLitePersistentStorageService : AbstractPersistentStorageService, IPersistentStorageService
+    internal partial class SQLitePersistentStorageService : AbstractPersistentStorageService<SQLiteException>
     {
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
@@ -35,50 +36,17 @@ namespace Microsoft.CodeAnalysis.SQLite
             return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
         }
 
-        protected override bool TryCreatePersistentStorage(
-            Solution solution, string workingFolderPath,
-            out AbstractPersistentStorage persistentStorage)
-        {
-            persistentStorage = null;
-            SQLitePersistentStorage database = null;
-
-            try
-            {
-                database = new SQLitePersistentStorage(OptionService, 
+        protected override AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath)
+            => new SQLitePersistentStorage(OptionService,
                     workingFolderPath, solution.FilePath, GetDatabaseFilePath(workingFolderPath),
                     this.Release);
-                database.Initialize(solution);
 
-                persistentStorage = database;
-                return true;
-            }
-            catch (SQLiteException ex)
-            {
-                // db is already in use by someone.
-                if (database != null)
-                {
-                    database.Close();
-                }
-
-                StorageDatabaseLogger.LogException(ex);
-                return false;
-            }
-            catch (Exception ex)
-            {
-                if (database != null)
-                {
-                    database.Close();
-                }
-
-                StorageDatabaseLogger.LogException(ex);
-            }
-
-            if (database != null)
-            {
-                IOUtilities.PerformIO(() => Directory.Delete(database.DatabaseDirectory, recursive: true));
-            }
-
-            return false;
+        protected override bool ShouldDeleteDatabase(SQLiteException ex)
+        {
+            // Error occurred when trying to open this DB.  Try to remove it so we can create a good
+            // DB.  Report the issue to help track down what's wrong.
+            FatalError.ReportWithoutCrash(ex);
+            return true;
         }
     }
 }

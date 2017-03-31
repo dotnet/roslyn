@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Esent
 {
-    internal partial class EsentPersistentStorageService : AbstractPersistentStorageService, IPersistentStorageService
+    internal partial class EsentPersistentStorageService : AbstractPersistentStorageService<EsentAccessDeniedException>
     {
         private const string StorageExtension = "vbcs.cache";
         private const string PersistentStorageFileName = "storage.ide";
@@ -35,49 +35,14 @@ namespace Microsoft.CodeAnalysis.Esent
             return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
         }
 
-        protected override bool TryCreatePersistentStorage(
-            Solution solution, string workingFolderPath,
-            out AbstractPersistentStorage persistentStorage)
+        protected override AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath)
+            => new EsentPersistentStorage(OptionService,
+                workingFolderPath, solution.FilePath, GetDatabaseFilePath(workingFolderPath), this.Release);
+
+        protected override bool ShouldDeleteDatabase(EsentAccessDeniedException ex)
         {
-            persistentStorage = null;
-            EsentPersistentStorage database = null;
-
-            try
-            {
-                database = new EsentPersistentStorage(OptionService, 
-                    workingFolderPath, solution.FilePath, GetDatabaseFilePath(workingFolderPath), this.Release);
-                database.Initialize(solution);
-
-                persistentStorage = database;
-                return true;
-            }
-            catch (EsentAccessDeniedException ex)
-            {
-                // esent db is already in use by someone.
-                if (database != null)
-                {
-                    database.Close();
-                }
-
-                StorageDatabaseLogger.LogException(ex);
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                if (database != null)
-                {
-                    database.Close();
-                }
-
-                StorageDatabaseLogger.LogException(ex);
-            }
-
-            if (database != null)
-            {
-                IOUtilities.PerformIO(() => Directory.Delete(database.DatabaseDirectory, recursive: true));
-            }
-
+            // Access denied can happen when some other process is holding onto the DB.
+            // Don't want to delete it in that case.
             return false;
         }
     }
