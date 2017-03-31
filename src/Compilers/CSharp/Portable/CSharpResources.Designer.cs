@@ -9882,6 +9882,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to async main.
+        /// </summary>
+        internal static string IDS_FeatureAsyncMain {
+            get {
+                return ResourceManager.GetString("IDS_FeatureAsyncMain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to automatically implemented properties.
         /// </summary>
         internal static string IDS_FeatureAutoImplementedProperties {
