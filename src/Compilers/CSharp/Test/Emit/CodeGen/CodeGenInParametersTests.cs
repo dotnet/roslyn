@@ -156,7 +156,7 @@ class Program
   IL_0027:  ret
 }");
         }
-        
+
         [Fact]
         public void InParamPassRoField()
         {
@@ -632,7 +632,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput:@"42");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -680,6 +680,62 @@ class Program
   IL_000b:  call       ""void System.Console.WriteLine(double)""
   IL_0010:  ret
 }");
+        }
+
+        [Fact]
+        public void RefReadOnlyParameterIsWrittenToMetadata_IfItExistsInSameAssembly()
+        {
+            var text = @"
+namespace System.Runtime.InteropServices
+{
+    public class RefReadOnlyAttribute : System.Attribute { }
+}
+class Test
+{
+    public void M(ref readonly int x) { }
+}
+";
+
+            CompileAndVerify(text, symbolValidator: module =>
+            {
+                var attribute = module.ContainingAssembly
+                    .GetTypeByMetadataName("Test")
+                    .GetMethod("M")
+                    .GetParameters().Single()
+                    .GetAttributes().Single();
+
+                Assert.Equal("RefReadOnlyAttribute", attribute.AttributeClass.MetadataName);
+            });
+        }
+
+        [Fact]
+        public void RefReadOnlyParameterIsWrittenToMetadata_IfItExistsInADifferentAssembly()
+        {
+            var codeA = @"
+namespace System.Runtime.InteropServices
+{
+    public class RefReadOnlyAttribute : System.Attribute { }
+}";
+
+            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+
+            var codeB = @"
+class Test
+{
+    public void M(ref readonly int x) { }
+}
+";
+
+            CompileAndVerify(codeB, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            {
+                var attribute = module.ContainingAssembly
+                    .GetTypeByMetadataName("Test")
+                    .GetMethod("M")
+                    .GetParameters().Single()
+                    .GetAttributes().Single();
+
+                Assert.Equal("RefReadOnlyAttribute", attribute.AttributeClass.MetadataName);
+            });
         }
     }
 }

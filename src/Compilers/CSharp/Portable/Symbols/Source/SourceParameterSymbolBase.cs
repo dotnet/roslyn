@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ConstantValue DefaultValueFromAttributes { get; }
 
-        internal sealed override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 

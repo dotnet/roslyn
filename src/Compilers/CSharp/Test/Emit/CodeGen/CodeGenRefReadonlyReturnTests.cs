@@ -666,5 +666,61 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnCall, "M(b)").WithArguments("Program.M(in int)", "x").WithLocation(7, 20)
             );
         }
+
+        [Fact]
+        public void RefReadOnlyReturnIsWrittenToMetadata_IfItExistsInSameAssembly()
+        {
+            var text = @"
+namespace System.Runtime.InteropServices
+{
+    public class RefReadOnlyAttribute : System.Attribute { }
+}
+class Test
+{
+    private int x = 0;
+    public ref readonly int M() { return ref x; }
+}
+";
+
+            CompileAndVerify(text, symbolValidator: module =>
+            {
+                var attribute = module.ContainingAssembly
+                    .GetTypeByMetadataName("Test")
+                    .GetMethod("M")
+                    .GetReturnTypeAttributes().Single();
+
+                Assert.Equal("RefReadOnlyAttribute", attribute.AttributeClass.MetadataName);
+            });
+        }
+
+        [Fact]
+        public void RefReadOnlyReturnIsWrittenToMetadata_IfItExistsInADifferentAssembly()
+        {
+            var codeA = @"
+namespace System.Runtime.InteropServices
+{
+    public class RefReadOnlyAttribute : System.Attribute { }
+}";
+
+            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+
+            var codeB = @"
+class Test
+{
+    private int x = 0;
+    public ref readonly int M() { return ref x; }
+}
+";
+
+            CompileAndVerify(codeB, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            {
+                var attribute = module.ContainingAssembly
+                    .GetTypeByMetadataName("Test")
+                    .GetMethod("M")
+                    .GetReturnTypeAttributes().Single();
+
+                Assert.Equal("RefReadOnlyAttribute", attribute.AttributeClass.MetadataName);
+            });
+        }
     }
 }

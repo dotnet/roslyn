@@ -229,5 +229,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (object)owningMethod != null && owningMethod.IsAccessor();
             }
         }
+
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
+
+            if (this.RefKind == RefKind.RefReadOnly)
+            {
+                // PROTOTYPE(readonlyRefs) it is optional now as it will be generated in the next PR
+                var constructor = WellKnownMember.System_Runtime_InteropServices_RefReadOnlyAttribute__ctor;
+                AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.TrySynthesizeAttribute(constructor, isOptionalUse: true));
+            }
+        }
     }
 }
