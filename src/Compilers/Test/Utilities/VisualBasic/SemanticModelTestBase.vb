@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -182,16 +183,19 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
         OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree)
     End Sub
 
-    Friend Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, expectedOperationTree As String, expectedDiagnostics As DiagnosticDescription(), Optional which As Integer = 0)
-        Dim actualDiagnostics = compilation.GetDiagnostics().Where(Function(d As Diagnostic) d.Severity <> DiagnosticSeverity.Hidden)
-        actualDiagnostics.Verify(expectedDiagnostics)
+    Friend Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, expectedOperationTree As String, expectedDiagnostics As String, Optional which As Integer = 0)
+        compilation.AssertTheseDiagnostics(FilterString(expectedDiagnostics))
         VerifyOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, which)
     End Sub
 
-    Friend Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, expectedOperationTree As String, expectedDiagnostics As DiagnosticDescription(), Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0)
+    Friend Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, expectedOperationTree As String, expectedDiagnostics As String, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0)
         Dim fileName = "a.vb"
         Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
         Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:={SystemRef, SystemCoreRef})
         VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, expectedDiagnostics, which)
     End Sub
+
+    Public Shared Function GetAssertTheseDiagnosticsString(allDiagnostics As ImmutableArray(Of Diagnostic), suppressInfos As Boolean) As String
+        Return DumpAllDiagnostics(allDiagnostics, suppressInfos)
+    End Function
 End Class
