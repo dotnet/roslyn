@@ -8101,8 +8101,8 @@ End Class")
             Assert.True(File.Exists(exe))
 
             MetadataReaderUtils.VerifyPEMetadata(exe,
-                {"TypeDef:<Module>", "TypeDef:C"},
-                {"MethodDef: Void Main()", "MethodDef: Void .ctor()"},
+                {"TypeDefinition:<Module>", "TypeDefinition:C"},
+                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
                 )
 
@@ -8136,8 +8136,8 @@ a
             ' ReferenceAssemblyAttribute is missing.
             ' See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
-                {"TypeDef:<Module>", "TypeDef:C"},
-                {"MethodDef: Void Main()", "MethodDef: Void .ctor()"},
+                {"TypeDefinition:<Module>", "TypeDefinition:C"},
+                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
                 )
 
@@ -8242,8 +8242,8 @@ End Class")
             ' ReferenceAssemblyAttribute is missing.
             ' See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
-                {"TypeDef:<Module>", "TypeDef:C"},
-                {"MethodDef: Void Main()", "MethodDef: Void .ctor()"},
+                {"TypeDefinition:<Module>", "TypeDefinition:C"},
+                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
                 )
 

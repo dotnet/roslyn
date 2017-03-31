@@ -9006,8 +9006,8 @@ public class C
             Assert.True(File.Exists(exe));
 
             MetadataReaderUtils.VerifyPEMetadata(exe,
-                new[] { "TypeDef:<Module>", "TypeDef:C" },
-                new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
+                new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
+                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
                 );
 
@@ -9039,8 +9039,8 @@ public class C
             // ReferenceAssemblyAttribute is missing.
             // See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
-                new[] { "TypeDef:<Module>", "TypeDef:C" },
-                new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
+                new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
+                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
                 );
 
@@ -9148,9 +9148,9 @@ class C
             // ReferenceAssemblyAttribute is missing.
             // See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
-                new[] { "TypeDef:<Module>", "TypeDef:C" },
-                new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
-                new[] { "CompilationRelaxationsAttribute", "DebuggerBrowsableAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
+                new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
+                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
+                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
                 );
 
             var pdb = Path.Combine(dir.Path, "a.pdb");

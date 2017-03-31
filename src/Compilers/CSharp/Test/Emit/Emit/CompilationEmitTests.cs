@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -245,6 +246,37 @@ class Test2
                 // error CS8357: Emit option 'IncludePrivateMembers' requires the EmitMetadataOnly option also be set.
                 Diagnostic(ErrorCode.ERR_RequiresMetadataOnly).WithArguments("IncludePrivateMembers").WithLocation(1, 1)
                 );
+        }
+
+        [Fact]
+        public void RefAssembly_HasReferenceAssemblyAttribute()
+        {
+            var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+
+            Action<ModuleSymbol> sourceSymbolValidator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var sourceAssembly = (SourceAssemblySymbol)sourceModule.DeclaringCompilation.Assembly;
+                AssertEx.SetEqual(sourceAssembly.GetSynthesizedAttributes().Select(a => a.ToString()),
+                    new[] {
+                        "System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)",
+                        "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)",
+                        "System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)" });
+            };
+
+            Action<PEAssembly> assemblyValidator = assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var attributes = reader.GetAssemblyDefinition().GetCustomAttributes();
+                AssertEx.SetEqual(attributes.Select(a => MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)),
+                    new[] {
+                        "MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
+                        "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
+                        "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
+                        "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()" });
+            };
+
+            CompileAndVerify("", emitOptions: emitRefAssembly, sourceSymbolValidator: sourceSymbolValidator, assemblyValidator: assemblyValidator);
         }
 
         [Theory]
