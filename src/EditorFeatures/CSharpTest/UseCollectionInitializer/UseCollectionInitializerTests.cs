@@ -722,7 +722,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         [WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
-        public async Task TestWhenReferencedInInitializer()
+        public async Task TestWhenReferencedInInitializer_LocalVar()
         {
             await TestInRegularAndScript1Async(
 @"
@@ -749,6 +749,97 @@ class C
             [0] = 1
         };
         items[1] = items[0];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
+        public async Task TestWhenReferencedInInitializer_LocalVar2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        var t = [||]new List<int>(new int[] { 1, 2, 3 });
+        t.Add(t.Min() - 1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
+        public async Task TestWhenReferencedInInitializer_Assignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        List<object> items = null;
+        items = new [||]List<object>();
+        items[0] = 1;
+        items[1] = items[0];
+    }
+}",
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        List<object> items = null;
+        items = new [||]List<object>
+        {
+            [0] = 1
+        };
+        items[1] = items[0];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
+        public async Task TestWhenReferencedInInitializer_Assignment2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        List<int> t = null;
+        t = [||]new List<int>(new int[] { 1, 2, 3 });
+        t.Add(t.Min() - 1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
+        public async Task TestFieldReference()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class C
+{
+    private List<int> myField;
+    void M()
+    {
+        myField = [||]new List<int>();
+        myField.Add(this.myField.Count);
     }
 }");
         }
