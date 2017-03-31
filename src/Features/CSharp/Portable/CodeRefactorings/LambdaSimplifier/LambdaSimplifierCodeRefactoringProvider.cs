@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -188,9 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             if (!lambdaMethod.ReturnsVoid)
             {
                 // Return type has to be covariant.
-                var conversion = document.SemanticModel.Compilation.ClassifyConversion(
+                var conversion = document.SemanticModel.Compilation.ClassifyConversionInfo(
                     invocationMethod.ReturnType, lambdaMethod.ReturnType);
-                if (!conversion.IsIdentityOrImplicitReference())
+                if (!conversion.IsIdentityOrWideningReference())
                 {
                     return false;
                 }
@@ -199,10 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             // Parameter types have to be contravariant.
             for (int i = 0; i < lambdaMethod.Parameters.Length; i++)
             {
-                var conversion = document.SemanticModel.Compilation.ClassifyConversion(
+                var conversion = document.SemanticModel.Compilation.ClassifyConversionInfo(
                     lambdaMethod.Parameters[i].Type, invocationMethod.Parameters[i].Type);
 
-                if (!conversion.IsIdentityOrImplicitReference())
+                if (!conversion.IsIdentityOrWideningReference())
                 {
                     return false;
                 }

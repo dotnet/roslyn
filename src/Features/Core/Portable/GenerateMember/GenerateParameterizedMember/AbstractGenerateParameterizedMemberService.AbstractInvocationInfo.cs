@@ -105,7 +105,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 return classTypes;
             }
 
-            protected abstract bool IsImplicitReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType);
+            protected bool IsImplicitReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
+            {
+                var conversion = compilation.ClassifyConversionInfo(sourceType, targetType);
+                return conversion.IsWidening && conversion.IsReference;
+            }
         }
     }
 }

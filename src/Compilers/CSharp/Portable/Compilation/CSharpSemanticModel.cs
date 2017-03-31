@@ -907,6 +907,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return info.ImplicitConversion;
         }
 
+        internal override ConversionInfo CommonGetConversionInfo(SyntaxNode expression, CancellationToken cancellationToken)
+            => GetConversion(expression, cancellationToken);
+
         /// <summary>
         /// Binds the expression in the context of the specified location and gets type information.
         /// This method is used to get type information about an expression that did not actually
@@ -2489,6 +2492,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// type), use Compilation.ClassifyConversion.</remarks>
         public abstract Conversion ClassifyConversion(ExpressionSyntax expression, ITypeSymbol destination, bool isExplicitInSource = false);
 
+        internal override ConversionInfo CommonClassifyConversionInfo(SyntaxNode expression, ITypeSymbol destination, bool isExplicitInSource)
+            => ClassifyConversion((ExpressionSyntax)expression, destination, isExplicitInSource);
+
         /// <summary>
         /// Determines what type of conversion, if any, would be used if a given expression was
         /// converted to a given type.  If isExplicitInSource is true, the conversion produced is
@@ -2546,6 +2552,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Conversion.NoConversion;
         }
+
+        internal override ConversionInfo CommonClassifyConversionInfo(int position, SyntaxNode expression, ITypeSymbol destination, bool isExplicitInSource)
+            => ClassifyConversion(position, (ExpressionSyntax)expression, destination, isExplicitInSource);
 
         /// <summary>
         /// Determines what type of conversion, if any, would be used if a given expression was

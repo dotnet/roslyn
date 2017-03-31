@@ -376,6 +376,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisualBasicTypeInfo.None.ImplicitConversion
         End Function
 
+        Friend Overrides Function CommonGetConversionInfo(expression As SyntaxNode, cancellationToken As CancellationToken) As ConversionInfo
+            Return GetConversion(DirectCast(expression, ExpressionSyntax), cancellationToken)
+        End Function
+
         ''' <summary>
         ''' Gets the conversion that occurred between the expression's type and type implied by the expression's context.
         ''' </summary>
@@ -2315,6 +2319,10 @@ _Default:
         ''' type), use Compilation.ClassifyConversion.</remarks>
         Public MustOverride Shadows Function ClassifyConversion(expression As ExpressionSyntax, destination As ITypeSymbol) As Conversion
 
+        Friend Overrides Function CommonClassifyConversionInfo(expression As SyntaxNode, destination As ITypeSymbol, isExplicitInSource As Boolean) As ConversionInfo
+            Return ClassifyConversion(DirectCast(expression, ExpressionSyntax), destination)
+        End Function
+
         ''' <summary>
         ''' Determines what type of conversion, if any, would be used if a given expression was
         ''' converted to a given type.
@@ -2352,6 +2360,10 @@ _Default:
             End If
 
             Return New Conversion(Nothing) ' NoConversion
+        End Function
+
+        Friend Overrides Function CommonClassifyConversionInfo(position As Integer, expression As SyntaxNode, destination As ITypeSymbol, isExplicitInSource As Boolean) As ConversionInfo
+            Return ClassifyConversion(position, DirectCast(expression, ExpressionSyntax), destination)
         End Function
 
         ''' <summary>

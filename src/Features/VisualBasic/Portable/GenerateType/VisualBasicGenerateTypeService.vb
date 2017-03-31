@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                                           Where(Function(t) t.Members.Count > 0).
                                           FirstOrDefault(Function(t) simpleName.SpanStart >= t.Members.First().SpanStart AndAlso
                                                              simpleName.Span.End <= t.Members.Last().Span.End)
-            Return If(typeBlock Is Nothing, Nothing, TryCast(semanticModel.GetDeclaredSymbol(typeBlock.BlockStatement, cancellationToken), INamedTypeSymbol))
+            Return If(typeBlock Is Nothing, Nothing, semanticModel.GetDeclaredSymbol(typeBlock.BlockStatement, cancellationToken))
         End Function
 
         Protected Overrides Function GetAccessibility(state As State, semanticModel As SemanticModel, intoNamespace As Boolean, cancellationToken As CancellationToken) As Accessibility
@@ -412,10 +412,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
         Protected Overrides Function DetermineArgumentType(semanticModel As SemanticModel, argument As ArgumentSyntax, cancellationToken As CancellationToken) As ITypeSymbol
             Return argument.DetermineType(semanticModel, cancellationToken)
-        End Function
-
-        Protected Overrides Function IsConversionImplicit(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
-            Return compilation.ClassifyConversion(sourceType, targetType).IsWidening
         End Function
 
         Public Overrides Async Function GetOrGenerateEnclosingNamespaceSymbolAsync(namedTypeSymbol As INamedTypeSymbol, containers() As String, selectedDocument As Document, selectedDocumentRoot As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Tuple(Of INamespaceSymbol, INamespaceOrTypeSymbol, Location))

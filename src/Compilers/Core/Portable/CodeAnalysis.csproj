@@ -30,6 +30,7 @@
       <Visible>false</Visible>
     </Content>
     <Compile Include="CommitHashAttribute.cs" />
+    <Compile Include="Compilation\ConversionInfo.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerExecutionContext.cs" />
     <Compile Include="Generated\Operations.xml.Generated.cs" />
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />

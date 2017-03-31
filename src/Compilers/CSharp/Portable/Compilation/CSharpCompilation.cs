@@ -1572,6 +1572,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversions.ClassifyConversionFromType(cssource, csdest, ref useSiteDiagnostics);
         }
 
+        protected override ConversionInfo CommonClassifyConversionInfo(ITypeSymbol source, ITypeSymbol destination)
+            => ClassifyConversion(source, destination);
+
         /// <summary>
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
         /// COR Library in this Compilation.

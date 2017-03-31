@@ -137,6 +137,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             _uncommonData = new DeconstructionUncommonData(deconstructionInfo, nestedConversions);
         }
 
+        public static implicit operator ConversionInfo(Conversion conversion)
+            => new ConversionInfo(
+                exists: conversion.Exists, 
+                isIdentity: conversion.IsIdentity,
+                isWidening: conversion.IsImplicit,
+                isNarrowing: conversion.IsExplicit,
+                isNumeric: conversion.IsNumeric,
+                isNullable: conversion.IsNullable,
+                isReference: conversion.IsReference,
+                isDefaultLiteral: conversion.IsNullLiteral,
+                isUserDefined: conversion.IsUserDefined,
+                methodSymbol: conversion.MethodSymbol);
+
         internal Conversion SetConversionMethod(MethodSymbol conversionMethod)
         {
             // we use this method to patch up the conversion method only in two cases - 

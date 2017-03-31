@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             End If
 
             Dim compilation = semanticModel.Compilation
-            If Not compilation.ClassifyConversion(taskType, rightSideType).Exists Then
+            If Not compilation.ClassifyConversionInfo(taskType, rightSideType).Exists Then
                 Return False
             End If
 
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Dim typeArguments = rightSideType.TypeArguments
             Dim typeInferer = project.LanguageServices.GetService(Of ITypeInferenceService)
             Dim inferredTypes = typeInferer.InferTypes(semanticModel, expression, cancellationToken)
-            Return typeArguments.Any(Function(ta) inferredTypes.Any(Function(it) compilation.ClassifyConversion(it, ta).Exists))
+            Return typeArguments.Any(Function(ta) inferredTypes.Any(Function(it) compilation.ClassifyConversionInfo(it, ta).Exists))
         End Function
 
         Private Function IsInAsyncBlock(expression As ExpressionSyntax) As Boolean
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Dim returnType As INamedTypeSymbol = Nothing
             Return TryGetTaskType(semanticModel, taskType) AndAlso
                    TryGetExpressionType(expression, semanticModel, returnType) AndAlso
-                semanticModel.Compilation.ClassifyConversion(taskType, returnType).Exists
+                semanticModel.Compilation.ClassifyConversionInfo(taskType, returnType).Exists
         End Function
 
         Private Shared Function ConverToAwaitExpression(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ExpressionSyntax

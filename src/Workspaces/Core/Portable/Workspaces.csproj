@@ -407,10 +407,12 @@
     <Compile Include="NamingStyles\Serialization\SerializableNamingRule.cs" />
     <Compile Include="NamingStyles\Serialization\NamingStylePreferences.cs" />
     <Compile Include="NamingStyles\Serialization\SymbolSpecification.cs" />
+    <Compile Include="Shared\Extensions\CompilationExtensions.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
     <Compile Include="Shared\Utilities\TextReaderWithLength.cs" />
     <Compile Include="Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
+    <Compile Include="Utilities\ConversionInfoExtensions.cs" />
     <Compile Include="Workspace\Host\ParseOptions\IParseOptionsService.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\NoOpPersistentStorageService.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.WorkspaceTaskScheduler.cs" />
@@ -871,7 +873,6 @@
     <Compile Include="Shared\Extensions\ICodeDefinitionFactoryExtensions_CreateGetHashCodeMethod.cs" />
     <Compile Include="Shared\Extensions\ICollectionExtensions.cs" />
     <Compile Include="Shared\Extensions\IComparerExtensions.cs" />
-    <Compile Include="Shared\Extensions\ICompilationExtensions.cs" />
     <Compile Include="Shared\Extensions\IEnumerableExtensions.cs" />
     <Compile Include="Shared\Extensions\IFindReferencesResultExtensions.cs" />
     <Compile Include="Shared\Extensions\ILanguageMetadataExtensions.cs" />

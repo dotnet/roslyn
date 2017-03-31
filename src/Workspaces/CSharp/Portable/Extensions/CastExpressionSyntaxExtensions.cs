@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             if ((parentNode is PrefixUnaryExpressionSyntax || parentNode is PostfixUnaryExpressionSyntax) &&
-                !semanticModel.GetConversion(expression).IsUserDefined)
+                !semanticModel.GetConversionInfo(expression).IsUserDefined)
             {
                 var parentExpression = (ExpressionSyntax)parentNode;
                 return GetOuterCastType(parentExpression, semanticModel, out parentIsOrAsExpression) ?? semanticModel.GetTypeInfo(parentExpression).ConvertedType;
@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return default(Conversion);
             }
 
-            return speculationAnalyzer.SpeculativeSemanticModel.ClassifyConversion(speculatedExpression, speculatedExpressionOuterType);
+            return speculationAnalyzer.SpeculativeSemanticModel.ClassifyConversion(
+                speculatedExpression, speculatedExpressionOuterType);
         }
 
         private static bool UserDefinedConversionIsAllowed(ExpressionSyntax expression, SemanticModel semanticModel)
@@ -185,16 +186,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         var parameterType = (IArrayTypeSymbol)parameter.Type;
 
-                        var conversion = semanticModel.Compilation.ClassifyConversion(castType, parameterType);
+                        var conversion = semanticModel.Compilation.ClassifyConversionInfo(castType, parameterType);
                         if (conversion.Exists &&
-                            conversion.IsImplicit)
+                            conversion.IsWidening)
                         {
                             return false;
                         }
 
-                        var conversionElementType = semanticModel.Compilation.ClassifyConversion(castType, parameterType.ElementType);
+                        var conversionElementType = semanticModel.Compilation.ClassifyConversionInfo(castType, parameterType.ElementType);
                         if (conversionElementType.Exists &&
-                            conversionElementType.IsImplicit)
+                            conversionElementType.IsWidening)
                         {
                             return true;
                         }
@@ -216,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool HaveSameUserDefinedConversion(Conversion conversion1, Conversion conversion2)
+        private static bool HaveSameUserDefinedConversion(ConversionInfo conversion1, ConversionInfo conversion2)
         {
             return conversion1.IsUserDefined
                 && conversion2.IsUserDefined
@@ -365,8 +366,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 //      (object)x == "Hi!"
                 if (IsRequiredCastForReferenceEqualityComparison(outerType, cast, semanticModel, out var other))
                 {
-                    var otherToOuterType = semanticModel.ClassifyConversion(other, outerType);
-                    if (otherToOuterType.IsImplicit && otherToOuterType.IsReference)
+                    var otherToOuterType = semanticModel.ClassifyConversionInfo(other, outerType);
+                    if (otherToOuterType.IsWidening && otherToOuterType.IsReference)
                     {
                         return false;
                     }

@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         private bool CanConvertTypes(ITypeSymbol typeArgument, ITypeSymbol returnExpressionType, SemanticModel model)
         {
             // return false if there is no conversion for the top level type
-            if (!model.Compilation.ClassifyConversion(typeArgument, returnExpressionType).Exists)
+            if (!model.Compilation.ClassifyConversionInfo(typeArgument, returnExpressionType).Exists)
             {
                 return false;
             }

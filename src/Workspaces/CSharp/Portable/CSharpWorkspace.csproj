@@ -121,7 +121,6 @@
     <Compile Include="Extensions\ContextQuery\SyntaxNodeExtensions.cs" />
     <Compile Include="Extensions\ContextQuery\SyntaxTokenExtensions.cs" />
     <Compile Include="Extensions\ContextQuery\SyntaxTreeExtensions.cs" />
-    <Compile Include="Extensions\ConversionExtensions.cs" />
     <Compile Include="Extensions\CrefSyntaxExtensions.cs" />
     <Compile Include="Extensions\DirectiveSyntaxExtensions.cs" />
     <Compile Include="Extensions\DirectiveSyntaxExtensions.DirectiveInfo.cs" />

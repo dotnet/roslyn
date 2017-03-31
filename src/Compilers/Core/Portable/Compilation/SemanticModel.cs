@@ -96,6 +96,50 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Determines what type of conversion, if any, would be used if a given expression was
+        /// converted to a given type.  If isExplicitInSource is true, the conversion produced is
+        /// that which would be used if the conversion were done for a cast expression.
+        /// </summary>
+        public ConversionInfo ClassifyConversionInfo(SyntaxNode expression, ITypeSymbol destination, bool isExplicitInSource = false)
+            => CommonClassifyConversionInfo(expression, destination, isExplicitInSource);
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
+        internal abstract ConversionInfo CommonClassifyConversionInfo(SyntaxNode expression, ITypeSymbol destination, bool isExplicitInSource);
+
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Determines what type of conversion, if any, would be used if a given expression was
+        /// converted to a given type.  If isExplicitInSource is true, the conversion produced is
+        /// that which would be used if the conversion were done for a cast expression.
+        /// </summary>
+        /// <param name="position">The character position for determining the enclosing declaration
+        /// scope and accessibility.</param>
+        /// <param name="expression">The expression to classify. This expression does not need to be
+        /// present in the syntax tree associated with this object.</param>
+        /// <param name="destination">The type to attempt conversion to.</param>
+        /// <param name="isExplicitInSource">True if the conversion should be determined as for a cast expression.</param>
+        /// <returns>Returns a Conversion object that summarizes whether the conversion was
+        /// possible, and if so, what kind of conversion it was. If no conversion was possible, a
+        /// Conversion object with a false "Exists" property is returned.</returns>
+        /// <remarks>To determine the conversion between two types (instead of an expression and a
+        /// type), use Compilation.ClassifyConversion.</remarks>
+        public ConversionInfo ClassifyConversionInfo(int position, SyntaxNode expression, ITypeSymbol destination, bool isExplicitInSource = false)
+            => CommonClassifyConversionInfo(position, expression, destination, isExplicitInSource);
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
+        internal abstract ConversionInfo CommonClassifyConversionInfo(int position, SyntaxNode expression, ITypeSymbol destination, bool isExplicitInSource);
+
+        /// <summary>
+        /// Gets the conversion that occurred between the expression's type and type implied by the
+        /// expression's context.
+        /// </summary>
+        public ConversionInfo GetConversionInfo(SyntaxNode expression, CancellationToken cancellationToken = default(CancellationToken))
+            => CommonGetConversionInfo(expression, cancellationToken);
+
+        internal abstract ConversionInfo CommonGetConversionInfo(SyntaxNode expression, CancellationToken cancellationToken);
+
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
         /// </summary>

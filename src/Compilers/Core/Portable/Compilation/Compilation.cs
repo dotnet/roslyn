@@ -2832,5 +2832,14 @@ namespace Microsoft.CodeAnalysis
 
             return foundVersion;
         }
+
+        /// <summary>
+        /// Determine what kind of conversion, if any, there is between the types 
+        /// <paramref name="source"/> and <paramref name="destination"/>.
+        /// </summary>
+        public ConversionInfo ClassifyConversionInfo(ITypeSymbol source, ITypeSymbol destination)
+            => CommonClassifyConversionInfo(source, destination);
+
+        protected abstract ConversionInfo CommonClassifyConversionInfo(ITypeSymbol source, ITypeSymbol destination);
     }
 }

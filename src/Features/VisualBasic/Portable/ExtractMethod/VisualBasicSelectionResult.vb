@@ -176,12 +176,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return info.ConvertedType
                 End If
 
-                Dim conversion = semanticModel.ClassifyConversion(expression, info.ConvertedType)
+                Dim conversion = semanticModel.ClassifyConversionInfo(expression, info.ConvertedType)
                 If conversion.IsNumeric AndAlso conversion.IsWidening Then
                     Return info.ConvertedType
                 End If
 
-                Dim conv = semanticModel.GetConversion(expression)
+                Dim conv = semanticModel.GetConversionInfo(expression)
                 If IsCoClassImplicitConversion(info, conv, semanticModel.Compilation.CoClassType()) Then
                     Return info.ConvertedType
                 End If
@@ -196,17 +196,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             ' get type without considering implicit conversion
             Return If(info.Type.IsObjectType(), info.ConvertedType, info.Type)
-        End Function
-
-        Private Shared Function IsCoClassImplicitConversion(info As TypeInfo, conversion As Conversion, coclassSymbol As ISymbol) As Boolean
-            If Not conversion.IsWidening OrElse
-                 info.ConvertedType Is Nothing OrElse
-                 info.ConvertedType.TypeKind <> TypeKind.Interface Then
-                Return False
-            End If
-
-            ' let's see whether this interface has coclass attribute
-            Return info.ConvertedType.GetAttributes().Any(Function(c) c.AttributeClass.Equals(coclassSymbol))
         End Function
 
         Public Overloads Function GetFirstStatement() As ExecutableStatementSyntax

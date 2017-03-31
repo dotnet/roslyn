@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return result
             End Function
 
-            Private Function AddCasts(expression As ExpressionSyntax, typeInfo As TypeInfo, conversion As Conversion, oldExpression As ExpressionSyntax) As ExpressionSyntax
+            Private Function AddCasts(expression As ExpressionSyntax, typeInfo As TypeInfo, conversion As ConversionInfo, oldExpression As ExpressionSyntax) As ExpressionSyntax
                 Dim result = expression
 
                 If typeInfo.Type IsNot Nothing AndAlso
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim newAssignment = DirectCast(MyBase.VisitAssignmentStatement(node), AssignmentStatementSyntax)
 
                 Dim typeInfo = _semanticModel.GetTypeInfo(node.Right)
-                Dim conversion = _semanticModel.GetConversion(node.Right)
+                Dim conversion = _semanticModel.GetConversionInfo(node.Right)
                 Dim newExpression = AddCasts(newAssignment.Right, typeInfo, conversion, node.Right)
 
                 newAssignment = newAssignment _
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                    newEqualsValue.Value IsNot Nothing AndAlso Not newEqualsValue.IsMissing Then
 
                     Dim typeInfo = _semanticModel.GetTypeInfo(node.Value)
-                    Dim conversion = _semanticModel.GetConversion(node.Value)
+                    Dim conversion = _semanticModel.GetConversionInfo(node.Value)
                     Dim newValue = AddCasts(newEqualsValue.Value, typeInfo, conversion, node.Value)
 
                     newEqualsValue = newEqualsValue _
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 newMemberAccess = originalNode.Expression.CopyAnnotationsTo(newMemberAccess).WithAdditionalAnnotations(Simplifier.Annotation)
 
                 Dim typeInfo = _semanticModel.GetTypeInfo(oldThisExpression)
-                Dim conversion = _semanticModel.GetConversion(oldThisExpression)
+                Dim conversion = _semanticModel.GetConversionInfo(oldThisExpression)
 
                 Dim castedThisExpression = AddCasts(thisExpression, typeInfo, conversion, oldThisExpression)
 
@@ -315,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 End If
 
                 Dim typeInfo = _semanticModel.GetTypeInfo(node.Expression)
-                Dim conversion = _semanticModel.GetConversion(node.Expression)
+                Dim conversion = _semanticModel.GetConversionInfo(node.Expression)
 
                 Dim newExpression = AddCasts(newSimpleArgument.Expression, typeInfo, conversion, node.Expression)
 

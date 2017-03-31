@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // will actually return a viable type given where this invocation expression
                         // is.
                         var filteredMethods = instantiatedMethods.Where(m =>
-                            invocationTypes.Any(t => Compilation.ClassifyConversion(m.ReturnType, t).IsImplicit)).ToList();
+                            invocationTypes.Any(t => Compilation.ClassifyConversionInfo(m.ReturnType, t).IsWidening)).ToList();
 
                         // If we filtered down to nothing, then just fall back to the instantiated list.
                         // this is a best effort after all.

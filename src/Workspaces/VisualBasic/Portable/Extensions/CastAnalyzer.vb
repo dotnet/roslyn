@@ -39,12 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                         Dim parameterType = DirectCast(parameter.Type, IArrayTypeSymbol)
 
-                        Dim conversion = _semanticModel.Compilation.ClassifyConversion(castType, parameterType)
+                        Dim conversion = _semanticModel.Compilation.ClassifyConversionInfo(castType, parameterType)
                         If conversion.Exists AndAlso conversion.IsWidening Then
                             Return False
                         End If
 
-                        Dim conversionElementType = _semanticModel.Compilation.ClassifyConversion(castType, parameterType.ElementType)
+                        Dim conversionElementType = _semanticModel.Compilation.ClassifyConversionInfo(castType, parameterType.ElementType)
                         If conversionElementType.Exists AndAlso (conversionElementType.IsIdentity OrElse conversionElementType.IsWidening) Then
                             Return True
                         End If
@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim outerType = GetOuterCastType(_castNode, castTypeInfo, _semanticModel, _cancellationToken)
 
             If outerType IsNot Nothing Then
-                Dim castToOuterType As Conversion = _semanticModel.ClassifyConversion(_castNode.SpanStart, _castNode, outerType)
+                Dim castToOuterType = _semanticModel.ClassifyConversion(_castNode.SpanStart, _castNode, outerType)
                 Dim expressionToOuterType As Conversion
                 Dim speculatedExpressionOuterType As ITypeSymbol = Nothing
                 Dim outerSpeculatedExpression = _castNode.WalkUpParentheses()
@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return False
         End Function
 
-        Private Shared Function HaveSameUserDefinedConversion(conversion1 As Conversion, conversion2 As Conversion) As Boolean
+        Private Shared Function HaveSameUserDefinedConversion(conversion1 As ConversionInfo, conversion2 As ConversionInfo) As Boolean
             Return conversion1.IsUserDefined AndAlso conversion2.IsUserDefined AndAlso conversion1.MethodSymbol.Equals(conversion2.MethodSymbol)
         End Function
 

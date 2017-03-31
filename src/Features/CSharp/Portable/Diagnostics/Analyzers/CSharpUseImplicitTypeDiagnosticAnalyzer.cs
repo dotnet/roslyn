@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -97,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
             else if (typeName.Parent is ForEachStatementSyntax foreachStatment)
             {
-                var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatment);
-                if (foreachStatementInfo.ElementConversion.IsIdentityOrImplicitReference())
+                ConversionInfo conversion = semanticModel.GetForEachStatementInfo(foreachStatment).ElementConversion;
+                if (conversion.IsIdentityOrWideningReference())
                 {
                     issueSpan = candidateIssueSpan;
                     return true;
@@ -152,8 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             // and filter out implicit conversions. If an implicit conversion (other than identity) exists
             // and if we're replacing the declaration with 'var' we'd be changing the semantics by inferring type of
             // initializer expression and thereby losing the conversion.
-            var conversion = semanticModel.GetConversion(expression, cancellationToken);
-            if (conversion.Exists && conversion.IsImplicit && !conversion.IsIdentity)
+            var conversion = semanticModel.GetConversionInfo(expression, cancellationToken);
+            if (conversion.Exists && conversion.IsWidening && !conversion.IsIdentity)
             {
                 return false;
             }
