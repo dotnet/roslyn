@@ -17,19 +17,22 @@ namespace Microsoft.CodeAnalysis.SQLite
             cancellationToken.ThrowIfCancellationRequested();
 
             ProjectData projectData = null;
-            if (!_shutdownTokenSource.IsCancellationRequested &&
-                TryGetProjectDataId(project, name, out var dataId))
+            if (!_shutdownTokenSource.IsCancellationRequested)
             {
-                // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
-                FlushPendingWrites((_1, projId, _3) => projId == project.Id);
+                var connection = CreateConnection();
+                if (TryGetProjectDataId(project, name, out var dataId, connection))
+                {
+                    // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
+                    FlushPendingProjectWrites(connection, project.Id);
 
-                try
-                {
-                    projectData = CreateConnection().Find<ProjectData>(dataId);
-                }
-                catch (Exception ex)
-                {
-                    StorageDatabaseLogger.LogException(ex);
+                    try
+                    {
+                        projectData = connection.Find<ProjectData>(dataId);
+                    }
+                    catch (Exception ex)
+                    {
+                        StorageDatabaseLogger.LogException(ex);
+                    }
                 }
             }
 
@@ -42,11 +45,11 @@ namespace Microsoft.CodeAnalysis.SQLite
             cancellationToken.ThrowIfCancellationRequested();
 
             if (!_shutdownTokenSource.IsCancellationRequested &&
-                TryGetProjectDataId(project, name, out var dataId))
+                TryGetProjectDataId(project, name, out var dataId, connectionOpt: null))
             {
                 var bytes = GetBytes(stream);
 
-                AddWriteTask(con =>
+                AddProjectWriteTask(project.Id, con =>
                 {
                     con.InsertOrReplace(
                         new ProjectData { Id = dataId, Data = bytes });

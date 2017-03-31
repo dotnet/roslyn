@@ -17,20 +17,23 @@ namespace Microsoft.CodeAnalysis.SQLite
             cancellationToken.ThrowIfCancellationRequested();
 
             DocumentData documentData = null;
-            if (!_shutdownTokenSource.IsCancellationRequested &&
-                TryGetDocumentDataId(document, name, out var dataId))
+            if (!_shutdownTokenSource.IsCancellationRequested)
             {
-                // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
-                FlushPendingWrites((_1, _2, docId) => docId == document.Id);
+                var connection = CreateConnection();
+                if (TryGetDocumentDataId(document, name, out var dataId, connection))
+                {
+                    // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
+                    FlushPendingDocumentWrites(connection, document.Id);
 
-                try
-                {
-                    // Lookup the row from the DocumentData table corresponding to our data-id.
-                    documentData = CreateConnection().Find<DocumentData>(dataId);
-                }
-                catch (Exception ex)
-                {
-                    StorageDatabaseLogger.LogException(ex);
+                    try
+                    {
+                        // Lookup the row from the DocumentData table corresponding to our data-id.
+                        documentData = connection.Find<DocumentData>(dataId);
+                    }
+                    catch (Exception ex)
+                    {
+                        StorageDatabaseLogger.LogException(ex);
+                    }
                 }
             }
 
@@ -43,12 +46,12 @@ namespace Microsoft.CodeAnalysis.SQLite
             cancellationToken.ThrowIfCancellationRequested();
 
             // Determine the appropriate data-id to store this stream at.
-            if (!_shutdownTokenSource.IsCancellationRequested && 
-                TryGetDocumentDataId(document, name, out var dataId))
+            if (!_shutdownTokenSource.IsCancellationRequested &&
+                TryGetDocumentDataId(document, name, out var dataId, connectionOpt: null))
             {
                 var bytes = GetBytes(stream);
 
-                AddWriteTask(con =>
+                AddDocumentWriteTask(document.Id, con =>
                 {
                     // Add the data to the DocumentData table, overwriting existing data with this ID
                     // if it exists.

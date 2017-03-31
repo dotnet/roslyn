@@ -19,11 +19,12 @@ namespace Microsoft.CodeAnalysis.SQLite
             if (!_shutdownTokenSource.IsCancellationRequested)
             {
                 // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
-                FlushPendingWrites((isSolution, _2, _3) => isSolution);
+                var connection = CreateConnection();
+                FlushPendingSolutionWrites(connection);
 
                 try
                 {
-                    data = CreateConnection().Find<SolutionData>(name);
+                    data = connection.Find<SolutionData>(name);
                 }
                 catch (Exception ex)
                 {
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 var bytes = GetBytes(stream);
 
-                AddWriteTask(con =>
+                AddSolutionWriteTask(con =>
                 {
                     con.InsertOrReplace(
                         new SolutionData { Id = name, Data = bytes });

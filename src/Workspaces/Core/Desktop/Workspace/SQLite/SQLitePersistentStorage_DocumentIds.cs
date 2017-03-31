@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// Given a document, and the name of a stream to read/write, gets the integral DB ID to 
         /// use to find the data inside the <see cref="DocumentData"/> table.
         /// </summary>
-        private bool TryGetDocumentDataId(Document document, string name, out long dataId)
+        private bool TryGetDocumentDataId(Document document, string name, out long dataId, SQLiteConnection connectionOpt)
         {
             dataId = 0;
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             // This will only be expensive the first time we do this.  But will save
             // us from tons of back-and-forth as any BG analyzer processes all the
             // documents in a solution.
-            var connection = CreateConnection();
+            var connection = connectionOpt ?? CreateConnection();
             BulkPopulateProjectIds(connection, document.Project, fetchStringTable: true);
 
             var documentId = TryGetDocumentId(connection, document);
