@@ -468,12 +468,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         void IOperation.Accept(OperationVisitor visitor)
         {
-            visitor.VisitCatch(this);
+            visitor.VisitCatchClause(this);
         }
 
         TResult IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitCatch(this, argument);
+            return visitor.VisitCatchClause(this, argument);
         }
     }
 

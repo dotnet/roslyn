@@ -31,6 +31,7 @@
     </Content>
     <Compile Include="CommitHashAttribute.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerExecutionContext.cs" />
+    <Compile Include="Generated\Operations.xml.Generated.cs" />
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="InternalUtilities\GeneratedCodeUtilities.cs" />
     <Compile Include="InternalUtilities\NoThrowStreamDisposer.cs" />
@@ -91,10 +92,14 @@
     <Compile Include="Operations\ILoopStatement.cs" />
     <Compile Include="Operations\IMemberReferenceExpression.cs" />
     <Compile Include="Operations\IMethodBindingExpression.cs" />
+    <Compile Include="Operations\IndexedPropertyReferenceExpression_IHasArgumentsExpression.cs" />
     <Compile Include="Operations\InstanceReferenceKind.cs" />
     <Compile Include="Operations\INullCoalescingExpression.cs" />
+    <Compile Include="Operations\InvocationExpression_IHasArgumentsExpression.cs" />
     <Compile Include="Operations\IObjectCreationExpression.cs" />
     <Compile Include="Operations\IOmittedArgumentExpression.cs" />
+    <Compile Include="Operations\ObjectCreationExpression_IHasArgumentsExpression.cs" />
+    <Compile Include="Operations\Operation.cs" />
     <Compile Include="Operations\IOperationKind.cs" />
     <Compile Include="Operations\IParameterInitializer.cs" />
     <Compile Include="Operations\IParameterReferenceExpression.cs" />
@@ -390,7 +395,7 @@
     <Compile Include="Compilation\Expression.cs" />
     <Compile Include="Compilation\Extensions.cs" />
     <Compile Include="Operations\IOperation.cs" />
-    <Compile Include="Compilation\OperationExtensions.cs" />
+    <Compile Include="Operations\OperationExtensions.cs" />
     <Compile Include="Compilation\OptimizationLevel.cs" />
     <Compile Include="Compilation\ParseOptions.cs" />
     <Compile Include="Compilation\Platform.cs" />
@@ -398,7 +403,7 @@
     <Compile Include="Compilation\SemanticModel.cs" />
     <Compile Include="Compilation\SourceReferenceResolver.cs" />
     <Compile Include="Compilation\SpeculativeBindingOption.cs" />
-    <Compile Include="Compilation\Statement.cs" />
+    <Compile Include="Operations\Statement.cs" />
     <Compile Include="Compilation\SubsystemVersion.cs" />
     <Compile Include="Compilation\SymbolInfo.cs" />
     <Compile Include="Compilation\TypeInfo.cs" />
