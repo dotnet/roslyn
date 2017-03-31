@@ -4,10 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.ErrorList;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -23,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         public virtual void ErrorList()
         {
-            Editor.SetText(@"
+            VisualStudio.Editor.SetText(@"
 Module Module1
 
     Function Food() As P
@@ -36,7 +32,7 @@ Module Module1
 
 End Module
 ");
-            this.ShowErrorList();
+            VisualStudio.ErrorList.ShowErrorList();
             var expectedContents = new[] {
                 new ErrorListItem(
                     severity: "Error",
@@ -53,19 +49,19 @@ End Module
                     line: 9,
                     column: 9)
             };
-            var actualContents = this.GetErrorListContents();
+            var actualContents = VisualStudio.ErrorList.GetErrorListContents();
             Assert.Equal(expectedContents, actualContents);
-            this.NavigateToErrorListItem(0);
-            this.VerifyCaretPosition(43);
-            this.BuildSolution(waitForBuildToFinish: true);
-            this.ShowErrorList();
-            actualContents = this.GetErrorListContents();
+            VisualStudio.ErrorList.NavigateToErrorListItem(0);
+            VisualStudio.Editor.Verify.CaretPosition(43);
+            VisualStudio.SolutionExplorer.BuildSolution(waitForBuildToFinish: true);
+            VisualStudio.ErrorList.ShowErrorList();
+            actualContents = VisualStudio.ErrorList.GetErrorListContents();
             Assert.Equal(expectedContents, actualContents);
         }
 
         public virtual void ErrorsDuringMethodBodyEditing()
         {
-            Editor.SetText(@"
+            VisualStudio.Editor.SetText(@"
 Namespace N
     Class C
         Private F As Integer
@@ -75,17 +71,17 @@ Namespace N
     End Class
 End Namespace
 ");
-            this.PlaceCaret(" Comment", charsOffset: -2);
-            this.SendKeys("F = 0");
-            this.ShowErrorList();
+            VisualStudio.Editor.PlaceCaret(" Comment", charsOffset: -2);
+            VisualStudio.SendKeys.Send("F = 0");
+            VisualStudio.ErrorList.ShowErrorList();
             var expectedContents = new ErrorListItem[] { };
-            var actualContents = this.GetErrorListContents();
+            var actualContents = VisualStudio.ErrorList.GetErrorListContents();
             Assert.Equal(expectedContents, actualContents);
 
-            Editor.Activate();
-            this.PlaceCaret("F = 0 ' Comment", charsOffset: -1);
-            this.SendKeys("F");
-            this.ShowErrorList();
+            VisualStudio.Editor.Activate();
+            VisualStudio.Editor.PlaceCaret("F = 0 ' Comment", charsOffset: -1);
+            VisualStudio.Editor.SendKeys("F");
+            VisualStudio.ErrorList.ShowErrorList();
             expectedContents = new ErrorListItem[] {
                 new ErrorListItem(
                     severity: "Error",
@@ -95,15 +91,15 @@ End Namespace
                     line: 6,
                     column: 13)
             };
-            actualContents = this.GetErrorListContents();
+            actualContents = VisualStudio.ErrorList.GetErrorListContents();
             Assert.Equal(expectedContents, actualContents);
 
-            Editor.Activate();
-            this.PlaceCaret("FF = 0 ' Comment", charsOffset: -1);
-            this.SendKeys(VirtualKey.Delete);
-            this.ShowErrorList();
+            VisualStudio.Editor.Activate();
+            VisualStudio.Editor.PlaceCaret("FF = 0 ' Comment", charsOffset: -1);
+            VisualStudio.Editor.SendKeys(VirtualKey.Delete);
+            VisualStudio.ErrorList.ShowErrorList();
             expectedContents = new ErrorListItem[] { };
-            actualContents = this.GetErrorListContents();
+            actualContents = VisualStudio.ErrorList.GetErrorListContents();
             Assert.Equal(expectedContents, actualContents);
         }
     }
