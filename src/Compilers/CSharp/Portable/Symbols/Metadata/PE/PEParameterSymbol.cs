@@ -217,8 +217,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (isByRef)
                 {
-                    ParameterAttributes inOutFlags = _flags & (ParameterAttributes.Out | ParameterAttributes.In);
-                    refKind = (inOutFlags == ParameterAttributes.Out) ? RefKind.Out : RefKind.Ref;
+                    if ((_flags & ParameterAttributes.Out) == ParameterAttributes.Out)
+                    {
+                        refKind = RefKind.Out;
+                    }
+                    else if (moduleSymbol.Module.HasRefReadOnlyAttribute(handle))
+                    {
+                        refKind = RefKind.RefReadOnly;
+                    }
+                    else
+                    {
+                        refKind = RefKind.Ref;
+                    }
                 }
 
                 // CONSIDER: Can we make parameter type computation lazy?
