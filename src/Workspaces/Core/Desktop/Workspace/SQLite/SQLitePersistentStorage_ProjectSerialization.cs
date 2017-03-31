@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             if (!_shutdownTokenSource.IsCancellationRequested &&
                 TryGetProjectDataId(project, name, out var dataId))
             {
+                // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
+                // FlushPendingWrites();
+
                 try
                 {
                     projectData = CreateConnection().Find<ProjectData>(dataId);

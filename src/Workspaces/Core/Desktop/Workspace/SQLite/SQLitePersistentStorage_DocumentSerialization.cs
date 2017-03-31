@@ -16,11 +16,13 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
             DocumentData documentData = null;
             if (!_shutdownTokenSource.IsCancellationRequested &&
                 TryGetDocumentDataId(document, name, out var dataId))
             {
+                // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
+                // FlushPendingWrites();
+
                 try
                 {
                     // Lookup the row from the DocumentData table corresponding to our data-id.

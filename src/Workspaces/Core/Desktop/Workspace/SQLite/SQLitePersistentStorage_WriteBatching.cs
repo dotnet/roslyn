@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     _writeQueueTask =
                         Task.Delay(500, _shutdownTokenSource.Token)
                             .ContinueWith(
-                                _ => ProcessWriteQueue(),
+                                _ => FlushPendingWrites(),
                                 _shutdownTokenSource.Token,
                                 TaskContinuationOptions.None,
                                 TaskScheduler.Default);
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private void ProcessWriteQueue()
+        private void FlushPendingWrites()
         {
             // Copy the work from _writeQueue to a local list that we can process.
             var tempQueue = ArrayBuilder<Action<SQLiteConnection>>.GetInstance();

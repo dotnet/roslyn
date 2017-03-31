@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             SolutionData data = null;
             if (!_shutdownTokenSource.IsCancellationRequested)
             {
+                // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
+                // FlushPendingWrites();
+
                 try
                 {
                     data = CreateConnection().Find<SolutionData>(name);

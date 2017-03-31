@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -16,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Storage
     /// A service that enables storing and retrieving of information associated with solutions,
     /// projects or documents across runtime sessions.
     /// </summary>
-    internal abstract partial class AbstractPersistentStorageService<TDatabaseException> : IPersistentStorageService
-        where TDatabaseException : Exception
+    internal abstract partial class AbstractPersistentStorageService : IPersistentStorageService
     {
         protected readonly IOptionService OptionService;
         private readonly SolutionSizeTracker _solutionSizeTracker;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
         protected abstract AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath);
-        protected abstract bool ShouldDeleteDatabase(TDatabaseException ex);
+        protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         public IPersistentStorage GetStorage(Solution solution)
         {
@@ -194,14 +194,12 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private AbstractPersistentStorage TryCreatePersistentStorage(Solution solution, string workingFolderPath)
         {
-            if (TryCreatePersistentStorage(solution, workingFolderPath, out var persistentStorage))
-            {
-                return persistentStorage;
-            }
-
-            // first attempt could fail if there was something wrong with existing db.
-            // try one more time in case the first attempt fixed the problem.
-            if (TryCreatePersistentStorage(solution, workingFolderPath, out persistentStorage))
+            // Attempt to create the database up to two times.  The first time we may encounter
+            // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
+            // try to create it again.  If we can't create it the second time, then there's nothing
+            // we can do and we have to store things in memory.
+            if (TryCreatePersistentStorage(solution, workingFolderPath, out var persistentStorage) ||
+                TryCreatePersistentStorage(solution, workingFolderPath, out persistentStorage))
             {
                 return persistentStorage;
             }
@@ -226,39 +224,25 @@ namespace Microsoft.CodeAnalysis.Storage
                 persistentStorage = database;
                 return true;
             }
-            catch (TDatabaseException ex)
-            {
-                // Got an exception from the database library itself.  If we successfully opened
-                // the DB, then close it.
-                if (database != null)
-                {
-                    database.Close();
-                }
-
-                StorageDatabaseLogger.LogException(ex);
-
-                if (!ShouldDeleteDatabase(ex))
-                {
-                    return false;
-                }
-            }
             catch (Exception ex)
             {
-                // Got some other exception entirely.  Fall through and try to delete this database.
+                StorageDatabaseLogger.LogException(ex);
+
                 if (database != null)
                 {
                     database.Close();
                 }
 
-                StorageDatabaseLogger.LogException(ex);
-            }
+                if (ShouldDeleteDatabase(ex))
+                {
+                    // this was not a normal exception that we expected during DB open.
+                    // Report this so we can try to address whatever is causing this.
+                    FatalError.ReportWithoutCrash(ex);
+                    IOUtilities.PerformIO(() => Directory.Delete(database.DatabaseDirectory, recursive: true));
+                }
 
-            if (database != null)
-            {
-                IOUtilities.PerformIO(() => Directory.Delete(database.DatabaseDirectory, recursive: true));
+                return false;
             }
-
-            return false;
         }
 
         protected void Release(AbstractPersistentStorage storage)

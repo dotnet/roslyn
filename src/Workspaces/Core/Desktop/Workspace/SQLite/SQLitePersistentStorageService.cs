@@ -1,17 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.IO;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
-using SQLite;
 
 namespace Microsoft.CodeAnalysis.SQLite
 {
-    internal partial class SQLitePersistentStorageService : AbstractPersistentStorageService<SQLiteException>
+    internal partial class SQLitePersistentStorageService : AbstractPersistentStorageService
     {
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
@@ -39,11 +38,9 @@ namespace Microsoft.CodeAnalysis.SQLite
                     workingFolderPath, solution.FilePath, GetDatabaseFilePath(workingFolderPath),
                     this.Release);
 
-        protected override bool ShouldDeleteDatabase(SQLiteException ex)
+        protected override bool ShouldDeleteDatabase(Exception exception)
         {
-            // Error occurred when trying to open this DB.  Try to remove it so we can create a good
-            // DB.  Report the issue to help track down what's wrong.
-            FatalError.ReportWithoutCrash(ex);
+            // Error occurred when trying to open this DB.  Try to remove it so we can create a good dB.
             return true;
         }
     }
