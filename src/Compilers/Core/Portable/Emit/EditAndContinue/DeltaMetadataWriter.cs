@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Emit
                    context: context,
                    messageProvider: messageProvider,
                    metadataOnly: false,
-                   includePrivateMembers: true,
                    deterministic: false,
                    cancellationToken: cancellationToken)
         {

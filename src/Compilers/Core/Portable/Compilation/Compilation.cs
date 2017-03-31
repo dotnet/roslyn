@@ -2621,7 +2621,6 @@ namespace Microsoft.CodeAnalysis
                 nativePdbWriterOpt,
                 pdbPathOpt,
                 metadataOnly,
-                includePrivateMembers,
                 isDeterministic,
                 cancellationToken))
             {
@@ -2642,7 +2641,6 @@ namespace Microsoft.CodeAnalysis
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     metadataOnly: true,
-                    includePrivateMembers: includePrivateMembers,
                     isDeterministic: isDeterministic,
                     cancellationToken: cancellationToken))
                 {

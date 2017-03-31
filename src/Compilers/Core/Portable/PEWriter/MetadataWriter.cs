@@ -86,15 +86,12 @@ namespace Microsoft.Cci
             EmitContext context,
             CommonMessageProvider messageProvider,
             bool metadataOnly,
-            bool includePrivateMembers,
             bool deterministic,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(MetadataOnly || !IncludePrivateMembers);
             this.module = context.Module;
             _deterministic = deterministic;
             this.MetadataOnly = metadataOnly;
-            this.IncludePrivateMembers = includePrivateMembers;
 
             // EDMAURER provide some reasonable size estimates for these that will avoid
             // much of the reallocation that would occur when growing these from empty.
