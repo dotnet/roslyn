@@ -16,11 +16,6 @@
     <SemanticVersion>$(MicrosoftCodeAnalysisAnalyzersSemanticVersion)</SemanticVersion>
     <PreReleaseVersion>$(MicrosoftCodeAnalysisAnalyzersPreReleaseVersion)</PreReleaseVersion>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartAction>Program</StartAction>
-    <StartProgram>$(DevEnvDir)devenv.exe</StartProgram>
-    <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
-  </PropertyGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
       <Visible>False</Visible>

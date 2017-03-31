@@ -11,12 +11,6 @@
     <SemanticVersion>$(RoslynDiagnosticsAnalyzersSemanticVersion)</SemanticVersion>
     <PreReleaseVersion>$(RoslynDiagnosticsAnalyzersPreReleaseVersion)</PreReleaseVersion>
   </PropertyGroup>
-  <PropertyGroup Label="Start settings">
-    <StartAction>Program</StartAction>
-    <StartProgram>$(NuGetPackageRoot)\xunit.runner.console\$(XUnitVersion)\tools\xunit.console.x86.exe</StartProgram>
-    <StartArguments>$(AssemblyName).dll -noshadow -wait</StartArguments>
-    <StartWorkingDirectory>$(OutDir)</StartWorkingDirectory>
-  </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Test\Utilities\Test.Utilities.csproj" />
     <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.Core.csproj" />
