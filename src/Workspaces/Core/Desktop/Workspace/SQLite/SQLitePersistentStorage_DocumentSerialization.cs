@@ -14,8 +14,12 @@ namespace Microsoft.CodeAnalysis.SQLite
         public override Task<Stream> ReadStreamAsync(
             Document document, string name, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
             DocumentData documentData = null;
-            if (TryGetDocumentDataId(document, name, out var dataId))
+            if (!_shutdownTokenSource.IsCancellationRequested &&
+                TryGetDocumentDataId(document, name, out var dataId))
             {
                 try
                 {
@@ -34,8 +38,11 @@ namespace Microsoft.CodeAnalysis.SQLite
         public override Task<bool> WriteStreamAsync(
             Document document, string name, Stream stream, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Determine the appropriate data-id to store this stream at.
-            if (TryGetDocumentDataId(document, name, out var dataId))
+            if (!_shutdownTokenSource.IsCancellationRequested && 
+                TryGetDocumentDataId(document, name, out var dataId))
             {
                 var bytes = GetBytes(stream);
 

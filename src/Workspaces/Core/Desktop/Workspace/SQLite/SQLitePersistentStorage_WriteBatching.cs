@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis.SQLite
                 _writeQueueTask = null;
             }
 
+            if (tempQueue.Count == 0)
+            {
+                return;
+            }
+
             if (_shutdownTokenSource.Token.IsCancellationRequested)
             {
                 // Don't actually try to perform any writes if we've been asked to shutdown.

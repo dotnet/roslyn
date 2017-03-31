@@ -13,14 +13,19 @@ namespace Microsoft.CodeAnalysis.SQLite
     {
         public override Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             SolutionData data = null;
-            try
+            if (!_shutdownTokenSource.IsCancellationRequested)
             {
-                data = CreateConnection().Find<SolutionData>(name);
-            }
-            catch (Exception ex)
-            {
-                StorageDatabaseLogger.LogException(ex);
+                try
+                {
+                    data = CreateConnection().Find<SolutionData>(name);
+                }
+                catch (Exception ex)
+                {
+                    StorageDatabaseLogger.LogException(ex);
+                }
             }
 
             return Task.FromResult(GetStream(data?.Data));
@@ -28,15 +33,22 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         public override Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken)
         {
-            var bytes = GetBytes(stream);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            AddWriteTask(con =>
+            if (!_shutdownTokenSource.IsCancellationRequested)
             {
-                con.InsertOrReplace(
-                    new SolutionData { Id = name, Data = bytes });
-            });
+                var bytes = GetBytes(stream);
 
-            return SpecializedTasks.True;
+                AddWriteTask(con =>
+                {
+                    con.InsertOrReplace(
+                        new SolutionData { Id = name, Data = bytes });
+                });
+
+                return SpecializedTasks.True;
+            }
+
+            return SpecializedTasks.False;
         }
     }
 }

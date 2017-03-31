@@ -14,8 +14,11 @@ namespace Microsoft.CodeAnalysis.SQLite
         public override Task<Stream> ReadStreamAsync(
             Project project, string name, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             ProjectData projectData = null;
-            if (TryGetProjectDataId(project, name, out var dataId))
+            if (!_shutdownTokenSource.IsCancellationRequested &&
+                TryGetProjectDataId(project, name, out var dataId))
             {
                 try
                 {
@@ -33,7 +36,10 @@ namespace Microsoft.CodeAnalysis.SQLite
         public override Task<bool> WriteStreamAsync(
             Project project, string name, Stream stream, CancellationToken cancellationToken)
         {
-            if (TryGetProjectDataId(project, name, out var dataId))
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!_shutdownTokenSource.IsCancellationRequested &&
+                TryGetProjectDataId(project, name, out var dataId))
             {
                 var bytes = GetBytes(stream);
 
