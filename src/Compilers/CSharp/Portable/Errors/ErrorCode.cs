@@ -1475,5 +1475,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_BadDynamicMethodArgDefaultLiteral = 9000,
         ERR_DefaultLiteralNotValid = 9001,
+        WRN_DefaultInSwitch = 9002,
     }
 }

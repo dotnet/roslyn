@@ -1002,7 +1002,7 @@ class C
         }
 
         [Fact]
-        public void Switch()
+        public void V6SwitchWarns()
         {
             string source = @"
 class C
@@ -1016,6 +1016,101 @@ class C
         switch (x)
         {
             case default:
+                System.Console.Write(""default"");
+                break;
+            default:
+                break;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (12,18): warning CS9002: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
+                //             case default:
+                Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(12, 18)
+                );
+            CompileAndVerify(comp, expectedOutput: "default");
+        }
+
+        [Fact]
+        public void V7SwitchWarns()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        M(null);
+    }
+    static void M(object x)
+    {
+        switch (x)
+        {
+            case default:
+                System.Console.Write(""default"");
+                break;
+            default:
+                break;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (12,18): warning CS9002: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
+                //             case default:
+                Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(12, 18)
+                );
+            CompileAndVerify(comp, expectedOutput: "default");
+        }
+
+        [Fact]
+        public void V6SwitchWarningWorkaround()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        M(0);
+    }
+    static void M(int x)
+    {
+        switch (x)
+        {
+            case (default):
+                System.Console.Write(""default"");
+                break;
+            default:
+                break;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "default");
+        }
+
+        [Fact]
+        public void V7SwitchWarningWorkaround()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        M(null);
+    }
+    static void M(object x)
+    {
+        switch (x)
+        {
+            case (default):
                 System.Console.Write(""default"");
                 break;
             default:

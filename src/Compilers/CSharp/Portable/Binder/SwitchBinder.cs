@@ -608,6 +608,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
 
+                    if (caseLabelSyntax.Value.Kind() == SyntaxKind.DefaultLiteralExpression)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_DefaultInSwitch, caseLabelSyntax.Value.Location);
+                    }
+
                     // LabelSymbols for all the switch case labels are created by BuildLabels().
                     // Fetch the matching switch case label symbols
                     break;

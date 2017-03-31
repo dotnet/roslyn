@@ -195,6 +195,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
 
+                        if (caseLabelSyntax.Value.Kind() == SyntaxKind.DefaultLiteralExpression)
+                        {
+                            diagnostics.Add(ErrorCode.WRN_DefaultInSwitch, caseLabelSyntax.Value.Location);
+                        }
+
                         // Until we've determined whether or not the switch label is reachable, we assume it
                         // is. The caller updates isReachable after determining if the label is subsumed.
                         const bool isReachable = true;
