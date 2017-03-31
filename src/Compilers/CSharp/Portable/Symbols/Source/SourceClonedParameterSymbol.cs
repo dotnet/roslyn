@@ -156,6 +156,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.IsCallerMemberName; }
         }
 
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            _originalParam.AddSynthesizedAttributes(compilationState, ref attributes);
+        }
+
         #endregion
     }
 }
