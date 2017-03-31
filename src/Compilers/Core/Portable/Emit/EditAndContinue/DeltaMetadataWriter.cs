@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var ok = _typeDefs.TryGetValue(typeDef, out typeIndex);
             Debug.Assert(ok);
 
-            foreach (var eventDef in typeDef.Events)
+            foreach (var eventDef in typeDef.GetEvents(this.Context))
             {
                 int eventMapIndex;
                 if (!_eventMap.TryGetValue(typeIndex, out eventMapIndex))

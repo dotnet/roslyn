@@ -272,7 +272,7 @@ class Test2
         [Theory]
         [InlineData("public int M() { return 1; }", "public int M() { return 2; }", Match.BothMetadataAndRefOut)]
         [InlineData("public int M() { return 1; }", "public int M() { error(); }", Match.BothMetadataAndRefOut)]
-        [InlineData("private void M() { }", "",  Match.RefOut)]
+        [InlineData("private void M() { }", "", Match.RefOut)]
         [InlineData("internal void M() { }", "", Match.RefOut)]
         [InlineData("private void M() { dynamic x = 1; }", "", Match.RefOut)] // no reference added from method bodies
         [InlineData("private int P { get { Error(); } set { Error(); } }", "", Match.RefOut)] // errors in methods bodies don't matter
@@ -382,7 +382,7 @@ comp => comp.VerifyDiagnostics(
         }
 
         [Fact]
-        public void RefAssemblyClient_EmitAllTypes()
+        public void RefAssemblyClient_EmitAllNestedTypes()
         {
             VerifyRefAssemblyClient(@"
 public interface I1<T> { }
@@ -401,6 +401,24 @@ public class A: I1<A.X>
 comp => comp.VerifyDiagnostics());
         }
 
+        [Fact]
+        public void RefAssemblyClient_EmitAllTypes()
+        {
+            VerifyRefAssemblyClient(@"
+public interface I1<T> { }
+public interface I2 { }
+public class A: I1<X> { }
+internal class X: I2 { }
+",
+@"class C
+{
+    I1<I2> M(A a)
+    {
+        return (I1<I2>)a;
+    }
+}",
+comp => comp.VerifyDiagnostics());
+        }
 
         [Fact]
         public void RefAssemblyClient_StructWithPrivateGenericField()

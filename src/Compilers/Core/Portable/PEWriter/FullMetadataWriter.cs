@@ -392,40 +392,27 @@ namespace Microsoft.Cci
                 this.methodImplList.Add(methodImplementation);
             }
 
-            foreach (IEventDefinition eventDef in typeDef.Events)
+            foreach (IEventDefinition eventDef in typeDef.GetEvents(Context))
             {
-                if (eventDef.ShouldInclude(Context))
-                {
-                    _eventDefs.Add(eventDef);
-                }
+                _eventDefs.Add(eventDef);
             }
 
             _fieldDefIndex.Add(typeDef, _fieldDefs.NextRowId);
-            bool inStruct = typeDef.IsValueType;
             foreach (IFieldDefinition fieldDef in typeDef.GetFields(Context))
             {
-                if (inStruct || fieldDef.ShouldInclude(Context))
-                {
-                    _fieldDefs.Add(fieldDef);
-                }
+                _fieldDefs.Add(fieldDef);
             }
 
             _methodDefIndex.Add(typeDef, _methodDefs.NextRowId);
             foreach (IMethodDefinition methodDef in typeDef.GetMethods(Context))
             {
-                if (methodDef.ShouldInclude(Context))
-                {
-                    this.CreateIndicesFor(methodDef);
-                    _methodDefs.Add(methodDef);
-                }
+                this.CreateIndicesFor(methodDef);
+                _methodDefs.Add(methodDef);
             }
 
             foreach (IPropertyDefinition propertyDef in typeDef.GetProperties(Context))
             {
-                if (propertyDef.ShouldInclude(Context))
-                {
-                    _propertyDefs.Add(propertyDef);
-                }
+                _propertyDefs.Add(propertyDef);
             }
         }
 

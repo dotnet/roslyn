@@ -80,23 +80,11 @@ namespace Microsoft.Cci
             this.Visit(eventDefinition.GetType(Context));
         }
 
-        public void Visit(ITypeDefinition containingType, IEnumerable<IFieldDefinition> fields)
+        public void Visit(IEnumerable<IFieldDefinition> fields)
         {
-            if (containingType.IsValueType)
+            foreach (IFieldDefinition field in fields)
             {
-                // Don't filter out any fields (for ref assembly scenarios) in structs
-                foreach (IFieldDefinition field in fields)
-                {
-                    this.Visit(field.GetAttributes(Context));
-                    field.Dispatch(this);
-                }
-            }
-            else
-            {
-                foreach (IFieldDefinition field in fields)
-                {
-                    this.Visit((ITypeDefinitionMember)field);
-                }
+                this.Visit((ITypeDefinitionMember)field);
             }
         }
 
@@ -532,11 +520,8 @@ namespace Microsoft.Cci
             }
             else
             {
-                if (typeMember.ShouldInclude(Context))
-                {
-                    this.Visit(typeMember.GetAttributes(Context));
-                    typeMember.Dispatch(this);
-                }
+                this.Visit(typeMember.GetAttributes(Context));
+                typeMember.Dispatch(this);
             }
         }
 

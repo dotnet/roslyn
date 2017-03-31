@@ -287,12 +287,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                    diagnostics: context.Diagnostics) : null;
         }
 
-        IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.Events
+        IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.GetEvents(EmitContext context)
         {
-            get
+            CheckDefinitionInvariant();
+            foreach (var e in GetEventsToEmit())
             {
-                CheckDefinitionInvariant();
-                return GetEventsToEmit();
+                if (e.ShouldInclude(context))
+                {
+                    yield return e;
+                }
             }
         }
 
@@ -322,6 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var member in this.GetMembers())
             {
+                // PROTOTYPE(refout) Do something here?
                 if (member.Kind == SymbolKind.Method)
                 {
                     var method = (MethodSymbol)member;
@@ -389,9 +393,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
+            // All fields in a struct should be emitted
+            bool isStruct = this.IsStructType();
+
             foreach (var f in GetFieldsToEmit())
             {
-                yield return f;
+                if (isStruct || f.ShouldInclude(context))
+                {
+                    yield return f;
+                }
             }
 
             IEnumerable<Cci.IFieldDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedFields(this);
@@ -400,7 +410,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var f in generated)
                 {
-                    yield return f;
+                    if (isStruct || f.ShouldInclude(context))
+                    {
+                        yield return f;
+                    }
                 }
             }
         }
@@ -630,7 +643,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var method in this.GetMethodsToEmit())
             {
                 Debug.Assert((object)method != null);
-                yield return method;
+                if (method.ShouldInclude(context))
+                {
+                    yield return method;
+                }
             }
 
             IEnumerable<Cci.IMethodDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedMethods(this);
@@ -639,7 +655,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var m in generated)
                 {
-                    yield return m;
+                    if (m.ShouldInclude(context))
+                    {
+                        yield return m;
+                    }
                 }
             }
         }
@@ -704,7 +723,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var property in this.GetPropertiesToEmit())
             {
                 Debug.Assert((object)property != null);
-                yield return property;
+                if (property.ShouldInclude(context))
+                {
+                    yield return property;
+                }
             }
 
             IEnumerable<Cci.IPropertyDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedProperties(this);
@@ -713,7 +735,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var m in generated)
                 {
-                    yield return m;
+                    if (m.ShouldInclude(context))
+                    {
+                        yield return m;
+                    }
                 }
             }
         }
