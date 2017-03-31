@@ -938,9 +938,9 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.ParamArrayAttribute).HasValue;
         }
 
-        internal bool HasRefReadOnlyAttribute(EntityHandle token)
+        internal bool HasReadOnlyAttribute(EntityHandle token)
         {
-            return FindTargetAttribute(token, AttributeDescription.RefReadOnlyAttribute).HasValue;
+            return FindTargetAttribute(token, AttributeDescription.ReadOnlyAttribute).HasValue;
         }
 
         internal bool HasExtensionAttribute(EntityHandle token, bool ignoreCase)

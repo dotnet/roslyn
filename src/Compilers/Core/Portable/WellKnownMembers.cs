@@ -2879,9 +2879,9 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
-                 // System_Runtime_InteropServices_RefReadOnlyAttribute__ctor
+                 // System_Runtime_InteropServices_ReadOnlyAttribute__ctor
                  (byte)(MemberFlags.Constructor),                                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_InteropServices_RefReadOnlyAttribute - WellKnownType.ExtSentinel),        // DeclaringTypeId
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_InteropServices_ReadOnlyAttribute - WellKnownType.ExtSentinel),        // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                      0,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
@@ -3243,7 +3243,7 @@ namespace Microsoft.CodeAnalysis
 
                 "Format",                                   // System_String__Format_IFormatProvider
                 "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
-                ".ctor",                                    // System_Runtime_InteropServices_RefReadOnlyAttribute__ctor
+                ".ctor",                                    // System_Runtime_InteropServices_ReadOnlyAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

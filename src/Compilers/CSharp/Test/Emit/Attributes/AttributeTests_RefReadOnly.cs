@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"
 namespace System.Runtime.InteropServices
 {
-    public class RefReadOnlyAttribute : System.Attribute { }
+    public class ReadOnlyAttribute : System.Attribute { }
 }
 class Test
 {
@@ -37,11 +37,11 @@ class Test
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
                 var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", parameterAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
                 Assert.Equal(module.ContainingAssembly.Name, parameterAttribute.ContainingAssembly.Name);
 
                 var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", returnTypeAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
                 Assert.Equal(module.ContainingAssembly.Name, returnTypeAttribute.ContainingAssembly.Name);
             });
         }
@@ -52,7 +52,7 @@ class Test
             var codeA = @"
 namespace System.Runtime.InteropServices
 {
-    public class RefReadOnlyAttribute : System.Attribute { }
+    public class ReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -74,11 +74,11 @@ class Test
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
                 var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", parameterAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
                 Assert.Equal(referenceA.Compilation.AssemblyName, parameterAttribute.ContainingAssembly.Name);
 
                 var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", returnTypeAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
                 Assert.Equal(referenceA.Compilation.AssemblyName, returnTypeAttribute.ContainingAssembly.Name);
             });
         }
@@ -89,7 +89,7 @@ class Test
             var text = @"
 namespace System.Runtime.InteropServices
 {
-    public class RefReadOnlyAttribute : System.Attribute { }
+    public class ReadOnlyAttribute : System.Attribute { }
 }
 class Test
 {
@@ -112,7 +112,7 @@ class Test
                     Assert.True(property.ReturnsByRefReadonly);
 
                     var returnTypeAttribute = property.GetAttributes().Single().AttributeClass;
-                    Assert.Equal("RefReadOnlyAttribute", returnTypeAttribute.MetadataName);
+                    Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
                     Assert.Equal(module.ContainingAssembly.Name, returnTypeAttribute.ContainingAssembly.Name);
                 }
             });
@@ -124,7 +124,7 @@ class Test
             var codeA = @"
 namespace System.Runtime.InteropServices
 {
-    public class RefReadOnlyAttribute : System.Attribute { }
+    public class ReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -151,7 +151,7 @@ class Test
                     Assert.True(property.ReturnsByRefReadonly);
 
                     var returnTypeAttribute = property.GetAttributes().Single().AttributeClass;
-                    Assert.Equal("RefReadOnlyAttribute", returnTypeAttribute.MetadataName);
+                    Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
                     Assert.Equal(referenceA.Compilation.AssemblyName, returnTypeAttribute.ContainingAssembly.Name);
                 }
             });
@@ -163,7 +163,7 @@ class Test
             var text = @"
 namespace System.Runtime.InteropServices
 {
-    public class RefReadOnlyAttribute : System.Attribute { }
+    public class ReadOnlyAttribute : System.Attribute { }
 }
 class Test
 {
@@ -181,11 +181,11 @@ class Test
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
                 var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", parameterAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
                 Assert.Equal(module.ContainingAssembly.Name, parameterAttribute.ContainingAssembly.Name);
 
                 var returnTypeAttribute = indexer.GetAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", returnTypeAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
                 Assert.Equal(module.ContainingAssembly.Name, returnTypeAttribute.ContainingAssembly.Name);
             });
         }
@@ -196,7 +196,7 @@ class Test
             var codeA = @"
 namespace System.Runtime.InteropServices
 {
-    public class RefReadOnlyAttribute : System.Attribute { }
+    public class ReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -218,11 +218,11 @@ class Test
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
                 var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", parameterAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
                 Assert.Equal(referenceA.Compilation.AssemblyName, parameterAttribute.ContainingAssembly.Name);
 
                 var returnTypeAttribute = indexer.GetAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", returnTypeAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
                 Assert.Equal(referenceA.Compilation.AssemblyName, returnTypeAttribute.ContainingAssembly.Name);
             });
         }
@@ -233,7 +233,7 @@ class Test
             var text = @"
 namespace System.Runtime.InteropServices
 {
-    public class RefReadOnlyAttribute : System.Attribute { }
+    public class ReadOnlyAttribute : System.Attribute { }
 }
 public delegate ref readonly int D(ref readonly int x);
 ";
@@ -248,11 +248,11 @@ public delegate ref readonly int D(ref readonly int x);
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
                 var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", parameterAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
                 Assert.Equal(module.ContainingAssembly.Name, parameterAttribute.ContainingAssembly.Name);
 
                 var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", returnTypeAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
                 Assert.Equal(module.ContainingAssembly.Name, returnTypeAttribute.ContainingAssembly.Name);
             });
         }
@@ -263,7 +263,7 @@ public delegate ref readonly int D(ref readonly int x);
             var codeA = @"
 namespace System.Runtime.InteropServices
 {
-    public class RefReadOnlyAttribute : System.Attribute { }
+    public class ReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -282,11 +282,11 @@ public delegate ref readonly int D(ref readonly int x);
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
                 var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", parameterAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
                 Assert.Equal(referenceA.Compilation.AssemblyName, parameterAttribute.ContainingAssembly.Name);
 
                 var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", returnTypeAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
                 Assert.Equal(referenceA.Compilation.AssemblyName, returnTypeAttribute.ContainingAssembly.Name);
             });
         }
@@ -298,7 +298,7 @@ public delegate ref readonly int D(ref readonly int x);
 using System.Linq;
 namespace System.Runtime.InteropServices
 {
-    public class RefReadOnlyAttribute : System.Attribute { }
+    public class ReadOnlyAttribute : System.Attribute { }
 }
 public class Test
 {
@@ -324,7 +324,7 @@ public class Test
             var codeA = @"
 namespace System.Runtime.InteropServices
 {
-    public class RefReadOnlyAttribute : System.Attribute { }
+    public class ReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -353,7 +353,7 @@ public class Test
             var text = @"
 namespace System.Runtime.InteropServices
 {
-    public class RefReadOnlyAttribute : System.Attribute { }
+    public class ReadOnlyAttribute : System.Attribute { }
 }
 
 delegate ref readonly int D(ref readonly int x);
@@ -380,11 +380,11 @@ class Test
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
                 var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", parameterAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
                 Assert.Equal(module.ContainingAssembly.Name, parameterAttribute.ContainingAssembly.Name);
 
                 var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", returnTypeAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
                 Assert.Equal(module.ContainingAssembly.Name, returnTypeAttribute.ContainingAssembly.Name);
             });
         }
@@ -395,7 +395,7 @@ class Test
             var codeA = @"
 namespace System.Runtime.InteropServices
 {
-    public class RefReadOnlyAttribute : System.Attribute { }
+    public class ReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -425,11 +425,11 @@ class Test
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
                 var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", parameterAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
                 Assert.Equal(referenceA.Compilation.AssemblyName, parameterAttribute.ContainingAssembly.Name);
 
                 var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("RefReadOnlyAttribute", returnTypeAttribute.MetadataName);
+                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
                 Assert.Equal(referenceA.Compilation.AssemblyName, returnTypeAttribute.ContainingAssembly.Name);
             });
         }

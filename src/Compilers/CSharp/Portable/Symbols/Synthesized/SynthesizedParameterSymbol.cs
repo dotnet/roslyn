@@ -159,6 +159,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes,
                     compilation.SynthesizeTupleNamesAttribute(Type));
             }
+
+            if (this.RefKind == RefKind.RefReadOnly)
+            {
+                // PROTOTYPE(readonlyRefs) it is optional now as it will be generated in the next PR
+                var constructor = WellKnownMember.System_Runtime_InteropServices_ReadOnlyAttribute__ctor;
+                AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.TrySynthesizeAttribute(constructor, isOptionalUse: true));
+            }
         }
     }
 
