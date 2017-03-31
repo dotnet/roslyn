@@ -72,6 +72,7 @@
     <Compile Include="FlowAnalysis\RegionAnalysisTests.cs" />
     <Compile Include="FlowAnalysis\StructTests.cs" />
     <Compile Include="FlowAnalysis\TryLockUsingStatementTests.cs" />
+    <Compile Include="IOperation\IOperationTests_IVariableDeclaration.cs" />
     <Compile Include="Semantics\FuzzTests.cs" />
     <Compile Include="Semantics\OverloadResolutionPerfTests.cs" />
     <Compile Include="Semantics\PatternMatchingTests_Global.cs" />
