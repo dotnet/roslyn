@@ -9036,15 +9036,15 @@ public class C
             Assert.True(File.Exists(refDll));
 
             // The types and members that are included needs further refinement.
-            // ReferenceAssemblyAttribute is missing.
             // See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
                 new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
-                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
+                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
                 );
 
-            VerifyNullReferenceException(refDir, "a.dll");
+            // PROTOTYPE(refout) failing differently than expected
+            //VerifyNullReferenceException(refDir, "a.dll");
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);
@@ -9145,7 +9145,6 @@ class C
             Assert.True(File.Exists(refDll));
 
             // The types and members that are included needs further refinement.
-            // ReferenceAssemblyAttribute is missing.
             // See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },

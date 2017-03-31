@@ -248,11 +248,6 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidSubsystemVersion, Location.None, SubsystemVersion.ToString()));
             }
-
-            if (!IncludePrivateMembers && !EmitMetadataOnly)
-            {
-                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_RequiresMetadataOnly, Location.None, nameof(IncludePrivateMembers)));
-            }
         }
 
         internal bool EmitTestCoverageData => InstrumentationKinds.Contains(InstrumentationKind.TestCoverage);

@@ -979,5 +979,33 @@ namespace Microsoft.Cci
             return !methodDef.IsAbstract && !methodDef.IsExternal &&
                 (methodDef.ContainingTypeDefinition == null || !methodDef.ContainingTypeDefinition.IsComObject);
         }
+
+        /// <summary>
+        /// When emitting ref assemblies, some method definitions will not be included.
+        /// </summary>
+        public static bool ShouldInclude(this IMethodDefinition method, EmitContext context)
+        {
+            if (method.IsVirtual)
+            {
+                return true;
+            }
+
+            return ShouldInclude((ITypeDefinitionMember)method, context);
+        }
+
+        /// <summary>
+        /// When emitting ref assemblies, some members will not be included.
+        /// </summary>
+        public static bool ShouldInclude(this ITypeDefinitionMember member, EmitContext context)
+        {
+            switch (member.Visibility)
+            {
+                case TypeMemberVisibility.Private:
+                    return !context.IsRefAssembly;
+                case TypeMemberVisibility.Assembly:
+                    return !context.IsRefAssembly || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+            }
+            return true;
+        }
     }
 }

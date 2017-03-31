@@ -292,11 +292,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ERR_RequiresMetadataOnly As Integer
-            Get
-                Return ERRID.ERR_RequiresMetadataOnly
-            End Get
-        End Property
         ' reference manager:
         Public Overrides ReadOnly Property ERR_MetadataFileNotAssembly As Integer
             Get

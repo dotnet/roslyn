@@ -396,7 +396,7 @@ namespace Microsoft.Cci
 
             foreach (IEventDefinition eventDef in typeDef.Events)
             {
-                if (!Context.Filter(eventDef))
+                if (eventDef.ShouldInclude(Context))
                 {
                     _eventDefs.Add(eventDef);
                 }
@@ -406,7 +406,7 @@ namespace Microsoft.Cci
             bool inStruct = typeDef.IsValueType;
             foreach (IFieldDefinition fieldDef in typeDef.GetFields(Context))
             {
-                if (inStruct || !Context.Filter(fieldDef))
+                if (inStruct || fieldDef.ShouldInclude(Context))
                 {
                     _fieldDefs.Add(fieldDef);
                 }
@@ -415,7 +415,7 @@ namespace Microsoft.Cci
             _methodDefIndex.Add(typeDef, _methodDefs.NextRowId);
             foreach (IMethodDefinition methodDef in typeDef.GetMethods(Context))
             {
-                if (!Context.Filter(methodDef))
+                if (methodDef.ShouldInclude(Context))
                 {
                     this.CreateIndicesFor(methodDef);
                     _methodDefs.Add(methodDef);
@@ -424,7 +424,7 @@ namespace Microsoft.Cci
 
             foreach (IPropertyDefinition propertyDef in typeDef.GetProperties(Context))
             {
-                if (!Context.Filter(propertyDef))
+                if (propertyDef.ShouldInclude(Context))
                 {
                     _propertyDefs.Add(propertyDef);
                 }

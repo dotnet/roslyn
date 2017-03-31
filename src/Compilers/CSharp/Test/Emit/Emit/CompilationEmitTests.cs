@@ -239,16 +239,6 @@ class Test2
         }
 
         [Fact]
-        public void IncludePrivateMembersRequiresEmitMetadataOnly()
-        {
-            Compilation comp = CreateCompilationWithMscorlib("");
-            comp.VerifyEmitDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(false).WithIncludePrivateMembers(false),
-                // error CS8357: Emit option 'IncludePrivateMembers' requires the EmitMetadataOnly option also be set.
-                Diagnostic(ErrorCode.ERR_RequiresMetadataOnly).WithArguments("IncludePrivateMembers").WithLocation(1, 1)
-                );
-        }
-
-        [Fact]
         public void RefAssembly_HasReferenceAssemblyAttribute()
         {
             var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
@@ -774,7 +764,7 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
             var class1TypeDef = (Cci.ITypeDefinition)class1;
 
             var symbolSynthesized = class1.GetSynthesizedExplicitImplementations(CancellationToken.None);
-            var context = new EmitContext(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag(), isRefAssembly: false);
             var cciExplicit = class1TypeDef.GetExplicitImplementationOverrides(context);
             var cciMethods = class1TypeDef.GetMethods(context).Where(m => ((MethodSymbol)m).MethodKind != MethodKind.Constructor);
 

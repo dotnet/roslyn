@@ -1732,7 +1732,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_NoRefOutWhenRefOnly = 37300
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 37301
-        ERR_RequiresMetadataOnly = 37302
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

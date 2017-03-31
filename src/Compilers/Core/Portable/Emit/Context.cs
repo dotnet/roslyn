@@ -10,8 +10,9 @@ namespace Microsoft.CodeAnalysis.Emit
         public readonly CommonPEModuleBuilder Module;
         public readonly SyntaxNode SyntaxNodeOpt;
         public readonly DiagnosticBag Diagnostics;
+        public readonly bool IsRefAssembly;
 
-        public EmitContext(CommonPEModuleBuilder module, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        public EmitContext(CommonPEModuleBuilder module, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, bool isRefAssembly)
         {
             Debug.Assert(module != null);
             Debug.Assert(diagnostics != null);
@@ -19,28 +20,12 @@ namespace Microsoft.CodeAnalysis.Emit
             Module = module;
             SyntaxNodeOpt = syntaxNodeOpt;
             Diagnostics = diagnostics;
+            IsRefAssembly = isRefAssembly;
         }
 
-        public bool Filter(IMethodDefinition method)
+        public EmitContext WithIsRefAssembly(bool isRefAssembly)
         {
-            if (method.IsVirtual)
-            {
-                return false;
-            }
-
-            return Filter((ITypeDefinitionMember) method);
-        }
-
-        public bool Filter(ITypeDefinitionMember member)
-        {
-            switch (member.Visibility)
-            {
-                case TypeMemberVisibility.Private:
-                    return !Module.EmitOptions.IncludePrivateMembers;
-                case TypeMemberVisibility.Assembly:
-                    return !Module.EmitOptions.IncludePrivateMembers && Module.SourceAssemblyOpt?.InternalsAreVisible == false;
-            }
-            return false;
+            return new EmitContext(this.Module, this.SyntaxNodeOpt, this.Diagnostics, isRefAssembly);
         }
     }
 }

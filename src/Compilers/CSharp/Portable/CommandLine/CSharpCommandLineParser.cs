@@ -1295,7 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var emitOptions = new EmitOptions
             (
                 metadataOnly: refOnly,
-                includePrivateMembers: !refOnly,
+                includePrivateMembers: !refOnly && outputRefFilePath == null,
                 debugInformationFormat: debugInformationFormat,
                 pdbFilePath: null, // to be determined later
                 outputNameOverride: null, // to be determined later

@@ -532,7 +532,7 @@ namespace Microsoft.Cci
             }
             else
             {
-                if (!Context.Filter(typeMember))
+                if (typeMember.ShouldInclude(Context))
                 {
                     this.Visit(typeMember.GetAttributes(Context));
                     typeMember.Dispatch(this);

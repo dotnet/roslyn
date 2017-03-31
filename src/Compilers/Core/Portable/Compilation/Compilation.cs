@@ -2517,7 +2517,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     if (SerializePeToStream(
-                        new EmitContext(moduleBeingBuilt, null, metadataDiagnostics),
+                        new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, isRefAssembly: metadataOnly && !includePrivateMembers),
                         this.MessageProvider,
                         getPeStream,
                         getRefPeStream,
@@ -2632,9 +2632,10 @@ namespace Microsoft.CodeAnalysis
             if (getMetadataPeStreamOpt != null)
             {
                 Debug.Assert(!metadataOnly);
+                Debug.Assert(!context.IsRefAssembly);
 
                 if (!Cci.PeWriter.WritePeToStream(
-                    context,
+                    context.WithIsRefAssembly(!includePrivateMembers),
                     messageProvider,
                     getMetadataPeStreamOpt,
                     getPortablePdbStreamOpt: null,
@@ -2673,7 +2674,7 @@ namespace Microsoft.CodeAnalysis
 
             using (nativePdbWriterOpt)
             {
-                var context = new EmitContext(moduleBeingBuilt, null, diagnostics);
+                var context = new EmitContext(moduleBeingBuilt, null, diagnostics, isRefAssembly: false);
                 var encId = Guid.NewGuid();
 
                 try

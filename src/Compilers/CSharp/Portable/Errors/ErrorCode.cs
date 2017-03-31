@@ -1475,6 +1475,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_NoRefOutWhenRefOnly = 8355,
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8356,
-        ERR_RequiresMetadataOnly = 8357,
     }
 }

@@ -1354,7 +1354,7 @@ lVbRuntimePlus:
 
             Dim emitOptions = New EmitOptions(
                 metadataOnly:=refOnly,
-                includePrivateMembers:=Not refOnly,
+                includePrivateMembers:=Not refOnly AndAlso outputRefFileName Is Nothing,
                 debugInformationFormat:=debugInformationFormat,
                 pdbFilePath:=Nothing, ' to be determined later
                 outputNameOverride:=Nothing,  ' to be determined later

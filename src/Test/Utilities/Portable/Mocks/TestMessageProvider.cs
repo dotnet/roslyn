@@ -354,8 +354,6 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public override int ERR_RequiresMetadataOnly => throw new NotImplementedException();
-
         public override int ERR_InvalidOutputName
         {
             get
