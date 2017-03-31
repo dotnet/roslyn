@@ -715,13 +715,103 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [Fact]
         public void MatchAllLowerPattern4()
         {
-            Assert.Null(TryMatchSingleWordPattern("AbcdefghijEfgHij", "efghij"));
+            Assert.NotNull(TryMatchSingleWordPattern("Abcdefghij[|EfgHij|]", "efghij"));
+        }
+
+        [Fact]
+        public void MatchAllLowerPattern5()
+        {
+            Assert.Null(TryMatchSingleWordPattern("Abcdefghijefghij", "efghij"));
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern1()
+        {
+            var result =TryMatchSingleWordPattern("[|Co|]de[|Fi|]x[|Pro|]vider", "cofipro");
+            Assert.NotNull(result);
+            Assert.Equal(PatternMatcher.CamelCaseMaxWeight, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern2()
+        {
+            Assert.NotNull(TryMatchSingleWordPattern("[|C|]lear[|Ofi|]lac[|Pro|]fessional", "cofipro"));
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern3()
+        {
+            Assert.NotNull(TryMatchSingleWordPattern("[|C|]ore[|Ofi|]lac[|Pro|]fessional", "cofipro"));
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern4()
+        {
+            var result = TryMatchSingleWordPattern("[|Co|]deFix[|Pro|]vider", "copro");
+            Assert.NotNull(result);
+            Assert.Equal(PatternMatcher.CamelCaseMatchesFromStartBonus, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern5()
+        {
+            var result = TryMatchSingleWordPattern("Code[|Fi|]x[|Pro|]vider", "fipro");
+            Assert.NotNull(result);
+            Assert.Equal(PatternMatcher.CamelCaseContiguousBonus, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern6()
+        {
+            var result = TryMatchSingleWordPattern("Code[|Fi|]xObject[|Pro|]vider", "fipro");
+            Assert.NotNull(result);
+            Assert.Equal(0, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern7()
+        {
+            var result = TryMatchSingleWordPattern("[|co|]deFix[|Pro|]vider", "copro");
+            Assert.NotNull(result);
+            Assert.Equal(PatternMatcher.CamelCaseMatchesFromStartBonus, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern8()
+        {
+            var result = TryMatchSingleWordPattern("_[|co|]deFix[|Pro|]vider", "copro");
+            Assert.NotNull(result);
+            Assert.Equal(0, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern9()
+        {
+            var result = TryMatchSingleWordPattern("[|Co|]deFix_[|Pro|]vider", "copro");
+            Assert.NotNull(result);
+            Assert.Equal(PatternMatcher.CamelCaseMatchesFromStartBonus, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void MatchAllLowerCamelCasePattern10()
+        {
+            var result = TryMatchSingleWordPattern("[|CO|]DE_FIX_[|PRO|]VIDER", "copro");
+            Assert.NotNull(result);
+            Assert.Equal(PatternMatcher.CamelCaseMatchesFromStartBonus, result.Value.CamelCaseWeight);
+        }
+
+        [Fact]
+        public void DoNotMatchAllLowerCamelCasePatternReordered()
+        {
+            // We could consider supporting this in the future.
+            var result = TryMatchSingleWordPattern("CodeFixObjectProvider", "ficopro");
+            Assert.Null(result);
         }
 
         private static IList<string> PartListToSubstrings(string identifier, StringBreaks parts)
         {
-            List<string> result = new List<string>();
-            for (int i = 0; i < parts.Count; i++)
+            var result = new List<string>();
+            for (var i = 0; i < parts.Count; i++)
             {
                 var span = parts[i];
                 result.Add(identifier.Substring(span.Start, span.Length));
@@ -731,14 +821,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         }
 
         private static IList<string> BreakIntoCharacterParts(string identifier)
-        {
-            return PartListToSubstrings(identifier, StringBreaker.BreakIntoCharacterParts(identifier));
-        }
+            => PartListToSubstrings(identifier, StringBreaker.BreakIntoCharacterParts(identifier));
 
         private static IList<string> BreakIntoWordParts(string identifier)
-        {
-            return PartListToSubstrings(identifier, StringBreaker.BreakIntoWordParts(identifier));
-        }
+            => PartListToSubstrings(identifier, StringBreaker.BreakIntoWordParts(identifier));
 
         private static PatternMatch? TryMatchSingleWordPattern(string candidate, string pattern)
         {

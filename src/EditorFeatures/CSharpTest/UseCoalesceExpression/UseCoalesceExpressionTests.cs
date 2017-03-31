@@ -361,5 +361,135 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestUnconstrainedTypeParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C<T>
+{
+    void Main(T t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestStructConstrainedTypeParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C<T> where T : struct
+{
+    void Main(T t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestClassConstrainedTypeParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C<T> where T : class
+{
+    void Main(T t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}",
+@"
+class C<T> where T : class
+{
+    void Main(T t)
+    {
+        var v = t ?? throw new Exception();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestNotOnNullable()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void Main(int? t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestOnArray()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void Main(int[] t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}",
+@"
+class C
+{
+    void Main(int[] t)
+    {
+        var v = t ?? throw new Exception();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestOnInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void Main(System.ICloneable t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}",
+@"
+class C
+{
+    void Main(System.ICloneable t)
+    {
+        var v = t ?? throw new Exception();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestOnDynamic()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void Main(dynamic t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}",
+@"
+class C
+{
+    void Main(dynamic t)
+    {
+        var v = t ?? throw new Exception();
+    }
+}");
+        }
     }
 }

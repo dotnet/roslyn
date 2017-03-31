@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
             public bool TryGetDocumentOption(Document document, OptionKey option, OptionSet underlyingOptions, out object value)
             {
-                var editorConfigPersistence = option.Option.StorageLocations.OfType<EditorConfigStorageLocation>().SingleOrDefault();
+                var editorConfigPersistence = option.Option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
                 if (editorConfigPersistence == null)
                 {
                     value = null;

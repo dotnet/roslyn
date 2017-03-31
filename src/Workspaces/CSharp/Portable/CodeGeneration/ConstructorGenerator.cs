@@ -73,16 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (declaration.ExpressionBody == null)
             {
-                var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
-                if (preferExpressionBody)
+                var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
+                if (declaration.Body.TryConvertToExpressionBody(
+                        options, expressionBodyPreference, out var expressionBody, out var semicolonToken))
                 {
-                    if (declaration.Body.TryConvertToExpressionBody(
-                            options, out var expressionBody, out var semicolonToken))
-                    {
-                        return declaration.WithBody(null)
-                                          .WithExpressionBody(expressionBody)
-                                          .WithSemicolonToken(semicolonToken);
-                    }
+                    return declaration.WithBody(null)
+                                      .WithExpressionBody(expressionBody)
+                                      .WithSemicolonToken(semicolonToken);
                 }
             }
 

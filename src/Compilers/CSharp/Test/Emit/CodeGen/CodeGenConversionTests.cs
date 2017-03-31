@@ -1068,5 +1068,32 @@ public interface IAaa
             var compilation = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true));
             CompileAndVerify(compilation);
         }
+
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void TestIdentityConversionNotLvalue()
+        {
+            var source = @"
+class Program
+{
+    struct S1
+    {
+        public int field;
+        public int Increment() => field++;
+    }
+
+    static void Main()
+    {
+        S1 v = default(S1);
+        v.Increment(); 
+
+        ((S1)v).Increment();
+
+        System.Console.WriteLine(v.field);
+    }
+}
+";
+            string expectedOutput = @"1";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
     }
 }

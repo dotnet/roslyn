@@ -3,6 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
+using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -39,30 +41,30 @@ namespace ConsoleApplication1
         }
     }");
 
-            PlaceCaret("class");
-            VerifyCurrentTokenType(tokenType: "keyword");
-            PlaceCaret("{");
-            VerifyCurrentTokenType(tokenType: "punctuation");
-            PlaceCaret("Program");
-            VerifyCurrentTokenType(tokenType: "class name");
-            PlaceCaret("Main");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Hello");
-            VerifyCurrentTokenType(tokenType: "string");
-            PlaceCaret("<summary", charsOffset: -1);
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("summary");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - name");
-            PlaceCaret("innertext");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - text");
-            PlaceCaret("comment");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
-            PlaceCaret("CDATA");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("cdata");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
-            PlaceCaret("attribute");
-            VerifyCurrentTokenType(tokenType: "identifier");
+            this.PlaceCaret("class");
+            this.VerifyCurrentTokenType(tokenType: "keyword");
+            this.PlaceCaret("{");
+            this.VerifyCurrentTokenType(tokenType: "punctuation");
+            this.PlaceCaret("Program");
+            this.VerifyCurrentTokenType(tokenType: "class name");
+            this.PlaceCaret("Main");
+            this.VerifyCurrentTokenType(tokenType: "identifier");
+            this.PlaceCaret("Hello");
+            this.VerifyCurrentTokenType(tokenType: "string");
+            this.PlaceCaret("<summary", charsOffset: -1);
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
+            this.PlaceCaret("summary");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - name");
+            this.PlaceCaret("innertext");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - text");
+            this.PlaceCaret("comment");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
+            this.PlaceCaret("CDATA");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
+            this.PlaceCaret("cdata");
+            this.VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
+            this.PlaceCaret("attribute");
+            this.VerifyCurrentTokenType(tokenType: "identifier");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -79,25 +81,25 @@ class Program : Attribute
         Program.Main(null);
     }
 }");
-            PlaceCaret("Attribute");
-            VerifyCurrentTokenType(tokenType: "class name");
-            PlaceCaret("list", charsOffset: 8);
-            VerifyCurrentTokenType(tokenType: "class name");
-            PlaceCaret("list", charsOffset: -8);
-            VerifyCurrentTokenType(tokenType: "class name");
-            PlaceCaret("null", charsOffset: -8);
-            VerifyCurrentTokenType(tokenType: "class name");
+            this.PlaceCaret("Attribute");
+            this.VerifyCurrentTokenType(tokenType: "class name");
+            this.PlaceCaret("list", charsOffset: 8);
+            this.VerifyCurrentTokenType(tokenType: "class name");
+            this.PlaceCaret("list", charsOffset: -8);
+            this.VerifyCurrentTokenType(tokenType: "class name");
+            this.PlaceCaret("null", charsOffset: -8);
+            this.VerifyCurrentTokenType(tokenType: "class name");
             Editor.MoveCaret(0);
-            DeleteText(@"using System;");
-            DeleteText(@"using System.Collections.Generic;");
-            PlaceCaret("Attribute");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("list", charsOffset: 8);
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("list", charsOffset: -8);
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("null", charsOffset: -8);
-            VerifyCurrentTokenType(tokenType: "class name");
+            this.DeleteText(@"using System;");
+            this.DeleteText(@"using System.Collections.Generic;");
+            this.PlaceCaret("Attribute");
+            this.VerifyCurrentTokenType(tokenType: "identifier");
+            this.PlaceCaret("list", charsOffset: 8);
+            this.VerifyCurrentTokenType(tokenType: "identifier");
+            this.PlaceCaret("list", charsOffset: -8);
+            this.VerifyCurrentTokenType(tokenType: "identifier");
+            this.PlaceCaret("null", charsOffset: -8);
+            this.VerifyCurrentTokenType(tokenType: "class name");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -120,18 +122,18 @@ namespace ClassLibrary1
     }
 }
 ");
-            ExecuteCommand("Build.SolutionConfigurations", argument: "Debug");
-            PlaceCaret("Foo");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Bar");
-            VerifyCurrentTokenType(tokenType: "excluded code");
-            Editor.MoveCaret(0);
-            ExecuteCommand("Build.SolutionConfigurations", argument: "Release");
-            PlaceCaret("Foo");
-            VerifyCurrentTokenType(tokenType: "excluded code");
-            PlaceCaret("Bar");
-            VerifyCurrentTokenType(tokenType: "identifier");
-        }
 
+            this.ExecuteCommand(WellKnownCommandNames.Build_SolutionConfigurations, argument: "Debug");
+            this.PlaceCaret("Foo");
+            this.VerifyCurrentTokenType(tokenType: "identifier");
+            this.PlaceCaret("Bar");
+            this.VerifyCurrentTokenType(tokenType: "excluded code");
+            Editor.MoveCaret(0);
+            this.ExecuteCommand("Build.SolutionConfigurations", argument: "Release");
+            this.PlaceCaret("Foo");
+            this.VerifyCurrentTokenType(tokenType: "excluded code");
+            this.PlaceCaret("Bar");
+            this.VerifyCurrentTokenType(tokenType: "identifier");
+        }
     }
 }

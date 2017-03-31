@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -12,7 +15,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         private readonly InteractiveWindow_InProc _interactiveWindowInProc;
 
         internal InteractiveWindow_OutOfProc(VisualStudioInstance visualStudioInstance)
-            : base (visualStudioInstance)
+            : base(visualStudioInstance)
         {
             _interactiveWindowInProc = (InteractiveWindow_InProc)_textViewWindowInProc;
         }
@@ -47,14 +50,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void Reset(bool waitForPrompt = true)
             => _interactiveWindowInProc.Reset(waitForPrompt);
 
-        public void SubmitText(string text, bool waitForPrompt = true)
-            => _interactiveWindowInProc.SubmitText(text, waitForPrompt);
+        public void SubmitText(string text)
+            => _interactiveWindowInProc.SubmitText(text);
 
         public void WaitForReplOutput(string outputText)
             => _interactiveWindowInProc.WaitForReplOutput(outputText);
 
-        public void WaitForReplOutputContains(string outputText)
-            => _interactiveWindowInProc.WaitForReplOutputContains(outputText);
+        public void WaitForLastReplOutputContains(string outputText)
+            => _interactiveWindowInProc.WaitForLastReplOutputContains(outputText);
+
+        public void WaitForLastReplOutput(string outputText)
+            => _interactiveWindowInProc.WaitForLastReplOutput(outputText);
+
+        public void WaitForLastReplInputContains(string outputText)
+            => _interactiveWindowInProc.WaitForLastReplInputContains(outputText);
 
         public void CloseInteractiveWindow()
             => _interactiveWindowInProc.CloseWindow();
@@ -64,5 +73,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void InsertCode(string text)
             => _interactiveWindowInProc.InsertCode(text);
+
+        public void SetTimeout(int milliseconds)
+            => _interactiveWindowInProc.SetTimeout(milliseconds);
+
+        public int GetTimeoutInMilliseconds()
+            => _interactiveWindowInProc.GetTimeoutInMilliseconds();
     }
 }

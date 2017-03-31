@@ -9,8 +9,8 @@ param (
     [switch]$skipTest = $false,
     [switch]$skipRestore = $false,
     [switch]$skipCommitPrinting = $false,
-    [switch]$release = $false
-)
+    [switch]$release = $false,
+    [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
@@ -46,6 +46,11 @@ function Terminate-BuildProcesses() {
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $repoDir
+
+    if ($badArgs -ne $null) {
+        Print-Usage
+        exit 1
+    }
 
     Write-Host "Parameters:"
     foreach ($k in $PSBoundParameters.Keys)  {
