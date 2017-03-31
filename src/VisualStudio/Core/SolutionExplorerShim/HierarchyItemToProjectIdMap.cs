@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -28,9 +29,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return false;
             }
 
+            var nestedHierarchy = hierarchyItem.HierarchyIdentity.NestedHierarchy;
+            var nestedHierarchyId = hierarchyItem.HierarchyIdentity.NestedItemID;
+
+            if (!nestedHierarchy.TryGetCanonicalName(nestedHierarchyId, out string nestedCanonicalName))
+            {
+                projectId = default(ProjectId);
+                return false;
+            }
+
             var project = _workspace.DeferredState.ProjectTracker.ImmutableProjects
-                    .Where(p => p.Hierarchy == hierarchyItem.HierarchyIdentity.NestedHierarchy)
-                    .Where(p => p.ProjectSystemName == hierarchyItem.CanonicalName)
+                    .Where(p =>
+                    {
+                        return p.Hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out string projectCanonicalName)
+                            && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase);
+                    })
                     .SingleOrDefault();
 
             if (project == null)
