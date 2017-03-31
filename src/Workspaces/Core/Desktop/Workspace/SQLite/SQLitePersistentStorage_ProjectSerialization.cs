@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 if (TryGetProjectDataId(project, name, out var dataId, connection))
                 {
                     // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
-                    FlushPendingProjectWrites(connection, project.Id);
+                    FlushPendingProjectWrites(connection, project.Id, name);
 
                     try
                     {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 var bytes = GetBytes(stream);
 
-                AddProjectWriteTask(project.Id, con =>
+                AddProjectWriteTask(project.Id, name, con =>
                 {
                     con.InsertOrReplace(
                         new ProjectData { Id = dataId, Data = bytes });

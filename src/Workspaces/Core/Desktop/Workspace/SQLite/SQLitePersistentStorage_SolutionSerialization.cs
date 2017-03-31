@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
                 var connection = CreateConnection();
-                FlushPendingSolutionWrites(connection);
+                FlushPendingSolutionWrites(name, connection);
 
                 try
                 {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 var bytes = GetBytes(stream);
 
-                AddSolutionWriteTask(con =>
+                AddSolutionWriteTask(name, con =>
                 {
                     con.InsertOrReplace(
                         new SolutionData { Id = name, Data = bytes });

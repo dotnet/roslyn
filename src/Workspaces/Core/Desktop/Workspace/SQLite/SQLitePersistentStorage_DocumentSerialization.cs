@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 if (TryGetDocumentDataId(document, name, out var dataId, connection))
                 {
                     // Ensure all pending writes are flushed to the DB so that we can locate them if asked to.
-                    FlushPendingDocumentWrites(connection, document.Id);
+                    FlushPendingDocumentWrites(connection, document.Id, name);
 
                     try
                     {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 var bytes = GetBytes(stream);
 
-                AddDocumentWriteTask(document.Id, con =>
+                AddDocumentWriteTask(document.Id, name, con =>
                 {
                     // Add the data to the DocumentData table, overwriting existing data with this ID
                     // if it exists.

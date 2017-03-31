@@ -23,38 +23,38 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// <summary>
         /// Queue of actions we want to perform all at once against the DB in a single transaction.
         /// </summary>
-        private readonly List<Action<SQLiteConnection>> _solutionWriteQueue = new List<Action<SQLiteConnection>>();
-        private readonly MultiDictionary<ProjectId, Action<SQLiteConnection>> _projectWriteQueue = new MultiDictionary<ProjectId, Action<SQLiteConnection>>();
-        private readonly MultiDictionary<DocumentId, Action<SQLiteConnection>> _documentWriteQueue = new MultiDictionary<DocumentId, Action<SQLiteConnection>>();
+        private readonly MultiDictionary<string, Action<SQLiteConnection>> _solutionWriteQueue = new MultiDictionary<string, Action<SQLiteConnection>>();
+        private readonly MultiDictionary<(ProjectId, string), Action<SQLiteConnection>> _projectWriteQueue = new MultiDictionary<(ProjectId, string), Action<SQLiteConnection>>();
+        private readonly MultiDictionary<(DocumentId, string), Action<SQLiteConnection>> _documentWriteQueue = new MultiDictionary<(DocumentId, string), Action<SQLiteConnection>>();
 
         /// <summary>
         /// Task kicked off to actually do the writing.
         /// </summary>
         private Task _writeQueueTask;
 
-        private void AddSolutionWriteTask(Action<SQLiteConnection> action)
+        private void AddSolutionWriteTask(string name, Action<SQLiteConnection> action)
         {
             lock (_writeQueueGate)
             {
-                _solutionWriteQueue.Add(action);
+                _solutionWriteQueue.Add(name, action);
                 CreateWriteTaskIfNecessary();
             }
         }
 
-        private void AddProjectWriteTask(ProjectId projectId, Action<SQLiteConnection> action)
+        private void AddProjectWriteTask(ProjectId projectId, string name, Action<SQLiteConnection> action)
         {
             lock (_writeQueueGate)
             {
-                _projectWriteQueue.Add(projectId, action);
+                _projectWriteQueue.Add((projectId, name), action);
                 CreateWriteTaskIfNecessary();
             }
         }
 
-        private void AddDocumentWriteTask(DocumentId documentId, Action<SQLiteConnection> action)
+        private void AddDocumentWriteTask(DocumentId documentId, string name, Action<SQLiteConnection> action)
         {
             lock (_writeQueueGate)
             {
-                _documentWriteQueue.Add(documentId, action);
+                _documentWriteQueue.Add((documentId, name), action);
                 CreateWriteTaskIfNecessary();
             }
         }
@@ -76,15 +76,15 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private void FlushPendingSolutionWrites(SQLiteConnection connection)
+        private void FlushPendingSolutionWrites(string name, SQLiteConnection connection)
         {
             var writesToProcess = ArrayBuilder<Action<SQLiteConnection>>.GetInstance();
             try
             {
                 lock (_writeQueueGate)
                 {
-                    writesToProcess.AddRange(_solutionWriteQueue);
-                    _solutionWriteQueue.Clear();
+                    writesToProcess.AddRange(_solutionWriteQueue[name]);
+                    _solutionWriteQueue.Remove(name);
                 }
 
                 ProcessWriteQueue(connection, writesToProcess);
@@ -95,15 +95,16 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private void FlushPendingProjectWrites(SQLiteConnection connection, ProjectId projectId)
+        private void FlushPendingProjectWrites(SQLiteConnection connection, ProjectId projectId, string name)
         {
             var writesToProcess = ArrayBuilder<Action<SQLiteConnection>>.GetInstance();
             try
             {
                 lock (_writeQueueGate)
                 {
-                    writesToProcess.AddRange(_projectWriteQueue[projectId]);
-                    _projectWriteQueue.Remove(projectId);
+                    var tuple = (projectId, name);
+                    writesToProcess.AddRange(_projectWriteQueue[tuple]);
+                    _projectWriteQueue.Remove(tuple);
                 }
 
                 ProcessWriteQueue(connection, writesToProcess);
@@ -114,15 +115,16 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private void FlushPendingDocumentWrites(SQLiteConnection connection, DocumentId documentId)
+        private void FlushPendingDocumentWrites(SQLiteConnection connection, DocumentId documentId, string name)
         {
             var writesToProcess = ArrayBuilder<Action<SQLiteConnection>>.GetInstance();
             try
             {
                 lock (_writeQueueGate)
                 {
-                    writesToProcess.AddRange(_documentWriteQueue[documentId]);
-                    _documentWriteQueue.Remove(documentId);
+                    var tuple = (documentId, name);
+                    writesToProcess.AddRange(_documentWriteQueue[tuple]);
+                    _documentWriteQueue.Remove(tuple);
                 }
 
                 ProcessWriteQueue(connection, writesToProcess);
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 lock (_writeQueueGate)
                 {
                     // Copy the work from the shared collections to the local copy.
-                    writesToProcess.AddRange(_solutionWriteQueue);
+                    writesToProcess.AddRange(_solutionWriteQueue.SelectMany(kvp => kvp.Value));
                     writesToProcess.AddRange(_projectWriteQueue.SelectMany(kvp => kvp.Value));
                     writesToProcess.AddRange(_documentWriteQueue.SelectMany(kvp => kvp.Value));
 
