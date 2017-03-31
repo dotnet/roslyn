@@ -4,7 +4,6 @@ using System;
 using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.Isam.Esent.Interop;
@@ -12,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Esent
 {
-    internal partial class EsentPersistentStorageService : AbstractPersistentStorageService<EsentAccessDeniedException>
+    internal partial class EsentPersistentStorageService : AbstractPersistentStorageService
     {
         private const string StorageExtension = "vbcs.cache";
         private const string PersistentStorageFileName = "storage.ide";
@@ -39,11 +38,11 @@ namespace Microsoft.CodeAnalysis.Esent
             => new EsentPersistentStorage(OptionService,
                 workingFolderPath, solution.FilePath, GetDatabaseFilePath(workingFolderPath), this.Release);
 
-        protected override bool ShouldDeleteDatabase(EsentAccessDeniedException ex)
+        protected override bool ShouldDeleteDatabase(Exception exception)
         {
             // Access denied can happen when some other process is holding onto the DB.
-            // Don't want to delete it in that case.
-            return false;
+            // Don't want to delete it in that case.  For all other cases, delete the db.
+            return !(exception is EsentAccessDeniedException);
         }
     }
 }

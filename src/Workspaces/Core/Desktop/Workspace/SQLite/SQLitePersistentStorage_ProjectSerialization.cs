@@ -17,16 +17,23 @@ namespace Microsoft.CodeAnalysis.SQLite
             cancellationToken.ThrowIfCancellationRequested();
 
             ProjectData projectData = null;
-            if (!_shutdownTokenSource.IsCancellationRequested &&
-                TryGetProjectDataId(project, name, out var dataId))
+            if (!_shutdownTokenSource.IsCancellationRequested)
             {
-                try
+                var connection = CreateConnection();
+                if (TryGetProjectDataId(project, name, out var dataId, connection))
                 {
-                    projectData = CreateConnection().Find<ProjectData>(dataId);
-                }
-                catch (Exception ex)
-                {
-                    StorageDatabaseLogger.LogException(ex);
+                    // Ensure all pending project writes to this name are flushed to the DB so that 
+                    // we can find them below.
+                    FlushPendingProjectWrites(connection, project.Id, name);
+
+                    try
+                    {
+                        projectData = connection.Find<ProjectData>(dataId);
+                    }
+                    catch (Exception ex)
+                    {
+                        StorageDatabaseLogger.LogException(ex);
+                    }
                 }
             }
 
@@ -39,11 +46,11 @@ namespace Microsoft.CodeAnalysis.SQLite
             cancellationToken.ThrowIfCancellationRequested();
 
             if (!_shutdownTokenSource.IsCancellationRequested &&
-                TryGetProjectDataId(project, name, out var dataId))
+                TryGetProjectDataId(project, name, out var dataId, connectionOpt: null))
             {
                 var bytes = GetBytes(stream);
 
-                AddWriteTask(con =>
+                AddProjectWriteTask(project.Id, name, con =>
                 {
                     con.InsertOrReplace(
                         new ProjectData { Id = dataId, Data = bytes });
