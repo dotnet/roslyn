@@ -1066,6 +1066,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
+            Dim inferredNames As ImmutableArray(Of Boolean) = literal.InferredNamesOpt
+            Dim noInferredNames As Boolean = inferredNames.IsDefault
             Dim destinationNames As ImmutableArray(Of String) = destination.TupleElementNames
             Dim sourceLength As Integer = sourceNames.Length
             Dim allMissing As Boolean = destinationNames.IsDefault
@@ -1073,7 +1075,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             For i = 0 To sourceLength - 1
                 Dim sourceName = sourceNames(i)
-                If sourceName IsNot Nothing AndAlso (allMissing OrElse String.CompareOrdinal(destinationNames(i), sourceName) <> 0) Then
+                Dim wasInferred = If(noInferredNames, False, inferredNames(i))
+
+                If sourceName IsNot Nothing AndAlso Not wasInferred AndAlso (allMissing OrElse String.CompareOrdinal(destinationNames(i), sourceName) <> 0) Then
                     diagnostics.Add(ERRID.WRN_TupleLiteralNameMismatch, literal.Arguments(i).Syntax.Parent.Location, sourceName, destination)
                 End If
             Next

@@ -648,7 +648,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         locations.Add(argumentSyntax.GetLocation)
                     End If
 
-                    Binder.CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
+                    Binder.CollectTupleFieldMemberName(name, i, numElements, elementNames)
                 Next
 
                 If hasExplicitNames Then

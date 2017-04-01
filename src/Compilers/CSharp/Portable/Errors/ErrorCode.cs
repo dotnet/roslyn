@@ -1472,5 +1472,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion7_1 = 8302,
         ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
         ERR_CompilerAndLanguageVersion = 8304,
+        ERR_TupleInferredNamesNotAvailable = 8305,
     }
 }

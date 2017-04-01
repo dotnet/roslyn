@@ -3524,6 +3524,183 @@ class C
         }
 
         [Fact]
+        public void TupleCreationWithInferredNamesWithCSharp7()
+        {
+            var source = @"
+class C
+{
+    int e = 5;
+    int f = 6;
+    C instance = null;
+    void M()
+    {
+        int a = 1;
+        int b = 3;
+        int Item4 = 4;
+        int g = 7;
+        int Rest = 9;
+        (int x, int, int b, int, int, int, int f, int, int, int) y = (a, (a), b: 2, b, Item4, instance.e, this.f, g, g, Rest);
+        var z = (x: b, b);
+        System.Console.Write(y);
+        System.Console.Write(z);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var yTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+                Assert.Equal("(System.Int32, System.Int32, System.Int32 b, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)",
+                    model.GetTypeInfo(yTuple).Type.ToTestDisplayString());
+
+                var zTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
+                Assert.Equal("(System.Int32 x, System.Int32)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MissingMemberAccessWithCSharp7()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int a = 1;
+        var t = (a, 2);
+        System.Console.Write(t.a);
+        System.Console.Write(GetTuple().a);
+    }
+    (int, int) GetTuple()
+    {
+        return (1, 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (8,32): error CS8305: Tuple type '(int, int)' does not have an explicitly named element 'a'. Please use language version 7.1 or greater to access a unnamed element by its inferred name.
+                //         System.Console.Write(t.a);
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "a").WithArguments("(int, int)", "a", "7.1").WithLocation(8, 32),
+                // (9,41): error CS1061: '(int, int)' does not contain a definition for 'a' and no extension method 'a' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(GetTuple().a);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a").WithArguments("(int, int)", "a").WithLocation(9, 41)
+                );
+        }
+
+        [Fact]
+        public void MissingMemberAccessWithCSharp7_1()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int a = 1;
+        var t = (a, 2);
+        System.Console.Write(t.b);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (8,32): error CS1061: '(int, int)' does not contain a definition for 'b' and no extension method 'b' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(t.b);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "b").WithArguments("(int, int)", "b").WithLocation(8, 32)
+                );
+        }
+
+        [Fact]
+        public void TupleCreationWithInferredNames()
+        {
+            var source = @"
+class C
+{
+    int e = 5;
+    int f = 6;
+    C instance = null;
+    void M()
+    {
+        int a = 1;
+        int b = 3;
+        int Item4 = 4;
+        int g = 7;
+        int Rest = 9;
+        (int x, int, int b, int, int, int, int f, int, int, int) y = (a, (a), b: 2, b, Item4, instance.e, this.f, g, g, Rest);
+        var z = (x: b, b);
+        System.Console.Write(y);
+        System.Console.Write(z);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var yTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+                Assert.Equal("(System.Int32 a, System.Int32, System.Int32 b, System.Int32, System.Int32, System.Int32 e, System.Int32 f, System.Int32, System.Int32, System.Int32)",
+                    model.GetTypeInfo(yTuple).Type.ToTestDisplayString());
+
+                var zTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
+                Assert.Equal("(System.Int32 x, System.Int32 b)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InferredNamesInLinq()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int f1 = 0;
+    int f2 = 1;
+    static void M(IEnumerable<C> list)
+    {
+        var result = list.Select(c => (c.f1, c.f2)).Where(t => t.f2 == 1); // t and result have names f1 and f2
+        System.Console.Write(result.Count());
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var result = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "result").Single();
+                var resultSymbol = model.GetDeclaredSymbol(result);
+                Assert.Equal("System.Collections.Generic.IEnumerable<(System.Int32 f1, System.Int32 f2)> result", resultSymbol.ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, LinqAssemblyRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void LongTupleWithArgumentEvaluation()
         {
             var source = @"

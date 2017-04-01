@@ -4578,28 +4578,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTupleLiteral : BoundTupleExpression
     {
-        public BoundTupleLiteral(SyntaxNode syntax, ImmutableArray<string> argumentNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
+        public BoundTupleLiteral(SyntaxNode syntax, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.TupleLiteral, syntax, arguments, type, hasErrors || arguments.HasErrors())
         {
 
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.ArgumentNamesOpt = argumentNamesOpt;
+            this.InferredNamesOpt = inferredNamesOpt;
         }
 
 
         public ImmutableArray<string> ArgumentNamesOpt { get; }
+
+        public ImmutableArray<bool> InferredNamesOpt { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitTupleLiteral(this);
         }
 
-        public BoundTupleLiteral Update(ImmutableArray<string> argumentNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
+        public BoundTupleLiteral Update(ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
         {
-            if (argumentNamesOpt != this.ArgumentNamesOpt || arguments != this.Arguments || type != this.Type)
+            if (argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || arguments != this.Arguments || type != this.Type)
             {
-                var result = new BoundTupleLiteral(this.Syntax, argumentNamesOpt, arguments, type, this.HasErrors);
+                var result = new BoundTupleLiteral(this.Syntax, argumentNamesOpt, inferredNamesOpt, arguments, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8988,7 +8991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.ArgumentNamesOpt, arguments, type);
+            return node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, type);
         }
         public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
@@ -10362,6 +10365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("tupleLiteral", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
+                new TreeDumperNode("inferredNamesOpt", node.InferredNamesOpt, null),
                 new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
                 new TreeDumperNode("type", node.Type, null)
             }
