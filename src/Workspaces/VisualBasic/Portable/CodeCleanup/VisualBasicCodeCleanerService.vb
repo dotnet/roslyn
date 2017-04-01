@@ -25,11 +25,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
 
         Protected Overrides Function GetSpansToAvoid(root As SyntaxNode) As ImmutableArray(Of TextSpan)
             ' We don't want to touch nodes in the document that have syntax errors on them and which
-            ' contain String literals.  It's quite possible that there is some string literal on a 
-            ' previous line that was intended to be terminated on that line, but which wasn't.  The
-            ' string may then have terminated on this line (because of the start of another literal)
-            ' causing the literal contents to then be considered code.  We don't want to cleanup
-            ' 'code' that the user intends to be the content of a string literal.
+            ' contain multi-line string literals.  It's quite possible that there is some string 
+            ' literal on a previous line that was intended to be terminated on that line, but which
+            ' wasn't.  The string may then have terminated on this line (because of the start of 
+            ' another literal) causing the literal contents to then be considered code.  We don't 
+            ' want to cleanup 'code' that the user intends to be the content of a string literal.
 
             Dim result = ArrayBuilder(Of TextSpan).GetInstance()
 
