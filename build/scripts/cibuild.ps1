@@ -111,14 +111,14 @@ try {
         # Check if we have credentials to upload to benchview
         $extraArgs = ""
         if ((Test-Path env:\GIT_BRANCH) -and (Test-Path env:\BV_UPLOAD_SAS_TOKEN)) {
-            $extraArgs = "--report-benchview --branch $($env:GIT_BRANCH)"
+            $extraArgs = "--report-benchview --branch $env:GIT_BRANCH"
 
             # Check if we are in a PR or this is a rolling submission
             if (Test-Path env:\ghprbPullTitle) {
-                $extraArgs = '$($extraArgs) --benchview-submission-name "[$($env:ghprbPullAuthorLogin)] PR $($env:ghprbPullId): $($env:ghprbPullTitle)" --benchview-submission-type private'
+                $extraArgs = "$extraArgs --benchview-submission-name '[$env:ghprbPullAuthorLogin] PR $env:ghprbPullId: $env:ghprbPullTitle' --benchview-submission-type private"
             } 
             else {
-                $extraArgs = '$(4extraArgs) --benchview-submission-type rolling'
+                $extraArgs = "$extraArgs --benchview-submission-type rolling"
             }
 
             Create-Directory ".\Binaries\$buildConfiguration\tools\"
