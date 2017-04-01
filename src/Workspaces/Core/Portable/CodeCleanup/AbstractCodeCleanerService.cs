@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 if (CleanupWholeNode(root.FullSpan, normalizedSpan))
                 {
                     // We are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(document, document, r => SpecializedCollections.SingletonEnumerable(r.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
+                    return await IterateAllCodeCleanupProvidersAsync(document, document, r => ImmutableArray.Create(r.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 if (newNodeAndAnnotations.newNode == null)
                 {
                     // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(document, document, n => SpecializedCollections.SingletonEnumerable(n.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
+                    return await IterateAllCodeCleanupProvidersAsync(document, document, n => ImmutableArray.Create(n.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 var model = await document.GetSemanticModelForSpanAsync(spans.Collapse(), cancellationToken).ConfigureAwait(false);
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 if (CleanupWholeNode(root.FullSpan, normalizedSpan))
                 {
                     // We are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(root, root, r => SpecializedCollections.SingletonEnumerable(r.FullSpan), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
+                    return await IterateAllCodeCleanupProvidersAsync(root, root, r => ImmutableArray.Create(r.FullSpan), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 var syntaxFactsService = workspace.Services.GetLanguageServices(root.Language).GetService<ISyntaxFactsService>();
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 if (newNodeAndAnnotations.newNode == null)
                 {
                     // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(root, root, n => SpecializedCollections.SingletonEnumerable(n.FullSpan), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
+                    return await IterateAllCodeCleanupProvidersAsync(root, root, n => ImmutableArray.Create(n.FullSpan), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Replace the initial node and document with the annotated node.
@@ -112,12 +113,14 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
         }
 
-        private IEnumerable<TextSpan> GetTextSpansFromAnnotation(
+        private ImmutableArray<TextSpan> GetTextSpansFromAnnotation(
             SyntaxNode node,
             List<(SyntaxAnnotation previousAnnotation, SyntaxAnnotation nextAnnotation)> annotations,
             CancellationToken cancellationToken)
         {
             // Now try to retrieve the text span from the annotations injected into the node.
+            var builder = ArrayBuilder<TextSpan>.GetInstance();
+
             foreach (var annotationPair in annotations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -135,9 +138,11 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 if (TryGetTextSpanFromAnnotation(previousTokenMarker, nextTokenMarker, node, previousTokens, nextTokens,
                         out var span))
                 {
-                    yield return span;
+                    builder.Add(span);
                 }
             }
+
+            return builder.ToImmutableAndFree();
         }
 
         private bool TryGetTextSpanFromAnnotation(
@@ -450,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private async Task<Document> IterateAllCodeCleanupProvidersAsync(
             Document originalDocument,
             Document annotatedDocument,
-            Func<SyntaxNode, IEnumerable<TextSpan>> spanGetter,
+            Func<SyntaxNode, ImmutableArray<TextSpan>> spanGetter,
             IEnumerable<ICodeCleanupProvider> codeCleaners,
             CancellationToken cancellationToken)
         {
@@ -458,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 var currentDocument = annotatedDocument;
                 Document previousDocument = null;
-                IEnumerable<TextSpan> spans = null;
+                var spans = ImmutableArray<TextSpan>.Empty;
 
 #if DEBUG
                 bool originalDocHasErrors = await annotatedDocument.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
@@ -515,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private async Task<SyntaxNode> IterateAllCodeCleanupProvidersAsync(
             SyntaxNode originalRoot,
             SyntaxNode annotatedRoot,
-            Func<SyntaxNode, IEnumerable<TextSpan>> spanGetter,
+            Func<SyntaxNode, ImmutableArray<TextSpan>> spanGetter,
             Workspace workspace,
             IEnumerable<ICodeCleanupProvider> codeCleaners,
             CancellationToken cancellationToken)
@@ -524,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 var currentRoot = annotatedRoot;
                 SyntaxNode previousRoot = null;
-                IEnumerable<TextSpan> spans = null;
+                var spans = ImmutableArray<TextSpan>.Empty;
 
                 var current = 0;
                 var count = codeCleaners.Count();
