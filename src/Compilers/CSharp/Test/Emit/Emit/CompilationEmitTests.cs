@@ -275,6 +275,7 @@ class Test2
         [InlineData("private void M() { }", "", Match.RefOut)]
         [InlineData("internal void M() { }", "", Match.RefOut)]
         [InlineData("private void M() { dynamic x = 1; }", "", Match.RefOut)] // no reference added from method bodies
+        [InlineData(@"private void M() { var x = new { id = 1 }; }", "", Match.RefOut)]
         [InlineData("private int P { get { Error(); } set { Error(); } }", "", Match.RefOut)] // errors in methods bodies don't matter
         [InlineData("public int P { get; set; }", "", Match.Different)]
         [InlineData("protected int P { get; set; }", "", Match.Different)]
@@ -560,45 +561,88 @@ public class C
         public void VerifyRefAssembly()
         {
             string source = @"
-public abstract class PublicClass
+public class PublicClass
 {
-    public void PublicMethod() { System.Console.Write(""Hello""); }
+    public void PublicMethod() { System.Console.Write(new { anonymous = 1 }); }
     private void PrivateMethod() { System.Console.Write(""Hello""); }
     protected void ProtectedMethod() { System.Console.Write(""Hello""); }
     internal void InternalMethod() { System.Console.Write(""Hello""); }
-    public abstract void AbstractMethod();
 }
 ";
             CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
-            var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
+            // verify metadata (types, members, attributes) of the regular assembly
+            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: true);
 
-            var verifier = CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
-
-            // verify metadata (types, members, attributes)
-            var image = comp.EmitToImageReference(emitRefOnly);
-            var comp2 = CreateCompilation("", references: new[] { MscorlibRef, image },
+            var realImage = comp.EmitToImageReference(EmitOptions.Default);
+            var compWithReal = CreateCompilation("", references: new[] { MscorlibRef, realImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            AssemblySymbol assembly = comp2.SourceModule.GetReferencedAssemblySymbols().Last();
-            var members = assembly.GlobalNamespace.GetMembers();
-            AssertEx.SetEqual(members.Select(m => m.ToDisplayString()),
-                new[] { "<Module>", "PublicClass" });
+            AssertEx.SetEqual(
+                compWithReal.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()),
+                new[] { "<Module>", "<>f__AnonymousType0<<anonymous>j__TPar>", "PublicClass" });
 
             AssertEx.SetEqual(
-                ((NamedTypeSymbol)assembly.GlobalNamespace.GetMember("PublicClass")).GetMembers()
+                ((NamedTypeSymbol)compWithReal.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMember("PublicClass")).GetMembers()
                     .Select(m => m.ToTestDisplayString()),
                 new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
                     "void PublicClass.InternalMethod()", "void PublicClass.ProtectedMethod()",
-                    "void PublicClass.AbstractMethod()", "PublicClass..ctor()" });
+                    "PublicClass..ctor()" });
 
-            AssertEx.SetEqual(assembly.GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()),
+            AssertEx.SetEqual(compWithReal.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()),
                 new[] { "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
                     "System.Diagnostics.DebuggableAttribute" });
 
-            var peImage = comp.EmitToArray(emitRefOnly);
-            MetadataReaderUtils.AssertEmptyOrThrowNull(peImage);
+            // verify metadata (types, members, attributes) of the metadata-only assembly
+            var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
+            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: true);
+
+            var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
+            var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataImage },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            AssertEx.SetEqual(
+                compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()),
+                new[] { "<Module>", "PublicClass" });
+
+            AssertEx.SetEqual(
+                ((NamedTypeSymbol)compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMember("PublicClass")).GetMembers()
+                    .Select(m => m.ToTestDisplayString()),
+                new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
+                    "void PublicClass.InternalMethod()", "void PublicClass.ProtectedMethod()",
+                    "PublicClass..ctor()" });
+
+            AssertEx.SetEqual(compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()),
+                new[] { "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute" });
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitMetadataOnly));
+
+            // verify metadata (types, members, attributes) of the metadata-only assembly
+            var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+
+            var refImage = comp.EmitToImageReference(emitRefOnly);
+            var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            AssertEx.SetEqual(
+                compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()),
+                new[] { "<Module>", "PublicClass" });
+
+            AssertEx.SetEqual(
+                ((NamedTypeSymbol)compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMember("PublicClass")).GetMembers()
+                    .Select(m => m.ToTestDisplayString()),
+                new[] { "void PublicClass.PublicMethod()", "void PublicClass.ProtectedMethod()", "PublicClass..ctor()" });
+
+            AssertEx.SetEqual(compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()),
+                new[] {
+                    "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute",
+                    "System.Runtime.CompilerServices.ReferenceAssemblyAttribute" });
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly));
         }
         [Fact]
         public void EmitMetadataOnly_DisallowPdbs()
