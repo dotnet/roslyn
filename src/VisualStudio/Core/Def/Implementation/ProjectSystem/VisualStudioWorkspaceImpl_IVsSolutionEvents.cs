@@ -92,8 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal static bool IsDeferredSolutionLoadEnabled(IServiceProvider serviceProvider)
         {
-            // NOTE: It is expected that the "as" will fail on Dev14, as IVsSolution7 was
-            // introduced in Dev15.  Be sure to handle the null result here.
             var solution7 = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution7;
             return solution7?.IsSolutionLoadDeferred() == true;
         }
