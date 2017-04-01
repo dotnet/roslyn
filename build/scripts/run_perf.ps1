@@ -16,7 +16,7 @@ Invoke-WebRequest -Uri http://dotnetci.blob.core.windows.net/roslyn-perf/cpc.zip
 [Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem') | Out-Null
 [IO.Compression.ZipFile]::ExtractToDirectory('cpc.zip', $CPCLocation)
 
-./cibuild.cmd /testPerfRun /release
+./build/scripts/cibuild.cmd /testPerfRun /release
 if ($LASTEXITCODE -ne 0)
 {
     exit $LASTEXITCODE
