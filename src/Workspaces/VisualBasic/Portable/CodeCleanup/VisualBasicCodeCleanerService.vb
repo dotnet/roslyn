@@ -40,6 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
 
         Private Sub ProcessNode(root As SyntaxNode, node As SyntaxNode, result As ArrayBuilder(Of TextSpan))
             If Not node.ContainsDiagnostics Then
+                ' Don't bother going down nodes that don't have any syntax errors in them.
                 Return
             End If
 
@@ -56,14 +57,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
             If token.ContainsDiagnostics Then
                 Dim parentMultiLineNode = If(GetMultiLineContainer(token.Parent), root)
 
-                If ContainsStringLiteral(parentMultiLineNode) Then
+                If ContainsMultiLineStringLiteral(parentMultiLineNode) Then
                     result.Add(parentMultiLineNode.FullSpan)
                 End If
             End If
         End Sub
 
-        Private Function ContainsStringLiteral(node As SyntaxNode) As Boolean
-            Return node.DescendantTokens().Any(Function(t) t.Kind() = SyntaxKind.StringLiteralToken)
+        Private Function ContainsMultiLineStringLiteral(node As SyntaxNode) As Boolean
+            Return node.DescendantTokens().Any(
+                Function(t)
+                    Return t.Kind() = SyntaxKind.StringLiteralToken AndAlso
+                           Not VisualBasicSyntaxFactsService.Instance.IsOnSingleLine(t.Parent, fullSpan:=False)
+                End Function)
         End Function
 
         Private Function GetMultiLineContainer(node As SyntaxNode) As SyntaxNode
