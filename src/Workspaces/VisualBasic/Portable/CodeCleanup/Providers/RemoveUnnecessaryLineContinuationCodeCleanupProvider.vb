@@ -43,14 +43,14 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Private ReadOnly _tokens As New Dictionary(Of SyntaxToken, SyntaxToken)
 
             Private ReadOnly _root As SyntaxNode
-            Private ReadOnly _spans As IEnumerable(Of TextSpan)
+            Private ReadOnly _spans As ImmutableArray(Of TextSpan)
 
-            Public Shared Function Process(root As SyntaxNode, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken) As SyntaxNode
+            Public Shared Function Process(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As SyntaxNode
                 Dim replacer = New Replacer(root, spans)
                 Return replacer.Do(cancellationToken)
             End Function
 
-            Private Sub New(root As SyntaxNode, spans As IEnumerable(Of TextSpan))
+            Private Sub New(root As SyntaxNode, spans As ImmutableArray(Of TextSpan))
                 _root = root
                 _spans = spans
             End Sub

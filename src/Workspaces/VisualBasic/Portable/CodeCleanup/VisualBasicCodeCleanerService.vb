@@ -8,10 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
     Partial Friend Class VisualBasicCodeCleanerService
         Inherits AbstractCodeCleanerService
 
-        Private Shared ReadOnly s_defaultProviders As IEnumerable(Of ICodeCleanupProvider)
-
-        Shared Sub New()
-            s_defaultProviders = ImmutableArray.Create(Of ICodeCleanupProvider)(
+        Private Shared ReadOnly s_defaultProviders As ImmutableArray(Of ICodeCleanupProvider) = ImmutableArray.Create(Of ICodeCleanupProvider)(
                 New AddMissingTokensCodeCleanupProvider(),
                 New FixIncorrectTokensCodeCleanupProvider(),
                 New ReduceTokensCodeCleanupProvider(),
@@ -19,13 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                 New RemoveUnnecessaryLineContinuationCodeCleanupProvider(),
                 New CaseCorrectionCodeCleanupProvider(),
                 New SimplificationCodeCleanupProvider(),
-                New FormatCodeCleanupProvider()
-            )
+                New FormatCodeCleanupProvider())
 
-            System.Diagnostics.Debug.Assert(s_defaultProviders.Count > 0)
-        End Sub
-
-        Public Overrides Function GetDefaultProviders() As IEnumerable(Of ICodeCleanupProvider)
+        Public Overrides Function GetDefaultProviders() As ImmutableArray(Of ICodeCleanupProvider)
             Return s_defaultProviders
         End Function
     End Class
