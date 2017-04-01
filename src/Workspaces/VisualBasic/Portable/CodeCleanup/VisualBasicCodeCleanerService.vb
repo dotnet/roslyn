@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
             Next
         End Sub
 
-        Private Sub ProcessToken(root As SyntaxNode, token As SyntaxToken, result As ArrayBuilder(Of TextSpan))
+        Private Sub ProcessToken(token As SyntaxToken, result As ArrayBuilder(Of TextSpan))
             If token.ContainsDiagnostics Then
                 Dim parentMultiLineNode = GetMultiLineContainer(token.Parent)
 
