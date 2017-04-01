@@ -1449,6 +1449,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to prefer auto properties.
+        /// </summary>
+        internal static string prefer_auto_properties {
+            get {
+                return ResourceManager.GetString("prefer_auto_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer braces.
         /// </summary>
         internal static string Prefer_braces {
@@ -1535,6 +1544,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_predefined_type {
             get {
                 return ResourceManager.GetString("Prefer_predefined_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to prefer throwing properties.
+        /// </summary>
+        internal static string prefer_throwing_properties {
+            get {
+                return ResourceManager.GetString("prefer_throwing_properties", resourceCulture);
             }
         }
         
@@ -2155,7 +2173,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio {
             get {
                 return ResourceManager.GetString("Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_er" +
-                        "ror_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual Studio", resourceCulture);
+                        "ror_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio", resourceCulture);
             }
         }
         
@@ -2320,6 +2338,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread {
             get {
                 return ResourceManager.GetString("VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When generating properties:.
+        /// </summary>
+        internal static string When_generating_properties {
+            get {
+                return ResourceManager.GetString("When_generating_properties", resourceCulture);
             }
         }
         

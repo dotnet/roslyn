@@ -100,6 +100,16 @@
                                               x:Name="at_the_end"
                                               Content="{x:Static local:AdvancedOptionPageStrings.Option_at_the_end}"/>
                     </StackPanel>
+
+                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_When_generating_properties}"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <RadioButton  GroupName="Property_generation_behavior"
+                                              x:Name="prefer_throwing_properties"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_prefer_throwing_properties}"/>
+                        <RadioButton  GroupName="Property_generation_behavior"
+                                              x:Name="prefer_auto_properties"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_prefer_auto_properties}"/>
+                    </StackPanel>
                 </StackPanel>
             </GroupBox>
         </StackPanel>
