@@ -44,7 +44,7 @@ class CSharpCompilerTest: PerfTest
 }
 
 TestThisPlease(    
-    new CSharpCompilerTest("CSharpCompiler.rsp")
+    new CSharpCompilerTest("CSharpCompiler.rsp"),
     new CSharpCompilerTest("CSharpCompilerNoAnalyzer.rsp"),
     new CSharpCompilerTest("CSharpCompilerNoAnalyzerNoDeterminism.rsp")
 );
