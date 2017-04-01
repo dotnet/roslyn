@@ -1,7 +1,11 @@
 {
   "dependencies": {
     "Microsoft.DiaSymReader.PortablePdb": "1.2.0",
-    "ManagedEsent": "1.9.4"
+    "ManagedEsent": "1.9.4",
+    "SQLitePCLRaw.core": "1.1.2",
+    "SQLitePCLRaw.bundle_green": "1.1.2",
+    "SQLitePCLRaw.lib.e_sqlite3.v110_xp": "1.1.2",
+    "SQLitePCLRaw.provider.e_sqlite3.net45": "1.1.2",
   },
   "frameworks": {
     "net46": { }

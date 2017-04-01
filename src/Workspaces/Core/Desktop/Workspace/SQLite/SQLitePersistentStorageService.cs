@@ -6,24 +6,23 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.Storage;
-using Microsoft.Isam.Esent.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Esent
+namespace Microsoft.CodeAnalysis.SQLite
 {
-    internal partial class EsentPersistentStorageService : AbstractPersistentStorageService
+    internal partial class SQLitePersistentStorageService : AbstractPersistentStorageService
     {
-        private const string StorageExtension = "vbcs.cache";
+        private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
 
-        public EsentPersistentStorageService(
+        public SQLitePersistentStorageService(
             IOptionService optionService,
             SolutionSizeTracker solutionSizeTracker)
             : base(optionService, solutionSizeTracker)
         {
         }
 
-        public EsentPersistentStorageService(IOptionService optionService, bool testing) 
+        public SQLitePersistentStorageService(IOptionService optionService, bool testing) 
             : base(optionService, testing)
         {
         }
@@ -35,14 +34,14 @@ namespace Microsoft.CodeAnalysis.Esent
         }
 
         protected override AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath)
-            => new EsentPersistentStorage(OptionService,
-                workingFolderPath, solution.FilePath, GetDatabaseFilePath(workingFolderPath), this.Release);
+            => new SQLitePersistentStorage(OptionService,
+                    workingFolderPath, solution.FilePath, GetDatabaseFilePath(workingFolderPath),
+                    this.Release);
 
         protected override bool ShouldDeleteDatabase(Exception exception)
         {
-            // Access denied can happen when some other process is holding onto the DB.
-            // Don't want to delete it in that case.  For all other cases, delete the db.
-            return !(exception is EsentAccessDeniedException);
+            // Error occurred when trying to open this DB.  Try to remove it so we can create a good dB.
+            return true;
         }
     }
 }

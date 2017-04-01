@@ -201,12 +201,17 @@
     <ProjectReference Include="..\Setup.Dependencies\VisualStudioSetup.Dependencies.csproj">
       <Project>{1688e1e5-d510-4e06-86f3-f8db10b1393d}</Project>
       <Name>VisualStudioSetup.Dependencies</Name>
-      <IncludeOutputGroupsInVSIX></IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>
+      </IncludeOutputGroupsInVSIX>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="ManagedEsent" />
+    <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.core" />
+    <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.bundle_green" />
+    <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" />
+    <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.provider.e_sqlite3.net45" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" />
     <!-- Visual Studio ships with some, but not all, of the assemblies in Microsoft.Composition, but we need them all -->
     <NuGetPackageToIncludeInVsix Include="Microsoft.Composition" />
@@ -234,6 +239,12 @@
   <ItemGroup>
     <Compile Include="AssemblyRedirects.cs" />
     <Compile Include="ProvideRoslynBindingRedirection.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="e_sqlite3.dll">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

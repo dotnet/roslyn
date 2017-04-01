@@ -2,7 +2,7 @@
 
 using Microsoft.VisualStudio.Shell;
 using Roslyn.VisualStudio.Setup;
-
+ 
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.CSharp.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.CSharp.Features.dll")]
@@ -25,6 +25,10 @@ using Roslyn.VisualStudio.Setup;
 
 [assembly: ProvideRoslynBindingRedirection("Esent.Interop.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Elfie.dll")]
+
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\SQLitePCLRaw.core.DLL")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\SQLitePCLRaw.batteries_v2.DLL")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\SQLitePCLRaw.provider.e_sqlite3.DLL")]
 
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Convention.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Hosting.dll")]
