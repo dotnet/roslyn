@@ -16,7 +16,7 @@ namespace Runner
     {
         public static int Main(string[] args)
         {
-            Console.WriteLine("args: " + String.Join(" ", args));
+            Console.WriteLine("args: \n" + String.Join("\n  ", args));
 
             bool shouldReportBenchview = false;
             bool shouldUploadTrace = true;

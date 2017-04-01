@@ -112,7 +112,6 @@ try {
         $extraArgs = ""
         if ((Test-Path env:\GIT_BRANCH) -and (Test-Path env:\BV_UPLOAD_SAS_TOKEN)) {
             $extraArgs = "--report-benchview --branch $env:GIT_BRANCH"
-                         "--report-benchview"
 
             # Check if we are in a PR or this is a rolling submission
             if (Test-Path env:\ghprbPullTitle) {
@@ -128,7 +127,7 @@ try {
         }
 
         Terminate-BuildProcesses
-        & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe"  --search-directory=".\\Binaries\\$buildConfiguration\\Dlls\\" --no-trace-upload $extraArgs
+        & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe"  $extraArgs --search-directory=".\\Binaries\\$buildConfiguration\\Dlls\\" --no-trace-upload
         if (-not $?) { 
             throw "Perf run failed"
         }
