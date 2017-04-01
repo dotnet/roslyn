@@ -105,6 +105,7 @@ try {
     }
 
     if ($testPerfRun) {
+        Get-ChildItem Env: | echo
         Run-MSBuild Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false
 
         # Check if we have credentials to upload to benchview
