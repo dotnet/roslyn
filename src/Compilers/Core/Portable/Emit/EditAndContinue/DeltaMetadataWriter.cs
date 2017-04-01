@@ -50,19 +50,20 @@ namespace Microsoft.CodeAnalysis.Emit
             DefinitionMap definitionMap,
             SymbolChanges changes,
             CancellationToken cancellationToken)
-            : base(metadata: MakeTablesBuilder(previousGeneration), 
-                   debugMetadataOpt: (context.Module.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb) ? new MetadataBuilder() : null, 
+            : base(metadata: MakeTablesBuilder(previousGeneration),
+                   debugMetadataOpt: (context.Module.DebugInformationFormat == DebugInformationFormat.PortablePdb) ? new MetadataBuilder() : null,
                    dynamicAnalysisDataWriterOpt: null,
                    context: context,
                    messageProvider: messageProvider,
                    metadataOnly: false,
                    deterministic: false,
+                   emitTestCoverageData: false,
                    cancellationToken: cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
             Debug.Assert(encId != default(Guid));
             Debug.Assert(encId != previousGeneration.EncId);
-            Debug.Assert(context.Module.EmitOptions.DebugInformationFormat != DebugInformationFormat.Embedded);
+            Debug.Assert(context.Module.DebugInformationFormat != DebugInformationFormat.Embedded);
 
             _previousGeneration = previousGeneration;
             _encId = encId;

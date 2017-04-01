@@ -12826,6 +12826,7 @@ expectedOutput: "-100");
                 compilation: compilation,
                 moduleBeingBuiltOpt: module,
                 emittingPdb: false,
+                emitTestCoverageData: false,
                 hasDeclarationErrors: false,
                 diagnostics: diagnostics,
                 filterOpt: null,

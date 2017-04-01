@@ -66,7 +66,8 @@ namespace Microsoft.Cci
         private readonly bool _deterministic;
 
         internal readonly bool MetadataOnly;
-        internal readonly bool IncludePrivateMembers; // If set, some members (private or internal) will be omitted. Only allowed if MetadataOnly is set.
+        internal readonly bool IncludePrivateMembers; // If set, some members (private or internal) will be omitted from a metadata-only output.
+        internal readonly bool EmitTestCoverageData;
 
         // A map of method body before token translation to RVA. Used for deduplication of small bodies.
         private readonly Dictionary<ImmutableArray<byte>, int> _smallMethodBodies;
@@ -87,11 +88,13 @@ namespace Microsoft.Cci
             CommonMessageProvider messageProvider,
             bool metadataOnly,
             bool deterministic,
+            bool emitTestCoverageData,
             CancellationToken cancellationToken)
         {
             this.module = context.Module;
             _deterministic = deterministic;
             this.MetadataOnly = metadataOnly;
+            this.EmitTestCoverageData = emitTestCoverageData;
 
             // EDMAURER provide some reasonable size estimates for these that will avoid
             // much of the reallocation that would occur when growing these from empty.

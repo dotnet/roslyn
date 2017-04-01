@@ -521,6 +521,7 @@ namespace Microsoft.Cci
             else
             {
                 this.Visit(typeMember.GetAttributes(Context));
+
                 typeMember.Dispatch(this);
             }
         }

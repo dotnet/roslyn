@@ -659,6 +659,8 @@ namespace Microsoft.CodeAnalysis
                             success = compilation.CompileMethods(
                                 moduleBeingBuilt,
                                 Arguments.EmitPdb,
+                                emitOptions.EmitMetadataOnly,
+                                emitOptions.EmitTestCoverageData,
                                 diagnosticBag,
                                 filterOpt: null,
                                 cancellationToken: cancellationToken);
@@ -704,6 +706,7 @@ namespace Microsoft.CodeAnalysis
                                             moduleBeingBuilt,
                                             xmlStreamDisposerOpt?.Stream,
                                             win32ResourceStreamOpt,
+                                            emitOptions.OutputNameOverride,
                                             diagnosticBag,
                                             cancellationToken);
                                     }
@@ -762,6 +765,8 @@ namespace Microsoft.CodeAnalysis
                                     diagnostics: diagnosticBag,
                                     metadataOnly: emitOptions.EmitMetadataOnly,
                                     includePrivateMembers: emitOptions.IncludePrivateMembers,
+                                    emitTestCoverageData: emitOptions.EmitTestCoverageData,
+                                    pdbFilePath: emitOptions.PdbFilePath,
                                     cancellationToken: cancellationToken);
                             }
                             finally

@@ -1422,7 +1422,7 @@ OtherExpressions:
         Private Sub EmitStateMachineScope(scope As BoundStateMachineScope)
             _builder.OpenLocalScope()
 
-            If _module.EmitOptions.DebugInformationFormat = DebugInformationFormat.Pdb Then
+            If _module.debugInformationFormat = DebugInformationFormat.Pdb Then
                 'Native PDBs: VB EE uses name mangling to match up original locals and the fields where they are hoisted
                 'The scoping information is passed by recording PDB scopes of "fake" locals named the same 
                 'as the fields. These locals are not emitted to IL.

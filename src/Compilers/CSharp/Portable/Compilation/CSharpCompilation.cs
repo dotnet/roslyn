@@ -2017,7 +2017,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodCompiler.CompileMethodBodies(
                 compilation: this,
                 moduleBeingBuiltOpt: null,
-                generateDebugInfo: false,
+                emittingPdb: false,
+                emitTestCoverageData: false,
                 hasDeclarationErrors: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
@@ -2059,7 +2060,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodCompiler.CompileMethodBodies(
                 compilation: this,
                 moduleBeingBuiltOpt: null,
-                generateDebugInfo: false,
+                emittingPdb: false,
+                emitTestCoverageData: false,
                 hasDeclarationErrors: false,
                 diagnostics: diagnostics,
                 filterOpt: s => IsDefinedOrImplementedInSourceTree(s, tree, span),
@@ -2301,6 +2303,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool CompileMethods(
             CommonPEModuleBuilder moduleBuilder,
             bool emittingPdb,
+            bool emitMetadataOnly,
+            bool emitTestCoverageData,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken)
@@ -2313,9 +2317,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(this)
 
             var moduleBeingBuilt = (PEModuleBuilder)moduleBuilder;
-            var emitOptions = moduleBeingBuilt.EmitOptions;
 
-            if (emitOptions.EmitMetadataOnly)
+            if (emitMetadataOnly)
             {
                 if (hasDeclarationErrors)
                 {
@@ -2333,7 +2336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if ((emittingPdb || emitOptions.EmitTestCoverageData) &&
+                if ((emittingPdb || emitTestCoverageData) &&
                     !CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics))
                 {
                     return false;
@@ -2349,6 +2352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this,
                     moduleBeingBuilt,
                     emittingPdb,
+                    emitTestCoverageData,
                     hasDeclarationErrors,
                     diagnostics: methodBodyDiagnosticBag,
                     filterOpt: filterOpt,
@@ -2369,6 +2373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonPEModuleBuilder moduleBuilder,
             Stream xmlDocStream,
             Stream win32Resources,
+            string outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
@@ -2393,7 +2398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             var xmlDiagnostics = DiagnosticBag.GetInstance();
 
-            string assemblyName = FileNameUtilities.ChangeExtension(moduleBuilder.EmitOptions.OutputNameOverride, extension: null);
+            string assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension: null);
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
             return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics);

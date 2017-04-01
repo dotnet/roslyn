@@ -81,6 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     updatedMethods,
                     diagnostics,
                     testData?.SymWriterFactory,
+                    emitOpts.PdbFilePath,
                     cancellationToken)
             End If
 

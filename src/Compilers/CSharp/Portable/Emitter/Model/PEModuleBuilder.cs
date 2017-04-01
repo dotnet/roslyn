@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         // See Assembly.MetadataName.
         private readonly string _metadataName;
 
+        private readonly bool _metadataOnly;
+
         private ImmutableArray<Cci.ExportedType> _lazyExportedTypes;
 
         /// <summary>
@@ -59,6 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             _metadataName = specifiedName != Microsoft.CodeAnalysis.Compilation.UnspecifiedModuleAssemblyName ?
                             specifiedName :
                             emitOptions.OutputNameOverride ?? specifiedName;
+
+            _metadataOnly = emitOptions.EmitMetadataOnly;
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceModule, this);
 
@@ -363,9 +367,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return false;
         }
 
-        internal sealed override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
+        internal sealed override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes(EmitContext context)
         {
-            if (EmitOptions.EmitMetadataOnly)
+            if (_metadataOnly)
             {
                 return ImmutableArray<Cci.INamespaceTypeDefinition>.Empty;
             }

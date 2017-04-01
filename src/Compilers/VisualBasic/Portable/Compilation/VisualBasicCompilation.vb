@@ -2213,6 +2213,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function CompileMethods(
             moduleBuilder As CommonPEModuleBuilder,
             emittingPdb As Boolean,
+            emitMetadataOnly As Boolean,
+            emitTestCoverageData As Boolean,
             diagnostics As DiagnosticBag,
             filterOpt As Predicate(Of ISymbol),
             cancellationToken As CancellationToken) As Boolean
@@ -2232,7 +2234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 moduleBeingBuilt.TranslateImports(diagnostics)
             End If
 
-            If moduleBeingBuilt.EmitOptions.EmitMetadataOnly Then
+            If emitMetadataOnly Then
                 If hasDeclarationErrors Then
                     Return False
                 End If
@@ -2246,7 +2248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
             Else
                 ' start generating PDB checksums if we need to emit PDBs
-                If (emittingPdb OrElse moduleBeingBuilt.EmitOptions.EmitTestCoverageData) AndAlso
+                If (emittingPdb OrElse emitTestCoverageData) AndAlso
                    Not CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics) Then
                     Return False
                 End If
@@ -2261,6 +2263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me,
                     moduleBeingBuilt,
                     emittingPdb,
+                    emitTestCoverageData,
                     hasDeclarationErrors,
                     filterOpt,
                     methodBodyDiagnosticBag,
@@ -2282,6 +2285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             moduleBuilder As CommonPEModuleBuilder,
             xmlDocStream As Stream,
             win32Resources As Stream,
+            outputNameOverride As String,
             diagnostics As DiagnosticBag,
             cancellationToken As CancellationToken) As Boolean
 
@@ -2306,7 +2310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             Dim xmlDiagnostics = DiagnosticBag.GetInstance()
 
-            Dim assemblyName = FileNameUtilities.ChangeExtension(moduleBuilder.EmitOptions.OutputNameOverride, extension:=Nothing)
+            Dim assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension:=Nothing)
             DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken)
 
             Return FilterAndAppendAndFreeDiagnostics(diagnostics, xmlDiagnostics)

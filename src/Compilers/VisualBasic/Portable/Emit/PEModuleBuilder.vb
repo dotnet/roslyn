@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim specifiedName = sourceModule.MetadataName
 
-            _metadataName = If(specifiedName <> Microsoft.CodeAnalysis.Compilation.UnspecifiedModuleAssemblyName,
+            _metadataName = If(specifiedName <> CodeAnalysis.Compilation.UnspecifiedModuleAssemblyName,
                                 specifiedName,
                                 If(emitOptions.OutputNameOverride, specifiedName))
 
@@ -334,8 +334,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return False
         End Function
 
-        Friend NotOverridable Overrides Function GetAnonymousTypes() As ImmutableArray(Of Cci.INamespaceTypeDefinition)
-            If EmitOptions.EmitMetadataOnly Then
+        Friend NotOverridable Overrides Function GetAnonymousTypes(context As EmitContext) As ImmutableArray(Of Cci.INamespaceTypeDefinition)
+            If context.IsRefAssembly Then
                 Return ImmutableArray(Of Cci.INamespaceTypeDefinition).Empty
             End If
 

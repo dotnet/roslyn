@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     updatedMethods,
                     diagnostics,
                     testData?.SymWriterFactory,
+                    emitOptions.PdbFilePath,
                     cancellationToken);
             }
 
