@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Storage
             OptionName, nameof(Database), defaultValue: StorageDatabase.Esent);
 
         /// <summary>
-        /// Threshold to start to use a DB (50MB)
+        /// Solution size threshold to start to use a DB (Default: 50MB)
         /// </summary>
         public static readonly Option<int> SolutionSizeThreshold = new Option<int>(
             OptionName, nameof(SolutionSizeThreshold), defaultValue: 50 * 1024 * 1024);
