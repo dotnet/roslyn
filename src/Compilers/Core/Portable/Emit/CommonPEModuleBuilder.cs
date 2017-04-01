@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Emit
             uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out added);
             if (added)
             {
-                ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics, isRefAssembly: false));
+                ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics, excludePrivateMembers: false));
             }
             return token;
         }

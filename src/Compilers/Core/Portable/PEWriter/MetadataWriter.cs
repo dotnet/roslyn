@@ -2023,7 +2023,7 @@ namespace Microsoft.Cci
             }
 
             AddAssemblyAttributesToTable(
-                this.module.GetSourceAssemblyAttributes(isRefAssembly: Context.IsRefAssembly),
+                this.module.GetSourceAssemblyAttributes(isRefAssembly: Context.ExcludePrivateMembers),
                 needsDummyParent: writingNetModule,
                 isSecurity: false);
         }

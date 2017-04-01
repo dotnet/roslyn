@@ -434,7 +434,7 @@ class C
             var displayClass = peAssemblyBuilder.GetSynthesizedTypes(c).Single();
             Assert.Equal("<>c__DisplayClass0_0", displayClass.Name);
 
-            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), isRefAssembly: false);
+            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), excludePrivateMembers: false);
 
             var fields = displayClass.GetFields(emitContext).ToArray();
             var x1 = fields[0];
@@ -504,7 +504,7 @@ class C
             var displayClass = peAssemblyBuilder.GetSynthesizedTypes(c).Single();
             Assert.Equal("<>c__DisplayClass0_0", displayClass.Name);
 
-            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), isRefAssembly: false);
+            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), excludePrivateMembers: false);
 
             var fields = displayClass.GetFields(emitContext).ToArray();
             AssertEx.SetEqual(fields.Select(f => f.Name), new[] { "x1", "x2" });

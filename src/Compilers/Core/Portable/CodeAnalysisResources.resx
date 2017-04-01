@@ -336,6 +336,9 @@
   <data name="MetadataPeStreamUnexpectedWhenEmittingMetadataOnly" xml:space="preserve">
     <value>Metadata PE stream should not be given when emitting metadata only.</value>
   </data>
+  <data name="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream" xml:space="preserve">
+    <value>Including private members should not be used when emitting to the secondary assembly output.</value>
+  </data>
   <data name="EmbeddingPdbUnexpectedWhenEmittingMetadata" xml:space="preserve">
     <value>Embedding PDB is not allowed when emitting metadata.</value>
   </data>

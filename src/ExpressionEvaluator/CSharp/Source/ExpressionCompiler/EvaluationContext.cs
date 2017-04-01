@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     using (var stream = new MemoryStream())
                     {
                         Cci.PeWriter.WritePeToStream(
-                            new EmitContext(moduleBuilder, null, diagnostics, isRefAssembly: false),
+                            new EmitContext(moduleBuilder, null, diagnostics, excludePrivateMembers: false),
                             context.MessageProvider,
                             () => stream,
                             getPortablePdbStreamOpt: null,
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext(moduleBuilder, null, diagnostics, isRefAssembly: false),
+                    new EmitContext(moduleBuilder, null, diagnostics, excludePrivateMembers: false),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext(moduleBuilder, null, diagnostics, isRefAssembly: false),
+                    new EmitContext(moduleBuilder, null, diagnostics, excludePrivateMembers: false),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 using (var stream = new MemoryStream())
                 {
                     Cci.PeWriter.WritePeToStream(
-                        new EmitContext(moduleBuilder, null, diagnostics, isRefAssembly: false),
+                        new EmitContext(moduleBuilder, null, diagnostics, excludePrivateMembers: false),
                         context.MessageProvider,
                         () => stream,
                         getPortablePdbStreamOpt: null,

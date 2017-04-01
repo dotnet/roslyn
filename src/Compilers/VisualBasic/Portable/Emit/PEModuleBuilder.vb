@@ -20,6 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ' See Assembly.MetadataName.
         Private ReadOnly _metadataName As String
 
+        Private ReadOnly _metadataOnly As Boolean
+
         Private _lazyExportedTypes As ImmutableArray(Of Cci.ExportedType)
         Private _lazyNumberOfTypesFromOtherModules As Integer
         Private _lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
@@ -44,6 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             _metadataName = If(specifiedName <> CodeAnalysis.Compilation.UnspecifiedModuleAssemblyName,
                                 specifiedName,
                                 If(emitOptions.OutputNameOverride, specifiedName))
+
+            _metadataOnly = emitOptions.EmitMetadataOnly
 
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceModule, Me)
 
@@ -335,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend NotOverridable Overrides Function GetAnonymousTypes(context As EmitContext) As ImmutableArray(Of Cci.INamespaceTypeDefinition)
-            If context.IsRefAssembly Then
+            If _metadataOnly Then
                 Return ImmutableArray(Of Cci.INamespaceTypeDefinition).Empty
             End If
 

@@ -1001,9 +1001,9 @@ namespace Microsoft.Cci
             switch (member.Visibility)
             {
                 case TypeMemberVisibility.Private:
-                    return !context.IsRefAssembly;
+                    return !context.ExcludePrivateMembers;
                 case TypeMemberVisibility.Assembly:
-                    return !context.IsRefAssembly || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+                    return !context.ExcludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
             }
             return true;
         }

@@ -629,6 +629,20 @@ public abstract class PublicClass
         }
 
         [Fact]
+        public void IncludePrivateMembers_DisallowMetadataPeStream()
+        {
+            CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            using (var output = new MemoryStream())
+            using (var metadataPeOutput = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output, metadataPEStream: metadataPeOutput,
+                    options: EmitOptions.Default.WithIncludePrivateMembers(true)));
+            }
+        }
+
+        [Fact]
         public void EmitMetadata_DisallowOutputtingNetModule()
         {
             CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
@@ -665,7 +679,7 @@ public abstract class PublicClass
             using (var metadataOutput = new MemoryStream())
             {
                 var result = comp.Emit(output, metadataPEStream: metadataOutput,
-                    options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded));
+                    options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithIncludePrivateMembers(false));
 
                 VerifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.EmbeddedPortablePdb });
                 VerifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { });
@@ -782,7 +796,7 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
             var class1TypeDef = (Cci.ITypeDefinition)class1;
 
             var symbolSynthesized = class1.GetSynthesizedExplicitImplementations(CancellationToken.None);
-            var context = new EmitContext(module, null, new DiagnosticBag(), isRefAssembly: false);
+            var context = new EmitContext(module, null, new DiagnosticBag(), excludePrivateMembers: false);
             var cciExplicit = class1TypeDef.GetExplicitImplementationOverrides(context);
             var cciMethods = class1TypeDef.GetMethods(context).Where(m => ((MethodSymbol)m).MethodKind != MethodKind.Constructor);
 

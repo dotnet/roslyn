@@ -2077,6 +2077,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.MetadataPeStreamUnexpectedWhenEmittingMetadataOnly, nameof(metadataPEStream));
             }
 
+            if (metadataPEStream != null && options?.IncludePrivateMembers == true)
+            {
+                throw new ArgumentException(CodeAnalysisResources.IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream, nameof(metadataPEStream));
+            }
+
             if (options?.DebugInformationFormat == DebugInformationFormat.Embedded &&
                 options?.EmitMetadataOnly == true)
             {
@@ -2523,7 +2528,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     if (SerializePeToStream(
-                        new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, isRefAssembly: metadataOnly && !includePrivateMembers),
+                        new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, excludePrivateMembers: metadataOnly && !includePrivateMembers),
                         this.MessageProvider,
                         getPeStream,
                         getRefPeStream,
@@ -2640,11 +2645,11 @@ namespace Microsoft.CodeAnalysis
             if (getMetadataPeStreamOpt != null)
             {
                 Debug.Assert(!metadataOnly);
-                Debug.Assert(!context.IsRefAssembly);
+                Debug.Assert(!context.ExcludePrivateMembers);
                 Debug.Assert(!includePrivateMembers);
 
                 if (!Cci.PeWriter.WritePeToStream(
-                    context.WithIsRefAssembly(true),
+                    context.WithExcludePrivateMembers(true),
                     messageProvider,
                     getMetadataPeStreamOpt,
                     getPortablePdbStreamOpt: null,
@@ -2684,7 +2689,7 @@ namespace Microsoft.CodeAnalysis
 
             using (nativePdbWriterOpt)
             {
-                var context = new EmitContext(moduleBeingBuilt, null, diagnostics, isRefAssembly: false);
+                var context = new EmitContext(moduleBeingBuilt, null, diagnostics, excludePrivateMembers: false);
                 var encId = Guid.NewGuid();
 
                 try
