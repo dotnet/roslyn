@@ -39,9 +39,10 @@ namespace Runner
                 {"search-directory=", "the directory to recursively search for tests", dir => { searchDirectory = dir; } }
             };
 
-            Log($"shouldReportBenchview: {shouldReportBenchview}");
 
             parameterOptions.Parse(args);
+
+            Log($"shouldReportBenchview: {shouldReportBenchview}");
 
             if (shouldReportBenchview)
             {
