@@ -393,29 +393,28 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     ? Accessibility.Public
                     : Accessibility.Private;
 
-                if (member is IMethodSymbol method)
+                switch (member)
                 {
-                    return GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, cancellationToken);
-                }
-                else if (member is IPropertySymbol property)
-                {
-                    return GenerateProperty(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior, cancellationToken);
-                }
-                else if (member is IEventSymbol @event)
-                {
-                    var accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
-                        accessibility: Accessibility.NotApplicable,
-                        statements: factory.CreateThrowNotImplementedStatementBlock(compilation));
+                    case IMethodSymbol method:
+                        return GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, cancellationToken);
 
-                    return CodeGenerationSymbolFactory.CreateEventSymbol(
-                        @event,
-                        accessibility: accessibility,
-                        modifiers: modifiers,
-                        explicitInterfaceSymbol: useExplicitInterfaceSymbol ? @event : null,
-                        name: memberName,
-                        addMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.AddEventHandler),
-                        removeMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.RemoveEventHandler));
+                    case IPropertySymbol property:
+                        return GenerateProperty(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior, cancellationToken);
+
+                    case IEventSymbol @event:
+                        var accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                            attributes: default(ImmutableArray<AttributeData>),
+                            accessibility: Accessibility.NotApplicable,
+                            statements: factory.CreateThrowNotImplementedStatementBlock(compilation));
+
+                        return CodeGenerationSymbolFactory.CreateEventSymbol(
+                            @event,
+                            accessibility: accessibility,
+                            modifiers: modifiers,
+                            explicitInterfaceSymbol: useExplicitInterfaceSymbol ? @event : null,
+                            name: memberName,
+                            addMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.AddEventHandler),
+                            removeMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.RemoveEventHandler));
                 }
 
                 return null;
