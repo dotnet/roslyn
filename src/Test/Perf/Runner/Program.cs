@@ -16,7 +16,7 @@ namespace Runner
     {
         public static int Main(string[] args)
         {
-            Console.WriteLine(String.Join(" ", args));
+            Console.WriteLine("args: " + String.Join(" ", args));
 
             bool shouldReportBenchview = false;
             bool shouldUploadTrace = true;
@@ -38,6 +38,8 @@ namespace Runner
                 {"trace-upload_destination=", "set the trace uploading destination", loc => { traceDestination = loc; } },
                 {"search-directory=", "the directory to recursively search for tests", dir => { searchDirectory = dir; } }
             };
+
+            Log($"shouldReportBenchview: {shouldReportBenchview}");
 
             parameterOptions.Parse(args);
 
