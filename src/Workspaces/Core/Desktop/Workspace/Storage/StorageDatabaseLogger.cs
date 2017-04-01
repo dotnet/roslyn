@@ -4,9 +4,9 @@ using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.CodeAnalysis.Esent
+namespace Microsoft.CodeAnalysis.Storage
 {
-    internal class EsentLogger
+    internal class StorageDatabaseLogger
     {
         private const string Kind = nameof(Kind);
         private const string Reason = nameof(Reason);
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 return;
             }
 
-            Logger.Log(FunctionId.Esent_Exceptions, KeyValueLogMessage.Create(m =>
+            Logger.Log(FunctionId.StorageDatabase_Exceptions, KeyValueLogMessage.Create(m =>
             {
                 // this is okay since it is our exception
                 m[Kind] = ex.GetType().ToString();
