@@ -33,12 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
 
             Dim result = ArrayBuilder(Of TextSpan).GetInstance()
 
-            ProcessNode(root, root, result)
+            ProcessNode(root, result)
 
             Return result.ToImmutableAndFree()
         End Function
 
-        Private Sub ProcessNode(root As SyntaxNode, node As SyntaxNode, result As ArrayBuilder(Of TextSpan))
+        Private Sub ProcessNode(node As SyntaxNode, result As ArrayBuilder(Of TextSpan))
             If Not node.ContainsDiagnostics Then
                 ' Don't bother going down nodes that don't have any syntax errors in them.
                 Return
@@ -46,19 +46,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
 
             For Each child In node.ChildNodesAndTokens()
                 If child.IsNode Then
-                    ProcessNode(root, child.AsNode(), result)
+                    ProcessNode(child.AsNode(), result)
                 Else
-                    ProcessToken(root, child.AsToken(), result)
+                    ProcessToken(child.AsToken(), result)
                 End If
             Next
         End Sub
 
         Private Sub ProcessToken(root As SyntaxNode, token As SyntaxToken, result As ArrayBuilder(Of TextSpan))
             If token.ContainsDiagnostics Then
-                Dim parentMultiLineNode = If(GetMultiLineContainer(token.Parent), root)
+                Dim parentMultiLineNode = GetMultiLineContainer(token.Parent)
 
-                If ContainsMultiLineStringLiteral(parentMultiLineNode) Then
-                    result.Add(parentMultiLineNode.FullSpan)
+                If parentMultiLineNode IsNot Nothing Then
+                    If ContainsMultiLineStringLiteral(parentMultiLineNode) Then
+                        result.Add(parentMultiLineNode.FullSpan)
+                    End If
                 End If
             End If
         End Sub
