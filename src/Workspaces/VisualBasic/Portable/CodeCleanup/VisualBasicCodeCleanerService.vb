@@ -68,8 +68,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
         Private Function ContainsMultiLineStringLiteral(node As SyntaxNode) As Boolean
             Return node.DescendantTokens().Any(
                 Function(t)
-                    Return t.Kind() = SyntaxKind.StringLiteralToken AndAlso
-                           Not VisualBasicSyntaxFactsService.Instance.IsOnSingleLine(t.Parent, fullSpan:=False)
+                    If t.Kind() = SyntaxKind.StringLiteralToken OrElse
+                       t.Kind() = SyntaxKind.InterpolatedStringTextToken Then
+                        Return Not VisualBasicSyntaxFactsService.Instance.IsOnSingleLine(t.Parent, fullSpan:=False)
+                    End If
+
+                    Return False
                 End Function)
         End Function
 
