@@ -33,7 +33,7 @@ class CSharpCompilerTest: PerfTest
         _logger.Flush();
     }
     
-    public override int Iterations => 3;
+    public override int Iterations => 2;
     public override string Name => "csharp " + _rspFile;
     public override string MeasuredProc => "csc";
     public override bool ProvidesScenarios => false;
@@ -44,7 +44,7 @@ class CSharpCompilerTest: PerfTest
 }
 
 TestThisPlease(    
-    new CSharpCompilerTest("CSharpCompiler.rsp"),
-    new CSharpCompilerTest("CSharpCompilerNoAnalyzer.rsp"),
-    new CSharpCompilerTest("CSharpCompilerNoAnalyzerNoDeterminism.rsp")
+    new CSharpCompilerTest("CSharpCompiler.rsp")
+    //new CSharpCompilerTest("CSharpCompilerNoAnalyzer.rsp"),
+    //new CSharpCompilerTest("CSharpCompilerNoAnalyzerNoDeterminism.rsp")
 );
