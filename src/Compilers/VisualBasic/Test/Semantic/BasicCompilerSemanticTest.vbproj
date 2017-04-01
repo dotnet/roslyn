@@ -11,6 +11,7 @@
     <AssemblyName>Roslyn.Compilers.VisualBasic.Semantic.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <ProjectTypeGuids>{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
