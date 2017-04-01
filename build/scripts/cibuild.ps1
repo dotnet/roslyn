@@ -16,7 +16,7 @@ Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
 function Print-Usage() {
-    Write-Host "Usage: cibuild.cmd [-debug^|-release] [-test32^|-test64] [-restore]"
+    Write-Host "Usage: cibuild.ps1 [-debug^|-release] [-test32^|-test64] [-restore]"
     Write-Host "  -debug   Perform debug build.  This is the default."
     Write-Host "  -release Perform release build."
     Write-Host "  -test32  Run unit tests in the 32-bit runner.  This is the default."
