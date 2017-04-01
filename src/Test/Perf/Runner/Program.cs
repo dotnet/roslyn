@@ -43,6 +43,7 @@ namespace Runner
             parameterOptions.Parse(args);
 
             Log($"shouldReportBenchview: {shouldReportBenchview}");
+            Log($"submissionType: {submissionType}");
 
             if (shouldReportBenchview)
             {

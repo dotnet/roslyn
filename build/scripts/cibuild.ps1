@@ -115,8 +115,9 @@ try {
 
             # Check if we are in a PR or this is a rolling submission
             if (Test-Path env:\ghprbPullTitle) {
-                $extraArgs += "--benchview-submission-name ""$env:ghprbPullTitle"""
-                $extraArgs += "--benchview-submission-type private"
+                $submissionName = $env:ghprbPullTitle.Replace(" ", "_")
+                $extraArgs += "--benchview-submission-name=""$submissionName"""
+                $extraArgs += "--benchview-submission-type=private"
             } 
             else {
                 $extraArgs += "--benchview-submission-type rolling"
