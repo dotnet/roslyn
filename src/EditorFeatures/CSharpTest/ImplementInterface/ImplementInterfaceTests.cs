@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
@@ -6704,6 +6703,41 @@ class C : I
         throw new NotImplementedException();
     }
 }");
+        }
+
+        [WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")]
+        [WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestAutoProperties()
+        {
+            await TestInRegularAndScript1Async(
+@"interface IInterface
+{
+    int ReadOnlyProp { get; }
+    int ReadWriteProp { get; set; }
+    int WriteOnlyProp { set; }
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    int ReadOnlyProp { get; }
+    int ReadWriteProp { get; set; }
+    int WriteOnlyProp { set; }
+}
+
+class Class : IInterface
+{
+    public int ReadOnlyProp { get; }
+
+    public int ReadWriteProp { get; set; }
+
+    public int WriteOnlyProp { set => throw new System.NotImplementedException(); }
+}", parameters: new TestParameters(options: Option(
+    ImplementTypeOptions.PropertyGenerationBehavior,
+    ImplementTypePropertyGenerationBehavior.PreferAutoProperties)));
         }
     }
 }
