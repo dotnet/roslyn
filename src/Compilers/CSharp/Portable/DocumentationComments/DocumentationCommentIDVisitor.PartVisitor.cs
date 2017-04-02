@@ -170,6 +170,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitNamedType(NamedTypeSymbol symbol, StringBuilder builder)
             {
+                if (symbol.IsTupleType)
+                {
+                    return VisitTupleType((TupleTypeSymbol)symbol, builder);
+                }
+
                 if ((object)symbol.ContainingSymbol != null && symbol.ContainingSymbol.Name.Length != 0)
                 {
                     Visit(symbol.ContainingSymbol, builder);
@@ -209,6 +214,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                return null;
+            }
+
+            private object VisitTupleType(TupleTypeSymbol symbol, StringBuilder builder)
+            {
+                builder.Append('(');
+
+                bool needsComma = false;
+
+                foreach (var type in symbol.TupleElementTypes)
+                {
+                    if (needsComma)
+                    {
+                        builder.Append(',');
+                    }
+
+                    Visit(type, builder);
+
+                    needsComma = true;
+                }
+
+                builder.Append(')');
                 return null;
             }
 

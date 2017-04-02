@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public unsafe void M4(char *pc, Color **pf) { }
         public unsafe void M5(void *pv, double *[][,] pd) { }
         public void M6(int i, params object[] args) { }
+        public void M7((int x, short y) z) { }
     }
     class MyList<T>
     {
@@ -122,6 +123,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestParams()
         {
             Assert.Equal("M:Acme.Widget.M6(System.Int32,System.Object[])", _widgetClass.GetMembers("M6").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestTuples()
+        {
+            Assert.Equal("M:Acme.Widget.M7((System.Int32,System.Int16))", _widgetClass.GetMembers("M7").Single().GetDocumentationCommentId());
         }
 
         [Fact]
