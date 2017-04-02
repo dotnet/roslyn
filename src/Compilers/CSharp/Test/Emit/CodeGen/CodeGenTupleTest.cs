@@ -22680,5 +22680,24 @@ namespace System
             Assert.False(tuple3.IsErrorType());
             Assert.Equal(libWithVTRef.Display, tuple3.ContainingAssembly.MetadataName.ToString());
         }
+
+        [Fact]
+        [WorkItem(17962, "https://github.com/dotnet/roslyn/issues/17962")]
+        public void TupleWithAsOperator()
+        {
+            var source = @"
+class C
+{
+    void M<T>()
+    {
+        var x = (0, null) as (int, T)?;
+        System.Console.WriteLine(x == null);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                );
+        }
     }
 }
