@@ -108,8 +108,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 Connect();
 
-                // Kick off a task to compute the initial set of tags.
-                RecalculateTagsOnChanged(new TaggerEventArgs(TaggerDelay.Short));
+                // Kick off a task to immediately compute the initial set of tags. This work should 
+                // not be cancellable, even if more events come in.  That way we can get the initial
+                // set of results for the buffer as quickly as possible, without kicking the work 
+                // down the road.
+                RecalculateTagsOnChanged_DoNotCallDirectly(delayMS: 0, cancellable: false);
             }
 
             public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
@@ -196,20 +199,32 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
-            {
-                _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
-            }
+                => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
+
+            private void RecalculateTagsOnChanged(TaggerEventArgs e)
+                => RecalculateTagsOnChanged_DoNotCallDirectly(
+                    (int)e.Delay.ComputeTimeDelay().TotalMilliseconds, cancellable: false);
 
             /// <summary>
             /// Called by derived types to enqueue tags re-calculation request
             /// </summary>
-            private void RecalculateTagsOnChanged(TaggerEventArgs e)
+            private void RecalculateTagsOnChanged_DoNotCallDirectly(int delayMS, bool cancellable)
             {
                 // First, cancel any previous requests (either still queued, or started).  We no longer
                 // want to continue it if new changes have come in.
                 _workQueue.CancelCurrentWork();
 
-                RegisterNotification(RecomputeTagsForeground, (int)e.Delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds, _workQueue.CancellationToken);
+                if (delayMS == 0 && _workQueue.IsForeground())
+                {
+                    RecomputeTagsForeground(cancellable);
+                }
+                else
+                {
+                    RegisterNotification(
+                        () => RecomputeTagsForeground(cancellable),
+                        delayMS,
+                        cancellable ? _workQueue.CancellationToken : CancellationToken.None);
+                }
             }
 
             private void Connect()

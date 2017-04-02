@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             private void OnChanged(object sender, TaggerEventArgs e)
-            {
-                RecalculateTagsOnChanged(e);
-            }
+                => RecalculateTagsOnChanged(e);
 
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
             {
@@ -265,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// <summary>
             /// Called on the foreground thread.
             /// </summary>
-            private void RecomputeTagsForeground()
+            private void RecomputeTagsForeground(bool cancellable)
             {
                 _workQueue.AssertIsForeground();
 
@@ -277,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // Mark that we're not up to date. We'll remain in that state until the next 
                     // tag production stage finally completes.
                     this.UpToDate = false;
-                    var cancellationToken = _workQueue.CancellationToken;
+                    var cancellationToken = cancellable ? _workQueue.CancellationToken : CancellationToken.None;
 
                     var spansToTag = GetSpansAndDocumentsToTag();
 
@@ -586,7 +584,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Ignore any tag spans reported for any buffers we weren't interested in.
                 var newTagsByBuffer = context.tagSpans.Where(ts => buffersToTag.Contains(ts.Span.Snapshot.TextBuffer))
                                                       .ToLookup(t => t.Span.Snapshot.TextBuffer);
-
 
                 var newTagTrees = ConvertToTagTrees(oldTagTrees, newTagsByBuffer, context._spansTagged);
                 ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, context.State, context.CancellationToken);
