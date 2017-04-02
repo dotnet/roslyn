@@ -219,23 +219,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private object VisitTupleType(TupleTypeSymbol symbol, StringBuilder builder)
             {
-                builder.Append('(');
+                return VisitTupleType(symbol.TupleElementTypes, 0, builder);
+            }
 
+            private object VisitTupleType(ImmutableArray<TypeSymbol> types, int index, StringBuilder builder)
+            {
+                builder.Append("System.ValueTuple<");
+
+                int totalLength = types.Length;
+                int chunk = Math.Min(7, totalLength - index);
                 bool needsComma = false;
-
-                foreach (var type in symbol.TupleElementTypes)
+                for (int i = 0; i < chunk; i++)
                 {
                     if (needsComma)
                     {
                         builder.Append(',');
                     }
 
-                    Visit(type, builder);
-
+                    Visit(types[index + i], builder);
                     needsComma = true;
                 }
 
-                builder.Append(')');
+                int nextIndex = index + 7;
+                if (nextIndex < totalLength)
+                {
+                    builder.Append(',');
+                    VisitTupleType(types, nextIndex, builder);
+                }
+
+                builder.Append('>');
                 return null;
             }
 
