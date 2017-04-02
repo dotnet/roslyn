@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             private class CallSiteContainerRewriter : CSharpSyntaxRewriter
             {
                 private readonly SyntaxNode _outmostCallSiteContainer;
-                private readonly IEnumerable<SyntaxNode> _statementsOrFieldToInsert;
+                private readonly IEnumerable<SyntaxNode> _statementsOrMemberOrAccessorToInsert;
                 private readonly HashSet<SyntaxAnnotation> _variableToRemoveMap;
                 private readonly SyntaxNode _firstStatementOrFieldToReplace;
                 private readonly SyntaxNode _lastStatementOrFieldToReplace;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     _outmostCallSiteContainer = outmostCallSiteContainer;
 
                     _variableToRemoveMap = variableToRemoveMap;
-                    _statementsOrFieldToInsert = statementsOrFieldToInsert;
+                    _statementsOrMemberOrAccessorToInsert = statementsOrFieldToInsert;
 
                     _firstStatementOrFieldToReplace = firstStatementOrFieldToReplace;
                     _lastStatementOrFieldToReplace = lastStatementOrFieldToReplace;
@@ -284,13 +284,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
 
                     // replace one statement with another
-                    if (_statementsOrFieldToInsert.Count() == 1)
+                    if (_statementsOrMemberOrAccessorToInsert.Count() == 1)
                     {
-                        return _statementsOrFieldToInsert.Cast<StatementSyntax>().Single();
+                        return _statementsOrMemberOrAccessorToInsert.Cast<StatementSyntax>().Single();
                     }
 
                     // replace one statement with multiple statements (see bug # 6310)
-                    return SyntaxFactory.Block(SyntaxFactory.List(_statementsOrFieldToInsert.Cast<StatementSyntax>()));
+                    return SyntaxFactory.Block(SyntaxFactory.List(_statementsOrMemberOrAccessorToInsert.Cast<StatementSyntax>()));
                 }
 
                 private SyntaxList<StatementSyntax> ReplaceStatements(SyntaxList<StatementSyntax> statements)
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     newStatements.RemoveRange(firstStatementIndex, lastStatementIndex - firstStatementIndex + 1);
 
                     // add new statements to replace
-                    newStatements.InsertRange(firstStatementIndex, _statementsOrFieldToInsert.Cast<StatementSyntax>());
+                    newStatements.InsertRange(firstStatementIndex, _statementsOrMemberOrAccessorToInsert.Cast<StatementSyntax>());
 
                     return newStatements.ToSyntaxList();
                 }
@@ -333,9 +333,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     // add new statements to replace
                     newMembers.InsertRange(firstMemberIndex,
-                        _statementsOrFieldToInsert.Select(s => global ? SyntaxFactory.GlobalStatement((StatementSyntax)s) : (MemberDeclarationSyntax)s));
+                        _statementsOrMemberOrAccessorToInsert.Select(s => global ? SyntaxFactory.GlobalStatement((StatementSyntax)s) : (MemberDeclarationSyntax)s));
 
                     return newMembers.ToSyntaxList();
+                }
+
+                private SyntaxList<AccessorDeclarationSyntax> ReplaceAccessors(SyntaxList<AccessorDeclarationSyntax> accessors)
+                {
+                    // okay, this visit contains the statement
+                    var newAccessors = new List<AccessorDeclarationSyntax>(accessors);
+
+                    var firstStatementIndex = newAccessors.FindIndex(s => s == _firstStatementOrFieldToReplace);
+                    Contract.ThrowIfFalse(firstStatementIndex >= 0);
+
+                    var lastStatementIndex = newAccessors.FindIndex(s => s == _lastStatementOrFieldToReplace);
+                    Contract.ThrowIfFalse(lastStatementIndex >= 0);
+
+                    Contract.ThrowIfFalse(firstStatementIndex <= lastStatementIndex);
+
+                    // remove statement that must be removed
+                    newAccessors.RemoveRange(firstStatementIndex, lastStatementIndex - firstStatementIndex + 1);
+
+                    // add new statements to replace
+                    newAccessors.InsertRange(firstStatementIndex, _statementsOrMemberOrAccessorToInsert.Cast<AccessorDeclarationSyntax>());
+
+                    return newAccessors.ToSyntaxList();
                 }
 
                 public override SyntaxNode VisitGlobalStatement(GlobalStatementSyntax node)
@@ -356,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
 
                     Contract.ThrowIfFalse(_firstStatementOrFieldToReplace == _lastStatementOrFieldToReplace);
-                    return node.WithInitializer((ConstructorInitializerSyntax)_statementsOrFieldToInsert.Single());
+                    return node.WithInitializer((ConstructorInitializerSyntax)_statementsOrMemberOrAccessorToInsert.Single());
                 }
 
                 public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
@@ -379,6 +401,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     var newMembers = VisitList(ReplaceMembers(node.Members, global: false));
                     return node.WithMembers(newMembers);
+                }
+
+                public override SyntaxNode VisitAccessorList(AccessorListSyntax node)
+                {
+                    if (node != this.ContainerOfStatementsOrFieldToReplace)
+                    {
+                        return base.VisitAccessorList(node);
+                    }
+
+                    var newAccessors = VisitList(ReplaceAccessors(node.Accessors));
+                    return node.WithAccessors(newAccessors);
                 }
 
                 public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
