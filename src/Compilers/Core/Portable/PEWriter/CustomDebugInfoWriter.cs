@@ -242,11 +242,8 @@ namespace Microsoft.Cci
         private static void SerializeTupleElementNames(ArrayBuilder<(ILocalDefinition, LocalScope)> locals, BlobBuilder builder)
         {
             builder.WriteInt32(locals.Count);
-            foreach (var t in locals)
+            foreach (var (local, scope) in locals)
             {
-                // bug in C# compiler (https://github.com/dotnet/roslyn/issues/17518):
-                var (local, scope) = t;
-
                 var tupleElementNames = local.TupleElementNames;
                 builder.WriteInt32(tupleElementNames.Length);
                 foreach (var tupleElementName in tupleElementNames)
