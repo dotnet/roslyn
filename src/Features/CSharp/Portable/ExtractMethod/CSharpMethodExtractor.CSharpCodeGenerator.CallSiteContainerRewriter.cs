@@ -293,27 +293,34 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return SyntaxFactory.Block(SyntaxFactory.List(_statementsOrMemberOrAccessorToInsert.Cast<StatementSyntax>()));
                 }
 
-                private SyntaxList<StatementSyntax> ReplaceStatements(SyntaxList<StatementSyntax> statements)
+                private SyntaxList<TSyntax> ReplaceList<TSyntax>(SyntaxList<TSyntax> list)
+                    where TSyntax : SyntaxNode
                 {
                     // okay, this visit contains the statement
-                    var newStatements = new List<StatementSyntax>(statements);
+                    var newList = new List<TSyntax>(list);
 
-                    var firstStatementIndex = newStatements.FindIndex(s => s == _firstStatementOrFieldToReplace);
+                    var firstStatementIndex = newList.FindIndex(s => s == _firstStatementOrFieldToReplace);
                     Contract.ThrowIfFalse(firstStatementIndex >= 0);
 
-                    var lastStatementIndex = newStatements.FindIndex(s => s == _lastStatementOrFieldToReplace);
+                    var lastStatementIndex = newList.FindIndex(s => s == _lastStatementOrFieldToReplace);
                     Contract.ThrowIfFalse(lastStatementIndex >= 0);
 
                     Contract.ThrowIfFalse(firstStatementIndex <= lastStatementIndex);
 
                     // remove statement that must be removed
-                    newStatements.RemoveRange(firstStatementIndex, lastStatementIndex - firstStatementIndex + 1);
+                    newList.RemoveRange(firstStatementIndex, lastStatementIndex - firstStatementIndex + 1);
 
                     // add new statements to replace
-                    newStatements.InsertRange(firstStatementIndex, _statementsOrMemberOrAccessorToInsert.Cast<StatementSyntax>());
+                    newList.InsertRange(firstStatementIndex, _statementsOrMemberOrAccessorToInsert.Cast<TSyntax>());
 
-                    return newStatements.ToSyntaxList();
+                    return newList.ToSyntaxList();
                 }
+
+                private SyntaxList<StatementSyntax> ReplaceStatements(SyntaxList<StatementSyntax> statements)
+                    => ReplaceList(statements);
+
+                private SyntaxList<AccessorDeclarationSyntax> ReplaceAccessors(SyntaxList<AccessorDeclarationSyntax> accessors)
+                    => ReplaceList(accessors);
 
                 private SyntaxList<MemberDeclarationSyntax> ReplaceMembers(SyntaxList<MemberDeclarationSyntax> members, bool global)
                 {
@@ -336,28 +343,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         _statementsOrMemberOrAccessorToInsert.Select(s => global ? SyntaxFactory.GlobalStatement((StatementSyntax)s) : (MemberDeclarationSyntax)s));
 
                     return newMembers.ToSyntaxList();
-                }
-
-                private SyntaxList<AccessorDeclarationSyntax> ReplaceAccessors(SyntaxList<AccessorDeclarationSyntax> accessors)
-                {
-                    // okay, this visit contains the statement
-                    var newAccessors = new List<AccessorDeclarationSyntax>(accessors);
-
-                    var firstStatementIndex = newAccessors.FindIndex(s => s == _firstStatementOrFieldToReplace);
-                    Contract.ThrowIfFalse(firstStatementIndex >= 0);
-
-                    var lastStatementIndex = newAccessors.FindIndex(s => s == _lastStatementOrFieldToReplace);
-                    Contract.ThrowIfFalse(lastStatementIndex >= 0);
-
-                    Contract.ThrowIfFalse(firstStatementIndex <= lastStatementIndex);
-
-                    // remove statement that must be removed
-                    newAccessors.RemoveRange(firstStatementIndex, lastStatementIndex - firstStatementIndex + 1);
-
-                    // add new statements to replace
-                    newAccessors.InsertRange(firstStatementIndex, _statementsOrMemberOrAccessorToInsert.Cast<AccessorDeclarationSyntax>());
-
-                    return newAccessors.ToSyntaxList();
                 }
 
                 public override SyntaxNode VisitGlobalStatement(GlobalStatementSyntax node)
