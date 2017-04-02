@@ -78,6 +78,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 notificationService.RegisterNotification(
                     () =>
                     {
+                        if (this.TagsChanged == null)
+                        {
+                            // don't bother reporting tags if no one is listening.
+                            return;
+                        }
+
                         var tags = _tagSource.GetTagIntervalTreeForBuffer(_subjectBuffer);
                         var collection = new NormalizedSnapshotSpanCollection(
                             tags.GetSpans(_subjectBuffer.CurrentSnapshot).Select(ts => ts.Span));
