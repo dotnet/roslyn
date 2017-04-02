@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -26,6 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             return exteriorTrivia != null ? exteriorTrivia.Value.ToString() : string.Empty;
         }
 
+        private static void AddSpaceIfNotAlreadyThere(StringBuilder sb)
+        {
+            if (sb.Length > 0 && sb[sb.Length - 1] != ' ')
+            {
+                sb.Append(' ');
+            }
+        }
+
         private static string GetBannerText(DocumentationCommentTriviaSyntax documentationComment, CancellationToken cancellationToken)
         {
             // TODO: Consider unifying code to extract text from an Xml Documentation Comment (https://github.com/dotnet/roslyn/issues/2290)
@@ -42,6 +49,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 sb.Append(" <summary>");
                 foreach (var node in summaryElement.ChildNodes())
                 {
+                    if (node.HasLeadingTrivia)
+                    {
+                        // Collapse all trailing trivia to a single space.
+                        AddSpaceIfNotAlreadyThere(sb);
+                    }
+
                     if (node is XmlTextSyntax xmlText)
                     {
                         var textTokens = xmlText.TextTokens;
@@ -53,16 +66,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                         {
                             if (attribute is XmlCrefAttributeSyntax xmlCref)
                             {
-                                sb.Append(" ");
+                                AddSpaceIfNotAlreadyThere(sb);
                                 sb.Append(xmlCref.Cref.ToString());
                             }
                             else if (attribute is XmlNameAttributeSyntax xmlName)
                             {
-                                sb.Append(" ");
+                                AddSpaceIfNotAlreadyThere(sb);
                                 sb.Append(xmlName.Identifier.Identifier.Text);
                             }
                             else if (attribute is XmlTextAttributeSyntax xmlTextAttribute)
                             {
+                                AddSpaceIfNotAlreadyThere(sb);
                                 AppendTextTokens(sb, xmlTextAttribute.TextTokens);
                             }
                             else
@@ -71,9 +85,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                             }
                         }
                     }
+
+                    if (node.HasTrailingTrivia)
+                    {
+                        // Collapse all trailing trivia to a single space.
+                        AddSpaceIfNotAlreadyThere(sb);
+                    }
                 }
 
-                text = sb.ToString();
+                text = sb.ToString().Trim();
             }
             else
             {
@@ -94,13 +114,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
         private static void AppendTextTokens(StringBuilder sb, SyntaxTokenList textTokens)
         {
-            foreach (var tk in textTokens)
+            foreach (var token in textTokens)
             {
-                var s = tk.ToString().Trim();
-                if (s.Length > 0)
+                var trimmed = token.ToString().Trim();
+
+                if (trimmed == string.Empty)
                 {
-                    sb.Append(" ");
-                    sb.Append(s);
+                    // If it's all whitespace, then just add a single whitespace.
+                    AddSpaceIfNotAlreadyThere(sb);
+                }
+                else
+                {
+                    // Collapse all preceding trivia for this token to a single space.
+                    if (token.LeadingTrivia.Count > 0)
+                    {
+                        AddSpaceIfNotAlreadyThere(sb);
+                    }
+
+                    sb.Append(trimmed);
                 }
             }
         }
