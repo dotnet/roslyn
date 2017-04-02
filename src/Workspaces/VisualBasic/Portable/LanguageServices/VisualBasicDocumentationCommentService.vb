@@ -40,7 +40,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function GetTextTokens(xmlTextAttribute As XmlAttributeSyntax) As SyntaxTokenList
-            Return Nothing
+            Dim value = TryCast(xmlTextAttribute.Value, XmlStringSyntax)
+            Return If(value Is Nothing, Nothing, value.TextTokens)
         End Function
 
         Protected Overrides Function GetName(xmlElement As XmlElementSyntax) As SyntaxNode
