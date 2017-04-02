@@ -299,19 +299,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // okay, this visit contains the statement
                     var newList = new List<TSyntax>(list);
 
-                    var firstStatementIndex = newList.FindIndex(s => s == _firstStatementOrFieldToReplace);
-                    Contract.ThrowIfFalse(firstStatementIndex >= 0);
+                    var firstIndex = newList.FindIndex(s => s == _firstStatementOrFieldToReplace);
+                    Contract.ThrowIfFalse(firstIndex >= 0);
 
-                    var lastStatementIndex = newList.FindIndex(s => s == _lastStatementOrFieldToReplace);
-                    Contract.ThrowIfFalse(lastStatementIndex >= 0);
+                    var lastIndex = newList.FindIndex(s => s == _lastStatementOrFieldToReplace);
+                    Contract.ThrowIfFalse(lastIndex >= 0);
 
-                    Contract.ThrowIfFalse(firstStatementIndex <= lastStatementIndex);
+                    Contract.ThrowIfFalse(firstIndex <= lastIndex);
 
                     // remove statement that must be removed
-                    newList.RemoveRange(firstStatementIndex, lastStatementIndex - firstStatementIndex + 1);
+                    newList.RemoveRange(firstIndex, lastIndex - firstIndex + 1);
 
                     // add new statements to replace
-                    newList.InsertRange(firstStatementIndex, _statementsOrMemberOrAccessorToInsert.Cast<TSyntax>());
+                    newList.InsertRange(firstIndex, _statementsOrMemberOrAccessorToInsert.Cast<TSyntax>());
 
                     return newList.ToSyntaxList();
                 }
