@@ -36,31 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 
             private SyntaxNode GetNewNode(Document document, SyntaxNode node, CancellationToken cancellationToken)
             {
-                SyntaxNode newNode = null;
-
-                var propertyStatement = node as PropertyDeclarationSyntax;
-                if (propertyStatement != null)
-                {
-                    newNode = propertyStatement.AddModifiers(SyntaxFactory.Token(SyntaxKind.NewKeyword)) as SyntaxNode;
-                }
-
-                var methodStatement = node as MethodDeclarationSyntax;
-                if (methodStatement != null)
-                {
-                    newNode = methodStatement.AddModifiers(SyntaxFactory.Token(SyntaxKind.NewKeyword));
-                }
-
-                var fieldDeclaration = node as FieldDeclarationSyntax;
-                if (fieldDeclaration != null)
-                {
-                    var generator = SyntaxGenerator.GetGenerator(_document);
-                    return generator.WithModifiers(fieldDeclaration, generator.GetModifiers(fieldDeclaration).WithIsNew(true));
-                }
-
-                //Make sure we preserve any trivia from the original node
-                newNode = newNode.WithTriviaFrom(node);
-
-                return newNode.WithAdditionalAnnotations(Formatter.Annotation);
+                var generator = SyntaxGenerator.GetGenerator(_document);
+                return generator.WithModifiers(node, generator.GetModifiers(node).WithIsNew(true));
             }
         }
     }
