@@ -370,6 +370,8 @@
     <Compile Include="FindSymbols\FindLiterals\FindLiteralsSearchEngine.cs" />
     <Compile Include="FindSymbols\SymbolFinder.FindLiteralsServerCallback.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.LiteralInfo.cs" />
+    <Compile Include="LanguageServices\SyntaxFactsService\AbstractDocumentationCommentService.cs" />
+    <Compile Include="LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigSeverityStrings.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingRule.cs" />

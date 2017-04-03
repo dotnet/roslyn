@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsWhitespaceTrivia(SyntaxTrivia trivia);
         bool IsEndOfLineTrivia(SyntaxTrivia trivia);
+        bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia);
 
         SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
 
@@ -285,6 +286,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
+
+        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken);
     }
 
     [Flags]
