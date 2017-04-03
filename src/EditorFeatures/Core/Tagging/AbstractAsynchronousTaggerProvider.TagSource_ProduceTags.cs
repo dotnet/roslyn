@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 RaiseResumed();
             }
 
-            private void OnChanged(object sender, TaggerEventArgs e)
+            private void OnEventSourceChanged(object sender, TaggerEventArgs e)
             {
                 RecalculateTagsOnChanged(e);
             }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (caret.HasValue)
                 {
                     // If it changed position and we're still in a tag, there's nothing more to do
-                    var currentTags = GetTagIntervalTreeForBuffer(caret.Value.Snapshot.TextBuffer);
+                    var currentTags = TryGetTagIntervalTreeForBuffer(caret.Value.Snapshot.TextBuffer);
                     if (currentTags != null && currentTags.GetIntersectingSpans(new SnapshotSpan(caret.Value, 0)).Count > 0)
                     {
                         // Caret is inside a tag.  No need to do anything.
@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// Returns the TagSpanIntervalTree containing the tags for the given buffer. If no tags
             /// exist for the buffer at all, null is returned.
             /// </summary>
-            public TagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer)
+            public TagSpanIntervalTree<TTag> TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
                 _workQueue.AssertIsForeground();
 
