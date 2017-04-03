@@ -60,7 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var result = Interlocked.CompareExchange(ref _seenEventSourceChanged, value: 1, comparand: 0);
                 if (result == 0)
                 {
-                    // this is the first time we're hearing about changes.  Don't have any delay
+                    // this is the first time we're hearing about changes from our event-source.
+                    // Don't have any delay here.  We want to just compute the tags and display
+                    // them as soon as we possibly can.
                     ComputeInitialTags();
                 }
                 else
@@ -278,9 +280,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             /// <summary>
-            /// Called on the foreground thread.  Can be passed an optional cancellationToken
-            /// that controls the work being done.  If no cancellation token is passed, the one
-            /// from the <see cref="_workQueue"/> is used.
+            /// Called on the foreground thread.  Passed a boolean to say if we're computing the
+            /// initial set of tags or not.  If we're computing the initial set of tags, we lower
+            /// all our delays so that we can get results to the screen as quickly as possible.
+            /// 
+            /// This gives a good experience when a document is opened as the document appears
+            /// complete almost immediately.  Once open though, our normal delays come into play
+            /// so as to not cause a flashy experience.
             /// </summary>
             private void RecomputeTagsForeground(bool initialTags)
             {

@@ -97,6 +97,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private int _seenEventSourceChanged;
 
+            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
+            public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
+
             public TagSource(
                 ITextView textViewOpt,
                 ITextBuffer subjectBuffer,
@@ -125,15 +128,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 Connect();
 
-                // Kick off a task to immediately compute the initial set of tags. This work should 
-                // not be cancellable (except if we get completely released), even if more events come 
-                // in.  That way we can get the initial set of results for the buffer as quickly as 
-                // possible, without kicking the work  down the road.
+                // Start computing the initial set of tags immediately.  We want to get the UI
+                // to a complete state as soon as possible.
                 ComputeInitialTags();
             }
 
             private void ComputeInitialTags()
             {
+                // Kick off a task to immediately compute the initial set of tags. This work should
+                // not be cancellable (except if we get completely released), even if more events come 
+                // in.  That way we can get the initial set of results for the buffer as quickly as 
+                // possible, without kicking the work  down the road.
                 if (_workQueue.IsForeground())
                 {
                     RecomputeTagsForeground(initialTags: true);
@@ -146,9 +151,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         cancellationToken: GetCancellationToken(initialTags: true));
                 }
             }
-
-            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
-            public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
 
             private ITaggerEventSource CreateEventSource()
             {
@@ -237,7 +239,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 _workQueue.AssertIsForeground();
 
-                _seenEventSourceChanged = 0;
                 _eventSource.Changed += OnEventSourceChanged;
                 _eventSource.UIUpdatesResumed += OnUIUpdatesResumed;
                 _eventSource.UIUpdatesPaused += OnUIUpdatesPaused;
