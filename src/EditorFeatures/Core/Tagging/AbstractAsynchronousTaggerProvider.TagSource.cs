@@ -87,6 +87,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly CancellationTokenSource _initialComputationCancellationTokenSource = new CancellationTokenSource();
 
+            /// <summary>
+            /// Whether or not we've gotten any change notifications from our <see cref="ITaggerEventSource"/>.
+            /// The first time we hear about changes, we fast track getting tags and reporting 
+            /// them to the UI.
+            /// 
+            /// We use an int so we can use <see cref="Interlocked.CompareExchange(ref int, int, int)"/> 
+            /// to read/set this.
+            /// </summary>
             private int _seenEventSourceChanged;
 
             public TagSource(
