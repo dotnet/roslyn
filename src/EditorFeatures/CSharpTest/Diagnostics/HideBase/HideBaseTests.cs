@@ -94,7 +94,7 @@ class App : Application
 }");
         }
 
-        [WorkItem(18391, "Issue where 'new' keyword would be in the wrong order on 'const' fields.")]
+        [WorkItem(18391, "https://github.com/dotnet/roslyn/issues/18391")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
         public async Task TestAddNewToConstant()
         {
