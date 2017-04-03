@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// if our ref count actually reaches 0.  Otherwise, we always try to compute the initial
             /// set of tags for our view/buffer.
             /// </summary>
-            private readonly CancellationTokenSource _initialComputationCancellationTokenSource;
+            private readonly CancellationTokenSource _initialComputationCancellationTokenSource = new CancellationTokenSource();
 
             public TagSource(
                 ITextView textViewOpt,
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     RegisterNotification(
                         () => RecomputeTagsForeground(cancellationTokenOpt: initialTagsCancellationToken),
                         delay: 0,
-                        cancellationToken: _initialComputationCancellationTokenSource.Token);
+                        cancellationToken: initialTagsCancellationToken);
                 }
             }
 
