@@ -297,13 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.Parameters)
         End Function
 
-        Private ReadOnly Property IInvocationExpression_ArgumentsInSourceOrder As ImmutableArray(Of IArgument) Implements IInvocationExpression.ArgumentsInSourceOrder
-            Get
-                Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
-            End Get
-        End Property
-
-        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
             Get
                 Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
             End Get
@@ -1184,7 +1178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
             Get
                 Debug.Assert(Me.ConstructorOpt IsNot Nothing OrElse Me.Arguments.IsEmpty())
                 Return If(Me.ConstructorOpt Is Nothing, ImmutableArray(Of IArgument).Empty, BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.Parameters))
@@ -1463,7 +1457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
             Get
                 Return BoundCall.DeriveArguments(Me.Arguments, Me.PropertySymbol.Parameters)
             End Get

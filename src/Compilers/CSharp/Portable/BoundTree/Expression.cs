@@ -62,26 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) &&
             !this.ReceiverOpt.SuppressVirtualCalls;
 
-        ImmutableArray<IArgument> IInvocationExpression.ArgumentsInSourceOrder
-        {
-            get
-            {
-                ArrayBuilder<IArgument> sourceOrderArguments = ArrayBuilder<IArgument>.GetInstance(this.Arguments.Length);
-                for (int argumentIndex = 0; argumentIndex < this.Arguments.Length; argumentIndex++)
-                {
-                    IArgument argument = DeriveArgument(this.ArgsToParamsOpt.IsDefault ? argumentIndex : this.ArgsToParamsOpt[argumentIndex], argumentIndex, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Syntax);
-                    sourceOrderArguments.Add(argument);
-                    if (argument.ArgumentKind == ArgumentKind.ParamArray)
-                    {
-                        break;
-                    }
-                }
-
-                return sourceOrderArguments.ToImmutableAndFree();
-            }
-        }
-
-        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Syntax);
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Syntax);
 
         IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
         {
@@ -377,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ISymbol IMemberReferenceExpression.Member => this.Indexer;
 
-        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Indexer.Parameters, this.Syntax);
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Indexer.Parameters, this.Syntax);
 
         IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
         {
@@ -538,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
-        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters, this.Syntax);
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters, this.Syntax);
 
         IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
         {

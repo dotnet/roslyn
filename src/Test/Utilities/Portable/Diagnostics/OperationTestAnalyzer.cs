@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
                      long priorArgumentValue = long.MinValue;
-                     foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
+                     foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
                      {
                          if (argument.IsInvalid)
                          {
@@ -1085,23 +1085,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
 
-                     foreach (IArgument argument in invocation.ArgumentsInSourceOrder)
-                     {
-                         if (argument.Parameter.IsParams)
-                         {
-                             IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
-                             if (arrayValue != null)
-                             {
-                                 Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
-                                 if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)
-                                 {
-                                     operationContext.ReportDiagnostic(Diagnostic.Create(LongParamsDescriptor, argument.Value.Syntax.GetLocation()));
-                                 }
-                             }
-                         }
-                     }
-
-                     foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
+                     foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
                      {
                          if (argument.Parameter.IsParams)
                          {
@@ -1129,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         operationContext.ReportDiagnostic(Diagnostic.Create(InvalidConstructorDescriptor, creation.Syntax.GetLocation()));
                     }
 
-                    foreach (IArgument argument in creation.ArgumentsInParameterOrder)
+                    foreach (IArgument argument in creation.ArgumentsInEvaluationOrder)
                     {
                         if (argument.Parameter.IsParams)
                         {

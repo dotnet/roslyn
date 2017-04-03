@@ -204,8 +204,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var targetMethod = operation.TargetMethod;
             var isVirtual = operation.IsVirtual;
-            // base.VisitInvocationExpression only visit operations in ArgumentsInSourceOrder
-            foreach (var argument in operation.ArgumentsInParameterOrder)
+            foreach (var argument in operation.ArgumentsInEvaluationOrder)
             {
                 Visit(argument);
             }
