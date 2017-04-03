@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {

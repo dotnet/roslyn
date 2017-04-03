@@ -87,6 +87,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly CancellationTokenSource _initialComputationCancellationTokenSource = new CancellationTokenSource();
 
+            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
+            public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
+
             public TagSource(
                 ITextView textViewOpt,
                 ITextBuffer subjectBuffer,
@@ -132,9 +135,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         cancellationToken: initialTagsCancellationToken);
                 }
             }
-
-            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
-            public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
 
             private ITaggerEventSource CreateEventSource()
             {
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _workQueue.CancelCurrentWork();
                 RegisterNotification(
                     () => RecomputeTagsForeground(cancellationTokenOpt: null),
-                    (int)e.Delay.ComputeTimeDelay().TotalMilliseconds,
+                    (int)e.Delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds,
                     _workQueue.CancellationToken);
             }
 

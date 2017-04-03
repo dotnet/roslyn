@@ -636,7 +636,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 {
                     // Otherwise report back on the foreground asap to update the state and let our 
                     // clients know about the change.
-                    RegisterNotification(() => UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState), 0, cancellationToken);
+                    RegisterNotification(() => UpdateStateAndReportChanges(
+                        newTagTrees, bufferToChanges, newState),
+                        delay: 0,
+                        cancellationToken: cancellationToken);
                 }
             }
 
