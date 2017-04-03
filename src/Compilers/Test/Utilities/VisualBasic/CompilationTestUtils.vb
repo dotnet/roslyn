@@ -902,7 +902,6 @@ Friend Module CompilationUtils
     Private Sub AssertTheseDiagnostics(errors As ImmutableArray(Of Diagnostic), expectedText As String, suppressInfos As Boolean)
         Dim actualText = DumpAllDiagnostics(errors.ToArray(), suppressInfos)
         If expectedText <> actualText Then
-
             Dim messages = ParserTestUtilities.PooledStringBuilderPool.Allocate()
             With messages.Builder
                 .AppendLine()
@@ -998,6 +997,10 @@ Friend Module CompilationUtils
     End Structure
 
     Private Function DumpAllDiagnostics(allDiagnostics As Diagnostic(), suppressInfos As Boolean) As String
+        Return DumpAllDiagnostics(allDiagnostics.ToImmutableArray(), suppressInfos)
+    End Function
+
+    Friend Function DumpAllDiagnostics(allDiagnostics As ImmutableArray(Of Diagnostic), suppressInfos As Boolean) As String
 
         Dim diagnosticsAndIndices(allDiagnostics.Length - 1) As DiagnosticAndIndex
         For i = 0 To allDiagnostics.Length - 1
