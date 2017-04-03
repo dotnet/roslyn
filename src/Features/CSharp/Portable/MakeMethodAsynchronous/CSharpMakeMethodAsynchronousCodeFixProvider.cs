@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType)
         {
             var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, taskType, taskOfTType, valueTaskOfTType);
-            var newModifiers = method.Modifiers.Add(s_asyncToken);
+            var newModifiers = AddAsyncModifierWithCorrectedTrivia(method.Modifiers, ref newReturnType);
             return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType)
         {
             var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, localFunction.ReturnType, taskType, taskOfTType, valueTaskOfTType);
-            var newModifiers = localFunction.Modifiers.Add(s_asyncToken);
+            var newModifiers = AddAsyncModifierWithCorrectedTrivia(localFunction.Modifiers, ref newReturnType);
             return localFunction.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
@@ -96,7 +96,18 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                 }
             }
 
-            return newReturnType;
+            return newReturnType.WithTriviaFrom(returnType);
+        }
+
+        private static SyntaxTokenList AddAsyncModifierWithCorrectedTrivia(SyntaxTokenList modifiers, ref TypeSyntax newReturnType)
+        {
+            if (modifiers.Any())
+                return modifiers.Add(s_asyncToken);
+
+            // Move the leading trivia from the return type to the new modifiers list.
+            SyntaxTokenList result = SyntaxFactory.TokenList(s_asyncToken.WithLeadingTrivia(newReturnType.GetLeadingTrivia()));
+            newReturnType = newReturnType.WithoutLeadingTrivia();
+            return result;
         }
 
         private SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)

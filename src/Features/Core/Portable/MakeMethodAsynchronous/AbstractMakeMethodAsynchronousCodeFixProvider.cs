@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -152,8 +151,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var (taskType, taskOfTType, valueTaskOfTType) = GetTaskTypes(compilation);
 
-            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, taskType, taskOfTType, valueTaskOfTType)
-                .WithAdditionalAnnotations(Formatter.Annotation);
+            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, taskType, taskOfTType, valueTaskOfTType);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(node, newNode);
