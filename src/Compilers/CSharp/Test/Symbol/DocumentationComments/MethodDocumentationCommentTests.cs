@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void M7((int x1, int x2, int x3, int x4, int x5, int x6, short x7) z) { }
         public void M8((int x1, int x2, int x3, int x4, int x5, int x6, short x7, int x8) z) { }
         public void M9((int x1, int x2, int x3, int x4, int x5, int x6, short x7, (string y1, string y2)) z) { }
-        public void M10((int x1, short x2) z) { }
+        public void M10((int x1, short x2) y, System.Tuple<int, short> z) { }
     }
     class MyList<T>
     {
@@ -131,28 +131,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestTupleLength7()
         {
-            Assert.Equal("M:Acme.Widget.M7(System.ValueTuple<System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16>)",
+            Assert.Equal("M:Acme.Widget.M7(System.ValueTuple{System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16})",
                 _widgetClass.GetMembers("M7").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestTupleLength8()
         {
-            Assert.Equal("M:Acme.Widget.M8(System.ValueTuple<System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16,System.ValueTuple<System.Int32>>)",
+            Assert.Equal("M:Acme.Widget.M8(System.ValueTuple{System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16,System.ValueTuple{System.Int32}})",
                 _widgetClass.GetMembers("M8").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestTupleLength9()
         {
-            Assert.Equal("M:Acme.Widget.M9(System.ValueTuple<System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16,System.ValueTuple<System.ValueTuple<System.String,System.String>>>)",
+            Assert.Equal("M:Acme.Widget.M9(System.ValueTuple{System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16,System.ValueTuple{System.ValueTuple{System.String,System.String}}})",
                 _widgetClass.GetMembers("M9").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestTupleLength2()
         {
-            Assert.Equal("M:Acme.Widget.M10(System.ValueTuple<System.Int32,System.Int16>)",
+            Assert.Equal("M:Acme.Widget.M10(System.ValueTuple{System.Int32,System.Int16},System.Tuple{System.Int32,System.Int16})",
                 _widgetClass.GetMembers("M10").Single().GetDocumentationCommentId());
         }
 

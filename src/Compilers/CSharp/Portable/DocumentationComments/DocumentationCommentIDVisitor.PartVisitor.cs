@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private object VisitTupleType(ImmutableArray<TypeSymbol> types, int index, StringBuilder builder)
             {
-                builder.Append("System.ValueTuple<");
+                builder.Append("System.ValueTuple{");
 
                 int totalLength = types.Length;
                 int chunk = Math.Min(7, totalLength - index);
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitTupleType(types, nextIndex, builder);
                 }
 
-                builder.Append('>');
+                builder.Append('}');
                 return null;
             }
 
