@@ -84,10 +84,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                             return;
                         }
 
-                        var tags = _tagSource.GetTagIntervalTreeForBuffer(_subjectBuffer);
-                        var collection = new NormalizedSnapshotSpanCollection(
-                            tags.GetSpans(_subjectBuffer.CurrentSnapshot).Select(ts => ts.Span));
-                        this.NotifyEditorNow(collection);
+                        var tags = _tagSource.TryGetTagIntervalTreeForBuffer(_subjectBuffer);
+                        if (tags != null)
+                        {
+                            var collection = new NormalizedSnapshotSpanCollection(
+                                tags.GetSpans(_subjectBuffer.CurrentSnapshot).Select(ts => ts.Span));
+                            this.NotifyEditorNow(collection);
+                        }
                     },
                     listener.BeginAsyncOperation(GetType().FullName + ".ctor-ReportInitialTags"));
             }
@@ -223,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var buffer = requestedSpans.First().Snapshot.TextBuffer;
                 var tags = accurate
                     ? _tagSource.GetAccurateTagIntervalTreeForBuffer(buffer, cancellationToken)
-                    : _tagSource.GetTagIntervalTreeForBuffer(buffer);
+                    : _tagSource.TryGetTagIntervalTreeForBuffer(buffer);
 
                 if (tags == null)
                 {

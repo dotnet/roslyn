@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void RecalculateTagsOnChanged(TaggerEventArgs e)
                 => RecalculateTagsOnChanged_DoNotCallDirectly(
-                    (int)e.Delay.ComputeTimeDelay().TotalMilliseconds, cancellable: false);
+                    (int)e.Delay.ComputeTimeDelay().TotalMilliseconds, cancellable: true);
 
             /// <summary>
             /// Called by derived types to enqueue tags re-calculation request
