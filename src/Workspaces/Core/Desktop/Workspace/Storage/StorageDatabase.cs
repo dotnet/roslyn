@@ -5,6 +5,7 @@ namespace Microsoft.CodeAnalysis.Storage
     internal enum StorageDatabase
     {
         None = 0,
-        Esent = 1,
+        SQLite = 1,
+        Esent = 2,
     }
 }
