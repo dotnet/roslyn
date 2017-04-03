@@ -16,7 +16,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-
     <ExportLanguageServiceFactory(GetType(ISyntaxFactsService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSyntaxFactsServiceFactory
         Implements ILanguageServiceFactory
@@ -38,6 +37,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Property IsCaseSensitive As Boolean Implements ISyntaxFactsService.IsCaseSensitive
             Get
                 Return False
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property DocumentationCommentService As IDocumentationCommentService
+            Get
+                Return VisualBasicDocumentationCommentService.Instance
             End Get
         End Property
 
@@ -1770,6 +1775,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function ISyntaxFactsService_ContainsInterleavedDirective1(nodes As ImmutableArray(Of SyntaxNode), cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.ContainsInterleavedDirective
             Return ContainsInterleavedDirective(nodes, cancellationToken)
+        End Function
+
+        Public Function IsDocumentationCommentExteriorTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsDocumentationCommentExteriorTrivia
+            Return trivia.Kind() = SyntaxKind.DocumentationCommentExteriorTrivia
+        End Function
+
+        Private Function ISyntaxFactsService_GetBannerText(documentationCommentTriviaSyntax As SyntaxNode, cancellationToken As CancellationToken) As String Implements ISyntaxFactsService.GetBannerText
+            Return GetBannerText(documentationCommentTriviaSyntax, cancellationToken)
         End Function
     End Class
 End Namespace
