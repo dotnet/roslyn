@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Represents an assembly built by compiler.
     ''' </summary>
     ''' <remarks></remarks>
-    Friend NotInheritable Class SourceAssemblySymbol
+    Partial Friend NotInheritable Class SourceAssemblySymbol
         Inherits MetadataOrSourceAssemblySymbol
         Implements ISourceAssemblySymbolInternal, IAttributeTargetSymbol
 
@@ -1064,6 +1064,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.CompilationRelaxationsAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasCompilationRelaxationsAttribute = True
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ReferenceAssemblyAttribute) Then
+                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasReferenceAssemblyAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.RuntimeCompatibilityAttribute) Then
                 ' VB doesn't need to decode argument values
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().RuntimeCompatibilityWrapNonExceptionThrows = True
@@ -1433,6 +1435,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property HasReferenceAssemblyAttribute As Boolean
+            Get
+                Dim assemblyData As CommonAssemblyWellKnownAttributeData = Me.GetSourceDecodedWellKnownAttributeData()
+                Return assemblyData IsNot Nothing AndAlso assemblyData.HasReferenceAssemblyAttribute
             End Get
         End Property
 

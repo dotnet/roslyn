@@ -177,11 +177,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public NotOverridable Overrides Function GetSourceAssemblyAttributes(isRefAssembly As Boolean) As IEnumerable(Of Cci.ICustomAttribute)
-            Dim result = SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(Me.CompilationState, emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
-            If isRefAssembly Then
-                result = result.Concat(Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor))
-            End If
-            Return result
+            Return SourceModule.ContainingSourceAssembly.GetAssemblyCustomAttributesToEmit(Me.CompilationState,
+                                                                                           isRefAssembly,
+                                                                                           emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
         End Function
 
         Public NotOverridable Overrides Function GetSourceAssemblySecurityAttributes() As IEnumerable(Of Cci.SecurityAttribute)

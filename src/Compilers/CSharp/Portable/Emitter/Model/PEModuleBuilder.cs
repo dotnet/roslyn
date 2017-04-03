@@ -85,12 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly)
         {
-            var result = SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(this.CompilationState, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
-            if (isRefAssembly)
-            {
-                result = result.Concat(Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor));
-            }
-            return result;
+            return SourceModule.ContainingSourceAssembly
+                .GetCustomAttributesToEmit(this.CompilationState, isRefAssembly, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
         }
 
         public sealed override IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes()

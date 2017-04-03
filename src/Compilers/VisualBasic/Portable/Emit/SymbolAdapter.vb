@@ -36,13 +36,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overridable Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
-            Return GetCustomAttributesToEmit(compilationState, emittingAssemblyAttributesInNetModule:=False)
-        End Function
+            Debug.Assert(Me.Kind <> SymbolKind.Assembly)
 
-        Friend Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState, emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)
             Dim synthesized As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
             AddSynthesizedAttributes(compilationState, synthesized)
-            Return GetCustomAttributesToEmit(Me.GetAttributes(), synthesized, isReturnType:=False, emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule)
+
+            Return GetCustomAttributesToEmit(Me.GetAttributes(), synthesized,
+                                             Function(attribute, symbol) attribute.ShouldEmitAttribute(symbol, isReturnType:=False, emittingAssemblyAttributesInNetModule:=False))
         End Function
 
         ''' <summary> 
@@ -50,25 +50,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Function GetCustomAttributesToEmit(userDefined As ImmutableArray(Of VisualBasicAttributeData),
                                                   synthesized As ArrayBuilder(Of SynthesizedAttributeData),
-                                                  isReturnType As Boolean,
-                                                  emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)
+                                                  shouldEmitAttribute As Func(Of VisualBasicAttributeData, Symbol, Boolean)) As IEnumerable(Of VisualBasicAttributeData)
 
             ' PERF: Avoid creating an iterator for the common case of no attributes.
             If userDefined.IsEmpty AndAlso synthesized Is Nothing Then
                 Return SpecializedCollections.EmptyEnumerable(Of VisualBasicAttributeData)()
             End If
 
-            Return GetCustomAttributesToEmitIterator(userDefined, synthesized, isReturnType, emittingAssemblyAttributesInNetModule)
+            Return GetCustomAttributesToEmitIterator(userDefined, synthesized, shouldEmitAttribute)
         End Function
 
         Private Iterator Function GetCustomAttributesToEmitIterator(userDefined As ImmutableArray(Of VisualBasicAttributeData),
                                                   synthesized As ArrayBuilder(Of SynthesizedAttributeData),
-                                                  isReturnType As Boolean,
-                                                  emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)
+                                                  shouldEmitAttribute As Func(Of VisualBasicAttributeData, Symbol, Boolean)) As IEnumerable(Of VisualBasicAttributeData)
 
             If synthesized IsNot Nothing Then
                 For Each attribute In synthesized
-                    Debug.Assert(attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule:=False))
+                    Debug.Assert(shouldEmitAttribute(attribute, Me))
                     Yield attribute
                 Next
 
@@ -86,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                If attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule) Then
+                If shouldEmitAttribute(attribute, Me) Then
                     Yield attribute
                 End If
             Next

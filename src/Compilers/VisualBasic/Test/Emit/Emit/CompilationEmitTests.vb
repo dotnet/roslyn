@@ -298,6 +298,31 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub RefAssembly_ReferenceAssemblyAttributeAlsoInSource()
+            Dim emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+
+            Dim assemblyValidator As Action(Of PEAssembly) =
+                Sub(assembly)
+                    Dim reader = assembly.GetMetadataReader()
+                    Dim attributes = reader.GetAssemblyDefinition().GetCustomAttributes()
+                    AssertEx.Equal(
+                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
+                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
+                            "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
+                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()"
+                        },
+                        attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)))
+                End Sub
+
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+<assembly:System.Runtime.CompilerServices.ReferenceAssembly()>
+                         ]]></file>
+                         </compilation>
+            CompileAndVerify(source, emitOptions:=emitRefAssembly, verify:=True, validator:=assemblyValidator)
+        End Sub
+
+        <Fact>
         Public Sub RefAssembly_InvariantToSomeChanges()
 
             RefAssembly_InvariantToSomeChanges(

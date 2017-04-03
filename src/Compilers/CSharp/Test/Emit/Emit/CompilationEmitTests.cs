@@ -247,11 +247,53 @@ class Test2
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var sourceAssembly = (SourceAssemblySymbol)sourceModule.DeclaringCompilation.Assembly;
-                AssertEx.SetEqual(sourceAssembly.GetSynthesizedAttributes().Select(a => a.ToString()),
-                    new[] {
+                AssertEx.Equal(new[] {
                         "System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)",
                         "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)",
-                        "System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)" });
+                        "System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)"
+                    },
+                    sourceAssembly.GetSynthesizedAttributes().Select(a => a.ToString()));
+            };
+
+            Action<PEAssembly> assemblyValidator = assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var attributes = reader.GetAssemblyDefinition().GetCustomAttributes();
+                AssertEx.Equal(new[] {
+                        "MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
+                        "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
+                        "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
+                        "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()"
+                    },
+                    attributes.Select(a => MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)));
+            };
+
+            CompileAndVerify("", emitOptions: emitRefAssembly, sourceSymbolValidator: sourceSymbolValidator, assemblyValidator: assemblyValidator);
+        }
+
+        [Fact]
+        public void RefAssembly_HandlesMissingReferenceAssemblyAttribute()
+        {
+            var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+            var mslib_cs = @"
+namespace System
+{
+    public class Object { }
+    public struct Int32 { }
+    public class ValueType { }
+    public class Attribute { }
+    public struct Void { }
+}";
+            var mslibComp = CreateCompilation(new string[] { mslib_cs }).VerifyDiagnostics();
+            var mslibRef = mslibComp.EmitToImageReference();
+
+            Action<IModuleSymbol> sourceSymbolValidator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var sourceAssembly = (SourceAssemblySymbol)sourceModule.DeclaringCompilation.Assembly;
+                AssertEx.SetEqual(
+                    new string[] { },
+                    sourceAssembly.GetSynthesizedAttributes().Select(a => a.ToString()));
             };
 
             Action<PEAssembly> assemblyValidator = assembly =>
@@ -259,14 +301,32 @@ class Test2
                 var reader = assembly.GetMetadataReader();
                 var attributes = reader.GetAssemblyDefinition().GetCustomAttributes();
                 AssertEx.SetEqual(attributes.Select(a => MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)),
-                    new[] {
+                    new string[] { });
+            };
+
+            var comp = CreateCompilation("", references: new[] { mslibRef });
+            CompileAndVerify(compilation: comp, emitOptions: emitRefAssembly, sourceSymbolValidator: sourceSymbolValidator, assemblyValidator: assemblyValidator);
+        }
+
+        [Fact]
+        public void RefAssembly_ReferenceAssemblyAttributeAlsoInSource()
+        {
+            var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+
+            Action<PEAssembly> assemblyValidator = assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var attributes = reader.GetAssemblyDefinition().GetCustomAttributes();
+                AssertEx.Equal(new string[] {
                         "MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
                         "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
                         "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
-                        "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()" });
+                        "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()"
+                    },
+                    attributes.Select(a => MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)));
             };
-
-            CompileAndVerify("", emitOptions: emitRefAssembly, sourceSymbolValidator: sourceSymbolValidator, assemblyValidator: assemblyValidator);
+            string source = @"[assembly:System.Runtime.CompilerServices.ReferenceAssembly()]";
+            CompileAndVerify(source, emitOptions: emitRefAssembly, assemblyValidator: assemblyValidator);
         }
 
         [Theory]
@@ -578,18 +638,18 @@ public class PublicClass
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
             var compWithReal = CreateCompilation("", references: new[] { MscorlibRef, realImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            AssertEx.SetEqual(
+            AssertEx.Equal(
                 compWithReal.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()),
                 new[] { "<Module>", "<>f__AnonymousType0<<anonymous>j__TPar>", "PublicClass" });
 
-            AssertEx.SetEqual(
+            AssertEx.Equal(
                 ((NamedTypeSymbol)compWithReal.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMember("PublicClass")).GetMembers()
                     .Select(m => m.ToTestDisplayString()),
                 new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
-                    "void PublicClass.InternalMethod()", "void PublicClass.ProtectedMethod()",
+                    "void PublicClass.ProtectedMethod()", "void PublicClass.InternalMethod()",
                     "PublicClass..ctor()" });
 
-            AssertEx.SetEqual(compWithReal.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()),
+            AssertEx.Equal(compWithReal.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()),
                 new[] { "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
                     "System.Diagnostics.DebuggableAttribute" });
@@ -601,18 +661,18 @@ public class PublicClass
             var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
             var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            AssertEx.SetEqual(
+            AssertEx.Equal(
                 compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()),
                 new[] { "<Module>", "PublicClass" });
 
-            AssertEx.SetEqual(
+            AssertEx.Equal(
                 ((NamedTypeSymbol)compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMember("PublicClass")).GetMembers()
                     .Select(m => m.ToTestDisplayString()),
                 new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
-                    "void PublicClass.InternalMethod()", "void PublicClass.ProtectedMethod()",
+                    "void PublicClass.ProtectedMethod()", "void PublicClass.InternalMethod()",
                     "PublicClass..ctor()" });
 
-            AssertEx.SetEqual(compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()),
+            AssertEx.Equal(compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()),
                 new[] { "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
                     "System.Diagnostics.DebuggableAttribute" });
@@ -626,16 +686,16 @@ public class PublicClass
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            AssertEx.SetEqual(
+            AssertEx.Equal(
                 compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()),
                 new[] { "<Module>", "PublicClass" });
 
-            AssertEx.SetEqual(
+            AssertEx.Equal(
                 ((NamedTypeSymbol)compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMember("PublicClass")).GetMembers()
                     .Select(m => m.ToTestDisplayString()),
                 new[] { "void PublicClass.PublicMethod()", "void PublicClass.ProtectedMethod()", "PublicClass..ctor()" });
 
-            AssertEx.SetEqual(compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()),
+            AssertEx.Equal(compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()),
                 new[] {
                     "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
