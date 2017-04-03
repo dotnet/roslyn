@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (symbol.IsTupleType)
                 {
-                    return VisitTupleType((TupleTypeSymbol)symbol, builder);
+                    return VisitNamedType(((TupleTypeSymbol)symbol).UnderlyingNamedType, builder);
                 }
 
                 if ((object)symbol.ContainingSymbol != null && symbol.ContainingSymbol.Name.Length != 0)
@@ -214,40 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return null;
-            }
-
-            private object VisitTupleType(TupleTypeSymbol symbol, StringBuilder builder)
-            {
-                return VisitTupleType(symbol.TupleElementTypes, 0, builder);
-            }
-
-            private object VisitTupleType(ImmutableArray<TypeSymbol> types, int index, StringBuilder builder)
-            {
-                builder.Append("System.ValueTuple{");
-
-                int totalLength = types.Length;
-                int chunk = Math.Min(7, totalLength - index);
-                bool needsComma = false;
-                for (int i = 0; i < chunk; i++)
-                {
-                    if (needsComma)
-                    {
-                        builder.Append(',');
-                    }
-
-                    Visit(types[index + i], builder);
-                    needsComma = true;
-                }
-
-                int nextIndex = index + 7;
-                if (nextIndex < totalLength)
-                {
-                    builder.Append(',');
-                    VisitTupleType(types, nextIndex, builder);
-                }
-
-                builder.Append('}');
                 return null;
             }
 
