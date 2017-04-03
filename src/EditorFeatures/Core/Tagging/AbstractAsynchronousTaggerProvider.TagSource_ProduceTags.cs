@@ -319,6 +319,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
+            /// <summary>
+            /// Get's the cancellation token that will control the processing of this set of
+            /// tags. If this is the initial set of tags, we have a single cancellation token
+            /// that can't be interrupted *unless* the entire tagger is shut down.  If this
+            /// is anything after the initial set of tags, then we'll control things with a
+            /// cancellation token that is triggered every time we hear about new changes.
+            /// 
+            /// This is a 'kick the can down the road' approach whereby we keep delaying
+            /// producing tags (and updating the UI) until a reasonable pause has happened.
+            /// This approach helps prevent flashing in the UI.
+            /// </summary>
             private CancellationToken GetCancellationToken(bool initialTags)
                 => initialTags
                     ? _initialComputationCancellationTokenSource.Token
