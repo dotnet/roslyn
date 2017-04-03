@@ -9,8 +9,8 @@ param (
     [switch]$skipTest = $false,
     [switch]$skipRestore = $false,
     [switch]$skipCommitPrinting = $false,
-    [switch]$release = $false
-)
+    [switch]$release = $false,
+    [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
@@ -46,6 +46,11 @@ function Terminate-BuildProcesses() {
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $repoDir
+
+    if ($badArgs -ne $null) {
+        Print-Usage
+        exit 1
+    }
 
     Write-Host "Parameters:"
     foreach ($k in $PSBoundParameters.Keys)  {
@@ -103,16 +108,19 @@ try {
         Run-MSBuild Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false
 
         # Check if we have credentials to upload to benchview
-        $extraArgs = ""
+        $extraArgs = @()
         if ((Test-Path env:\GIT_BRANCH) -and (Test-Path env:\BV_UPLOAD_SAS_TOKEN)) {
-            $extraArgs = "--report-benchview --branch $($env:GIT_BRANCH)"
+            $extraArgs += "--report-benchview"
+            $extraArgs += "--branch=$env:GIT_BRANCH"
 
             # Check if we are in a PR or this is a rolling submission
             if (Test-Path env:\ghprbPullTitle) {
-                $extraArgs = '$($extraArgs) --benchview-submission-name "[$($env:ghprbPullAuthorLogin)] PR $($env:ghprbPullId): $($env:ghprbPullTitle)" --benchview-submission-type private'
+                $submissionName = $env:ghprbPullTitle.Replace(" ", "_")
+                $extraArgs += "--benchview-submission-name=""$submissionName"""
+                $extraArgs += "--benchview-submission-type=private"
             } 
             else {
-                $extraArgs = '$(4extraArgs) --benchview-submission-type rolling'
+                $extraArgs += "--benchview-submission-type=rolling"
             }
 
             Create-Directory ".\Binaries\$buildConfiguration\tools\"
@@ -121,7 +129,7 @@ try {
         }
 
         Terminate-BuildProcesses
-        & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe"  --search-directory=".\\Binaries\\$buildConfiguration\\Dlls\\" --no-trace-upload $extraArgs 
+        & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe"  $extraArgs --search-directory=".\\Binaries\\$buildConfiguration\\Dlls\\" --no-trace-upload
         if (-not $?) { 
             throw "Perf run failed"
         }

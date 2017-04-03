@@ -173,7 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     if (scope == null)
                     {
-                        // This is similar to FieldDeclaration case but we only want to do this if the member has an expression body.
+                        // This is similar to FieldDeclaration case but we only want to do this 
+                        // if the member has an expression body.
                         scope = this.CSharpSelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>().Parent;
                     }
 
@@ -181,9 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
-                {
-                    return GetFirstStatementOrInitializerSelectedAtCallSite();
-                }
+                    => GetFirstStatementOrInitializerSelectedAtCallSite();
 
                 protected override async Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(
                     SyntaxAnnotation callSiteAnnotation, CancellationToken cancellationToken)

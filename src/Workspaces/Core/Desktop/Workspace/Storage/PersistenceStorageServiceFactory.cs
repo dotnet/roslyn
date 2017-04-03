@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Storage
     [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), ServiceLayer.Desktop), Shared]
     internal class PersistenceStorageServiceFactory : IWorkspaceServiceFactory
     {
+        private readonly object _gate = new object();
         private readonly SolutionSizeTracker _solutionSizeTracker;
 
         private IPersistentStorageService _singleton;
@@ -26,22 +27,29 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (_singleton == null)
+            lock (_gate)
             {
-                var optionService = workspaceServices.GetService<IOptionService>();
-                var database = optionService.GetOption(StorageOptions.Database);
-                switch (database)
+                if (_singleton == null)
                 {
-                    case StorageDatabase.Esent:
-                        Interlocked.CompareExchange(ref _singleton, new EsentPersistentStorageService(optionService, _solutionSizeTracker), null);
-                        break;
-                    default:
-                        Interlocked.CompareExchange(ref _singleton, NoOpPersistentStorageService.Instance, null);
-                        break;
+                    _singleton = GetPersistentStorageService(workspaceServices);
                 }
-            }
 
-            return _singleton;
+                return _singleton;
+            }
+        }
+
+        private IPersistentStorageService GetPersistentStorageService(HostWorkspaceServices workspaceServices)
+        {
+            var optionService = workspaceServices.GetService<IOptionService>();
+            var database = optionService.GetOption(StorageOptions.Database);
+            switch (database)
+            {
+                case StorageDatabase.Esent:
+                    return new EsentPersistentStorageService(optionService, _solutionSizeTracker);
+                case StorageDatabase.None:
+                default:
+                    return NoOpPersistentStorageService.Instance;
+            }
         }
     }
 }
