@@ -118,5 +118,18 @@ class App : Application
     public new const int Test = Application.Test + 1;
 }");
         }
+
+        [WorkItem(14455, "https://github.com/dotnet/roslyn/issues/14455")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
+        public async Task TestAddNewToConstantInternalFields()
+        {
+            await TestInRegularAndScriptAsync(
+@"class A { internal const int i = 0; }
+class B : A { [|internal const int i = 1;|] }
+",
+@"class A { internal const int i = 0; }
+class B : A { internal new const int i = 1; }
+");
+        }
     }
 }
