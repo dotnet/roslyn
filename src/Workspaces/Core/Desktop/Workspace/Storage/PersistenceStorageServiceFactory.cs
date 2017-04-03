@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using System.Threading;
+using Microsoft.CodeAnalysis.Esent;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -12,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Storage
     [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), ServiceLayer.Desktop), Shared]
     internal class PersistenceStorageServiceFactory : IWorkspaceServiceFactory
     {
+        private readonly object _gate = new object();
         private readonly SolutionSizeTracker _solutionSizeTracker;
 
         private IPersistentStorageService _singleton;
@@ -24,13 +27,29 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (_singleton == null)
+            lock (_gate)
             {
-                var optionService = workspaceServices.GetService<IOptionService>();
-                Interlocked.CompareExchange(ref _singleton, new PersistentStorageService(optionService, _solutionSizeTracker), null);
-            }
+                if (_singleton == null)
+                {
+                    _singleton = GetPersistentStorageService(workspaceServices);
+                }
 
-            return _singleton;
+                return _singleton;
+            }
+        }
+
+        private IPersistentStorageService GetPersistentStorageService(HostWorkspaceServices workspaceServices)
+        {
+            var optionService = workspaceServices.GetService<IOptionService>();
+            var database = optionService.GetOption(StorageOptions.Database);
+            switch (database)
+            {
+                case StorageDatabase.Esent:
+                    return new EsentPersistentStorageService(optionService, _solutionSizeTracker);
+                case StorageDatabase.None:
+                default:
+                    return NoOpPersistentStorageService.Instance;
+            }
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis;
@@ -38,7 +37,7 @@ class Program
             // TODO: Validate build works as expected
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Build)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18299"), Trait(Traits.Feature, Traits.Features.Build)]
         public void BuildWithCommandLine()
         {
             VisualStudio.Instance.SolutionExplorer.SaveAll();
@@ -54,9 +53,9 @@ class Program
             var process = Process.Start(pathToDevenv, commandLine);
             process.WaitForExit();
 
-            Assert.Equal(0, process.ExitCode);
-
             Assert.Contains("Rebuild All: 1 succeeded, 0 failed, 0 skipped", File.ReadAllText(logFileName));
+
+            Assert.Equal(0, process.ExitCode);
         }
     }
 }

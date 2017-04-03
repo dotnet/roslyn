@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.FinallyHandler, "Finally");
         }
 
-        public override void VisitCatch(ICatchClause operation)
+        public override void VisitCatchClause(ICatchClause operation)
         {
             LogString(nameof(ICatchClause));
             LogString($" (Exception type: {operation.CaughtType?.ToTestDisplayString()}, Exception local: {operation.ExceptionLocal?.ToTestDisplayString()})");

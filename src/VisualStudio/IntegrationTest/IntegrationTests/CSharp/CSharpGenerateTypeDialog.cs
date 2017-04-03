@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -32,7 +33,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
 
-            VerifyCodeAction("Generate new type...",
+            this.VerifyCodeAction("Generate new type...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -57,7 +58,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
 
-            VerifyCodeAction("Generate new type...",
+            this.VerifyCodeAction("Generate new type...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -70,14 +71,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             GenerateTypeDialog.VerifyClosed();
 
             VisualStudio.Instance.SolutionExplorer.OpenFile("VBProj", "GenerateTypeTest.vb");
-
-            VerifyTextContains(@"Public Interface A
+            var actualText = Editor.GetText();
+            Assert.Contains(@"Public Interface A
 End Interface
-");
+", actualText);
 
             VisualStudio.Instance.SolutionExplorer.OpenFile(ProjectName, "Class1.cs");
-
-            VerifyTextContains(@"using VBProj;
+            actualText = Editor.GetText();
+            Assert.Contains(@"using VBProj;
 
 class C
 {
@@ -86,9 +87,8 @@ class C
         A a;    
     }
 }
-");
+", actualText);
 
         }
-
     }
 }
