@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             #endregion
 
-            public event Action<ICollection<KeyValuePair<ITextBuffer, DiffResult>>> TagsChangedForBuffer;
+            public event Action<ICollection<KeyValuePair<ITextBuffer, DiffResult>>, bool> TagsChangedForBuffer;
 
             public event EventHandler Paused;
             public event EventHandler Resumed;
@@ -86,6 +86,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// set of tags for our view/buffer.
             /// </summary>
             private readonly CancellationTokenSource _initialComputationCancellationTokenSource = new CancellationTokenSource();
+
+            private int _seenEventSourceChanged;
 
             public TagSource(
                 ITextView textViewOpt,
@@ -119,17 +121,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // not be cancellable (except if we get completely released), even if more events come 
                 // in.  That way we can get the initial set of results for the buffer as quickly as 
                 // possible, without kicking the work  down the road.
-                var initialTagsCancellationToken = _initialComputationCancellationTokenSource.Token;
+                ComputeInitialTags();
+            }
+
+            private void ComputeInitialTags()
+            {
                 if (_workQueue.IsForeground())
                 {
-                    RecomputeTagsForeground(cancellationTokenOpt: initialTagsCancellationToken);
+                    RecomputeTagsForeground(initialTags: true);
                 }
                 else
                 {
                     RegisterNotification(
-                        () => RecomputeTagsForeground(cancellationTokenOpt: initialTagsCancellationToken),
+                        () => RecomputeTagsForeground(initialTags: true),
                         delay: 0,
-                        cancellationToken: initialTagsCancellationToken);
+                        cancellationToken: GetCancellationToken(initialTags: true));
                 }
             }
 
@@ -219,22 +225,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
                 => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
 
-            private void RecalculateTagsOnChanged(TaggerEventArgs e)
-            {
-                // First, cancel any previous requests (either still queued, or started).  We no longer
-                // want to continue it if new changes have come in.
-                _workQueue.CancelCurrentWork();
-                RegisterNotification(
-                    () => RecomputeTagsForeground(cancellationTokenOpt: null),
-                    (int)e.Delay.ComputeTimeDelay().TotalMilliseconds,
-                    _workQueue.CancellationToken);
-            }
-
             private void Connect()
             {
                 _workQueue.AssertIsForeground();
 
-                _eventSource.Changed += OnChanged;
+                _seenEventSourceChanged = 0;
+                _eventSource.Changed += OnEventSourceChanged;
                 _eventSource.UIUpdatesResumed += OnUIUpdatesResumed;
                 _eventSource.UIUpdatesPaused += OnUIUpdatesPaused;
 
@@ -278,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 _eventSource.UIUpdatesPaused -= OnUIUpdatesPaused;
                 _eventSource.UIUpdatesResumed -= OnUIUpdatesResumed;
-                _eventSource.Changed -= OnChanged;
+                _eventSource.Changed -= OnEventSourceChanged;
             }
 
             private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)
@@ -291,12 +287,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
 
                 RaiseTagsChanged(SpecializedCollections.SingletonCollection(
-                    new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)));
+                    new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)),
+                    initialTags: false);
             }
 
-            private void RaiseTagsChanged(ICollection<KeyValuePair<ITextBuffer, DiffResult>> collection)
+            private void RaiseTagsChanged(
+                ICollection<KeyValuePair<ITextBuffer, DiffResult>> collection, bool initialTags)
             {
-                TagsChangedForBuffer?.Invoke(collection);
+                TagsChangedForBuffer?.Invoke(collection, initialTags);
             }
 
             private void RaisePaused()

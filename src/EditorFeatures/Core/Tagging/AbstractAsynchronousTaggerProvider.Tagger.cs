@@ -157,7 +157,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _batchChangeNotifier.Resume();
             }
 
-            private void OnTagsChangedForBuffer(ICollection<KeyValuePair<ITextBuffer, DiffResult>> changes)
+            private void OnTagsChangedForBuffer(
+                ICollection<KeyValuePair<ITextBuffer, DiffResult>> changes, bool initialTags)
             {
                 _tagSource.AssertIsForeground();
 
@@ -176,8 +177,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // Now report them back to the UI on the main thread.
 
                     // We ask to update UI immediately for removed tags
-                    NotifyEditors(change.Value.Removed, _tagSource.RemovedTagNotificationDelay);
-                    NotifyEditors(change.Value.Added, _tagSource.AddedTagNotificationDelay);
+                    NotifyEditors(change.Value.Removed, initialTags ? TaggerDelay.NearImmediate : _tagSource.RemovedTagNotificationDelay);
+                    NotifyEditors(change.Value.Added, initialTags ? TaggerDelay.NearImmediate : _tagSource.AddedTagNotificationDelay);
                 }
             }
 

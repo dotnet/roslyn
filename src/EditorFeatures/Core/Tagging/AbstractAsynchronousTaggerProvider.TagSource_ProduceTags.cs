@@ -55,8 +55,25 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 RaiseResumed();
             }
 
-            private void OnChanged(object sender, TaggerEventArgs e)
-                => RecalculateTagsOnChanged(e);
+            private void OnEventSourceChanged(object sender, TaggerEventArgs e)
+            {
+                var result = Interlocked.CompareExchange(ref _seenEventSourceChanged, value: 1, comparand: 0);
+                if (result == 0)
+                {
+                    // this is the first time we're hearing about changes.  Don't have any delay
+                    ComputeInitialTags();
+                }
+                else
+                {
+                    // First, cancel any previous requests (either still queued, or started).  We no longer
+                    // want to continue it if new changes have come in.
+                    _workQueue.CancelCurrentWork();
+                    RegisterNotification(
+                        () => RecomputeTagsForeground(initialTags: false),
+                        (int)e.Delay.ComputeTimeDelay().TotalMilliseconds,
+                        GetCancellationToken(initialTags: false));
+                }
+            }
 
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
             {
@@ -265,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// that controls the work being done.  If no cancellation token is passed, the one
             /// from the <see cref="_workQueue"/> is used.
             /// </summary>
-            private void RecomputeTagsForeground(CancellationToken? cancellationTokenOpt)
+            private void RecomputeTagsForeground(bool initialTags)
             {
                 _workQueue.AssertIsForeground();
 
@@ -278,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // tag production stage finally completes.
                     this.UpToDate = false;
 
-                    var cancellationToken = cancellationTokenOpt ?? _workQueue.CancellationToken;
+                    var cancellationToken = GetCancellationToken(initialTags);
                     var spansToTag = GetSpansAndDocumentsToTag();
 
                     // Make a copy of all the data we need while we're on the foreground.  Then
@@ -290,10 +307,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var oldState = this.State;
 
                     _workQueue.EnqueueBackgroundTask(
-                        ct => this.RecomputeTagsAsync(oldState, caretPosition, textChangeRange, spansToTag, oldTagTrees, ct),
+                        ct => this.RecomputeTagsAsync(
+                            oldState, caretPosition, textChangeRange, spansToTag, oldTagTrees, initialTags, ct),
                         GetType().Name + ".RecomputeTags", cancellationToken);
                 }
             }
+
+            private CancellationToken GetCancellationToken(bool initialTags)
+                => initialTags
+                    ? _initialComputationCancellationTokenSource.Token
+                    : _workQueue.CancellationToken;
 
             private List<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
             {
@@ -535,6 +558,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 TextChangeRange? textChangeRange,
                 List<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
+                bool initialTags,
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -543,7 +567,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
                 await ProduceTagsAsync(context).ConfigureAwait(false);
 
-                ProcessContext(spansToTag, oldTagTrees, context);
+                ProcessContext(spansToTag, oldTagTrees, context, initialTags);
             }
 
             private bool ShouldSkipTagProduction()
@@ -579,7 +603,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void ProcessContext(
                 List<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
-                TaggerContext<TTag> context)
+                TaggerContext<TTag> context,
+                bool initialTags)
             {
                 var buffersToTag = spansToTag.Select(dss => dss.SnapshotSpan.Snapshot.TextBuffer).ToSet();
 
@@ -588,7 +613,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                                                       .ToLookup(t => t.Span.Snapshot.TextBuffer);
 
                 var newTagTrees = ConvertToTagTrees(oldTagTrees, newTagsByBuffer, context._spansTagged);
-                ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, context.State, context.CancellationToken);
+                ProcessNewTagTrees(
+                    spansToTag, oldTagTrees, newTagTrees, 
+                    context.State, initialTags, context.CancellationToken);
             }
 
             private void ProcessNewTagTrees(
@@ -596,6 +623,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
                 object newState,
+                bool initialTags,
                 CancellationToken cancellationToken)
             {
                 var bufferToChanges = new Dictionary<ITextBuffer, DiffResult>();
@@ -630,20 +658,24 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (_workQueue.IsForeground())
                 {
                     // If we're on the foreground already, we can just update our internal state directly.
-                    UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState);
+                    UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState, initialTags);
                 }
                 else
                 {
                     // Otherwise report back on the foreground asap to update the state and let our 
                     // clients know about the change.
-                    RegisterNotification(() => UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState), 0, cancellationToken);
+                    RegisterNotification(() => UpdateStateAndReportChanges(
+                        newTagTrees, bufferToChanges, newState, initialTags),
+                        delay: 0,
+                        cancellationToken: cancellationToken);
                 }
             }
 
             private void UpdateStateAndReportChanges(
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
                 Dictionary<ITextBuffer, DiffResult> bufferToChanges,
-                object newState)
+                object newState,
+                bool initialTags)
             {
                 _workQueue.AssertIsForeground();
 
@@ -672,7 +704,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // AsynchronousTagger's BatchChangeNotifier.  If we tell it about enough changes
                 // to a file, it will coalesce them into one large change to keep chattiness with
                 // the editor down.
-                RaiseTagsChanged(bufferToChanges);
+                RaiseTagsChanged(bufferToChanges, initialTags);
             }
 
             private DiffResult ComputeDifference(
@@ -729,7 +761,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     ProduceTagsSynchronously(context);
 
-                    ProcessContext(spansToTag, oldTagTrees, context);
+                    ProcessContext(spansToTag, oldTagTrees, context, initialTags: false);
                 }
 
                 Debug.Assert(this.UpToDate);
