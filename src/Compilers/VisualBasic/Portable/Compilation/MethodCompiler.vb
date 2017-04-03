@@ -857,7 +857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          debugDocumentProvider:=If(_emitTestCoverageData, _debugDocumentProvider, Nothing),
                                                          diagnostics:=diagnosticsThisMethod,
                                                          emittingPdb:=False,
-                                                         emitTestCoverageData:=False,
+                                                         emitTestCoverageData:=_emitTestCoverageData,
                                                          dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
 
                     _diagnostics.AddRange(diagnosticsThisMethod)

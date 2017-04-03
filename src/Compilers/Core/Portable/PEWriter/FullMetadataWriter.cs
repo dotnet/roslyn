@@ -391,7 +391,6 @@ namespace Microsoft.Cci
 
             foreach (MethodImplementation methodImplementation in typeDef.GetExplicitImplementationOverrides(Context))
             {
-                // PROTOTYPE(refout) Do something here?
                 this.methodImplList.Add(methodImplementation);
             }
 

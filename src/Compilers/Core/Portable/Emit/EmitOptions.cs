@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// Unless set (private) members that don't affect the language semantics of the resulting assembly will be excluded
-        /// when emitting metadata-only assemblies (either as primary output, with <see cref="EmitMetadataOnly"/> on, or as
-        /// secondary output.
+        /// when emitting metadata-only assemblies as primary output (with <see cref="EmitMetadataOnly"/> on).
+        /// If emitting a secondary output, this flag is required to be false.
         /// </summary>
         public bool IncludePrivateMembers { get; private set; }
 

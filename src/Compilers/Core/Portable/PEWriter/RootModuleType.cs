@@ -194,7 +194,7 @@ namespace Microsoft.Cci
 
         bool ITypeReference.IsValueType
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         ITypeDefinition ITypeReference.GetResolvedType(EmitContext context)
