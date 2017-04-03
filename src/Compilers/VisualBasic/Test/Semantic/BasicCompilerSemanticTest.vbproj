@@ -110,6 +110,7 @@
     <Compile Include="FlowAnalysis\RegionAnalysisTestsWithStaticLocals.vb" />
     <Compile Include="FlowAnalysis\StructureAnalysisTests.vb" />
     <Compile Include="FlowAnalysis\TryLockUsingStatementTests.vb" />
+    <Compile Include="IOperation\IOperationTests_IVariableDeclaration.vb" />
     <Compile Include="Resource.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

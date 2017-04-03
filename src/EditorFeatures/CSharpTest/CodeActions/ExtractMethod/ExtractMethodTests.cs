@@ -1680,5 +1680,187 @@ class Test
     }
 }");
         }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyProperty()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int Blah => [|this.field|];
+}",
+@"
+class Program
+{
+    int field;
+
+    public int Blah => {|Rename:GetField|}();
+
+    private int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyIndexer()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int this[int i] => [|this.field|];
+}",
+@"
+class Program
+{
+    int field;
+
+    public int this[int i] => {|Rename:GetField|}();
+
+    private int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyPropertyGetAccessor()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => [|this.field|];
+        set => field = value;
+    }
+}",
+@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => {|Rename:GetField|}();
+        set => field = value;
+    }
+
+    private int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyPropertySetAccessor()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => this.field;
+        set => field = [|value|];
+    }
+}",
+@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => this.field;
+        set => field = {|Rename:GetValue|}(value);
+    }
+
+    private static int GetValue(int value)
+    {
+        return value;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyIndexerGetAccessor()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => [|this.field|];
+        set => field = value;
+    }
+}",
+@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => {|Rename:GetField|}();
+        set => field = value;
+    }
+
+    private int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyIndexerSetAccessor()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => this.field;
+        set => field = [|value|];
+    }
+}",
+@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => this.field;
+        set => field = {|Rename:GetValue|}(value);
+    }
+
+    private static int GetValue(int value)
+    {
+        return value;
+    }
+}");
+        }
     }
 }

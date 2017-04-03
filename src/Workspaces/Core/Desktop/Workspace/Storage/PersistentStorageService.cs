@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionSize;
 using Roslyn.Utilities;
 
@@ -17,11 +19,6 @@ namespace Microsoft.CodeAnalysis.Storage
     /// </summary>
     internal abstract partial class AbstractPersistentStorageService : IPersistentStorageService
     {
-        /// <summary>
-        /// threshold to start to use a DB (50MB)
-        /// </summary>
-        private const int SolutionSizeThreshold = 50 * 1024 * 1024;
-
         protected readonly IOptionService OptionService;
         private readonly SolutionSizeTracker _solutionSizeTracker;
 
@@ -51,21 +48,14 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         protected AbstractPersistentStorageService(IOptionService optionService, bool testing) 
-            : this(optionService)
+            : this(optionService, solutionSizeTracker: null)
         {
             _testing = true;
         }
 
-        protected AbstractPersistentStorageService(IOptionService optionService) 
-            : this(optionService, solutionSizeTracker: null)
-        {
-        }
-
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
-
-        protected abstract bool TryCreatePersistentStorage(
-            string workingFolderPath, string solutionPath,
-            out AbstractPersistentStorage persistentStorage);
+        protected abstract AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath);
+        protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         public IPersistentStorage GetStorage(Solution solution)
         {
@@ -131,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 }
 
                 // try create new one
-                storage = TryCreatePersistentStorage(workingFolderPath, solution.FilePath);
+                storage = TryCreatePersistentStorage(solution, workingFolderPath);
                 _lookup.Add(solution.FilePath, storage);
 
                 if (storage != null)
@@ -175,7 +165,8 @@ namespace Microsoft.CodeAnalysis.Storage
             }
 
             var size = _solutionSizeTracker.GetSolutionSize(solution.Workspace, solution.Id);
-            return size > SolutionSizeThreshold;
+            var threshold = this.OptionService.GetOption(StorageOptions.SolutionSizeThreshold);
+            return size >= threshold;
         }
 
         private void RegisterPrimarySolutionStorageIfNeeded(Solution solution, AbstractPersistentStorage storage)
@@ -201,16 +192,14 @@ namespace Microsoft.CodeAnalysis.Storage
             return locationService?.GetStorageLocation(solution);
         }
 
-        private AbstractPersistentStorage TryCreatePersistentStorage(string workingFolderPath, string solutionPath)
+        private AbstractPersistentStorage TryCreatePersistentStorage(Solution solution, string workingFolderPath)
         {
-            if (TryCreatePersistentStorage(workingFolderPath, solutionPath, out var persistentStorage))
-            {
-                return persistentStorage;
-            }
-
-            // first attempt could fail if there was something wrong with existing db.
-            // try one more time in case the first attempt fixed the problem.
-            if (TryCreatePersistentStorage(workingFolderPath, solutionPath, out persistentStorage))
+            // Attempt to create the database up to two times.  The first time we may encounter
+            // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
+            // try to create it again.  If we can't create it the second time, then there's nothing
+            // we can do and we have to store things in memory.
+            if (TryCreatePersistentStorage(solution, workingFolderPath, out var persistentStorage) ||
+                TryCreatePersistentStorage(solution, workingFolderPath, out persistentStorage))
             {
                 return persistentStorage;
             }
@@ -218,6 +207,42 @@ namespace Microsoft.CodeAnalysis.Storage
             // okay, can't recover, then use no op persistent service 
             // so that things works old way (cache everything in memory)
             return null;
+        }
+
+        private bool TryCreatePersistentStorage(
+            Solution solution, string workingFolderPath,
+            out AbstractPersistentStorage persistentStorage)
+        {
+            persistentStorage = null;
+            AbstractPersistentStorage database = null;
+
+            try
+            {
+                database = OpenDatabase(solution, workingFolderPath);
+                database.Initialize(solution);
+
+                persistentStorage = database;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                StorageDatabaseLogger.LogException(ex);
+
+                if (database != null)
+                {
+                    database.Close();
+                }
+
+                if (ShouldDeleteDatabase(ex))
+                {
+                    // this was not a normal exception that we expected during DB open.
+                    // Report this so we can try to address whatever is causing this.
+                    FatalError.ReportWithoutCrash(ex);
+                    IOUtilities.PerformIO(() => Directory.Delete(database.DatabaseDirectory, recursive: true));
+                }
+
+                return false;
+            }
         }
 
         protected void Release(AbstractPersistentStorage storage)

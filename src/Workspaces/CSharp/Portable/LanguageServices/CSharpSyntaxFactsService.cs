@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsCaseSensitive => true;
 
+        protected override IDocumentationCommentService DocumentationCommentService
+            => CSharpDocumentationCommentService.Instance;
+
         public bool SupportsIndexingInitializer(ParseOptions options) 
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
 
@@ -1621,6 +1624,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsDocumentationComment(SyntaxTrivia trivia)
             => trivia.IsDocComment();
+
+        public bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia)
+            => trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia;
 
         public bool IsDocumentationComment(SyntaxNode node)
             => SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());

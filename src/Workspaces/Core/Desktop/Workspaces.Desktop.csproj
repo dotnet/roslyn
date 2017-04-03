@@ -58,7 +58,6 @@
       <DependentUpon>WorkspaceDesktopResources.resx</DependentUpon>
     </Compile>
     <Compile Include="Workspace\CommandLineProject.cs" />
-    <Compile Include="Workspace\Esent\EsentLogger.cs" />
     <Compile Include="Workspace\Esent\EsentPersistentStorage.cs" />
     <Compile Include="Workspace\Esent\EsentStorage.AbstractTable.cs" />
     <Compile Include="Workspace\Esent\EsentStorage.AbstractTableAccessor.cs" />
@@ -112,6 +111,7 @@
     <Compile Include="Workspace\Storage\PersistenceStorageServiceFactory.cs" />
     <Compile Include="Workspace\Storage\PersistentStorageService.cs" />
     <Compile Include="Workspace\Storage\StorageDatabase.cs" />
+    <Compile Include="Workspace\Storage\StorageDatabaseLogger.cs" />
     <Compile Include="Workspace\Storage\StorageOptions.cs" />
   </ItemGroup>
   <ItemGroup>
