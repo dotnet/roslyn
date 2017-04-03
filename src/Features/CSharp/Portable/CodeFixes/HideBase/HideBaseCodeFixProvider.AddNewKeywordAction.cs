@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
                 var fieldDeclaration = node as FieldDeclarationSyntax;
                 if (fieldDeclaration != null)
                 {
-                    var generator = _document.GetLanguageService<SyntaxGenerator>();
-                    newNode = generator.WithModifiers(fieldDeclaration, generator.GetModifiers(fieldDeclaration).WithIsNew(true));
+                    var generator = SyntaxGenerator.GetGenerator(_document);
+                    return generator.WithModifiers(fieldDeclaration, generator.GetModifiers(fieldDeclaration).WithIsNew(true));
                 }
 
                 //Make sure we preserve any trivia from the original node
