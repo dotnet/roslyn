@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -19,13 +20,12 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
     internal abstract class AbstractCodeCleanerService : ICodeCleanerService
     {
         public abstract ImmutableArray<ICodeCleanupProvider> GetDefaultProviders();
+        protected abstract ImmutableArray<TextSpan> GetSpansToAvoid(SyntaxNode root);
 
         public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeCleanup_CleanupAsync, cancellationToken))
             {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
                 // If there is no span to format...
                 if (!spans.Any())
                 {
@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 }
 
                 var codeCleaners = providers.IsDefault ? GetDefaultProviders() : providers;
+
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var normalizedSpan = spans.ToNormalizedSpans();
                 if (CleanupWholeNode(root.FullSpan, normalizedSpan))
@@ -54,8 +56,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                     // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
                     return await IterateAllCodeCleanupProvidersAsync(document, document, n => ImmutableArray.Create(n.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
-
-                var model = await document.GetSemanticModelForSpanAsync(spans.Collapse(), cancellationToken).ConfigureAwait(false);
 
                 // Replace the initial node and document with the annotated node.
                 var annotatedRoot = newNodeAndAnnotations.newNode;
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                         // Document was changed by the previous code cleaner, compute new spans.
                         var root = await currentDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                         previousDocument = currentDocument;
-                        spans = spanGetter(root);
+                        spans = GetSpans(root, spanGetter);;
                     }
 
                     // If we are at the end and there were no changes to the document, use the original document for the cleanup.
@@ -516,6 +516,21 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
         }
 
+        private ImmutableArray<TextSpan> GetSpans(
+            SyntaxNode root, Func<SyntaxNode, ImmutableArray<TextSpan>> spanGetter)
+        {
+            // Get all the spans we've been requested to clean up.
+            var requestedSpans = new NormalizedTextSpanCollection(spanGetter(root));
+
+            // See if there are any spans we should not touch.
+            var spansToAvoid = new NormalizedTextSpanCollection(GetSpansToAvoid(root));
+
+            // Remove the spans we should not touch from the requested spans and return that final set.
+            var result = NormalizedTextSpanCollection.Difference(requestedSpans, spansToAvoid);
+
+            return result.ToImmutableArray();
+        }
+
         private async Task<SyntaxNode> IterateAllCodeCleanupProvidersAsync(
             SyntaxNode originalRoot,
             SyntaxNode annotatedRoot,
@@ -542,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                     {
                         // The root was changed by the previous code cleaner, compute new spans.
                         previousRoot = currentRoot;
-                        spans = spanGetter(currentRoot);
+                        spans = GetSpans(currentRoot, spanGetter);
                     }
 
                     // If we are at the end and there were no changes to the document, use the original document for the cleanup.
