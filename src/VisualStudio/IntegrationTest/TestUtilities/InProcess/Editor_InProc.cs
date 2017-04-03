@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -500,6 +501,44 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
             return view.GetBufferContainingCaret();
+        }
+
+        public List<string> GetF1Keyword()
+        {
+            return InvokeOnUIThread(() =>
+            {
+                List<string> results = new List<string>();
+                IVsTextLines textLines;
+                GetActiveVsTextView().GetBuffer(out textLines);
+                Guid languageServiceGuid;
+                textLines.GetLanguageServiceID(out languageServiceGuid);
+                object languageService;
+                Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.QueryService(languageServiceGuid, out languageService);
+                var languageContextProvider = languageService as IVsLanguageContextProvider;
+
+                IVsMonitorUserContext monitorUserContext = GetGlobalService<SVsMonitorUserContext, IVsMonitorUserContext>();
+                IVsUserContext emptyUserContext;
+                monitorUserContext.CreateEmptyContext(out emptyUserContext);
+                int line;
+                int column;
+                GetActiveVsTextView().GetCaretPos(out line, out column);
+                var span = new TextSpan();
+                span.iStartLine = line;
+                span.iStartIndex = column;
+                span.iEndLine = line;
+                span.iEndIndex = column;
+                languageContextProvider.UpdateLanguageContext(0, textLines, new[] { span }, emptyUserContext);
+                int count;
+                emptyUserContext.CountAttributes("keyword", VSConstants.S_FALSE, out count);
+                for (int i = 0; i < count; i++)
+                {
+                    string key, value;
+                    emptyUserContext.GetAttribute(i, "keyword", VSConstants.S_FALSE, out key, out value);
+                    results.Add(value);
+                }
+
+                return results;
+            });
         }
     }
 }

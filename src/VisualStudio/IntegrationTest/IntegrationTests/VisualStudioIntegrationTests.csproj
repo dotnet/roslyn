@@ -22,6 +22,7 @@
     <Compile Include="AbstractIntegrationTest.cs" />
     <Compile Include="AbstractInteractiveWindowTest.cs" />
     <Compile Include="CSharp\CSharpEncapsulateField.cs" />
+    <Compile Include="CSharp\CSharpF1Help.cs" />
     <Compile Include="CSharp\CSharpInteractiveBoxSelection.cs" />
     <Compile Include="CSharp\CSharpChangeSignatureDialog.cs" />
     <Compile Include="CSharp\CSharpClassification.cs" />
@@ -55,6 +56,7 @@
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
     <Compile Include="VisualBasic\BasicEncapsulateField.cs" />
     <Compile Include="VisualBasic\BasicLineCommit.cs" />
+    <Compile Include="VisualBasic\BasicF1Help.cs" />
     <Compile Include="VisualBasic\BasicSquigglesCommon.cs" />
     <Compile Include="VisualBasic\BasicSquigglesDesktop.cs" />
     <Compile Include="VisualBasic\BasicSquigglesNetCore.cs" />
