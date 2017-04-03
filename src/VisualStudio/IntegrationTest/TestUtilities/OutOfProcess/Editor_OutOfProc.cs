@@ -129,10 +129,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public string[] GetErrorTags()
             => _editorInProc.GetErrorTags();
-
-        public void EncapsulateField()
-        {
-            SendKeys(new KeyPress(VirtualKey.R, ShiftState.Ctrl), new KeyPress(VirtualKey.E, ShiftState.Ctrl));
-        }
     }
 }
