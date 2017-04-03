@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // markup compiler completely, allowing us to reference the internal 
             // AutomationDelegatingListView without issue.
             var listview = new AutomationDelegatingListView();
+            listview.Name = "Options";
             listview.SelectionMode = SelectionMode.Single;
             listview.PreviewKeyDown += Options_PreviewKeyDown;
             listview.SelectionChanged += Options_SelectionChanged;
