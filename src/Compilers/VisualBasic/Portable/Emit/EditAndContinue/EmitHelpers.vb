@@ -110,8 +110,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Mapping from previous compilation to the current.
             Dim anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap()
             Dim sourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-            Dim sourceContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag(), excludePrivateMembers:=False)
-            Dim otherContext = New EmitContext(moduleBeingBuilt, Nothing, New DiagnosticBag(), excludePrivateMembers:=False)
+            Dim sourceContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
+            Dim otherContext = New EmitContext(moduleBeingBuilt, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
             Dim matcher = New VisualBasicSymbolMatcher(
                 anonymousTypeMap,

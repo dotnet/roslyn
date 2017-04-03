@@ -2169,7 +2169,7 @@ namespace Microsoft.CodeAnalysis
             options = options ?? EmitOptions.Default.WithIncludePrivateMembers(metadataPEStream == null);
             bool embedPdb = options.DebugInformationFormat == DebugInformationFormat.Embedded;
             Debug.Assert(!embedPdb || pdbStream == null);
-            Debug.Assert(!options.IncludePrivateMembers || metadataPEStream == null);
+            Debug.Assert(metadataPEStream == null || !options.IncludePrivateMembers);
 
             var diagnostics = DiagnosticBag.GetInstance();
 
@@ -2528,7 +2528,8 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     if (SerializePeToStream(
-                        new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, excludePrivateMembers: metadataOnly && !includePrivateMembers),
+                        moduleBeingBuilt,
+                        metadataDiagnostics,
                         this.MessageProvider,
                         getPeStream,
                         getRefPeStream,
@@ -2613,7 +2614,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static bool SerializePeToStream(
-            EmitContext context,
+            CommonPEModuleBuilder moduleBeingBuilt,
+            DiagnosticBag metadataDiagnostics,
             CommonMessageProvider messageProvider,
             Func<Stream> getPeStream,
             Func<Stream> getMetadataPeStreamOpt,
@@ -2626,8 +2628,11 @@ namespace Microsoft.CodeAnalysis
             bool emitTestCoverageData,
             CancellationToken cancellationToken)
         {
+            bool emitSecondaryAssembly = getMetadataPeStreamOpt != null;
+
+            bool includePrivateMembersOnPrimaryOutput = metadataOnly ? includePrivateMembers : true;
             if (!Cci.PeWriter.WritePeToStream(
-                context,
+                new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly, includePrivateMembersOnPrimaryOutput),
                 messageProvider,
                 getPeStream,
                 getPortablePdbStreamOpt,
@@ -2642,14 +2647,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             // produce the secondary output (ref assembly) if needed
-            if (getMetadataPeStreamOpt != null)
+            if (emitSecondaryAssembly)
             {
                 Debug.Assert(!metadataOnly);
-                Debug.Assert(!context.ExcludePrivateMembers);
                 Debug.Assert(!includePrivateMembers);
 
                 if (!Cci.PeWriter.WritePeToStream(
-                    context.WithExcludePrivateMembers(true),
+                    new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly: true, includePrivateMembers: false),
                     messageProvider,
                     getMetadataPeStreamOpt,
                     getPortablePdbStreamOpt: null,
@@ -2689,7 +2693,7 @@ namespace Microsoft.CodeAnalysis
 
             using (nativePdbWriterOpt)
             {
-                var context = new EmitContext(moduleBeingBuilt, null, diagnostics, excludePrivateMembers: false);
+                var context = new EmitContext(moduleBeingBuilt, null, diagnostics, metadataOnly: false, includePrivateMembers: true);
                 var encId = Guid.NewGuid();
 
                 try

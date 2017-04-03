@@ -644,6 +644,7 @@ public class PublicClass
 
             MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly));
         }
+
         [Fact]
         public void EmitMetadataOnly_DisallowPdbs()
         {
@@ -840,7 +841,7 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
             var class1TypeDef = (Cci.ITypeDefinition)class1;
 
             var symbolSynthesized = class1.GetSynthesizedExplicitImplementations(CancellationToken.None);
-            var context = new EmitContext(module, null, new DiagnosticBag(), excludePrivateMembers: false);
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var cciExplicit = class1TypeDef.GetExplicitImplementationOverrides(context);
             var cciMethods = class1TypeDef.GetMethods(context).Where(m => ((MethodSymbol)m).MethodKind != MethodKind.Constructor);
 

@@ -981,29 +981,22 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// When emitting ref assemblies, some method definitions will not be included.
-        /// </summary>
-        public static bool ShouldInclude(this IMethodDefinition method, EmitContext context)
-        {
-            if (method.IsVirtual)
-            {
-                return true;
-            }
-
-            return ShouldInclude((ITypeDefinitionMember)method, context);
-        }
-
-        /// <summary>
         /// When emitting ref assemblies, some members will not be included.
         /// </summary>
         public static bool ShouldInclude(this ITypeDefinitionMember member, EmitContext context)
         {
+            var method = member as IMethodDefinition;
+            if (method != null && method.IsVirtual)
+            {
+                return true;
+            }
+
             switch (member.Visibility)
             {
                 case TypeMemberVisibility.Private:
-                    return !context.ExcludePrivateMembers;
+                    return context.IncludePrivateMembers;
                 case TypeMemberVisibility.Assembly:
-                    return !context.ExcludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+                    return context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
             }
             return true;
         }

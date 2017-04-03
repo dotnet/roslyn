@@ -66,7 +66,6 @@ namespace Microsoft.Cci
         private readonly bool _deterministic;
 
         internal readonly bool MetadataOnly;
-        internal readonly bool IncludePrivateMembers; // If set, some members (private or internal) will be omitted from a metadata-only output.
         internal readonly bool EmitTestCoverageData;
 
         // A map of method body before token translation to RVA. Used for deduplication of small bodies.
@@ -2023,7 +2022,7 @@ namespace Microsoft.Cci
             }
 
             AddAssemblyAttributesToTable(
-                this.module.GetSourceAssemblyAttributes(isRefAssembly: Context.ExcludePrivateMembers),
+                this.module.GetSourceAssemblyAttributes(Context.IsRefAssembly),
                 needsDummyParent: writingNetModule,
                 isSecurity: false);
         }
