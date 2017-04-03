@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 {
@@ -51,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
                 var fieldDeclaration = node as FieldDeclarationSyntax;
                 if (fieldDeclaration != null)
                 {
-                    newNode = fieldDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.NewKeyword));
+                    var generator = _document.GetLanguageService<SyntaxGenerator>();
+                    newNode = generator.WithModifiers(fieldDeclaration, generator.GetModifiers(fieldDeclaration).WithIsNew(true));
                 }
 
                 //Make sure we preserve any trivia from the original node

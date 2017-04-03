@@ -93,5 +93,29 @@ class App : Application
     public new int Test;
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
+        public async Task TestAddNewToConstant()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Application
+{
+    public const int Test = 1;
+}
+
+class App : Application
+{
+    [|public const int Test = Application.Test + 1;|]
+}",
+@"class Application
+{
+    public const int Test = 1;
+}
+
+class App : Application
+{
+    public new const int Test = Application.Test + 1;
+}");
+        }
     }
 }
