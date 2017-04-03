@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var buffer = requestedSpans.First().Snapshot.TextBuffer;
                 var tags = accurate
                     ? _tagSource.GetAccurateTagIntervalTreeForBuffer(buffer, cancellationToken)
-                    : _tagSource.GetTagIntervalTreeForBuffer(buffer);
+                    : _tagSource.TryGetTagIntervalTreeForBuffer(buffer);
 
                 if (tags == null)
                 {
