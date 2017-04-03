@@ -80,6 +80,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public event EventHandler Paused;
             public event EventHandler Resumed;
 
+            /// <summary>
+            /// A cancellation source we use for the initial tagging computation.  We only cancel
+            /// if our ref count actually reaches 0.  Otherwise, we always try to compute the initial
+            /// set of tags for our view/buffer.
+            /// </summary>
+            private readonly CancellationTokenSource _initialComputationCancellationTokenSource;
+
             public TagSource(
                 ITextView textViewOpt,
                 ITextBuffer subjectBuffer,
@@ -109,10 +116,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 Connect();
 
                 // Kick off a task to immediately compute the initial set of tags. This work should 
-                // not be cancellable, even if more events come in.  That way we can get the initial
-                // set of results for the buffer as quickly as possible, without kicking the work 
-                // down the road.
-                RecalculateTagsOnChanged_DoNotCallDirectly(delayMS: 0, cancellable: false);
+                // not be cancellable (except if we get completely released), even if more events come 
+                // in.  That way we can get the initial set of results for the buffer as quickly as 
+                // possible, without kicking the work  down the road.
+                var initialTagsCancellationToken = _initialComputationCancellationTokenSource.Token;
+                if (_workQueue.IsForeground())
+                {
+                    RecomputeTagsForeground(cancellationTokenOpt: initialTagsCancellationToken);
+                }
+                else
+                {
+                    RegisterNotification(
+                        () => RecomputeTagsForeground(cancellationTokenOpt: initialTagsCancellationToken),
+                        delay: 0,
+                        cancellationToken: _initialComputationCancellationTokenSource.Token);
+                }
             }
 
             public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
@@ -202,29 +220,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
 
             private void RecalculateTagsOnChanged(TaggerEventArgs e)
-                => RecalculateTagsOnChanged_DoNotCallDirectly(
-                    (int)e.Delay.ComputeTimeDelay().TotalMilliseconds, cancellable: true);
-
-            /// <summary>
-            /// Called by derived types to enqueue tags re-calculation request
-            /// </summary>
-            private void RecalculateTagsOnChanged_DoNotCallDirectly(int delayMS, bool cancellable)
             {
                 // First, cancel any previous requests (either still queued, or started).  We no longer
                 // want to continue it if new changes have come in.
                 _workQueue.CancelCurrentWork();
-
-                if (delayMS == 0 && _workQueue.IsForeground())
-                {
-                    RecomputeTagsForeground(cancellable);
-                }
-                else
-                {
-                    RegisterNotification(
-                        () => RecomputeTagsForeground(cancellable),
-                        delayMS,
-                        cancellable ? _workQueue.CancellationToken : CancellationToken.None);
-                }
+                RegisterNotification(
+                    () => RecomputeTagsForeground(cancellationTokenOpt: null),
+                    (int)e.Delay.ComputeTimeDelay().TotalMilliseconds,
+                    _workQueue.CancellationToken);
             }
 
             private void Connect()

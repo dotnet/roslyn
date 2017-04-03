@@ -42,6 +42,8 @@ StackTrace:
                     return;
                 }
 
+                // Stop computing any initial tags if we've been asked for them.
+                _initialComputationCancellationTokenSource.Cancel();
                 _disposed = true;
                 this.Disposed(this, EventArgs.Empty);
                 GC.SuppressFinalize(this);
