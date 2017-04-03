@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.Symbols.SynthesizedEntryPointSymbol;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -222,6 +223,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert((object)entryPoint != null || entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
+
+            if (entryPoint != null && entryPoint.HasAsyncMainReturnType(compilation) && compilation.LanguageVersion >= LanguageVersion.CSharp7_1) {
+                var synthesizedMain = new AsyncForwardEntryPoint(compilation, diagnostics, entryPoint.ContainingType, entryPoint);
+                moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedMain);
+                entryPoint = synthesizedMain;
+            }
+
             return entryPoint;
         }
 

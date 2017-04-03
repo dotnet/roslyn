@@ -595,6 +595,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return IsStatic && Name == WellKnownMemberNames.EntryPointMethodName; }
         }
 
+        internal bool HasAsyncMainReturnType(CSharpCompilation compilation)
+        {
+            var namedType = ReturnType as NamedTypeSymbol;
+            if (namedType == null)
+            {
+                return false;
+            }
+            else if (namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))
+            {
+                // Change this to `namedType.IsNonGenericTaskType` if you want to support "task-like" objects.
+                return true;
+            }
+            else if (namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+            {
+                // Change this to `namedType.IsGenericTaskType` if you want to support "task-like" objects.
+                return namedType.TypeArguments[0].SpecialType == SpecialType.System_Int32;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         /// <summary>
         /// Checks if the method has an entry point compatible signature, i.e.
         /// - the return type is either void, int, <see cref="System.Threading.Tasks.Task" />,
@@ -604,28 +627,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool HasEntryPointSignature(CSharpCompilation compilation)
         {
 
-            bool IsAsyncMainReturnType(TypeSymbol type)
-            {
-                var namedType = type as NamedTypeSymbol;
-                if (namedType == null)
-                {
-                    return false;
-                }
-                else if (namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))
-                {
-                    // Change this to `namedType.IsNonGenericTaskType` if you want to support "task-like" objects.
-                    return true;
-                }
-                else if (namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
-                {
-                    // Change this to `namedType.IsGenericTaskType` if you want to support "task-like" objects.
-                    return namedType.TypeArguments[0].SpecialType == SpecialType.System_Int32;
-                }
-                else
-                {
-                    return false;
-                }
-            }
 
             if (IsVararg)
             {
@@ -633,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             TypeSymbol returnType = ReturnType;
-            bool isAsyncMainReturnType = IsAsyncMainReturnType(returnType);
+            bool isAsyncMainReturnType = HasAsyncMainReturnType(compilation);
             if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void && !isAsyncMainReturnType)
             {
                 return false;

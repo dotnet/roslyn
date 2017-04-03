@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -329,6 +330,106 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             { WasCompilerGenerated = true };
         }
 
+        internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
+        {
+            // if _paramType is null, this is a main method that takes no args.
+            private ParameterSymbol _paramType;
+            private MethodSymbol _userMain;
+            private DiagnosticBag _diagnosticBag;
+
+            internal static TypeSymbol TranslateReturnType(CSharpCompilation compilation, TypeSymbol returnType) {
+                if (returnType.IsGenericTaskType(compilation)) {
+                    return compilation.GetSpecialType(SpecialType.System_Int32);
+                } 
+                else {
+                    return compilation.GetSpecialType(SpecialType.System_Void);
+                }
+            }
+
+            internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, ParameterSymbol paramType, MethodSymbol userMain): 
+                base(containingType, TranslateReturnType(compilation, userMain.ReturnType)) {
+                _paramType = paramType;
+                Debug.Assert(userMain != null);
+                _userMain = userMain;
+                _diagnosticBag = diagnosticBag;
+            }
+
+            internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, MethodSymbol userMain): 
+                base(containingType, TranslateReturnType(compilation, userMain.ReturnType)) {
+                Debug.Assert(userMain != null);
+                _userMain = userMain;
+                _diagnosticBag = diagnosticBag;
+            }
+             
+            public override string Name => MainName;
+
+            public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray.Create(_paramType);
+
+            internal override BoundBlock CreateBody()
+            {
+                BoundCall userMainInvocation;
+                if (_paramType == null)
+                {
+                    userMainInvocation = new BoundCall(
+                        syntax: this.GetSyntax(),
+                        receiverOpt: null,
+                        method: _userMain,
+                        arguments: ImmutableArray<BoundExpression>.Empty,
+                        argumentNamesOpt: ImmutableArray<string>.Empty,
+                        argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
+                        isDelegateCall: false,
+                        expanded: false,
+                        invokedAsExtensionMethod: false,
+                        argsToParamsOpt: ImmutableArray<int>.Empty,
+                        resultKind: LookupResultKind.Viable,
+                        type: _returnType);
+                }
+                else
+                {
+                    // PROTOTYPE: this should actually reflect the parameter that is passed in.
+                    userMainInvocation = new BoundCall(
+                        syntax: this.GetSyntax(),
+                        receiverOpt: null,
+                        method: _userMain,
+                        arguments: ImmutableArray<BoundExpression>.Empty,
+                        argumentNamesOpt: ImmutableArray<string>.Empty,
+                        argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
+                        isDelegateCall: false,
+                        expanded: false,
+                        invokedAsExtensionMethod: false,
+                        argsToParamsOpt: ImmutableArray<int>.Empty,
+                        resultKind: LookupResultKind.Viable,
+                        type: _returnType);
+                }
+
+                var syntax = this.GetSyntax();
+
+                var getAwaiterMethod = GetRequiredMethod(_returnType, WellKnownMemberNames.GetAwaiter, _diagnosticBag);
+                Debug.Assert(getAwaiterMethod != null);
+                var getResultMethod = GetRequiredMethod(getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, _diagnosticBag);
+                Debug.Assert(getResultMethod!= null);
+
+                return new BoundBlock(
+                    syntax: syntax,
+                    locals: ImmutableArray<LocalSymbol>.Empty,
+                    statements: ImmutableArray.Create<BoundStatement>(new BoundReturnStatement(
+                        syntax: syntax,
+                        refKind: RefKind.None,
+                        expressionOpt: CreateParameterlessCall(
+                                syntax: syntax,
+                                method: getResultMethod,
+                                receiver: CreateParameterlessCall(
+                                    syntax: syntax,
+                                    method: getAwaiterMethod,
+                                    receiver: userMainInvocation
+                                )
+                        )
+                    ))
+                );
+                
+            }
+        }
+
         private sealed class ScriptEntryPoint : SynthesizedEntryPointSymbol
         {
             private readonly MethodSymbol _getAwaiterMethod;
@@ -344,15 +445,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _getResultMethod = getResultMethod;
             }
 
-            public override string Name
-            {
-                get { return MainName; }
-            }
+            public override string Name => MainName;
 
-            public override ImmutableArray<ParameterSymbol> Parameters
-            {
-                get { return ImmutableArray<ParameterSymbol>.Empty; }
-            }
+            public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
 
             // private static void <Main>()
             // {

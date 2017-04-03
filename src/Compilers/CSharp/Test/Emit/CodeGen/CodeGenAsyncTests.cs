@@ -31,6 +31,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         }
 
         [Fact]
+        public void AsyncEmitMainTest()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Foo {
+    static async Task<int> Bar() {
+        return await Task.Factory.StartNew(() => 5);
+    }
+    static void Main(){}
+}";
+            CompileAndVerify(source, expectedOutput: "", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+        }
+
+        [Fact]
         public void StructVsClass()
         {
             var source = @"
