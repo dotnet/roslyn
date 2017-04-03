@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             private void OnEventSourceChanged(object sender, TaggerEventArgs e)
-            {
-                RecalculateTagsOnChanged(e);
-            }
+                => RecalculateTagsOnChanged(e);
 
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
             {
