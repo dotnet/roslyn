@@ -50,8 +50,10 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
             // If it's a void returning method, offer to keep the void return type, or convert to 
             // a Task return type.
-            if ((symbol?.MethodKind == MethodKind.Ordinary || symbol?.MethodKind == MethodKind.LocalFunction) &&
-                symbol.ReturnsVoid)
+            bool isOrdinaryOrLocalFunction =
+                symbol?.MethodKind == MethodKind.Ordinary
+                || symbol?.MethodKind == MethodKind.LocalFunction;
+            if (isOrdinaryOrLocalFunction && symbol.ReturnsVoid)
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
@@ -99,8 +101,10 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
 
-            if ((methodSymbolOpt?.MethodKind == MethodKind.Ordinary || methodSymbolOpt?.MethodKind == MethodKind.LocalFunction) &&
-                !methodSymbolOpt.Name.EndsWith(AsyncSuffix))
+            bool isOrdinaryOrLocalFunction =
+                methodSymbolOpt?.MethodKind == MethodKind.Ordinary
+                || methodSymbolOpt?.MethodKind == MethodKind.LocalFunction;
+            if (isOrdinaryOrLocalFunction && !methodSymbolOpt.Name.EndsWith(AsyncSuffix))
             {
                 return await RenameThenAddAsyncTokenAsync(
                     keepVoid, document, node, methodSymbolOpt, cancellationToken).ConfigureAwait(false);

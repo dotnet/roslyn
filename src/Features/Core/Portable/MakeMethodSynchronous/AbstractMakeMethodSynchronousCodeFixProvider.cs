@@ -49,7 +49,10 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
 
-            if ((methodSymbolOpt?.MethodKind == MethodKind.Ordinary || methodSymbolOpt?.MethodKind == MethodKind.LocalFunction) &&
+            bool isOrdinaryOrLocalFunction =
+                methodSymbolOpt?.MethodKind == MethodKind.Ordinary
+                || methodSymbolOpt?.MethodKind == MethodKind.LocalFunction;
+            if (isOrdinaryOrLocalFunction &&
                 methodSymbolOpt.Name.Length > AsyncSuffix.Length &&
                 methodSymbolOpt.Name.EndsWith(AsyncSuffix))
             {
