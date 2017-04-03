@@ -35,7 +35,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
             Dim service = document.GetLanguageService(Of ICodeCleanerService)
             Dim newDocument = Await service.CleanupAsync(
                 document, ImmutableArray.Create(span),
-                ImmutableArray.Create(Of ICodeCleanupProvider)(New CaseCorrectionCodeCleanupProvider()))
+                ImmutableArray.Create(Of ICodeCleanupProvider)(New CaseCorrectionCodeCleanupProvider()),
+                CancellationToken.None)
 
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, CancellationToken.None)
 

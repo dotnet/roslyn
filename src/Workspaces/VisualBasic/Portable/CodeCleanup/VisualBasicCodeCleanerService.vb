@@ -39,8 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
         End Function
 
         Private Sub ProcessNode(node As SyntaxNode, result As ArrayBuilder(Of TextSpan))
-            If Not node.ContainsDiagnostics Then
-                ' Don't bother going down nodes that don't have any syntax errors in them.
+            If SkipProcessing(node, result) Then
                 Return
             End If
 
@@ -54,16 +53,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
         End Sub
 
         Private Sub ProcessToken(token As SyntaxToken, result As ArrayBuilder(Of TextSpan))
-            If token.ContainsDiagnostics Then
-                Dim parentMultiLineNode = GetMultiLineContainer(token.Parent)
+            If SkipProcessing(token, result) Then
+                Return
+            End If
 
-                If parentMultiLineNode IsNot Nothing Then
-                    If ContainsMultiLineStringLiteral(parentMultiLineNode) Then
-                        result.Add(parentMultiLineNode.FullSpan)
-                    End If
+            Dim parentMultiLineNode = GetMultiLineContainer(token.Parent)
+            If parentMultiLineNode IsNot Nothing Then
+                If ContainsMultiLineStringLiteral(parentMultiLineNode) Then
+                    result.Add(parentMultiLineNode.FullSpan)
                 End If
             End If
         End Sub
+
+        Private Function SkipProcessing(nodeOrToken As SyntaxNodeOrToken, result As ArrayBuilder(Of TextSpan)) As Boolean
+            ' Don't bother looking at nodes or token that don't have any syntax errors in them.
+            If Not nodeOrToken.ContainsDiagnostics Then
+                Return True
+            End If
+
+            If result.Count > 0 AndAlso result.Last.Contains(nodeOrToken.Span) Then
+                ' Don't bother looking at nodes or token that are contained within a span we've already 
+                ' marked as something to avoid. We would only ever produce mark the same (or smaller) 
+                ' span again.
+                Return True
+            End If
+
+            Return False
+        End Function
 
         Private Function ContainsMultiLineStringLiteral(node As SyntaxNode) As Boolean
             Return node.DescendantTokens().Any(
