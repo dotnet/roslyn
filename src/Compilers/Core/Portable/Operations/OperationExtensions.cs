@@ -8,6 +8,24 @@ namespace Microsoft.CodeAnalysis.Semantics
 {
     public static class OperationExtensions
     {
+        /// <summary>
+        /// Find the argument supplied for a given parameter of the target method.
+        /// </summary>
+        /// <param name="hasArgumentExpression">The IHasArgumentsExpression object to get matching argument object from.</param>
+        /// <param name="parameter">Parameter of the target method.</param>
+        /// <returns>Argument corresponding to the parameter.</returns>
+        public static IArgument GetArgumentMatchingParameter(this IHasArgumentsExpression hasArgumentExpression, IParameterSymbol parameter)
+        {
+            foreach (var argument in hasArgumentExpression.ArgumentsInEvaluationOrder)
+            {
+                if (argument.Parameter == parameter)
+                {
+                    return argument;
+                }
+            }
+            return null;
+        }
+
         public static IEnumerable<IOperation> Descendants(this IOperation operation)
         {
             if (operation == null)

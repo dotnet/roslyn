@@ -16,12 +16,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// optional arguments missing in source.
         /// </summary>
         ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
-        /// <summary>
-        /// Find the argument supplied for a given parameter of the target method.
-        /// </summary>
-        /// <param name="parameter">Parameter of the target method.</param>
-        /// <returns>Argument corresponding to the parameter.</returns>
-        IArgument GetArgumentMatchingParameter(IParameterSymbol parameter);
     }
 }
 
