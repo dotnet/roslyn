@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         [Fact]
         public static void TestEmptyDictionaryReturnNoNamingStylePreferencesObjectReturnsFalse()
         {
-            var editorConfigStorageLocation = new EditorConfigStorageLocation();
+            var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
             var result = editorConfigStorageLocation.TryGetOption(new object(), new Dictionary<string, object>(), typeof(NamingStylePreferences), out var @object);
             Assert.False(result, "Expected TryParseReadonlyDictionary to return 'false' for empty dictionary");
         }
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         [Fact]
         public static void TestEmptyDictionaryDefaultNamingStylePreferencesObjectReturnsFalse()
         {
-            var editorConfigStorageLocation = new EditorConfigStorageLocation();
+            var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
             var existingNamingStylePreferences = new NamingStylePreferences(
                 ImmutableArray.Create<SymbolSpecification>(),
                 ImmutableArray.Create<NamingStyle>(),
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
             };
             var existingNamingStylePreferences = ParseDictionary(initialDictionary);
 
-            var editorConfigStorageLocation = new EditorConfigStorageLocation();
+            var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
             var newDictionary = new Dictionary<string, object>()
             {
                 ["dotnet_naming_rule.methods_and_properties_must_be_pascal_case.severity"] = "error",
@@ -77,10 +77,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         }
 
         [Fact]
-        public static void TestObjectTypeThrowsNotSupportedException()
+        public static void TestObjectTypeThrowsInvalidOperationException()
         {
-            var editorConfigStorageLocation = new EditorConfigStorageLocation();
-            Assert.Throws<NotSupportedException>(() =>
+            var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
+            Assert.Throws<InvalidOperationException>(() =>
             {
                 editorConfigStorageLocation.TryGetOption(new object(), new Dictionary<string, object>(), typeof(object), out var @object);
             });

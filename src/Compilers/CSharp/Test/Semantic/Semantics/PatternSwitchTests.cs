@@ -2541,6 +2541,127 @@ class Program
         }
 
         [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        public void SwitchAwaitGenericsAndOptimization()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.WriteLine(SendMessageAsync<string>(""a"").Result);
+        System.Console.WriteLine(SendMessageAsync<string>('a').Result);
+    }
+
+    public static async Task<string> SendMessageAsync<T>(object response)
+    {
+        switch (response)
+        {
+            case T expected:
+                return ""T"";
+            default:
+                return ""default"";
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (12,38): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async Task<string> SendMessageAsync<T>(object response)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "SendMessageAsync").WithLocation(12, 38)
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"T
+default");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        public void SwitchLambdaGenericsAndOptimization()
+        {
+            var source =
+@"
+class Test
+{
+    static void Main()
+    {
+        System.Console.WriteLine(SendMessage<string>(""a""));
+        System.Console.WriteLine(SendMessage<string>('a'));
+    }
+
+    public static string SendMessage<T>(object input)
+    {
+        System.Func<object, string> f = (response) =>
+        {
+            switch (response)
+            {
+                case T expected:
+                    return ""T"";
+                default:
+                    return ""default"";
+            }
+        };
+
+        return f(input);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"T
+default");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        public void SwitchIteratorGenericsAndOptimization()
+        {
+            var source =
+@"
+class Test
+{
+    static void Main()
+    {
+        foreach (var s in SendMessage<string>(""a""))
+        {
+            System.Console.WriteLine(s);
+        }
+        foreach (var s in SendMessage<string>('a'))
+        {
+            System.Console.WriteLine(s);
+        }
+    }
+
+    public static System.Collections.Generic.IEnumerable<string> SendMessage<T>(object response)
+    {
+        switch (response)
+        {
+            case T expected:
+                yield return ""T"";
+                yield break;
+            default:
+                yield return ""default"";
+                yield break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"T
+default");
+        }
+
+        [Fact]
         [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
         public void TupleNameDifferences_01()
         {

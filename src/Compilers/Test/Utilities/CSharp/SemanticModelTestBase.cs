@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -254,6 +255,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, expectedOperationTree, parseOptions);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
+        }
+
+        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics)
+            where TSyntaxNode : SyntaxNode
+        {
+            var actualDiagnostics = compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
+            actualDiagnostics.Verify(expectedDiagnostics);
+            VerifyOperationTreeForTest<TSyntaxNode>(compilation, expectedOperationTree);
+        }
+
+        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, CSharpParseOptions parseOptions = null)
+            where TSyntaxNode : SyntaxNode
+        {
+            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef }, parseOptions: parseOptions);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

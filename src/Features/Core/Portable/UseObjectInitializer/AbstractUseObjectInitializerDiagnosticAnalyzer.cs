@@ -70,17 +70,16 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
 
             var syntaxFacts = GetSyntaxFactsService();
-            var analyzer = new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>(
+            var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                 context.SemanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
-            var result = analyzer.Analyze();
 
-            if (result == null || result.Value.Length == 0)
+            if (matches == null || matches.Value.Length == 0)
             {
                 return;
             }
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
-            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(result.Value.Select(m => m.Statement));
+            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value.Select(m => m.Statement));
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             {
                 return;
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 objectCreationExpression.GetLocation(),
                 additionalLocations: locations));
 
-            FadeOutCode(context, optionSet, result.Value, locations);
+            FadeOutCode(context, optionSet, matches.Value, locations);
         }
 
         private void FadeOutCode(

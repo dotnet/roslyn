@@ -220,5 +220,10 @@ namespace Roslyn.Utilities
         {
             _dictionary.Clear();
         }
+
+        public void Remove(K key)
+        {
+            _dictionary.Remove(key);
+        }
     }
 }

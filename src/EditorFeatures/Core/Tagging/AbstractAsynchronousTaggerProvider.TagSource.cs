@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 _workQueue.AssertIsForeground();
 
-                _eventSource.Changed += OnChanged;
+                _eventSource.Changed += OnEventSourceChanged;
                 _eventSource.UIUpdatesResumed += OnUIUpdatesResumed;
                 _eventSource.UIUpdatesPaused += OnUIUpdatesPaused;
 
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 _eventSource.UIUpdatesPaused -= OnUIUpdatesPaused;
                 _eventSource.UIUpdatesResumed -= OnUIUpdatesResumed;
-                _eventSource.Changed -= OnChanged;
+                _eventSource.Changed -= OnEventSourceChanged;
             }
 
             private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)
