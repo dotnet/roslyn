@@ -7,7 +7,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     {
         /// <summary>
         /// This method will retry the action represented by the 'action' argument, up to 'timeout'
-        /// milliseconds, waiting 'delay' milliseconds after each retry. If a given retry returns a value 
+        /// milliseconds, waiting 'delay' milliseconds after each retry. If a given retry returns a value
+        /// other than default(T), this value is returned.
+        /// </summary>
+        /// <param name="action">the action to retry</param>
+        /// <param name="delay">the amount of time to wait between retries in milliseconds</param>
+        /// <param name="timeout">the max amount of time to spend retrying in milliseconds</param>
+        /// <typeparam name="T">type of return value</typeparam>
+        public static void Retry(Action action, int delay, int timeout)
+            => Retry(() => { action(); return 1; }, TimeSpan.FromMilliseconds(delay), TimeSpan.FromMilliseconds(timeout));
+
+        /// <summary>
+        /// This method will retry the action represented by the 'action' argument, up to 'timeout'
+        /// milliseconds, waiting 'delay' milliseconds after each retry. If a given retry returns a value
+        /// other than default(T), this value is returned.
+        /// </summary>
+        /// <param name="action">the action to retry</param>
+        /// <param name="delay">the amount of time to wait between retries in milliseconds</param>
+        /// <param name="timeout">the max amount of time to spend retrying in milliseconds</param>
+        /// <typeparam name="T">type of return value</typeparam>
+        public static void Retry(Action action, TimeSpan delay, TimeSpan timeout)
+            => Retry(() => { action(); return 1; }, delay, timeout);
+
+        /// <summary>
+        /// This method will retry the action represented by the 'action' argument, up to 'timeout'
+        /// milliseconds, waiting 'delay' milliseconds after each retry. If a given retry returns a value
         /// other than default(T), this value is returned.
         /// </summary>
         /// <param name="action">the action to retry</param>
@@ -20,7 +44,33 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         /// <summary>
         /// This method will retry the action represented by the 'action' argument, up to 'timeout'
-        /// milliseconds, waiting 'delay' milliseconds after each retry and will swallow all exceptions. 
+        /// milliseconds, waiting 'delay' milliseconds after each retry and will swallow all exceptions.
+        /// If a given retry returns a value other than default(T), this value is returned.
+        /// </summary>
+        /// <param name="action">the action to retry</param>
+        /// <param name="delay">the amount of time to wait between retries in milliseconds</param>
+        /// <param name="timeout">the max amount of time to spend retrying in milliseconds</param>
+        /// <typeparam name="T">type of return value</typeparam>
+        /// <returns>the return value of 'action'</returns>
+        public static void RetryIgnoringExceptions(Action action, int delay, int timeout)
+            => RetryIgnoringExceptions(() => { action(); return 1; }, TimeSpan.FromMilliseconds(delay), TimeSpan.FromMilliseconds(timeout));
+
+        /// <summary>
+        /// This method will retry the action represented by the 'action' argument, up to 'timeout'
+        /// milliseconds, waiting 'delay' milliseconds after each retry and will swallow all exceptions.
+        /// If a given retry returns a value other than default(T), this value is returned.
+        /// </summary>
+        /// <param name="action">the action to retry</param>
+        /// <param name="delay">the amount of time to wait between retries in milliseconds</param>
+        /// <param name="timeout">the max amount of time to spend retrying in milliseconds</param>
+        /// <typeparam name="T">type of return value</typeparam>
+        /// <returns>the return value of 'action'</returns>
+        public static void RetryIgnoringExceptions(Action action, TimeSpan delay, TimeSpan timeout)
+            => RetryIgnoringExceptions(() => { action(); return 1; }, delay, timeout);
+
+        /// <summary>
+        /// This method will retry the action represented by the 'action' argument, up to 'timeout'
+        /// milliseconds, waiting 'delay' milliseconds after each retry and will swallow all exceptions.
         /// If a given retry returns a value other than default(T), this value is returned.
         /// </summary>
         /// <param name="action">the action to retry</param>
@@ -33,7 +83,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         /// <summary>
         /// This method will retry the action represented by the 'action' argument, up to 'timeout',
-        /// waiting for 'delay' time after each retry. If a given retry returns a value 
+        /// waiting for 'delay' time after each retry. If a given retry returns a value
         /// other than default(T), this value is returned.
         /// </summary>
         /// <param name="action">the action to retry</param>
@@ -73,7 +123,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         /// <summary>
         /// This method will retry the action represented by the 'action' argument, up to 'timeout'
-        /// milliseconds, waiting 'delay' milliseconds after each retry and will swallow all exceptions. 
+        /// milliseconds, waiting 'delay' milliseconds after each retry and will swallow all exceptions.
         /// If a given retry returns a value other than default(T), this value is returned.
         /// </summary>
         /// <param name="action">the action to retry</param>

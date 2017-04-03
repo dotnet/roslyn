@@ -6,6 +6,31 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive
 {
     public static partial class InteractiveExtensions
     {
+        public static void VerifyCurrentTokenType(this AbstractIntegrationTest test, string tokenType)
+        {
+            CommonExtensions.VerifyCurrentTokenType(test, tokenType, test.VisualStudio.Instance.CSharpInteractiveWindow);
+        }
+
+        public static void VerifyCompletionItemExists(this AbstractIntegrationTest test, params string[] expectedItems)
+        {
+            CommonExtensions.VerifyCompletionItemsExist(test.VisualStudio.Instance.CSharpInteractiveWindow, expectedItems);
+        }
+
+        public static void VerifyCompletionItemsDoNotExist(this AbstractIntegrationTest test, params string[] unexpectedItems)
+        {
+            CommonExtensions.VerifyCompletionItemsDoNotExist(test.VisualStudio.Instance.CSharpInteractiveWindow, unexpectedItems);
+        }
+
+        public static void VerifyCaretPosition(this AbstractIntegrationTest test, int expectedCaretPosition)
+        {
+            CommonExtensions.VerifyCaretPosition(test.VisualStudio.Instance.CSharpInteractiveWindow, expectedCaretPosition);
+        }
+
+        public static void InvokeCompletionList(this AbstractIntegrationTest test)
+        {
+            CommonExtensions.InvokeCompletionList(test);
+        }
+
         public static void SubmitText(this AbstractInteractiveWindowTest test, string text)
             => test.InteractiveWindow.SubmitText(text);
 
@@ -18,11 +43,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive
             => test.InteractiveWindow.InsertCode(text);
 
         public static void PlaceCaret(
-            this AbstractInteractiveWindowTest test, 
-            string text, 
-            int charsOffset = 0, 
-            int occurrence = 0, 
-            bool extendSelection = false, 
+            this AbstractInteractiveWindowTest test,
+            string text,
+            int charsOffset = 0,
+            int occurrence = 0,
+            bool extendSelection = false,
             bool selectBlock = false)
               => test.InteractiveWindow.PlaceCaret(
                   text,

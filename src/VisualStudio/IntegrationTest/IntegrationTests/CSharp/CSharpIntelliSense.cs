@@ -312,10 +312,10 @@ public class Program
             SetUpEditor(@"$$");
 
             this.SendKeys(Ctrl(VirtualKey.Space));
-            Assert.Equal(true, Editor.IsCompletionActive());
+            Assert.True(Editor.IsCompletionActive());
 
             this.SendKeys(Ctrl(VirtualKey.A));
-            Assert.Equal(false, Editor.IsCompletionActive());
+            Assert.True(Editor.IsCompletionActive());
         }
     }
 }

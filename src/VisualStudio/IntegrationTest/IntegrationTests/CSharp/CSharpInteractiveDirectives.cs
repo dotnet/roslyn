@@ -2,8 +2,6 @@
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
@@ -41,7 +39,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
                 "region",
                 "undef",
                 "warning");
-            this.VerifyCompletionUnexpectedItemDoesNotExist("int", "return", "System");
+            this.VerifyCompletionItemsDoNotExist("int", "return", "System");
 
             this.ClearReplText();
             this.InsertCode(@"int x = 1; //
@@ -60,7 +58,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
                 "region",
                 "warning");
 
-            this.VerifyCompletionUnexpectedItemDoesNotExist("cls",
+            this.VerifyCompletionItemsDoNotExist("cls",
                 "help",
                 "load",
                 "prompt",

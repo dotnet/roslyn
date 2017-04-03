@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string AddMissingReference = nameof(AddMissingReference);
             public const string AsyncLazy = nameof(AsyncLazy);
             public const string Classification = nameof(Classification);
+            public const string Debugger = nameof(Debugger);
             public const string Diagnostics = nameof(Diagnostics);
             public const string ErrorList = nameof(ErrorList);
             public const string ErrorSquiggles = nameof(ErrorSquiggles);

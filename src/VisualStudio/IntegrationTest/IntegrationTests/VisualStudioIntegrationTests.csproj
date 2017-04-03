@@ -27,6 +27,9 @@
     <Compile Include="CSharp\CSharpErrorListCommon.cs" />
     <Compile Include="CSharp\CSharpErrorListDesktop.cs" />
     <Compile Include="CSharp\CSharpErrorListNetCore.cs" />
+    <Compile Include="CSharp\CSharpDebuggerIntellisenseCommon.cs" />
+    <Compile Include="CSharp\CSharpDebuggerIntellisenseDesktop.cs" />
+    <Compile Include="CSharp\CSharpDebuggerIntellisenseNetCore.cs" />
     <Compile Include="CSharp\CSharpFindReferences.cs" />
     <Compile Include="CSharp\CSharpGenerateTypeDialog.cs" />
     <Compile Include="CSharp\CSharpGoToDefinition.cs" />
@@ -54,10 +57,12 @@
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
     <Compile Include="Extensions\CommonExtensions.cs" />
     <Compile Include="Extensions\CommonExtensions.Verifiers.cs" />
+    <Compile Include="Extensions\DebuggerExtensions.cs" />
     <Compile Include="Extensions\EditorExtensions.cs" />
     <Compile Include="Extensions\EditorExtensions.Verifiers.cs" />
     <Compile Include="Extensions\ErrorListExtensions.Verifiers.cs" />
     <Compile Include="Extensions\ErrorListExtensions.cs" />
+    <Compile Include="Extensions\ImmediateWindowExtensions.cs" />
     <Compile Include="Extensions\InteractiveExtensions.cs" />
     <Compile Include="Extensions\InteractiveExtensions.Verifiers.cs" />
     <Compile Include="Extensions\SolutionExplorerExtensions.Verifiers.cs" />
@@ -69,6 +74,9 @@
     <Compile Include="VisualBasic\BasicErrorListCommon.cs" />
     <Compile Include="VisualBasic\BasicErrorListDesktop.cs" />
     <Compile Include="VisualBasic\BasicErrorListNetCore.cs" />
+    <Compile Include="VisualBasic\BasicDebuggerIntellisenseCommon.cs" />
+    <Compile Include="VisualBasic\BasicDebuggerIntellisenseNetCore.cs" />
+    <Compile Include="VisualBasic\BasicDebuggerIntellisenseDesktop.cs" />
     <Compile Include="Workspace\WorkspaceBase.cs" />
     <Compile Include="Workspace\WorkspacesDesktop.cs" />
     <Compile Include="Workspace\WorkspacesNetCore.cs" />

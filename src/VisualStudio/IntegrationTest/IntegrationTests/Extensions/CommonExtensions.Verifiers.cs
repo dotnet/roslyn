@@ -25,27 +25,27 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions
             Assert.NotEqual("text", tokenType);
         }
 
-        public static void VerifyCompletionItemExists(this AbstractIntegrationTest test, params string[] expectedItems)
+        public static void VerifyCompletionItemsExist(TextViewWindow_OutOfProc window, string[] expectedItems)
         {
-            var completionItems = test.TextViewWindow.GetCompletionItems();
+            var completionItems = window.GetCompletionItems();
             foreach (var expectedItem in expectedItems)
             {
                 Assert.Contains(expectedItem, completionItems);
             }
         }
 
-        public static void VerifyCompletionUnexpectedItemDoesNotExist(this AbstractIntegrationTest test, params string[] unexpectedItems)
+        public static void VerifyCompletionItemsDoNotExist(TextViewWindow_OutOfProc window, params string[] unexpectedItems)
         {
-            var completionItems = test.TextViewWindow.GetCompletionItems();
+            var completionItems = window.GetCompletionItems();
             foreach (var unexpectedItem in unexpectedItems)
             {
                 Assert.DoesNotContain(unexpectedItem, completionItems);
             }
         }
 
-        public static void VerifyCaretPosition(this AbstractIntegrationTest test, int expectedCaretPosition)
+        public static void VerifyCaretPosition(TextViewWindow_OutOfProc window, int expectedCaretPosition)
         {
-            var position = test.TextViewWindow.GetCaretPosition();
+            var position = window.GetCaretPosition();
             Assert.Equal(expectedCaretPosition, position);
         }
 

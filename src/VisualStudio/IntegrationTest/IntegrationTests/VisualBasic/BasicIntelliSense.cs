@@ -136,10 +136,10 @@ End Module");
             this.VerifyCompletionItemExists("Dim", "ReDim");
 
             this.SendKeys(' ');
-            Assert.Equal(false, Editor.IsCompletionActive());
+            Assert.False(Editor.IsCompletionActive());
 
             this.SendKeys('i');
-            Assert.Equal(false, Editor.IsCompletionActive());
+            Assert.False(Editor.IsCompletionActive());
 
             this.SendKeys(' ');
             this.VerifyCompletionItemExists("As");
@@ -149,30 +149,30 @@ End Module");
             this.VerifyCompletionItemExists("Integer", "UInteger");
 
             this.SendKeys(' ');
-            Assert.Equal(false, Editor.IsCompletionActive());
+            Assert.False(Editor.IsCompletionActive());
 
             this.SendKeys('=');
-            Assert.Equal(true, Editor.IsCompletionActive());
+            Assert.True(Editor.IsCompletionActive());
 
             this.SendKeys(' ');
-            Assert.Equal(true, Editor.IsCompletionActive());
+            Assert.True(Editor.IsCompletionActive());
 
             this.SendKeys("fooo");
-            Assert.Equal(false, Editor.IsCompletionActive());
+            Assert.False(Editor.IsCompletionActive());
 
             this.SendKeys(' ');
-            Assert.Equal(true, Editor.IsCompletionActive());
+            Assert.True(Editor.IsCompletionActive());
 
             this.SendKeys(VirtualKey.Backspace);
-            Assert.Equal(false, Editor.IsCompletionActive());
+            Assert.False(Editor.IsCompletionActive());
 
             this.SendKeys(VirtualKey.Backspace);
-            Assert.Equal(true, Editor.IsCompletionActive());
+            Assert.True(Editor.IsCompletionActive());
 
             this.SendKeys(
                 VirtualKey.Left,
                 VirtualKey.Delete);
-            Assert.Equal(true, Editor.IsCompletionActive());
+            Assert.True(Editor.IsCompletionActive());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -191,7 +191,7 @@ End Module");
             this.VerifyCompletionItemExists("_AppDomain");
 
             this.SendKeys("'");
-            Assert.Equal(false, Editor.IsCompletionActive());
+            Assert.False(Editor.IsCompletionActive());
             var actualText = Editor.GetText();
             Assert.Contains(@"Module Module1
     Sub Main()
@@ -212,7 +212,7 @@ Imports$$");
             this.VerifyCompletionItemExists("Microsoft", "System");
 
             this.SendKeys('<');
-            Assert.Equal(false, Editor.IsCompletionActive());
+            Assert.False(Editor.IsCompletionActive());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -278,7 +278,7 @@ End Class");
             this.VerifyCompletionItemExists("UFoo");
 
             this.SendKeys(VirtualKey.Enter);
-            Assert.Equal(false, Editor.IsCompletionActive());
+            Assert.False(Editor.IsCompletionActive());
             var actualText = Editor.GetText();
             Assert.Contains(@"
 Interface UFoo
