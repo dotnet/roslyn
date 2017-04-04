@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             using (var storage = GetStorage(solution))
             {
-                await storage.WriteStreamAsync(streamName1, EncodeString(Data1));
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(Data1)));
                 DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(streamName1)), Data1);
             }
         }
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             using (var storage = GetStorage(solution))
             {
-                await storage.WriteStreamAsync(solution.Projects.Single(), streamName1, EncodeString(Data1));
+                Assert.True(await storage.WriteStreamAsync(solution.Projects.Single(), streamName1, EncodeString(Data1)));
                 DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single(), streamName1)), Data1);
             }
         }
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             using (var storage = GetStorage(solution))
             {
-                await storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(Data1));
+                Assert.True(await storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(Data1)));
                 DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single().Documents.Single(), streamName1)), Data1);
             }
         }
@@ -266,17 +266,30 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var barrier = new Barrier(NumThreads);
             var countdown = new CountdownEvent(NumThreads);
 
+            var exceptions = new List<Exception>();
             for (int i = 0; i < NumThreads; i++)
             {
                 Task.Run(async () =>
                 {
                     barrier.SignalAndWait();
-                    Assert.Equal(expectedValue, await read());
+                    try
+                    {
+                        Assert.Equal(expectedValue, await read());
+                    }
+                    catch (Exception ex)
+                    {
+                        lock (exceptions)
+                        {
+                            exceptions.Add(ex);
+                        }
+                    }
                     countdown.Signal();
                 });
             }
 
             countdown.Wait();
+
+            Assert.Equal(new List<Exception>(), exceptions);
         }
 
         private Solution CreateOrOpenSolution()

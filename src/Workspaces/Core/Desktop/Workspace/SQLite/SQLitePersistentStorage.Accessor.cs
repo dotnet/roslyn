@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -25,8 +26,15 @@ namespace Microsoft.CodeAnalysis.SQLite
             /// <summary>
             /// Queue of actions we want to perform all at once against the DB in a single transaction.
             /// </summary>
-            private readonly MultiDictionary<TWriteQueueKey, Action<SqlConnection>> _writeQueue =
+            private readonly MultiDictionary<TWriteQueueKey, Action<SqlConnection>> _writeQueueKeyToWrites =
                 new MultiDictionary<TWriteQueueKey, Action<SqlConnection>>();
+
+            /// <summary>
+            /// Keep track of how many threads are trying to write out this particular queue.  All threads
+            /// trying to write out the queue will wait until all the writes are done.
+            /// </summary>
+            private readonly Dictionary<TWriteQueueKey, CountdownEvent> _writeQueueKeyToCountdown =
+                new Dictionary<TWriteQueueKey, CountdownEvent>();
 
             public Accessor(SQLitePersistentStorage storage)
             {
@@ -69,13 +77,15 @@ namespace Microsoft.CodeAnalysis.SQLite
                                 StorageDatabaseLogger.LogException(ex);
                             }
 
-                            return Task.FromResult<Stream>(
-                                data == null ? null : new MemoryStream(data, writable: false));
+                            if (data != null)
+                            {
+                                return Task.FromResult<Stream>(new MemoryStream(data, writable: false));
+                            }
                         }
                     }
                 }
 
-                return Task.FromResult<Stream>(null);
+                return SpecializedTasks.Default<Stream>();
             }
 
             public Task<bool> WriteStreamAsync(
@@ -110,10 +120,11 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             private void FlushPendingWrites(SqlConnection connection, TKey key)
-                => Storage.FlushSpecificWrites(connection, _writeQueue, GetWriteQueueKey(key));
+                => Storage.FlushSpecificWrites(
+                    connection, _writeQueueKeyToWrites, _writeQueueKeyToCountdown, GetWriteQueueKey(key));
 
             private void AddWriteTask(TKey key, Action<SqlConnection> action)
-                => Storage.AddWriteTask(_writeQueue, GetWriteQueueKey(key), action);
+                => Storage.AddWriteTask(_writeQueueKeyToWrites, GetWriteQueueKey(key), action);
 
             private byte[] FindBlob(
                 SqlConnection connection, TDatabaseId dataId)
@@ -156,10 +167,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             public void AddAndClearAllPendingWrites(ArrayBuilder<Action<SqlConnection>> result)
             {
                 // Copy the pending work we have to the result copy.
-                result.AddRange(_writeQueue.SelectMany(kvp => kvp.Value));
+                result.AddRange(_writeQueueKeyToWrites.SelectMany(kvp => kvp.Value));
 
                 // Clear out the collection so we don't process things multiple times.
-                _writeQueue.Clear();
+                _writeQueueKeyToWrites.Clear();
             }
         }
     }
