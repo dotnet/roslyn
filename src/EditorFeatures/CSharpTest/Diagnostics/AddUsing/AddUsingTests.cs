@@ -4283,6 +4283,44 @@ ignoreTrivia: false);
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestNotOnVar1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace N
+{
+    class var { }
+}
+
+class C
+{
+    void M()
+    {
+        [|var|]
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestNotOnVar2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace N
+{
+    class Bar { }
+}
+
+class C
+{
+    void M()
+    {
+        [|var|]
+    }
+}
+");
+        }
+
         [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingWithLeadingDocCommentInFrontOfUsing1()

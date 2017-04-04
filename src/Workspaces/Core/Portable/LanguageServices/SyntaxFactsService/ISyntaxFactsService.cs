@@ -36,8 +36,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNumericLiteral(SyntaxToken token);
         bool IsCharacterLiteral(SyntaxToken token);
         bool IsStringLiteral(SyntaxToken token);
-        bool IsStringLiteralExpression(SyntaxNode node);
         bool IsVerbatimStringLiteral(SyntaxToken token);
+        bool IsInterpolatedStringTextToken(SyntaxToken token);
+        bool IsStringLiteralExpression(SyntaxNode node);
 
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
@@ -131,6 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsWhitespaceTrivia(SyntaxTrivia trivia);
         bool IsEndOfLineTrivia(SyntaxTrivia trivia);
+        bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia);
 
         SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
 
@@ -288,6 +290,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
+
+        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken);
     }
 
     [Flags]

@@ -3288,7 +3288,25 @@ class Program
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadBaseType, "Test1[]"), Diagnostic(ErrorCode.ERR_BadBaseType, "Test1*"));
+            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+                // (6,15): error CS1521: Invalid base type
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_BadBaseType, "Test1*").WithLocation(6, 15),
+                // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Test1*").WithLocation(6, 15),
+                // (6,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Test1')
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "Test1*").WithArguments("Test1").WithLocation(6, 15),
+                // (6,15): error CS0527: Type 'Test1*' in interface list is not an interface
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1*").WithArguments("Test1*").WithLocation(6, 15),
+                // (3,15): error CS1521: Invalid base type
+                // class Test2 : Test1[]   // CS1521
+                Diagnostic(ErrorCode.ERR_BadBaseType, "Test1[]").WithLocation(3, 15),
+                // (3,15): error CS0527: Type 'Test1[]' in interface list is not an interface
+                // class Test2 : Test1[]   // CS1521
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1[]").WithArguments("Test1[]").WithLocation(3, 15));
         }
 
         [WorkItem(906299, "DevDiv/Personal")]
@@ -3952,6 +3970,104 @@ public class Test
                 // (7,34): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         int *pp = stackalloc int 30; 
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "30").WithLocation(7, 34));
+        }
+
+        [Fact]
+        public void CS1575ERR_BadStackAllocExpr1()
+        {
+            // Diff errors
+            var test = @"
+unsafe public class Test
+{
+    int* p = stackalloc int[1];
+}
+";
+            CreateCompilationWithMscorlib(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (4,14): error CS1525: Invalid expression term 'stackalloc'
+                //     int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 14));
+        }
+
+        [Fact]
+        public void CS1575ERR_BadStackAllocExpr2()
+        {
+            // Diff errors
+            var test = @"
+unsafe public class Test
+{
+    void M()
+    {
+        int*[] p = new int*[] { stackalloc int[1] };
+    }
+}
+";
+            CreateCompilationWithMscorlib(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (6,33): error CS1525: Invalid expression term 'stackalloc'
+                //         int*[] p = new int*[] { stackalloc int[1] };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 33));
+        }
+
+        [Fact]
+        public void CS1575ERR_BadStackAllocExpr3()
+        {
+            // Diff errors
+            var test = @"
+unsafe public class Test
+{
+    void M()
+    {
+        const int* p = stackalloc int[1];
+    }
+}
+";
+            CreateCompilationWithMscorlib(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (6,15): error CS0283: The type 'int*' cannot be declared const
+                //         const int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15),
+                // (6,24): error CS1525: Invalid expression term 'stackalloc'
+                //         const int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 24));
+        }
+        
+        public void CS1674ERR_StackAllocInUsing1()
+        {
+            // Diff errors
+            var test = @"
+public class Test
+{
+    unsafe public static void Main()
+    {
+        using (var v = stackalloc int[1])
+        {
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlib(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                //         using (var v = stackalloc int[1])
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("int*").WithLocation(6, 16));
+        }
+
+        [Fact]
+        public void CS0029ERR_StackAllocInUsing2()
+        {
+            // Diff errors
+            var test = @"
+public class Test
+{
+    unsafe public static void Main()
+    {
+        using (System.IDisposable v = stackalloc int[1])
+        {
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlib(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (6,39): error CS0029: Cannot implicitly convert type 'int*' to 'System.IDisposable'
+                //         using (System.IDisposable v = stackalloc int[1])
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "stackalloc int[1]").WithArguments("int*", "System.IDisposable").WithLocation(6, 39));
         }
 
         [WorkItem(906993, "DevDiv/Personal")]

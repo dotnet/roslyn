@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.Extensions;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -31,8 +31,8 @@ class C
     public void Method(int a, string b) { }
 }");
 
-            InvokeCodeActionList();
-            VerifyCodeAction("Change signature...", applyFix: false);
+            this.InvokeCodeActionList();
+            this.VerifyCodeAction("Change signature...", applyFix: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -48,15 +48,15 @@ class C
             ChangeSignatureDialog.VerifyOpen();
             ChangeSignatureDialog.ClickCancel();
             ChangeSignatureDialog.VerifyClosed();
-
-            VerifyTextContains(@"
+            var actuaText = Editor.GetText();
+            Assert.Contains(@"
 class C
 {
     public void Method(int a, string b) { }
-}");
+}", actuaText);
         }
 
-        [Fact (Skip = "https://github.com/dotnet/roslyn/issues/17640"), 
+        [Fact (Skip = "https://github.com/dotnet/roslyn/issues/17640"),
          Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderParameters()
         {
@@ -72,12 +72,12 @@ class C
             ChangeSignatureDialog.ClickDownButton();
             ChangeSignatureDialog.ClickOK();
             ChangeSignatureDialog.VerifyClosed();
-
-            VerifyTextContains(@"
+            var actuaText = Editor.GetText();
+            Assert.Contains(@"
 class C
 {
     public void Method(string b, int a) { }
-}");
+}", actuaText);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"),
@@ -107,22 +107,22 @@ class C
             ChangeSignatureDialog.ClickRemoveButton();
             ChangeSignatureDialog.ClickOK();
             ChangeSignatureDialog.VerifyClosed();
-
-            VerifyTextContains(@"
+            var actuaText = Editor.GetText();
+            Assert.Contains(@"
 class C
 {
     /// <summary>
     /// A method.
     /// </summary>
     /// <param name=""a""></param>
-    /// 
+    ///
     public void Method(int a) { }
 
     void Test()
     {
         Method(1);
     }
-}");
+}", actuaText);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"),
@@ -159,18 +159,20 @@ End Class");
             ChangeSignatureDialog.ClickUpButton();
             ChangeSignatureDialog.ClickOK();
             ChangeSignatureDialog.VerifyClosed();
-
-            VerifyTextContains(@"vb.Method(y: ""hello"", x: 1);");
+            var actuaText = Editor.GetText();
+            Assert.Contains(@"vb.Method(y: ""hello"", x: 1);", actuaText);
 
             VisualStudio.Instance.SolutionExplorer.OpenFile("VBProject", "Class1.vb");
-            VerifyTextContains(@"Public Sub Method(y As String, x As Integer)");
+            actuaText = Editor.GetText();
+            Assert.Contains(@"Public Sub Method(y As String, x As Integer)", actuaText);
 
             Editor.Undo();
-
-            VerifyTextContains(@"Public Sub Method(x As Integer, y As String)");
+            actuaText = Editor.GetText();
+            Assert.Contains(@"Public Sub Method(x As Integer, y As String)", actuaText);
 
             VisualStudio.Instance.SolutionExplorer.OpenFile(ProjectName, "Class1.cs");
-            VerifyTextContains(@"vb.Method(2, ""world"");");
+            actuaText = Editor.GetText();
+            Assert.Contains(@"vb.Method(2, ""world"");", actuaText);
         }
     }
 }

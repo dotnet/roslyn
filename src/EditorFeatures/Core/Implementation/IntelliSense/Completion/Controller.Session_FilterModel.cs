@@ -480,7 +480,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                 }
 
-                return helper.MatchesFilterText(item, filterText, CultureInfo.CurrentCulture);
+                // Checks if the given completion item matches the pattern provided so far. 
+                // A  completion item is checked against the pattern by see if it's 
+                // CompletionItem.FilterText matches the item.  That way, the pattern it checked 
+                // against terms like "IList" and not IList<>
+                return helper.MatchesPattern(item.FilterText, filterText, CultureInfo.CurrentCulture);
             }
 
             private static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)

@@ -12,9 +12,6 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
-  <ItemGroup Label="Build Items">
-    <SyntaxTestDefinition Include="..\..\Portable\Syntax\Syntax.xml" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
@@ -65,7 +62,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="$(IntermediateOutputPath)\Syntax.xml.Generated.vb" />
+    <Compile Include="Generated\Syntax.Test.xml.Generated.vb" />
     <Compile Include="IncrementalParser\IncrementalParser.vb" />
     <Compile Include="IncrementalParser\IPEndBlockStatements.vb" />
     <Compile Include="IncrementalParser\SyntaxDifferences.vb" />

@@ -4980,5 +4980,32 @@ class Test
 4242691";
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void TestCoalesceNotLvalue()
+        {
+            var source = @"
+class Program
+{
+    struct S1
+    {
+        public int field;
+        public int Increment() => field++;
+    }
+
+    static void Main()
+    {
+        S1 v = default(S1);
+        v.Increment(); 
+
+        ((S1?)null ?? v).Increment();
+
+        System.Console.WriteLine(v.field);
+    }
+}
+";
+            string expectedOutput = @"1";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
     }
 }

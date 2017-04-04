@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsCaseSensitive => true;
 
+        protected override IDocumentationCommentService DocumentationCommentService
+            => CSharpDocumentationCommentService.Instance;
+
         public bool SupportsIndexingInitializer(ParseOptions options) 
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
 
@@ -1590,8 +1593,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((interpolatedString as InterpolatedStringExpressionSyntax)?.Contents).Value;
         }
 
-        public bool IsStringLiteral(SyntaxToken token)
+        public override bool IsStringLiteral(SyntaxToken token)
             => token.IsKind(SyntaxKind.StringLiteralToken);
+
+        public override bool IsInterpolatedStringTextToken(SyntaxToken token)
+            => token.IsKind(SyntaxKind.InterpolatedStringTextToken);
 
         public bool IsStringLiteralExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.StringLiteralExpression;
@@ -1619,6 +1625,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsDocumentationComment(SyntaxTrivia trivia)
             => trivia.IsDocComment();
+
+        public bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia)
+            => trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia;
 
         public bool IsDocumentationComment(SyntaxNode node)
             => SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
