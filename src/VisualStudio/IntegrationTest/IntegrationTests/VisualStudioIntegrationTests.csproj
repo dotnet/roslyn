@@ -21,6 +21,7 @@
   <ItemGroup>
     <Compile Include="AbstractIntegrationTest.cs" />
     <Compile Include="AbstractInteractiveWindowTest.cs" />
+    <Compile Include="CSharp\CSharpEncapsulateField.cs" />
     <Compile Include="CSharp\CSharpInteractiveBoxSelection.cs" />
     <Compile Include="CSharp\CSharpChangeSignatureDialog.cs" />
     <Compile Include="CSharp\CSharpClassification.cs" />
@@ -65,6 +66,7 @@
     <Compile Include="Extensions\SolutionExplorerExtensions.cs" />
     <Compile Include="Extensions\SetOptionsExtensions.cs" />
     <Compile Include="VisualBasic\BasicKeywordHighlighting.cs" />
+    <Compile Include="VisualBasic\BasicEncapsulateField.cs" />
     <Compile Include="VisualBasic\BasicSquigglesCommon.cs" />
     <Compile Include="VisualBasic\BasicSquigglesDesktop.cs" />
     <Compile Include="VisualBasic\BasicSquigglesNetCore.cs" />
