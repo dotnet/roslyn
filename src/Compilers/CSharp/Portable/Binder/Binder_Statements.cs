@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(initializerOpt.Kind == BoundKind.Conversion &&
                         (((BoundConversion)initializerOpt).Operand.IsLiteralNull() ||
-                            ((BoundConversion)initializerOpt).Operand.Kind == BoundKind.DefaultLiteral),
+                            ((BoundConversion)initializerOpt).Operand.Kind == BoundKind.DefaultExpression),
                         "All other typeless expressions should have conversion errors");
 
                     // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.
@@ -3204,7 +3204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var interactiveInitializerMethod = this.ContainingMemberOrLambda as SynthesizedInteractiveInitializerMethod;
                 if (interactiveInitializerMethod != null)
                 {
-                    arg = new BoundDefaultLiteral(interactiveInitializerMethod.GetNonNullSyntaxNode(), interactiveInitializerMethod.ResultType);
+                    arg = new BoundDefaultExpression(interactiveInitializerMethod.GetNonNullSyntaxNode(), interactiveInitializerMethod.ResultType);
                 }
             }
 

@@ -1473,7 +1473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
         ERR_CompilerAndLanguageVersion = 8304,
 
-        ERR_BadDynamicMethodArgDefault = 9000,
-        ERR_DefaultNotValid = 9001,
+        ERR_BadDynamicMethodArgDefaultLiteral = 9000,
+        ERR_DefaultLiteralNotValid = 9001,
+        WRN_DefaultInSwitch = 9002,
     }
 }

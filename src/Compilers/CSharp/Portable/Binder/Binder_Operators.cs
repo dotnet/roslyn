@@ -3063,6 +3063,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundAsOperator(node, operand, typeExpression, Conversion.DefaultOrNullLiteral, resultType);
             }
 
+            if (operand.IsLiteralDefault())
+            {
+                var defaultLiteral = (BoundDefaultExpression)operand;
+                Debug.Assert((object)defaultLiteral.Type == null);
+                Debug.Assert((object)defaultLiteral.ConstantValueOpt == null);
+
+                operand = new BoundDefaultExpression(defaultLiteral.Syntax, constantValueOpt: ConstantValue.Null,
+                    type: GetSpecialType(SpecialType.System_Object, diagnostics, node));
+            }
+
             if (operand.Kind == BoundKind.MethodGroup)
             {
                 Error(diagnostics, ErrorCode.ERR_NoExplicitBuiltinConv, node, MessageID.IDS_MethodGroup.Localize(), targetType);

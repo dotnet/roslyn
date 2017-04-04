@@ -1358,11 +1358,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use a type-inferred default operator as an argument to a dynamically dispatched operation..
+        ///   Looks up a localized string similar to Cannot use a default literal as an argument to a dynamically dispatched operation..
         /// </summary>
-        internal static string ERR_BadDynamicMethodArgDefault {
+        internal static string ERR_BadDynamicMethodArgDefaultLiteral {
             get {
-                return ResourceManager.GetString("ERR_BadDynamicMethodArgDefault", resourceCulture);
+                return ResourceManager.GetString("ERR_BadDynamicMethodArgDefaultLiteral", resourceCulture);
             }
         }
         
@@ -3212,20 +3212,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use of default literal is not valid in this context.
+        /// </summary>
+        internal static string ERR_DefaultLiteralNotValid {
+            get {
+                return ResourceManager.GetString("ERR_DefaultLiteralNotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot specify the DefaultMember attribute on a type containing an indexer.
         /// </summary>
         internal static string ERR_DefaultMemberOnIndexedType {
             get {
                 return ResourceManager.GetString("ERR_DefaultMemberOnIndexedType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use of default is not valid in this context.
-        /// </summary>
-        internal static string ERR_DefaultNotValid {
-            get {
-                return ResourceManager.GetString("ERR_DefaultNotValid", resourceCulture);
             }
         }
         
@@ -9945,7 +9945,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to target-typed default operator.
+        ///   Looks up a localized string similar to default literal.
         /// </summary>
         internal static string IDS_FeatureDefaultLiteral {
             get {
@@ -12182,6 +12182,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_DebugFullNameTooLong_Title {
             get {
                 return ResourceManager.GetString("WRN_DebugFullNameTooLong_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate..
+        /// </summary>
+        internal static string WRN_DefaultInSwitch {
+            get {
+                return ResourceManager.GetString("WRN_DefaultInSwitch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate..
+        /// </summary>
+        internal static string WRN_DefaultInSwitch_Title {
+            get {
+                return ResourceManager.GetString("WRN_DefaultInSwitch_Title", resourceCulture);
             }
         }
         

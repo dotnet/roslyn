@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (ultimateReceiver.IsLiteralDefault())
                 {
-                    diagnostics.Add(ErrorCode.ERR_DefaultNotValid, node.Location);
+                    diagnostics.Add(ErrorCode.ERR_DefaultLiteralNotValid, node.Location);
                 }
                 else if (ultimateReceiver.Kind == BoundKind.NamespaceExpression)
                 {

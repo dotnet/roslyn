@@ -9781,7 +9781,7 @@ tryAgain:
             else
             {
                 keyword = CheckFeatureAvailability(keyword, MessageID.IDS_FeatureDefaultLiteral);
-                return _syntaxFactory.DefaultLiteral(keyword);
+                return _syntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression, keyword);
             }
         }
 

@@ -105,9 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
-            if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultLiteral)
+            if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
             {
-                source = ((BoundDefaultLiteral)source).Update(constantValue, destination);
+                source = ((BoundDefaultExpression)source).Update(constantValue, destination);
             }
 
             return new BoundConversion(
@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceConstantValue = source.ConstantValue;
             if (sourceConstantValue == null)
             {
-                if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultLiteral)
+                if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
                 {
                     return destination.GetDefaultValue();
                 }

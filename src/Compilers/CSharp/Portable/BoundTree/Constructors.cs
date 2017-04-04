@@ -523,14 +523,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultLiteral
+    internal partial class BoundDefaultExpression
     {
-        public BoundDefaultLiteral(SyntaxNode syntax, TypeSymbol type, bool hasErrors = false)
+        public BoundDefaultExpression(SyntaxNode syntax, TypeSymbol type, bool hasErrors = false)
             : this(syntax, type.GetDefaultValue(), type, hasErrors)
         {
         }
 
-        public BoundDefaultLiteral(SyntaxNode syntax)
+        public BoundDefaultExpression(SyntaxNode syntax)
           : this(syntax, constantValueOpt: null, type: null, hasErrors: false)
         {
         }

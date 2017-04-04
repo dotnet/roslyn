@@ -3534,14 +3534,13 @@ class C
         }
 
         [Fact]
-        public void TestTargetTypedDefault()
+        public void TestTargetTypedDefaultWithCSharp7_1()
         {
             var text = "default";
-            var expr = this.ParseExpression(text, TestOptions.ExperimentalParseOptions);
+            var expr = this.ParseExpression(text, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
 
             Assert.NotNull(expr);
-            Assert.Equal(SyntaxKind.DefaultLiteral, expr.Kind());
-            Assert.False(((DefaultLiteralSyntax)expr).Keyword.IsMissing);
+            Assert.Equal(SyntaxKind.DefaultLiteralExpression, expr.Kind());
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
         }

@@ -25,9 +25,9 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,17): error CS8058: Feature 'target-typed default operator' is experimental and unsupported; use '/features:defaultLiteral' to enable.
+                // (6,17): error CS8107: Feature 'default literal' is not available in C# 7. Please use language version 7.1 or greater.
                 //         int x = default;
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "default").WithArguments("target-typed default operator", "defaultLiteral").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(6, 17)
                 );
         }
 
@@ -52,7 +52,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -122,7 +122,7 @@ struct S
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("S", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("S", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -150,7 +150,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("T", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("T", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -388,7 +388,8 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("default", def.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -491,7 +492,8 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("default", def.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetDeclaredSymbol(def));
@@ -511,6 +513,28 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DefaultInEnum()
+        {
+            string source = @"
+enum E
+{
+    DefaultEntry = default,
+    OneEntry = default + 1
+}
+class C
+{
+    static void Main()
+    {
+        System.Console.Write($""{(int)E.DefaultEntry} {(int)E.OneEntry}"");
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 1");
         }
 
         [Fact]
@@ -586,9 +610,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
-                // (7,14): error CS9000: Cannot use a type-inferred default operator as an argument to a dynamically dispatched operation.
+                // (7,14): error CS9000: Cannot use a default literal as an argument to a dynamically dispatched operation.
                 //         d.M2(default);
-                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgDefault, "default").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgDefaultLiteral, "default").WithLocation(7, 14)
                 );
         }
 
@@ -654,9 +678,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,27): error CS9001: Use of default is not valid in this context
+                // (6,27): error CS9001: Use of default literal is not valid in this context
                 //         foreach (int x in default) { }
-                Diagnostic(ErrorCode.ERR_DefaultNotValid, "default").WithLocation(6, 27),
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNotValid, "default").WithLocation(6, 27),
                 // (7,27): error CS0186: Use of null is not valid in this context
                 //         foreach (int x in null) { }
                 Diagnostic(ErrorCode.ERR_NullNotValid, "null").WithLocation(7, 27)
@@ -677,9 +701,9 @@ class C
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.ExperimentalParseOptions);
             compilation.VerifyDiagnostics(
-                // (5,35): error CS9001: Use of default is not valid in this context
+                // (5,35): error CS9001: Use of default literal is not valid in this context
                 //         var q = from x in default select x;
-                Diagnostic(ErrorCode.ERR_DefaultNotValid, "select x").WithLocation(5, 35)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNotValid, "select x").WithLocation(5, 35)
                 );
         }
 
@@ -751,38 +775,105 @@ class C
             var text = @"
 class C
 {
-    static void Main()
+    static void M<T, TClass>() where TClass : class
     {
         System.Console.Write(default as long);
+        System.Console.Write(default as T);
+        System.Console.Write(default as TClass);
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0077: The as operator must be used with a reference type or nullable type ('long' is a non-nullable value type)
                 //         System.Console.Write(default as long);
-                Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "default as long").WithArguments("long").WithLocation(6, 30)
+                Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "default as long").WithArguments("long").WithLocation(6, 30),
+                // (7,30): error CS0413: The type parameter 'T' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
+                //         System.Console.Write(default as T);
+                Diagnostic(ErrorCode.ERR_AsWithTypeVar, "default as T").WithArguments("T").WithLocation(7, 30),
+                // (8,30): warning CS0458: The result of the expression is always 'null' of type 'TClass'
+                //         System.Console.Write(default as TClass);
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "default as TClass").WithArguments("TClass").WithLocation(8, 30)
                 );
         }
 
         [Fact]
-        public void DefaultInIsPattern()
+        public void DefaultInAsOperatorWithReferenceType()
         {
             var text = @"
 class C
 {
     static void Main()
     {
+        System.Console.Write($""{default as C == null} {default as string == null}"");
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (6,33): warning CS0458: The result of the expression is always 'null' of type 'C'
+                //         System.Console.Write($"{default as C == null} {default as string == null}");
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "default as C").WithArguments("C").WithLocation(6, 33),
+                // (6,56): warning CS0458: The result of the expression is always 'null' of type 'string'
+                //         System.Console.Write($"{default as C == null} {default as string == null}");
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "default as string").WithArguments("string").WithLocation(6, 56)
+                );
+            CompileAndVerify(comp, expectedOutput: "True True");
+        }
+
+        [Fact]
+        public void DefaultInputToConstantPattern()
+        {
+            var text = @"
+class C
+{
+    static void M<T>()
+    {
         System.Console.Write(default is long);
+        System.Console.Write(default is string);
+        System.Console.Write(default is default);
+        System.Console.Write(default is T);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                //         System.Console.Write(default is long);
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is long").WithArguments("is", "default").WithLocation(6, 30),
+                // (7,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                //         System.Console.Write(default is string);
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is string").WithArguments("is", "default").WithLocation(7, 30),
+                // (8,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                //         System.Console.Write(default is default);
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is default").WithArguments("is", "default").WithLocation(8, 30),
+                // (8,41): error CS0150: A constant value is expected
+                //         System.Console.Write(default is default);
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "default").WithLocation(8, 41),
+                // (9,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                //         System.Console.Write(default is T);
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is T").WithArguments("is", "default").WithLocation(9, 30)
+                );
+        }
+
+        [Fact]
+        public void DefaultInConstantPattern()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        string hello = ""hello"";
+        string nullString = null;
+        int two = 2;
+        int zero = 0;
+        System.Console.Write($""{hello is default} {nullString is default} {two is default} {zero is default}"");
     }
 }";
 
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (6,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
-                //         System.Console.Write(default is long);
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is long").WithArguments("is", "default").WithLocation(6, 30)
-                );
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "False True False True");
         }
 
         [Fact]
@@ -861,7 +952,7 @@ class Program
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
-            var def = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultLiteralSyntax>().Single();
+            var def = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("System.Int32?", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Int32?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -911,7 +1002,7 @@ class C
         }
 
         [Fact]
-        public void Switch()
+        public void V6SwitchWarns()
         {
             string source = @"
 class C
@@ -925,6 +1016,101 @@ class C
         switch (x)
         {
             case default:
+                System.Console.Write(""default"");
+                break;
+            default:
+                break;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (12,18): warning CS9002: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
+                //             case default:
+                Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(12, 18)
+                );
+            CompileAndVerify(comp, expectedOutput: "default");
+        }
+
+        [Fact]
+        public void V7SwitchWarns()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        M(null);
+    }
+    static void M(object x)
+    {
+        switch (x)
+        {
+            case default:
+                System.Console.Write(""default"");
+                break;
+            default:
+                break;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (12,18): warning CS9002: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
+                //             case default:
+                Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(12, 18)
+                );
+            CompileAndVerify(comp, expectedOutput: "default");
+        }
+
+        [Fact]
+        public void V6SwitchWarningWorkaround()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        M(0);
+    }
+    static void M(int x)
+    {
+        switch (x)
+        {
+            case (default):
+                System.Console.Write(""default"");
+                break;
+            default:
+                break;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "default");
+        }
+
+        [Fact]
+        public void V7SwitchWarningWorkaround()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        M(null);
+    }
+    static void M(object x)
+    {
+        switch (x)
+        {
+            case (default):
                 System.Console.Write(""default"");
                 break;
             default:
@@ -1068,7 +1254,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<DefaultLiteralSyntax>().Single();
+            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("System.Int16", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetDeclaredSymbol(def));

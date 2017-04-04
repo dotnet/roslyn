@@ -802,8 +802,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.DefaultLiteral:
-                    var defaultExpression = (BoundDefaultLiteral)sourceExpression;
+                case BoundKind.DefaultExpression:
+                    var defaultExpression = (BoundDefaultExpression)sourceExpression;
                     if ((object)defaultExpression.Type == null)
                     {
                         return Conversion.DefaultOrNullLiteral;
