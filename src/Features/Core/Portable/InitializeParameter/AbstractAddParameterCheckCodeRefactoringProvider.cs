@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private bool IsNullCheck(IOperation operand1, IOperation operand2, IParameterSymbol parameter)
-            => IsNullLiteral(UnwrapConversion(operand1)) && IsParameterReference(operand2, parameter);
+            => IsNullLiteral(UnwrapImplicitConversion(operand1)) && IsParameterReference(operand2, parameter);
 
         private bool IsNullLiteral(IOperation operand)
             => operand is ILiteralExpression literal &&

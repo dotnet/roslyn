@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return true;
             }
 
-            if (UnwrapConversion(assignmentExpression.Value) is INullCoalescingExpression coalesceExpression &&
+            if (UnwrapImplicitConversion(assignmentExpression.Value) is INullCoalescingExpression coalesceExpression &&
                 IsParameterReference(coalesceExpression.PrimaryOperand, parameter))
             {
                 // We already have a member initialized with this parameter like:
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             foreach (var statement in blockStatement.Statements)
             {
                 if (IsFieldOrPropertyAssignment(statement, member.ContainingType, out var assignmentExpression) &&
-                    UnwrapConversion(assignmentExpression.Target) is IMemberReferenceExpression memberReference &&
+                    UnwrapImplicitConversion(assignmentExpression.Target) is IMemberReferenceExpression memberReference &&
                     member.Equals(memberReference.Member))
                 {
                     return true;
