@@ -150,7 +150,7 @@ End Class"
 
             Dim expectedOperationTree = "
 IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement)
-  Local_1:  As System.Int32
+  Local_1: <anonymous local> As System.Int32
   IIfStatement (OperationKind.IfStatement)
     Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False)
         Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
