@@ -1,21 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Windows.Automation;
-using System.Windows.Documents;
 using System.Windows.Forms;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
-using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -23,7 +16,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Hosting.Diagnostics.Waiters;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -151,11 +143,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => GetTags<IErrorTag>();
 
         public int GetHighlightTagCount()
-        {
-            var tags = GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
-            return tags.Length;
-
-        }
+           => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId).Length;
 
         private string[] GetTags<TTag>(Predicate<TTag> filter = null)
             where TTag : ITag
@@ -182,7 +170,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return tags.Select(tag => $"{tag.Tag.ToString()}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
             });
         }
-
 
         /// <remarks>
         /// This method does not wait for async operations before
