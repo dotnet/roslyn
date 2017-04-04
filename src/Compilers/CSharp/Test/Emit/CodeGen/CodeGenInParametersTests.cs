@@ -535,6 +535,49 @@ class Program
 }");
         }
 
+        [Fact, WorkItem(18357, "https://github.com/dotnet/roslyn/issues/18357")]
+        public void ReadonlyParamCanReturnByRefReadonlyNested()
+        {
+            var text = @"
+class Program
+{
+    static ref readonly int M(in int arg1, in (int Alice, int Bob) arg2)
+    {
+        ref readonly int M1(in int arg11, in (int Alice, int Bob) arg21)
+        {
+            bool b = true;
+
+            if (b)
+            {
+                return ref arg11;
+            }
+            else
+            {
+                return ref arg21.Alice;
+            }
+        }
+
+        return ref M1(arg1, arg2);
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false);
+
+            comp.VerifyIL("Program.<M>g__M10_0(in int, in (int Alice, int Bob))", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  brfalse.s  IL_0005
+  IL_0003:  ldarg.0
+  IL_0004:  ret
+  IL_0005:  ldarg.1
+  IL_0006:  ldflda     ""int System.ValueTuple<int, int>.Item1""
+  IL_000b:  ret
+}");
+        }
+
         [Fact]
         public void ReadonlyParamOptional()
         {
