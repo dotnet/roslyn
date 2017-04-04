@@ -18,12 +18,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void OpenCSharpThenVBSolution()
         {
             base.OpenCSharpThenVBSolution();
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1826"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void MetadataReference()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -46,6 +48,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ProjectProperties()
         {
             VisualStudio.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));
