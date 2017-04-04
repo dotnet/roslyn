@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,20 +7,19 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Esent;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
-    public class EsentPersistentStorageTests : IDisposable
+    public abstract class AbstractPersistentStorageTests : IDisposable
     {
         private const int NumThreads = 10;
         private const string PersistentFolderPrefix = "PersistentStorageTests_";
 
         private readonly Encoding _encoding = Encoding.UTF8;
-        private readonly IOptionService _persistentEnabledOptionService = new OptionServiceMock(new Dictionary<IOption, object>
+        internal readonly IOptionService _persistentEnabledOptionService = new OptionServiceMock(new Dictionary<IOption, object>
         {
             { PersistentStorageOptions.Enabled, true },
             { PersistentStorageOptions.EsentPerformanceMonitor, false }
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         private const string Data1 = "Hello ESENT";
         private const string Data2 = "Goodbye ESENT";
 
-        public EsentPersistentStorageTests()
+        protected AbstractPersistentStorageTests()
         {
             _persistentFolder = Path.Combine(Path.GetTempPath(), PersistentFolderPrefix + Guid.NewGuid());
             Directory.CreateDirectory(_persistentFolder);
@@ -229,7 +228,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             using (var storage = GetStorage(solution))
             {
-                await storage.WriteStreamAsync(streamName1, EncodeString(Data1));
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(Data1)));
                 DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(streamName1)), Data1);
             }
         }
@@ -243,7 +242,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             using (var storage = GetStorage(solution))
             {
-                await storage.WriteStreamAsync(solution.Projects.Single(), streamName1, EncodeString(Data1));
+                Assert.True(await storage.WriteStreamAsync(solution.Projects.Single(), streamName1, EncodeString(Data1)));
                 DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single(), streamName1)), Data1);
             }
         }
@@ -257,7 +256,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             using (var storage = GetStorage(solution))
             {
-                await storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(Data1));
+                Assert.True(await storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(Data1)));
                 DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single().Documents.Single(), streamName1)), Data1);
             }
         }
@@ -267,17 +266,30 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var barrier = new Barrier(NumThreads);
             var countdown = new CountdownEvent(NumThreads);
 
+            var exceptions = new List<Exception>();
             for (int i = 0; i < NumThreads; i++)
             {
                 Task.Run(async () =>
                 {
                     barrier.SignalAndWait();
-                    Assert.Equal(expectedValue, await read());
+                    try
+                    {
+                        Assert.Equal(expectedValue, await read());
+                    }
+                    catch (Exception ex)
+                    {
+                        lock (exceptions)
+                        {
+                            exceptions.Add(ex);
+                        }
+                    }
                     countdown.Signal();
                 });
             }
 
             countdown.Wait();
+
+            Assert.Equal(new List<Exception>(), exceptions);
         }
 
         private Solution CreateOrOpenSolution()
@@ -313,11 +325,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         private IPersistentStorage GetStorage(Solution solution)
         {
-            var storage = new EsentPersistentStorageService(_persistentEnabledOptionService, testing: true).GetStorage(solution);
+            var storage = GetStorageService().GetStorage(solution);
 
             Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
             return storage;
         }
+
+        protected abstract IPersistentStorageService GetStorageService();
 
         private Stream EncodeString(string text)
         {
