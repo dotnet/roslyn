@@ -3009,6 +3009,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+
+                case BoundKind.TupleLiteral:
+                    if ((object)operand.Type == null)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_TypelessTupleInAs, node);
+                        return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+                    }
+                    break;
             }
 
             if (operand.HasAnyErrors || targetTypeKind == TypeKind.Error)

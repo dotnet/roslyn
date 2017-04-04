@@ -6606,6 +6606,66 @@ class C
         }
 
         [Fact]
+        public void TupleExplicitNullableConversionWithTypelessTuple()
+        {
+            var source = @"
+class C
+{
+    object M()
+    {
+        var x = ((int, string)?) (1, null);
+        return x;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var declaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
+            var value = declaration.Declaration.Variables.First().Initializer.Value;
+            Assert.Equal("((int, string)?) (1, null)", value.ToString());
+            var castConversion = model.GetConversion(value);
+            Assert.Equal(ConversionKind.Identity, castConversion.Kind);
+            var tuple = ((CastExpressionSyntax)value).Expression;
+            Assert.Equal("(1, null)", tuple.ToString());
+            var tupleConversion = model.GetConversion(tuple);
+            Assert.Equal(ConversionKind.ExplicitNullable, tupleConversion.Kind);
+            Assert.Equal(1, tupleConversion.UnderlyingConversions.Length);
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, tupleConversion.UnderlyingConversions[0].Kind);
+        }
+
+        [Fact]
+        public void TupleImplicitNullableConversionWithTypelessTuple()
+        {
+            var source = @"
+class C
+{
+    object M()
+    {
+        (int, string)? x = (1, null);
+        return x;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var declaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
+            var value = declaration.Declaration.Variables.First().Initializer.Value;
+            Assert.Equal("(1, null)", value.ToString());
+            var tupleConversion = model.GetConversion(value);
+            Assert.Equal(ConversionKind.ImplicitNullable, tupleConversion.Kind);
+            Assert.Equal(1, tupleConversion.UnderlyingConversions.Length);
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, tupleConversion.UnderlyingConversions[0].Kind);
+        }
+
+        [Fact]
         public void TupleTargetTypeLambda()
         {
             var source = @"
@@ -22697,6 +22757,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
+                // (6,17): error CS8304: The first operand of an 'as' operator may not be a tuple literal without a natural type.
+                //         var x = (0, null) as (int, T)?;
+                Diagnostic(ErrorCode.ERR_TypelessTupleInAs, "(0, null) as (int, T)?").WithLocation(6, 17)
                 );
         }
     }
