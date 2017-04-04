@@ -217,7 +217,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (isByRef)
                 {
-                    if ((_flags & ParameterAttributes.Out) == ParameterAttributes.Out)
+                    ParameterAttributes inOutFlags = _flags & (ParameterAttributes.Out | ParameterAttributes.In);
+
+                    if (inOutFlags == ParameterAttributes.Out)
                     {
                         refKind = RefKind.Out;
                     }
