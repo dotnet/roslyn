@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -12,6 +13,8 @@ using System.Windows.Automation;
 using System.Windows.Documents;
 using System.Windows.Forms;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
+using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
@@ -147,6 +150,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string[] GetErrorTags()
             => GetTags<IErrorTag>();
 
+        public int GetHighlightTagCount()
+        {
+            var tags = GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
+            return tags.Length;
+
+        }
+
         private string[] GetTags<TTag>(Predicate<TTag> filter = null)
             where TTag : ITag
         {
@@ -172,6 +182,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return tags.Select(tag => $"{tag.Tag.ToString()}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
             });
         }
+
 
         /// <remarks>
         /// This method does not wait for async operations before

@@ -130,5 +130,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public string[] GetErrorTags()
             => _editorInProc.GetErrorTags();
+
+        public int GetKeywordHighlightTagCount()
+            => _editorInProc.GetHighlightTagCount();
     }
 }
