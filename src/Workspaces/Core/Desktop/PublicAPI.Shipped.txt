@@ -40,3 +40,5 @@ static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(Microsoft.CodeAnal
 static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties, Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream, Microsoft.CodeAnalysis.Workspace workspace) -> Microsoft.CodeAnalysis.Text.SourceText
+static Microsoft.CodeAnalysis.Host.Mef.DesktopMefHostServices.DefaultAssemblies.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Assembly>
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Diagnostics.get -> System.Collections.Immutable.ImmutableList<Microsoft.CodeAnalysis.WorkspaceDiagnostic>
