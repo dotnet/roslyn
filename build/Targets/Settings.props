@@ -65,6 +65,18 @@
       {TargetFrameworkDirectory};
       {RawFileName};
     </AssemblySearchPaths>
+
+    <!-- DO NOT MERGE this is set in the old build but not in the new SDK.  Need to figure out what is 
+         going on with this -->
+    <NoWarn>$(NoWarn);1701</NoWarn>
+
+    <!-- DO NOT MERGE  hack to test out the basic premise I outlined in the following
+         https://github.com/dotnet/sdk/issues/1083#issuecomment-292013375 
+
+         This needs to be conditional to support a fresh restore -->
+    <!-- <RoslynNetSdkRootPath>$(NuGetPackageRoot)\Microsoft.Net.Sdk\$(MicrosoftNetSdkVersion)\Sdk\</RoslynNetSdkRootPath>  -->
+    <RoslynNetSdkRootPath>$(MSBuildSDKsPath)\Microsoft.Net.Sdk\Sdk\</RoslynNetSdkRootPath> 
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
@@ -226,6 +238,8 @@
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
           Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(RoslynSdkProject)' != 'true'" />
 
+  <Import Project="$(RoslynNetSdkRootPath)Sdk.props" Condition="'$(RoslynSdkProject)' == 'true'" />
+
   <Import Project="$(RoslynDiagnosticsPropsFilePath)" Condition="'$(UseRoslynAnalyzers)' == 'true' AND Exists('$(RoslynDiagnosticsPropsFilePath)')" />
 
   <ImportGroup Label="WindowsImports" Condition="'$(OS)' == 'Windows_NT'">
@@ -237,4 +251,18 @@
     <!-- NuGet props aren't imported by default on *nix so we do that here -->
     <Import Project="$(MSBuildBinPath)\Microsoft.NuGet.props" Condition="'$(OS)' != 'Windows_NT'" />
   </ImportGroup>
+
+  <!-- The Sdk props will set the rootnamespace to the assembly name when the property
+       is empty.  Need to override this after  -->
+  <PropertyGroup Condition="'$(MSBuildTargetsLanguageName)' == 'VisualBasic' AND '$(RoslynSdkProject)' == 'true'" >
+      <RootNamespace></RootNamespace>
+  </PropertyGroup>
+
+  <!-- 
+       https://github.com/dotnet/sdk/issues/752
+
+       The NoWarn property is still being unconditionally set.  -->
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
 </Project>

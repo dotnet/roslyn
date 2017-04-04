@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Toolset</RootNamespace>
     <AssemblyName>Toolset_DoNetUse</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />

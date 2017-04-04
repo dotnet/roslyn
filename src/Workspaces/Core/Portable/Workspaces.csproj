@@ -88,7 +88,7 @@
       <Link>InternalUtilities\FatalError.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs">
-      <Link>InternalUtilities\PathUtilities.cs</Link>
+      <Link>InternalUtilities\FileNameUtilities.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\GeneratedCodeUtilities.cs">
       <Link>InternalUtilities\GeneratedCodeUtilities.cs</Link>
