@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenOperand = MakeConversionNode(
                             syntax: rewrittenOperand.Syntax,
                             rewrittenOperand: rewrittenOperand,
-                            conversion: Conversion.Boxing,
+                            conversion: Conversion.TypeParameterBoxing,
                             rewrittenType: _compilation.GetSpecialType(SpecialType.System_Object),
                             @checked: false);
                     }

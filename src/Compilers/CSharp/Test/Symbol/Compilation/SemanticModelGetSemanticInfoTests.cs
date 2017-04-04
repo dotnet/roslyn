@@ -3423,7 +3423,7 @@ class Test
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Object", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.Boxing, semanticInfo.ImplicitConversion.Kind);
+            Assert.Equal(ConversionKind.ValueTypeBoxing, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
@@ -7674,7 +7674,7 @@ static class C
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Object", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.Boxing, semanticInfo.ImplicitConversion.Kind);
+            Assert.Equal(ConversionKind.ValueTypeBoxing, semanticInfo.ImplicitConversion.Kind);
             Assert.True(semanticInfo.ImplicitConversion.IsBoxing);
 
             Assert.Equal("S s", semanticInfo.Symbol.ToTestDisplayString());
@@ -12193,7 +12193,7 @@ class Program<T>
             Assert.Equal(TypeKind.TypeParameter, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Object", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.Boxing, semanticInfo.ImplicitConversion.Kind);
+            Assert.Equal(ConversionKind.TypeParameterBoxing, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);

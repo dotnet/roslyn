@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasBoxingConversion(source, destination, ref useSiteDiagnostics))
             {
-                return Conversion.Boxing;
+                return source.Kind == SymbolKind.TypeParameter ? Conversion.TypeParameterBoxing : Conversion.ValueTypeBoxing;
             }
 
             if (HasImplicitPointerConversion(source, destination))
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasUnboxingConversion(source, destination, ref useSiteDiagnostics))
             {
-                return Conversion.Unboxing;
+                return source.Kind == SymbolKind.TypeParameter ? Conversion.TypeParameterUnboxing : Conversion.ValueTypeUnboxing;
             }
 
             var tupleConversion = ClassifyExplicitTupleConversion(source, destination, ref useSiteDiagnostics, forCast);
@@ -633,8 +633,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitReference:
                     impliedExplicitConversion = Conversion.ExplicitReference;
                     break;
-                case ConversionKind.Boxing:
-                    impliedExplicitConversion = Conversion.Unboxing;
+                case ConversionKind.ValueTypeBoxing:
+                    impliedExplicitConversion = Conversion.ValueTypeBoxing;
+                    break;
+                case ConversionKind.TypeParameterBoxing:
+                    impliedExplicitConversion = Conversion.TypeParameterBoxing;
                     break;
                 case ConversionKind.NoConversion:
                     impliedExplicitConversion = Conversion.NoConversion;
@@ -1343,7 +1346,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversion.Kind)
             {
                 case ConversionKind.Identity:
-                case ConversionKind.Boxing:
+                case ConversionKind.ValueTypeBoxing:
+                case ConversionKind.TypeParameterBoxing:
                 case ConversionKind.ImplicitReference:
                     return true;
 

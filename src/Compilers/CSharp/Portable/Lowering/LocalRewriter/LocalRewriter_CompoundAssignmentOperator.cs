@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // From the verifier prospective type parameters do not contain fields or methods.
                 // the instance must be "boxed" to access the field
                 // It makes sense to box receiver before storing into a temp - no need to box twice.
-                rewrittenReceiver = BoxReceiver(rewrittenReceiver, memberContainingType);
+                rewrittenReceiver = BoxTypeParameterReceiver(rewrittenReceiver, memberContainingType);
             }
 
             BoundAssignmentOperator assignmentToTemp;
@@ -597,12 +597,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return variableTemp;
         }
 
-        private BoundExpression BoxReceiver(BoundExpression rewrittenReceiver, NamedTypeSymbol memberContainingType)
+        private BoundExpression BoxTypeParameterReceiver(BoundExpression rewrittenReceiver, NamedTypeSymbol memberContainingType)
         {
             return MakeConversionNode(
                 rewrittenReceiver.Syntax,
                 rewrittenReceiver,
-                Conversion.Boxing,
+                Conversion.TypeParameterBoxing,
                 memberContainingType,
                 @checked: false,
                 constantValueOpt: rewrittenReceiver.ConstantValue);

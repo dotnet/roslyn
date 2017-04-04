@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expr.Kind == BoundKind.Conversion)
             {
                 BoundConversion conv = (BoundConversion)expr;
-                if (conv.ConversionKind == ConversionKind.Boxing)
+                if (conv.ConversionKind.IsBoxing())
                 {
                     BoundExpression operand = conv.Operand;
                     if (operand != null)

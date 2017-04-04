@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(enumeratorInfo.NeedsDisposeMethod);
 
                     Conversion receiverConversion = enumeratorType.IsStructType() ?
-                        Conversion.Boxing :
+                        Conversion.ValueTypeBoxing :
                         Conversion.ImplicitReference;
 
                     // ((IDisposable)e).Dispose(); or e.Dispose();

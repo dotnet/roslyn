@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression.Kind == BoundKind.Conversion)
             {
                 var conversion = (BoundConversion)expression;
-                if (conversion.ConversionKind == ConversionKind.Boxing)
+                if (conversion.ConversionKind.IsBoxing())
                 {
                     return conversion.Operand.ConstantValue;
                 }
@@ -1936,7 +1936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (exprType.Kind == SymbolKind.TypeParameter)
                 {
                     // Box type parameters.
-                    rewrittenExpr = MakeConversionNode(syntax, rewrittenExpr, Conversion.Boxing, objectType, @checked: false);
+                    rewrittenExpr = MakeConversionNode(syntax, rewrittenExpr, Conversion.TypeParameterBoxing, objectType, @checked: false);
                 }
                 else if (exprType.IsNullableType())
                 {

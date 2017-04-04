@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenArgument = MakeConversionNode(
                     rewrittenArgument.Syntax,
                     rewrittenArgument,
-                    Conversion.Boxing,
+                    Conversion.TypeParameterBoxing,
                     argumentType,
                     @checked: false,
                     constantValueOpt: rewrittenArgument.ConstantValue);
