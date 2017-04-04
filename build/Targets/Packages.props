@@ -36,12 +36,13 @@
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>                                                                              
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>                                                               
     <MicrosoftDiaSymReaderVersion>1.1.0</MicrosoftDiaSymReaderVersion>                                                                                                
-    <MicrosoftDiaSymReaderConverterXmlVersion>1.0.0-beta1-61518-02</MicrosoftDiaSymReaderConverterXmlVersion>                                                         
+    <MicrosoftDiaSymReaderConverterXmlVersion>1.0.0-beta1-61618-01</MicrosoftDiaSymReaderConverterXmlVersion>                                                         
     <MicrosoftDiaSymReaderNativeVersion>1.5.0</MicrosoftDiaSymReaderNativeVersion>                                                                                    
     <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0</MicrosoftDiaSymReaderPortablePdbVersion>                                                                          
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>                                                 
     <MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>15.0.26201-alpha</MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>                             
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>                   
+    <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-61531-03</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>                                                                                                      
     <MicrosoftNetCompilersVersion>2.0.1</MicrosoftNetCompilersVersion>                                                                                                
     <MicrosoftNetCompilersnetcoreVersion>2.0.0-rc2-61102-09</MicrosoftNetCompilersnetcoreVersion>                                                                     
@@ -53,6 +54,7 @@
     <MicrosoftNETCoreRuntimeCoreCLRVersion>1.1.0</MicrosoftNETCoreRuntimeCoreCLRVersion>                                                                              
     <MicrosoftNETCoreTestHostVersion>1.1.0</MicrosoftNETCoreTestHostVersion>                                                                                          
     <MicrosoftNetFX20Version>1.0.3</MicrosoftNetFX20Version>                                                                                                          
+    <MicrosoftNetSdkVersion>2.0.0-alpha-20170405-2</MicrosoftNetSdkVersion>
     <MicrosoftNuGetBuildTasksVersion>0.1.0</MicrosoftNuGetBuildTasksVersion>                                                                                          
     <MicrosoftPortableTargetsVersion>0.1.2-dev</MicrosoftPortableTargetsVersion>                                                                                      
     <MicrosoftServiceHubClientVersion>1.0.177-rc-g56d40a8a02</MicrosoftServiceHubClientVersion>                                                                       
@@ -63,8 +65,8 @@
     <MicrosoftVisualStudioComponentModelHostVersion>15.0.26201-alpha</MicrosoftVisualStudioComponentModelHostVersion>                                                 
     <MicrosoftVisualStudioCompositionVersion>15.0.66-rc</MicrosoftVisualStudioCompositionVersion>                                                                     
     <MicrosoftVisualStudioCoreUtilityVersion>15.0.26201-alpha</MicrosoftVisualStudioCoreUtilityVersion>                                                               
-    <MicrosoftVisualStudioDebuggerEngineVersion>15.0.26201-alpha</MicrosoftVisualStudioDebuggerEngineVersion>                                                         
-    <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.26201-alpha</MicrosoftVisualStudioDebuggerMetadataVersion>                                                     
+    <MicrosoftVisualStudioDebuggerEngineVersion>15.0.26201-gamma</MicrosoftVisualStudioDebuggerEngineVersion>                                                         
+    <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.26201-gamma</MicrosoftVisualStudioDebuggerMetadataVersion>                                                     
     <MicrosoftVisualStudioDesignerInterfacesVersion>1.1.4322</MicrosoftVisualStudioDesignerInterfacesVersion>                                                         
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>15.0.26201-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>                         
     <MicrosoftVisualStudioEditorVersion>15.0.26201-alpha</MicrosoftVisualStudioEditorVersion>                                                                         
@@ -201,6 +203,7 @@
     <SystemXmlXmlDocumentVersion>4.3.0</SystemXmlXmlDocumentVersion>                                                                                                  
     <SystemXmlXmlSerializerVersion>4.3.0</SystemXmlXmlSerializerVersion>                                                                                              
     <SystemXmlXPathXDocumentVersion>4.3.0</SystemXmlXPathXDocumentVersion>                                                                                            
+    <MicrosoftVSSDKBuildToolsVersion>15.0.26124-RC3</MicrosoftVSSDKBuildToolsVersion>
     <VSExternalAPIsCodingConventionsVersion>1.0.60704.2</VSExternalAPIsCodingConventionsVersion>                                                                      
     <VSLangProjVersion>7.0.3300</VSLangProjVersion>                                                                                                                   
     <VSLangProj140Version>14.3.25407-alpha</VSLangProj140Version>                                                                                                     
