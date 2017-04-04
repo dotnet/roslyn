@@ -96,13 +96,13 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             // Attempt to load the correct version of e_sqlite.dll.  That way when we call
             // into SQLitePCL.Batteries_V2.Init it will be able to find it.
-            var myPath = new Uri(typeof(SQLitePersistentStorage).Assembly.CodeBase).LocalPath;
-            var myFolder = Path.GetDirectoryName(myPath);
+            var myFolder = Path.GetDirectoryName(
+                typeof(SQLitePersistentStorage).Assembly.Location);
 
             var is64 = IntPtr.Size == 8;
-            var subfolder = is64 ? "\\x64\\" : "\\x86\\";
+            var subfolder = is64 ? "x64" : "x86";
 
-            LoadLibrary(myFolder + subfolder + "e_sqlite3.dll");
+            LoadLibrary(Path.Combine(myFolder, subfolder, "e_sqlite3.dll"));
 
             // Necessary to initialize SQLitePCL.
             SQLitePCL.Batteries_V2.Init();
