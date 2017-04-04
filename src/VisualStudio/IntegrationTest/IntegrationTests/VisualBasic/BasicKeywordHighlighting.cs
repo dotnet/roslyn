@@ -5,8 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
@@ -24,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void NavigationBetweenKeywords()
         {
-            Editor.SetText(@"
+            VisualStudio.Editor.SetText(@"
 Class C
     Sub Main()
         For a = 0 To 1 Step 1
@@ -34,19 +32,19 @@ Class C
 End Class");
 
             Verify("To", 3);
-            this.ExecuteCommand("Edit.NextHighlightedReference");
-            Assert.Equal(Editor.GetCaretPosition(), 112);
+            VisualStudio.ExecuteCommand("Edit.NextHighlightedReference");
+            Assert.Equal(VisualStudio.Editor.GetCaretPosition(), 112);
         }
 
         private void Verify(string marker, int expectedCount)
         {
-            Editor.PlaceCaret(marker, charsOffset: -1);
-            this.WaitForAsyncOperations(
+            VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
+            VisualStudio.Workspace.WaitForAsyncOperations(string.Concat(
                FeatureAttribute.SolutionCrawler,
                FeatureAttribute.DiagnosticService,
                FeatureAttribute.Classification,
-               FeatureAttribute.KeywordHighlighting);
-            Assert.Equal(expectedCount, Editor.GetKeywordHighlightTagCount());
+               FeatureAttribute.KeywordHighlighting));
+            Assert.Equal(expectedCount, VisualStudio.Editor.GetKeywordHighlightTagCount());
         }
     }
 }

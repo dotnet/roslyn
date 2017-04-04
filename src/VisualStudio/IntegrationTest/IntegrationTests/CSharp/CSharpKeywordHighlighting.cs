@@ -5,8 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -24,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Foreach()
         {
-            Editor.SetText(@"
+            VisualStudio.Editor.SetText(@"
 class C
 {
     void M()
@@ -42,7 +40,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PreprocessorConditionals()
         {
-            Editor.SetText(@"
+            VisualStudio.Editor.SetText(@"
 #define Debug
 #undef Trace
 class PurchaseTransaction
@@ -68,7 +66,7 @@ class PurchaseTransaction
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PreprocessorRegions()
         {
-            Editor.SetText(@"
+            VisualStudio.Editor.SetText(@"
 class C
 {
     #region Main
@@ -84,13 +82,13 @@ class C
 
         private void Verify(string marker, int expectedCount)
         {
-            Editor.PlaceCaret(marker, charsOffset: -1);
-            this.WaitForAsyncOperations(
+            VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
+            VisualStudio.Workspace.WaitForAsyncOperations(string.Concat(
                FeatureAttribute.SolutionCrawler,
                FeatureAttribute.DiagnosticService,
                FeatureAttribute.Classification,
-               FeatureAttribute.KeywordHighlighting);
-            Assert.Equal(expectedCount, Editor.GetKeywordHighlightTagCount());
+               FeatureAttribute.KeywordHighlighting));
+            Assert.Equal(expectedCount, VisualStudio.Editor.GetKeywordHighlightTagCount());
         }
     }
 }
