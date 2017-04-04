@@ -3,8 +3,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -30,10 +28,10 @@ class Program
     {
     }
 }");
-            this.InvokeQuickInfo();
+            VisualStudio.Editor.InvokeQuickInfo();
             Assert.Equal(
                 "class\u200e System\u200e.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.",
-                Editor.GetQuickInfo());
+                VisualStudio.Editor.GetQuickInfo());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -47,8 +45,8 @@ class Program$$
     {
     }
 }");
-            this.InvokeQuickInfo();
-            Assert.Equal("class\u200e Program\r\nHello!", Editor.GetQuickInfo());
+            VisualStudio.Editor.InvokeQuickInfo();
+            Assert.Equal("class\u200e Program\r\nHello!", VisualStudio.Editor.GetQuickInfo());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -65,9 +63,9 @@ class العربية123
          العربية123$$ foo;
     }
 }");
-            this.InvokeQuickInfo();
+            VisualStudio.Editor.InvokeQuickInfo();
             Assert.Equal(@"class" + '\u200e' + @" العربية123
-This is an XML doc comment defined in code.", Editor.GetQuickInfo());
+This is an XML doc comment defined in code.", VisualStudio.Editor.GetQuickInfo());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -86,9 +84,9 @@ class C
             }
         }");
 
-            this.InvokeQuickInfo();
+            VisualStudio.Editor.InvokeQuickInfo();
             var expected = "\u200e(awaitable\u200e)\u200e Task\u200e<int\u200e>\u200e C\u200e.M\u200e(\u200e)\u000d\u000a\u000d\u000aUsage:\u000d\u000a  int\u200e x\u200e \u200e=\u200e await\u200e M\u200e(\u200e\u200e)\u200e;\u000d\u000a\u000d\u000aExceptions:\u200e\u000d\u000a\u200e  Exception";
-            Assert.Equal(expected, Editor.GetQuickInfo());
+            Assert.Equal(expected, VisualStudio.Editor.GetQuickInfo());
         }
     }
 }

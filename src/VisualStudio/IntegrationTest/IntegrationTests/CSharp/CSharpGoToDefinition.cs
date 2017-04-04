@@ -5,8 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -26,47 +24,47 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void GoToClassDeclaration()
         {
             var project = new ProjectUtils.Project(ProjectName);
-            this.AddFile("FileDef.cs", project);
-            this.OpenFile("FileDef.cs", project);
-            Editor.SetText(
+            VisualStudio.SolutionExplorer.AddFile(project, "FileDef.cs");
+            VisualStudio.SolutionExplorer.OpenFile( project, "FileDef.cs");
+            VisualStudio.Editor.SetText(
 @"class SomeClass
 {
 }");
-            this.AddFile("FileConsumer.cs", project);
-            this.OpenFile("FileConsumer.cs", project);
-            Editor.SetText(
+            VisualStudio.SolutionExplorer.AddFile(project,"FileConsumer.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project, "FileConsumer.cs");
+            VisualStudio.Editor.SetText(
 @"class SomeOtherClass
 {
     SomeClass sc;
 }");
-            this.PlaceCaret("SomeClass");
-            Editor.GoToDefinition();
-            this.VerifyTextContains(@"class SomeClass$$", assertCaretPosition: true);
-            Assert.False(VisualStudio.Instance.Shell.IsActiveTabProvisional());
+            VisualStudio.Editor.PlaceCaret("SomeClass");
+            VisualStudio.Editor.GoToDefinition();
+            VisualStudio.Editor.Verify.TextContains(@"class SomeClass$$", assertCaretPosition: true);
+            Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
         public void GoToDefinitionOpensProvisionalTabIfDocumentNotAlreadyOpen()
         {
             var project = new ProjectUtils.Project(ProjectName);
-            this.AddFile("FileDef.cs", project);
-            this.OpenFile("FileDef.cs", project);
-            Editor.SetText(
+            VisualStudio.SolutionExplorer.AddFile(project, "FileDef.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project, "FileDef.cs");
+            VisualStudio.Editor.SetText(
 @"class SomeClass
 {
 }");
-            this.CloseFile("FileDef.cs", project);
-            this.AddFile("FileConsumer.cs", project);
-            this.OpenFile("FileConsumer.cs", project);
-            Editor.SetText(
+            VisualStudio.SolutionExplorer.CloseFile(project, "FileDef.cs", saveFile: true);
+            VisualStudio.SolutionExplorer.AddFile(project, "FileConsumer.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project, "FileConsumer.cs");
+            VisualStudio.Editor.SetText(
 @"class SomeOtherClass
 {
     SomeClass sc;
 }");
-            this.PlaceCaret("SomeClass");
-            Editor.GoToDefinition();
-            this.VerifyTextContains(@"class SomeClass$$", assertCaretPosition: true);
-            Assert.True(VisualStudio.Instance.Shell.IsActiveTabProvisional());
+            VisualStudio.Editor.PlaceCaret("SomeClass");
+            VisualStudio.Editor.GoToDefinition();
+            VisualStudio.Editor.Verify.TextContains(@"class SomeClass$$", assertCaretPosition: true);
+            Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
@@ -77,12 +75,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
 partial class PartialClass { int i = 0; }");
 
-            Editor.GoToDefinition();
+            VisualStudio.Editor.GoToDefinition();
 
             const string programReferencesCaption = "'PartialClass' declarations";
-            var results = VisualStudio.Instance.FindReferencesWindow.GetContents(programReferencesCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Instance.Shell.GetActiveWindowCaption();
+            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
             Assert.Equal(expected: programReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(

@@ -11,24 +11,22 @@ namespace Roslyn.VisualStudio.IntegrationTests
     [CaptureTestName]
     public abstract class AbstractIntegrationTest : IDisposable
     {
-        public readonly VisualStudioInstanceContext VisualStudio;
-        public readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
-        public readonly TextViewWindow_OutOfProc TextViewWindow;
+        public readonly VisualStudioInstance VisualStudio;
 
         protected readonly string ProjectName = "TestProj";
         protected readonly string SolutionName = "TestSolution";
 
+        private VisualStudioInstanceContext _visualStudioContext;
+
         protected AbstractIntegrationTest(
-            VisualStudioInstanceFactory instanceFactory,
-            Func<VisualStudioInstanceContext, TextViewWindow_OutOfProc> textViewWindowBuilder)
+            VisualStudioInstanceFactory instanceFactory)
         {
-            VisualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
-            TextViewWindow = textViewWindowBuilder(VisualStudio);
-            VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
+            _visualStudioContext = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
+            VisualStudio = _visualStudioContext.Instance;
         }
 
         public void Dispose()
-            => VisualStudio.Dispose();
+            => _visualStudioContext.Dispose();
 
         protected void Wait(double seconds)
         {
