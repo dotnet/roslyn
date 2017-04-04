@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
-    internal static class EncodedStringText
+    public static class EncodedStringText
     {
         private const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <paramref name="defaultEncoding"/> is null and the stream appears to be a binary file.
         /// </exception>
         /// <exception cref="IOException">An IO error occurred while reading from the stream.</exception>
-        internal static SourceText Create(Stream stream,
+        public static SourceText Create(Stream stream,
             Encoding defaultEncoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool canBeEmbedded = false)
@@ -81,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         // internal for testing
-        internal static SourceText Create(Stream stream, Lazy<Encoding> getEncoding,
+        internal static SourceText Create(Stream stream,
+            Lazy<Encoding> getEncoding,
             Encoding defaultEncoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool canBeEmbedded = false)
