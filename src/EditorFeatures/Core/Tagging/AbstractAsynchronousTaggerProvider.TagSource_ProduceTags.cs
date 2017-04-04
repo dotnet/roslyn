@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             private void OnEventSourceChanged(object sender, TaggerEventArgs e)
-            {
-                RecalculateTagsOnChanged(e);
-            }
+                => RecalculateTagsOnChanged(e);
 
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
             {
@@ -637,7 +635,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 {
                     // Otherwise report back on the foreground asap to update the state and let our 
                     // clients know about the change.
-                    RegisterNotification(() => UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState), 0, cancellationToken);
+                    RegisterNotification(
+                        () => UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState),
+                        delay: 0,
+                        cancellationToken: cancellationToken);
                 }
             }
 
