@@ -394,43 +394,5 @@ namespace N1
             Assert.True(diagnostics[0].Location.SourceTree.Equals(syntaxTree1));
             Assert.True(diagnostics[1].Location.SourceTree.Equals(syntaxTree2));
         }
-
-        [Fact]
-        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
-        public void ConsistentErrorMessageWhenProvidingNullKeyFile()
-        {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: null);
-            CreateCompilation(string.Empty, options: options).VerifyDiagnostics();
-        }
-
-        [Fact]
-        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
-        public void ConsistentErrorMessageWhenProvidingEmptyKeyFile()
-        {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: string.Empty);
-            CreateCompilation(string.Empty, options: options).VerifyDiagnostics();
-        }
-
-        [Fact]
-        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
-        public void ConsistentErrorMessageWhenProvidingNullKeyFile_PublicSign()
-        {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: null, publicSign: true);
-            CreateCompilation(string.Empty, options: options).VerifyDiagnostics(
-                // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
-                Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
-        }
-
-        [Fact]
-        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
-        public void ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSigne()
-        {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: string.Empty, publicSign: true);
-            CreateCompilation(string.Empty, options: options).VerifyDiagnostics(
-                // error CS8106: Option 'CryptoKeyFile' must be an absolute path.
-                Diagnostic(ErrorCode.ERR_OptionMustBeAbsolutePath).WithArguments("CryptoKeyFile").WithLocation(1, 1),
-                // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
-                Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
-        }
     }
 }

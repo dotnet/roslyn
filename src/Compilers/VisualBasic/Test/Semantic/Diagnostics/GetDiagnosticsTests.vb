@@ -448,45 +448,5 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
 
             Assert.True(compilation.EventQueue.IsCompleted)
         End Sub
-
-        <Fact>
-        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
-        Public Sub ConsistentErrorMessageWhenProvidingNullKeyFile()
-            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=Nothing)
-            CreateCompilation(String.Empty, options:=options).VerifyDiagnostics()
-        End Sub
-
-        <Fact>
-        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
-        Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile()
-            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=String.Empty)
-            CreateCompilation(String.Empty, options:=options).VerifyDiagnostics()
-        End Sub
-
-        <Fact>
-        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
-        Public Sub ConsistentErrorMessageWhenProvidingNullKeyFile_PublicSign()
-            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=Nothing, publicSign:=True)
-            Dim compilation = CreateCompilation(String.Empty, options:=options)
-
-            CompilationUtils.AssertTheseDiagnostics(compilation.GetDiagnostics(),
-<errors>
-BC37254: Public sign was specified and requires a public key, but no public key was specified
-</errors>)
-        End Sub
-
-        <Fact>
-        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
-        Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign()
-            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=String.Empty, publicSign:=True)
-            Dim compilation = CreateCompilation(String.Empty, options:=options)
-
-            CompilationUtils.AssertTheseDiagnostics(compilation.GetDiagnostics(),
-<errors>
-BC37254: Public sign was specified and requires a public key, but no public key was specified
-BC37257: Option 'CryptoKeyFile' must be an absolute path.
-</errors>)
-        End Sub
-
     End Class
 End Namespace
