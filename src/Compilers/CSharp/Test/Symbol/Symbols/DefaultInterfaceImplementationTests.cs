@@ -5659,5 +5659,206 @@ public interface I2 : I1
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F2").WithLocation(39, 16)
                 );
         }
+
+        [Fact]
+        public void ImplicitThisIsAllowed_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public int F1;
+
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    }
+
+    int P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I1.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I1.set_P1"");
+    }
+
+    event System.Action E1
+    {
+        add => System.Console.WriteLine(""I1.add_E1"");
+        remove => System.Console.WriteLine(""I1.remove_E1"");
+    }
+
+    public interface I2 : I1
+    {
+        void M2() 
+        {
+            M1();
+            P1 = P1;
+            E1 += null;
+            E1 -= null;
+            F1 = 0;
+        }
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (27,22): error CS0524: 'I1.I2': interfaces cannot declare types
+                //     public interface I2 : I1
+                Diagnostic(ErrorCode.ERR_InterfacesCannotContainTypes, "I2").WithArguments("I1.I2").WithLocation(27, 22),
+                // (4,16): error CS0525: Interfaces cannot contain fields
+                //     public int F1;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 16)
+                );
+        }
+
+        [Fact]
+        public void ImplicitThisIsAllowed_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public int F1;
+
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    }
+
+    int P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I1.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I1.set_P1"");
+    }
+
+    event System.Action E1
+    {
+        add => System.Console.WriteLine(""I1.add_E1"");
+        remove => System.Console.WriteLine(""I1.remove_E1"");
+    }
+
+    public interface I2
+    {
+        void M2() 
+        {
+            M1();
+            P1 = P1;
+            E1 += null;
+            E1 -= null;
+            F1 = 0;
+        }
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (27,22): error CS0524: 'I1.I2': interfaces cannot declare types
+                //     public interface I2
+                Diagnostic(ErrorCode.ERR_InterfacesCannotContainTypes, "I2").WithArguments("I1.I2").WithLocation(27, 22),
+                // (4,16): error CS0525: Interfaces cannot contain fields
+                //     public int F1;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 16),
+                // (31,13): error CS0120: An object reference is required for the non-static field, method, or property 'I1.M1()'
+                //             M1();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "M1").WithArguments("I1.M1()").WithLocation(31, 13),
+                // (32,13): error CS0120: An object reference is required for the non-static field, method, or property 'I1.P1'
+                //             P1 = P1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "P1").WithArguments("I1.P1").WithLocation(32, 13),
+                // (32,18): error CS0120: An object reference is required for the non-static field, method, or property 'I1.P1'
+                //             P1 = P1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "P1").WithArguments("I1.P1").WithLocation(32, 18),
+                // (33,13): error CS0120: An object reference is required for the non-static field, method, or property 'I1.E1'
+                //             E1 += null;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "E1").WithArguments("I1.E1").WithLocation(33, 13),
+                // (34,13): error CS0120: An object reference is required for the non-static field, method, or property 'I1.E1'
+                //             E1 -= null;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "E1").WithArguments("I1.E1").WithLocation(34, 13),
+                // (35,13): error CS0120: An object reference is required for the non-static field, method, or property 'I1.F1'
+                //             F1 = 0;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F1").WithArguments("I1.F1").WithLocation(35, 13)
+                );
+        }
+
+        [Fact]
+        public void ImplicitThisIsAllowed_05()
+        {
+            var source1 =
+@"
+public class C1
+{
+    public int F1;
+
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    }
+
+    int P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I1.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I1.set_P1"");
+    }
+
+    event System.Action E1
+    {
+        add => System.Console.WriteLine(""I1.add_E1"");
+        remove => System.Console.WriteLine(""I1.remove_E1"");
+    }
+
+    public interface I2
+    {
+        void M2() 
+        {
+            M1();
+            P1 = P1;
+            E1 += null;
+            E1 -= null;
+            F1 = 0;
+        }
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (31,13): error CS0120: An object reference is required for the non-static field, method, or property 'C1.M1()'
+                //             M1();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "M1").WithArguments("C1.M1()").WithLocation(31, 13),
+                // (32,13): error CS0120: An object reference is required for the non-static field, method, or property 'C1.P1'
+                //             P1 = P1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "P1").WithArguments("C1.P1").WithLocation(32, 13),
+                // (32,18): error CS0120: An object reference is required for the non-static field, method, or property 'C1.P1'
+                //             P1 = P1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "P1").WithArguments("C1.P1").WithLocation(32, 18),
+                // (33,13): error CS0120: An object reference is required for the non-static field, method, or property 'C1.E1'
+                //             E1 += null;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "E1").WithArguments("C1.E1").WithLocation(33, 13),
+                // (34,13): error CS0120: An object reference is required for the non-static field, method, or property 'C1.E1'
+                //             E1 -= null;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "E1").WithArguments("C1.E1").WithLocation(34, 13),
+                // (35,13): error CS0120: An object reference is required for the non-static field, method, or property 'C1.F1'
+                //             F1 = 0;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F1").WithArguments("C1.F1").WithLocation(35, 13)
+                );
+        }
     }
 }
