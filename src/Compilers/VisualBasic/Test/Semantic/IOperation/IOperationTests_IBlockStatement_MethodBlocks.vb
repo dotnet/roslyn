@@ -137,6 +137,99 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement)
         End Sub
 
         <Fact>
+        Public Sub IBlockStatement_CustomEventAddBlock()
+            Dim source = "
+ Class C
+    Public Custom Event A As Action
+        AddHandler(value As Action)'BIND:""AddHandler(value As Action)""
+            If 1 > 2 Then
+            End If
+        End AddHandler
+
+        RemoveHandler(value As Action)
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class"
+
+            Dim expectedOperationTree = "
+IBlockStatement (3 statements) (OperationKind.BlockStatement)
+  IIfStatement (OperationKind.IfStatement)
+    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False)
+        Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
+    IBlockStatement (0 statements) (OperationKind.BlockStatement)
+  ILabelStatement (Label: exit) (OperationKind.LabelStatement)
+  IReturnStatement (OperationKind.ReturnStatement)"
+
+            VerifyOperationTreeForTest(Of MethodBlockBaseSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub IBlockStatement_CustomEventRemoveBlock()
+            Dim source = "
+ Class C
+    Public Custom Event A As Action
+        AddHandler(value As Action)
+        End AddHandler
+
+        RemoveHandler(value As Action)'BIND:""RemoveHandler(value As Action)""
+            If 1 > 2 Then
+            End If
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class"
+
+            Dim expectedOperationTree = "
+IBlockStatement (3 statements) (OperationKind.BlockStatement)
+  IIfStatement (OperationKind.IfStatement)
+    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False)
+        Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
+    IBlockStatement (0 statements) (OperationKind.BlockStatement)
+  ILabelStatement (Label: exit) (OperationKind.LabelStatement)
+  IReturnStatement (OperationKind.ReturnStatement)"
+
+            VerifyOperationTreeForTest(Of MethodBlockBaseSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub IBlockStatement_CustomEventRaiseBlock()
+            Dim source = "
+ Class C
+    Public Custom Event A As Action
+        AddHandler(value As Action)
+        End AddHandler
+
+        RemoveHandler(value As Action)
+        End RemoveHandler
+
+        RaiseEvent()'BIND:""RaiseEvent()""
+            If 1 > 2 Then
+            End If
+        End RaiseEvent
+    End Event
+End Class"
+
+            Dim expectedOperationTree = "
+IBlockStatement (3 statements) (OperationKind.BlockStatement)
+  IIfStatement (OperationKind.IfStatement)
+    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False)
+        Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
+    IBlockStatement (0 statements) (OperationKind.BlockStatement)
+  ILabelStatement (Label: exit) (OperationKind.LabelStatement)
+  IReturnStatement (OperationKind.ReturnStatement)"
+
+            VerifyOperationTreeForTest(Of MethodBlockBaseSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact>
         Public Sub IBlockStatement_OperatorBlock()
             Dim source = "
 Class Program
@@ -193,6 +286,16 @@ Interface IProgram
 End Interface"
 
             VerifyNoOperationTreeForTest(Of MethodStatementSyntax)(source)
+        End Sub
+
+        <Fact>
+        Public Sub IBlockStatement_NormalEvent()
+            Dim source = "
+Class Program
+        Public Event A As System.Action'BIND:""Public Event A As System.Action""
+End Class"
+
+            VerifyNoOperationTreeForTest(Of EventStatementSyntax)(source)
         End Sub
     End Class
 End Namespace
