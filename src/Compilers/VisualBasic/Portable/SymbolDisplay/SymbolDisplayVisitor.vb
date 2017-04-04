@@ -239,7 +239,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitLocal(symbol As ILocalSymbol)
-            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name, False))
+            If symbol.Name IsNot Nothing Then
+                builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name, False))
+            End If
 
             If format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
                 AddSpace()
