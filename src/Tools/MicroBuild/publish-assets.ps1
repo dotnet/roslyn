@@ -40,6 +40,7 @@ try
         "dev15.0.x" { } 
         "dev15.1.x" { } 
         "master" { } 
+        "sqliteWork5" { } 
         default
         {
             if (-not $test)
