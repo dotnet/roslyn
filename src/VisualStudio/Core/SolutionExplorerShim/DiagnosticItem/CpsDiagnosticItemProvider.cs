@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 item.HierarchyIdentity.NestedHierarchy != null &&
                 relationshipName == KnownRelationships.Contains)
             {
-                if (NestedHierarchyHasProjectTreeCapability(item, "AnalyzersSubTreeNode"))
+                if (NestedHierarchyHasProjectTreeCapability(item, "AnalyzerSubTreeNode"))
                 {
                     var projectRootItem = FindProjectRootItem(item);
                     if (projectRootItem != null)
