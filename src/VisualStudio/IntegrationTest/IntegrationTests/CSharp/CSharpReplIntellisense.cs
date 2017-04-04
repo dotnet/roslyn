@@ -3,9 +3,6 @@
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -16,68 +13,68 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public CSharpReplIntellisense(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
-            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
+            VisualStudio.Workspace.SetUseSuggestionMode(true);
         }
 
         [Fact]
         public void VerifyCompletionListOnEmptyTextAtTopLevel()
         {
-            this.InvokeCompletionList();
-            this.VerifyCompletionItemExists("var", "public", "readonly", "goto");
+            VisualStudio.InteractiveWindow.InvokeCompletionList();
+            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("var", "public", "readonly", "goto");
         }
 
         [Fact]
         public void VerifySharpRCompletionList()
         {
-            this.InsertCode("#r \"");
-            this.InvokeCompletionList();
-            this.VerifyCompletionItemExists("System");
+            VisualStudio.InteractiveWindow.InsertCode("#r \"");
+            VisualStudio.InteractiveWindow.InvokeCompletionList();
+            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("System");
         }
 
         [Fact]
         public void VerifyCommitCompletionOnTopLevel()
         {
-            this.InsertCode("pub");
-            this.InvokeCompletionList();
-            this.VerifyCompletionItemExists("public");
-            this.SendKeys(VirtualKey.Tab);
-            this.VerifyLastReplInput("public");
-            this.SendKeys(VirtualKey.Escape);
+            VisualStudio.InteractiveWindow.InsertCode("pub");
+            VisualStudio.InteractiveWindow.InvokeCompletionList();
+            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("public");
+            VisualStudio.SendKeys.Send(VirtualKey.Tab);
+            VisualStudio.InteractiveWindow.Verify.LastReplInput("public");
+            VisualStudio.SendKeys.Send(VirtualKey.Escape);
         }
 
         [Fact]
         public void VerifyCompletionListForAmbiguousParsingCases()
         {
-            this.InsertCode(@"class C { }
+            VisualStudio.InteractiveWindow.InsertCode(@"class C { }
 public delegate R Del<T, R>(T arg);
 Del<C, System");
-            this.SendKeys(VirtualKey.Period);
-            this.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-            this.VerifyCompletionItemExists("ArgumentException");
+            VisualStudio.SendKeys.Send(VirtualKey.Period);
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("ArgumentException");
         }
 
         [Fact]
         public void VerifySharpLoadCompletionList()
         {
-            this.InsertCode("#load \"");
-            this.InvokeCompletionList();
-            this.VerifyCompletionItemExists("C:");
+            VisualStudio.InteractiveWindow.InsertCode("#load \"");
+            VisualStudio.InteractiveWindow.InvokeCompletionList();
+            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("C:");
         }
 
         [Fact]
         public void VerifyNoCrashOnEnter()
         {
-            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-            this.SendKeys("#help", VirtualKey.Enter, VirtualKey.Enter);
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.SendKeys.Send("#help", VirtualKey.Enter, VirtualKey.Enter);
         }
 
         [Fact]
         public void VerifyCorrectIntellisenseSelectionOnEnter()
         {
-            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-            this.SendKeys("TimeSpan.FromMin");
-            this.SendKeys(VirtualKey.Enter, "(0d)", VirtualKey.Enter);
-            this.WaitForReplOutput("[00:00:00]");
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.SendKeys.Send("TimeSpan.FromMin");
+            VisualStudio.SendKeys.Send(VirtualKey.Enter, "(0d)", VirtualKey.Enter);
+            VisualStudio.InteractiveWindow.WaitForReplOutput("[00:00:00]");
         }
 
         [Fact]
@@ -88,10 +85,10 @@ Del<C, System");
                 "int x = 2; class Complex { public int foo() { return 4; } }"))
             {
                 temporaryTextFile.Create();
-                this.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
-                this.InvokeCompletionList();
-                this.VerifyCompletionItemExists("x", "Complex");
-                this.SendKeys(VirtualKey.Escape);
+                VisualStudio.InteractiveWindow.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
+                VisualStudio.InteractiveWindow.InvokeCompletionList();
+                VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("x", "Complex");
+                VisualStudio.SendKeys.Send(VirtualKey.Escape);
             }
         }
     }

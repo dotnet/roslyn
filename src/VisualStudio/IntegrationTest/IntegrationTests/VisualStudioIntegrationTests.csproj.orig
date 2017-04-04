@@ -54,7 +54,21 @@
     <Compile Include="CSharp\CSharpSquigglesNetCore.cs" />
     <Compile Include="CSharp\CSharpWinForms.cs" />
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
+<<<<<<< HEAD
+    <Compile Include="Extensions\CommonExtensions.cs" />
+    <Compile Include="Extensions\CommonExtensions.Verifiers.cs" />
+    <Compile Include="Extensions\EditorExtensions.cs" />
+    <Compile Include="Extensions\EditorExtensions.Verifiers.cs" />
+    <Compile Include="Extensions\ErrorListExtensions.Verifiers.cs" />
+    <Compile Include="Extensions\ErrorListExtensions.cs" />
+    <Compile Include="Extensions\InteractiveExtensions.cs" />
+    <Compile Include="Extensions\InteractiveExtensions.Verifiers.cs" />
+    <Compile Include="Extensions\SolutionExplorerExtensions.Verifiers.cs" />
+    <Compile Include="Extensions\SolutionExplorerExtensions.cs" />
+    <Compile Include="Extensions\SetOptionsExtensions.cs" />
     <Compile Include="VisualBasic\BasicKeywordHighlighting.cs" />
+=======
+>>>>>>> a5f0917ec77f17a3005b8f38c22cad09be87d39d
     <Compile Include="VisualBasic\BasicEncapsulateField.cs" />
     <Compile Include="VisualBasic\BasicSquigglesCommon.cs" />
     <Compile Include="VisualBasic\BasicSquigglesDesktop.cs" />

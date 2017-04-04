@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -13,10 +14,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     public class CSharpBuild : AbstractIntegrationTest
     {
         public CSharpBuild(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, _ => null)
+            : base(instanceFactory)
         {
-            VisualStudio.Instance.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
-            VisualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);
+            VisualStudio.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
+            VisualStudio.SolutionExplorer.AddProject(new ProjectUtils.Project("TestProj"), WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Build)]
@@ -32,7 +33,7 @@ class Program
     }
 }";
 
-            VisualStudio.Instance.Editor.SetText(editorText);
+            VisualStudio.Editor.SetText(editorText);
 
             // TODO: Validate build works as expected
         }
@@ -40,10 +41,10 @@ class Program
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18299"), Trait(Traits.Feature, Traits.Features.Build)]
         public void BuildWithCommandLine()
         {
-            VisualStudio.Instance.SolutionExplorer.SaveAll();
+            VisualStudio.SolutionExplorer.SaveAll();
 
-            var pathToDevenv = Path.Combine(VisualStudio.Instance.InstallationPath, @"Common7\IDE\devenv.exe");
-            var pathToSolution = VisualStudio.Instance.SolutionExplorer.SolutionFileFullPath;
+            var pathToDevenv = Path.Combine(VisualStudio.InstallationPath, @"Common7\IDE\devenv.exe");
+            var pathToSolution = VisualStudio.SolutionExplorer.SolutionFileFullPath;
             var logFileName = pathToSolution + ".log";
 
             File.Delete(logFileName);
