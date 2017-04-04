@@ -100,6 +100,10 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddImport\SearchScopes\AllSymbolsProjectSearchScope.cs" />
+    <Compile Include="AddImport\SearchScopes\MetadataSymbolsSearchScope.cs" />
+    <Compile Include="AddImport\SearchScopes\ProjectSearchScope.cs" />
+    <Compile Include="AddImport\SearchScopes\SourceSymbolsProjectSearchScope.cs" />
     <Compile Include="AddImport\SymbolReferenceFinder_PackageAssemblySearch.cs" />
     <Compile Include="AddPackage\AbstractAddPackageCodeFixProvider.cs" />
     <Compile Include="AddPackage\AbstractAddSpecificPackageCodeFixProvider.cs" />
@@ -216,7 +220,7 @@
     <Compile Include="AddImport\References\PackageReference.cs" />
     <Compile Include="AddImport\References\ProjectSymbolReference.cs" />
     <Compile Include="AddImport\References\Reference.cs" />
-    <Compile Include="AddImport\SearchScope.cs" />
+    <Compile Include="AddImport\SearchScopes\SearchScope.cs" />
     <Compile Include="AddImport\References\SymbolReference.cs" />
     <Compile Include="AddImport\SymbolReferenceFinder.cs" />
     <Compile Include="AddImport\SymbolResult.cs" />
