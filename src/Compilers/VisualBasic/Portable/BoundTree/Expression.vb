@@ -293,10 +293,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class BoundCall
         Implements IInvocationExpression
 
-        Private Function IHasArgumentsExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
-            Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.Parameters)
-        End Function
-
         Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
             Get
                 Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
@@ -340,23 +336,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitInvocationExpression(Me, argument)
         End Function
 
-        Friend Shared Function ArgumentMatchingParameter(arguments As ImmutableArray(Of BoundExpression), parameter As IParameterSymbol, parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As IArgument
-            Dim index As Integer = parameter.Ordinal
-            If index <= arguments.Length Then
-                Return DeriveArgument(index, arguments(index), parameters)
-            End If
-
-            Return Nothing
-        End Function
-
         Friend Shared Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As ImmutableArray(Of IArgument)
             Dim argumentsLength As Integer = boundArguments.Length
-            Dim arguments As ImmutableArray(Of IArgument).Builder = ImmutableArray.CreateBuilder(Of IArgument)(argumentsLength)
+            Dim arguments As ArrayBuilder(Of IArgument) = ArrayBuilder(Of IArgument).GetInstance(argumentsLength)
             For index As Integer = 0 To argumentsLength - 1 Step 1
                 arguments.Add(DeriveArgument(index, boundArguments(index), parameters))
             Next
 
-            Return arguments.ToImmutable()
+            Return arguments.ToImmutableAndFree()
         End Function
 
         Private Shared ReadOnly s_argumentMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundExpression, IArgument)
@@ -1168,10 +1155,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_memberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
 
-        Private Function IHasArgumentExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
-            Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.ConstructorOpt.Parameters)
-        End Function
-
         Private ReadOnly Property IObjectCreationExpression_Constructor As IMethodSymbol Implements IObjectCreationExpression.Constructor
             Get
                 Return Me.ConstructorOpt
@@ -1462,10 +1445,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return BoundCall.DeriveArguments(Me.Arguments, Me.PropertySymbol.Parameters)
             End Get
         End Property
-
-        Private Function IHasArgumentsExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
-            Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.PropertySymbol.Parameters)
-        End Function
 
         Protected Overrides Function ExpressionKind() As OperationKind
             Return If(Me.Arguments.Length > 0, OperationKind.IndexedPropertyReferenceExpression, OperationKind.PropertyReferenceExpression)
