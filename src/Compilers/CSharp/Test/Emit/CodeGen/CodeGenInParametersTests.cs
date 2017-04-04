@@ -578,6 +578,44 @@ class Program
 }");
         }
 
+        [Fact, WorkItem(18357, "https://github.com/dotnet/roslyn/issues/18357")]
+        public void ReadonlyParamCannotReturnByRefNested()
+        {
+            var text = @"
+class Program
+{
+    static ref readonly int M(in int arg1, in (int Alice, int Bob) arg2)
+    {
+        ref int M1(in int arg11, in (int Alice, int Bob) arg21)
+        {
+            bool b = true;
+
+            if (b)
+            {
+                return ref arg11;
+            }
+            else
+            {
+                return ref arg21.Alice;
+            }
+        }
+
+        return ref M1(arg1, arg2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (12,28): error CS8406: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                //                 return ref arg11;
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "arg11").WithArguments("variable", "in int").WithLocation(12, 28),
+                // (16,28): error CS8407: Members of variable 'in (int Alice, int Bob)' cannot be used as a ref or out value because it is a readonly variable
+                //                 return ref arg21.Alice;
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg21.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(16, 28)
+                );
+        }
+
         [Fact]
         public void ReadonlyParamOptional()
         {
