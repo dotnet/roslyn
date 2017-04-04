@@ -11,7 +11,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks.UnitTests</RootNamespace>
     <AssemblyName>Microsoft.Build.Tasks.CodeAnalysis.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
