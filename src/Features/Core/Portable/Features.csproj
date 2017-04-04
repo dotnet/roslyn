@@ -126,14 +126,14 @@
     <Compile Include="Diagnostics\SymbolAnalysisContextExtensions.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldRefactoringProvider.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
+    <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
+    <Compile Include="AddConstructorParametersFromMembers\State.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
-    <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
-    <Compile Include="AddConstructorParametersFromMembers\State.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersOptions.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorWithDialogCodeAction.cs" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\FormatLargeBinaryExpressionRule.cs" />
@@ -141,6 +141,9 @@
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndHashWithDialogCodeAction.cs" />
     <Compile Include="GenerateOverrides\GenerateOverridesWithDialogCodeAction.cs" />
     <Compile Include="GenerateOverrides\GenerateOverridesCodeRefactoringProvider.cs" />
+    <Compile Include="InitializeParameter\AbstractInitializeMemberFromParameterCodeRefactoringProviderMemberCreation.cs" />
+    <Compile Include="InitializeParameter\AbstractAddParameterCheckCodeRefactoringProvider.cs" />
+    <Compile Include="InitializeParameter\AbstractInitializeParameterCodeRefactoringProvider.cs" />
     <Compile Include="PickMembers\IPickMembersService.cs" />
     <Compile Include="PickMembers\PickMembersResult.cs" />
     <Compile Include="GenerateFromMembers\SelectedMemberInfo.cs" />

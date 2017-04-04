@@ -184,6 +184,7 @@
     <Compile Include="CodeActions\ConvertNumericLiteral\ConvertNumericLiteralTests.vb" />
     <Compile Include="CodeActions\UseNamedArguments\UseNamedArgumentsTests.vb" />
     <Compile Include="Diagnostics\RemoveUnusedVariable\RemoveUnusedVariableTest.vb" />
+    <Compile Include="InitializeParameter\AddParameterCheckTests.vb" />
     <Compile Include="Structure\CollectionInitializerStructureProviderTests.vb" />
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.vb" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
@@ -695,6 +696,7 @@
     <Compile Include="AddParameter\AddParameterTests.vb" />
     <Compile Include="ConflictMarkerResolution\ConflictMarkerResolutionTests.vb" />
     <Compile Include="GenerateOverrides\GenerateOverridesTests.vb" />
+    <Compile Include="InitializeParameter\InitializeMemberFromParameterTests.vb" />
     <Content Include="PerfTests\Sources\BasicPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
