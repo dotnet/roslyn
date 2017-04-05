@@ -96,6 +96,8 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.vb" />
     <Compile Include="Diagnostics\DiagnosticTests.vb" />
     <Compile Include="Diagnostics\GetDiagnosticsTests.vb" />
+    <Compile Include="IOperation\IOperationTests_IBlockStatement_MethodBlocks.vb" />
+    <Compile Include="IOperation\IOperationTests_IIfStatement.vb" />
     <Compile Include="IOperation\IOperationTests_ISymbolInitializer.vb" />
     <Compile Include="IOperation\IOperationTests.vb" />
     <Compile Include="Diagnostics\OperationAnalyzerTests.vb" />
@@ -109,6 +111,7 @@
     <Compile Include="FlowAnalysis\RegionAnalysisTestsWithStaticLocals.vb" />
     <Compile Include="FlowAnalysis\StructureAnalysisTests.vb" />
     <Compile Include="FlowAnalysis\TryLockUsingStatementTests.vb" />
+    <Compile Include="IOperation\IOperationTests_IVariableDeclaration.vb" />
     <Compile Include="Resource.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

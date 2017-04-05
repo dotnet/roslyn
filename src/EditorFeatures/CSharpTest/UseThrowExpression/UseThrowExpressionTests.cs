@@ -326,5 +326,39 @@ class C
     }
 }");
         }
+
+        [WorkItem(404142, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=404142")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWithAsCheck()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class BswParser3
+{
+    private ParserSyntax m_syntax;
+
+    public BswParser3(ISyntax syntax)
+    {
+        if (syntax == null)
+        {
+            [|throw|] new ArgumentNullException(nameof(syntax));
+        }
+
+        m_syntax = syntax as ParserSyntax;
+
+        if (m_syntax == null)
+            throw new ArgumentException();
+    }
+}
+
+internal class ParserSyntax
+{
+}
+
+public interface ISyntax
+{
+}");
+        }
     }
 }

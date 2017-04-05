@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         DiagnosticAnalyzerDriver_AnalyzerCrash,
         DiagnosticAnalyzerDriver_AnalyzerTypeCount,
         PersistedSemanticVersion_Info,
-        Esent_Exceptions,
+        StorageDatabase_Exceptions,
         WorkCoordinator_ShutdownTimeout,
         Diagnostics_HyperLink,
 
@@ -370,5 +370,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeLens_FindReferenceLocationsAsync,
         CodeLens_FindReferenceMethodsAsync,
         CodeLens_GetFullyQualifiedName,
+        RemoteHostClientService_Restarted,
     }
 }

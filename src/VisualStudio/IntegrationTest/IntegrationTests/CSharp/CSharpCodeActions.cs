@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -20,12 +21,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public void GenerateMethodInClosedFile()
         {
-            AddFile("Foo.cs", @"
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddFile(project, "Foo.cs", contents: @"
 public class Foo
 {
 }
 ");
- 
+
             SetUpEditor(@"
 using System;
 
@@ -39,10 +41,9 @@ public class Program
 }
 ");
 
-            InvokeCodeActionList();
-            VerifyCodeAction("Generate method 'Foo.Bar'", applyFix: true);
-
-            VerifyFileContents("Foo.cs", @"
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Generate method 'Foo.Bar'", applyFix: true);
+            VisualStudio.SolutionExplorer.Verify.FileContents(project, "Foo.cs", @"
 using System;
 
 public class Foo

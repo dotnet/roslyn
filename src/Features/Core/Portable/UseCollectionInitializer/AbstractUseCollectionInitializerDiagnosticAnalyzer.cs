@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return;
             }
 
-            var analyzer = new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>(
+            var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                 semanticModel, GetSyntaxFactsService(), objectCreationExpression, cancellationToken);
-            var matches = analyzer.Analyze();
+
             if (matches == null || matches.Value.Length == 0)
             {
                 return;

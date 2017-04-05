@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editing
     {
         public static readonly PerLanguageOption<bool> PlaceSystemNamespaceFirst = new PerLanguageOption<bool>(nameof(GenerationOptions), nameof(PlaceSystemNamespaceFirst), defaultValue: true,
             storageLocations: new OptionStorageLocation[] {
-                new EditorConfigStorageLocation("dotnet_sort_system_directives_first"),
+                EditorConfigStorageLocation.ForBoolOption("dotnet_sort_system_directives_first"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst")});
     }
 }

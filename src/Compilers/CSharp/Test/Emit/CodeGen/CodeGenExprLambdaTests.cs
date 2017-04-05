@@ -3185,6 +3185,36 @@ public class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void ConditionalWithTrivialCondition()
+        {
+            var text =
+@"using System;
+using System.Linq.Expressions;
+
+public class Test
+{
+    static void Main()
+    {
+        S1 v = default(S1);
+
+        Expression<Func<int>> testExpr = () => (true ? v : default(S1)).Increment();
+        Console.WriteLine(testExpr);
+    }
+
+    struct S1
+    {
+        public int field;
+        public int Increment() => field++;
+    }
+}";
+            string expectedOutput = @"() => value(Test+<>c__DisplayClass0_0).v.Increment()";
+
+            CompileAndVerify(
+                new[] { text, TreeWalkerLib },
+                new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
+        }
+
         [WorkItem(544413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544413")]
         [Fact]
         public void ExplicitConversionLambdaToExprTree()

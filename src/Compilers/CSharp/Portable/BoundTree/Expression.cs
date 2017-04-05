@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (parameter.HasExplicitDefaultValue)
                     {
                         // The parameter is optional with a default value.
-                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax)));
+                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new LiteralExpression(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax)));
                     }
                     else
                     {
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var paramArrayArguments = builder.ToImmutableAndFree();
 
                 // Use the invocation syntax node if there is no actual syntax available for the argument (because the paramarray is empty.)
-                return new ArrayCreation(arrayType, paramArrayArguments, paramArrayArguments.Length > 0 ? paramArrayArguments[0].Syntax : invocationSyntax);
+                return new ArrayCreationExpression(arrayType, paramArrayArguments, paramArrayArguments.Length > 0 ? paramArrayArguments[0].Syntax : invocationSyntax);
             }
 
             return new InvalidExpression(invocationSyntax);

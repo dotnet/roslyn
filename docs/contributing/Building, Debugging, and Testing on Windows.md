@@ -14,7 +14,6 @@ Using the command line Roslyn can be developed using the following pattern:
 1. [Visual Studio 2017](https://www.visualstudio.com/downloads/)
     - Ensure C#, VB, MSBuild and Visual Studio Extensibility are included in the selected work loads
 1. Run Restore.cmd
-1. Run Build.cmd
 1. Open Roslyn.sln
 
 If you already installed Visual Studio and need to add the necessary work loads do the followig:

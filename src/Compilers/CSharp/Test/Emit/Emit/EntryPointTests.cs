@@ -1444,5 +1444,45 @@ class Program
                 Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main").WithLocation(4, 24)
                 );
         }
+
+        [WorkItem(17923, "https://github.com/dotnet/roslyn/issues/17923")]
+        [Fact]
+        [CompilerTrait(CompilerFeature.RefLocalsReturns)]
+        public void RefIntReturnMainEmpty()
+        {
+            var source = @"
+class Program
+{
+    public static ref int Main() { throw new System.Exception(); }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (4,27): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
+                //     public static ref int Main() {}
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(4, 27),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
+
+        [WorkItem(17923, "https://github.com/dotnet/roslyn/issues/17923")]
+        [Fact]
+        [CompilerTrait(CompilerFeature.RefLocalsReturns)]
+        public void RefIntReturnMainWithParams()
+        {
+            var source = @"
+class Program
+{
+    public static ref int Main(string[] args) { throw new System.Exception(); }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (4,27): warning CS0028: 'Program.Main(string[])' has the wrong signature to be an entry point
+                //     public static ref int Main(string[] args) { throw new System.Exception(); }
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main(string[])"),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint));
+        }
     }
 }

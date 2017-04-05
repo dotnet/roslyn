@@ -1,6 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
+Option Strict On
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
@@ -43,8 +43,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Simpli
                 SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithNone, language))
         End Function
 
-        Private ReadOnly onWithError = New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)
-        Private ReadOnly offWithNone = New CodeStyleOption(Of Boolean)(False, NotificationOption.None)
+        Private ReadOnly onWithError As New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)
+        Private ReadOnly offWithNone As New CodeStyleOption(Of Boolean)(False, NotificationOption.None)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestGenericNames() As Task
@@ -2313,7 +2313,7 @@ End Module
 </Code>
 
             Dim parameters As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source, parameters)
+            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
@@ -2329,7 +2329,7 @@ End Module
 </Code>
 
             Dim parameters2 As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source, parameters2)
+            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters2)
                 workspace.ApplyOptions(PreferIntrinsicPredefinedTypeEverywhere())
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters2)).Where(Function(d) d.Id = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
@@ -2347,7 +2347,7 @@ End Module
 </Code>
 
             Dim parameters3 As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source, parameters3)
+            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters3)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters3)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveQualificationDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using

@@ -33,6 +33,7 @@ using VSLangProj;
 using VSLangProj140;
 using OLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.CodeAnalysis.Esent;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -1310,7 +1311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private void RegisterPrimarySolutionForPersistentStorage(
                 SolutionId solutionId)
             {
-                var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
+                var service = _workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
                 if (service == null)
                 {
                     return;
@@ -1322,7 +1323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private void UnregisterPrimarySolutionForPersistentStorage(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
+                var service = _workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
                 if (service == null)
                 {
                     return;
