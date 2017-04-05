@@ -33,7 +33,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
             return new TestOptionSet(_values.SetItem(optionAndLanguage, value));
         }
 
-        internal virtual IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
+        public virtual IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
         {
             foreach (var kvp in _values)
             {
@@ -43,11 +43,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
                     yield return kvp.Key;
                 }
             }
-        }
-
-        IEnumerable<OptionKey> IInternalOptionSet.GetChangedOptions(OptionSet optionSet)
-        {
-            return GetChangedOptions(optionSet);
         }
     }
 }
