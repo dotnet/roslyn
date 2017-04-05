@@ -644,7 +644,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return Convert(e1, intermediate, node.Type, node.Checked, false);
                     }
                 case ConversionKind.DefaultOrNullLiteral:
-                    // PROTOTYPE(default): how do we reach this code with `default` and does it need to be fixed to handle it?
                     return Convert(Constant(_bound.Null(_objectType)), _objectType, node.Type, false, node.ExplicitCastInCode);
                 default:
                     return Convert(Visit(node.Operand), node.Operand.Type, node.Type, node.Checked, node.ExplicitCastInCode);
