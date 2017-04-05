@@ -167,14 +167,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var valueStr = constant != null ? constant.ToString() : "null";
             if (constant is string)
             {
-                if (valueStr == string.Empty)
-                {
-                    valueStr = @"""""";
-                }
-                else
-                {
-                    valueStr = @"""" + valueStr + @"""";
-                }
+                valueStr = @"""" + valueStr + @"""";
             }
 
             LogString($"{header}: {valueStr}");
