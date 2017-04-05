@@ -368,7 +368,11 @@
     <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
     <Compile Include="Experiments\IExperimentationService.cs" />
     <Compile Include="FindSymbols\FindLiterals\FindLiteralsSearchEngine.cs" />
+    <Compile Include="FindSymbols\SearchKind.cs" />
+    <Compile Include="FindSymbols\SearchQuery.cs" />
     <Compile Include="FindSymbols\SymbolFinder.FindLiteralsServerCallback.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_FindReferences_Current.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_FindRenamableReferences.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.LiteralInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractDocumentationCommentService.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" />
@@ -441,7 +445,7 @@
     <Compile Include="FindSymbols\IStreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\SymbolAndProjectId.cs" />
     <Compile Include="FindSymbols\SymbolFinderOptions.cs" />
-    <Compile Include="FindSymbols\SymbolFinder_Remote.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_FindLiteralReferences.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
     <Compile Include="Options\EditorConfig\EditorConfigStorageLocation`1.cs" />
@@ -683,7 +687,7 @@
     <Compile Include="FindSymbols\SymbolFinder.cs" />
     <Compile Include="FindSymbols\SymbolFinder_Declarations.cs" />
     <Compile Include="FindSymbols\SymbolFinder_Hierarchy.cs" />
-    <Compile Include="FindSymbols\SymbolFinder_References.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_FindReferences_Legacy.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.Node.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Serialization.cs" />
