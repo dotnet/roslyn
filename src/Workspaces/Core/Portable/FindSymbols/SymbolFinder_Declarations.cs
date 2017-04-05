@@ -72,33 +72,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return;
                 }
 
-                var unfilteredSymbols = await GetUnfilteredSymbolsWithNormalQueryAsync(
-                    project, query, filter, startingCompilation, startingAssembly, cancellationToken).ConfigureAwait(false);
-                list.AddRange(FilterByCriteria(unfilteredSymbols, filter));
-            }
-        }
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var symbolsWithName = compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken)
+                                                 .ToImmutableArray();
 
-        private static async Task<ImmutableArray<ISymbol>> GetUnfilteredSymbolsWithNormalQueryAsync(
-            Project project,
-            SearchQuery query,
-            SymbolFilter filter,
-            Compilation startingCompilation,
-            IAssemblySymbol startingAssembly,
-            CancellationToken cancellationToken)
-        {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            if (startingCompilation != null && startingAssembly != null && compilation.Assembly != startingAssembly)
-            {
-                // Return symbols from skeleton assembly in this case so that symbols have the same language as startingCompilation.
-                return compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken)
-                    .Select(s => s.GetSymbolKey().Resolve(startingCompilation, cancellationToken: cancellationToken).Symbol)
-                    .WhereNotNull()
-                    .ToImmutableArray();
-            }
-            else
-            {
-                return compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken)
-                                  .ToImmutableArray();
+                if (startingCompilation != null && startingAssembly != null && compilation.Assembly != startingAssembly)
+                {
+                    // Return symbols from skeleton assembly in this case so that symbols have 
+                    // the same language as startingCompilation.
+                    symbolsWithName = symbolsWithName.Select(s => s.GetSymbolKey().Resolve(startingCompilation, cancellationToken: cancellationToken).Symbol)
+                                                     .WhereNotNull()
+                                                     .ToImmutableArray();
+                }
+
+                list.AddRange(FilterByCriteria(symbolsWithName, filter));
             }
         }
 
