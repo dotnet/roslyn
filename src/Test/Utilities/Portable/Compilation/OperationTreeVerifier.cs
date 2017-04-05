@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return "null";
             }
 
-            var text = syntax.ToString().Replace("\n", Environment.NewLine);
+            var text = syntax.ToString();
             var lines = text.Split(new[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).Select(l => l.Trim()).ToArray();
             if (lines.Length <= 1 && text.Length < 25)
             {
