@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 project, SearchQuery.Create(name, ignoreCase), filter, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        internal static Task<ImmutableArray<ISymbol>> FindAllDeclarationsWithNormalQueryAsync(
-            Project project, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
+        internal static async Task<ImmutableArray<ISymbol>> FindAllDeclarationsWithNormalQueryAsync(
+            Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
@@ -71,21 +71,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
-
-            using (Logger.LogBlock(FunctionId.SymbolFinder_FindDeclarationsAsync, cancellationToken))
-            {
-                return FindAllDeclarationsWithNormalQueryAsyncImpl(project, query, filter, cancellationToken);
-            }
-        }
-
-        private static async Task<ImmutableArray<ISymbol>> FindAllDeclarationsWithNormalQueryAsyncImpl(
-            Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
-        {
-            // All entrypoints to this function are Find functions that are only searching
-            // for specific strings (i.e. they never do a custom search).
-            Debug.Assert(query.Kind != SearchKind.Custom);
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 

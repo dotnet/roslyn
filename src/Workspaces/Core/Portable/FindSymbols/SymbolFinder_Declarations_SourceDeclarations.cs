@@ -45,12 +45,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Name_FindSourceDeclarationsAsync, cancellationToken))
             {
-                return await FindSourceDeclarationsWithNormalQueryAsyncImpl(
+                return await FindSourceDeclarationsWithNormalQueryAsync(
                     solution, SearchQuery.Create(name, ignoreCase), filter, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithNormalQueryAsyncImpl(
+        private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithNormalQueryAsync(
             Solution solution, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             Debug.Assert(query.Kind != SearchKind.Custom);
