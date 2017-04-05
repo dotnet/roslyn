@@ -10447,22 +10447,22 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
                                                              ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
                                                                    ~~~~
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Integer, d As Integer)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(c As Integer, d As Integer)'.
         Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
                                                          ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Integer, d As Integer)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(c As Integer, d As Integer)'.
         Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
                                                                ~~~~
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
                                                              ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
                                                                    ~~~~~~~
 </errors>)
@@ -10493,28 +10493,28 @@ additionalRefs:=s_valueTupleRefs)
 BC30512: Option Strict On disallows implicit conversions from '(c As Long, d As Long)' to '(a As Integer, b As Integer)'.
         Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
                                                              ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
                                                                    ~~~~
 BC30512: Option Strict On disallows implicit conversions from '(c As Integer, d As Integer)' to '(a As Short, b As Short)'.
         Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Integer, d As Integer)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(c As Integer, d As Integer)'.
         Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
                                                          ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Integer, d As Integer)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(c As Integer, d As Integer)'.
         Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
                                                                ~~~~
 BC30512: Option Strict On disallows implicit conversions from '(c As Long, d As Long)' to '(a As Integer, b As Integer)'.
         Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
                                                              ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
                                                                    ~~~~~~~
 </errors>)
@@ -11334,10 +11334,10 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(a As Short, b As String)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(a As Short, b As String)'.
         Dim x As (a As Short, b As String) = (e:=1, f:=New C1("qq"))
                                               ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(a As Short, b As String)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(a As Short, b As String)'.
         Dim x As (a As Short, b As String) = (e:=1, f:=New C1("qq"))
                                                     ~~~~~~~~~~~~~~~
 BC30512: Option Strict On disallows implicit conversions from 'C.C1' to 'String'.
@@ -17449,10 +17449,10 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
         Dim x1 = If(flag, (a:=1, b:=2), (a:=1, c:=3))
                                  ~~~~
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
         Dim x1 = If(flag, (a:=1, b:=2), (a:=1, c:=3))
                                                ~~~~
 </errors>)
@@ -17508,7 +17508,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
         Dim x6 = If(nab, (a:= 1, c:= 3)) ' (a, )
                                  ~~~~~
 </errors>)
@@ -17566,16 +17566,16 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'a' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+BC41009: The tuple element name 'a' is ignored because a different name or no name is specified by the target type '(Integer, Integer)'.
         Dim x1 = If(flag, (a:=1, b:=2), (1, 3))
                            ~~~~
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(Integer, Integer)'.
         Dim x1 = If(flag, (a:=1, b:=2), (1, 3))
                                  ~~~~
-BC41009: The tuple element name 'a' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+BC41009: The tuple element name 'a' is ignored because a different name or no name is specified by the target type '(Integer, Integer)'.
         Dim x2 = If(flag, (1, 2), (a:=1, b:=3))
                                    ~~~~
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(Integer, Integer)'.
         Dim x2 = If(flag, (1, 2), (a:=1, b:=3))
                                          ~~~~
 </errors>)
@@ -17610,7 +17610,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, b As Long)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(a As Integer, b As Long)'.
         Dim x1 = If(flag, (a:=1, b:=CType(2, Long)), (a:=CType(1, Byte), c:=3))
                                                                          ~~~~
 </errors>)
@@ -17655,15 +17655,16 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
                 Return (a:=1, b:=2)
                               ~~~~
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
                     Return (a:=1, c:=3)
                                   ~~~~
-BC41009: The tuple element name 'd' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'd' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
                     Return (a:=1, d:=4)
                                   ~~~~
+
 </errors>)
 
             Dim tree = comp.SyntaxTrees(0)
@@ -17868,10 +17869,10 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
         Dim x1 As (a As Integer, Integer) = (1, b:=2)
                                                 ~~~~
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, String)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(a As Integer, String)'.
         Dim x2 As (a As Integer, String) = (1, b:=Nothing)
                                                ~~~~~~~~~~
 </errors>)
@@ -17902,10 +17903,10 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
         Dim t = M2((a:=1, b:=2), (a:=1, c:=3))
                           ~~~~
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
         Dim t = M2((a:=1, b:=2), (a:=1, c:=3))
                                         ~~~~
 BC30456: 'b' is not a member of '(a As Integer, Integer)'.
@@ -17914,10 +17915,10 @@ BC30456: 'b' is not a member of '(a As Integer, Integer)'.
 BC30456: 'c' is not a member of '(a As Integer, Integer)'.
         System.Console.Write(t.c)
                              ~~~
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(Integer, Integer)'.
         M2((1, 2), (c:=1, d:=3))
                     ~~~~
-BC41009: The tuple element name 'd' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+BC41009: The tuple element name 'd' is ignored because a different name or no name is specified by the target type '(Integer, Integer)'.
         M2((1, 2), (c:=1, d:=3))
                           ~~~~
 </errors>)
@@ -17961,13 +17962,13 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, b As Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(a As Integer, b As Integer)'.
         M2((a:=1, b:=2), (a:=CType(1, Byte), c:=CType(3, Byte)))
                                              ~~~~~~~~~~~~~~~~~
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(Long, b As Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(Long, b As Integer)'.
         M2((CType(1, Long), b:=2), (c:=1, d:=CType(3, Byte)))
                                     ~~~~
-BC41009: The tuple element name 'd' is ignored because a different name is specified by the target type '(Long, b As Integer)'.
+BC41009: The tuple element name 'd' is ignored because a different name or no name is specified by the target type '(Long, b As Integer)'.
         M2((CType(1, Long), b:=2), (c:=1, d:=CType(3, Byte)))
                                           ~~~~~~~~~~~~~~~~~
 </errors>)
