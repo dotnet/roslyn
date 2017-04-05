@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
-    internal partial class ObjectCreationExpression : IHasArgumentsExpression
+    internal partial class ObjectCreationExpressionBase : IHasArgumentsExpression
     {
         /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,

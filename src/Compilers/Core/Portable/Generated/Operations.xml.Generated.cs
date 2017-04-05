@@ -7,17 +7,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that creates a pointer value by taking the address of a reference.
     /// </summary>
-    internal sealed partial class AddressOfExpression : Operation, IAddressOfExpression
+    internal abstract partial class AddressOfExpressionBase : Operation, IAddressOfExpression
     {
-        public AddressOfExpression(IOperation reference, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.AddressOfExpression, isInvalid, syntax, type, constantValue)
+        protected AddressOfExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.AddressOfExpression, isInvalid, syntax, type, constantValue)
         {
-            Reference = reference ?? throw new System.ArgumentNullException("reference");
         }
         /// <summary>
         /// Addressed reference.
         /// </summary>
-        public IOperation Reference { get; }
+        public abstract IOperation Reference { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitAddressOfExpression(this);
@@ -27,20 +26,32 @@ namespace Microsoft.CodeAnalysis.Semantics
             return visitor.VisitAddressOfExpression(this, argument);
         }
     }
+    /// <summary>
+    /// Represents an expression that creates a pointer value by taking the address of a reference.
+    /// </summary>
+    internal sealed partial class AddressOfExpression : AddressOfExpressionBase, IAddressOfExpression
+    {
+        public AddressOfExpression(IOperation reference, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Reference = reference ?? throw new System.ArgumentNullException("reference");
+        }
+        /// <summary>
+        /// Addressed reference.
+        /// </summary>
+        public override IOperation Reference { get; }
+    }
 
     /// <summary>
     /// Represents an argument in a method invocation.
     /// </summary>
-    internal sealed partial class Argument : Operation, IArgument
+    internal abstract partial class ArgumentBase : Operation, IArgument
     {
-        public Argument(ArgumentKind argumentKind, IParameterSymbol parameter, IOperation value, IOperation inConversion, IOperation outConversion, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.Argument, isInvalid, syntax, type, constantValue)
+        protected ArgumentBase(ArgumentKind argumentKind, IParameterSymbol parameter, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.Argument, isInvalid, syntax, type, constantValue)
         {
             ArgumentKind = argumentKind;
             Parameter = parameter ?? throw new System.ArgumentNullException("parameter");
-            Value = value ?? throw new System.ArgumentNullException("value");
-            InConversion = inConversion ?? throw new System.ArgumentNullException("inConversion");
-            OutConversion = outConversion ?? throw new System.ArgumentNullException("outConversion");
         }
         /// <summary>
         /// Kind of argument.
@@ -53,15 +64,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value supplied for the argument.
         /// </summary>
-        public IOperation Value { get; }
+        public abstract IOperation Value { get; }
         /// <summary>
         /// Conversion applied to the argument value passing it into the target method. Applicable only to VB Reference arguments.
         /// </summary>
-        public IOperation InConversion { get; }
+        public abstract IOperation InConversion { get; }
         /// <summary>
         /// Conversion applied to the argument value after the invocation. Applicable only to VB Reference arguments.
         /// </summary>
-        public IOperation OutConversion { get; }
+        public abstract IOperation OutConversion { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitArgument(this);
@@ -73,16 +84,40 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents an argument in a method invocation.
+    /// </summary>
+    internal sealed partial class Argument : ArgumentBase, IArgument
+    {
+        public Argument(ArgumentKind argumentKind, IParameterSymbol parameter, IOperation value, IOperation inConversion, IOperation outConversion, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(argumentKind, parameter, isInvalid, syntax, type, constantValue)
+        {
+            Value = value ?? throw new System.ArgumentNullException("value");
+            InConversion = inConversion ?? throw new System.ArgumentNullException("inConversion");
+            OutConversion = outConversion ?? throw new System.ArgumentNullException("outConversion");
+        }
+        /// <summary>
+        /// Value supplied for the argument.
+        /// </summary>
+        public override IOperation Value { get; }
+        /// <summary>
+        /// Conversion applied to the argument value passing it into the target method. Applicable only to VB Reference arguments.
+        /// </summary>
+        public override IOperation InConversion { get; }
+        /// <summary>
+        /// Conversion applied to the argument value after the invocation. Applicable only to VB Reference arguments.
+        /// </summary>
+        public override IOperation OutConversion { get; }
+    }
+
+    /// <summary>
     /// Represents the creation of an array instance.
     /// </summary>
-    internal sealed partial class ArrayCreationExpression : Operation, IArrayCreationExpression
+    internal abstract partial class ArrayCreationExpressionBase : Operation, IArrayCreationExpression
     {
-        public ArrayCreationExpression(ITypeSymbol elementType, ImmutableArray<IOperation> dimensionSizes, IArrayInitializer initializer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.ArrayCreationExpression, isInvalid, syntax, type, constantValue)
+        protected ArrayCreationExpressionBase(ITypeSymbol elementType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ArrayCreationExpression, isInvalid, syntax, type, constantValue)
         {
             ElementType = elementType ?? throw new System.ArgumentNullException("elementType");
-            DimensionSizes = dimensionSizes;
-            Initializer = initializer ?? throw new System.ArgumentNullException("initializer");
         }
         /// <summary>
         /// Element type of the created array instance.
@@ -91,11 +126,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Sizes of the dimensions of the created array instance.
         /// </summary>
-        public ImmutableArray<IOperation> DimensionSizes { get; }
+        public abstract ImmutableArray<IOperation> DimensionSizes { get; }
         /// <summary>
         /// Values of elements of the created array instance.
         /// </summary>
-        public IArrayInitializer Initializer { get; }
+        public abstract IArrayInitializer Initializer { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitArrayCreationExpression(this);
@@ -107,24 +142,43 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents the creation of an array instance.
+    /// </summary>
+    internal sealed partial class ArrayCreationExpression : ArrayCreationExpressionBase, IArrayCreationExpression
+    {
+        public ArrayCreationExpression(ITypeSymbol elementType, ImmutableArray<IOperation> dimensionSizes, IArrayInitializer initializer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(elementType, isInvalid, syntax, type, constantValue)
+        {
+            DimensionSizes = dimensionSizes;
+            Initializer = initializer ?? throw new System.ArgumentNullException("initializer");
+        }
+        /// <summary>
+        /// Sizes of the dimensions of the created array instance.
+        /// </summary>
+        public override ImmutableArray<IOperation> DimensionSizes { get; }
+        /// <summary>
+        /// Values of elements of the created array instance.
+        /// </summary>
+        public override IArrayInitializer Initializer { get; }
+    }
+
+    /// <summary>
     /// Represents a reference to an array element.
     /// </summary>
-    internal sealed partial class ArrayElementReferenceExpression : Operation, IArrayElementReferenceExpression
+    internal abstract partial class ArrayElementReferenceExpressionBase : Operation, IArrayElementReferenceExpression
     {
-        public ArrayElementReferenceExpression(IOperation arrayReference, ImmutableArray<IOperation> indices, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.ArrayElementReferenceExpression, isInvalid, syntax, type, constantValue)
+        protected ArrayElementReferenceExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ArrayElementReferenceExpression, isInvalid, syntax, type, constantValue)
         {
-            ArrayReference = arrayReference ?? throw new System.ArgumentNullException("arrayReference");
-            Indices = indices;
         }
         /// <summary>
         /// Array to be indexed.
         /// </summary>
-        public IOperation ArrayReference { get; }
+        public abstract IOperation ArrayReference { get; }
         /// <summary>
         /// Indices that specify an individual element.
         /// </summary>
-        public ImmutableArray<IOperation> Indices { get; }
+        public abstract ImmutableArray<IOperation> Indices { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitArrayElementReferenceExpression(this);
@@ -136,19 +190,39 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a reference to an array element.
+    /// </summary>
+    internal sealed partial class ArrayElementReferenceExpression : ArrayElementReferenceExpressionBase, IArrayElementReferenceExpression
+    {
+        public ArrayElementReferenceExpression(IOperation arrayReference, ImmutableArray<IOperation> indices, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            ArrayReference = arrayReference ?? throw new System.ArgumentNullException("arrayReference");
+            Indices = indices;
+        }
+        /// <summary>
+        /// Array to be indexed.
+        /// </summary>
+        public override IOperation ArrayReference { get; }
+        /// <summary>
+        /// Indices that specify an individual element.
+        /// </summary>
+        public override ImmutableArray<IOperation> Indices { get; }
+    }
+
+    /// <summary>
     /// Represents the initialization of an array instance.
     /// </summary>
-    internal sealed partial class ArrayInitializer : Operation, IArrayInitializer
+    internal abstract partial class ArrayInitializerBase : Operation, IArrayInitializer
     {
-        public ArrayInitializer(ImmutableArray<IOperation> elementValues, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.ArrayInitializer, isInvalid, syntax, type, constantValue)
+        protected ArrayInitializerBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ArrayInitializer, isInvalid, syntax, type, constantValue)
         {
-            ElementValues = elementValues;
         }
         /// <summary>
         /// Values to initialize array elements.
         /// </summary>
-        public ImmutableArray<IOperation> ElementValues { get; }
+        public abstract ImmutableArray<IOperation> ElementValues { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitArrayInitializer(this);
@@ -160,24 +234,38 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents the initialization of an array instance.
+    /// </summary>
+    internal sealed partial class ArrayInitializer : ArrayInitializerBase, IArrayInitializer
+    {
+        public ArrayInitializer(ImmutableArray<IOperation> elementValues, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            ElementValues = elementValues;
+        }
+        /// <summary>
+        /// Values to initialize array elements.
+        /// </summary>
+        public override ImmutableArray<IOperation> ElementValues { get; }
+    }
+
+    /// <summary>
     /// Represents an assignment expression.
     /// </summary>
     internal abstract partial class AssignmentExpressionBase : Operation, IAssignmentExpression
     {
-        protected AssignmentExpressionBase(IOperation target, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected AssignmentExpressionBase(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
-            Target = target ?? throw new System.ArgumentNullException("target");
-            Value = value ?? throw new System.ArgumentNullException("value");
         }
         /// <summary>
         /// Target of the assignment.
         /// </summary>
-        public IOperation Target { get; }
+        public abstract IOperation Target { get; }
         /// <summary>
         /// Value to be assigned to the target of the assignment.
         /// </summary>
-        public IOperation Value { get; }
+        public abstract IOperation Value { get; }
     }
 
     /// <summary>
@@ -186,9 +274,19 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class AssignmentExpression : AssignmentExpressionBase, IAssignmentExpression
     {
         public AssignmentExpression(IOperation target, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(target, value, OperationKind.AssignmentExpression, isInvalid, syntax, type, constantValue)
+            base(OperationKind.AssignmentExpression, isInvalid, syntax, type, constantValue)
         {
+            Target = target ?? throw new System.ArgumentNullException("target");
+            Value = value ?? throw new System.ArgumentNullException("value");
         }
+        /// <summary>
+        /// Target of the assignment.
+        /// </summary>
+        public override IOperation Target { get; }
+        /// <summary>
+        /// Value to be assigned to the target of the assignment.
+        /// </summary>
+        public override IOperation Value { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitAssignmentExpression(this);
@@ -202,17 +300,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an await expression.
     /// </summary>
-    internal sealed partial class AwaitExpression : Operation, IAwaitExpression
+    internal abstract partial class AwaitExpressionBase : Operation, IAwaitExpression
     {
-        public AwaitExpression(IOperation awaitedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.AwaitExpression, isInvalid, syntax, type, constantValue)
+        protected AwaitExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.AwaitExpression, isInvalid, syntax, type, constantValue)
         {
-            AwaitedValue = awaitedValue ?? throw new System.ArgumentNullException("awaitedValue");
         }
         /// <summary>
         /// Value to be awaited.
         /// </summary>
-        public IOperation AwaitedValue { get; }
+        public abstract IOperation AwaitedValue { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitAwaitExpression(this);
@@ -224,16 +321,30 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents an await expression.
+    /// </summary>
+    internal sealed partial class AwaitExpression : AwaitExpressionBase, IAwaitExpression
+    {
+        public AwaitExpression(IOperation awaitedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            AwaitedValue = awaitedValue ?? throw new System.ArgumentNullException("awaitedValue");
+        }
+        /// <summary>
+        /// Value to be awaited.
+        /// </summary>
+        public override IOperation AwaitedValue { get; }
+    }
+
+    /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
-    internal sealed partial class BinaryOperatorExpression : Operation, IHasOperatorMethodExpression, IBinaryOperatorExpression
+    internal abstract partial class BinaryOperatorExpressionBase : Operation, IHasOperatorMethodExpression, IBinaryOperatorExpression
     {
-        public BinaryOperatorExpression(BinaryOperationKind binaryOperationKind, IOperation leftOperand, IOperation rightOperand, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.BinaryOperatorExpression, isInvalid, syntax, type, constantValue)
+        protected BinaryOperatorExpressionBase(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.BinaryOperatorExpression, isInvalid, syntax, type, constantValue)
         {
             BinaryOperationKind = binaryOperationKind;
-            LeftOperand = leftOperand ?? throw new System.ArgumentNullException("leftOperand");
-            RightOperand = rightOperand ?? throw new System.ArgumentNullException("rightOperand");
             UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod ?? throw new System.ArgumentNullException("operatorMethod");
         }
@@ -244,11 +355,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Left operand.
         /// </summary>
-        public IOperation LeftOperand { get; }
+        public abstract IOperation LeftOperand { get; }
         /// <summary>
         /// Right operand.
         /// </summary>
-        public IOperation RightOperand { get; }
+        public abstract IOperation RightOperand { get; }
         /// <summary>
         /// True if and only if the operation is performed by an operator method.
         /// </summary>
@@ -268,20 +379,40 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
+    /// </summary>
+    internal sealed partial class BinaryOperatorExpression : BinaryOperatorExpressionBase, IHasOperatorMethodExpression, IBinaryOperatorExpression
+    {
+        public BinaryOperatorExpression(BinaryOperationKind binaryOperationKind, IOperation leftOperand, IOperation rightOperand, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(binaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+        {
+            LeftOperand = leftOperand ?? throw new System.ArgumentNullException("leftOperand");
+            RightOperand = rightOperand ?? throw new System.ArgumentNullException("rightOperand");
+        }
+        /// <summary>
+        /// Left operand.
+        /// </summary>
+        public override IOperation LeftOperand { get; }
+        /// <summary>
+        /// Right operand.
+        /// </summary>
+        public override IOperation RightOperand { get; }
+    }
+
+    /// <summary>
     /// Represents a block scope.
     /// </summary>
-    internal sealed partial class BlockStatement : Operation, IBlockStatement
+    internal abstract partial class BlockStatementBase : Operation, IBlockStatement
     {
-        public BlockStatement(ImmutableArray<IOperation> statements, ImmutableArray<ILocalSymbol> locals, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.BlockStatement, isInvalid, syntax, type, constantValue)
+        protected BlockStatementBase(ImmutableArray<ILocalSymbol> locals, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.BlockStatement, isInvalid, syntax, type, constantValue)
         {
-            Statements = statements;
             Locals = locals;
         }
         /// <summary>
         /// Statements contained within the block.
         /// </summary>
-        public ImmutableArray<IOperation> Statements { get; }
+        public abstract ImmutableArray<IOperation> Statements { get; }
         /// <summary>
         /// Local declarations contained within the block.
         /// </summary>
@@ -294,6 +425,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitBlockStatement(this, argument);
         }
+    }
+
+    /// <summary>
+    /// Represents a block scope.
+    /// </summary>
+    internal sealed partial class BlockStatement : BlockStatementBase, IBlockStatement
+    {
+        public BlockStatement(ImmutableArray<IOperation> statements, ImmutableArray<ILocalSymbol> locals, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(locals, isInvalid, syntax, type, constantValue)
+        {
+            Statements = statements;
+        }
+        /// <summary>
+        /// Statements contained within the block.
+        /// </summary>
+        public override ImmutableArray<IOperation> Statements { get; }
     }
 
     /// <summary>
@@ -344,20 +491,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# catch or VB Catch clause.
     /// </summary>
-    internal sealed partial class CatchClause : Operation, ICatchClause
+    internal abstract partial class CatchClauseBase : Operation, ICatchClause
     {
-        public CatchClause(IBlockStatement handler, ITypeSymbol caughtType, IOperation filter, ILocalSymbol exceptionLocal, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.CatchClause, isInvalid, syntax, type, constantValue)
+        protected CatchClauseBase(ITypeSymbol caughtType, ILocalSymbol exceptionLocal, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.CatchClause, isInvalid, syntax, type, constantValue)
         {
-            Handler = handler ?? throw new System.ArgumentNullException("handler");
             CaughtType = caughtType ?? throw new System.ArgumentNullException("caughtType");
-            Filter = filter ?? throw new System.ArgumentNullException("filter");
             ExceptionLocal = exceptionLocal ?? throw new System.ArgumentNullException("exceptionLocal");
         }
         /// <summary>
         /// Body of the exception handler.
         /// </summary>
-        public IBlockStatement Handler { get; }
+        public abstract IBlockStatement Handler { get; }
         /// <summary>
         /// Type of exception to be handled.
         /// </summary>
@@ -365,7 +510,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Filter expression to be executed to determine whether to handle the exception.
         /// </summary>
-        public IOperation Filter { get; }
+        public abstract IOperation Filter { get; }
         /// <summary>
         /// Symbol for the local catch variable bound to the caught exception.
         /// </summary>
@@ -381,12 +526,33 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# catch or VB Catch clause.
+    /// </summary>
+    internal sealed partial class CatchClause : CatchClauseBase, ICatchClause
+    {
+        public CatchClause(IBlockStatement handler, ITypeSymbol caughtType, IOperation filter, ILocalSymbol exceptionLocal, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(caughtType, exceptionLocal, isInvalid, syntax, type, constantValue)
+        {
+            Handler = handler ?? throw new System.ArgumentNullException("handler");
+            Filter = filter ?? throw new System.ArgumentNullException("filter");
+        }
+        /// <summary>
+        /// Body of the exception handler.
+        /// </summary>
+        public override IBlockStatement Handler { get; }
+        /// <summary>
+        /// Filter expression to be executed to determine whether to handle the exception.
+        /// </summary>
+        public override IOperation Filter { get; }
+    }
+
+    /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
     internal abstract partial class CompoundAssignmentExpressionBase : AssignmentExpressionBase, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
-        protected CompoundAssignmentExpressionBase(BinaryOperationKind binaryOperationKind, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(target, value, kind, isInvalid, syntax, type, constantValue)
+        protected CompoundAssignmentExpressionBase(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(kind, isInvalid, syntax, type, constantValue)
         {
             BinaryOperationKind = binaryOperationKind;
             UsesOperatorMethod = usesOperatorMethod;
@@ -412,9 +578,19 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class CompoundAssignmentExpression : CompoundAssignmentExpressionBase, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
         public CompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(binaryOperationKind, target, value, usesOperatorMethod, operatorMethod, OperationKind.CompoundAssignmentExpression, isInvalid, syntax, type, constantValue)
+            base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.CompoundAssignmentExpression, isInvalid, syntax, type, constantValue)
         {
+            Target = target ?? throw new System.ArgumentNullException("target");
+            Value = value ?? throw new System.ArgumentNullException("value");
         }
+        /// <summary>
+        /// Target of the assignment.
+        /// </summary>
+        public override IOperation Target { get; }
+        /// <summary>
+        /// Value to be assigned to the target of the assignment.
+        /// </summary>
+        public override IOperation Value { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitCompoundAssignmentExpression(this);
@@ -428,22 +604,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that includes a ? or ?. conditional access instance expression.
     /// </summary>
-    internal sealed partial class ConditionalAccessExpression : Operation, IConditionalAccessExpression
+    internal abstract partial class ConditionalAccessExpressionBase : Operation, IConditionalAccessExpression
     {
-        public ConditionalAccessExpression(IOperation conditionalValue, IOperation conditionalInstance, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.ConditionalAccessExpression, isInvalid, syntax, type, constantValue)
+        protected ConditionalAccessExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ConditionalAccessExpression, isInvalid, syntax, type, constantValue)
         {
-            ConditionalValue = conditionalValue ?? throw new System.ArgumentNullException("conditionalValue");
-            ConditionalInstance = conditionalInstance ?? throw new System.ArgumentNullException("conditionalInstance");
         }
         /// <summary>
         /// Expression to be evaluated if the conditional instance is non null.
         /// </summary>
-        public IOperation ConditionalValue { get; }
+        public abstract IOperation ConditionalValue { get; }
         /// <summary>
         /// Expresson that is conditionally accessed.
         /// </summary>
-        public IOperation ConditionalInstance { get; }
+        public abstract IOperation ConditionalInstance { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConditionalAccessExpression(this);
@@ -452,6 +626,27 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitConditionalAccessExpression(this, argument);
         }
+    }
+
+    /// <summary>
+    /// Represents an expression that includes a ? or ?. conditional access instance expression.
+    /// </summary>
+    internal sealed partial class ConditionalAccessExpression : ConditionalAccessExpressionBase, IConditionalAccessExpression
+    {
+        public ConditionalAccessExpression(IOperation conditionalValue, IOperation conditionalInstance, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            ConditionalValue = conditionalValue ?? throw new System.ArgumentNullException("conditionalValue");
+            ConditionalInstance = conditionalInstance ?? throw new System.ArgumentNullException("conditionalInstance");
+        }
+        /// <summary>
+        /// Expression to be evaluated if the conditional instance is non null.
+        /// </summary>
+        public override IOperation ConditionalValue { get; }
+        /// <summary>
+        /// Expresson that is conditionally accessed.
+        /// </summary>
+        public override IOperation ConditionalInstance { get; }
     }
 
     /// <summary>
@@ -476,27 +671,24 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# ?: or VB If expression.
     /// </summary>
-    internal sealed partial class ConditionalChoiceExpression : Operation, IConditionalChoiceExpression
+    internal abstract partial class ConditionalChoiceExpressionBase : Operation, IConditionalChoiceExpression
     {
-        public ConditionalChoiceExpression(IOperation condition, IOperation ifTrueValue, IOperation ifFalseValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.ConditionalChoiceExpression, isInvalid, syntax, type, constantValue)
+        protected ConditionalChoiceExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ConditionalChoiceExpression, isInvalid, syntax, type, constantValue)
         {
-            Condition = condition ?? throw new System.ArgumentNullException("condition");
-            IfTrueValue = ifTrueValue ?? throw new System.ArgumentNullException("ifTrueValue");
-            IfFalseValue = ifFalseValue ?? throw new System.ArgumentNullException("ifFalseValue");
         }
         /// <summary>
         /// Condition to be tested.
         /// </summary>
-        public IOperation Condition { get; }
+        public abstract IOperation Condition { get; }
         /// <summary>
         /// Value evaluated if the Condition is true.
         /// </summary>
-        public IOperation IfTrueValue { get; }
+        public abstract IOperation IfTrueValue { get; }
         /// <summary>
         /// Value evaluated if the Condition is false.
         /// </summary>
-        public IOperation IfFalseValue { get; }
+        public abstract IOperation IfFalseValue { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConditionalChoiceExpression(this);
@@ -508,14 +700,39 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# ?: or VB If expression.
+    /// </summary>
+    internal sealed partial class ConditionalChoiceExpression : ConditionalChoiceExpressionBase, IConditionalChoiceExpression
+    {
+        public ConditionalChoiceExpression(IOperation condition, IOperation ifTrueValue, IOperation ifFalseValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Condition = condition ?? throw new System.ArgumentNullException("condition");
+            IfTrueValue = ifTrueValue ?? throw new System.ArgumentNullException("ifTrueValue");
+            IfFalseValue = ifFalseValue ?? throw new System.ArgumentNullException("ifFalseValue");
+        }
+        /// <summary>
+        /// Condition to be tested.
+        /// </summary>
+        public override IOperation Condition { get; }
+        /// <summary>
+        /// Value evaluated if the Condition is true.
+        /// </summary>
+        public override IOperation IfTrueValue { get; }
+        /// <summary>
+        /// Value evaluated if the Condition is false.
+        /// </summary>
+        public override IOperation IfFalseValue { get; }
+    }
+
+    /// <summary>
     /// Represents a conversion operation.
     /// </summary>
-    internal sealed partial class ConversionExpression : Operation, IHasOperatorMethodExpression, IConversionExpression
+    internal abstract partial class ConversionExpressionBase : Operation, IHasOperatorMethodExpression, IConversionExpression
     {
-        public ConversionExpression(IOperation operand, ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.ConversionExpression, isInvalid, syntax, type, constantValue)
+        protected ConversionExpressionBase(ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ConversionExpression, isInvalid, syntax, type, constantValue)
         {
-            Operand = operand ?? throw new System.ArgumentNullException("operand");
             ConversionKind = conversionKind;
             IsExplicit = isExplicit;
             UsesOperatorMethod = usesOperatorMethod;
@@ -524,7 +741,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value to be converted.
         /// </summary>
-        public IOperation Operand { get; }
+        public abstract IOperation Operand { get; }
         /// <summary>
         /// Kind of conversion.
         /// </summary>
@@ -549,6 +766,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitConversionExpression(this, argument);
         }
+    }
+
+    /// <summary>
+    /// Represents a conversion operation.
+    /// </summary>
+    internal sealed partial class ConversionExpression : ConversionExpressionBase, IHasOperatorMethodExpression, IConversionExpression
+    {
+        public ConversionExpression(IOperation operand, ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(conversionKind, isExplicit, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+        {
+            Operand = operand ?? throw new System.ArgumentNullException("operand");
+        }
+        /// <summary>
+        /// Value to be converted.
+        /// </summary>
+        public override IOperation Operand { get; }
     }
 
     /// <remarks>
@@ -612,14 +845,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a binding of an event.
     /// </summary>
-    internal sealed partial class EventAssignmentExpression : Operation, IEventAssignmentExpression
+    internal abstract partial class EventAssignmentExpressionBase : Operation, IEventAssignmentExpression
     {
-        public EventAssignmentExpression(IEventSymbol @event, IOperation eventInstance, IOperation handlerValue, bool adds, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.EventAssignmentExpression, isInvalid, syntax, type, constantValue)
+        protected EventAssignmentExpressionBase(IEventSymbol @event, bool adds, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.EventAssignmentExpression, isInvalid, syntax, type, constantValue)
         {
             Event = @event ?? throw new System.ArgumentNullException("@event");
-            EventInstance = eventInstance ?? throw new System.ArgumentNullException("eventInstance");
-            HandlerValue = handlerValue ?? throw new System.ArgumentNullException("handlerValue");
             Adds = adds;
         }
         /// <summary>
@@ -630,12 +861,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Instance used to refer to the event being bound.
         /// </summary>
-        public IOperation EventInstance { get; }
+        public abstract IOperation EventInstance { get; }
 
         /// <summary>
         /// Handler supplied for the event.
         /// </summary>
-        public IOperation HandlerValue { get; }
+        public abstract IOperation HandlerValue { get; }
 
         /// <summary>
         /// True for adding a binding, false for removing one.
@@ -652,19 +883,47 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a binding of an event.
+    /// </summary>
+    internal sealed partial class EventAssignmentExpression : EventAssignmentExpressionBase, IEventAssignmentExpression
+    {
+        public EventAssignmentExpression(IEventSymbol @event, IOperation eventInstance, IOperation handlerValue, bool adds, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(@event, adds, isInvalid, syntax, type, constantValue)
+        {
+            EventInstance = eventInstance ?? throw new System.ArgumentNullException("eventInstance");
+            HandlerValue = handlerValue ?? throw new System.ArgumentNullException("handlerValue");
+        }
+
+        /// <summary>
+        /// Instance used to refer to the event being bound.
+        /// </summary>
+        public override IOperation EventInstance { get; }
+
+        /// <summary>
+        /// Handler supplied for the event.
+        /// </summary>
+        public override IOperation HandlerValue { get; }
+    }
+
+    /// <summary>
     /// Represents a reference to an event.
     /// </summary>
     internal sealed partial class EventReferenceExpression : MemberReferenceExpression, IEventReferenceExpression
     {
         public EventReferenceExpression(IEventSymbol @event, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(instance, member, OperationKind.EventReferenceExpression, isInvalid, syntax, type, constantValue)
+            base(member, OperationKind.EventReferenceExpression, isInvalid, syntax, type, constantValue)
         {
             Event = @event ?? throw new System.ArgumentNullException("@event");
+            Instance = instance ?? throw new System.ArgumentNullException("instance");
         }
         /// <summary>
         /// Referenced event.
         /// </summary>
         public IEventSymbol Event { get; }
+        /// <summary>
+        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// </summary>
+        public override IOperation Instance { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitEventReferenceExpression(this);
@@ -678,17 +937,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB statement that consists solely of an expression.
     /// </summary>
-    internal sealed partial class ExpressionStatement : Operation, IExpressionStatement
+    internal abstract partial class ExpressionStatementBase : Operation, IExpressionStatement
     {
-        public ExpressionStatement(IOperation expression, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.ExpressionStatement, isInvalid, syntax, type, constantValue)
+        protected ExpressionStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ExpressionStatement, isInvalid, syntax, type, constantValue)
         {
-            Expression = expression ?? throw new System.ArgumentNullException("expression");
         }
         /// <summary>
         /// Expression of the statement.
         /// </summary>
-        public IOperation Expression { get; }
+        public abstract IOperation Expression { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitExpressionStatement(this);
@@ -700,19 +958,37 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# or VB statement that consists solely of an expression.
+    /// </summary>
+    internal sealed partial class ExpressionStatement : ExpressionStatementBase, IExpressionStatement
+    {
+        public ExpressionStatement(IOperation expression, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Expression = expression ?? throw new System.ArgumentNullException("expression");
+        }
+        /// <summary>
+        /// Expression of the statement.
+        /// </summary>
+        public override IOperation Expression { get; }
+    }
+
+    /// <summary>
     /// Represents an initialization of a field.
     /// </summary>
     internal sealed partial class FieldInitializer : SymbolInitializer, IFieldInitializer
     {
         public FieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(value, kind, isInvalid, syntax, type, constantValue)
+            base(kind, isInvalid, syntax, type, constantValue)
         {
             InitializedFields = initializedFields;
+            Value = value ?? throw new System.ArgumentNullException("value");
         }
         /// <summary>
         /// Initialized fields. There can be multiple fields for Visual Basic fields declared with As New.
         /// </summary>
         public ImmutableArray<IFieldSymbol> InitializedFields { get; }
+        public override IOperation Value { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFieldInitializer(this);
@@ -729,14 +1005,19 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class FieldReferenceExpression : MemberReferenceExpression, IFieldReferenceExpression
     {
         public FieldReferenceExpression(IFieldSymbol field, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(instance, member, OperationKind.FieldReferenceExpression, isInvalid, syntax, type, constantValue)
+            base(member, OperationKind.FieldReferenceExpression, isInvalid, syntax, type, constantValue)
         {
             Field = field ?? throw new System.ArgumentNullException("field");
+            Instance = instance ?? throw new System.ArgumentNullException("instance");
         }
         /// <summary>
         /// Referenced field.
         /// </summary>
         public IFieldSymbol Field { get; }
+        /// <summary>
+        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// </summary>
+        public override IOperation Instance { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFieldReferenceExpression(this);
@@ -750,22 +1031,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# fixed staement.
     /// </summary>
-    internal sealed partial class FixedStatement : Operation, IFixedStatement
+    internal abstract partial class FixedStatementBase : Operation, IFixedStatement
     {
-        public FixedStatement(IVariableDeclarationStatement variables, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.FixedStatement, isInvalid, syntax, type, constantValue)
+        protected FixedStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.FixedStatement, isInvalid, syntax, type, constantValue)
         {
-            Variables = variables ?? throw new System.ArgumentNullException("variables");
-            Body = body ?? throw new System.ArgumentNullException("body");
         }
         /// <summary>
         /// Variables to be fixed.
         /// </summary>
-        public IVariableDeclarationStatement Variables { get; }
+        public abstract IVariableDeclarationStatement Variables { get; }
         /// <summary>
         /// Body of the fixed, over which the variables are fixed.
         /// </summary>
-        public IOperation Body { get; }
+        public abstract IOperation Body { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFixedStatement(this);
@@ -777,15 +1056,37 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# fixed staement.
+    /// </summary>
+    internal sealed partial class FixedStatement : FixedStatementBase, IFixedStatement
+    {
+        public FixedStatement(IVariableDeclarationStatement variables, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Variables = variables ?? throw new System.ArgumentNullException("variables");
+            Body = body ?? throw new System.ArgumentNullException("body");
+        }
+        /// <summary>
+        /// Variables to be fixed.
+        /// </summary>
+        public override IVariableDeclarationStatement Variables { get; }
+        /// <summary>
+        /// Body of the fixed, over which the variables are fixed.
+        /// </summary>
+        public override IOperation Body { get; }
+    }
+
+    /// <summary>
     /// Represents a C# foreach statement or a VB For Each staement.
     /// </summary>
     internal sealed partial class ForEachLoopStatement : LoopStatement, IForEachLoopStatement
     {
         public ForEachLoopStatement(ILocalSymbol iterationVariable, IOperation collection, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(loopKind, body, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
+            base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
         {
             IterationVariable = iterationVariable ?? throw new System.ArgumentNullException("iterationVariable");
             Collection = collection ?? throw new System.ArgumentNullException("collection");
+            Body = body ?? throw new System.ArgumentNullException("body");
         }
         /// <summary>
         /// Iteration variable of the loop.
@@ -795,6 +1096,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Collection value over which the loop iterates.
         /// </summary>
         public IOperation Collection { get; }
+        /// <summary>
+        /// Body of the loop.
+        /// </summary>
+        public override IOperation Body { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitForEachLoopStatement(this);
@@ -811,11 +1116,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class ForLoopStatement : ForWhileUntilLoopStatement, IForLoopStatement
     {
         public ForLoopStatement(ImmutableArray<IOperation> before, ImmutableArray<IOperation> atLoopBottom, ImmutableArray<ILocalSymbol> locals, IOperation condition, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(condition, loopKind, body, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
+            base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
         {
             Before = before;
             AtLoopBottom = atLoopBottom;
             Locals = locals;
+            Condition = condition ?? throw new System.ArgumentNullException("condition");
+            Body = body ?? throw new System.ArgumentNullException("body");
         }
         /// <summary>
         /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
@@ -829,6 +1136,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Declarations local to the loop.
         /// </summary>
         public ImmutableArray<ILocalSymbol> Locals { get; }
+        /// <summary>
+        /// Condition of the loop.
+        /// </summary>
+        public override IOperation Condition { get; }
+        /// <summary>
+        /// Body of the loop.
+        /// </summary>
+        public override IOperation Body { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitForLoopStatement(this);
@@ -844,41 +1159,37 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class ForWhileUntilLoopStatement : LoopStatement, IForWhileUntilLoopStatement
     {
-        protected ForWhileUntilLoopStatement(IOperation condition, LoopKind loopKind, IOperation body, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(loopKind, body, kind, isInvalid, syntax, type, constantValue)
+        protected ForWhileUntilLoopStatement(LoopKind loopKind, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(loopKind, kind, isInvalid, syntax, type, constantValue)
         {
-            Condition = condition ?? throw new System.ArgumentNullException("condition");
         }
         /// <summary>
         /// Condition of the loop.
         /// </summary>
-        public IOperation Condition { get; }
+        public abstract IOperation Condition { get; }
     }
 
     /// <summary>
     /// Represents an if statement in C# or an If statement in VB.
     /// </summary>
-    internal sealed partial class IfStatement : Operation, IIfStatement
+    internal abstract partial class IfStatementBase : Operation, IIfStatement
     {
-        public IfStatement(IOperation condition, IOperation ifTrueStatement, IOperation ifFalseStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.IfStatement, isInvalid, syntax, type, constantValue)
+        protected IfStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.IfStatement, isInvalid, syntax, type, constantValue)
         {
-            Condition = condition ?? throw new System.ArgumentNullException("condition");
-            IfTrueStatement = ifTrueStatement ?? throw new System.ArgumentNullException("ifTrueStatement");
-            IfFalseStatement = ifFalseStatement ?? throw new System.ArgumentNullException("ifFalseStatement");
         }
         /// <summary>
         /// Condition of the if statement. For C# there is naturally one clause per if, but for VB If statements with multiple clauses are rewritten to have only one.
         /// </summary>
-        public IOperation Condition { get; }
+        public abstract IOperation Condition { get; }
         /// <summary>
         /// Statement executed if the condition is true.
         /// </summary>
-        public IOperation IfTrueStatement { get; }
+        public abstract IOperation IfTrueStatement { get; }
         /// <summary>
         /// Statement executed if the condition is false.
         /// </summary>
-        public IOperation IfFalseStatement { get; }
+        public abstract IOperation IfFalseStatement { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitIfStatement(this);
@@ -890,19 +1201,55 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents an if statement in C# or an If statement in VB.
+    /// </summary>
+    internal sealed partial class IfStatement : IfStatementBase, IIfStatement
+    {
+        public IfStatement(IOperation condition, IOperation ifTrueStatement, IOperation ifFalseStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Condition = condition ?? throw new System.ArgumentNullException("condition");
+            IfTrueStatement = ifTrueStatement ?? throw new System.ArgumentNullException("ifTrueStatement");
+            IfFalseStatement = ifFalseStatement ?? throw new System.ArgumentNullException("ifFalseStatement");
+        }
+        /// <summary>
+        /// Condition of the if statement. For C# there is naturally one clause per if, but for VB If statements with multiple clauses are rewritten to have only one.
+        /// </summary>
+        public override IOperation Condition { get; }
+        /// <summary>
+        /// Statement executed if the condition is true.
+        /// </summary>
+        public override IOperation IfTrueStatement { get; }
+        /// <summary>
+        /// Statement executed if the condition is false.
+        /// </summary>
+        public override IOperation IfFalseStatement { get; }
+    }
+
+    /// <summary>
     /// Represents an increment expression.
     /// </summary>
     internal sealed partial class IncrementExpression : CompoundAssignmentExpressionBase, IIncrementExpression
     {
         public IncrementExpression(UnaryOperationKind incrementOperationKind, BinaryOperationKind binaryOperationKind, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(binaryOperationKind, target, value, usesOperatorMethod, operatorMethod, OperationKind.IncrementExpression, isInvalid, syntax, type, constantValue)
+            base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.IncrementExpression, isInvalid, syntax, type, constantValue)
         {
             IncrementOperationKind = incrementOperationKind;
+            Target = target ?? throw new System.ArgumentNullException("target");
+            Value = value ?? throw new System.ArgumentNullException("value");
         }
         /// <summary>
         /// Kind of increment.
         /// </summary>
         public UnaryOperationKind IncrementOperationKind { get; }
+        /// <summary>
+        /// Target of the assignment.
+        /// </summary>
+        public override IOperation Target { get; }
+        /// <summary>
+        /// Value to be assigned to the target of the assignment.
+        /// </summary>
+        public override IOperation Value { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitIncrementExpression(this);
@@ -919,9 +1266,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class IndexedPropertyReferenceExpression : PropertyReferenceExpressionBase, IHasArgumentsExpression, IIndexedPropertyReferenceExpression
     {
         public IndexedPropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(property, instance, member, OperationKind.IndexedPropertyReferenceExpression, isInvalid, syntax, type, constantValue)
+            base(property, member, OperationKind.IndexedPropertyReferenceExpression, isInvalid, syntax, type, constantValue)
         {
+            Instance = instance ?? throw new System.ArgumentNullException("instance");
         }
+        /// <summary>
+        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// </summary>
+        public override IOperation Instance { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitIndexedPropertyReferenceExpression(this);
@@ -999,15 +1351,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
-    internal sealed partial class InvocationExpression : Operation, IHasArgumentsExpression, IInvocationExpression
+    internal abstract partial class InvocationExpressionBase : Operation, IHasArgumentsExpression, IInvocationExpression
     {
-        public InvocationExpression(IMethodSymbol targetMethod, IOperation instance, bool isVirtual, ImmutableArray<IArgument> argumentsInSourceOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.InvocationExpression, isInvalid, syntax, type, constantValue)
+        protected InvocationExpressionBase(IMethodSymbol targetMethod, bool isVirtual, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.InvocationExpression, isInvalid, syntax, type, constantValue)
         {
             TargetMethod = targetMethod ?? throw new System.ArgumentNullException("targetMethod");
-            Instance = instance ?? throw new System.ArgumentNullException("instance");
             IsVirtual = isVirtual;
-            ArgumentsInSourceOrder = argumentsInSourceOrder;
         }
         /// <summary>
         /// Method to be invoked.
@@ -1016,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// 'This' or 'Me' instance to be supplied to the method, or null if the method is static.
         /// </summary>
-        public IOperation Instance { get; }
+        public abstract IOperation Instance { get; }
         /// <summary>
         /// True if the invocation uses a virtual mechanism, and false otherwise.
         /// </summary>
@@ -1026,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// and params/ParamArray arguments have been collected into arrays. Arguments are not present
         /// unless supplied in source.
         /// </summary>
-        public ImmutableArray<IArgument> ArgumentsInSourceOrder { get; }
+        public abstract ImmutableArray<IArgument> ArgumentsInSourceOrder { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInvocationExpression(this);
@@ -1038,20 +1388,42 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# or VB method invocation.
+    /// </summary>
+    internal sealed partial class InvocationExpression : InvocationExpressionBase, IHasArgumentsExpression, IInvocationExpression
+    {
+        public InvocationExpression(IMethodSymbol targetMethod, IOperation instance, bool isVirtual, ImmutableArray<IArgument> argumentsInSourceOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(targetMethod, isVirtual, isInvalid, syntax, type, constantValue)
+        {
+            Instance = instance ?? throw new System.ArgumentNullException("instance");
+            ArgumentsInSourceOrder = argumentsInSourceOrder;
+        }
+        /// <summary>
+        /// 'This' or 'Me' instance to be supplied to the method, or null if the method is static.
+        /// </summary>
+        public override IOperation Instance { get; }
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in the order specified in source,
+        /// and params/ParamArray arguments have been collected into arrays. Arguments are not present
+        /// unless supplied in source.
+        /// </summary>
+        public override ImmutableArray<IArgument> ArgumentsInSourceOrder { get; }
+    }
+
+    /// <summary>
     /// Represents an expression that tests if a value is of a specific type.
     /// </summary>
-    internal sealed partial class IsTypeExpression : Operation, IIsTypeExpression
+    internal abstract partial class IsTypeExpressionBase : Operation, IIsTypeExpression
     {
-        public IsTypeExpression(IOperation operand, ITypeSymbol isType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.IsTypeExpression, isInvalid, syntax, type, constantValue)
+        protected IsTypeExpressionBase(ITypeSymbol isType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.IsTypeExpression, isInvalid, syntax, type, constantValue)
         {
-            Operand = operand ?? throw new System.ArgumentNullException("operand");
             IsType = isType ?? throw new System.ArgumentNullException("isType");
         }
         /// <summary>
         /// Value to test.
         /// </summary>
-        public IOperation Operand { get; }
+        public abstract IOperation Operand { get; }
         /// <summary>
         /// Type for which to test.
         /// </summary>
@@ -1067,15 +1439,30 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents an expression that tests if a value is of a specific type.
+    /// </summary>
+    internal sealed partial class IsTypeExpression : IsTypeExpressionBase, IIsTypeExpression
+    {
+        public IsTypeExpression(IOperation operand, ITypeSymbol isType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isType, isInvalid, syntax, type, constantValue)
+        {
+            Operand = operand ?? throw new System.ArgumentNullException("operand");
+        }
+        /// <summary>
+        /// Value to test.
+        /// </summary>
+        public override IOperation Operand { get; }
+    }
+
+    /// <summary>
     /// Represents a C# or VB label statement.
     /// </summary>
-    internal sealed partial class LabelStatement : Operation, ILabelStatement
+    internal abstract partial class LabelStatementBase : Operation, ILabelStatement
     {
-        public LabelStatement(ILabelSymbol label, IOperation labeledStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.LabelStatement, isInvalid, syntax, type, constantValue)
+        protected LabelStatementBase(ILabelSymbol label, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.LabelStatement, isInvalid, syntax, type, constantValue)
         {
             Label = label ?? throw new System.ArgumentNullException("label");
-            LabeledStatement = labeledStatement ?? throw new System.ArgumentNullException("labeledStatement");
         }
         /// <summary>
         ///  Label that can be the target of branches.
@@ -1084,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Statement that has been labeled.
         /// </summary>
-        public IOperation LabeledStatement { get; }
+        public abstract IOperation LabeledStatement { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLabelStatement(this);
@@ -1096,15 +1483,30 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# or VB label statement.
+    /// </summary>
+    internal sealed partial class LabelStatement : LabelStatementBase, ILabelStatement
+    {
+        public LabelStatement(ILabelSymbol label, IOperation labeledStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(label, isInvalid, syntax, type, constantValue)
+        {
+            LabeledStatement = labeledStatement ?? throw new System.ArgumentNullException("labeledStatement");
+        }
+        /// <summary>
+        /// Statement that has been labeled.
+        /// </summary>
+        public override IOperation LabeledStatement { get; }
+    }
+
+    /// <summary>
     /// Represents a lambda expression.
     /// </summary>
-    internal sealed partial class LambdaExpression : Operation, ILambdaExpression
+    internal abstract partial class LambdaExpressionBase : Operation, ILambdaExpression
     {
-        public LambdaExpression(IMethodSymbol signature, IBlockStatement body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.LambdaExpression, isInvalid, syntax, type, constantValue)
+        protected LambdaExpressionBase(IMethodSymbol signature, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.LambdaExpression, isInvalid, syntax, type, constantValue)
         {
             Signature = signature ?? throw new System.ArgumentNullException("signature");
-            Body = body ?? throw new System.ArgumentNullException("body");
         }
         /// <summary>
         /// Signature of the lambda.
@@ -1113,7 +1515,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Body of the lambda.
         /// </summary>
-        public IBlockStatement Body { get; }
+        public abstract IBlockStatement Body { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLambdaExpression(this);
@@ -1125,20 +1527,35 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a lambda expression.
+    /// </summary>
+    internal sealed partial class LambdaExpression : LambdaExpressionBase, ILambdaExpression
+    {
+        public LambdaExpression(IMethodSymbol signature, IBlockStatement body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(signature, isInvalid, syntax, type, constantValue)
+        {
+            Body = body ?? throw new System.ArgumentNullException("body");
+        }
+        /// <summary>
+        /// Body of the lambda.
+        /// </summary>
+        public override IBlockStatement Body { get; }
+    }
+
+    /// <summary>
     /// Represents a late-bound reference to a member of a class or struct.
     /// </summary>
-    internal sealed partial class LateBoundMemberReferenceExpression : Operation, ILateBoundMemberReferenceExpression
+    internal abstract partial class LateBoundMemberReferenceExpressionBase : Operation, ILateBoundMemberReferenceExpression
     {
-        public LateBoundMemberReferenceExpression(IOperation instance, string memberName, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.LateBoundMemberReferenceExpression, isInvalid, syntax, type, constantValue)
+        protected LateBoundMemberReferenceExpressionBase(string memberName, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.LateBoundMemberReferenceExpression, isInvalid, syntax, type, constantValue)
         {
-            Instance = instance ?? throw new System.ArgumentNullException("instance");
             MemberName = memberName ?? throw new System.ArgumentNullException("memberName");
         }
         /// <summary>
         /// Instance used to bind the member reference.
         /// </summary>
-        public IOperation Instance { get; }
+        public abstract IOperation Instance { get; }
         /// <summary>
         /// Name of the member.
         /// </summary>
@@ -1151,6 +1568,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitLateBoundMemberReferenceExpression(this, argument);
         }
+    }
+
+    /// <summary>
+    /// Represents a late-bound reference to a member of a class or struct.
+    /// </summary>
+    internal sealed partial class LateBoundMemberReferenceExpression : LateBoundMemberReferenceExpressionBase, ILateBoundMemberReferenceExpression
+    {
+        public LateBoundMemberReferenceExpression(IOperation instance, string memberName, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(memberName, isInvalid, syntax, type, constantValue)
+        {
+            Instance = instance ?? throw new System.ArgumentNullException("instance");
+        }
+        /// <summary>
+        /// Instance used to bind the member reference.
+        /// </summary>
+        public override IOperation Instance { get; }
     }
 
     /// <summary>
@@ -1204,22 +1637,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# lock or a VB SyncLock statement.
     /// </summary>
-    internal sealed partial class LockStatement : Operation, ILockStatement
+    internal abstract partial class LockStatementBase : Operation, ILockStatement
     {
-        public LockStatement(IOperation lockedObject, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.LockStatement, isInvalid, syntax, type, constantValue)
+        protected LockStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.LockStatement, isInvalid, syntax, type, constantValue)
         {
-            LockedObject = lockedObject ?? throw new System.ArgumentNullException("lockedObject");
-            Body = body ?? throw new System.ArgumentNullException("body");
         }
         /// <summary>
         /// Value to be locked.
         /// </summary>
-        public IOperation LockedObject { get; }
+        public abstract IOperation LockedObject { get; }
         /// <summary>
         /// Body of the lock, to be executed while holding the lock.
         /// </summary>
-        public IOperation Body { get; }
+        public abstract IOperation Body { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLockStatement(this);
@@ -1231,15 +1662,35 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# lock or a VB SyncLock statement.
+    /// </summary>
+    internal sealed partial class LockStatement : LockStatementBase, ILockStatement
+    {
+        public LockStatement(IOperation lockedObject, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            LockedObject = lockedObject ?? throw new System.ArgumentNullException("lockedObject");
+            Body = body ?? throw new System.ArgumentNullException("body");
+        }
+        /// <summary>
+        /// Value to be locked.
+        /// </summary>
+        public override IOperation LockedObject { get; }
+        /// <summary>
+        /// Body of the lock, to be executed while holding the lock.
+        /// </summary>
+        public override IOperation Body { get; }
+    }
+
+    /// <summary>
     /// Represents a C# while, for, foreach, or do statement, or a VB While, For, For Each, or Do statement.
     /// </summary>
     internal abstract partial class LoopStatement : Operation, ILoopStatement
     {
-        protected LoopStatement(LoopKind loopKind, IOperation body, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected LoopStatement(LoopKind loopKind, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
             LoopKind = loopKind;
-            Body = body ?? throw new System.ArgumentNullException("body");
         }
         /// <summary>
         /// Kind of the loop.
@@ -1248,7 +1699,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Body of the loop.
         /// </summary>
-        public IOperation Body { get; }
+        public abstract IOperation Body { get; }
     }
 
     /// <summary>
@@ -1256,16 +1707,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class MemberReferenceExpression : Operation, IMemberReferenceExpression
     {
-        protected MemberReferenceExpression(IOperation instance, ISymbol member, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected MemberReferenceExpression(ISymbol member, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
-            Instance = instance ?? throw new System.ArgumentNullException("instance");
             Member = member ?? throw new System.ArgumentNullException("member");
         }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
-        public IOperation Instance { get; }
+        public abstract IOperation Instance { get; }
 
         /// <summary>
         /// Referenced member.
@@ -1279,10 +1729,11 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class MethodBindingExpression : MemberReferenceExpression, IMethodBindingExpression
     {
         public MethodBindingExpression(IMethodSymbol method, bool isVirtual, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(instance, member, OperationKind.MethodBindingExpression, isInvalid, syntax, type, constantValue)
+            base(member, OperationKind.MethodBindingExpression, isInvalid, syntax, type, constantValue)
         {
             Method = method ?? throw new System.ArgumentNullException("method");
             IsVirtual = isVirtual;
+            Instance = instance ?? throw new System.ArgumentNullException("instance");
         }
         /// <summary>
         /// Referenced method.
@@ -1293,6 +1744,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Indicates whether the reference uses virtual semantics.
         /// </summary>
         public bool IsVirtual { get; }
+        /// <summary>
+        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// </summary>
+        public override IOperation Instance { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitMethodBindingExpression(this);
@@ -1306,22 +1761,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a null-coalescing expression.
     /// </summary>
-    internal sealed partial class NullCoalescingExpression : Operation, INullCoalescingExpression
+    internal abstract partial class NullCoalescingExpressionBase : Operation, INullCoalescingExpression
     {
-        public NullCoalescingExpression(IOperation primaryOperand, IOperation secondaryOperand, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.NullCoalescingExpression, isInvalid, syntax, type, constantValue)
+        protected NullCoalescingExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.NullCoalescingExpression, isInvalid, syntax, type, constantValue)
         {
-            PrimaryOperand = primaryOperand ?? throw new System.ArgumentNullException("primaryOperand");
-            SecondaryOperand = secondaryOperand ?? throw new System.ArgumentNullException("secondaryOperand");
         }
         /// <summary>
         /// Value to be unconditionally evaluated.
         /// </summary>
-        public IOperation PrimaryOperand { get; }
+        public abstract IOperation PrimaryOperand { get; }
         /// <summary>
         /// Value to be evaluated if Primary evaluates to null/Nothing.
         /// </summary>
-        public IOperation SecondaryOperand { get; }
+        public abstract IOperation SecondaryOperand { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNullCoalescingExpression(this);
@@ -1333,15 +1786,35 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a null-coalescing expression.
+    /// </summary>
+    internal sealed partial class NullCoalescingExpression : NullCoalescingExpressionBase, INullCoalescingExpression
+    {
+        public NullCoalescingExpression(IOperation primaryOperand, IOperation secondaryOperand, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            PrimaryOperand = primaryOperand ?? throw new System.ArgumentNullException("primaryOperand");
+            SecondaryOperand = secondaryOperand ?? throw new System.ArgumentNullException("secondaryOperand");
+        }
+        /// <summary>
+        /// Value to be unconditionally evaluated.
+        /// </summary>
+        public override IOperation PrimaryOperand { get; }
+        /// <summary>
+        /// Value to be evaluated if Primary evaluates to null/Nothing.
+        /// </summary>
+        public override IOperation SecondaryOperand { get; }
+    }
+
+    /// <summary>
     /// Represents a new/New expression.
     /// </summary>
-    internal sealed partial class ObjectCreationExpression : Operation, IHasArgumentsExpression, IObjectCreationExpression
+    internal abstract partial class ObjectCreationExpressionBase : Operation, IHasArgumentsExpression, IObjectCreationExpression
     {
-        public ObjectCreationExpression(IMethodSymbol constructor, ImmutableArray<ISymbolInitializer> memberInitializers, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.ObjectCreationExpression, isInvalid, syntax, type, constantValue)
+        protected ObjectCreationExpressionBase(IMethodSymbol constructor, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ObjectCreationExpression, isInvalid, syntax, type, constantValue)
         {
             Constructor = constructor ?? throw new System.ArgumentNullException("constructor");
-            MemberInitializers = memberInitializers;
         }
         /// <summary>
         /// Constructor to be invoked on the created instance.
@@ -1350,7 +1823,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Explicitly-specified member initializers.
         /// </summary>
-        public ImmutableArray<ISymbolInitializer> MemberInitializers { get; }
+        public abstract ImmutableArray<ISymbolInitializer> MemberInitializers { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitObjectCreationExpression(this);
@@ -1359,6 +1832,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitObjectCreationExpression(this, argument);
         }
+    }
+
+    /// <summary>
+    /// Represents a new/New expression.
+    /// </summary>
+    internal sealed partial class ObjectCreationExpression : ObjectCreationExpressionBase, IHasArgumentsExpression, IObjectCreationExpression
+    {
+        public ObjectCreationExpression(IMethodSymbol constructor, ImmutableArray<ISymbolInitializer> memberInitializers, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(constructor, isInvalid, syntax, type, constantValue)
+        {
+            MemberInitializers = memberInitializers;
+        }
+        /// <summary>
+        /// Explicitly-specified member initializers.
+        /// </summary>
+        public override ImmutableArray<ISymbolInitializer> MemberInitializers { get; }
     }
 
     /// <summary>
@@ -1386,14 +1875,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class ParameterInitializer : SymbolInitializer, IParameterInitializer
     {
         public ParameterInitializer(IParameterSymbol parameter, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(value, kind, isInvalid, syntax, type, constantValue)
+            base(kind, isInvalid, syntax, type, constantValue)
         {
             Parameter = parameter ?? throw new System.ArgumentNullException("parameter");
+            Value = value ?? throw new System.ArgumentNullException("value");
         }
         /// <summary>
         /// Initialized parameter.
         /// </summary>
         public IParameterSymbol Parameter { get; }
+        public override IOperation Value { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitParameterInitializer(this);
@@ -1431,17 +1922,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a parenthesized expression.
     /// </summary>
-    internal sealed partial class ParenthesizedExpression : Operation, IParenthesizedExpression
+    internal abstract partial class ParenthesizedExpressionBase : Operation, IParenthesizedExpression
     {
-        public ParenthesizedExpression(IOperation operand, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.ParenthesizedExpression, isInvalid, syntax, type, constantValue)
+        protected ParenthesizedExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ParenthesizedExpression, isInvalid, syntax, type, constantValue)
         {
-            Operand = operand ?? throw new System.ArgumentNullException("operand");
         }
         /// <summary>
         /// Operand enclosed in parentheses.
         /// </summary>
-        public IOperation Operand { get; }
+        public abstract IOperation Operand { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitParenthesizedExpression(this);
@@ -1450,6 +1940,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitParenthesizedExpression(this, argument);
         }
+    }
+
+    /// <summary>
+    /// Represents a parenthesized expression.
+    /// </summary>
+    internal sealed partial class ParenthesizedExpression : ParenthesizedExpressionBase, IParenthesizedExpression
+    {
+        public ParenthesizedExpression(IOperation operand, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Operand = operand ?? throw new System.ArgumentNullException("operand");
+        }
+        /// <summary>
+        /// Operand enclosed in parentheses.
+        /// </summary>
+        public override IOperation Operand { get; }
     }
 
     /// <summary>
@@ -1475,17 +1981,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference through a pointer.
     /// </summary>
-    internal sealed partial class PointerIndirectionReferenceExpression : Operation, IPointerIndirectionReferenceExpression
+    internal abstract partial class PointerIndirectionReferenceExpressionBase : Operation, IPointerIndirectionReferenceExpression
     {
-        public PointerIndirectionReferenceExpression(IOperation pointer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.PointerIndirectionReferenceExpression, isInvalid, syntax, type, constantValue)
+        protected PointerIndirectionReferenceExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.PointerIndirectionReferenceExpression, isInvalid, syntax, type, constantValue)
         {
-            Pointer = pointer ?? throw new System.ArgumentNullException("pointer");
         }
         /// <summary>
         /// Pointer to be dereferenced.
         /// </summary>
-        public IOperation Pointer { get; }
+        public abstract IOperation Pointer { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPointerIndirectionReferenceExpression(this);
@@ -1497,19 +2002,37 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a reference through a pointer.
+    /// </summary>
+    internal sealed partial class PointerIndirectionReferenceExpression : PointerIndirectionReferenceExpressionBase, IPointerIndirectionReferenceExpression
+    {
+        public PointerIndirectionReferenceExpression(IOperation pointer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Pointer = pointer ?? throw new System.ArgumentNullException("pointer");
+        }
+        /// <summary>
+        /// Pointer to be dereferenced.
+        /// </summary>
+        public override IOperation Pointer { get; }
+    }
+
+    /// <summary>
     /// Represents an initialization of a property.
     /// </summary>
     internal sealed partial class PropertyInitializer : SymbolInitializer, IPropertyInitializer
     {
         public PropertyInitializer(IPropertySymbol initializedProperty, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(value, kind, isInvalid, syntax, type, constantValue)
+            base(kind, isInvalid, syntax, type, constantValue)
         {
             InitializedProperty = initializedProperty ?? throw new System.ArgumentNullException("initializedProperty");
+            Value = value ?? throw new System.ArgumentNullException("value");
         }
         /// <summary>
         /// Set method used to initialize the property.
         /// </summary>
         public IPropertySymbol InitializedProperty { get; }
+        public override IOperation Value { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPropertyInitializer(this);
@@ -1525,8 +2048,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class PropertyReferenceExpressionBase : MemberReferenceExpression, IPropertyReferenceExpression
     {
-        protected PropertyReferenceExpressionBase(IPropertySymbol property, IOperation instance, ISymbol member, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(instance, member, kind, isInvalid, syntax, type, constantValue)
+        protected PropertyReferenceExpressionBase(IPropertySymbol property, ISymbol member, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(member, kind, isInvalid, syntax, type, constantValue)
         {
             Property = property ?? throw new System.ArgumentNullException("property");
         }
@@ -1542,9 +2065,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class PropertyReferenceExpression : PropertyReferenceExpressionBase, IPropertyReferenceExpression
     {
         public PropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(property, instance, member, OperationKind.PropertyReferenceExpression, isInvalid, syntax, type, constantValue)
+            base(property, member, OperationKind.PropertyReferenceExpression, isInvalid, syntax, type, constantValue)
         {
+            Instance = instance ?? throw new System.ArgumentNullException("instance");
         }
+        /// <summary>
+        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// </summary>
+        public override IOperation Instance { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPropertyReferenceExpression(this);
@@ -1616,17 +2144,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# return or a VB Return statement.
     /// </summary>
-    internal sealed partial class ReturnStatement : Operation, IReturnStatement
+    internal abstract partial class ReturnStatementBase : Operation, IReturnStatement
     {
-        public ReturnStatement(IOperation returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.ReturnStatement, isInvalid, syntax, type, constantValue)
+        protected ReturnStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ReturnStatement, isInvalid, syntax, type, constantValue)
         {
-            ReturnedValue = returnedValue ?? throw new System.ArgumentNullException("returnedValue");
         }
         /// <summary>
         /// Value to be returned.
         /// </summary>
-        public IOperation ReturnedValue { get; }
+        public abstract IOperation ReturnedValue { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitReturnStatement(this);
@@ -1635,6 +2162,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitReturnStatement(this, argument);
         }
+    }
+
+    /// <summary>
+    /// Represents a C# return or a VB Return statement.
+    /// </summary>
+    internal sealed partial class ReturnStatement : ReturnStatementBase, IReturnStatement
+    {
+        public ReturnStatement(IOperation returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            ReturnedValue = returnedValue ?? throw new System.ArgumentNullException("returnedValue");
+        }
+        /// <summary>
+        /// Value to be returned.
+        /// </summary>
+        public override IOperation ReturnedValue { get; }
     }
 
     /// <summary>
@@ -1707,22 +2250,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# case or VB Case statement.
     /// </summary>
-    internal sealed partial class SwitchCase : Operation, ISwitchCase
+    internal abstract partial class SwitchCaseBase : Operation, ISwitchCase
     {
-        public SwitchCase(ImmutableArray<ICaseClause> clauses, ImmutableArray<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.SwitchCase, isInvalid, syntax, type, constantValue)
+        protected SwitchCaseBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.SwitchCase, isInvalid, syntax, type, constantValue)
         {
-            Clauses = clauses;
-            Body = body;
         }
         /// <summary>
         /// Clauses of the case. For C# there is one clause per case, but for VB there can be multiple.
         /// </summary>
-        public ImmutableArray<ICaseClause> Clauses { get; }
+        public abstract ImmutableArray<ICaseClause> Clauses { get; }
         /// <summary>
         /// Statements of the case.
         /// </summary>
-        public ImmutableArray<IOperation> Body { get; }
+        public abstract ImmutableArray<IOperation> Body { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitSwitchCase(this);
@@ -1734,24 +2275,43 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# case or VB Case statement.
+    /// </summary>
+    internal sealed partial class SwitchCase : SwitchCaseBase, ISwitchCase
+    {
+        public SwitchCase(ImmutableArray<ICaseClause> clauses, ImmutableArray<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Clauses = clauses;
+            Body = body;
+        }
+        /// <summary>
+        /// Clauses of the case. For C# there is one clause per case, but for VB there can be multiple.
+        /// </summary>
+        public override ImmutableArray<ICaseClause> Clauses { get; }
+        /// <summary>
+        /// Statements of the case.
+        /// </summary>
+        public override ImmutableArray<IOperation> Body { get; }
+    }
+
+    /// <summary>
     /// Represents a C# switch or VB Select Case statement.
     /// </summary>
-    internal sealed partial class SwitchStatement : Operation, ISwitchStatement
+    internal abstract partial class SwitchStatementBase : Operation, ISwitchStatement
     {
-        public SwitchStatement(IOperation value, ImmutableArray<ISwitchCase> cases, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.SwitchStatement, isInvalid, syntax, type, constantValue)
+        protected SwitchStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.SwitchStatement, isInvalid, syntax, type, constantValue)
         {
-            Value = value ?? throw new System.ArgumentNullException("value");
-            Cases = cases;
         }
         /// <summary>
         /// Value to be switched upon.
         /// </summary>
-        public IOperation Value { get; }
+        public abstract IOperation Value { get; }
         /// <summary>
         /// Cases of the switch.
         /// </summary>
-        public ImmutableArray<ISwitchCase> Cases { get; }
+        public abstract ImmutableArray<ISwitchCase> Cases { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitSwitchStatement(this);
@@ -1763,28 +2323,47 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# switch or VB Select Case statement.
+    /// </summary>
+    internal sealed partial class SwitchStatement : SwitchStatementBase, ISwitchStatement
+    {
+        public SwitchStatement(IOperation value, ImmutableArray<ISwitchCase> cases, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Value = value ?? throw new System.ArgumentNullException("value");
+            Cases = cases;
+        }
+        /// <summary>
+        /// Value to be switched upon.
+        /// </summary>
+        public override IOperation Value { get; }
+        /// <summary>
+        /// Cases of the switch.
+        /// </summary>
+        public override ImmutableArray<ISwitchCase> Cases { get; }
+    }
+
+    /// <summary>
     /// Represents an initializer for a field, property, or parameter.
     /// </summary>
     internal abstract partial class SymbolInitializer : Operation, ISymbolInitializer
     {
-        protected SymbolInitializer(IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected SymbolInitializer(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
-            Value = value ?? throw new System.ArgumentNullException("value");
         }
-        public IOperation Value { get; }
+        public abstract IOperation Value { get; }
     }
 
     /// <summary>
     /// Represents a reference to a local variable synthesized by language analysis.
     /// </summary>
-    internal sealed partial class SyntheticLocalReferenceExpression : Operation, ISyntheticLocalReferenceExpression
+    internal abstract partial class SyntheticLocalReferenceExpressionBase : Operation, ISyntheticLocalReferenceExpression
     {
-        public SyntheticLocalReferenceExpression(SyntheticLocalKind syntheticLocalKind, IOperation containingStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.SyntheticLocalReferenceExpression, isInvalid, syntax, type, constantValue)
+        protected SyntheticLocalReferenceExpressionBase(SyntheticLocalKind syntheticLocalKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.SyntheticLocalReferenceExpression, isInvalid, syntax, type, constantValue)
         {
             SyntheticLocalKind = syntheticLocalKind;
-            ContainingStatement = containingStatement ?? throw new System.ArgumentNullException("containingStatement");
         }
         /// <summary>
         /// Kind of the synthetic local.
@@ -1793,7 +2372,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Statement defining the lifetime of the synthetic local.
         /// </summary>
-        public IOperation ContainingStatement { get; }
+        public abstract IOperation ContainingStatement { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitSyntheticLocalReferenceExpression(this);
@@ -1805,19 +2384,34 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a reference to a local variable synthesized by language analysis.
+    /// </summary>
+    internal sealed partial class SyntheticLocalReferenceExpression : SyntheticLocalReferenceExpressionBase, ISyntheticLocalReferenceExpression
+    {
+        public SyntheticLocalReferenceExpression(SyntheticLocalKind syntheticLocalKind, IOperation containingStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(syntheticLocalKind, isInvalid, syntax, type, constantValue)
+        {
+            ContainingStatement = containingStatement ?? throw new System.ArgumentNullException("containingStatement");
+        }
+        /// <summary>
+        /// Statement defining the lifetime of the synthetic local.
+        /// </summary>
+        public override IOperation ContainingStatement { get; }
+    }
+
+    /// <summary>
     /// Represents a C# throw or a VB Throw statement.
     /// </summary>
-    internal sealed partial class ThrowStatement : Operation, IThrowStatement
+    internal abstract partial class ThrowStatementBase : Operation, IThrowStatement
     {
-        public ThrowStatement(IOperation thrownObject, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.ThrowStatement, isInvalid, syntax, type, constantValue)
+        protected ThrowStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ThrowStatement, isInvalid, syntax, type, constantValue)
         {
-            ThrownObject = thrownObject ?? throw new System.ArgumentNullException("thrownObject");
         }
         /// <summary>
         /// Value to be thrown.
         /// </summary>
-        public IOperation ThrownObject { get; }
+        public abstract IOperation ThrownObject { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitThrowStatement(this);
@@ -1829,29 +2423,42 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# throw or a VB Throw statement.
+    /// </summary>
+    internal sealed partial class ThrowStatement : ThrowStatementBase, IThrowStatement
+    {
+        public ThrowStatement(IOperation thrownObject, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            ThrownObject = thrownObject ?? throw new System.ArgumentNullException("thrownObject");
+        }
+        /// <summary>
+        /// Value to be thrown.
+        /// </summary>
+        public override IOperation ThrownObject { get; }
+    }
+
+    /// <summary>
     /// Represents a C# try or a VB Try statement.
     /// </summary>
-    internal sealed partial class TryStatement : Operation, ITryStatement
+    internal abstract partial class TryStatementBase : Operation, ITryStatement
     {
-        public TryStatement(IBlockStatement body, ImmutableArray<ICatchClause> catches, IBlockStatement finallyHandler, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.TryStatement, isInvalid, syntax, type, constantValue)
+        protected TryStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.TryStatement, isInvalid, syntax, type, constantValue)
         {
-            Body = body ?? throw new System.ArgumentNullException("body");
-            Catches = catches;
-            FinallyHandler = finallyHandler ?? throw new System.ArgumentNullException("finallyHandler");
         }
         /// <summary>
         /// Body of the try, over which the handlers are active.
         /// </summary>
-        public IBlockStatement Body { get; }
+        public abstract IBlockStatement Body { get; }
         /// <summary>
         /// Catch clauses of the try.
         /// </summary>
-        public ImmutableArray<ICatchClause> Catches { get; }
+        public abstract ImmutableArray<ICatchClause> Catches { get; }
         /// <summary>
         /// Finally handler of the try.
         /// </summary>
-        public IBlockStatement FinallyHandler { get; }
+        public abstract IBlockStatement FinallyHandler { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitTryStatement(this);
@@ -1860,6 +2467,32 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitTryStatement(this, argument);
         }
+    }
+
+    /// <summary>
+    /// Represents a C# try or a VB Try statement.
+    /// </summary>
+    internal sealed partial class TryStatement : TryStatementBase, ITryStatement
+    {
+        public TryStatement(IBlockStatement body, ImmutableArray<ICatchClause> catches, IBlockStatement finallyHandler, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Body = body ?? throw new System.ArgumentNullException("body");
+            Catches = catches;
+            FinallyHandler = finallyHandler ?? throw new System.ArgumentNullException("finallyHandler");
+        }
+        /// <summary>
+        /// Body of the try, over which the handlers are active.
+        /// </summary>
+        public override IBlockStatement Body { get; }
+        /// <summary>
+        /// Catch clauses of the try.
+        /// </summary>
+        public override ImmutableArray<ICatchClause> Catches { get; }
+        /// <summary>
+        /// Finally handler of the try.
+        /// </summary>
+        public override IBlockStatement FinallyHandler { get; }
     }
 
     /// <summary>
@@ -1920,13 +2553,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with one operand.
     /// </summary>
-    internal sealed partial class UnaryOperatorExpression : Operation, IHasOperatorMethodExpression, IUnaryOperatorExpression
+    internal abstract partial class UnaryOperatorExpressionBase : Operation, IHasOperatorMethodExpression, IUnaryOperatorExpression
     {
-        public UnaryOperatorExpression(UnaryOperationKind unaryOperationKind, IOperation operand, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.UnaryOperatorExpression, isInvalid, syntax, type, constantValue)
+        protected UnaryOperatorExpressionBase(UnaryOperationKind unaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.UnaryOperatorExpression, isInvalid, syntax, type, constantValue)
         {
             UnaryOperationKind = unaryOperationKind;
-            Operand = operand ?? throw new System.ArgumentNullException("operand");
             UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod ?? throw new System.ArgumentNullException("operatorMethod");
         }
@@ -1937,7 +2569,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Single operand.
         /// </summary>
-        public IOperation Operand { get; }
+        public abstract IOperation Operand { get; }
         /// <summary>
         /// True if and only if the operation is performed by an operator method.
         /// </summary>
@@ -1954,6 +2586,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitUnaryOperatorExpression(this, argument);
         }
+    }
+
+    /// <summary>
+    /// Represents an operation with one operand.
+    /// </summary>
+    internal sealed partial class UnaryOperatorExpression : UnaryOperatorExpressionBase, IHasOperatorMethodExpression, IUnaryOperatorExpression
+    {
+        public UnaryOperatorExpression(UnaryOperationKind unaryOperationKind, IOperation operand, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(unaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+        {
+            Operand = operand ?? throw new System.ArgumentNullException("operand");
+        }
+        /// <summary>
+        /// Single operand.
+        /// </summary>
+        public override IOperation Operand { get; }
     }
 
     /// <remarks>
@@ -1979,29 +2627,26 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# using or VB Using statement.
     /// </summary>
-    internal sealed partial class UsingStatement : Operation, IUsingStatement
+    internal abstract partial class UsingStatementBase : Operation, IUsingStatement
     {
-        public UsingStatement(IOperation body, IVariableDeclarationStatement declaration, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.UsingStatement, isInvalid, syntax, type, constantValue)
+        protected UsingStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.UsingStatement, isInvalid, syntax, type, constantValue)
         {
-            Body = body ?? throw new System.ArgumentNullException("body");
-            Declaration = declaration ?? throw new System.ArgumentNullException("declaration");
-            Value = value ?? throw new System.ArgumentNullException("value");
         }
         /// <summary>
         /// Body of the using, over which the resources of the using are maintained.
         /// </summary>
-        public IOperation Body { get; }
+        public abstract IOperation Body { get; }
 
         /// <summary>
         /// Declaration introduced by the using statement. Null if the using statement does not declare any variables.
         /// </summary>
-        public IVariableDeclarationStatement Declaration { get; }
+        public abstract IVariableDeclarationStatement Declaration { get; }
 
         /// <summary>
         /// Resource held by the using. Can be null if Declaration is not null.
         /// </summary>
-        public IOperation Value { get; }
+        public abstract IOperation Value { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitUsingStatement(this);
@@ -2013,15 +2658,42 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# using or VB Using statement.
+    /// </summary>
+    internal sealed partial class UsingStatement : UsingStatementBase, IUsingStatement
+    {
+        public UsingStatement(IOperation body, IVariableDeclarationStatement declaration, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Body = body ?? throw new System.ArgumentNullException("body");
+            Declaration = declaration ?? throw new System.ArgumentNullException("declaration");
+            Value = value ?? throw new System.ArgumentNullException("value");
+        }
+        /// <summary>
+        /// Body of the using, over which the resources of the using are maintained.
+        /// </summary>
+        public override IOperation Body { get; }
+
+        /// <summary>
+        /// Declaration introduced by the using statement. Null if the using statement does not declare any variables.
+        /// </summary>
+        public override IVariableDeclarationStatement Declaration { get; }
+
+        /// <summary>
+        /// Resource held by the using. Can be null if Declaration is not null.
+        /// </summary>
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
     /// Represents a local variable declaration.
     /// </summary>
-    internal sealed partial class VariableDeclaration : Operation, IVariableDeclaration
+    internal abstract partial class VariableDeclarationBase : Operation, IVariableDeclaration
     {
-        public VariableDeclaration(ILocalSymbol variable, IOperation initialValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.VariableDeclaration, isInvalid, syntax, type, constantValue)
+        protected VariableDeclarationBase(ILocalSymbol variable, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.VariableDeclaration, isInvalid, syntax, type, constantValue)
         {
             Variable = variable ?? throw new System.ArgumentNullException("variable");
-            InitialValue = initialValue ?? throw new System.ArgumentNullException("initialValue");
         }
         /// <summary>
         /// Variable declared by the declaration.
@@ -2030,7 +2702,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Initializer of the variable.
         /// </summary>
-        public IOperation InitialValue { get; }
+        public abstract IOperation InitialValue { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitVariableDeclaration(this);
@@ -2042,19 +2714,34 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a local variable declaration.
+    /// </summary>
+    internal sealed partial class VariableDeclaration : VariableDeclarationBase, IVariableDeclaration
+    {
+        public VariableDeclaration(ILocalSymbol variable, IOperation initialValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(variable, isInvalid, syntax, type, constantValue)
+        {
+            InitialValue = initialValue ?? throw new System.ArgumentNullException("initialValue");
+        }
+        /// <summary>
+        /// Initializer of the variable.
+        /// </summary>
+        public override IOperation InitialValue { get; }
+    }
+
+    /// <summary>
     /// Represents a local variable declaration statement.
     /// </summary>
-    internal sealed partial class VariableDeclarationStatement : Operation, IVariableDeclarationStatement
+    internal abstract partial class VariableDeclarationStatementBase : Operation, IVariableDeclarationStatement
     {
-        public VariableDeclarationStatement(ImmutableArray<IVariableDeclaration> variables, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.VariableDeclarationStatement, isInvalid, syntax, type, constantValue)
+        protected VariableDeclarationStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.VariableDeclarationStatement, isInvalid, syntax, type, constantValue)
         {
-            Variables = variables;
         }
         /// <summary>
         /// Variables declared by the statement.
         /// </summary>
-        public ImmutableArray<IVariableDeclaration> Variables { get; }
+        public abstract ImmutableArray<IVariableDeclaration> Variables { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitVariableDeclarationStatement(this);
@@ -2066,15 +2753,33 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a local variable declaration statement.
+    /// </summary>
+    internal sealed partial class VariableDeclarationStatement : VariableDeclarationStatementBase, IVariableDeclarationStatement
+    {
+        public VariableDeclarationStatement(ImmutableArray<IVariableDeclaration> variables, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Variables = variables;
+        }
+        /// <summary>
+        /// Variables declared by the statement.
+        /// </summary>
+        public override ImmutableArray<IVariableDeclaration> Variables { get; }
+    }
+
+    /// <summary>
     /// Represents a C# while or do statement, or a VB While or Do statement.
     /// </summary>
     internal sealed partial class WhileUntilLoopStatement : ForWhileUntilLoopStatement, IWhileUntilLoopStatement
     {
         public WhileUntilLoopStatement(bool isTopTest, bool isWhile, IOperation condition, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(condition, loopKind, body, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
+            base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
         {
             IsTopTest = isTopTest;
             IsWhile = isWhile;
+            Condition = condition ?? throw new System.ArgumentNullException("condition");
+            Body = body ?? throw new System.ArgumentNullException("body");
         }
         /// <summary>
         /// True if the loop test executes at the top of the loop; false if the loop test executes at the bottom of the loop.
@@ -2084,6 +2789,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// True if the loop is a while loop; false if the loop is an until loop.
         /// </summary>
         public bool IsWhile { get; }
+        /// <summary>
+        /// Condition of the loop.
+        /// </summary>
+        public override IOperation Condition { get; }
+        /// <summary>
+        /// Body of the loop.
+        /// </summary>
+        public override IOperation Body { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitWhileUntilLoopStatement(this);
@@ -2097,22 +2810,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a VB With statement.
     /// </summary>
-    internal sealed partial class WithStatement : Operation, IWithStatement
+    internal abstract partial class WithStatementBase : Operation, IWithStatement
     {
-        public WithStatement(IOperation body, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.WithStatement, isInvalid, syntax, type, constantValue)
+        protected WithStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.WithStatement, isInvalid, syntax, type, constantValue)
         {
-            Body = body ?? throw new System.ArgumentNullException("body");
-            Value = value ?? throw new System.ArgumentNullException("value");
         }
         /// <summary>
         /// Body of the with.
         /// </summary>
-        public IOperation Body { get; }
+        public abstract IOperation Body { get; }
         /// <summary>
         /// Value to whose members leading-dot-qualified references within the with body bind.
         /// </summary>
-        public IOperation Value { get; }
+        public abstract IOperation Value { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitWithStatement(this);
@@ -2121,6 +2832,27 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitWithStatement(this, argument);
         }
+    }
+
+    /// <summary>
+    /// Represents a VB With statement.
+    /// </summary>
+    internal sealed partial class WithStatement : WithStatementBase, IWithStatement
+    {
+        public WithStatement(IOperation body, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Body = body ?? throw new System.ArgumentNullException("body");
+            Value = value ?? throw new System.ArgumentNullException("value");
+        }
+        /// <summary>
+        /// Body of the with.
+        /// </summary>
+        public override IOperation Body { get; }
+        /// <summary>
+        /// Value to whose members leading-dot-qualified references within the with body bind.
+        /// </summary>
+        public override IOperation Value { get; }
     }
 
 }
