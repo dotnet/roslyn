@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Symbol _containingSymbol;
         private readonly DeclarationModifiers _declarationModifiers;
         private readonly ImmutableArray<LocalFunctionTypeParameterSymbol> _typeParameters;
-        private readonly RefKind _refKind;
 
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private bool _lazyIsVarArg;
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private TypeSymbol _lazyReturnType;
+        private RefKind _lazyRefKind;
         private TypeSymbol _iteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _binder = binder;
-            _refKind = (syntax.ReturnType.Kind() == SyntaxKind.RefType) ? RefKind.Ref : RefKind.None;
         }
 
         /// <summary>
@@ -184,7 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _refKind;
+                ComputeReturnType();
+                return _lazyRefKind;
             }
         }
 
@@ -196,8 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
-            RefKind refKind;
-            TypeSyntax returnTypeSyntax = _syntax.ReturnType.SkipRef(out refKind);
+            TypeSyntax returnTypeSyntax = _syntax.ReturnType.SkipRef(out _lazyRefKind);
             TypeSymbol returnType = _binder.BindType(returnTypeSyntax, diagnostics);
             if (IsAsync &&
                 returnType.SpecialType != SpecialType.System_Void &&
@@ -208,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
 
-            Debug.Assert(refKind == RefKind.None
+            Debug.Assert(_lazyRefKind == RefKind.None
                 || returnType.SpecialType != SpecialType.System_Void
                 || returnTypeSyntax.HasErrors);
 
