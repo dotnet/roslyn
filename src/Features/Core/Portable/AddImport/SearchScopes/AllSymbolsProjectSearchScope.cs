@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 string name, SymbolFilter filter, SearchQuery searchQuery)
             {
-                return SymbolFinder.FindDeclarationsAsync(_project, searchQuery, filter, CancellationToken);
+                return SymbolFinder.FindAllDeclarationsWithNormalQueryAsync(_project, searchQuery, filter, CancellationToken);
             }
         }
     }
