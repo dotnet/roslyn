@@ -198,6 +198,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var entryPoint = entryPointAndDiagnostics.MethodSymbol;
 
+            if (entryPoint == null)
+            {
+                Debug.Assert(entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
+                return null;
+            }
+
             SynthesizedEntryPointSymbol synthesizedEntryPoint = null;
             bool addedDefinition = false;
             if (entryPoint is SynthesizedEntryPointSymbol s)
@@ -235,9 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
             }
 
-            Debug.Assert((object)entryPoint != null || entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
-
-            if (addedDefinition) {
+            if (addedDefinition && moduleBeingBuilt != null) {
                 moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
             }
 
