@@ -169,5 +169,44 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public string[] GetErrorTags()
             => _editorInProc.GetErrorTags();
+
+        public void ExpandProjectNavBar()
+            => _editorInProc.ExpandNavigationBar(0);
+
+        public void ExpandLeftNavBar()
+            => _editorInProc.ExpandNavigationBar(1);
+
+        public void ExpandRightNavBar()
+            => _editorInProc.ExpandNavigationBar(2);
+
+        public string[] GetProjectNavBarItems()
+            => _editorInProc.GetNavBarItems(0);
+
+        public string[] GetLeftNavBarItems()
+            => _editorInProc.GetNavBarItems(1);
+
+        public string[] GetRightNavBarItems()
+            => _editorInProc.GetNavBarItems(2);
+
+        public string GetProjectNavBarSelection()
+            => _editorInProc.GetSelectedNavBarItem(0);
+
+        public string GetLeftNavBarSelection()
+             => _editorInProc.GetSelectedNavBarItem(1);
+
+        public string GetRightNavBarSelection()
+            => _editorInProc.GetSelectedNavBarItem(2);
+
+        public void SelectProjectNavbarItem(string item)
+            => _editorInProc.SelectNavBarItem(0, item);
+
+        public void SelectLeftNavBarItem(string item)
+            => _editorInProc.SelectNavBarItem(1, item);
+
+        public void SelectRightNavBarItem(string item)
+            => _editorInProc.SelectNavBarItem(2, item);
+
+        public bool IsNavBarEnabled()
+            => _editorInProc.IsNavBarEnabled();
     }
 }
