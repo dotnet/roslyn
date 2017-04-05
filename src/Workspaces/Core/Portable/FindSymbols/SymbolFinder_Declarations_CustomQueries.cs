@@ -3,21 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
-        #region Custom Queries
-
         /// <summary>
         /// Find the symbols for declarations made in source with a matching name.
         /// </summary>
@@ -97,7 +90,5 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return FilterByCriteria(unfiltered, filter);
             }
         }
-
-        #endregion
     }
 }
