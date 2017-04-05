@@ -9,5 +9,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs);
         Task FindLiteralReferencesAsync(object value);
+
+        Task<SerializableSymbolAndProjectId[]> FindSolutionSourceDeclarationsAsync(string name, bool ignoreCase, SymbolFilter filter);
+        Task<SerializableSymbolAndProjectId[]> FindProjectSourceDeclarationsAsync(ProjectId projectId, string name, bool ignoreCase, SymbolFilter filter);
     }
 }

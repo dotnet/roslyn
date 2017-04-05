@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private static Task AddCompilationDeclarationsWithNormalQueryAsync(
             Project project, SearchQuery query, SymbolFilter filter,
-            ArrayBuilder<ISymbol> list, CancellationToken cancellationToken)
+            ArrayBuilder<SymbolAndProjectId> list, CancellationToken cancellationToken)
         {
             Debug.Assert(query.Kind != SearchKind.Custom);
             return AddCompilationDeclarationsWithNormalQueryAsync(
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project,
             SearchQuery query,
             SymbolFilter filter,
-            ArrayBuilder<ISymbol> list,
+            ArrayBuilder<SymbolAndProjectId> list,
             Compilation startingCompilation,
             IAssemblySymbol startingAssembly,
             CancellationToken cancellationToken)
@@ -56,13 +56,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                                      .ToImmutableArray();
                 }
 
-                list.AddRange(FilterByCriteria(symbolsWithName, filter));
+                list.AddRange(FilterByCriteria(symbolsWithName, filter).SelectAsArray(
+                    s => new SymbolAndProjectId(s, project.Id)));
             }
         }
 
         private static async Task AddMetadataDeclarationsWithNormalQueryAsync(
-            Solution solution, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, 
-            SearchQuery query, SymbolFilter filter, ArrayBuilder<ISymbol> list, CancellationToken cancellationToken)
+            Project project, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, 
+            SearchQuery query, SymbolFilter filter, ArrayBuilder<SymbolAndProjectId> list, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
@@ -73,11 +74,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (referenceOpt != null)
                 {
                     var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
-                        solution, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        project.Solution, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                     if (info != null)
                     {
                         var symbols = await info.FindAsync(query, assembly, filter, cancellationToken).ConfigureAwait(false);
-                        list.AddRange(symbols);
+                        list.AddRange(symbols.SelectAsArray(
+                            s => new SymbolAndProjectId(s, project.Id)));
                     }
                 }
             }

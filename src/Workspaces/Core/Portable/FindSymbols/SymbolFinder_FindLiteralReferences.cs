@@ -20,19 +20,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
-                var outOfProcessAllowed = solution.Workspace.Options.GetOption(SymbolFinderOptions.OutOfProcessAllowed);
-                if (!outOfProcessAllowed)
+                var handled = await TryFindLiteralReferencesInServiceProcessAsync(
+                    value, solution, progress, cancellationToken).ConfigureAwait(false);
+                if (handled)
                 {
-                    // This is a call through our old public API.  We don't have the necessary
-                    // data to effectively run the call out of proc.
-                    await FindLiteralReferencesInCurrentProcessAsync(
-                        value, solution, progress, cancellationToken).ConfigureAwait(false);
+                    return;
                 }
-                else
-                {
-                    await FindLiteralReferencesInServiceProcessOrFallBackToLocalProcessAsync(
-                        value, solution, progress, cancellationToken).ConfigureAwait(false);
-                }
+
+                await FindLiteralReferencesInCurrentProcessAsync(
+                    value, solution, progress, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -46,41 +42,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return engine.FindReferencesAsync();
         }
 
-        private static async Task FindLiteralReferencesInServiceProcessOrFallBackToLocalProcessAsync(
-            object value,
-            Solution solution,
-            IStreamingFindLiteralReferencesProgress progress,
-            CancellationToken cancellationToken)
-        {
-            var handled = await TryFindLiteralReferencesInServiceProcessAsync(
-                value, solution, progress, cancellationToken).ConfigureAwait(false);
-            if (handled)
-            {
-                return;
-            }
-
-            await FindLiteralReferencesInCurrentProcessAsync(
-                value, solution, progress, cancellationToken).ConfigureAwait(false);
-        }
-
         private static async Task<bool> TryFindLiteralReferencesInServiceProcessAsync(
             object value,
             Solution solution,
             IStreamingFindLiteralReferencesProgress progress,
             CancellationToken cancellationToken)
         {
-            var client = await solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                return false;
-            }
-
             // Create a callback that we can pass to the server process to hear about the 
             // results as it finds them.  When we hear about results we'll forward them to
             // the 'progress' parameter which will then update the UI.
             var serverCallback = new FindLiteralsServerCallback(solution, progress, cancellationToken);
 
-            using (var session = await client.TryCreateCodeAnalysisServiceSessionAsync(
+            using (var session = await TryGetRemoteSessionAsync(
                 solution, serverCallback, cancellationToken).ConfigureAwait(false))
             {
                 if (session == null)
@@ -91,9 +64,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await session.InvokeAsync(
                     nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
                     value).ConfigureAwait(false);
-            }
 
-            return true;
+                return true;
+            }
         }
     }
 }

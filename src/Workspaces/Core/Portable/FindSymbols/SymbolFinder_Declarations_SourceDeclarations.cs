@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Name_FindSourceDeclarationsAsync, cancellationToken))
             {
-                return await FindSourceDeclarationsithNormalQueryInLocalProcessAsync(
+                return await FindSourceDeclarationsithNormalQueryAsync(
                     project, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -72,19 +73,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            var query = SearchQuery.Create(name, ignoreCase);
-            var result = ArrayBuilder<ISymbol>.GetInstance();
-            foreach (var projectId in solution.ProjectIds)
+            using (var session = await TryGetRemoteSessionAsync(solution, cancellationToken).ConfigureAwait(false))
             {
-                var project = solution.GetProject(projectId);
-                await AddCompilationDeclarationsWithNormalQueryAsync(
-                    project, query, filter, result, cancellationToken).ConfigureAwait(false);
+                if (session != null)
+                {
+                    var dehydated = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                        nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsAsync),
+                        name, ignoreCase, filter).ConfigureAwait(false);
+
+                    return await RehydrateAsync(solution, dehydated, cancellationToken).ConfigureAwait(false);
+                }
             }
 
-            return result.ToImmutableAndFree();
+            var symbolAndProjectIds = await FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
+                solution, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
+            return symbolAndProjectIds.SelectAsArray(t => t.Symbol);
         }
 
-        private static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsithNormalQueryInLocalProcessAsync(
+        private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsithNormalQueryAsync(
             Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (project == null)
@@ -99,13 +105,63 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
-            var list = ArrayBuilder<ISymbol>.GetInstance();
+            var solution = project.Solution;
+            using (var session = await TryGetRemoteSessionAsync(solution, cancellationToken).ConfigureAwait(false))
+            {
+                if (session != null)
+                {
+                    var dehydated = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                        nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsAsync),
+                        project.Id, name, ignoreCase, filter).ConfigureAwait(false);
+
+                    return await RehydrateAsync(solution, dehydated, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            var symbolsAndProjectIds = await FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
+                project, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
+            return symbolsAndProjectIds.SelectAsArray(t => t.Symbol);
+        }
+
+        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(Solution solution, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            var query = SearchQuery.Create(name, ignoreCase);
+            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+            foreach (var projectId in solution.ProjectIds)
+            {
+                var project = solution.GetProject(projectId);
+                await AddCompilationDeclarationsWithNormalQueryAsync(
+                    project, query, filter, result, cancellationToken).ConfigureAwait(false);
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
+        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
+            Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            var list = ArrayBuilder<SymbolAndProjectId>.GetInstance();
             await AddCompilationDeclarationsWithNormalQueryAsync(
                 project, SearchQuery.Create(name, ignoreCase), filter, list, cancellationToken).ConfigureAwait(false);
             return list.ToImmutableAndFree();
+        }
+
+        private static async Task<ImmutableArray<ISymbol>> RehydrateAsync(
+            Solution solution, SerializableSymbolAndProjectId[] dehydated, CancellationToken cancellationToken)
+        {
+            var result = ArrayBuilder<ISymbol>.GetInstance(dehydated.Length);
+
+            foreach (var serialized in dehydated)
+            {
+                var rehydrated = await serialized.RehydrateAsync(
+                    solution, cancellationToken).ConfigureAwait(false);
+                result.Add(rehydrated.Symbol);
+            }
+
+            return result.ToImmutableAndFree();
         }
     }
 }
