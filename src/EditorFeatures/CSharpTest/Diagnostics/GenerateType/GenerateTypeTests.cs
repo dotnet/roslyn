@@ -72,7 +72,7 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestGenerateClassFromASingleConstraintClause()
+        public async Task TestGenerateInternalClassFromASingleConstraintClause()
         {
             await TestInRegularAndScriptAsync(
 @"class EmployeeList<T> where T : [|Employee|], new()
@@ -88,6 +88,25 @@ internal class Employee
 index: 1);
         }
 
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGeneratePublicClassFromASingleConstraintClause()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class EmployeeList<T> where T : [|Employee|], new()
+{
+}",
+@"public class EmployeeList<T> where T : Employee, new()
+{
+}
+
+public class Employee
+{
+}",
+index: 1);
+        }
+
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestGenerateClassFromConstructorConstraint()
         {
@@ -98,7 +117,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestGenerateClassFromMultipleTypeConstraintClauses()
+        public async Task TestGenerateInternalClassFromMultipleTypeConstraintClauses()
         {
             await TestInRegularAndScriptAsync(
 @"class Derived<T, U>
@@ -113,6 +132,27 @@ index: 1);
 }
 
 internal class Base
+{
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGeneratePublicClassFromMultipleTypeConstraintClauses()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Derived<T, U>
+    where U : struct
+    where T : [|Base|], new()
+{
+}",
+@"public class Derived<T, U>
+    where U : struct
+    where T : Base, new()
+{
+}
+
+public class Base
 {
 }",
 index: 1);
@@ -138,6 +178,354 @@ index: 1);
 }",
 count: 3,
 parameters: new TestParameters(Options.Regular));
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface IEmployeeList<T> where T : [|Employee|], new()
+{
+}",
+@"interface IEmployeeList<T> where T : Employee, new()
+{
+}
+
+internal class Employee
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGeneratePublicClassFromASingleConstraintClausePublicInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"public interface IEmployeeList<T> where T : [|Employee|], new()
+{
+}",
+@"public interface IEmployeeList<T> where T : Employee, new()
+{
+}
+
+public class Employee
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseInternalDelegate()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Employee
+{
+    internal delegate void Action<T>() where T : [|Command|];
+}",
+@"class Employee
+{
+    internal delegate void Action<T>() where T : Command;
+}
+
+internal class Command
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClausePublicDelegate()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Employee
+{
+    public delegate void Action<T>() where T : [|Command|];
+}",
+@"class Employee
+{
+    public delegate void Action<T>() where T : Command;
+}
+
+internal class Command
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseInternalMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Employee
+{
+    internal void Action<T>() where T : [|Command|] {}
+}",
+@"class Employee
+{
+    internal void Action<T>() where T : Command {}
+}
+
+internal class Command
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClausePublicMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Employee
+{
+    public void Action<T>() where T : [|Command|] {}
+}",
+@"class Employee
+{
+    public void Action<T>() where T : Command {}
+}
+
+internal class Command
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Employee
+{
+    void Action<T>() where T : [|Command|] {}
+}",
+@"class Employee
+{
+    void Action<T>() where T : Command {}
+}
+
+internal class Command
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseMethodInInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface Employee
+{
+    void Action<T>() where T : [|Command|] {}
+}",
+@"interface Employee
+{
+    void Action<T>() where T : Command {}
+}
+
+internal class Command
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseInternalNestedClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class A
+{
+    public class B
+    {
+        internal class C<T> where T : [|D|]
+        {
+
+        }
+    }
+}",
+@"public class A
+{
+    public class B
+    {
+        internal class C<T> where T : D
+        {
+
+        }
+    }
+}
+
+internal class D
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClausePrivateNestedClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class A
+{
+    public class B
+    {
+        private class C<T> where T : [|D|]
+        {
+
+        }
+    }
+}",
+@"public class A
+{
+    public class B
+    {
+        private class C<T> where T : D
+        {
+
+        }
+    }
+}
+
+internal class D
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseClassProtectedNestedClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class A
+{
+    internal class B
+    {
+        protected class C<T> where T : [|D|]
+        {
+
+        }
+    }
+}",
+@"public class A
+{
+    internal class B
+    {
+        protected class C<T> where T : D
+        {
+
+        }
+    }
+}
+
+internal class D
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGeneratePublicClassFromASingleConstraintClauseClassProtectedInternalNestedClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class A
+{
+    public class B
+    {
+        protected internal class C<T> where T : [|D|]
+        {
+
+        }
+    }
+}",
+@"public class A
+{
+    public class B
+    {
+        protected internal class C<T> where T : D
+        {
+
+        }
+    }
+}
+
+public class D
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGeneratePublicClassFromASingleConstraintClauseClassProtectedNestedClass1()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class A
+{
+    protected class B
+    {
+        protected class C<T> where T : [|D|]
+        {
+
+        }
+    }
+}",
+@"public class A
+{
+    protected class B
+    {
+        protected class C<T> where T : D
+        {
+
+        }
+    }
+}
+
+public class D
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGeneratePublicClassFromASingleConstraintClauseClassProtectedNestedClass2()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class A
+{
+    protected internal class B
+    {
+        protected class C<T> where T : [|D|]
+        {
+
+        }
+    }
+}",
+@"public class A
+{
+    protected internal class B
+    {
+        protected class C<T> where T : D
+        {
+
+        }
+    }
+}
+
+public class D
+{
+}",
+index: 1);
         }
 
         #endregion
