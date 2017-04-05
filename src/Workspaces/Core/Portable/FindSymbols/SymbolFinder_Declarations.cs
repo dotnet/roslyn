@@ -83,46 +83,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static ImmutableArray<ISymbol> FilterByCriteria(
-            ImmutableArray<ISymbol> symbols, SymbolFilter criteria)
-        {
-            var builder = ArrayBuilder<ISymbol>.GetInstance();
-            foreach (var symbol in symbols)
-            {
-                if (symbol.IsImplicitlyDeclared || symbol.IsAccessor())
-                {
-                    continue;
-                }
-
-                if (MeetCriteria(symbol, criteria))
-                {
-                    builder.Add(symbol);
-                }
-            }
-
-            var result = builder.Count == symbols.Length
-                ? symbols
-                : builder.ToImmutable();
-
-            builder.Free();
-            return result;
-        }
+        internal static ImmutableArray<ISymbol> FilterByCriteria(ImmutableArray<ISymbol> symbols, SymbolFilter criteria)
+            => symbols.WhereAsArray(s => MeetCriteria(s, criteria));
 
         private static bool MeetCriteria(ISymbol symbol, SymbolFilter filter)
         {
-            if (IsOn(filter, SymbolFilter.Namespace) && symbol.Kind == SymbolKind.Namespace)
+            if (!symbol.IsImplicitlyDeclared && !symbol.IsAccessor())
             {
-                return true;
-            }
+                if (IsOn(filter, SymbolFilter.Namespace) && symbol.Kind == SymbolKind.Namespace)
+                {
+                    return true;
+                }
 
-            if (IsOn(filter, SymbolFilter.Type) && symbol is ITypeSymbol)
-            {
-                return true;
-            }
+                if (IsOn(filter, SymbolFilter.Type) && symbol is ITypeSymbol)
+                {
+                    return true;
+                }
 
-            if (IsOn(filter, SymbolFilter.Member) && IsNonTypeMember(symbol))
-            {
-                return true;
+                if (IsOn(filter, SymbolFilter.Member) && IsNonTypeMember(symbol))
+                {
+                    return true;
+                }
             }
 
             return false;
