@@ -236,10 +236,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return operation != null ? OperationTreeVerifier.GetOperationTree(operation) : null;
         }
 
-        protected string GetOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpParseOptions parseOptions = null)
+        protected string GetOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
             where TSyntaxNode : SyntaxNode
         {
-            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef }, parseOptions: parseOptions);
+            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef }, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
             return GetOperationTreeForTest<TSyntaxNode>(compilation);
         }
 
@@ -250,10 +250,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 
-        protected void VerifyOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpParseOptions parseOptions = null)
+        protected void VerifyOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
             where TSyntaxNode : SyntaxNode
         {
-            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, expectedOperationTree, parseOptions);
+            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, expectedOperationTree, compilationOptions, parseOptions);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 
@@ -265,10 +265,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyOperationTreeForTest<TSyntaxNode>(compilation, expectedOperationTree);
         }
 
-        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, CSharpParseOptions parseOptions = null)
+        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
             where TSyntaxNode : SyntaxNode
         {
-            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef }, parseOptions: parseOptions);
+            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef }, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics);
         }
     }

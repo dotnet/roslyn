@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Semantics;
@@ -99,17 +100,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             var text = syntax.ToString().Replace("\n", Environment.NewLine);
-            var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            if (lines.Length == 1 && text.Length < 25)
+            var lines = text.Split(new[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).Select(l => l.Trim()).ToArray();
+            if (lines.Length <= 1 && text.Length < 25)
             {
-                return text;
+                return $"'{text}'";
             }
 
+            const int maxTokenLength = 11;
             var firstLine = lines[0];
             var lastLine = lines[lines.Length - 1];
-            var prefix = firstLine.Length <= 12 ? firstLine : firstLine.Substring(0, 12);
-            var suffix = lastLine.Length <= 12 ? lastLine : lastLine.Substring(lastLine.Length - 12, 12);
-            return prefix + "..." + suffix;
+            var prefix = firstLine.Length <= maxTokenLength ? firstLine : firstLine.Substring(0, maxTokenLength);
+            var suffix = lastLine.Length <= maxTokenLength ? lastLine : lastLine.Substring(lastLine.Length - maxTokenLength, maxTokenLength);
+            return $"'{prefix} ... {suffix}'";
         }
 
         private static bool ShouldLogType(IOperation operation)
@@ -163,10 +165,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void LogConstant(object constant, string header = "Constant")
         {
             var valueStr = constant != null ? constant.ToString() : "null";
-            if (valueStr == string.Empty && constant is string)
+            if (constant is string)
             {
-                valueStr = @"""";
+                if (valueStr == string.Empty)
+                {
+                    valueStr = @"""""";
+                }
+                else
+                {
+                    valueStr = @"""" + valueStr + @"""";
+                }
             }
+
             LogString($"{header}: {valueStr}");
         }
 
@@ -337,9 +347,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void LogLocals(IEnumerable<ILocalSymbol> locals)
         {
+            if (!locals.Any())
+            {
+                return;
+            }
+
             Indent();
 
-            LogString("Locals:");
+            LogString("Locals: ");
             Indent();
 
             int localIndex = 1;
