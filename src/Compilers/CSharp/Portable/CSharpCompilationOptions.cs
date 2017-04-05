@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -170,97 +170,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new CSharpCompilationOptions WithOutputKind(OutputKind kind)
         {
-            if (kind == this.OutputKind)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { OutputKind = kind };
+            return  (kind == this.OutputKind) ? this : new CSharpCompilationOptions(this) { OutputKind = kind };
         }
 
         public new CSharpCompilationOptions WithModuleName(string moduleName)
         {
-            if (moduleName == this.ModuleName)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { ModuleName = moduleName };
+            return (moduleName == this.ModuleName) ? this : new CSharpCompilationOptions(this) { ModuleName = moduleName };
         }
 
         public new CSharpCompilationOptions WithScriptClassName(string name)
         {
-            if (name == this.ScriptClassName)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { ScriptClassName = name };
+            return (name == this.ScriptClassName) ? this : new CSharpCompilationOptions(this) { ScriptClassName = name };
         }
 
         public new CSharpCompilationOptions WithMainTypeName(string name)
         {
-            if (name == this.MainTypeName)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { MainTypeName = name };
+            return (name == this.MainTypeName) ? this : new CSharpCompilationOptions(this) { MainTypeName = name };
         }
 
         public new CSharpCompilationOptions WithCryptoKeyContainer(string name)
         {
-            if (name == this.CryptoKeyContainer)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { CryptoKeyContainer = name };
+            return (name == this.CryptoKeyContainer) ? this : new CSharpCompilationOptions(this) { CryptoKeyContainer = name };
         }
 
         public new CSharpCompilationOptions WithCryptoKeyFile(string path)
         {
-            if (path == this.CryptoKeyFile)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { CryptoKeyFile = path };
+            return (path == this.CryptoKeyFile) ? this : new CSharpCompilationOptions(this) { CryptoKeyFile = path };
         }
 
         public new CSharpCompilationOptions WithCryptoPublicKey(ImmutableArray<byte> value)
         {
-            if (value.IsDefault)
-            {
-                value = ImmutableArray<byte>.Empty;
-            }
-
-            if (value == this.CryptoPublicKey)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { CryptoPublicKey = value };
+            value = (value.IsDefault) ? ImmutableArray<byte>.Empty : value;
+            return (value == this.CryptoPublicKey) ? this : new CSharpCompilationOptions(this) { CryptoPublicKey = value };
         }
 
         public new CSharpCompilationOptions WithDelaySign(bool? value)
         {
-            if (value == this.DelaySign)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { DelaySign = value };
+            return (value == this.DelaySign) ? this : new CSharpCompilationOptions(this) { DelaySign = value };
         }
 
         public CSharpCompilationOptions WithUsings(ImmutableArray<string> usings)
         {
-            if (this.Usings == usings)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { Usings = usings };
+            return (this.Usings == usings) ? this : new CSharpCompilationOptions(this) { Usings = usings };
         }
 
         public CSharpCompilationOptions WithUsings(IEnumerable<string> usings) =>
@@ -270,52 +221,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new CSharpCompilationOptions WithOptimizationLevel(OptimizationLevel value)
         {
-            if (value == this.OptimizationLevel)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { OptimizationLevel = value };
+            return (value == this.OptimizationLevel) ? this : new CSharpCompilationOptions(this) { OptimizationLevel = value };
         }
 
         public new CSharpCompilationOptions WithOverflowChecks(bool enabled)
         {
-            if (enabled == this.CheckOverflow)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { CheckOverflow = enabled };
+            return (enabled == this.CheckOverflow) ? this : new CSharpCompilationOptions(this) { CheckOverflow = enabled };
         }
 
         public CSharpCompilationOptions WithAllowUnsafe(bool enabled)
         {
-            if (enabled == this.AllowUnsafe)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { AllowUnsafe = enabled };
+            return (enabled == this.AllowUnsafe) ? this : new CSharpCompilationOptions(this) { AllowUnsafe = enabled };
         }
 
         public new CSharpCompilationOptions WithPlatform(Platform platform)
         {
-            if (this.Platform == platform)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { Platform = platform };
+            return (this.Platform == platform) ? this : new CSharpCompilationOptions(this) { Platform = platform };
         }
 
         public new CSharpCompilationOptions WithPublicSign(bool publicSign)
         {
-            if (this.PublicSign == publicSign)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { PublicSign = publicSign };
+            return (this.PublicSign == publicSign) ? this : new CSharpCompilationOptions(this) { PublicSign = publicSign };
         }
 
         protected override CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic value) => WithGeneralDiagnosticOption(value);
@@ -331,27 +257,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new CSharpCompilationOptions WithGeneralDiagnosticOption(ReportDiagnostic value)
         {
-            if (this.GeneralDiagnosticOption == value)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { GeneralDiagnosticOption = value };
+            return (this.GeneralDiagnosticOption == value) ? this : new CSharpCompilationOptions(this) { GeneralDiagnosticOption = value };
         }
 
         public new CSharpCompilationOptions WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> values)
         {
-            if (values == null)
-            {
-                values = ImmutableDictionary<string, ReportDiagnostic>.Empty;
-            }
-
-            if (this.SpecificDiagnosticOptions == values)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { SpecificDiagnosticOptions = values };
+            values = values ?? ImmutableDictionary<string, ReportDiagnostic>.Empty;
+            return (this.SpecificDiagnosticOptions == values) ? this : new CSharpCompilationOptions(this) { SpecificDiagnosticOptions = values };
         }
 
         public new CSharpCompilationOptions WithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> values) =>
@@ -359,137 +271,73 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new CSharpCompilationOptions WithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics)
         {
-            if (reportSuppressedDiagnostics == this.ReportSuppressedDiagnostics)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { ReportSuppressedDiagnostics = reportSuppressedDiagnostics };
+            return (reportSuppressedDiagnostics == this.ReportSuppressedDiagnostics) ? this : new CSharpCompilationOptions(this) { ReportSuppressedDiagnostics = reportSuppressedDiagnostics };
         }
 
         public CSharpCompilationOptions WithWarningLevel(int warningLevel)
         {
-            if (warningLevel == this.WarningLevel)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { WarningLevel = warningLevel };
+            return (warningLevel == this.WarningLevel) ? this : new CSharpCompilationOptions(this) { WarningLevel = warningLevel };
         }
 
         public new CSharpCompilationOptions WithConcurrentBuild(bool concurrentBuild)
         {
-            if (concurrentBuild == this.ConcurrentBuild)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { ConcurrentBuild = concurrentBuild };
+            return (concurrentBuild == this.ConcurrentBuild) ? this : new CSharpCompilationOptions(this) { ConcurrentBuild = concurrentBuild };
         }
 
         public new CSharpCompilationOptions WithDeterministic(bool deterministic)
         {
-            if (deterministic == this.Deterministic)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { Deterministic = deterministic };
+            return (deterministic == this.Deterministic) ? this : new CSharpCompilationOptions(this) { Deterministic = deterministic };
         }
 
         internal CSharpCompilationOptions WithCurrentLocalTime(DateTime value)
         {
-            if (value == this.CurrentLocalTime)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { CurrentLocalTime_internal_protected_set = value };
+            return (value == this.CurrentLocalTime) ? this : new CSharpCompilationOptions(this) { CurrentLocalTime_internal_protected_set = value };
         }
 
         internal CSharpCompilationOptions WithDebugPlusMode(bool debugPlusMode)
         {
-            if (debugPlusMode == this.DebugPlusMode)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { DebugPlusMode_internal_protected_set = debugPlusMode };
+            return (debugPlusMode == this.DebugPlusMode) ? this : new CSharpCompilationOptions(this) { DebugPlusMode_internal_protected_set = debugPlusMode };
         }
 
         internal CSharpCompilationOptions WithMetadataImportOptions(MetadataImportOptions value)
         {
-            if (value == this.MetadataImportOptions)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { MetadataImportOptions_internal_protected_set = value };
+            return (value == this.MetadataImportOptions) ? this : new CSharpCompilationOptions(this) { MetadataImportOptions_internal_protected_set = value };
         }
 
         internal CSharpCompilationOptions WithReferencesSupersedeLowerVersions(bool value)
         {
-            if (value == this.ReferencesSupersedeLowerVersions)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { ReferencesSupersedeLowerVersions_internal_protected_set = value };
+            return (value == this.ReferencesSupersedeLowerVersions) ? this : new CSharpCompilationOptions(this) { ReferencesSupersedeLowerVersions_internal_protected_set = value };
         }
 
         public new CSharpCompilationOptions WithXmlReferenceResolver(XmlReferenceResolver resolver)
         {
-            if (ReferenceEquals(resolver, this.XmlReferenceResolver))
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { XmlReferenceResolver = resolver };
+            return (ReferenceEquals(resolver, this.XmlReferenceResolver)) ? this : new CSharpCompilationOptions(this) { XmlReferenceResolver = resolver };
         }
 
         public new CSharpCompilationOptions WithSourceReferenceResolver(SourceReferenceResolver resolver)
         {
-            if (ReferenceEquals(resolver, this.SourceReferenceResolver))
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { SourceReferenceResolver = resolver };
+            return (ReferenceEquals(resolver, this.SourceReferenceResolver)) ? this : new CSharpCompilationOptions(this) { SourceReferenceResolver = resolver };
         }
 
         public new CSharpCompilationOptions WithMetadataReferenceResolver(MetadataReferenceResolver resolver)
         {
-            if (ReferenceEquals(resolver, this.MetadataReferenceResolver))
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { MetadataReferenceResolver = resolver };
+            return (ReferenceEquals(resolver, this.MetadataReferenceResolver)) ? this : new CSharpCompilationOptions(this) { MetadataReferenceResolver = resolver };
         }
 
         public new CSharpCompilationOptions WithAssemblyIdentityComparer(AssemblyIdentityComparer comparer)
         {
             comparer = comparer ?? AssemblyIdentityComparer.Default;
 
-            if (ReferenceEquals(comparer, this.AssemblyIdentityComparer))
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { AssemblyIdentityComparer = comparer };
+            return (ReferenceEquals(comparer, this.AssemblyIdentityComparer)) ? this : new CSharpCompilationOptions(this) { AssemblyIdentityComparer = comparer };
         }
 
         public new CSharpCompilationOptions WithStrongNameProvider(StrongNameProvider provider)
         {
-            if (ReferenceEquals(provider, this.StrongNameProvider))
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { StrongNameProvider = provider };
+            return (ReferenceEquals(provider, this.StrongNameProvider)) ? this : new CSharpCompilationOptions(this) { StrongNameProvider = provider };
         }
 
         protected override CompilationOptions CommonWithConcurrentBuild(bool concurrent) => WithConcurrentBuild(concurrent);
+
         protected override CompilationOptions CommonWithDeterministic(bool deterministic) => WithDeterministic(deterministic);
 
         protected override CompilationOptions CommonWithOutputKind(OutputKind kind) => WithOutputKind(kind);
