@@ -329,10 +329,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type: method.ReturnType)
             { WasCompilerGenerated = true };
         }
-
+        
+        // A synthesized entrypoint that forwards all calls to an async Main Method
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {
-            // if _paramType is null, this is a main method that takes no args.
+            // The user-defined asyncrhonous main method.
             private MethodSymbol _userMain;
             private DiagnosticBag _diagnosticBag;
             private CSharpCompilation _compilation;
@@ -342,19 +343,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private ImmutableArray<ParameterSymbol> _parameters;
 
+            // Which "kind" of Main is this: `void Main` or `int Main`?
+            // This is determined by looking at the return type of the user-provided Main
             private enum ReturnKind
             {
                 VoidReturning,
                 IntReturning,
             }
+            // Does this main method need to forward arguments to the user-provided Main?
             private enum ParamKind
             {
                 NoArgs,
                 StringArrayArgs,
             }
 
+            // Task -> Void
+            // Task<_> -> Int32
             private static TypeSymbol TranslateReturnType(CSharpCompilation compilation, TypeSymbol returnType) {
                 if (returnType.IsGenericTaskType(compilation)) {
+
                     return compilation.GetSpecialType(SpecialType.System_Int32);
                 } 
                 else {
@@ -405,18 +412,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var syntax = this.GetSyntax();
 
+                var refKinds = Parameters.Length == 0  ? ImmutableArray<RefKind>.Empty : ImmutableArray.Create(RefKind.None);
+                var arguments = new List<BoundExpression>();
+                foreach (var parameterSymbol in Parameters)
+                {
+                    arguments.Add(new BoundParameter(syntax, parameterSymbol, parameterSymbol.Type));
+                }
+
+                // Main(args) or Main()
                 BoundCall userMainInvocation = new BoundCall(
                         syntax: this.GetSyntax(),
                         receiverOpt: null,
                         method: _userMain,
-                        arguments:
-                            (from parameterSymbol in Parameters
-                             select new BoundParameter(
-                                 syntax: syntax,
-                                 parameterSymbol: parameterSymbol,
-                                 type: parameterSymbol.Type) as BoundExpression).ToImmutableArray(),
+                        arguments: arguments.ToImmutableArray(),
                         argumentNamesOpt: ImmutableArray<string>.Empty,
-                        argumentRefKindsOpt: ImmutableArray.Create(RefKind.None),
+                        argumentRefKindsOpt: refKinds,
                         isDelegateCall: false,
                         expanded: false,
                         invokedAsExtensionMethod: false,
@@ -426,11 +436,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 { WasCompilerGenerated = true };
 
 
+                // PROTOTYPE(async-main): Errors should likely be reported here instead of bailing.
                 var getAwaiterMethod = GetRequiredMethod(_userMain.ReturnType, WellKnownMemberNames.GetAwaiter, _diagnosticBag);
                 Debug.Assert(getAwaiterMethod != null);
+
                 var getResultMethod = GetRequiredMethod(getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, _diagnosticBag);
                 Debug.Assert(getResultMethod != null);
 
+                // GetAwaiter().GetResult()
                 BoundCall getAwaiterGetResult = 
                     CreateParameterlessCall(
                             syntax: syntax,
@@ -446,14 +459,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (_returnKind)
                 {
                     case ReturnKind.IntReturning:
+                        // return (GetAwaiter().GetResult())
                         statement = new BoundReturnStatement(
                             syntax: syntax,
                             refKind: RefKind.None,
                             expressionOpt: getAwaiterGetResult
                         );
                         break;
-
                     case ReturnKind.VoidReturning:
+                        // { GetAwaiter().GetResult(); return; }
                         statement = new BoundBlock (
                             syntax: syntax,
                             locals: ImmutableArray<LocalSymbol>.Empty,
