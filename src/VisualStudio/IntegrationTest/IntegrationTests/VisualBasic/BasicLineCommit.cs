@@ -1,9 +1,11 @@
-﻿
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using ProjName = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -17,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
         void CaseCorrection()
         {
             VisualStudio.Editor.SetText(@"Module Foo
@@ -31,7 +33,7 @@ End Module");
             VisualStudio.Editor.Verify.CaretPosition(48);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
         void UndoWithEndConstruct()
         {
             VisualStudio.Editor.SetText(@"Module Module1
@@ -49,7 +51,7 @@ End Module");
             VisualStudio.Editor.Verify.CaretPosition(54);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
         void UndoWithoutEndConstruct()
         {
             VisualStudio.Editor.SetText(@"Module Module1
@@ -73,7 +75,7 @@ End Module");
             VisualStudio.Editor.Verify.CaretPosition(16);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
         void CommitOnSave()
         {
             VisualStudio.Editor.SetText(@"Module Module1
@@ -91,7 +93,7 @@ End Module");
             VisualStudio.Editor.Verify.CaretPosition(16);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
         void CommitOnFocusLost()
         {
             VisualStudio.Editor.SetText(@"Module M
@@ -101,17 +103,17 @@ End Module");
 
             VisualStudio.Editor.PlaceCaret("End Sub", charsOffset:- 1);
             VisualStudio.Editor.SendKeys(" ");
-            VisualStudio.SolutionExplorer.AddFile(new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName), "TestZ.vb", open: true); // Cause focus lost
-            VisualStudio.SolutionExplorer.OpenFile(new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName), "TestZ.vb");
+            VisualStudio.SolutionExplorer.AddFile(new ProjName(ProjectName), "TestZ.vb", open: true); // Cause focus lost
+            VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb");
             VisualStudio.Editor.SendKeys("                  ");
-            VisualStudio.SolutionExplorer.CloseFile(new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName), "TestZ.vb", saveFile: false);
+            VisualStudio.SolutionExplorer.CloseFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
             VisualStudio.Editor.Verify.TextContains(@"
     Sub M()
     End Sub
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
         void CommitOnFocusLostDoesNotFormatWithPrettyListingOff()
         {
             VisualStudio.Workspace.SetPerLanguageOption("PrettyListing", "FeatureOnOffOptions", LanguageNames.VisualBasic, false);
@@ -122,10 +124,10 @@ End Module");
 
             VisualStudio.Editor.PlaceCaret("End Sub", charsOffset: -1);
             VisualStudio.Editor.SendKeys(" ");
-            VisualStudio.SolutionExplorer.AddFile(new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName), "TestZ.vb", open: true); // Cause focus lost
-            VisualStudio.SolutionExplorer.OpenFile(new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName), "TestZ.vb");
+            VisualStudio.SolutionExplorer.AddFile(new ProjName(ProjectName), "TestZ.vb", open: true); // Cause focus lost
+            VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb");
             VisualStudio.Editor.SendKeys("                  ");
-            VisualStudio.SolutionExplorer.CloseFile(new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName), "TestZ.vb", saveFile: false);
+            VisualStudio.SolutionExplorer.CloseFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
             VisualStudio.Editor.Verify.TextContains(@"
     Sub M()
      End Sub
