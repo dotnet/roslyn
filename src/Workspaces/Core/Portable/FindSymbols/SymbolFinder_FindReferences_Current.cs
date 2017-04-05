@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken)
         {
+            // If ProjectId is null then this is a call through our old public API.  We don't have
+            // the necessary data to effectively run the call out of proc.
             if (symbolAndProjectId.ProjectId != null)
             {
                 // Create a callback that we can pass to the server process to hear about the 
