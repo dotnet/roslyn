@@ -97,7 +97,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            return TranslateNamespaces(list.ToImmutableAndFree(), compilation);
+            // Make certain all namespace symbols returned by API are from the compilation.
+            for (var i = 0; i < list.Count; i++)
+            {
+                var symbol = list[i];
+                if (symbol is INamespaceSymbol ns)
+                {
+                    list[i] = compilation.GetCompilationNamespace(ns);
+                }
+            }
+
+            return list.ToImmutableAndFree();
         }
     }
 }

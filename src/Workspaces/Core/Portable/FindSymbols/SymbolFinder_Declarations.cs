@@ -13,35 +13,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
-        /// <summary>
-        /// Makes certain all namespace symbols returned by API are from the compilation.
-        /// </summary>
-        private static ImmutableArray<ISymbol> TranslateNamespaces(
-            ImmutableArray<ISymbol> symbols, Compilation compilation)
-        {
-            var builder = ArrayBuilder<ISymbol>.GetInstance();
-            foreach (var symbol in symbols)
-            {
-                var ns = symbol as INamespaceSymbol;
-                if (ns != null)
-                {
-                    builder.Add(compilation.GetCompilationNamespace(ns));
-                }
-                else
-                {
-                    builder.Add(symbol);
-                }
-            }
-
-            var result = builder.Count == symbols.Length
-                ? symbols
-                : builder.ToImmutable();
-
-            builder.Free();
-
-            return result;
-        }
-
         private static Task AddCompilationDeclarationsWithNormalQueryAsync(
             Project project, SearchQuery query, SymbolFilter filter,
             ArrayBuilder<ISymbol> list, CancellationToken cancellationToken)
