@@ -637,7 +637,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
 
                     // option should be exactly same
-                    Assert.Equal(0, recovered.GetChangedOptions(workspace.Options).Count());
+                    var internalRecovered = recovered as IInternalOptionSet;
+                    Assert.NotNull(internalRecovered);
+                    Assert.Equal(0, internalRecovered.GetChangedOptions(workspace.Options).Count());
                 }
             }
         }

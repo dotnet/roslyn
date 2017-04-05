@@ -4,5 +4,8 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Options;
 
 [assembly: TypeForwardedTo(typeof(IOption))]
+[assembly: TypeForwardedTo(typeof(Option<>))]
+[assembly: TypeForwardedTo(typeof(OptionKey))]
+[assembly: TypeForwardedTo(typeof(OptionSet))]
 [assembly: TypeForwardedTo(typeof(OptionStorageLocation))]
 [assembly: TypeForwardedTo(typeof(PerLanguageOption<>))]

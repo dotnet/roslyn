@@ -109,7 +109,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var synched = await service.GetSolutionAsync(solutionChecksum, options, CancellationToken.None);
 
                 Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
-                Assert.Empty(options.GetChangedOptions(synched.Workspace.Options));
+
+                var internalOptions = options as IInternalOptionSet;
+                Assert.NotNull(internalOptions);
+                Assert.Empty(internalOptions.GetChangedOptions(synched.Workspace.Options));
 
                 Assert.True(options.GetOption(RemoteHostOptions.RemoteHostTest));
                 Assert.True(synched.Workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest));

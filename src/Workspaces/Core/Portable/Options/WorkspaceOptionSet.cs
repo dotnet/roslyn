@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// An implementation of <see cref="OptionSet"/> that fetches values it doesn't know about to the workspace's option service. It ensures a contract
     /// that values are immutable from this instance once observed.
     /// </summary>
-    internal sealed class WorkspaceOptionSet : OptionSet
+    internal sealed class WorkspaceOptionSet : OptionSet, IInternalOptionSet
     {
         private readonly IOptionService _service;
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Options
             return GetChangedOptions(optionSet);
         }
 
-        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
+        public IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
         {
             foreach (var kvp in _values)
             {
