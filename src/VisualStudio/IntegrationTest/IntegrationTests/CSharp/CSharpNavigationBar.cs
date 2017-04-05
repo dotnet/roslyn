@@ -11,6 +11,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpNavigationBar : AbstractEditorTest
     {
+        private const string TestSource = @"
+class C
+{
+    public void M(int i) { }
+    private C $$this[int index] { get { return null; } set { } }
+    public static bool operator ==(C c1, C c2) { return true; }
+    public static bool operator !=(C c1, C c2) { return false; }
+}
+
+struct S
+{
+    int Foo() { }
+    void Bar() { }
+}";
+
         protected override string LanguageName => LanguageNames.CSharp;
 
         public CSharpNavigationBar(VisualStudioInstanceFactory instanceFactory)
@@ -21,23 +36,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar()
         {
-            VisualStudio.Editor.SetText(@"
-class C
-{
-    public void M(int i) { }
-    private C this[int index] { get { return null; } set { } }
-    public static bool operator ==(C c1, C c2) { return true; }
-    public static bool operator !=(C c1, C c2) { return false; }
-}
-
-struct S
-{
-    int Foo() { }
-    void Bar() { }
-}");
+            SetUpEditor(TestSource);
             VisualStudio.Editor.PlaceCaret("this", charsOffset: 1);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
-            VisualStudio.Editor.ExpandRightNavBar();
+            VisualStudio.Editor.ExpandMemberNavBar();
             var expectedItems = new[]
             {
                 "M(int i)",
@@ -46,48 +47,55 @@ struct S
                 "this[int index]"
             };
 
-            Assert.Equal(expectedItems, VisualStudio.Editor.GetRightNavBarItems());
-            VisualStudio.Editor.SelectRightNavBarItem("operator !=(C c1, C c2)");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            Assert.Equal(expectedItems, VisualStudio.Editor.GetMemberNavBarItems());
+            VisualStudio.Editor.SelectMemberNavBarItem("operator !=(C c1, C c2)");
 
-            VisualStudio.Editor.Verify.CaretPosition(205);
+            VisualStudio.Editor.Verify.CurrentLineText("public static bool operator $$!=(C c1, C c2) { return false; }", assertCaretPosition: true, trimWhitespace: true);
+        }
 
-            VisualStudio.Editor.PlaceCaret("this", charsOffset: 1);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        public void VerifyNavBar2()
+        {
+            SetUpEditor(TestSource);
 
             VerifyLeftSelected("C");
             VerifyRightSelected("this[int index]");
 
-            VisualStudio.Editor.ExpandLeftNavBar();
-            expectedItems = new[]
+            VisualStudio.Editor.ExpandTypeNavBar();
+            var expectedItems = new[]
             {
                 "C",
                 "S",
             };
 
-            VisualStudio.Editor.SelectLeftNavBarItem("S");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            VisualStudio.Editor.SelectTypeNavBarItem("S");
 
             VerifyLeftSelected("S");
             VerifyRightSelected("Foo()");
-            VisualStudio.Editor.Verify.CaretPosition(251);
+            VisualStudio.Editor.Verify.CurrentLineText("$$struct S", assertCaretPosition: true, trimWhitespace: true);
+        }
 
-            VisualStudio.Editor.ExpandRightNavBar();
-            expectedItems = new[]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        public void VerifyNavBar3()
+        {
+            SetUpEditor(@"
+struct S$$
+{
+    int Foo() { }
+    void Bar() { }
+}");
+            VisualStudio.Editor.ExpandMemberNavBar();
+            var expectedItems = new[]
             {
                 "Bar()",
                 "Foo()",
             };
-            Assert.Equal(expectedItems, VisualStudio.Editor.GetRightNavBarItems());
-            VisualStudio.Editor.SelectRightNavBarItem("Bar()");
-            VisualStudio.Editor.Verify.CaretPosition(285);
+            Assert.Equal(expectedItems, VisualStudio.Editor.GetMemberNavBarItems());
+            VisualStudio.Editor.SelectMemberNavBarItem("Bar()");
+            VisualStudio.Editor.Verify.CurrentLineText("void $$Bar() { }", assertCaretPosition: true, trimWhitespace: true);
 
             VisualStudio.ExecuteCommand("Edit.LineUp");
             VerifyRightSelected("Foo()");
-
-            VisualStudio.Editor.PlaceCaret("int i", charsOffset: 1);
-            VerifyLeftSelected("C");
-            VerifyRightSelected("M(int i)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
@@ -119,24 +127,20 @@ struct S
         public void VerifyOption()
         {
             VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "False");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
             Assert.False(VisualStudio.Editor.IsNavBarEnabled());
 
             VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "True");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
             Assert.True(VisualStudio.Editor.IsNavBarEnabled());
         }
 
         private void VerifyLeftSelected(string expected)
         {
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
-            Assert.Equal(expected, VisualStudio.Editor.GetLeftNavBarSelection());
+            Assert.Equal(expected, VisualStudio.Editor.GetTypeNavBarSelection());
         }
 
         private void VerifyRightSelected(string expected)
         {
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
-            Assert.Equal(expected, VisualStudio.Editor.GetRightNavBarSelection());
+            Assert.Equal(expected, VisualStudio.Editor.GetMemberNavBarSelection());
         }
     }
 }

@@ -171,42 +171,81 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _editorInProc.GetErrorTags();
 
         public void ExpandProjectNavBar()
-            => _editorInProc.ExpandNavigationBar(0);
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.ExpandNavigationBar(0);
+        }
 
-        public void ExpandLeftNavBar()
-            => _editorInProc.ExpandNavigationBar(1);
+        public void ExpandTypeNavBar()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.ExpandNavigationBar(1);
+        }
 
-        public void ExpandRightNavBar()
-            => _editorInProc.ExpandNavigationBar(2);
+        public void ExpandMemberNavBar()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.ExpandNavigationBar(2);
+        }
 
         public string[] GetProjectNavBarItems()
-            => _editorInProc.GetNavBarItems(0);
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetNavBarItems(0);
+        }
 
-        public string[] GetLeftNavBarItems()
-            => _editorInProc.GetNavBarItems(1);
+        public string[] GetTypeNavBarItems()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetNavBarItems(1);
+        }
 
-        public string[] GetRightNavBarItems()
-            => _editorInProc.GetNavBarItems(2);
+        public string[] GetMemberNavBarItems()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetNavBarItems(2);
+        }
 
         public string GetProjectNavBarSelection()
-            => _editorInProc.GetSelectedNavBarItem(0);
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetSelectedNavBarItem(0);
+        }
 
-        public string GetLeftNavBarSelection()
-             => _editorInProc.GetSelectedNavBarItem(1);
+        public string GetTypeNavBarSelection()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetSelectedNavBarItem(1);
+        }
 
-        public string GetRightNavBarSelection()
-            => _editorInProc.GetSelectedNavBarItem(2);
+        public string GetMemberNavBarSelection()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetSelectedNavBarItem(2);
+        }
 
         public void SelectProjectNavbarItem(string item)
-            => _editorInProc.SelectNavBarItem(0, item);
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+             _editorInProc.SelectNavBarItem(0, item);
+        }
 
-        public void SelectLeftNavBarItem(string item)
-            => _editorInProc.SelectNavBarItem(1, item);
+        public void SelectTypeNavBarItem(string item)
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.SelectNavBarItem(1, item);
+        }
 
-        public void SelectRightNavBarItem(string item)
-            => _editorInProc.SelectNavBarItem(2, item);
+        public void SelectMemberNavBarItem(string item)
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.SelectNavBarItem(2, item);
+        }
 
         public bool IsNavBarEnabled()
-            => _editorInProc.IsNavBarEnabled();
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.IsNavBarEnabled();
+        }
     }
 }

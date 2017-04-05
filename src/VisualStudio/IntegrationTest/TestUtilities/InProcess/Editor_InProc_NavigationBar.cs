@@ -1,9 +1,9 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -93,12 +93,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             var topMarginControl = control.GetPropertyValue<ContentControl>("TopMarginControl");
-            UIElement vsDropDownBarAdapterMargin = topMarginControl.Content as UIElement;
+            var vsDropDownBarAdapterMargin = topMarginControl.Content as UIElement;
             return vsDropDownBarAdapterMargin;
         }
     }
 
-    static class Extensions
+    internal static class ReflectionExtensions
     {
         public static PropertyType GetPropertyValue<PropertyType>(this object instance, string propertyName)
         {
