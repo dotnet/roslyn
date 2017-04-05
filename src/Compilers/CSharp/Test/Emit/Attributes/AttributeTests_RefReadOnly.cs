@@ -291,11 +291,10 @@ public delegate ref readonly int D(ref readonly int x);
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18357")]
+        [Fact]
         public void RefReadOnlIsWrittenToMetadata_SameAssembly_LocalFunctions()
         {
             var text = @"
-using System.Linq;
 namespace System.Runtime.InteropServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
@@ -312,13 +311,27 @@ public class Test
 }
 ";
 
-            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            CompileAndVerify(text, verify: false, options: options, symbolValidator: module =>
             {
-                // PROTOTYPE(readonlyRefs) Assert both return type and parameter of local function once bug is fixed
+                var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner0_0");
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.True(method.ReturnsByRefReadonly);
+
+                var parameter = method.GetParameters().Single();
+                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+
+                var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
+                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
+                Assert.Equal(module.ContainingAssembly.Name, parameterAttribute.ContainingAssembly.Name);
+
+                var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
+                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
+                Assert.Equal(module.ContainingAssembly.Name, returnTypeAttribute.ContainingAssembly.Name);
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18357")]
+        [Fact]
         public void RefReadOnlIsWrittenToMetadata_DifferentAssembly_LocalFunctions()
         {
             var codeA = @"
@@ -341,12 +354,26 @@ public class Test
     }
 }
 ";
-
-            CompileAndVerify(codeB, verify: false, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            CompileAndVerify(codeB, verify: false, additionalRefs: new[] { referenceA }, options: options, symbolValidator: module =>
             {
-                // PROTOTYPE(readonlyRefs) Assert both return type and parameter of local function once bug is fixed
+                var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner0_0");
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.True(method.ReturnsByRefReadonly);
+
+                var parameter = method.GetParameters().Single();
+                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+
+                var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
+                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
+                Assert.Equal(referenceA.Compilation.AssemblyName, parameterAttribute.ContainingAssembly.Name);
+
+                var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
+                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
+                Assert.Equal(referenceA.Compilation.AssemblyName, returnTypeAttribute.ContainingAssembly.Name);
             });
         }
+
         [Fact]
         public void RefReadOnlIsWrittenToMetadata_SameAssembly_Lambda()
         {
