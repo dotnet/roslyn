@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             return typeNames;
         }
 
-        public int Execute(string moduleName, int expectedOutputLength, out string output)
+        public int Execute(string moduleName, int expectedOutputLength, string[] mainArgs,  out string output)
         {
             ImmutableArray<byte> bytes = GetModuleBytesByName(moduleName);
             Assembly assembly = DesktopRuntimeUtil.LoadAsAssembly(moduleName, bytes);
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                 }
                 else if (count == 1)
                 {
-                    args = new object[] { new string[0] };
+                    args = new object[] { mainArgs };
                 }
                 else
                 {

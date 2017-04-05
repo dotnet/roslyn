@@ -236,13 +236,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             }
         }
 
-        public int Execute(string moduleName, int expectedOutputLength, out string processOutput)
+        public int Execute(string moduleName, int expectedOutputLength, string[] args, out string processOutput)
         {
             try
             {
                 var emitData = GetEmitData();
                 emitData.RuntimeData.ExecuteRequested = true;
-                return emitData.Manager.Execute(moduleName, expectedOutputLength, out processOutput);
+                return emitData.Manager.Execute(moduleName, expectedOutputLength, args, out processOutput);
             }
             catch (TargetInvocationException tie)
             {
@@ -257,10 +257,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             }
         }
 
-        public int Execute(string moduleName, string expectedOutput)
+        public int Execute(string moduleName, string expectedOutput, string[] args)
         {
             string actualOutput;
-            int exitCode = Execute(moduleName, expectedOutput.Length, out actualOutput);
+            int exitCode = Execute(moduleName, expectedOutput.Length, args, out actualOutput);
 
             if (expectedOutput.Trim() != actualOutput.Trim())
             {

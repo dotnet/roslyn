@@ -197,8 +197,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics);
 
             var entryPoint = entryPointAndDiagnostics.MethodSymbol;
-            var synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
-            if (((object)synthesizedEntryPoint != null) &&
+
+            SynthesizedEntryPointSymbol synthesizedEntryPoint = null;
+            bool addedDefinition = false;
+            if (entryPoint is SynthesizedEntryPointSymbol s)
+            {
+                synthesizedEntryPoint = s;
+            } 
+            else if (entryPoint.HasAsyncMainReturnType(compilation) && compilation.LanguageVersion >= LanguageVersion.CSharp7_1)
+            {
+                synthesizedEntryPoint = new AsyncForwardEntryPoint(compilation, diagnostics, entryPoint.ContainingType, entryPoint);
+                entryPoint = synthesizedEntryPoint;
+                addedDefinition = true;
+            }
+
+            if ((synthesizedEntryPoint != null) &&
                 (moduleBeingBuilt != null) &&
                 !hasDeclarationErrors &&
                 !diagnostics.HasAnyErrors())
@@ -224,10 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)entryPoint != null || entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
 
-            if (entryPoint != null && entryPoint.HasAsyncMainReturnType(compilation) && compilation.LanguageVersion >= LanguageVersion.CSharp7_1) {
-                var synthesizedMain = new AsyncForwardEntryPoint(compilation, diagnostics, entryPoint.ContainingType, entryPoint);
-                moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedMain);
-                entryPoint = synthesizedMain;
+            if (addedDefinition) {
+                moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
             }
 
             return entryPoint;

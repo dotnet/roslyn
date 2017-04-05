@@ -333,11 +333,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {
             // if _paramType is null, this is a main method that takes no args.
-            private ParameterSymbol _paramType;
             private MethodSymbol _userMain;
             private DiagnosticBag _diagnosticBag;
+            private CSharpCompilation _compilation;
 
-            internal static TypeSymbol TranslateReturnType(CSharpCompilation compilation, TypeSymbol returnType) {
+            private ReturnKind _returnKind;
+            private ParamKind _paramKind;
+
+            private ImmutableArray<ParameterSymbol> _parameters;
+
+            private enum ReturnKind
+            {
+                VoidReturning,
+                IntReturning,
+            }
+            private enum ParamKind
+            {
+                NoArgs,
+                StringArrayArgs,
+            }
+
+            private static TypeSymbol TranslateReturnType(CSharpCompilation compilation, TypeSymbol returnType) {
                 if (returnType.IsGenericTaskType(compilation)) {
                     return compilation.GetSpecialType(SpecialType.System_Int32);
                 } 
@@ -346,86 +362,120 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, ParameterSymbol paramType, MethodSymbol userMain): 
-                base(containingType, TranslateReturnType(compilation, userMain.ReturnType)) {
-                _paramType = paramType;
-                Debug.Assert(userMain != null);
-                _userMain = userMain;
-                _diagnosticBag = diagnosticBag;
+            private static ReturnKind GetReturnKind(CSharpCompilation compilation, TypeSymbol returnType) {
+                if (returnType.IsGenericTaskType(compilation)) {
+                    return ReturnKind.IntReturning;
+                } 
+                else {
+                    return ReturnKind.VoidReturning;
+                }
             }
+
 
             internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, MethodSymbol userMain): 
                 base(containingType, TranslateReturnType(compilation, userMain.ReturnType)) {
                 Debug.Assert(userMain != null);
+
                 _userMain = userMain;
                 _diagnosticBag = diagnosticBag;
+                _compilation = compilation;
+                _paramKind = userMain.ParameterCount == 0 ? ParamKind.NoArgs : ParamKind.StringArrayArgs;
+                _returnKind = GetReturnKind(compilation, userMain.ReturnType);
+
+
+                switch (_paramKind)
+                {
+                    case ParamKind.StringArrayArgs:
+                        var stringType = _compilation.GetSpecialType(SpecialType.System_String);
+                        var stringArrayType = ArrayTypeSymbol.CreateCSharpArray(_compilation.Assembly, stringType);
+                        _parameters = ImmutableArray.Create(
+                            SynthesizedParameterSymbol.Create(this, stringArrayType, 0, RefKind.None));
+                        break;
+                    default:
+                        _parameters = ImmutableArray<ParameterSymbol>.Empty;
+                        break;
+                }
             }
              
             public override string Name => MainName;
 
-            public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray.Create(_paramType);
+            public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
 
             internal override BoundBlock CreateBody()
             {
-                BoundCall userMainInvocation;
-                if (_paramType == null)
-                {
-                    userMainInvocation = new BoundCall(
-                        syntax: this.GetSyntax(),
-                        receiverOpt: null,
-                        method: _userMain,
-                        arguments: ImmutableArray<BoundExpression>.Empty,
-                        argumentNamesOpt: ImmutableArray<string>.Empty,
-                        argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
-                        isDelegateCall: false,
-                        expanded: false,
-                        invokedAsExtensionMethod: false,
-                        argsToParamsOpt: ImmutableArray<int>.Empty,
-                        resultKind: LookupResultKind.Viable,
-                        type: _returnType);
-                }
-                else
-                {
-                    // PROTOTYPE: this should actually reflect the parameter that is passed in.
-                    userMainInvocation = new BoundCall(
-                        syntax: this.GetSyntax(),
-                        receiverOpt: null,
-                        method: _userMain,
-                        arguments: ImmutableArray<BoundExpression>.Empty,
-                        argumentNamesOpt: ImmutableArray<string>.Empty,
-                        argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
-                        isDelegateCall: false,
-                        expanded: false,
-                        invokedAsExtensionMethod: false,
-                        argsToParamsOpt: ImmutableArray<int>.Empty,
-                        resultKind: LookupResultKind.Viable,
-                        type: _returnType);
-                }
-
                 var syntax = this.GetSyntax();
 
-                var getAwaiterMethod = GetRequiredMethod(_returnType, WellKnownMemberNames.GetAwaiter, _diagnosticBag);
+                BoundCall userMainInvocation = new BoundCall(
+                        syntax: this.GetSyntax(),
+                        receiverOpt: null,
+                        method: _userMain,
+                        arguments:
+                            (from parameterSymbol in Parameters
+                             select new BoundParameter(
+                                 syntax: syntax,
+                                 parameterSymbol: parameterSymbol,
+                                 type: parameterSymbol.Type) as BoundExpression).ToImmutableArray(),
+                        argumentNamesOpt: ImmutableArray<string>.Empty,
+                        argumentRefKindsOpt: ImmutableArray.Create(RefKind.None),
+                        isDelegateCall: false,
+                        expanded: false,
+                        invokedAsExtensionMethod: false,
+                        argsToParamsOpt: ImmutableArray<int>.Empty,
+                        resultKind: LookupResultKind.Viable,
+                        type: _userMain.ReturnType)
+                { WasCompilerGenerated = true };
+
+
+                var getAwaiterMethod = GetRequiredMethod(_userMain.ReturnType, WellKnownMemberNames.GetAwaiter, _diagnosticBag);
                 Debug.Assert(getAwaiterMethod != null);
                 var getResultMethod = GetRequiredMethod(getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, _diagnosticBag);
-                Debug.Assert(getResultMethod!= null);
+                Debug.Assert(getResultMethod != null);
+
+                BoundCall getAwaiterGetResult = 
+                    CreateParameterlessCall(
+                            syntax: syntax,
+                            method: getResultMethod,
+                            receiver: CreateParameterlessCall(
+                                syntax: syntax,
+                                method: getAwaiterMethod,
+                                receiver: userMainInvocation
+                            )
+                    );
+
+                BoundStatement statement = null;
+                switch (_returnKind)
+                {
+                    case ReturnKind.IntReturning:
+                        statement = new BoundReturnStatement(
+                            syntax: syntax,
+                            refKind: RefKind.None,
+                            expressionOpt: getAwaiterGetResult
+                        );
+                        break;
+
+                    case ReturnKind.VoidReturning:
+                        statement = new BoundBlock (
+                            syntax: syntax,
+                            locals: ImmutableArray<LocalSymbol>.Empty,
+                            statements: ImmutableArray.Create<BoundStatement>(
+                                new BoundExpressionStatement(
+                                    syntax: syntax,
+                                    expression: getAwaiterGetResult
+                                ),
+                                new BoundReturnStatement(
+                                    syntax: syntax,
+                                    refKind: RefKind.None,
+                                    expressionOpt: null
+                                )
+                            )
+                        );
+                        break;
+                };
 
                 return new BoundBlock(
                     syntax: syntax,
                     locals: ImmutableArray<LocalSymbol>.Empty,
-                    statements: ImmutableArray.Create<BoundStatement>(new BoundReturnStatement(
-                        syntax: syntax,
-                        refKind: RefKind.None,
-                        expressionOpt: CreateParameterlessCall(
-                                syntax: syntax,
-                                method: getResultMethod,
-                                receiver: CreateParameterlessCall(
-                                    syntax: syntax,
-                                    method: getAwaiterMethod,
-                                    receiver: userMainInvocation
-                                )
-                        )
-                    ))
-                );
+                    statements: ImmutableArray.Create<BoundStatement>(statement));
                 
             }
         }

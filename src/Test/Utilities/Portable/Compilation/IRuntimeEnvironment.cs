@@ -349,7 +349,7 @@ namespace Roslyn.Test.Utilities
     public interface IRuntimeEnvironment : IDisposable
     {
         void Emit(Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool usePdbForDebugging = false);
-        int Execute(string moduleName, string expectedOutput);
+        int Execute(string moduleName, string expectedOutput, string[] args);
         ImmutableArray<byte> GetMainImage();
         ImmutableArray<byte> GetMainPdb();
         ImmutableArray<Diagnostic> GetDiagnostics();

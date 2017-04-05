@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            string[] args = null,
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
@@ -117,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 Translate2(symbolValidator),
                 expectedSignatures,
                 expectedOutput,
+                args,
                 options,
                 parseOptions,
                 emitOptions,
@@ -183,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            string[] args = null,
             EmitOptions emitOptions = null,
             bool verify = true)
         {
@@ -195,6 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 Translate2(symbolValidator),
                 expectedSignatures,
                 expectedOutput,
+                args,
                 emitOptions,
                 verify);
         }

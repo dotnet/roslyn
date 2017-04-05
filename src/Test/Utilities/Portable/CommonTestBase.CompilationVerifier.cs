@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return modules;
             }
 
-            public void Emit(string expectedOutput, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool peVerify, SignatureDescription[] expectedSignatures)
+            public void Emit(string expectedOutput, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool peVerify, SignatureDescription[] expectedSignatures)
             {
                 using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
                 {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     if (expectedOutput != null)
                     {
-                        testEnvironment.Execute(mainModuleName, expectedOutput);
+                        testEnvironment.Execute(mainModuleName, expectedOutput, args);
                     }
                 }
             }
