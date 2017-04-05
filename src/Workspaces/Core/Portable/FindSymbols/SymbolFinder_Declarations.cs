@@ -14,95 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal enum SearchKind
-    {
-        /// <summary>
-        /// Use an case-sensitive comparison when searching for matching items.
-        /// </summary>
-        Exact,
-
-        /// <summary>
-        /// Use a case-insensitive comparison when searching for matching items.
-        /// </summary>
-        ExactIgnoreCase,
-
-        /// <summary>
-        /// Use a fuzzy comparison when searching for matching items. Fuzzy matching allows for 
-        /// a certain amount of misspellings, missing words, etc. See <see cref="SpellChecker"/> for 
-        /// more details.
-        /// </summary>
-        Fuzzy,
-
-        /// <summary>
-        /// Search term is matched in a custom manner (i.e. with a user provided predicate).
-        /// </summary>
-        Custom
-    }
-
-    internal class SearchQuery
-    {
-        /// <summary>The name being searched for.  Is null in the case of custom predicate searching..  But 
-        /// can be used for faster index based searching when it is available.</summary> 
-        public readonly string Name;
-
-        ///<summary>The kind of search this is.  Faster index-based searching can be used if the 
-        /// SearchKind is not <see cref="SearchKind.Custom"/>.</summary>
-        public readonly SearchKind Kind;
-
-        ///<summary>The predicate to fall back on if faster index searching is not possible.</summary>
-        private readonly Func<string, bool> _predicate;
-
-        private SearchQuery(string name, SearchKind kind)
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            Kind = kind;
-
-            switch (kind)
-            {
-                case SearchKind.Exact:
-                    _predicate = s => StringComparer.Ordinal.Equals(name, s);
-                    break;
-                case SearchKind.ExactIgnoreCase:
-                    _predicate = s => CaseInsensitiveComparison.Comparer.Equals(name, s);
-                    break;
-                case SearchKind.Fuzzy:
-                    // Create a single WordSimilarityChecker and capture a delegate reference to 
-                    // its 'AreSimilar' method. That way we only create the WordSimilarityChecker
-                    // once and it can cache all the information it needs while it does the AreSimilar
-                    // check against all the possible candidates.
-                    var editDistance = new WordSimilarityChecker(name, substringsAreSimilar: false);
-                    _predicate = editDistance.AreSimilar;
-                    break;
-            }
-        }
-
-        private SearchQuery(Func<string, bool> predicate)
-        {
-            Kind = SearchKind.Custom;
-            _predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
-        }
-
-        public static SearchQuery Create(string name, bool ignoreCase)
-        {
-            return new SearchQuery(name, ignoreCase ? SearchKind.ExactIgnoreCase : SearchKind.Exact);
-        }
-
-        public static SearchQuery CreateFuzzy(string name)
-        {
-            return new SearchQuery(name, SearchKind.Fuzzy);
-        }
-
-        public static SearchQuery CreateCustom(Func<string, bool> predicate)
-        {
-            return new SearchQuery(predicate);
-        }
-
-        public Func<string, bool> GetPredicate()
-        {
-            return _predicate;
-        }
-    }
-
     public static partial class SymbolFinder
     {
         /// <summary>
@@ -432,7 +343,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 solution, SearchQuery.CreateCustom(predicate), filter, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsAsync(
+        private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsAsync(
             Solution solution, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (solution == null)
@@ -477,7 +388,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 project, SearchQuery.CreateCustom(predicate), filter, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsAsync(
+        private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsAsync(
             Project project, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (project == null)
