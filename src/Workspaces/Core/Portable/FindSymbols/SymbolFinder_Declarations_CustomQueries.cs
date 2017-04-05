@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     // Logic related to finding declarations with a completely custom predicate goes here.
     // Completely custom predicates can not be optimized in any way as there is no way to
     // tell what the predicate will return true for.
+    //
+    // Also, because we have no control over these predicates, we cannot remote these queries
+    // over to the OOP process.
 
     public static partial class SymbolFinder
     {
