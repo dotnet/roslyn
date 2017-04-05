@@ -371,6 +371,9 @@
     <Compile Include="FindSymbols\SearchKind.cs" />
     <Compile Include="FindSymbols\SearchQuery.cs" />
     <Compile Include="FindSymbols\SymbolFinder.FindLiteralsServerCallback.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_Declarations_AllDeclarations.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_Declarations_SourceDeclarations.cs" />
+    <Compile Include="FindSymbols\SymbolFinder_Declarations_CustomQueries.cs" />
     <Compile Include="FindSymbols\SymbolFinder_FindReferences_Current.cs" />
     <Compile Include="FindSymbols\SymbolFinder_FindRenamableReferences.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.LiteralInfo.cs" />
