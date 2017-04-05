@@ -252,6 +252,7 @@
       <DependentUpon>SymbolSpecificationDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Options\Style\NamingPreferences\SymbolSpecification\SymbolSpecificationViewModel.cs" />
+    <Compile Include="Options\TextBlockWithDataItemControlType.cs" />
     <Compile Include="ProjectSystem\CPS\CPSProject.cs" />
     <Compile Include="ProjectSystem\CPS\CPSCodeModelFactory.cs" />
     <Compile Include="ProjectSystem\CPS\CPSProjectFactory.cs" />
