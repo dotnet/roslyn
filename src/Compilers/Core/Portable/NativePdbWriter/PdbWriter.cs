@@ -6,19 +6,22 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
+using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
+using System.Security.Cryptography;
 
 namespace Microsoft.Cci
 {
-    using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
-
     /// <summary>
     /// Exception to enable callers to catch all of the exceptions originating
     /// from writing PDBs. We resurface such exceptions as this type, to eventually
@@ -50,7 +53,7 @@ namespace Microsoft.Cci
         private readonly bool _logging;
         private readonly BlobBuilder _logData;
         private const int bufferFlushLimit = 64 * 1024;
-        private readonly HashAlgorithm _hashAlgorithm;
+        private readonly IncrementalHash _incrementalHash;
 
         internal PdbLogger(bool logging)
         {
@@ -62,13 +65,12 @@ namespace Microsoft.Cci
                 // and we need just one per compile session
                 // pooling will be couter-productive in such scenario
                 _logData = new BlobBuilder(bufferFlushLimit);
-                _hashAlgorithm = new SHA1CryptoServiceProvider();
-                Debug.Assert(_hashAlgorithm.SupportsTransform);
+                _incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1);
             }
             else
             {
                 _logData = null;
-                _hashAlgorithm = null;
+                _incrementalHash = null;
             }
         }
 
@@ -78,12 +80,7 @@ namespace Microsoft.Cci
             // that should be very rare though.
             if (_logData.Count + space >= bufferFlushLimit)
             {
-                foreach (var blob in _logData.GetBlobs())
-                {
-                    var segment = blob.GetUnderlyingBuffer();
-                    _hashAlgorithm.TransformBlock(segment.Array, segment.Offset, segment.Count);
-                }
-
+                _incrementalHash.AppendData(_logData.GetBlobs());
                 _logData.Clear();
             }
         }
@@ -92,30 +89,15 @@ namespace Microsoft.Cci
         {
             Debug.Assert(_logData != null);
 
-            int remaining = _logData.Count;
-            foreach (var blob in _logData.GetBlobs())
-            {
-                var segment = blob.GetUnderlyingBuffer();
-                remaining -= segment.Count;
-                if (remaining == 0)
-                {
-                    _hashAlgorithm.TransformFinalBlock(segment.Array, segment.Offset, segment.Count);
-                }
-                else
-                {
-                    _hashAlgorithm.TransformBlock(segment.Array, segment.Offset, segment.Count);
-                }
-            }
-
-            Debug.Assert(remaining == 0);
-
+            _incrementalHash.AppendData(_logData.GetBlobs());
             _logData.Clear();
-            return _hashAlgorithm.Hash;
+
+            return _incrementalHash.GetHashAndReset();
         }
 
         internal void Close()
         {
-            _hashAlgorithm?.Dispose();
+            _incrementalHash?.Dispose();
         }
 
         internal enum PdbWriterOperation : byte
@@ -137,7 +119,8 @@ namespace Microsoft.Cci
             DefineKickoffMethod,
             OpenMapTokensToSourceSpans,
             MapTokenToSourceSpan,
-            CloseMapTokensToSourceSpans
+            CloseMapTokensToSourceSpans,
+            SetSource
         }
 
         public bool LogOperation(PdbWriterOperation op)
@@ -230,8 +213,6 @@ namespace Microsoft.Cci
 
     internal sealed class PdbWriter : IDisposable
     {
-        internal const uint HiddenLocalAttributesValue = 1u;
-        internal const uint DefaultLocalAttributesValue = 0u;
         internal const uint Age = 1;
 
         private static Type s_lazyCorSymWriterSxSType;
@@ -310,10 +291,10 @@ namespace Microsoft.Cci
             }
         }
 
-        private IModule Module => Context.Module;
+        private CommonPEModuleBuilder Module => Context.Module;
         private EmitContext Context => _metadataWriter.Context;
 
-        public void SerializeDebugInfo(IMethodBody methodBody, uint localSignatureToken, CustomDebugInfoWriter customDebugInfoWriter)
+        public void SerializeDebugInfo(IMethodBody methodBody, StandaloneSignatureHandle localSignatureHandleOpt, CustomDebugInfoWriter customDebugInfoWriter)
         {
             Debug.Assert(_metadataWriter != null);
 
@@ -325,16 +306,17 @@ namespace Microsoft.Cci
                 return;
             }
 
-            int methodToken = _metadataWriter.GetMethodToken(methodBody.MethodDefinition);
+            var methodHandle = (MethodDefinitionHandle)_metadataWriter.GetMethodHandle(methodBody.MethodDefinition);
+            int methodToken = MetadataTokens.GetToken(methodHandle);
 
-            OpenMethod((uint)methodToken, methodBody.MethodDefinition);
+            OpenMethod(methodToken, methodBody.MethodDefinition);
 
             var localScopes = methodBody.LocalScopes;
 
             // Define locals, constants and namespaces in the outermost local scope (opened in OpenMethod):
             if (localScopes.Length > 0)
             {
-                this.DefineScopeLocals(localScopes[0], localSignatureToken);
+                this.DefineScopeLocals(localScopes[0], localSignatureHandleOpt);
             }
 
             // NOTE: This is an attempt to match Dev10's apparent behavior.  For iterator methods (i.e. the method
@@ -343,11 +325,11 @@ namespace Microsoft.Cci
             if (!isIterator && methodBody.ImportScope != null)
             {
                 IMethodDefinition forwardToMethod;
-                if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodToken, out forwardToMethod))
+                if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodHandle, out forwardToMethod))
                 {
                     if (forwardToMethod != null)
                     {
-                        UsingNamespace("@" + _metadataWriter.GetMethodToken(forwardToMethod), methodBody.MethodDefinition);
+                        UsingNamespace("@" + MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(forwardToMethod)), methodBody.MethodDefinition);
                     }
                     // otherwise, the forwarding is done via custom debug info
                 }
@@ -357,8 +339,8 @@ namespace Microsoft.Cci
                 }
             }
 
-            DefineLocalScopes(localScopes, localSignatureToken);
-            ArrayBuilder<Cci.SequencePoint> sequencePoints = ArrayBuilder<Cci.SequencePoint>.GetInstance();
+            DefineLocalScopes(localScopes, localSignatureHandleOpt);
+            ArrayBuilder<SequencePoint> sequencePoints = ArrayBuilder<SequencePoint>.GetInstance();
             methodBody.GetSequencePoints(sequencePoints);
             EmitSequencePoints(sequencePoints);
             sequencePoints.Free();
@@ -368,23 +350,23 @@ namespace Microsoft.Cci
             {
                 SetAsyncInfo(
                     methodToken,
-                    _metadataWriter.GetMethodToken(asyncDebugInfo.KickoffMethod),
+                    MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(asyncDebugInfo.KickoffMethod)),
                     asyncDebugInfo.CatchHandlerOffset,
                     asyncDebugInfo.YieldOffsets,
                     asyncDebugInfo.ResumeOffsets);
             }
 
-            var compilationOptions = Context.ModuleBuilder.CommonCompilation.Options;
+            var compilationOptions = Context.Module.CommonCompilation.Options;
 
             // We need to avoid emitting CDI DynamicLocals = 5 and EditAndContinueLocalSlotMap = 6 for files processed by WinMDExp until 
             // bug #1067635 is fixed and available in SDK.
-            bool suppressNewCustomDebugInfo = !compilationOptions.ExtendedCustomDebugInformation ||
-                (compilationOptions.OutputKind == OutputKind.WindowsRuntimeMetadata);
+            bool suppressNewCustomDebugInfo = compilationOptions.OutputKind == OutputKind.WindowsRuntimeMetadata;
 
-            bool emitEncInfo = compilationOptions.EnableEditAndContinue && !_metadataWriter.IsFullMetadata;
+            // delta doesn't need this information - we use information recorded by previous generation emit
+            bool emitEncInfo = compilationOptions.EnableEditAndContinue && _metadataWriter.IsFullMetadata;
 
             bool emitExternNamespaces;
-            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodToken, emitEncInfo, suppressNewCustomDebugInfo, out emitExternNamespaces);
+            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodHandle, emitEncInfo, suppressNewCustomDebugInfo, out emitExternNamespaces);
             if (blob != null)
             {
                 DefineCustomMetadata("MD2", blob);
@@ -392,7 +374,7 @@ namespace Microsoft.Cci
 
             if (emitExternNamespaces)
             {
-                this.DefineAssemblyReferenceAliases();
+                DefineAssemblyReferenceAliases();
             }
 
             CloseMethod(methodBody.IL.Length);
@@ -610,7 +592,6 @@ namespace Microsoft.Cci
         {
             Debug.Assert(!(typeReference is IArrayTypeReference));
             Debug.Assert(!(typeReference is IPointerTypeReference));
-            Debug.Assert(!(typeReference is IManagedPointerTypeReference));
             Debug.Assert(!typeReference.IsTypeSpecification());
 
             var result = PooledStringBuilder.GetInstance();
@@ -689,7 +670,7 @@ namespace Microsoft.Cci
             throw ExceptionUtilities.Unreachable;
         }
 
-        private void DefineLocalScopes(ImmutableArray<LocalScope> scopes, uint localSignatureToken)
+        private void DefineLocalScopes(ImmutableArray<LocalScope> scopes, StandaloneSignatureHandle localSignatureHandleOpt)
         {
             // VB scope ranges are end-inclusive
             bool endInclusive = this.Module.GenerateVisualBasicStylePdb;
@@ -717,7 +698,7 @@ namespace Microsoft.Cci
                 // Open this scope.
                 scopeStack.Add(currentScope);
                 OpenScope(currentScope.StartOffset);
-                this.DefineScopeLocals(currentScope, localSignatureToken);
+                this.DefineScopeLocals(currentScope, localSignatureHandleOpt);
             }
 
             // Close remaining scopes.
@@ -730,14 +711,14 @@ namespace Microsoft.Cci
             scopeStack.Free();
         }
 
-        private void DefineScopeLocals(LocalScope currentScope, uint localSignatureToken)
+        private void DefineScopeLocals(LocalScope currentScope, StandaloneSignatureHandle localSignatureHandleOpt)
         {
             foreach (ILocalDefinition scopeConstant in currentScope.Constants)
             {
-                int token = _metadataWriter.SerializeLocalConstantStandAloneSignature(scopeConstant);
+                var signatureHandle = _metadataWriter.SerializeLocalConstantStandAloneSignature(scopeConstant);
                 if (!_metadataWriter.IsLocalNameTooLong(scopeConstant))
                 {
-                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, _metadataWriter.GetConstantTypeCode(scopeConstant), (uint)token);
+                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, scopeConstant.CompileTimeValue.Type.TypeCode, signatureHandle);
                 }
             }
 
@@ -746,7 +727,7 @@ namespace Microsoft.Cci
                 if (!_metadataWriter.IsLocalNameTooLong(scopeLocal))
                 {
                     Debug.Assert(scopeLocal.SlotIndex >= 0);
-                    DefineLocalVariable((uint)scopeLocal.SlotIndex, scopeLocal.Name, scopeLocal.PdbAttributes, localSignatureToken);
+                    DefineLocalVariable((uint)scopeLocal.SlotIndex, scopeLocal.Name, scopeLocal.PdbAttributes, localSignatureHandleOpt);
                 }
             }
         }
@@ -764,6 +745,8 @@ namespace Microsoft.Cci
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory)]
         [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
+
+        private static string PlatformId => (IntPtr.Size == 4) ? "x86" : "amd64";
 
         private static Type GetCorSymWriterSxSType()
         {
@@ -815,7 +798,16 @@ namespace Microsoft.Cci
         {
             try
             {
-                var symWriter = (ISymUnmanagedWriter5)(_symWriterFactory != null ? _symWriterFactory() : CreateSymWriterWorker());
+                ISymUnmanagedWriter5 symWriter;
+
+                try
+                {
+                    symWriter = (ISymUnmanagedWriter5)(_symWriterFactory != null ? _symWriterFactory() : CreateSymWriterWorker());
+                }
+                catch (Exception)
+                {
+                    throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotAvailable, PlatformId));
+                }
 
                 // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
@@ -825,7 +817,7 @@ namespace Microsoft.Cci
                 {
                     if (!(symWriter is ISymUnmanagedWriter7))
                     {
-                        throw new NotSupportedException(CodeAnalysisResources.SymWriterNotDeterministic);
+                        throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, PlatformId));
                     }
 
                     ((ISymUnmanagedWriter7)symWriter).InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
@@ -844,7 +836,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public unsafe ContentId GetContentId()
+        public unsafe BlobContentId GetContentId()
         {
             if (_deterministic)
             {
@@ -920,7 +912,7 @@ namespace Microsoft.Cci
             Debug.Assert(age == Age);
 
             Debug.Assert(BitConverter.IsLittleEndian);
-            return new ContentId(guidBytes, BitConverter.GetBytes(stamp));
+            return new BlobContentId(new Guid(guidBytes), stamp);
         }
 
         public void SetEntryPoint(uint entryMethodToken)
@@ -966,13 +958,13 @@ namespace Microsoft.Cci
 
                 _documentMap.Add(document, writer);
 
-                var checksumAndAlgorithm = document.ChecksumAndAlgorithm;
-                if (!checksumAndAlgorithm.Item1.IsDefault)
+                DebugSourceInfo info = document.GetSourceInfo();
+                if (!info.Checksum.IsDefault)
                 {
                     try
                     {
-                        var algorithmId = checksumAndAlgorithm.Item2;
-                        var checksum = checksumAndAlgorithm.Item1.ToArray();
+                        var algorithmId = info.ChecksumAlgorithmId;
+                        var checksum = info.Checksum.ToArray();
                         var checksumSize = (uint)checksum.Length;
                         writer.SetCheckSum(algorithmId, checksumSize, checksum);
                         if (_callLogger.LogOperation(OP.SetCheckSum))
@@ -987,16 +979,19 @@ namespace Microsoft.Cci
                         throw new PdbWritingException(ex);
                     }
                 }
+
+                // embedded text not currently supported for native PDB and we should have validated that
+                Debug.Assert(info.EmbeddedTextBlob.IsDefault);
             }
 
             return writer;
         }
 
-        private void OpenMethod(uint methodToken, IMethodDefinition method)
+        private void OpenMethod(int methodToken, IMethodDefinition method)
         {
             try
             {
-                _symWriter.OpenMethod(methodToken);
+                _symWriter.OpenMethod((uint)methodToken);
                 if (_callLogger.LogOperation(OP.OpenMethod))
                 {
                     _callLogger.LogArgument(methodToken);
@@ -1199,8 +1194,10 @@ namespace Microsoft.Cci
             }
         }
 
-        private void DefineLocalConstant(string name, object value, PrimitiveTypeCode typeCode, uint constantSignatureToken)
+        private void DefineLocalConstant(string name, object value, PrimitiveTypeCode typeCode, StandaloneSignatureHandle constantSignatureHandle)
         {
+            uint constantSignatureToken = (uint)MetadataTokens.GetToken(constantSignatureHandle);
+
             if (value == null)
             {
                 // ISymUnmanagedWriter2.DefineConstant2 throws an ArgumentException
@@ -1251,7 +1248,9 @@ namespace Microsoft.Cci
         private unsafe void DefineLocalConstantImpl(string name, object value, uint sigToken)
         {
             VariantStructure variant = new VariantStructure();
+#pragma warning disable CS0618 // Type or member is obsolete
             Marshal.GetNativeVariantForObject(value, new IntPtr(&variant));
+#pragma warning restore CS0618 // Type or member is obsolete
             _symWriter.DefineConstant2(name, variant, sigToken);
         }
 
@@ -1259,17 +1258,32 @@ namespace Microsoft.Cci
         {
             Debug.Assert(value != null);
 
+            int encodedLength;
+
             // ISymUnmanagedWriter2 doesn't handle unicode strings with unmatched unicode surrogates.
             // We use the .NET UTF8 encoder to replace unmatched unicode surrogates with unicode replacement character.
+
             if (!MetadataHelpers.IsValidUnicodeString(value))
             {
                 byte[] bytes = Encoding.UTF8.GetBytes(value);
+                encodedLength = bytes.Length;
                 value = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
             }
+            else
+            {
+                encodedLength = Encoding.UTF8.GetByteCount(value);
+            }
 
-            // EDMAURER If defining a string constant and it is too long (length limit is undocumented), this method throws
-            // an ArgumentException.
-            // (see EMITTER::EmitDebugLocalConst)
+            // +1 for terminating NUL character
+            encodedLength++;
+
+            // If defining a string constant and it is too long (length limit is not documented by the API), DefineConstant2 throws an ArgumentException.
+            // However, diasymreader doesn't calculate the length correctly in presence of NUL characters in the string.
+            // Until that's fixed we need to check the limit ourselves. See http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988
+            if (encodedLength > 2032)
+            {
+                return;
+            }
 
             try
             {
@@ -1298,17 +1312,19 @@ namespace Microsoft.Cci
             }
         }
 
-        private void DefineLocalVariable(uint index, string name, uint attributes, uint localVariablesSignatureToken)
+        private void DefineLocalVariable(uint index, string name, LocalVariableAttributes attributes, StandaloneSignatureHandle localSignatureHandleOpt)
         {
+            uint localSignatureToken = localSignatureHandleOpt.IsNil ? 0 : (uint)MetadataTokens.GetToken(localSignatureHandleOpt);
+
             const uint ADDR_IL_OFFSET = 1;
             try
             {
-                _symWriter.DefineLocalVariable2(name, attributes, localVariablesSignatureToken, ADDR_IL_OFFSET, index, 0, 0, 0, 0);
+                _symWriter.DefineLocalVariable2(name, (uint)attributes, localSignatureToken, ADDR_IL_OFFSET, index, 0, 0, 0, 0);
                 if (_callLogger.LogOperation(OP.DefineLocalVariable2))
                 {
                     _callLogger.LogArgument(name);
-                    _callLogger.LogArgument(attributes);
-                    _callLogger.LogArgument(localVariablesSignatureToken);
+                    _callLogger.LogArgument((uint)attributes);
+                    _callLogger.LogArgument(localSignatureToken);
                     _callLogger.LogArgument(ADDR_IL_OFFSET);
                     _callLogger.LogArgument(index);
                     _callLogger.LogArgument((uint)0);
@@ -1400,8 +1416,8 @@ namespace Microsoft.Cci
             {
                 foreach (var definition in kvp.Value)
                 {
-                    int token = _metadataWriter.GetTokenForDefinition(definition.Definition);
-                    Debug.Assert(token != 0);
+                    EntityHandle handle = _metadataWriter.GetDefinitionHandle(definition.Definition);
+                    Debug.Assert(!handle.IsNil);
                 }
             }
         }
@@ -1437,7 +1453,7 @@ namespace Microsoft.Cci
                             open = true;
                         }
 
-                        uint token = (uint)_metadataWriter.GetTokenForDefinition(definition.Definition);
+                        uint token = (uint)MetadataTokens.GetToken(_metadataWriter.GetDefinitionHandle(definition.Definition));
                         Debug.Assert(token != 0);
 
                         try

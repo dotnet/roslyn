@@ -1,17 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{190CE348-596E-435A-9E5B-12A689F9FC29}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Emit.UnitTests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
@@ -21,6 +20,10 @@
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
+      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
+      <Name>TestUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -34,10 +37,6 @@
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj">
       <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
       <Name>BasicCompilerTestUtilities</Name>
@@ -47,26 +46,8 @@
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
@@ -77,6 +58,7 @@
     <Compile Include="AssemblyAttributes.vb" />
     <Compile Include="Attributes\AssemblyAttributes.vb" />
     <Compile Include="Attributes\AttributeTests.vb" />
+    <Compile Include="Attributes\AttributeTests_Tuples.vb" />
     <Compile Include="Attributes\AttributeTests_Conditional.vb" />
     <Compile Include="Attributes\AttributeTests_MarshalAs.vb" />
     <Compile Include="Attributes\AttributeTests_ObsoleteAttribute.vb" />
@@ -90,6 +72,7 @@
     <Compile Include="CodeGen\CodeGenAsyncTests.vb" />
     <Compile Include="CodeGen\CodeGenClosureLambdaTests.vb" />
     <Compile Include="CodeGen\CodeGenCollectionInitializer.vb" />
+    <Compile Include="CodeGen\CodeGenTuples.vb" />
     <Compile Include="CodeGen\CodeGenConstLocal.vb" />
     <Compile Include="CodeGen\CodeGenDelegateCreation.vb" />
     <Compile Include="CodeGen\CodeGenEvents.vb" />
@@ -108,6 +91,7 @@
     <Compile Include="CodeGen\CodeGenNullable.vb" />
     <Compile Include="CodeGen\CodeGenObjectInitializer.vb" />
     <Compile Include="CodeGen\CodeGenOverridingAndHiding.vb" />
+    <Compile Include="CodeGen\CodeGenRefReturnTests.vb" />
     <Compile Include="CodeGen\CodeGenSelectCase.vb" />
     <Compile Include="CodeGen\CodeGenSingleLineIf.vb" />
     <Compile Include="CodeGen\CodeGenStaticLocals.vb" />
@@ -127,8 +111,11 @@
     <Compile Include="CodeGen\WinRTCollectionTests.vb" />
     <Compile Include="Emit\CompilationEmitTests.vb" />
     <Compile Include="Emit\DeterministicTests.vb" />
+    <Compile Include="Emit\DynamicAnalysis\DynamicAnalysisResourceTests.vb" />
+    <Compile Include="Emit\DynamicAnalysis\DynamicInstrumentationTests.vb" />
     <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.vb" />
+    <Compile Include="Emit\EditAndContinue\EditAndContinuePdbTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTests.vb" />
@@ -154,6 +141,7 @@
     <Compile Include="PDB\PDBConstLocalTests.vb" />
     <Compile Include="PDB\PDBExternalSourceDirectiveTests.vb" />
     <Compile Include="PDB\PDBLambdaTests.vb" />
+    <Compile Include="PDB\PDBTupleTests.vb" />
     <Compile Include="PDB\PDBVariableInitializerTests.vb" />
     <Compile Include="PDB\PDBIteratorTests.vb" />
     <Compile Include="PDB\PDBForEachTests.vb" />
@@ -256,8 +244,5 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

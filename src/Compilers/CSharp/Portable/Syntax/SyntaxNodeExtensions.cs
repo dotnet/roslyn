@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (TNode)node.Green.SetAnnotations(annotations).CreateRed();
         }
 
-        public static bool IsAnonymousFunction(this CSharpSyntaxNode syntax)
+        public static bool IsAnonymousFunction(this SyntaxNode syntax)
         {
             Debug.Assert(syntax != null);
             switch (syntax.Kind())
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static bool IsQuery(this CSharpSyntaxNode syntax)
+        public static bool IsQuery(this SyntaxNode syntax)
         {
             Debug.Assert(syntax != null);
             switch (syntax.Kind())
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// default behaviors (e.g. FieldInitializerBinders).  Local binders are
         /// created by LocalBinderFactory.
         /// </summary>
-        internal static bool CanHaveAssociatedLocalBinder(this CSharpSyntaxNode syntax)
+        internal static bool CanHaveAssociatedLocalBinder(this SyntaxNode syntax)
         {
             SyntaxKind kind;
             return syntax.IsAnonymousFunction() ||
@@ -66,7 +67,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (kind = syntax.Kind()) == SyntaxKind.CatchClause ||
                 kind == SyntaxKind.CatchFilterClause ||
                 kind == SyntaxKind.SwitchSection ||
-                kind == SyntaxKind.ArrowExpressionClause;
+                kind == SyntaxKind.EqualsValueClause ||
+                kind == SyntaxKind.Attribute ||
+                kind == SyntaxKind.ArgumentList ||
+                kind == SyntaxKind.ArrowExpressionClause ||
+                IsValidScopeDesignator(syntax as ExpressionSyntax);
+        }
+
+        internal static bool IsValidScopeDesignator(this ExpressionSyntax expression)
+        {
+            // All these nodes are valid scope designators due to the pattern matching and out vars features.
+            CSharpSyntaxNode parent = expression?.Parent;
+            switch (parent?.Kind())
+            {
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return ((LambdaExpressionSyntax)parent).Body == expression;
+
+                case SyntaxKind.SwitchStatement:
+                    return ((SwitchStatementSyntax)parent).Expression == expression;
+
+                case SyntaxKind.ForStatement:
+                    var forStmt = (ForStatementSyntax)parent;
+                    return forStmt.Condition == expression || forStmt.Incrementors.FirstOrDefault() == expression;
+
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
+                    return ((CommonForEachStatementSyntax)parent).Expression == expression;
+
+                default:
+                    return false;
+            }
+        }
+
+        internal static CSharpSyntaxNode AnonymousFunctionBody(this SyntaxNode lambda)
+        {
+            switch (lambda.Kind())
+            {
+                case SyntaxKind.SimpleLambdaExpression:
+                    return ((SimpleLambdaExpressionSyntax)lambda).Body;
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return ((ParenthesizedLambdaExpressionSyntax)lambda).Body;
+                case SyntaxKind.AnonymousMethodExpression:
+                    return ((AnonymousMethodExpressionSyntax)lambda).Block;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(lambda.Kind());
+            }
         }
 
         /// <summary>
@@ -99,6 +146,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return default(SyntaxToken);
                 }
             }
+        }
+
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
+        {
+            refKind = RefKind.None;
+            if (syntax.Kind() == SyntaxKind.RefType)
+            {
+                refKind = RefKind.Ref;
+                syntax = ((RefTypeSyntax)syntax).Type;
+            }
+
+            return syntax;
+        }
+
+        internal static ExpressionSyntax SkipRef(this ExpressionSyntax syntax, out RefKind refKind)
+        {
+            refKind = RefKind.None;
+            if (syntax?.Kind() == SyntaxKind.RefExpression)
+            {
+                refKind = RefKind.Ref;
+                syntax = ((RefExpressionSyntax)syntax).Expression;
+            }
+
+            return syntax;
         }
     }
 }

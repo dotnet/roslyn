@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// <remarks>
     /// This exists to support options that are implemented as boolean
     /// options in the non UI layers, <see cref="Option{Boolean}"/>. 
-    /// In future, if such options are moved to use <see cref="SimpleCodeStyleOption"/>, 
+    /// In future, if such options are moved to use <see cref="CodeStyleOption{T}"/>, 
     /// this class can be completely deleted.
     /// </remarks>
     internal class BooleanCodeStyleOptionViewModel : AbstractCodeStyleOptionViewModel

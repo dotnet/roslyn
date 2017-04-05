@@ -41,9 +41,14 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol Type { get; }
 
         /// <summary>
-        /// Custom modifiers associated with the parameter, or an empty array if there are none.
+        /// Custom modifiers associated with the parameter type, or an empty array if there are none.
         /// </summary>
         ImmutableArray<CustomModifier> CustomModifiers { get; }
+
+        /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
         /// Gets the ordinal position of the parameter. The first parameter has ordinal zero.

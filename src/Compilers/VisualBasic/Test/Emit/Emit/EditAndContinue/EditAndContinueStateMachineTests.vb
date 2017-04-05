@@ -4447,12 +4447,185 @@ End Class
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
             diff1.EmitResult.Diagnostics.Verify(
-                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name))
+                Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("Public Function F() As IEnumerable(Of Integer)", "System.Runtime.CompilerServices.IteratorStateMachineAttribute").WithLocation(6, 30))
         End Sub
 
-        <Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")>
-        Public Sub MissingAsyncStateMachineAttribute()
-            Dim common = "
+        <Fact>
+        Public Sub BadIteratorStateMachineAttribute()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Collections.Generic
+
+Namespace System.Runtime.CompilerServices
+    Public Class IteratorStateMachineAttribute 
+        Inherits Attribute
+    End Class
+End Namespace
+
+Class C
+    Public Iterator Function F() As IEnumerable(Of Integer)
+        Dim <N:0>a</N:0> As Integer = 0
+        <N:1>Yield 0</N:1>
+        Console.WriteLine(a)
+    End Function
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Collections.Generic
+
+Namespace System.Runtime.CompilerServices
+    Public Class IteratorStateMachineAttribute 
+        Inherits Attribute
+    End Class
+End Namespace
+
+Class C
+    Public Iterator Function F() As IEnumerable(Of Integer)
+        Dim <N:0>a</N:0> As Integer = 1
+        <N:1>Yield 1</N:1>
+        Console.WriteLine(a)
+    End Function
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            ' the ctor is missing a parameter
+            Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor))
+
+            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.EmitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("Public Function F() As IEnumerable(Of Integer)", "System.Runtime.CompilerServices.IteratorStateMachineAttribute").WithLocation(12, 30))
+        End Sub
+
+        <Fact>
+        Public Sub AddedIteratorStateMachineAttribute()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Public Iterator Function F() As IEnumerable(Of Integer)
+        Dim <N:0>a</N:0> As Integer = 0
+        <N:1>Yield 0</N:1>
+        Console.WriteLine(a)
+    End Function
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Collections.Generic
+
+Namespace System.Runtime.CompilerServices
+    Public Class IteratorStateMachineAttribute 
+        Inherits Attribute
+
+        Sub New(type As Type)
+        End Sub
+    End Class
+End Namespace
+
+Class C
+    Public Iterator Function F() As IEnumerable(Of Integer)
+        Dim <N:0>a</N:0> As Integer = 1
+        <N:1>Yield 1</N:1>
+        Console.WriteLine(a)
+    End Function
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            ' older versions of mscorlib don't contain IteratorStateMachineAttribute
+            Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor))
+
+            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim ism1 = compilation1.GetMember(Of TypeSymbol)("System.Runtime.CompilerServices.IteratorStateMachineAttribute")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Insert, Nothing, ism1),
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.EmitResult.Diagnostics.Verify()
+        End Sub
+
+        <Fact>
+        Public Sub SourceIteratorStateMachineAttribute()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Collections.Generic
+
+Namespace System.Runtime.CompilerServices
+    Public Class IteratorStateMachineAttribute 
+        Inherits Attribute
+
+        Sub New(type As Type)
+        End Sub
+    End Class
+End Namespace
+
+Class C
+    Public Iterator Function F() As IEnumerable(Of Integer)
+        Dim <N:0>a</N:0> As Integer = 0
+        <N:1>Yield 0</N:1>
+        Console.WriteLine(a)
+    End Function
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Collections.Generic
+
+Namespace System.Runtime.CompilerServices
+    Public Class IteratorStateMachineAttribute 
+        Inherits Attribute
+
+        Sub New(type As Type)
+        End Sub
+    End Class
+End Namespace
+
+Class C
+    Public Iterator Function F() As IEnumerable(Of Integer)
+        Dim <N:0>a</N:0> As Integer = 1
+        <N:1>Yield 1</N:1>
+        Console.WriteLine(a)
+    End Function
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.EmitResult.Diagnostics.Verify()
+        End Sub
+
+        Const AsyncHelpers = "
 Imports System
 Imports System.Threading.Tasks
 
@@ -4466,7 +4639,9 @@ Namespace Microsoft.VisualBasic.CompilerServices
     End Class
 End Namespace"
 
-            Dim source0 = MarkedSource(common & "
+        <Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")>
+        Public Sub MissingAsyncStateMachineAttribute()
+            Dim source0 = MarkedSource(AsyncHelpers & "
 Class C
     Public Async Function F() As Task(Of Integer)
         Dim <N:0>a</N:0> As Integer = 0
@@ -4475,7 +4650,7 @@ Class C
     End Function
 End Class
 ")
-            Dim source1 = MarkedSource(common & "
+            Dim source1 = MarkedSource(AsyncHelpers & "
 Class C
     Public Async Function F() As Task(Of Integer)
         Dim <N:0>a</N:0> As Integer = 1
@@ -4501,8 +4676,123 @@ End Class
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
             diff1.EmitResult.Diagnostics.Verify(
-                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name),
-                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name))
+                Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("Public Function F() As Task(Of Integer)", "System.Runtime.CompilerServices.AsyncStateMachineAttribute").WithLocation(15, 27))
+        End Sub
+
+        <Fact, WorkItem(10190, "https://github.com/dotnet/roslyn/issues/10190")>
+        Public Sub NonAsyncToAsync()
+            Dim source0 = MarkedSource(AsyncHelpers & "
+Class C
+    Public Function F() As Task(Of Integer)
+        Dim <N:0>a</N:0> As Integer = 0
+        <N:1>Return Task.FromResult(a)</N:1>
+    End Function
+End Class
+")
+            Dim source1 = MarkedSource(AsyncHelpers & "
+Class C
+    Public Async Function F() As Task(Of Integer)
+        Dim <N:0>a</N:0> As Integer = 1
+        <N:1>Return Await Task.FromResult(a)</N:1>
+    End Function
+End Class
+")
+            Dim compilation0 = CompilationUtils.CreateCompilation({source0.Tree}, {TestReferences.NetFx.v4_0_30316_17626.mscorlib}, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor))
+
+            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.EmitResult.Diagnostics.Verify()
+        End Sub
+
+        <Fact>
+        Public Sub NonAsyncToAsync_MissingAttribute()
+            Dim source0 = MarkedSource(AsyncHelpers & "
+Class C
+    Public Function F() As Task(Of Integer)
+        Dim <N:0>a</N:0> As Integer = 0
+        a = a + 1
+        <N:1>Return New Task(Of Integer)()</N:1>
+    End Function
+End Class
+")
+            Dim source1 = MarkedSource(AsyncHelpers & "
+Class C
+    Public Async Function F() As Task(Of Integer)
+        Dim <N:0>a</N:0> As Integer = 1
+        a = a + 1
+        <N:1>Return Await New Task(Of Integer)()</N:1>
+    End Function
+End Class
+")
+            Dim compilation0 = CompilationUtils.CreateCompilation({source0.Tree}, {TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync}, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor))
+
+            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.EmitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("Public Function F() As Task(Of Integer)", "System.Runtime.CompilerServices.AsyncStateMachineAttribute").WithLocation(15, 27))
+        End Sub
+
+        <Fact>
+        Public Sub NonIteratorToIterator_MissingAttribute()
+            Dim source0 = MarkedSource("
+Imports System.Collections.Generic
+
+Class C
+    Public Function F() As IEnumerable(Of Integer)
+        Dim <N:0>a</N:0> As Integer = 0
+        <N:1>Return { 0 }</N:1>
+    End Function
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System.Collections.Generic
+
+Class C
+    Public Iterator Function F() As IEnumerable(Of Integer)
+        Dim <N:0>a</N:0> As Integer = 1
+        <N:1>Yield a</N:1>
+    End Function
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0, verify:=False)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.EmitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("Public Function F() As IEnumerable(Of Integer)", "System.Runtime.CompilerServices.IteratorStateMachineAttribute").WithLocation(5, 30))
         End Sub
     End Class
 End Namespace

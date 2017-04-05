@@ -211,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Shared Function ReportSemanticError(id As ERRID, node As VisualBasicSyntaxNode) As BadCConst
-            Return ReportSemanticError(id, node, SpecializedCollections.EmptyObjects)
+            Return ReportSemanticError(id, node, Array.Empty(Of Object))
         End Function
 
         Private Shared Function ReportSemanticError(id As ERRID, node As VisualBasicSyntaxNode, ParamArray args As Object()) As BadCConst

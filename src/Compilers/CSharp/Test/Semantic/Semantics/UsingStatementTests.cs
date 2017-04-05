@@ -677,6 +677,26 @@ class C
                 );
         }
 
+
+        [WorkItem(9581, "https://github.com/dotnet/roslyn/issues/9581")]
+        [Fact]
+        public void TestCyclicInference()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        using (var v = v) { }
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,24): error CS0841: Cannot use local variable 'v' before it is declared
+                //         using (var v = v) { }
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "v").WithArguments("v").WithLocation(6, 24)
+                );
+        }
+
         #region help method
 
         private UsingStatementSyntax GetUsingStatements(CSharpCompilation compilation, int index = 1)

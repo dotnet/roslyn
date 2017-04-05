@@ -1,37 +1,33 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class MiscellaneousTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DoesNothingOnEmptyFile() As Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub DoesNothingOnEmptyFile()
+            VerifyStatementEndConstructNotApplied(
                 text:="",
                 caret:={0, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DoesNothingOnFileWithNoStatement() As Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub DoesNothingOnFileWithNoStatement()
+            VerifyStatementEndConstructNotApplied(
                 text:="'Foo
 ",
                 caret:={0, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyLineContinuationMark() As Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyLineContinuationMark()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     function f(byval x as Integer,
                byref y as string) as string
@@ -40,11 +36,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     End Function
 End Class",
                 caret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyImplicitLineContinuation() As Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyImplicitLineContinuation()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     function f() as string
         While 1 +
@@ -52,11 +48,11 @@ End Class",
     End Function
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyNestedDo() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestVerifyNestedDo()
+            VerifyStatementEndConstructApplied(
                 before:="Class C
         function f() as string
             for i = 1 to 10",
@@ -67,11 +63,11 @@ End Class",
 
             Next",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyMultilinesChar() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestVerifyMultilinesChar()
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     sub s
         do :do
@@ -88,11 +84,11 @@ End Class",
     End sub
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyInlineComments() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestVerifyInlineComments()
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     sub s
         If true then 'here
@@ -107,29 +103,29 @@ End Class",
     End sub
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyNotAppliedWithJunkAtEndOfLine() As Tasks.Task
+        Public Sub VerifyNotAppliedWithJunkAtEndOfLine()
             ' Try this without a newline at the end of the file
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C End Class",
                 caret:={0, "Class C".Length})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyNotAppliedWithJunkAtEndOfLine2() As Tasks.Task
+        Public Sub VerifyNotAppliedWithJunkAtEndOfLine2()
             ' Try this with a newline at the end of the file
-            Await VerifyStatementEndConstructNotAppliedAsync(
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C End Class
 ",
                 caret:={0, "Class C".Length})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(539727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539727")>
-        Public Async Function DeletesSelectedText() As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync("Interface IFoo ~~")
+        Public Sub DeletesSelectedText()
+            Using workspace = TestWorkspace.CreateVisualBasic("Interface IFoo ~~")
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
 
@@ -148,6 +144,6 @@ End Class",
 
                 Assert.Equal("End Interface", textView.TextSnapshot.Lines.Last().GetText())
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace

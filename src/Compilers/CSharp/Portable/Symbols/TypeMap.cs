@@ -4,10 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -35,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // mapping contents are read-only hereafter
         }
 
-        internal TypeMap(SmallDictionary<TypeParameterSymbol, TypeSymbolWithAnnotations> mapping)
+        private TypeMap(SmallDictionary<TypeParameterSymbol, TypeSymbolWithAnnotations> mapping)
             : base(new SmallDictionary<TypeParameterSymbol, TypeSymbolWithAnnotations>(mapping, ReferenceEqualityComparer.Instance))
         {
             // mapping contents are read-only hereafter
@@ -48,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 new SmallDictionary<TypeParameterSymbol, TypeSymbolWithAnnotations>(substituted.TypeSubstitution.Mapping, ReferenceEqualityComparer.Instance) :
                 new SmallDictionary<TypeParameterSymbol, TypeSymbolWithAnnotations>(ReferenceEqualityComparer.Instance);
         }
+
         internal TypeMap(NamedTypeSymbol containingType, ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
             : base(ForType(containingType))
         {
@@ -166,8 +164,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             parameters.ReverseContents();
 
             // Ensure that if stopAt was provided, it actually was in the chain and we stopped at it.
-            // If not provided, both should be null (if stopAt != null && oldOwner == null, then it wasn't in the chain)
-            Debug.Assert(stopAt == oldOwner);
+            // If not provided, both should be null (if stopAt != null && oldOwner == null, then it wasn't in the chain).
+            // Alternately, we were inside a field initializer, in which case we were to stop at the constructor,
+            // but never made it that far because we encountered the field in the ContainingSymbol chain.
+            Debug.Assert(
+                stopAt == oldOwner ||
+                stopAt?.MethodKind == MethodKind.StaticConstructor ||
+                stopAt?.MethodKind == MethodKind.Constructor);
 
             oldTypeParameters = parameters.ToImmutableAndFree();
             return WithAlphaRename(oldTypeParameters, newOwner, out newTypeParameters);

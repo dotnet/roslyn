@@ -1,29 +1,45 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Differencing;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        private void Commit(CompletionItem item, TextChange textChange, Model model, char? commitChar)
+        private CompletionProvider GetCompletionProvider(CompletionItem item)
+        {
+            var completionService = this.GetCompletionService() as CompletionServiceWithProviders;
+            if (completionService != null)
+            {
+                return completionService.GetProvider(item);
+            }
+
+            return null;
+        }
+
+        private void CommitOnNonTypeChar(
+            CompletionItem item, Model model)
+        {
+            Commit(item, model, commitChar: null, initialTextSnapshot: null, nextHandler: null);
+        }
+
+        private void Commit(
+            CompletionItem item, Model model, char? commitChar,
+            ITextSnapshot initialTextSnapshot, Action nextHandler)
         {
             AssertIsForeground();
 
             // We could only be called if we had a model at this point.
             Contract.ThrowIfNull(model);
-
-            item = Controller.GetExternallyUsableCompletionItem(item);
 
             // Now that we've captured the model at this point, we can stop ourselves entirely.  
             // This is also desirable as we may have reentrancy problems when we call into 
@@ -33,167 +49,138 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // TODO(cyrusn): We still have a general reentrancy problem where calling into a custom
             // commit provider (or just calling into the editor) may cause something to call back
             // into us.  However, for now, we just hope that no such craziness will occur.
-            this.StopModelComputation();
+            this.DismissSessionIfActive();
 
-            // NOTE(cyrusn): It is intentional that we get the undo history for the
-            // surface buffer and not the subject buffer.
-            using (var transaction = _undoHistoryRegistry.GetHistory(this.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.IntelliSense))
+            CompletionChange completionChange;
+            using (var transaction = CaretPreservingEditTransaction.TryCreate(
+                EditorFeaturesResources.IntelliSense, TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
+                if (transaction == null)
+                {
+                    // This text buffer has no undo history and has probably been unmapped.
+                    // (Workflow unmaps its projections when losing focus (such as double clicking the completion list)).
+                    // Bail on committing completion because we won't be able to find a Document to update either.
+
+                    return;
+                }
+
                 // We want to merge with any of our other programmatic edits (e.g. automatic brace completion)
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
 
-                // Check if the provider wants to perform custom commit itself.  Otherwise we will
-                // handle things.
-                var provider = item.CompletionProvider as ICustomCommitCompletionProvider;
-                if (provider == null)
+                var provider = GetCompletionProvider(item) as ICustomCommitCompletionProvider;
+                if (provider != null)
                 {
-                    var viewBuffer = this.TextView.TextBuffer;
-
-                    // Use character based diffing here to avoid overwriting the commit character placed into the editor.
-                    var editOptions = new EditOptions(new StringDifferenceOptions
-                    {
-                        DifferenceType = StringDifferenceTypes.Character,
-                        IgnoreTrimWhiteSpace = EditOptions.DefaultMinimalChange.DifferenceOptions.IgnoreTrimWhiteSpace
-                    });
-
-                    using (var textEdit = viewBuffer.CreateEdit(editOptions, reiteratedVersionNumber: null, editTag: null))
-                    {
-                        var viewSpan = model.GetSubjectBufferFilterSpanInViewBuffer(textChange.Span);
-                        var currentSpan = model.GetCurrentSpanInSnapshot(viewSpan, viewBuffer.CurrentSnapshot);
-
-                        // In order to play nicely with automatic brace completion, we need to 
-                        // not touch the opening paren. We'll check our span and textchange 
-                        // for ( and adjust them accordingly if we find them.
-
-                        // all this is needed since we don't use completion set mechanism provided by VS but we implement everything ourselves.
-                        // due to that, existing brace completion engine in editor that should take care of interaction between brace completion
-                        // and intellisense doesn't work for us. so we need this kind of workaround to support it nicely.
-                        bool textChanged;
-                        var finalText = GetFinalText(textChange, commitChar.GetValueOrDefault(), out textChanged);
-                        currentSpan = GetFinalSpan(currentSpan, commitChar.GetValueOrDefault(), textChanged);
-
-                        var caretPoint = this.TextView.GetCaretPoint(this.SubjectBuffer);
-                        var virtualCaretPoint = this.TextView.GetVirtualCaretPoint(this.SubjectBuffer);
-
-                        if (caretPoint.HasValue && virtualCaretPoint.HasValue)
-                        {
-                            // TODO(dustinca): We need to call a different API here. TryMoveCaretToAndEnsureVisible might center within the view.
-                            this.TextView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(caretPoint.Value));
-                        }
-
-                        caretPoint = this.TextView.GetCaretPoint(this.SubjectBuffer);
-
-                        // Now that we're doing character level diffing, we need to move the caret to the end of 
-                        // the span being replaced. Otherwise, we can replace M|ai with Main and wind up with 
-                        // M|ain, since character based diffing makes that quite legit.
-                        if (caretPoint.HasValue)
-                        {
-                            var endInSubjectBuffer = this.TextView.BufferGraph.MapDownToBuffer(currentSpan.End, PointTrackingMode.Positive, caretPoint.Value.Snapshot.TextBuffer, PositionAffinity.Predecessor);
-                            if (caretPoint.Value < endInSubjectBuffer)
-                            {
-                                this.TextView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(currentSpan.Snapshot.TextBuffer.CurrentSnapshot, currentSpan.End.Position));
-                            }
-                        }
-
-                        textEdit.Replace(currentSpan, finalText);
-                        textEdit.Apply();
-                    }
-
-                    // We've manipulated the caret position in order to generate the correct edit. However, 
-                    // if the insertion is long enough, the caret will scroll out of the visible area.
-                    // Re-center the view.
-                    using (var textEdit = viewBuffer.CreateEdit(editOptions, reiteratedVersionNumber: null, editTag: null))
-                    {
-                        var caretPoint = this.TextView.GetCaretPoint(this.SubjectBuffer);
-                        if (caretPoint.HasValue)
-                        {
-                            this.TextView.Caret.EnsureVisible();
-                        }
-                    }
-
-                    transaction.Complete();
+                    provider.Commit(item, this.TextView, this.SubjectBuffer, model.TriggerSnapshot, commitChar);
                 }
                 else
                 {
-                    // Let the provider handle this.
-                    provider.Commit(item, this.TextView, this.SubjectBuffer, model.TriggerSnapshot, commitChar);
-                    transaction.Complete();
+                    // Right before calling Commit, we may have passed the commitChar through to the
+                    // editor.  That was so that undoing completion will get us back to the state we
+                    // we would be in if completion had done nothing.  However, now that we're going
+                    // to actually commit, we want to roll back to where we were before we pushed
+                    // commit character into the buffer.  This has multiple benefits:
+                    //
+                    //   1) the buffer is in a state we expect it to be in.  i.e. we don't have to
+                    //      worry about what might have happened (like brace-completion) when the
+                    //      commit char was inserted.
+                    //   2) after we commit the item, we'll pass the commit character again into the
+                    //      buffer (unless the items asks us not to).  By doing this, we can make sure
+                    //      that things like brace-completion or formatting trigger as we expect them
+                    //      to.
+                    var characterWasSentIntoBuffer = commitChar != null &&
+                                                     initialTextSnapshot.Version.VersionNumber != this.SubjectBuffer.CurrentSnapshot.Version.VersionNumber;
+                    if (characterWasSentIntoBuffer)
+                    {
+                        RollbackToBeforeTypeChar(initialTextSnapshot);
+                    }
+
+                    // Now, get the change the item wants to make.  Note that the change will be relative
+                    // to the initial snapshot/document the item was triggered from.  We'll map that change
+                    // forward, then apply it to our current snapshot.
+                    var triggerDocument = model.TriggerDocument;
+                    var triggerSnapshot = model.TriggerSnapshot;
+
+                    var completionService = CompletionService.GetService(triggerDocument);
+                    Contract.ThrowIfNull(completionService, nameof(completionService));
+
+                    completionChange = completionService.GetChangeAsync(
+                        triggerDocument, item, commitChar, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                    var textChange = completionChange.TextChange;
+
+                    var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
+                    var mappedSpan = triggerSnapshotSpan.TranslateTo(
+                        this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+
+                    // Now actually make the text change to the document.
+                    using (var textEdit = this.SubjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null))
+                    {
+                        var adjustedNewText = AdjustForVirtualSpace(textChange);
+
+                        textEdit.Replace(mappedSpan.Span, adjustedNewText);
+                        textEdit.Apply();
+                    }
+
+                    // adjust the caret position if requested by completion service
+                    if (completionChange.NewPosition != null)
+                    {
+                        TextView.Caret.MoveTo(new SnapshotPoint(
+                            this.SubjectBuffer.CurrentSnapshot, completionChange.NewPosition.Value));
+                    }
+
+                    // Now, pass along the commit character unless the completion item said not to
+                    if (characterWasSentIntoBuffer && !completionChange.IncludesCommitCharacter)
+                    {
+                        nextHandler();
+                    }
+
+                    // If the insertion is long enough, the caret will scroll out of the visible area.
+                    // Re-center the view.
+                    this.TextView.Caret.EnsureVisible();
                 }
-            }
 
-            var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var formattingService = document.GetLanguageService<IEditorFormattingService>();
-
-            var commitCharTriggersFormatting = commitChar != null &&
-                    (formattingService?.SupportsFormattingOnTypedCharacter(document, commitChar.GetValueOrDefault())
-                     ?? false);
-
-            if (formattingService != null && (item.ShouldFormatOnCommit || commitCharTriggersFormatting))
-            {
-                // Formatting the completion item affected span is done as a separate transaction because this gives the user
-                // the flexibility to undo the formatting but retain the changes associated with the completion item
-                using (var formattingTransaction = _undoHistoryRegistry.GetHistory(this.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.IntelliSenseCommitFormatting))
-                {
-                    var caretPoint = this.TextView.GetCaretPoint(this.SubjectBuffer);
-                    IList<TextChange> changes;
-                    if (commitCharTriggersFormatting && caretPoint.HasValue)
-                    {
-                        // if the commit character is supported by formatting service, then let the formatting service
-                        // find the appropriate range to format.
-                        changes = formattingService.GetFormattingChangesAsync(document, commitChar.Value, caretPoint.Value.Position, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                    }
-                    else
-                    {
-                        // if this is not a supported trigger character for formatting service (space or tab etc.)
-                        // then format the span of the textchange.
-                        changes = formattingService.GetFormattingChangesAsync(document, textChange.Span, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                    }
-
-                    if (changes != null && !changes.IsEmpty())
-                    {
-                        document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, CancellationToken.None);
-                    }
-
-                    formattingTransaction.Complete();
-                }
+                transaction.Complete();
             }
 
             // Let the completion rules know that this item was committed.
-            GetCompletionRules().CompletionItemCommitted(item);
+            this.MakeMostRecentItem(item.DisplayText);
         }
 
-        private SnapshotSpan GetFinalSpan(SnapshotSpan currentSpan, char commitChar, bool textChanged)
+        private void RollbackToBeforeTypeChar(ITextSnapshot initialTextSnapshot)
         {
-            var currentSpanText = currentSpan.GetText();
-            if (currentSpan.Length > 0 && this.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.AutomaticPairCompletion))
-            {
-                if (currentSpanText[currentSpanText.Length - 1] == commitChar)
-                {
-                    return new SnapshotSpan(currentSpan.Start, currentSpan.Length - 1);
-                }
+            // Get all the versions from the initial text snapshot (before we passed the
+            // commit character down) to the current snapshot we're at.
+            var versions = GetVersions(initialTextSnapshot, this.SubjectBuffer.CurrentSnapshot).ToList();
 
-                // looks like auto insertion happened. find right span to replace
-                if (textChanged)
+            // Un-apply the edits. 
+            for (var i = versions.Count - 1; i >= 0; i--)
+            {
+                var version = versions[i];
+                using (var textEdit = this.SubjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null))
                 {
-                    var index = currentSpanText.LastIndexOf(commitChar);
-                    if (index >= 0)
+                    foreach (var change in version.Changes)
                     {
-                        return new SnapshotSpan(currentSpan.Start, index);
+                        textEdit.Replace(change.NewSpan, change.OldText);
                     }
+
+                    textEdit.Apply();
                 }
             }
-
-            return currentSpan;
         }
 
-        private string GetFinalText(TextChange textChange, char commitChar, out bool textAdjusted)
+        private IEnumerable<ITextVersion> GetVersions(
+            ITextSnapshot initialTextSnapshot, ITextSnapshot currentSnapshot)
         {
-            var applicableText = this.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.AutomaticPairCompletion)
-                ? textChange.NewText.TrimEnd(commitChar)
-                : textChange.NewText;
+            var version = initialTextSnapshot.Version;
+            while (version != null && version.VersionNumber != currentSnapshot.Version.VersionNumber)
+            {
+                yield return version;
+                version = version.Next;
+            }
+        }
 
-            // set whether text has changed or not
-            textAdjusted = applicableText != textChange.NewText;
+        private string AdjustForVirtualSpace(TextChange textChange)
+        {
+            var newText = textChange.NewText;
 
             var caretPoint = this.TextView.Caret.Position.BufferPosition;
             var virtualCaretPoint = this.TextView.Caret.Position.VirtualBufferPosition;
@@ -207,10 +194,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // thing we're adding.
                 var editorOperations = _editorOperationsFactoryService.GetEditorOperations(this.TextView);
                 var whitespace = editorOperations.GetWhitespaceForVirtualSpace(virtualCaretPoint);
-                return whitespace + applicableText;
+                return whitespace + newText;
             }
 
-            return applicableText;
+            return newText;
         }
     }
 }

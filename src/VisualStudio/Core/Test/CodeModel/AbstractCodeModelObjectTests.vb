@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Partial Public MustInherit Class AbstractCodeModelObjectTests(Of TCodeModelObject As Class)
@@ -15,63 +16,64 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                    </Workspace>
         End Function
 
-        Protected Overridable Function TestAddAttribute(code As XElement, expectedCode As XElement, data As AttributeData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddAttribute(code As XElement, expectedCode As XElement, data As AttributeData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddClass(code As XElement, expectedCode As XElement, data As ClassData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddClass(code As XElement, expectedCode As XElement, data As ClassData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddDelegate(code As XElement, expectedCode As XElement, data As DelegateData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddDelegate(code As XElement, expectedCode As XElement, data As DelegateData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddEnum(code As XElement, expectedCode As XElement, data As EnumData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddEnum(code As XElement, expectedCode As XElement, data As EnumData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddEnumMember(code As XElement, expectedCode As XElement, data As EnumMemberData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddEnumMember(code As XElement, expectedCode As XElement, data As EnumMemberData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddEvent(code As XElement, expectedCode As XElement, data As EventData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddEvent(code As XElement, expectedCode As XElement, data As EventData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddFunction(code As XElement, expectedCode As XElement, data As FunctionData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddFunction(code As XElement, expectedCode As XElement, data As FunctionData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddImport(code As XElement, expectedCode As XElement, data As ImportData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddImport(code As XElement, expectedCode As XElement, data As ImportData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddInterface(code As XElement, expectedCode As XElement, data As InterfaceData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddInterface(code As XElement, expectedCode As XElement, data As InterfaceData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddNamespace(code As XElement, expectedCode As XElement, data As NamespaceData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddNamespace(code As XElement, expectedCode As XElement, data As NamespaceData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddParameter(code As XElement, expectedCode As XElement, data As ParameterData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddParameter(code As XElement, expectedCode As XElement, data As ParameterData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddProperty(code As XElement, expectedCode As XElement, data As PropertyData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddProperty(code As XElement, expectedCode As XElement, data As PropertyData,
+                                                       Optional options As IDictionary(Of OptionKey, Object) = Nothing) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddStruct(code As XElement, expectedCode As XElement, data As StructData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddStruct(code As XElement, expectedCode As XElement, data As StructData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddVariable(code As XElement, expectedCode As XElement, data As VariableData) As Threading.Tasks.Task
+        Protected Overridable Function TestAddVariable(code As XElement, expectedCode As XElement, data As VariableData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestRemoveChild(code As XElement, expectedCode As XElement, child As Object) As Threading.Tasks.Task
+        Protected Overridable Function TestRemoveChild(code As XElement, expectedCode As XElement, child As Object) As Task
             Throw New NotImplementedException
         End Function
 
@@ -104,7 +106,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                    End Sub
         End Function
 
-        Protected MustOverride Function TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object)) As Task
+        Protected MustOverride Sub TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object))
 
         Protected Function IsElement(name As String, Optional kind? As EnvDTE.vsCMElement = Nothing) As Action(Of Object)
             Return _

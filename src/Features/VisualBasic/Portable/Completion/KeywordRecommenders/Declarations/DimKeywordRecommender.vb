@@ -3,7 +3,6 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Declarations
@@ -17,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             ' It can start a statement
             If context.IsMultiLineStatementContext Then
                 Return SpecializedCollections.SingletonEnumerable(
-                            New RecommendedKeyword("Dim", VBFeaturesResources.DimKeywordToolTip))
+                            New RecommendedKeyword("Dim", VBFeaturesResources.Declares_and_allocates_storage_space_for_one_or_more_variables_Dim_var_bracket_As_bracket_New_bracket_dataType_bracket_boundList_bracket_bracket_bracket_initializer_bracket_bracket_var2_bracket))
             End If
 
             If context.IsTypeMemberDeclarationKeywordContext Then
@@ -28,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                    modifiers.MutabilityOrWithEventsKeyword.Kind <> SyntaxKind.ConstKeyword AndAlso
                    modifiers.DimKeyword.Kind = SyntaxKind.None Then
                     Return SpecializedCollections.SingletonEnumerable(
-                                New RecommendedKeyword("Dim", VBFeaturesResources.DimKeywordToolTip))
+                                New RecommendedKeyword("Dim", VBFeaturesResources.Declares_and_allocates_storage_space_for_one_or_more_variables_Dim_var_bracket_As_bracket_New_bracket_dataType_bracket_boundList_bracket_bracket_bracket_initializer_bracket_bracket_var2_bracket))
                 End If
             End If
 

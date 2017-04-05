@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new ObjectInitializerCompletionProvider();
         }
@@ -569,27 +569,25 @@ class d
     }
 }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
+            using (var workspace = TestWorkspace.CreateCSharp(markup))
             {
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
+                var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
-                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
                 var item = completionList.Items.First();
 
-                var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
-                var completionRules = completionService.GetCompletionRules();
-
-                Assert.False(completionRules.SendEnterThroughToEditor(item, string.Empty, workspace.Options), "Expected false from SendEnterThroughToEditor()");
+                Assert.False(Controller.SendEnterThroughToEditor(service.GetRules(), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
             }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestTrigger()
+        public void TestTrigger()
         {
-            await TestCommonIsTextualTriggerCharacterAsync();
+            TestCommonIsTextualTriggerCharacter();
         }
 
         [WorkItem(530828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530828")]
@@ -743,16 +741,43 @@ class Container
             await VerifyItemExistsAsync(markup, "D");
         }
 
+        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObjectInitializerOfGenericTypeConstructedWithInaccessibleType()
+        {
+            var markup = @"
+class Generic<T>
+{
+    public string Value { get; set; }
+}
+
+class Program
+{
+    private class InaccessibleToGeneric
+    {
+
+    }
+
+    static void Main(string[] args)
+    {
+        var g = new Generic<InaccessibleToGeneric> { $$ }
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "Value");
+        }
+
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
+            using (var workspace = TestWorkspace.CreateCSharp(markup))
             {
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
+                var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
-                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
 
                 if (completionList != null)
                 {

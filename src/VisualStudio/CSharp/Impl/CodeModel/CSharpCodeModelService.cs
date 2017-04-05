@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -968,8 +969,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var typeName = SyntaxFactory.ParseTypeName(name);
             if (typeName is PredefinedTypeSyntax)
             {
-                PredefinedType predefinedType;
-                if (SyntaxFactsService.TryGetPredefinedType(((PredefinedTypeSyntax)typeName).Keyword, out predefinedType))
+                if (SyntaxFactsService.TryGetPredefinedType(((PredefinedTypeSyntax)typeName).Keyword, out var predefinedType))
                 {
                     var specialType = predefinedType.ToSpecialType();
                     return semanticModel.Compilation.GetSpecialType(specialType).GetEscapedFullName();
@@ -1477,6 +1477,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return SpecializedCollections.EmptyEnumerable<ParameterSyntax>();
         }
 
+        public override bool IsExpressionBodiedProperty(SyntaxNode node)
+            => (node as PropertyDeclarationSyntax)?.ExpressionBody != null;
+
+        public override bool TryGetAutoPropertyExpressionBody(SyntaxNode parentNode, out SyntaxNode accessorNode)
+        {
+            accessorNode = (parentNode as PropertyDeclarationSyntax)?.ExpressionBody;
+            return accessorNode != null;
+        }
+
         public override bool IsAccessorNode(SyntaxNode node)
         {
             switch (node.Kind())
@@ -1965,6 +1974,34 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             return parameter.WithModifiers(newModifiers);
+        }
+
+        public override EnvDTE80.vsCMParameterKind UpdateParameterKind(EnvDTE80.vsCMParameterKind parameterKind, PARAMETER_PASSING_MODE passingMode)
+        {
+            var updatedParameterKind = parameterKind;
+
+            switch (passingMode)
+            {
+                case PARAMETER_PASSING_MODE.cmParameterTypeIn:
+                    updatedParameterKind |= EnvDTE80.vsCMParameterKind.vsCMParameterKindNone;
+                    updatedParameterKind &= ~EnvDTE80.vsCMParameterKind.vsCMParameterKindRef;
+                    updatedParameterKind &= ~EnvDTE80.vsCMParameterKind.vsCMParameterKindOut;
+                    break;
+
+                case PARAMETER_PASSING_MODE.cmParameterTypeInOut:
+                    updatedParameterKind &= ~EnvDTE80.vsCMParameterKind.vsCMParameterKindNone;
+                    updatedParameterKind |= EnvDTE80.vsCMParameterKind.vsCMParameterKindRef;
+                    updatedParameterKind &= ~EnvDTE80.vsCMParameterKind.vsCMParameterKindOut;
+                    break;
+
+                case PARAMETER_PASSING_MODE.cmParameterTypeOut:
+                    updatedParameterKind &= ~EnvDTE80.vsCMParameterKind.vsCMParameterKindNone;
+                    updatedParameterKind &= ~EnvDTE80.vsCMParameterKind.vsCMParameterKindRef;
+                    updatedParameterKind |= EnvDTE80.vsCMParameterKind.vsCMParameterKindOut;
+                    break;
+            }
+
+            return updatedParameterKind;
         }
 
         public override EnvDTE.vsCMFunction ValidateFunctionKind(SyntaxNode containerNode, EnvDTE.vsCMFunction kind, string name)

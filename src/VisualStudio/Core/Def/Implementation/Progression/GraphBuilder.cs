@@ -115,8 +115,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 _nodeToContextProjectMap.Add(inputNode, project);
 
                 var compilation = await project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-                var symbolId = inputNode[RoslynGraphProperties.SymbolId] as SymbolKey;
-                var symbol = symbolId.Resolve(compilation).Symbol;
+                var symbolId = (SymbolKey?)inputNode[RoslynGraphProperties.SymbolId];
+                var symbol = symbolId.Value.Resolve(compilation).Symbol;
                 if (symbol != null)
                 {
                     _nodeToSymbolMap.Add(inputNode, symbol);
@@ -138,8 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             using (_gate.DisposableWait())
             {
-                Project project;
-                _nodeToContextProjectMap.TryGetValue(node, out project);
+                _nodeToContextProjectMap.TryGetValue(node, out var project);
                 return project;
             }
         }
@@ -154,8 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             using (_gate.DisposableWait())
             {
-                Document document;
-                _nodeToContextDocumentMap.TryGetValue(node, out document);
+                _nodeToContextDocumentMap.TryGetValue(node, out var document);
                 return document;
             }
         }
@@ -164,8 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             using (_gate.DisposableWait())
             {
-                ISymbol symbol;
-                _nodeToSymbolMap.TryGetValue(node, out symbol);
+                _nodeToSymbolMap.TryGetValue(node, out var symbol);
                 return symbol;
             }
         }
@@ -205,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 GraphNode node = await GetOrCreateNodeAsync(_graph, symbol, _solution, _cancellationToken).ConfigureAwait(false);
 
-                node[RoslynGraphProperties.SymbolId] = symbol.GetSymbolKey();
+                node[RoslynGraphProperties.SymbolId] = (SymbolKey?)symbol.GetSymbolKey();
                 node[RoslynGraphProperties.ContextProjectId] = GetContextProjectId(contextProject, symbol);
                 node[RoslynGraphProperties.ExplicitInterfaceImplementations] = symbol.ExplicitInterfaceImplementations().Select(s => s.GetSymbolKey()).ToList();
                 node[RoslynGraphProperties.DeclaredAccessibility] = symbol.DeclaredAccessibility;
@@ -592,7 +589,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(namedType.TypeKind);
             }
 
             node[DgmlNodeProperties.Icon] = IconHelper.GetIconName(iconGroupName, namedType.DeclaredAccessibility);

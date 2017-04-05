@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public bool Equals(CompletionItem x, CompletionItem y)
         {
-            return x.DisplayText == y.DisplayText
-                && x.Glyph == y.Glyph;
+            return x.DisplayText == y.DisplayText && 
+                (x.Tags == y.Tags || System.Linq.Enumerable.SequenceEqual(x.Tags, y.Tags));
         }
 
         public int GetHashCode(CompletionItem obj)
         {
-            return Hash.Combine(obj.DisplayText.GetHashCode(), obj.Glyph.GetHashCode());
+            return Hash.Combine(obj.DisplayText.GetHashCode(), obj.Tags.Length);
         }
     }
 }

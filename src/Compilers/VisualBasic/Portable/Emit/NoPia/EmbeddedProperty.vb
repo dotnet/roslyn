@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -33,33 +34,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property CallingConvention As Cci.CallingConvention
+        Protected Overrides ReadOnly Property UnderlyingPropertySignature As ISignature
             Get
-                Return UnderlyingProperty.CallingConvention
+                Return UnderlyingProperty
             End Get
         End Property
-
-        Protected Overrides ReadOnly Property ReturnValueIsModified As Boolean
-            Get
-                Return UnderlyingProperty.TypeCustomModifiers.Length <> 0
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property ReturnValueCustomModifiers As ImmutableArray(Of Cci.ICustomModifier)
-            Get
-                Return UnderlyingProperty.TypeCustomModifiers.As(Of Cci.ICustomModifier)
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property ReturnValueIsByRef As Boolean
-            Get
-                Return False
-            End Get
-        End Property
-
-        Protected Overrides Function [GetType](moduleBuilder As PEModuleBuilder, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.ITypeReference
-            Return moduleBuilder.Translate(UnderlyingProperty.Type, syntaxNodeOpt, diagnostics)
-        End Function
 
         Protected Overrides ReadOnly Property ContainingType As EmbeddedType
             Get

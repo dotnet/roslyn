@@ -206,29 +206,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(current, indirections);
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
-            return this.Equals(t2 as PointerTypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+            return this.Equals(t2 as PointerTypeSymbol, comparison);
         }
 
         internal bool Equals(PointerTypeSymbol other)
         {
-            return this.Equals(other, false, false);
+            return this.Equals(other, TypeCompareKind.IgnoreTupleNames);
         }
 
-        private bool Equals(PointerTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        private bool Equals(PointerTypeSymbol other, TypeCompareKind comparison)
         {
             if (ReferenceEquals(this, other))
             {
                 return true;
             }
 
-            if ((object)other == null || !other._pointedAtType.TypeSymbol.Equals(_pointedAtType.TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+            if ((object)other == null || !other._pointedAtType.TypeSymbol.Equals(_pointedAtType.TypeSymbol, comparison))
             {
                 return false;
             }
 
-            if (!ignoreCustomModifiersAndArraySizesAndLowerBounds)
+            if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0)
             {
                 // Make sure custom modifiers are the same.
                 var mod = this.PointedAtType.CustomModifiers;

@@ -130,7 +130,7 @@
     <value>Could not take screenshot for process {0}.</value>
   </data>
   <data name="ErrorFormat" xml:space="preserve">
-    <value>Error: {0}</value>
+    <value>Error {0}: {1}</value>
   </data>
   <data name="ErrorInvalidPollingInterval" xml:space="preserve">
     <value>The value {0} is not a valid polling interval. Please specify the polling interval as a positive number of milliseconds.</value>

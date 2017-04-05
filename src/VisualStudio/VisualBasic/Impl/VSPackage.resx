@@ -179,4 +179,11 @@
     <value>General</value>
     <comment>"General" node under Tools &gt;Options &gt;Basic editor &gt;Code Style.</comment>
   </data>
+  <data name="112" xml:space="preserve">
+    <value>IntelliSense</value>
+  </data>
+  <data name="312" xml:space="preserve">
+    <value>Change completion list settings;Pre-select most recently used member</value>
+    <comment>IntelliSense options page keywords</comment>
+  </data>
 </root>

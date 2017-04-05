@@ -82,5 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool MustCallMethodsDirectly { get { return false; } }
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations { get { return ImmutableArray<PropertySymbol>.Empty; } }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return ImmutableArray<CustomModifier>.Empty; } }
     }
 }

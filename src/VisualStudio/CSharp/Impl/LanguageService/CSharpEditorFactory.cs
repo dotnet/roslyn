@@ -1,12 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
@@ -20,15 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
         }
 
-        protected override string ContentTypeName
-        {
-            get { return "CSharp"; }
-        }
-
-        protected override IList<TextChange> GetFormattedTextChanges(VisualStudioWorkspace workspace, string filePath, SourceText text, CancellationToken cancellationToken)
-        {
-            var root = SyntaxFactory.ParseSyntaxTree(text, path: filePath, cancellationToken: cancellationToken).GetRoot(cancellationToken);
-            return Formatter.GetFormattedTextChanges(root, workspace, cancellationToken: cancellationToken);
-        }
+        protected override string ContentTypeName => ContentTypeNames.CSharpContentType;
+        protected override string LanguageName => LanguageNames.CSharp;
     }
 }

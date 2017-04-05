@@ -9,9 +9,9 @@ namespace Roslyn.Utilities
     {
         private partial class Empty
         {
-            internal class Set<T> : Collection<T>, ISet<T>
+            internal class Set<T> : Collection<T>, ISet<T>, IReadOnlySet<T>
             {
-                public static readonly new ISet<T> Instance = new Set<T>();
+                public static readonly new Set<T> Instance = new Set<T>();
 
                 protected Set()
                 {
@@ -19,62 +19,57 @@ namespace Roslyn.Utilities
 
                 public new bool Add(T item)
                 {
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
                 }
 
                 public void ExceptWith(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
                 }
 
                 public void IntersectWith(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
                 }
 
                 public bool IsProperSubsetOf(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    return !other.IsEmpty();
                 }
 
                 public bool IsProperSupersetOf(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    return false;
                 }
 
                 public bool IsSubsetOf(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    return true;
                 }
 
                 public bool IsSupersetOf(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    return other.IsEmpty();
                 }
 
                 public bool Overlaps(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    return false;
                 }
 
                 public bool SetEquals(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    return other.IsEmpty();
                 }
 
                 public void SymmetricExceptWith(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
                 }
 
                 public void UnionWith(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
-                }
-
-                public new System.Collections.IEnumerator GetEnumerator()
-                {
-                    return Set<T>.Instance.GetEnumerator();
+                    throw new NotSupportedException();
                 }
             }
         }

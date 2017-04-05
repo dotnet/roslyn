@@ -9,9 +9,10 @@ namespace Microsoft.CodeAnalysis.Editor
     {
         public CompletionItem CompletionItem { get; }
 
-        public CompletionItemEventArgs(CompletionItem completionItem)
+        public CompletionItemEventArgs(
+            CompletionItem completionItem)
         {
-            this.CompletionItem = completionItem;
+            CompletionItem = completionItem;
         }
     }
 }

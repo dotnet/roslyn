@@ -1,6 +1,10 @@
 {
-  "dependencies": { },
+  "dependencies": {
+    "EnvDTE": "8.0.0",
+    "EnvDTE80": "8.0.0",
+    "Microsoft.VisualStudio.Editor": "15.0.26201-alpha"
+  },
   "frameworks": {
-    "net46": { }
+    "net46": {}
   }
 }

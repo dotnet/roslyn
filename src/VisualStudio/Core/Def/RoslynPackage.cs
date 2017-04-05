@@ -10,27 +10,34 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
+using Microsoft.VisualStudio.LanguageServices.Packaging;
+using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Task = System.Threading.Tasks.Task;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
+using Task = System.Threading.Tasks.Task;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Telemetry;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
     [Guid(Guids.RoslynPackageIdString)]
     [PackageRegistration(UseManagedResourcesOnly = true)]
-    [ProvideMenuResource("Menus.ctmenu", version: 13)]
-    internal class RoslynPackage : Package
+    [ProvideMenuResource("Menus.ctmenu", version: 16)]
+    internal class RoslynPackage : AbstractPackage
     {
         private LibraryManager _libraryManager;
         private uint _libraryManagerCookie;
@@ -44,10 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             base.Initialize();
 
-            // Assume that we are being initialized on the UI thread at this point.
-            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = ForegroundThreadData.CreateDefault(defaultKind: ForcedByPackageInitialize);
-            Debug.Assert(ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind != Unknown);
-
             FatalError.Handler = FailFast.OnFatalException;
             FatalError.NonFatalHandler = WatsonReporter.Report;
 
@@ -59,18 +62,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var method = compilerFailFast.GetMethod(nameof(FailFast.OnFatalException), BindingFlags.Static | BindingFlags.NonPublic);
             property.SetValue(null, Delegate.CreateDelegate(property.PropertyType, method));
 
-            InitializePortableShim(compilerAssembly);
-
             RegisterFindResultsLibraryManager();
 
             var componentModel = (IComponentModel)this.GetService(typeof(SComponentModel));
             _workspace = componentModel.GetService<VisualStudioWorkspace>();
 
-            var telemetrySetupExtensions = componentModel.GetExtensions<IRoslynTelemetrySetup>();
-            foreach (var telemetrySetup in telemetrySetupExtensions)
-            {
-                telemetrySetup.Initialize(this);
-            }
+            // Ensure the options persisters are loaded since we have to fetch options from the shell
+            componentModel.GetExtensions<IOptionPersister>();
+
+            RoslynTelemetrySetup.Initialize(this);
 
             // set workspace output pane
             _outputPane = new WorkspaceFailureOutputPane(this, _workspace);
@@ -78,28 +78,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             InitializeColors();
 
             // load some services that have to be loaded in UI thread
-            LoadComponentsInUIContext();
+            LoadComponentsInUIContextOnceSolutionFullyLoaded();
 
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
-        }
-
-        private static void InitializePortableShim(Assembly compilerAssembly)
-        {
-            // We eagerly force all of the types to be loaded within the PortableShim because there are scenarios
-            // in which loading types can trigger the current AppDomain's AssemblyResolve or TypeResolve events.
-            // If handlers of those events do anything that would cause PortableShim to be accessed recursively,
-            // bad things can happen. In particular, this fixes the scenario described in TFS bug #1185842.
-            //
-            // Note that the fix below is written to be as defensive as possible to do no harm if it impacts other
-            // scenarios.
-
-            // Initialize the PortableShim linked into the Workspaces layer.
-            Roslyn.Utilities.PortableShim.Initialize();
-
-            // Initialize the PortableShim linked into the Compilers layer via reflection.
-            var compilerPortableShim = compilerAssembly.GetType("Roslyn.Utilities.PortableShim", throwOnError: false);
-            var initializeMethod = compilerPortableShim?.GetMethod(nameof(Roslyn.Utilities.PortableShim.Initialize), BindingFlags.Static | BindingFlags.NonPublic);
-            initializeMethod?.Invoke(null, null);
         }
 
         private void InitializeColors()
@@ -115,33 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
         }
 
-        private void LoadComponentsInUIContext()
-        {
-            if (KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
-            {
-                // if we are already in the right UI context, load it right away
-                LoadComponents();
-            }
-            else
-            {
-                // load them when it is a right context.
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged += OnSolutionExistsAndFullyLoadedContext;
-            }
-        }
-
-        private void OnSolutionExistsAndFullyLoadedContext(object sender, UIContextChangedEventArgs e)
-        {
-            if (e.Activated)
-            {
-                // unsubscribe from it
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged -= OnSolutionExistsAndFullyLoadedContext;
-
-                // load components
-                LoadComponents();
-            }
-        }
-
-        private void LoadComponents()
+        protected override void LoadComponentsInUIContext()
         {
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
@@ -150,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
 
             this.ComponentModel.GetService<HACK_ThemeColorFixer>();
-            this.ComponentModel.GetExtensions<IReferencedSymbolsPresenter>();
+            this.ComponentModel.GetExtensions<IDefinitionsAndReferencesPresenter>();
             this.ComponentModel.GetExtensions<INavigableItemsPresenter>();
             this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>();
             this.ComponentModel.GetService<VirtualMemoryNotificationListener>();
@@ -160,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
             LoadAnalyzerNodeComponents();
-
+            
             Task.Run(() => LoadComponentsBackground());
         }
 
@@ -204,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             UnregisterFindResultsLibraryManager();
 
-            DisposeVisualStudioDocumentTrackingService();
+            DisposeVisualStudioServices();
 
             UnregisterAnalyzerTracker();
             UnregisterRuleSetEventHandler();
@@ -258,12 +213,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             }
         }
 
-        private void DisposeVisualStudioDocumentTrackingService()
+        private void DisposeVisualStudioServices()
         {
             if (_workspace != null)
             {
                 var documentTrackingService = _workspace.Services.GetService<IDocumentTrackingService>() as VisualStudioDocumentTrackingService;
                 documentTrackingService.Dispose();
+
+                _workspace.Services.GetService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
             }
         }
 

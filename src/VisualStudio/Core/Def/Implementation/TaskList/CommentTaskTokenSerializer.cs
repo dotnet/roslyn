@@ -1,19 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Composition;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
-    [ExportOptionSerializer(TodoCommentOptions.OptionName), Shared]
-    internal class CommentTaskTokenSerializer : IOptionSerializer
+    [Export(typeof(IOptionPersister))]
+    internal class CommentTaskTokenSerializer : IOptionPersister
     {
         private readonly ITaskList _taskList;
         private readonly IOptionService _optionService;
@@ -22,14 +21,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         [ImportingConstructor]
         public CommentTaskTokenSerializer(
-            SVsServiceProvider serviceProvider, IOptionService optionService)
+            VisualStudioWorkspace workspace,
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
-            _optionService = optionService;
+            _optionService = workspace.Services.GetService<IOptionService>();
 
+            // The SVsTaskList may not be available or doesn't actually implement ITaskList
+            // in the "devenv /build" scenario
             _taskList = serviceProvider.GetService(typeof(SVsTaskList)) as ITaskList;
+
+            // GetTaskTokenList is safe in the face of nulls
             _lastCommentTokenCache = GetTaskTokenList(_taskList);
 
-            // The SVsTaskList may not be available (e.g. during "devenv /build")
             if (_taskList != null)
             {
                 _taskList.PropertyChanged += OnPropertyChanged;

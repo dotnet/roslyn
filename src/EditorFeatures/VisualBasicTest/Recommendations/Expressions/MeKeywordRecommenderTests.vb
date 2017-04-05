@@ -1,5 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Completion.Providers
+
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class MeKeywordRecommenderTests
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -196,6 +198,24 @@ End Class|</File>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MeInNameOf2Test() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Dim s = NameOf(System.|</MethodBody>, "Me")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function Preselection() As Task
+            Dim code =
+<File>
+Class Program
+    Sub Main(args As String())
+        Foo(|)
+    End Sub
+
+    Sub Foo(x As Program)
+
+    End Sub
+End Class
+</File>
+
+            Await VerifyRecommendationsWithPriority(code, SymbolMatchPriority.Keyword, "Me")
         End Function
     End Class
 End Namespace

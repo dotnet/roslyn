@@ -96,5 +96,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Check whether given <see cref="DiagnosticAnalyzer"/> is compiler analyzer for the language or not.
         /// </summary>
         bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer);
+
+        /// <summary>
+        /// Return host <see cref="AnalyzerReference"/>s. (ex, analyzers installed by vsix)
+        /// </summary>
+        IEnumerable<AnalyzerReference> GetHostAnalyzerReferences();
     }
 }

@@ -23,12 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
             public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
             {
                 node = (CompilationUnitSyntax)base.VisitCompilationUnit(node);
-
-                SyntaxList<ExternAliasDirectiveSyntax> organizedExternAliasList;
-                SyntaxList<UsingDirectiveSyntax> organizedUsingList;
                 UsingsAndExternAliasesOrganizer.Organize(
                     node.Externs, node.Usings, _placeSystemNamespaceFirst,
-                    out organizedExternAliasList, out organizedUsingList);
+                    out var organizedExternAliasList, out var organizedUsingList);
 
                 var result = node.WithExterns(organizedExternAliasList).WithUsings(organizedUsingList);
                 if (node != result)
@@ -43,12 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
             public override SyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             {
                 node = (NamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node);
-
-                SyntaxList<ExternAliasDirectiveSyntax> organizedExternAliasList;
-                SyntaxList<UsingDirectiveSyntax> organizedUsingList;
                 UsingsAndExternAliasesOrganizer.Organize(
                     node.Externs, node.Usings, _placeSystemNamespaceFirst,
-                    out organizedExternAliasList, out organizedUsingList);
+                    out var organizedExternAliasList, out var organizedUsingList);
 
                 var result = node.WithExterns(organizedExternAliasList).WithUsings(organizedUsingList);
                 if (node != result)

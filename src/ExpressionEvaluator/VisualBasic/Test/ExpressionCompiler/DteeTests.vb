@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols

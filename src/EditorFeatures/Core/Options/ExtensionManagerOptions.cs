@@ -6,9 +6,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 {
     internal partial class ExtensionManagerOptions
     {
-        public const string FeatureName = "ExtensionManager";
-
         [ExportOption]
-        public static readonly Option<bool> DisableCrashingExtensions = new Option<bool>(FeatureName, "DisableCrashingExtensions", defaultValue: true);
+        public static readonly Option<bool> DisableCrashingExtensions = new Option<bool>(nameof(ExtensionManagerOptions), nameof(DisableCrashingExtensions), defaultValue: true);
     }
 }

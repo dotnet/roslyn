@@ -1,173 +1,168 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition.Hosting
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion.Sessions
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
-Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletion
     Public Class AutomaticStringLiteralCompletionTests
         Inherits AbstractAutomaticBraceCompletionTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestCreation() As Task
-            Using session = Await CreateSessionAsync("$$")
+        Public Sub TestCreation()
+            Using session = CreateSession("$$")
                 Assert.NotNull(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestString_TopLevel() As Task
-            Using session = Await CreateSessionAsync("$$")
-                Assert.NotNull(session)
-                CheckStart(session.Session, expectValidSession:=False)
-            End Using
-        End Function
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestString_TopLevel2() As Task
-            Using session = Await CreateSessionAsync("Imports System$$")
+        Public Sub TestString_TopLevel()
+            Using session = CreateSession("$$")
                 Assert.NotNull(session)
                 CheckStart(session.Session, expectValidSession:=False)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_String() As Task
+        Public Sub TestString_TopLevel2()
+            Using session = CreateSession("Imports System$$")
+                Assert.NotNull(session)
+                CheckStart(session.Session, expectValidSession:=False)
+            End Using
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        Public Sub TestInvalidLocation_String()
             Dim code = <code>Class C
     Dim s As String = "$$
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_Comment() As Task
+        Public Sub TestInvalidLocation_Comment()
             Dim code = <code>Class C
     ' $$
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestInvalidLocation_DocComment() As Task
+        Public Sub TestInvalidLocation_DocComment()
             Dim code = <code>Class C
     ''' $$
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.Null(session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestString_Tab() As Task
+        Public Sub TestString_Tab()
             Dim code = <code>Class C
     Sub Method()
         Dim a = $$
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 CheckTab(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestString_Quotation() As Task
+        Public Sub TestString_Quotation()
             Dim code = <code>Class C
     Sub Method()
         Dim a = $$
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 CheckOverType(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestString_Backspace() As Task
+        Public Sub TestString_Backspace()
             Dim code = <code>Class C
     Sub Method()
         Dim a = $$
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 CheckBackspace(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestProprocessor_Backspace() As Task
+        Public Sub TestProprocessor_Backspace()
             Dim code = <code>Class C
     Sub Method()
         #Region $$
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 CheckBackspace(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestProprocessor_Tab() As Task
+        Public Sub TestProprocessor_Tab()
             Dim code = <code>Class C
     Sub Method()
         #Region $$
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 CheckTab(session.Session)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Async Function TestProprocessor_EndPoint() As Task
+        Public Sub TestProprocessor_EndPoint()
             Dim code = <code>Class C
     Sub Method()
         #Region $$
     End Sub
 End Class</code>
 
-            Using session = Await CreateSessionAsync(code)
+            Using session = CreateSession(code)
                 Assert.NotNull(session)
                 CheckStart(session.Session)
                 CheckOverType(session.Session)
             End Using
+        End Sub
+
+        Friend Overloads Function CreateSession(code As XElement) As Holder
+            Return CreateSession(code.NormalizedValue())
         End Function
 
-        Friend Overloads Function CreateSessionAsync(code As XElement) As Threading.Tasks.Task(Of Holder)
-            Return CreateSessionAsync(code.NormalizedValue())
-        End Function
-
-        Friend Overloads Async Function CreateSessionAsync(code As String) As Threading.Tasks.Task(Of Holder)
+        Friend Overloads Function CreateSession(code As String) As Holder
             Return CreateSession(
-                Await TestWorkspace.CreateVisualBasicAsync(code),
+                TestWorkspace.CreateVisualBasic(code),
                 BraceCompletionSessionProvider.DoubleQuote.OpenCharacter, BraceCompletionSessionProvider.DoubleQuote.CloseCharacter)
         End Function
     End Class

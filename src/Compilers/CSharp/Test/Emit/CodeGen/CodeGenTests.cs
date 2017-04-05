@@ -14835,5 +14835,689 @@ class Program
   IL_0086:  ret
 }");
         }
+
+        [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
+        [Fact]
+        public void FieldInitializerDynamic()
+        {
+            string source = @"
+using System;
+
+class M
+{
+    object a = Test((dynamic)2);
+
+    static object Test(object obj) => obj;
+
+    static void Main()
+    {
+        Console.Write(new M().a);
+    }
+}
+";
+
+            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
+
+            // the main point of this test is to have it PEVerify/run correctly, although checking IL too can't hurt.
+            compilation.VerifyIL("M..ctor",
+@"{
+  // Code size      115 (0x73)
+  .maxstack  10
+  IL_0000:  ldarg.0
+  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0006:  brtrue.s   IL_0043
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldstr      ""Test""
+  IL_000e:  ldnull
+  IL_000f:  ldtoken    ""M""
+  IL_0014:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0019:  ldc.i4.2
+  IL_001a:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_001f:  dup
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldc.i4.s   33
+  IL_0023:  ldnull
+  IL_0024:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0029:  stelem.ref
+  IL_002a:  dup
+  IL_002b:  ldc.i4.1
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldnull
+  IL_002e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0033:  stelem.ref
+  IL_0034:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0039:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_003e:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0048:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Target""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0052:  ldtoken    ""M""
+  IL_0057:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_005c:  ldc.i4.2
+  IL_005d:  box        ""int""
+  IL_0062:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)""
+  IL_0067:  stfld      ""object M.a""
+  IL_006c:  ldarg.0
+  IL_006d:  call       ""object..ctor()""
+  IL_0072:  ret
+}");
+        }
+
+        [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
+        [Fact]
+        public void FieldInitializerDynamicParameter()
+        {
+            string source = @"
+using System;
+
+class M
+{
+    // inner call is dynamic parameter, static argument
+    // outer call is dynamic parameter, dynamic argument
+    object a = Test(Test(2));
+
+    static dynamic Test(dynamic obj) => obj;
+
+    static void Main()
+    {
+        Console.Write(new M().a);
+    }
+}
+";
+
+            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
+
+            compilation.VerifyIL("M..ctor",
+@"{
+  // Code size      120 (0x78)
+  .maxstack  10
+  IL_0000:  ldarg.0
+  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0006:  brtrue.s   IL_0043
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldstr      ""Test""
+  IL_000e:  ldnull
+  IL_000f:  ldtoken    ""M""
+  IL_0014:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0019:  ldc.i4.2
+  IL_001a:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_001f:  dup
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldc.i4.s   33
+  IL_0023:  ldnull
+  IL_0024:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0029:  stelem.ref
+  IL_002a:  dup
+  IL_002b:  ldc.i4.1
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldnull
+  IL_002e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0033:  stelem.ref
+  IL_0034:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0039:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_003e:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0048:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Target""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0052:  ldtoken    ""M""
+  IL_0057:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_005c:  ldc.i4.2
+  IL_005d:  box        ""int""
+  IL_0062:  call       ""dynamic M.Test(dynamic)""
+  IL_0067:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)""
+  IL_006c:  stfld      ""object M.a""
+  IL_0071:  ldarg.0
+  IL_0072:  call       ""object..ctor()""
+  IL_0077:  ret
+}");
+        }
+
+        [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
+        [Fact]
+        public void FieldInitializerDynamicInstance()
+        {
+            string source = @"
+using System;
+
+class M
+{
+    object a = Test((dynamic)2);
+
+    object Test(object obj) => obj;
+
+    static void Main()
+    {
+        Console.Write(new M().a);
+    }
+}
+";
+
+            // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
+            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
+                // (6,16): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
+                //     object a = Test((dynamic)2);
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(6, 16)
+            );
+        }
+
+        [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
+        [Fact]
+        public void FieldInitializerDynamicBothStaticInstance()
+        {
+            string source = @"
+using System;
+
+class M
+{
+    object a = Test((dynamic)2L);
+    object b = Test((dynamic)2);
+
+    static object Test(long obj)
+    {
+        Console.Write(""long."");
+        return obj;
+    }
+
+    object Test(int obj)
+    {
+        Console.Write(""int."");
+        return obj;
+    }
+
+    static void Main()
+    {
+        try
+        {
+            Console.Write(new M().a);
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException ex)
+        {
+            Console.Write(""ex caught"");
+        }
+    }
+}
+";
+
+            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
+        }
+
+        [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
+        [Fact]
+        public void CtorInitializerInstance()
+        {
+            string source = @"
+using System;
+
+class B
+{
+    public object a;
+
+    public B(object obj)
+    {
+        this.a = obj;
+    }
+}
+
+class M : B
+{
+    public M() : base((object)Test((dynamic)2))
+    {
+    }
+
+    object Test(object obj)
+    {
+        return obj;
+    }
+
+    static void Main()
+    {
+        try
+        {
+            Console.Write(new M().a);
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException ex)
+        {
+            Console.Write(ex.Message);
+        }
+    }
+}
+";
+
+            // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
+            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
+                // (16,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
+                //     public M() : base((object)Test((dynamic)2))
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(16, 31)
+            );
+        }
+
+        [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
+        [Fact]
+        public void StaticCtorInstance()
+        {
+            string source = @"
+using System;
+
+class M
+{
+    static M()
+    {
+        Console.Write((object)Test((dynamic)2));
+    }
+
+    object Test(object obj)
+    {
+        return obj;
+    }
+
+    static void Main()
+    {
+    }
+}
+";
+
+            // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
+            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
+                // (8,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
+                //         Console.Write((object)Test((dynamic)2));
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(8, 31)
+            );
+        }
+
+        [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
+        [Fact]
+        public void StaticFieldInstance()
+        {
+            string source = @"
+class M
+{
+    static object o = (object)Test((dynamic)2);
+
+    object Test(object obj)
+    {
+        return obj;
+    }
+
+    static void Main()
+    {
+    }
+}
+";
+
+            // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
+            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
+                // (4,31): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
+                //     static object o = (object)Test((dynamic)2);
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(4, 31)
+            );
+        }
+
+        [Fact]
+        public void CallingInstanceDynamicallyFromStaticContext()
+        {
+            string source = @"
+class B
+{
+    public B(int x)
+    {
+    }
+}
+
+class C : B
+{
+    int InstanceMethod(int x)
+    {
+        return x;
+    }
+
+    static int field = (int)InstanceMethod((dynamic)2);
+    static int Property
+    {
+        get
+        {
+            return (int)InstanceMethod((dynamic)2);
+        }
+    }
+    static int Method()
+    {
+        return (int)InstanceMethod((dynamic)2);
+    }
+
+    // these are all still static contexts, even though they're related to instance things
+    int instanceField = (int)InstanceMethod((dynamic)2);
+    public C(int x) : base((int)InstanceMethod((dynamic)x))
+    {
+    }
+    public C() : this((int)InstanceMethod((dynamic)2))
+    {
+    }
+}
+
+class M
+{
+    static void Main()
+    {
+        // attempting to even load C will cause runtime errors in all cases of calling C.InstanceMethod
+        System.Console.Write(5);
+    }
+}
+";
+
+            // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
+            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
+                // (16,29): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.InstanceMethod(int)'
+                //     static int field = (int)InstanceMethod((dynamic)2);
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
+                // (30,30): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.InstanceMethod(int)'
+                //     int instanceField = (int)InstanceMethod((dynamic)2);
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
+                // (21,25): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
+                //             return (int)InstanceMethod((dynamic)2);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
+                // (26,21): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
+                //         return (int)InstanceMethod((dynamic)2);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
+                // (31,33): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
+                //     public C(int x) : base((int)InstanceMethod((dynamic)x))
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)x)").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
+                // (34,28): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
+                //     public C() : this((int)InstanceMethod((dynamic)2))
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
+            );
+        }
+
+        [Fact]
+        public void CallingInstanceDynamicallyFromStaticContextWithTypeName()
+        {
+            // Very similar to CallingInstanceDynamicallyFromStaticContext, but every call to `InstanceMethod` is now `C.InstanceMethod`
+            // The native compiler allows both cases, so it's an interesting backcompat case:
+            // The spec (as of 2016-05-13, it may be changed) explicitly disallows `C.InstanceMethod`,
+            // but doesn't say for just `InstanceMethod` (in a way that implies it should be allowed).
+            // Roslyn disallows both cases.
+            string source = @"
+class B
+{
+    public B(int x)
+    {
+    }
+}
+
+class C : B
+{
+    int InstanceMethod(int x)
+    {
+        return x;
+    }
+
+    static int field = (int)C.InstanceMethod((dynamic)2);
+    static int Property
+    {
+        get
+        {
+            return (int)C.InstanceMethod((dynamic)2);
+        }
+    }
+    static int Method()
+    {
+        return (int)C.InstanceMethod((dynamic)2);
+    }
+
+    // these are all still static contexts, even though they're related to instance things
+    int instanceField = (int)C.InstanceMethod((dynamic)2);
+    public C(int x) : base((int)C.InstanceMethod((dynamic)x))
+    {
+    }
+    public C() : this((int)C.InstanceMethod((dynamic)2))
+    {
+    }
+}
+
+class M
+{
+    static void Main()
+    {
+        // attempting to even load C will cause runtime errors in all cases of calling C.InstanceMethod
+        System.Console.Write(5);
+    }
+}
+";
+
+            // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
+            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
+                // (16,29): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
+                //     static int field = (int)C.InstanceMethod((dynamic)2);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
+                // (30,30): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
+                //     int instanceField = (int)C.InstanceMethod((dynamic)2);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
+                // (21,25): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
+                //             return (int)C.InstanceMethod((dynamic)2);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
+                // (26,21): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
+                //         return (int)C.InstanceMethod((dynamic)2);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
+                // (31,33): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
+                //     public C(int x) : base((int)C.InstanceMethod((dynamic)x))
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)x)").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
+                // (34,28): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
+                //     public C() : this((int)C.InstanceMethod((dynamic)2))
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
+            );
+        }
+
+        [Fact, WorkItem(13486, "https://github.com/dotnet/roslyn/issues/13486")]
+        public void BinaryMulOptimizationsAndSideeffects()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // should not optimize
+        System.Console.WriteLine(Foo1() * 0);
+        System.Console.WriteLine(0 * Foo1());
+
+        // should optimize
+        var local = 123;
+        System.Console.WriteLine(local * 0);
+        System.Console.WriteLine(0 * default(int?));
+        System.Console.WriteLine(0 * local);
+
+        // should not capture
+        System.Console.WriteLine(((Func<int>)(()=>local * 0))());
+
+        // should not optimize
+        System.Console.WriteLine(Foo2() & false);
+        System.Console.WriteLine(false & Foo2());
+
+        // should optimize
+        var local1 = true;
+        System.Console.WriteLine(local1 & false);
+        System.Console.WriteLine(false & default(bool?));
+        System.Console.WriteLine(false & ((bool?)local1).HasValue);
+        System.Console.WriteLine(false & local1);
+
+        // should optimize
+        System.Console.WriteLine(Foo2() && false);
+        System.Console.WriteLine(Foo2() && true);
+        System.Console.WriteLine(false && Foo2());
+        System.Console.WriteLine(true && Foo2());
+        System.Console.WriteLine(Foo2() || false);
+        System.Console.WriteLine(Foo2() || true);
+        System.Console.WriteLine(false || Foo2());
+        System.Console.WriteLine(true || Foo2());
+    }
+
+    static int Foo1()
+    {
+        System.Console.Write(""Foo1 "");
+        return 42;
+    }
+
+    static bool Foo2()
+    {
+        System.Console.Write(""Foo2 "");
+        return true;
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+Foo1 0
+Foo1 0
+0
+
+0
+0
+Foo2 False
+Foo2 False
+False
+False
+False
+False
+Foo2 False
+Foo2 True
+False
+Foo2 True
+Foo2 True
+Foo2 True
+Foo2 True
+True
+");
+
+            compilation.VerifyIL("Program.Main",
+    @"
+{
+  // Code size      221 (0xdd)
+  .maxstack  2
+  IL_0000:  call       ""int Program.Foo1()""
+  IL_0005:  pop
+  IL_0006:  ldc.i4.0
+  IL_0007:  call       ""void System.Console.WriteLine(int)""
+  IL_000c:  call       ""int Program.Foo1()""
+  IL_0011:  pop
+  IL_0012:  ldc.i4.0
+  IL_0013:  call       ""void System.Console.WriteLine(int)""
+  IL_0018:  ldc.i4.0
+  IL_0019:  call       ""void System.Console.WriteLine(int)""
+  IL_001e:  ldnull
+  IL_001f:  call       ""void System.Console.WriteLine(object)""
+  IL_0024:  ldc.i4.0
+  IL_0025:  call       ""void System.Console.WriteLine(int)""
+  IL_002a:  ldsfld     ""System.Func<int> Program.<>c.<>9__0_0""
+  IL_002f:  dup
+  IL_0030:  brtrue.s   IL_0049
+  IL_0032:  pop
+  IL_0033:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0038:  ldftn      ""int Program.<>c.<Main>b__0_0()""
+  IL_003e:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_0043:  dup
+  IL_0044:  stsfld     ""System.Func<int> Program.<>c.<>9__0_0""
+  IL_0049:  callvirt   ""int System.Func<int>.Invoke()""
+  IL_004e:  call       ""void System.Console.WriteLine(int)""
+  IL_0053:  call       ""bool Program.Foo2()""
+  IL_0058:  pop
+  IL_0059:  ldc.i4.0
+  IL_005a:  call       ""void System.Console.WriteLine(bool)""
+  IL_005f:  call       ""bool Program.Foo2()""
+  IL_0064:  pop
+  IL_0065:  ldc.i4.0
+  IL_0066:  call       ""void System.Console.WriteLine(bool)""
+  IL_006b:  ldc.i4.0
+  IL_006c:  call       ""void System.Console.WriteLine(bool)""
+  IL_0071:  ldc.i4.0
+  IL_0072:  box        ""bool""
+  IL_0077:  call       ""void System.Console.WriteLine(object)""
+  IL_007c:  ldc.i4.0
+  IL_007d:  call       ""void System.Console.WriteLine(bool)""
+  IL_0082:  ldc.i4.0
+  IL_0083:  call       ""void System.Console.WriteLine(bool)""
+  IL_0088:  call       ""bool Program.Foo2()""
+  IL_008d:  brfalse.s  IL_0092
+  IL_008f:  ldc.i4.0
+  IL_0090:  br.s       IL_0093
+  IL_0092:  ldc.i4.0
+  IL_0093:  call       ""void System.Console.WriteLine(bool)""
+  IL_0098:  call       ""bool Program.Foo2()""
+  IL_009d:  call       ""void System.Console.WriteLine(bool)""
+  IL_00a2:  ldc.i4.0
+  IL_00a3:  call       ""void System.Console.WriteLine(bool)""
+  IL_00a8:  call       ""bool Program.Foo2()""
+  IL_00ad:  call       ""void System.Console.WriteLine(bool)""
+  IL_00b2:  call       ""bool Program.Foo2()""
+  IL_00b7:  call       ""void System.Console.WriteLine(bool)""
+  IL_00bc:  call       ""bool Program.Foo2()""
+  IL_00c1:  brtrue.s   IL_00c6
+  IL_00c3:  ldc.i4.1
+  IL_00c4:  br.s       IL_00c7
+  IL_00c6:  ldc.i4.1
+  IL_00c7:  call       ""void System.Console.WriteLine(bool)""
+  IL_00cc:  call       ""bool Program.Foo2()""
+  IL_00d1:  call       ""void System.Console.WriteLine(bool)""
+  IL_00d6:  ldc.i4.1
+  IL_00d7:  call       ""void System.Console.WriteLine(bool)""
+  IL_00dc:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(0, "http://stackoverflow.com/questions/39254676/roslyn-compiler-optimizing-away-function-call-multiplication-with-zero?stw=2")]
+        public void SideEffectOptimizedAway()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Stack<long> s = new Stack<long>();
+
+        s.Push(1);           // stack contains [1]
+        s.Push(s.Pop() * 0); // stack should contain [0]
+
+        Console.WriteLine(string.Join(""|"", s.Reverse()));
+    }
+}
+";
+            CompileAndVerify(source, additionalRefs: new[] { SystemRef, SystemCoreRef },
+                expectedOutput: "0");
+        }
+
+        [Fact, WorkItem(9703, "https://github.com/dotnet/roslyn/issues/9703")]
+        public void IgnoredConversion()
+        {
+            string source = @"
+using System;
+
+public class Form1 {
+    public class BadCompiler {
+        public DateTime? Value {get; set;}
+    }
+
+    private BadCompiler TestObj = new BadCompiler();
+
+    public void IPE() {
+        object o;
+        o = TestObj.Value;
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("Form1.IPE", @"
+{
+    // Code size       13 (0xd)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      ""Form1.BadCompiler Form1.TestObj""
+    IL_0006:  callvirt   ""System.DateTime? Form1.BadCompiler.Value.get""
+    IL_000b:  pop
+    IL_000c:  ret
+}");
+        }
+
     }
 }

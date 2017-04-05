@@ -53,14 +53,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variablesDeclared = null;
         }
 
-        public override BoundNode VisitDeclarationPattern(BoundDeclarationPattern node)
+        public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
         {
-            if (IsInside)
+            base.VisitPattern(expression, pattern);
+            NoteDeclaredPatternVariables(pattern);
+        }
+
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
+        {
+            foreach (var label in node.SwitchLabels)
             {
-                _variablesDeclared.Add(node.LocalSymbol);
+                NoteDeclaredPatternVariables(label.Pattern);
             }
 
-            return base.VisitDeclarationPattern(node);
+            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+        }
+
+        /// <summary>
+        /// Record declared variables in the pattern.
+        /// </summary>
+        private void NoteDeclaredPatternVariables(BoundPattern pattern)
+        {
+            if (IsInside && pattern.Kind == BoundKind.DeclarationPattern)
+            {
+                var decl = (BoundDeclarationPattern)pattern;
+                // The variable may be null if it is a discard designation `_`.
+                if (decl.Variable?.Kind == SymbolKind.Local)
+                {
+                    // Because this API only returns local symbols and parameters,
+                    // we exclude pattern variables that have become fields in scripts.
+                    _variablesDeclared.Add(decl.Variable);
+                }
+            }
         }
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
@@ -99,26 +123,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLocalFunctionStatement(node);
         }
 
-        public override BoundNode VisitForEachStatement(BoundForEachStatement node)
+        public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
             if (IsInside)
             {
-                _variablesDeclared.Add(node.IterationVariable);
+                var deconstructionAssignment = node.DeconstructionOpt?.DeconstructionAssignment;
+
+                if (deconstructionAssignment == null)
+                {
+                    // regular, not deconstructing, foreach declares exactly one iteration variable
+                    _variablesDeclared.Add(node.IterationVariables.Single());
+                }
+                else
+                {
+                    // deconstruction foreach declares multiple variables
+                    ((BoundTupleExpression)deconstructionAssignment.Left).VisitAllElements((x, self) => self.Visit(x), this);
+                }
             }
-
-            return base.VisitForEachStatement(node);
         }
-
 
         protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
         {
             if (IsInside)
             {
-                var local = catchBlock.LocalOpt;
+                var local = catchBlock.Locals.FirstOrDefault();
 
-                if ((object)local != null)
+                if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
                 {
-                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.CatchVariable);
                     _variablesDeclared.Add(local);
                 }
             }
@@ -137,6 +168,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitQueryClause(node);
+        }
+
+        protected override void VisitLvalue(BoundLocal node)
+        {
+            VisitLocal(node);
+        }
+
+        public override BoundNode VisitLocal(BoundLocal node)
+        {
+            if (IsInside && node.IsDeclaration)
+            {
+                _variablesDeclared.Add(node.LocalSymbol);
+            }
+
+            return null;
         }
     }
 }

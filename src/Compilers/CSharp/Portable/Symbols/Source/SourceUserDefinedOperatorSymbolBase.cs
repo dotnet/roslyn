@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
             var binder = this.DeclaringCompilation.
-                GetBinderFactory(syntaxReferenceOpt.SyntaxTree).GetBinder(ReturnTypeSyntax);
+                GetBinderFactory(syntaxReferenceOpt.SyntaxTree).GetBinder(ReturnTypeSyntax, GetSyntax(), this);
 
             SyntaxToken arglistToken;
 
@@ -128,10 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 signatureBinder,
                 this,
                 ParameterListSyntax,
-                true,
                 out arglistToken,
-                diagnostics,
-                false);
+                allowRefOrOut: true,
+                allowThis: false,
+                diagnostics: diagnostics);
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: Either S0 or T0 is the class or struct type in which the operator
             // SPEC: declaration takes place.
 
-            if (source0 != this.ContainingType && target0 != this.ContainingType &&
+            if (source0.TupleUnderlyingTypeOrSelf() != this.ContainingType && target0.TupleUnderlyingTypeOrSelf() != this.ContainingType &&
                 // allow conversion between T and Nullable<T> in declaration of Nullable<T>
                 source != this.ContainingType && target != this.ContainingType)
             {
@@ -396,12 +396,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-                if (same.IsDerivedFrom(different, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
+                if (same.IsDerivedFrom(different, TypeCompareKind.IgnoreTupleNames, useSiteDiagnostics: ref useSiteDiagnostics)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
                 {
                     // '{0}': user-defined conversions to or from a base class are not allowed
                     diagnostics.Add(ErrorCode.ERR_ConversionWithBase, this.Locations[0], this);
                 }
-                else if (different.IsDerivedFrom(same, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
+                else if (different.IsDerivedFrom(same, TypeCompareKind.IgnoreTupleNames, useSiteDiagnostics: ref useSiteDiagnostics)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
                 {
                     // '{0}': user-defined conversions to or from a derived class are not allowed
                     diagnostics.Add(ErrorCode.ERR_ConversionWithDerived, this.Locations[0], this);
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: A unary + - ! ~ operator must take a single parameter of type
             // SPEC: T or T? and can return any type.
 
-            if (this.ParameterTypes[0].StrippedType() != this.ContainingType)
+            if (this.ParameterTypes[0].StrippedType().TupleUnderlyingTypeOrSelf() != this.ContainingType)
             {
                 // The parameter of a unary operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_OpTFRetType, this.Locations[0]);
             }
 
-            if (this.ParameterTypes[0].StrippedType() != this.ContainingType)
+            if (this.ParameterTypes[0].StrippedType().TupleUnderlyingTypeOrSelf() != this.ContainingType)
             {
                 // The parameter of a unary operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
@@ -491,12 +491,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameterType = this.ParameterTypes[0];
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            if (parameterType.StrippedType() != this.ContainingType)
+            if (parameterType.StrippedType().TupleUnderlyingTypeOrSelf() != this.ContainingType)
             {
                 // CS0559: The parameter type for ++ or -- operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadIncDecSignature, this.Locations[0]);
             }
-            else if (!this.ReturnType.TypeSymbol.EffectiveTypeNoUseSiteDiagnostics.IsEqualToOrDerivedFrom(parameterType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
+            else if (!this.ReturnType.TypeSymbol.EffectiveTypeNoUseSiteDiagnostics.IsEqualToOrDerivedFrom(parameterType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
             {
                 // CS0448: The return type for ++ or -- operator must match the parameter type
                 //         or be derived from the parameter type
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: of which must have type T or T? and the second of which must
             // SPEC: have type int or int?, and can return any type.
 
-            if (this.ParameterTypes[0].StrippedType() != this.ContainingType ||
+            if (this.ParameterTypes[0].StrippedType().TupleUnderlyingTypeOrSelf() != this.ContainingType ||
                 this.ParameterTypes[1].StrippedType().SpecialType != SpecialType.System_Int32)
             {
                 // CS0546: The first operand of an overloaded shift operator must have the 
@@ -533,9 +533,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // SPEC: A binary nonshift operator must take two parameters, at least
             // SPEC: one of which must have the type T or T?, and can return any type.
-
-            if (this.ParameterTypes[0].StrippedType() != this.ContainingType &&
-                this.ParameterTypes[1].StrippedType() != this.ContainingType)
+            if (this.ParameterTypes[0].StrippedType().TupleUnderlyingTypeOrSelf() != this.ContainingType &&
+                this.ParameterTypes[1].StrippedType().TupleUnderlyingTypeOrSelf() != this.ContainingType)
             {
                 // CS0563: One of the parameters of a binary operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadBinaryOperatorSignature, this.Locations[0]);

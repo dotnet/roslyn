@@ -37,14 +37,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DocumentationCo
                 return "";
             }
 
-            uint methodID;
-            if (ErrorHandler.Failed(memberIndex.ParseMemberSignature(documentationMemberID, out methodID)))
+            if (ErrorHandler.Failed(memberIndex.ParseMemberSignature(documentationMemberID, out var methodID)))
             {
                 return "";
             }
 
-            string xml;
-            if (ErrorHandler.Failed(memberIndex.GetMemberXML(methodID, out xml)))
+            if (ErrorHandler.Failed(memberIndex.GetMemberXML(methodID, out var xml)))
             {
                 return "";
             }
@@ -56,8 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DocumentationCo
         {
             // This may fail if there is no XML file available for this assembly. We'll just leave
             // memberIndex null in this case.
-            IVsXMLMemberIndex memberIndex;
-            _memberIndexService.CreateXMLMemberIndex(_filePath, out memberIndex);
+            _memberIndexService.CreateXMLMemberIndex(_filePath, out var memberIndex);
 
             return memberIndex;
         }

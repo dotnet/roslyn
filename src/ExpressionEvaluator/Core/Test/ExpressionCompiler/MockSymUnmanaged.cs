@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             _methodDebugInfoMap = methodDebugInfoMap;
         }
 
+        public int GetMethod(int methodToken, out ISymUnmanagedMethod method)
+        {
+            return GetMethodByVersion(methodToken, 1, out method);
+        }
+
         public int GetMethodByVersion(int methodToken, int version, out ISymUnmanagedMethod retVal)
         {
             Assert.Equal(1, version);
@@ -72,11 +77,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         }
 
         public int GetUserEntryPoint(out int methodToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int GetMethod(int methodToken, out ISymUnmanagedMethod method)
         {
             throw new NotImplementedException();
         }

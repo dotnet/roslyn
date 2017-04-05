@@ -530,7 +530,7 @@ class DerivedClass : BaseClass
     public override ref int this[int i] { get { return ref field; } }
 }
 ";
-            var comp = CreateExperimentalCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib45(text);
             var global = comp.GlobalNamespace;
 
             var baseClass = (NamedTypeSymbol)global.GetMembers("BaseClass").Single();
@@ -838,7 +838,7 @@ class Base4<U, V> : Base3<U, V>
 {
     public override U Property { set { } }
 }";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Base2").WithArguments("Base2<A, B>", "Base<A, B>.Property.get"),
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Base4").WithArguments("Base4<U, V>", "Base3<U, V>.Method(U, V)"));
         }
@@ -2543,12 +2543,18 @@ class D : C
             Assert.Equal(0, ohmD.HiddenMembers.Length);
 
             comp.VerifyDiagnostics(
-                // (19,41): error CS1715: 'D.E': type must be 'System.Func<int>' to match overridden member 'C.E'
+                // (19,41): error CS1715: 'D.E': type must be 'Func<int>' to match overridden member 'C.E'
                 //     public override event System.Action E;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("D.E", "C.E", "System.Func<int>"),
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("D.E", "C.E", "System.Func<int>").WithLocation(19, 41),
                 // (19,41): warning CS0067: The event 'D.E' is never used
                 //     public override event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("D.E"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("D.E").WithLocation(19, 41),
+                // (9,41): warning CS0067: The event 'B.E' is never used
+                //     public override event System.Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("B.E").WithLocation(9, 41),
+                // (14,47): warning CS0067: The event 'C.E' is never used
+                //     public new virtual event System.Func<int> E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(14, 47));
         }
 
         [WorkItem(545653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545653")]
@@ -3502,58 +3508,58 @@ public class D8 : B
 ";
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (23,22): warning CS0109: The member 'D1.Finalize' does not hide an inherited member. The new keyword is not required.
+                // (23,22): warning CS0109: The member 'D1.Finalize' does not hide an accessible member. The new keyword is not required.
                 //     new public class Finalize { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D1.Finalize"),
-                // (21,22): warning CS0109: The member 'D1.op_UnaryPlus' does not hide an inherited member. The new keyword is not required.
+                // (21,22): warning CS0109: The member 'D1.op_UnaryPlus' does not hide an accessible member. The new keyword is not required.
                 //     new public class op_UnaryPlus { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_UnaryPlus").WithArguments("D1.op_UnaryPlus"),
-                // (22,22): warning CS0109: The member 'D1.op_Explicit' does not hide an inherited member. The new keyword is not required.
+                // (22,22): warning CS0109: The member 'D1.op_Explicit' does not hide an accessible member. The new keyword is not required.
                 //     new public class op_Explicit { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_Explicit").WithArguments("D1.op_Explicit"),
-                // (58,30): warning CS0109: The member 'D6.Finalize' does not hide an inherited member. The new keyword is not required.
+                // (58,30): warning CS0109: The member 'D6.Finalize' does not hide an accessible member. The new keyword is not required.
                 //     new public delegate void Finalize(); //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D6.Finalize"),
-                // (56,30): warning CS0109: The member 'D6.op_UnaryPlus' does not hide an inherited member. The new keyword is not required.
+                // (56,30): warning CS0109: The member 'D6.op_UnaryPlus' does not hide an accessible member. The new keyword is not required.
                 //     new public delegate void op_UnaryPlus(); //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_UnaryPlus").WithArguments("D6.op_UnaryPlus"),
-                // (57,30): warning CS0109: The member 'D6.op_Explicit' does not hide an inherited member. The new keyword is not required.
+                // (57,30): warning CS0109: The member 'D6.op_Explicit' does not hide an accessible member. The new keyword is not required.
                 //     new public delegate void op_Explicit(); //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_Explicit").WithArguments("D6.op_Explicit"),
-                // (37,20): warning CS0109: The member 'D3.Finalize' does not hide an inherited member. The new keyword is not required.
+                // (37,20): warning CS0109: The member 'D3.Finalize' does not hide an accessible member. The new keyword is not required.
                 //     new public int Finalize = 1; //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D3.Finalize"),
-                // (51,36): warning CS0109: The member 'D5.Finalize' does not hide an inherited member. The new keyword is not required.
+                // (51,36): warning CS0109: The member 'D5.Finalize' does not hide an accessible member. The new keyword is not required.
                 //     new public event System.Action Finalize { add { } remove { } } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D5.Finalize"),
-                // (71,27): warning CS0109: The member 'D8.op_Explicit(B)' does not hide an inherited member. The new keyword is not required.
+                // (71,27): warning CS0109: The member 'D8.op_Explicit(B)' does not hide an accessible member. The new keyword is not required.
                 //     new public static int op_Explicit(B b) { return 0; } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_Explicit").WithArguments("D8.op_Explicit(B)"),
-                // (72,28): warning CS0109: The member 'D8.Finalize()' does not hide an inherited member. The new keyword is not required.
+                // (72,28): warning CS0109: The member 'D8.Finalize()' does not hide an accessible member. The new keyword is not required.
                 //     new public static void Finalize() { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D8.Finalize()"),
-                // (70,27): warning CS0109: The member 'D8.op_UnaryPlus(B)' does not hide an inherited member. The new keyword is not required.
+                // (70,27): warning CS0109: The member 'D8.op_UnaryPlus(B)' does not hide an accessible member. The new keyword is not required.
                 //     new public static int op_UnaryPlus(B b) { return 0; } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_UnaryPlus").WithArguments("D8.op_UnaryPlus(B)"),
-                // (44,36): warning CS0109: The member 'D4.Finalize' does not hide an inherited member. The new keyword is not required.
+                // (44,36): warning CS0109: The member 'D4.Finalize' does not hide an accessible member. The new keyword is not required.
                 //     new public event System.Action Finalize; //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D4.Finalize"),
-                // (64,21): warning CS0109: The member 'D7.op_Explicit(B)' does not hide an inherited member. The new keyword is not required.
+                // (64,21): warning CS0109: The member 'D7.op_Explicit(B)' does not hide an accessible member. The new keyword is not required.
                 //     new public void op_Explicit(B b) { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_Explicit").WithArguments("D7.op_Explicit(B)"),
-                // (65,21): warning CS0109: The member 'D7.Finalize()' does not hide an inherited member. The new keyword is not required.
+                // (65,21): warning CS0109: The member 'D7.Finalize()' does not hide an accessible member. The new keyword is not required.
                 //     new public void Finalize() { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D7.Finalize()"),
-                // (63,21): warning CS0109: The member 'D7.op_UnaryPlus(B)' does not hide an inherited member. The new keyword is not required.
+                // (63,21): warning CS0109: The member 'D7.op_UnaryPlus(B)' does not hide an accessible member. The new keyword is not required.
                 //     new public void op_UnaryPlus(B b) { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_UnaryPlus").WithArguments("D7.op_UnaryPlus(B)"),
-                // (29,20): warning CS0109: The member 'D2.op_Explicit' does not hide an inherited member. The new keyword is not required.
+                // (29,20): warning CS0109: The member 'D2.op_Explicit' does not hide an accessible member. The new keyword is not required.
                 //     new public int op_Explicit { get; set; } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_Explicit").WithArguments("D2.op_Explicit"),
-                // (30,20): warning CS0109: The member 'D2.Finalize' does not hide an inherited member. The new keyword is not required.
+                // (30,20): warning CS0109: The member 'D2.Finalize' does not hide an accessible member. The new keyword is not required.
                 //     new public int Finalize { get; set; } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D2.Finalize"),
-                // (28,20): warning CS0109: The member 'D2.op_UnaryPlus' does not hide an inherited member. The new keyword is not required.
+                // (28,20): warning CS0109: The member 'D2.op_UnaryPlus' does not hide an accessible member. The new keyword is not required.
                 //     new public int op_UnaryPlus { get; set; } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_UnaryPlus").WithArguments("D2.op_UnaryPlus"),
 

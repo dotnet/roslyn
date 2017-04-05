@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
@@ -15,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.CodeAnalysis.Host;
 
 // NOTE(DustinCa): The EditorFactory registration is in VisualStudioComponents\CSharpPackageRegistration.pkgdef.
 // The reason for this is because the ProvideEditorLogicalView does not allow a name value to specified in addition to
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [ProvideAutomationProperties("TextEditor", "CSharp-Specific", packageGuid: Guids.CSharpPackageIdString, profileNodeLabelId: 104, profileNodeDescriptionId: 105)]
     [ProvideService(typeof(CSharpLanguageService), ServiceName = "C# Language Service")]
     [ProvideService(typeof(ICSharpTempPECompilerService), ServiceName = "C# TempPE Compiler Service")]
-    internal class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService, CSharpProjectShim>, IVsUserSettingsQuery
+    internal class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
     {
         private ObjectBrowserLibraryManager _libraryManager;
         private uint _libraryManagerCookie;
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 base.Initialize();
 
-                this.RegisterService<ICSharpTempPECompilerService>(() => new TempPECompilerService(this.Workspace));
+                this.RegisterService<ICSharpTempPECompilerService>(() => new TempPECompilerService(this.Workspace.Services.GetService<IMetadataService>()));
 
                 RegisterObjectBrowserLibraryManager();
             }
@@ -139,8 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (name == "CSharp-Specific")
             {
                 var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
-                var optionService = workspace.Services.GetService<IOptionService>();
-                return new Options.AutomationObject(optionService);
+                return new Options.AutomationObject(workspace);
             }
 
             return base.GetAutomationObject(name);
@@ -164,8 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             miscellaneousFilesWorkspace.RegisterLanguage(
                 Guids.CSharpLanguageServiceId,
                 LanguageNames.CSharp,
-                ".csx",
-                CSharpParseOptions.Default);
+                ".csx");
         }
 
         protected override string RoslynLanguageName

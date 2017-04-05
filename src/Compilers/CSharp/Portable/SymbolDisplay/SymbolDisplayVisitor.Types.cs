@@ -147,15 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (typeArg.TypeKind != TypeKind.Pointer)
                     {
                         symbol.TypeArguments[0].Accept(this.NotFirstVisitor);
-
-                        if (this.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers))
-                        {
-                            var namedType = symbol as NamedTypeSymbol;
-                            if ((object)namedType != null)
-                            {
-                                AddCustomModifiersIfRequired(namedType.TypeArgumentsNoUseSiteDiagnostics[0].CustomModifiers, leadingSpace: true, trailingSpace: false);
-                            }
-                        }
+                        AddCustomModifiersIfRequired(symbol.GetTypeArgumentCustomModifiers(0), leadingSpace: true, trailingSpace: false);
 
                         AddPunctuation(SyntaxKind.QuestionToken);
 
@@ -165,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (this.IsMinimizing)
+            if (this.IsMinimizing || symbol.IsTupleType)
             {
                 MinimallyQualify(symbol);
                 return;
@@ -178,10 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (format.DelegateStyle == SymbolDisplayDelegateStyle.NameAndSignature)
                 {
                     var invokeMethod = symbol.DelegateInvokeMethod;
-                    var invokeMethodSymbol = invokeMethod as MethodSymbol;
-                    if (invokeMethodSymbol != null)
+                    if (invokeMethod.ReturnsByRef)
                     {
-                        AddRefKindIfRequired(invokeMethodSymbol.RefKind);
+                        AddRefIfRequired();
                     }
 
                     if (invokeMethod.ReturnsVoid)
@@ -237,6 +228,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddAnonymousTypeName(symbol);
                 return;
+            }
+            else if (symbol.IsTupleType)
+            {
+                // If top level tuple uses non-default names, there is no way to preserve them
+                // unless we use tuple syntax for the type. So, we give them priority.
+                if (HasNonDefaultTupleElements(symbol) || CanUseTupleTypeName(symbol))
+                {
+                    AddTupleTypeName(symbol);
+                    return;
+                }
+
+                // Fall back to displaying the underlying type.
+                symbol = symbol.TupleUnderlyingType;
             }
 
             string symbolName = null;
@@ -312,18 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var modifiers = default(ImmutableArray<ImmutableArray<CustomModifier>>);
-
-                    if (this.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers))
-                    {
-                        var namedType = symbol as NamedTypeSymbol;
-                        if ((object)namedType != null)
-                        {
-                            modifiers = namedType.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(a => a.CustomModifiers) ;
-                        }
-                    }
-
-                    AddTypeArguments(symbol.TypeArguments, modifiers);
+                    AddTypeArguments(symbol.TypeArguments, symbol);
 
                     AddDelegateParameters(symbol);
 
@@ -376,6 +369,65 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = $"<anonymous type: {members}>";
                 builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ClassName, symbol, name));
             }
+        }
+
+        /// <summary>
+        /// Returns true if tuple type syntax can be used to refer to the tuple type without loss of information.
+        /// For example, it cannot be used when extension tuple is using non-default friendly names. 
+        /// </summary>
+        /// <param name="tupleSymbol"></param>
+        /// <returns></returns>
+        private bool CanUseTupleTypeName(INamedTypeSymbol tupleSymbol)
+        {
+            INamedTypeSymbol currentUnderlying = tupleSymbol.TupleUnderlyingType;
+
+            while (currentUnderlying.Arity == TupleTypeSymbol.RestPosition)
+            {
+                tupleSymbol = (INamedTypeSymbol)currentUnderlying.TypeArguments[TupleTypeSymbol.RestPosition - 1];
+                Debug.Assert(tupleSymbol.IsTupleType);
+
+                if (HasNonDefaultTupleElements(tupleSymbol))
+                {
+                    return false;
+                }
+
+                currentUnderlying = tupleSymbol.TupleUnderlyingType;
+            }
+
+            return true;
+        }
+
+        private static bool HasNonDefaultTupleElements(INamedTypeSymbol tupleSymbol)
+        {
+            return tupleSymbol.TupleElements.Any(e => !e.IsDefaultTupleElement());
+        }
+
+        private void AddTupleTypeName(INamedTypeSymbol symbol)
+        {
+            Debug.Assert(symbol.IsTupleType);
+
+            ImmutableArray<IFieldSymbol> elements = symbol.TupleElements;
+
+            AddPunctuation(SyntaxKind.OpenParenToken);
+            for (int i = 0; i < elements.Length; i++)
+            {
+                var element = elements[i];
+
+                if (i != 0)
+                {
+                    AddPunctuation(SyntaxKind.CommaToken);
+                    AddSpace();
+                }
+
+                element.Type.Accept(this.NotFirstVisitor);
+                if (!element.IsImplicitlyDeclared)
+                {
+                    AddSpace();
+                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name));
+                }
+            }
+
+            AddPunctuation(SyntaxKind.CloseParenToken);
         }
 
         private string CreateAnonymousTypeMember(IPropertySymbol property)
@@ -479,6 +531,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, null, "AnonymousType"));
                     AddSpace();
                 }
+                else if (symbol.IsTupleType)
+                {
+                    builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, null, "Tuple"));
+                    AddSpace();
+                }
                 else
                 {
                     var kindKeyword = GetKindKeyword(symbol.TypeKind);
@@ -530,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         //returns true if there are constraints
-        private void AddTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<ImmutableArray<CustomModifier>> modifiers)
+        private void AddTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, INamedTypeSymbol modifiersSourceOpt = null)
         {
             if (typeArguments.Length > 0 && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
             {
@@ -561,9 +618,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeArg.Accept(this.NotFirstVisitor);
                     }
 
-                    if (!modifiers.IsDefault)
+                    if (modifiersSourceOpt != null)
                     {
-                        AddCustomModifiersIfRequired(modifiers[i], leadingSpace: true, trailingSpace: false);
+                        AddCustomModifiersIfRequired(modifiersSourceOpt.GetTypeArgumentCustomModifiers(i), leadingSpace: true, trailingSpace: false);
                     }
                 }
 

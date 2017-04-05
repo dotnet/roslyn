@@ -22,8 +22,8 @@ Supported Platforms:
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.EditorFeatures.Text.dll" target="lib\net46" />
-    <file src="Microsoft.CodeAnalysis.EditorFeatures.Text.xml" target="lib\net46" />
+    <file src="Dlls\TextEditorFeatures\Microsoft.CodeAnalysis.EditorFeatures.Text.dll" target="lib\net46" />
+    <file src="Dlls\TextEditorFeatures\Microsoft.CodeAnalysis.EditorFeatures.Text.xml" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

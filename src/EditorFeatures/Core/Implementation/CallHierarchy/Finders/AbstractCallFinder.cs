@@ -41,13 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 
         public abstract string DisplayName { get; }
 
-        public virtual string SearchCategory
-        {
-            get
-            {
-                return DisplayName;
-            }
-        }
+        public virtual string SearchCategory => DisplayName;
 
         public void CancelSearch()
         {
@@ -56,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 
         public void StartSearch(CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)
         {
-            Task.Run(async () => await SearchAsync(callback, searchScope, _cancellationSource.Token).ConfigureAwait(false), _cancellationSource.Token);
+            Task.Run(() => SearchAsync(callback, searchScope, _cancellationSource.Token), _cancellationSource.Token);
         }
 
         private async Task SearchAsync(ICallHierarchySearchCallback callback, CallHierarchySearchScope scope, CancellationToken cancellationToken)

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -10,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
     ''' Helper structure to store some context about a position for keyword completion
     ''' </summary>
     Friend NotInheritable Class VisualBasicSyntaxContext
-        Inherits AbstractSyntaxContext
+        Inherits SyntaxContext
 
         ''' <summary>
         ''' True if position is after a colon, or an
@@ -47,7 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsQueryOperatorContext As Boolean
         Public ReadOnly EnclosingNamedType As CancellableLazy(Of INamedTypeSymbol)
         Public ReadOnly IsCustomEventContext As Boolean
-        Public ReadOnly WithinAsyncMethod As Boolean
 
         Public ReadOnly IsPreprocessorEndDirectiveKeywordContext As Boolean
         Public ReadOnly IsWithinPreprocessorContext As Boolean
@@ -61,6 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             touchingToken As SyntaxToken,
             isTypeContext As Boolean,
             isNamespaceContext As Boolean,
+            isNamespaceDeclarationNameContext As Boolean,
             isPreProcessorDirectiveContext As Boolean,
             isRightOfNameSeparator As Boolean,
             isSingleLineStatementContext As Boolean,
@@ -72,6 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isInQuery As Boolean,
             isInImportsDirective As Boolean,
             isCustomEventContext As Boolean,
+            isPossibleTupleContext As Boolean,
             cancellationToken As CancellationToken
         )
 
@@ -83,6 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 targetToken,
                 isTypeContext,
                 isNamespaceContext,
+                isNamespaceDeclarationNameContext,
                 isPreProcessorDirectiveContext,
                 isRightOfNameSeparator,
                 isStatementContext:=isSingleLineStatementContext,
@@ -91,7 +94,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
                 isNameOfContext:=isNameOfContext,
                 isInQuery:=isInQuery,
-                isInImportsDirective:=isInImportsDirective)
+                isInImportsDirective:=isInImportsDirective,
+                isWithinAsyncMethod:=IsWithinAsyncMethod(targetToken, cancellationToken),
+                isPossibleTupleContext:=isPossibleTupleContext,
+                cancellationToken:=cancellationToken)
 
             Dim syntaxTree = semanticModel.SyntaxTree
 
@@ -116,12 +122,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Me.EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
             Me.IsCustomEventContext = isCustomEventContext
-            Me.WithinAsyncMethod = IsWithinAsyncMethod(targetToken, cancellationToken)
 
             Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective(position)
         End Sub
 
-        Private Function IsWithinAsyncMethod(targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+        Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Dim enclosingMethod = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
             Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
         End Function
@@ -141,6 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 touchingToken,
                 isTypeContext:=syntaxTree.IsTypeContext(position, targetToken, cancellationToken, semanticModel),
                 isNamespaceContext:=syntaxTree.IsNamespaceContext(position, targetToken, cancellationToken, semanticModel),
+                isNamespaceDeclarationNameContext:=syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
                 isPreProcessorDirectiveContext:=syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken),
                 isRightOfNameSeparator:=syntaxTree.IsRightOfDot(position, cancellationToken),
                 isSingleLineStatementContext:=syntaxTree.IsSingleLineStatementContext(position, targetToken, cancellationToken),
@@ -152,6 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isInQuery:=leftToken.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing,
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
                 isCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
+                isPossibleTupleContext:=syntaxTree.IsPossibleTupleContext(targetToken, position),
                 cancellationToken:=cancellationToken)
         End Function
 
@@ -267,6 +274,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Position, TargetToken, Function(joinOperator) joinOperator.JoinedVariables.LastCollectionExpression(), cancellationToken)
         End Function
 
+        Friend Overrides Function GetTypeInferenceServiceWithoutWorkspace() As ITypeInferenceService
+            Return New VisualBasicTypeInferenceService()
+        End Function
     End Class
 End Namespace
 

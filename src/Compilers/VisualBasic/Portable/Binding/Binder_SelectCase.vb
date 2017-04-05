@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindCaseStatement(
             node As CaseStatementSyntax,
-            selectExpression As BoundExpression,
+            selectExpressionOpt As BoundExpression,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
         ) As BoundCaseStatement
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Bind case clauses.
                 For Each caseClause In node.Cases
-                    caseClauseBuilder.Add(BindCaseClause(caseClause, selectExpression, convertCaseElements, diagnostics))
+                    caseClauseBuilder.Add(BindCaseClause(caseClause, selectExpressionOpt, convertCaseElements, diagnostics))
                 Next
 
                 caseClauses = caseClauseBuilder.ToImmutableAndFree()
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindCaseClause(
             node As CaseClauseSyntax,
-            selectExpression As BoundExpression,
+            selectExpressionOpt As BoundExpression,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
         ) As BoundCaseClause
@@ -166,13 +166,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.CaseGreaterThanClause, SyntaxKind.CaseGreaterThanOrEqualClause,
                      SyntaxKind.CaseLessThanClause, SyntaxKind.CaseLessThanOrEqualClause
 
-                    Return BindRelationalCaseClause(DirectCast(node, RelationalCaseClauseSyntax), selectExpression, convertCaseElements, diagnostics)
+                    Return BindRelationalCaseClause(DirectCast(node, RelationalCaseClauseSyntax), selectExpressionOpt, convertCaseElements, diagnostics)
 
                 Case SyntaxKind.SimpleCaseClause
-                    Return BindSimpleCaseClause(DirectCast(node, SimpleCaseClauseSyntax), selectExpression, convertCaseElements, diagnostics)
+                    Return BindSimpleCaseClause(DirectCast(node, SimpleCaseClauseSyntax), selectExpressionOpt, convertCaseElements, diagnostics)
 
                 Case SyntaxKind.RangeCaseClause
-                    Return BindRangeCaseClause(DirectCast(node, RangeCaseClauseSyntax), selectExpression, convertCaseElements, diagnostics)
+                    Return BindRangeCaseClause(DirectCast(node, RangeCaseClauseSyntax), selectExpressionOpt, convertCaseElements, diagnostics)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(node.Kind)
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindRelationalCaseClause(
             node As RelationalCaseClauseSyntax,
-            selectExpression As BoundExpression,
+            selectExpressionOpt As BoundExpression,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
         ) As BoundCaseClause
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim operandE1 As BoundExpression = BindCaseClauseExpression(
                 expressionSyntax:=node.Value,
                 caseClauseSyntax:=node,
-                selectExpression:=selectExpression,
+                selectExpressionOpt:=selectExpressionOpt,
                 operatorTokenKind:=node.OperatorToken.Kind,
                 operatorKind:=operatorKind,
                 convertCaseElements:=convertCaseElements,
@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindSimpleCaseClause(
             node As SimpleCaseClauseSyntax,
-            selectExpression As BoundExpression,
+            selectExpressionOpt As BoundExpression,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
         ) As BoundCaseClause
@@ -248,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim value As BoundExpression = BindCaseClauseExpression(
                 expressionSyntax:=node.Value,
                 caseClauseSyntax:=node,
-                selectExpression:=selectExpression,
+                selectExpressionOpt:=selectExpressionOpt,
                 operatorTokenKind:=SyntaxKind.EqualsToken,
                 operatorKind:=BinaryOperatorKind.Equals,
                 convertCaseElements:=convertCaseElements,
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindRangeCaseClause(
             node As RangeCaseClauseSyntax,
-            selectExpression As BoundExpression,
+            selectExpressionOpt As BoundExpression,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
         ) As BoundCaseClause
@@ -280,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lowerBound As BoundExpression = BindCaseClauseExpression(
                 expressionSyntax:=node.LowerBound,
                 caseClauseSyntax:=node,
-                selectExpression:=selectExpression,
+                selectExpressionOpt:=selectExpressionOpt,
                 operatorTokenKind:=SyntaxKind.GreaterThanEqualsToken,
                 operatorKind:=BinaryOperatorKind.GreaterThanOrEqual,
                 convertCaseElements:=convertCaseElements,
@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim upperBound As BoundExpression = BindCaseClauseExpression(
                 expressionSyntax:=node.UpperBound,
                 caseClauseSyntax:=node,
-                selectExpression:=selectExpression,
+                selectExpressionOpt:=selectExpressionOpt,
                 operatorTokenKind:=SyntaxKind.LessThanEqualsToken,
                 operatorKind:=BinaryOperatorKind.LessThanOrEqual,
                 convertCaseElements:=convertCaseElements,
@@ -305,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindCaseClauseExpression(
             expressionSyntax As ExpressionSyntax,
             caseClauseSyntax As CaseClauseSyntax,
-            selectExpression As BoundExpression,
+            selectExpressionOpt As BoundExpression,
             operatorTokenKind As SyntaxKind,
             operatorKind As BinaryOperatorKind,
             convertCaseElements As Boolean,
@@ -314,14 +314,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As BoundExpression
 
             Dim caseExpr As BoundExpression = BindValue(expressionSyntax, diagnostics)
-            Dim caseExprType = caseExpr.Type
 
-            If convertCaseElements AndAlso caseExprType.IsIntrinsicOrEnumType() Then
+            If selectExpressionOpt Is Nothing Then
+                ' In error scenarios, such as a Case statement outside of a
+                ' Select statement, the Select expression may be Nothing.
+                conditionOpt = Nothing
+                Return MakeRValue(caseExpr, diagnostics)
+            End If
+
+            If convertCaseElements AndAlso caseExpr.Type.IsIntrinsicOrEnumType() Then
                 ' SPEC:     The expression is converted to the type of the Select expression;
                 ' SPEC:     if the expression is not implicitly convertible to the type of the Select expression, a compile-time error occurs.
 
-                Debug.Assert(selectExpression.Type IsNot Nothing)
-                Return ApplyImplicitConversion(expressionSyntax, selectExpression.Type, caseExpr, diagnostics)
+                Debug.Assert(selectExpressionOpt.Type IsNot Nothing)
+                Return ApplyImplicitConversion(expressionSyntax, selectExpressionOpt.Type, caseExpr, diagnostics)
 
             Else
                 ' SPEC:     If the Select expression is E, the comparison operator is Op,
@@ -330,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Bind binary operator "selectExpression OP caseExpr" to generate necessary diagnostics.
                 conditionOpt = BindBinaryOperator(
                     node:=caseClauseSyntax,
-                    left:=selectExpression,
+                    left:=selectExpressionOpt,
                     right:=caseExpr,
                     operatorTokenKind:=operatorTokenKind,
                     preliminaryOperatorKind:=operatorKind,
@@ -672,7 +678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Function IsInvalidSelectCaseRange(lbConstantValue As ConstantValue, ubConstantValue As ConstantValue) As Boolean
+        Private Shared Function IsInvalidSelectCaseRange(lbConstantValue As ConstantValue, ubConstantValue As ConstantValue) As Boolean
             Debug.Assert(lbConstantValue IsNot Nothing)
             Debug.Assert(ubConstantValue IsNot Nothing)
 

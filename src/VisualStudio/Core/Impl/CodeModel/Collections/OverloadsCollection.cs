@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
                 var solution = this.Workspace.CurrentSolution;
 
-                var overloadsBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>();
+                var overloadsBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance();
                 foreach (var method in symbol.ContainingType.GetMembers(symbol.Name))
                 {
                     if (method.Kind != SymbolKind.Method)
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                     }
                 }
 
-                _overloads = overloadsBuilder.ToImmutable();
+                _overloads = overloadsBuilder.ToImmutableAndFree();
             }
 
             return _overloads;

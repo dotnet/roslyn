@@ -43,15 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
             var returnStatement = node as ReturnStatementSyntax;
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            ITypeSymbol methodReturnType;
-            if (!TryGetMethodReturnType(node, model, cancellationToken, out methodReturnType))
+            if (!TryGetMethodReturnType(node, model, cancellationToken, out var methodReturnType))
             {
                 return null;
             }
 
-            ITypeSymbol returnExpressionType;
-            if (!TryGetExpressionType(model, returnStatement.Expression, out returnExpressionType))
+            if (!TryGetExpressionType(model, returnStatement.Expression, out var returnExpressionType))
             {
                 return null;
             }
@@ -73,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             root = root.ReplaceNode(returnStatement, yieldStatement);
-            return new MyCodeAction(CSharpFeaturesResources.ChangeToYieldReturn, document.WithSyntaxRoot(root));
+            return new MyCodeAction(CSharpFeaturesResources.Replace_return_with_yield_return, document.WithSyntaxRoot(root));
         }
 
         private bool TryGetExpressionType(SemanticModel model, ExpressionSyntax expression, out ITypeSymbol returnExpressionType)

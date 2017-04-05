@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -18,20 +16,11 @@ namespace Microsoft.CodeAnalysis
             _oldProject = oldProject;
         }
 
-        public ProjectId ProjectId
-        {
-            get { return _newProject.Id; }
-        }
+        public ProjectId ProjectId => _newProject.Id;
 
-        public Project OldProject
-        {
-            get { return _oldProject; }
-        }
+        public Project OldProject => _oldProject;
 
-        public Project NewProject
-        {
-            get { return _newProject; }
-        }
+        public Project NewProject => _newProject;
 
         public IEnumerable<ProjectReference> GetAddedProjectReferences()
         {

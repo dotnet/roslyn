@@ -47,9 +47,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
-                SyntaxNode baseTypeNode;
-                INamedTypeSymbol classType;
-                if (!service.TryInitializeState(document, textSpan, cancellationToken, out baseTypeNode, out classType))
+                if (!service.TryInitializeState(document, textSpan, cancellationToken, out var baseTypeNode, out var classType))
                 {
                     return false;
                 }

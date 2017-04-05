@@ -3,22 +3,28 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.LanguageServices.Packaging;
+using Microsoft.VisualStudio.LanguageServices.Remote;
+using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell.Interop;
-using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Package
+    internal abstract partial class AbstractPackage<TPackage, TLanguageService> : AbstractPackage
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
-        private ForegroundThreadAffinitizedObject _foregroundObject;
         private TLanguageService _languageService;
         private MiscellaneousFilesWorkspace _miscellaneousFilesWorkspace;
+
+        private PackageInstallerService _packageInstallerService;
+        private VisualStudioSymbolSearchService _symbolSearchService;
 
         public VisualStudioWorkspaceImpl Workspace { get; private set; }
 
@@ -29,10 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected override void Initialize()
         {
             base.Initialize();
-            // Assume that we are being initialized on the UI thread at this point.
-            var defaultForegroundThreadData = ForegroundThreadData.CreateDefault(defaultKind: ForcedByPackageInitialize);
-            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = defaultForegroundThreadData;
-            _foregroundObject = new ForegroundThreadAffinitizedObject(defaultForegroundThreadData);
 
             foreach (var editorFactory in CreateEditorFactories())
             {
@@ -47,15 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _languageService.Setup();
                 return _languageService.ComAggregate;
             });
-
+            var shell = (IVsShell)this.GetService(typeof(SVsShell));
             // Okay, this is also a bit strange.  We need to get our Interop dll into our process,
             // but we're in the GAC.  Ask the base Roslyn Package to load, and it will take care of
             // it for us.
             // * NOTE * workspace should never be created before loading roslyn package since roslyn package
             //          installs a service roslyn visual studio workspace requires
-            IVsPackage setupPackage;
-            var shell = (IVsShell)this.GetService(typeof(SVsShell));
-            shell.LoadPackage(Guids.RoslynPackageId, out setupPackage);
+            shell.LoadPackage(Guids.RoslynPackageId, out var setupPackage);
 
             _miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
             if (_miscellaneousFilesWorkspace != null)
@@ -67,15 +67,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             RegisterMiscellaneousFilesWorkspaceInformation(_miscellaneousFilesWorkspace);
 
             this.Workspace = this.CreateWorkspace();
-            if (this.Workspace != null)
+            if (IsInIdeMode(this.Workspace))
             {
                 // make sure solution crawler start once everything has been setup.
                 // this also should be started before any of workspace events start firing
                 this.Workspace.StartSolutionCrawler();
+
+                // start remote host
+                EnableRemoteHostClientService();
+
+                Workspace.AdviseSolutionEvents((IVsSolution)GetService(typeof(SVsSolution)));
             }
 
             // Ensure services that must be created on the UI thread have been.
             HACK_AbstractCreateServicesOnUiThread.CreateServicesOnUIThread(ComponentModel, RoslynLanguageName);
+
+            LoadComponentsInUIContextOnceSolutionFullyLoaded();
+        }
+
+        protected override void LoadComponentsInUIContext()
+        {
+            ForegroundObject.AssertIsForeground();
+
+            // Ensure the nuget package services are initialized after we've loaded
+            // the solution.
+            _packageInstallerService = Workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
+            _symbolSearchService = Workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
+
+            _packageInstallerService?.Connect(this.RoslynLanguageName);
+            _symbolSearchService?.Connect(this.RoslynLanguageName);
         }
 
         protected abstract VisualStudioWorkspaceImpl CreateWorkspace();
@@ -84,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             get
             {
-                _foregroundObject.AssertIsForeground();
+                ForegroundObject.AssertIsForeground();
 
                 return (IComponentModel)GetService(typeof(SComponentModel));
             }
@@ -113,9 +133,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _miscellaneousFilesWorkspace.StopSolutionCrawler();
             }
 
-            if (this.Workspace != null)
+            if (IsInIdeMode(this.Workspace))
             {
                 this.Workspace.StopSolutionCrawler();
+
+                DisableRemoteHostClientService();
             }
 
             // If we've created the language service then tell it it's time to clean itself up now.
@@ -129,5 +151,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         protected abstract string RoslynLanguageName { get; }
+
+        private bool IsInIdeMode(Workspace workspace)
+        {
+            return workspace != null && !IsInCommandLineMode();
+        }
+
+        private bool IsInCommandLineMode()
+        {
+            var shell = (IVsShell)this.GetService(typeof(SVsShell));
+
+            object result;
+            if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out result)))
+            {
+                return (bool)result;
+            }
+
+            return false;
+        }
+
+        private void EnableRemoteHostClientService()
+        {
+            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Enable();
+        }
+
+        private void DisableRemoteHostClientService()
+        {
+            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Disable();
+        }
     }
 }

@@ -1,23 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Commands
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Operations
-Imports Moq
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
     Public Class CommitOnEnterTests
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterEnterOnSimpleStatement() As Task
+        Public Sub TestCommitAfterEnterOnSimpleStatement()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>[|
@@ -26,12 +16,12 @@ imports System$$|]
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=True)
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestNoCommitAfterEnterAfterQuery() As Task
+        Public Sub TestNoCommitAfterEnterAfterQuery()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -44,13 +34,13 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=False)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=False)
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
-        Public Async Function TestNoCommitAfterExplicitLineContinuation() As Task
+        Public Sub TestNoCommitAfterExplicitLineContinuation()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -63,13 +53,13 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=False)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=False)
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
-        Public Async Function TestCommitAfterBlankLineFollowingExplicitLineContinuation() As Task
+        Public Sub TestCommitAfterBlankLineFollowingExplicitLineContinuation()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -83,12 +73,12 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=True)
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterDeclaration() As Task
+        Public Sub TestCommitAfterDeclaration()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>[|
@@ -102,12 +92,12 @@ End Class|]
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=True)
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterEndConstruct() As Task
+        Public Sub TestCommitAfterEndConstruct()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>[|
@@ -121,12 +111,12 @@ End Class$$|]
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True, usedSemantics:=False)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=True, usedSemantics:=False)
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterBlankLineAfterQuery() As Task
+        Public Sub TestCommitAfterBlankLineAfterQuery()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -140,12 +130,12 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=True)
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestNoCommitAfterEnterAfterPartialExpression() As Task
+        Public Sub TestNoCommitAfterEnterAfterPartialExpression()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -158,12 +148,12 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=False)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=False)
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterEnterAfterPartialExpression() As Task
+        Public Sub TestCommitAfterEnterAfterPartialExpression()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -177,12 +167,12 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=True)
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterEnterOnBlankLine() As Task
+        Public Sub TestCommitAfterEnterOnBlankLine()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -195,13 +185,13 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=True)
+        End Sub
 
         <WpfFact>
         <WorkItem(539451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539451")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterColon() As Task
+        Public Sub TestCommitAfterColon()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -214,13 +204,13 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=True)
+        End Sub
 
         <WpfFact>
         <WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterConstDirective() As Task
+        Public Sub TestCommitAfterConstDirective()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>[|
@@ -229,13 +219,13 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=True)
+        End Sub
 
         <WpfFact>
         <WorkItem(539408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539408")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterComment() As Task
+        Public Sub TestCommitAfterComment()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>[|
@@ -244,31 +234,31 @@ rem Hello World$$|]
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=True)
+        End Sub
 
         <WpfFact>
         <WorkItem(544372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544372")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function UndoAfterCommitOnBlankLine() As Threading.Tasks.Task
-            Using testData = Await CommitTestData.CreateAsync(<Workspace>
-                                                                  <Project Language="Visual Basic" CommonReferences="true">
-                                                                      <Document>$$
+        Public Sub UndoAfterCommitOnBlankLine()
+            Using testData = CommitTestData.Create(<Workspace>
+                                                       <Project Language="Visual Basic" CommonReferences="true">
+                                                           <Document>$$
                                                         </Document>
-                                                                  </Project>
-                                                              </Workspace>)
+                                                       </Project>
+                                                   </Workspace>)
 
                 testData.CommandHandler.ExecuteCommand(New ReturnKeyCommandArgs(testData.View, testData.Buffer), Sub() testData.EditorOperations.InsertNewLine())
                 testData.UndoHistory.Undo(count:=1)
 
                 Assert.Equal(0, testData.View.Caret.Position.BufferPosition.GetContainingLine().LineNumber)
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterThenTouchingThen() As Task
+        Public Sub TestCommitAfterThenTouchingThen()
             ' Note that the source we are starting this test with is *not* syntactically correct,
             ' but by having the extra "End If" we guarantee the ending code will be as if End
             ' Construct generation happened.
@@ -286,13 +276,13 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=True)
+        End Sub
 
         <WpfFact>
         <WorkItem(540210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540210")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterThenTouchingStatement() As Task
+        Public Sub TestCommitAfterThenTouchingStatement()
             ' Note that the source we are starting this test with is *not* syntactically correct,
             ' but by having the extra "End If" we guarantee the ending code will be as if End
             ' Construct generation happened.
@@ -310,13 +300,13 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=True)
+        End Sub
 
         <WpfFact>
         <WorkItem(530463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530463")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestCommitAfterPropertyStatement() As Task
+        Public Sub TestCommitAfterPropertyStatement()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -333,13 +323,13 @@ End Class
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=True)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=True)
+        End Sub
 
         <WpfFact>
         <WorkItem(986168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/986168")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Async Function TestDontCommitInsideStringLiteral() As Task
+        Public Sub TestDontCommitInsideStringLiteral()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document>
@@ -353,11 +343,11 @@ End Module
                            </Project>
                        </Workspace>
 
-            Await AssertCommitsStatementAsync(test, expectCommit:=False)
-        End Function
+            AssertCommitsStatement(test, expectCommit:=False)
+        End Sub
 
-        Private Async Function AssertCommitsStatementAsync(test As XElement, expectCommit As Boolean, Optional usedSemantics As Boolean = True) As Threading.Tasks.Task
-            Using testData = Await CommitTestData.CreateAsync(test)
+        Private Sub AssertCommitsStatement(test As XElement, expectCommit As Boolean, Optional usedSemantics As Boolean = True)
+            Using testData = CommitTestData.Create(test)
                 Dim lineNumber = testData.View.Caret.Position.BufferPosition.GetContainingLine().LineNumber
                 testData.CommandHandler.ExecuteCommand(New ReturnKeyCommandArgs(testData.View, testData.Buffer), Sub() testData.EditorOperations.InsertNewLine())
                 testData.AssertHadCommit(expectCommit)
@@ -367,6 +357,6 @@ End Module
 
                 Assert.Equal(lineNumber + 1, testData.View.Caret.Position.BufferPosition.GetContainingLine().LineNumber)
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace

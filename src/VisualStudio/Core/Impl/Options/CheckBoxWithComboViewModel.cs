@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// has a checkbox for selection and a combobox for notification levels.
     /// </summary>
     /// <remarks>
-    /// At the features level, this maps to <see cref="SimpleCodeStyleOption"/>
+    /// At the features level, this maps to <see cref="CodeStyleOption{T}"/>
     /// </remarks>
     internal class CheckBoxWithComboOptionViewModel : AbstractCheckBoxViewModel
     {
@@ -26,12 +26,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         public CheckBoxWithComboOptionViewModel(IOption option, string description, string truePreview, string falsePreview, AbstractOptionPreviewViewModel info, OptionSet options, IList<NotificationOptionViewModel> items)
-            : base(option, description, truePreview, falsePreview, info, options)
+            : base(option, description, truePreview, falsePreview, info)
         {
             NotificationOptions = items;
 
-            var codeStyleOption = ((SimpleCodeStyleOption)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
-            SetProperty(ref _isChecked, codeStyleOption.IsChecked);
+            var codeStyleOption = ((CodeStyleOption<bool>)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
+            SetProperty(ref _isChecked, codeStyleOption.Value);
 
             var notificationViewModel = items.Where(i => i.Notification.Value == codeStyleOption.Notification.Value).Single();
             SetProperty(ref _selectedNotificationOption, notificationViewModel);
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             set
             {
                 SetProperty(ref _isChecked, value);
-                Info.SetOptionAndUpdatePreview(new SimpleCodeStyleOption(_isChecked, _selectedNotificationOption.Notification), Option, GetPreview());
+                Info.SetOptionAndUpdatePreview(new CodeStyleOption<bool>(_isChecked, _selectedNotificationOption.Notification), Option, GetPreview());
             }
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             set
             {
                 SetProperty(ref _selectedNotificationOption, value);
-                Info.SetOptionAndUpdatePreview(new SimpleCodeStyleOption(_isChecked, _selectedNotificationOption.Notification), Option, GetPreview());
+                Info.SetOptionAndUpdatePreview(new CodeStyleOption<bool>(_isChecked, _selectedNotificationOption.Notification), Option, GetPreview());
             }
         }
     }

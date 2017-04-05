@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -21,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             public bool TryRemove(int pairIndex)
             {
-                TriviaData temp;
-                return _map?.TryRemove(pairIndex, out temp) ?? false;
+                return _map?.TryRemove(pairIndex, out var temp) ?? false;
             }
 
             public void AddOrReplace(int key, TriviaData triviaInfo)

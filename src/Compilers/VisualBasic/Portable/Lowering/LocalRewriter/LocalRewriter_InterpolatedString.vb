@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function RewriteInterpolatedStringConversion(conversion As BoundConversion) As BoundExpression
 
-            Debug.Assert(conversion.ConversionKind = ConversionKind.InterpolatedString)
+            Debug.Assert((conversion.ConversionKind And ConversionKind.InterpolatedString) = ConversionKind.InterpolatedString)
 
             Dim targetType = conversion.Type
             Dim node = DirectCast(conversion.Operand, BoundInterpolatedStringExpression)

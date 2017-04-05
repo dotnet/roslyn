@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct ProcessedFieldInitializers
         {
             internal ImmutableArray<BoundInitializer> BoundInitializers { get; set; }
-            internal BoundStatementList LoweredInitializers { get; set; }
+            internal BoundStatement LoweredInitializers { get; set; }
             internal bool HasErrors { get; set; }
             internal ImportChain FirstImportChain { get; set; }
         }
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var fieldsBeingBound = binder.FieldsBeingBound;
 
-            var sourceField = fieldSymbol as SourceMemberFieldSymbol;
+            var sourceField = fieldSymbol as SourceMemberFieldSymbolFromDeclarator;
             bool isImplicitlyTypedField = (object)sourceField != null && sourceField.FieldTypeInferred(fieldsBeingBound);
 
             // If the type is implicitly typed, the initializer diagnostics have already been reported, so ignore them here:
@@ -267,10 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializerDiagnostics = diagnostics;
             }
 
-            var collisionDetector = new LocalScopeBinder(binder);
-            var patternBinder = new PatternVariableBinder(equalsValueClauseNode, equalsValueClauseNode.Value, collisionDetector);
-            var boundInitValue = patternBinder.BindVariableOrAutoPropInitializer(equalsValueClauseNode, RefKind.None, fieldSymbol.GetFieldType(fieldsBeingBound).TypeSymbol, initializerDiagnostics);
-            boundInitValue = patternBinder.WrapWithVariablesIfAny(boundInitValue);
+            binder = new ExecutableCodeBinder(equalsValueClauseNode, fieldSymbol, new LocalScopeBinder(binder));
+            var boundInitValue = binder.BindVariableOrAutoPropInitializer(equalsValueClauseNode, RefKind.None, fieldSymbol.GetFieldType(fieldsBeingBound).TypeSymbol, initializerDiagnostics);
 
             if (isImplicitlyTypedField)
             {

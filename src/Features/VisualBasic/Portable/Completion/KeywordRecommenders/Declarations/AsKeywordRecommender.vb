@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
             Dim targetToken = context.TargetToken
             Dim asKeyword = SpecializedCollections.SingletonEnumerable(
-                                New RecommendedKeyword("As", VBFeaturesResources.AsKeywordToolTip))
+                                New RecommendedKeyword("As", VBFeaturesResources.Specifies_a_data_type_in_a_declaration_statement))
 
             ' Query: Aggregate x |
             ' Query: Group Join x |

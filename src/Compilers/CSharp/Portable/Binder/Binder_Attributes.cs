@@ -94,13 +94,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, DiagnosticBag diagnostics)
         {
-            var boundAttribute = new PatternVariableBinder(node, this).BindAttribute(node, boundAttributeType, diagnostics);
+            var boundAttribute = new ExecutableCodeBinder(node, this.ContainingMemberOrLambda, this).BindAttribute(node, boundAttributeType, diagnostics);
 
             return GetAttribute(boundAttribute, diagnostics);
         }
 
         internal BoundAttribute BindAttribute(AttributeSyntax node, NamedTypeSymbol attributeType, DiagnosticBag diagnostics)
         {
+            return this.GetBinder(node).BindAttributeCore(node, attributeType, diagnostics);
+        }
+
+        private Binder SkipSemanticModelBinder()
+        {
+            Binder result = this;
+
+            while (result.IsSemanticModelBinder)
+            {
+                result = result.Next;
+            }
+
+            return result;
+        }
+
+        private BoundAttribute BindAttributeCore(AttributeSyntax node, NamedTypeSymbol attributeType, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(this.SkipSemanticModelBinder() == this.GetBinder(node).SkipSemanticModelBinder());
+
             // If attribute name bound to an error type with a single named type
             // candidate symbol, we want to bind the attribute constructor
             // and arguments with that named type to generate better semantic info.
@@ -246,7 +265,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private AnalyzedAttributeArguments BindAttributeArguments(AttributeArgumentListSyntax attributeArgumentList, NamedTypeSymbol attributeType, DiagnosticBag diagnostics)
+        private AnalyzedAttributeArguments BindAttributeArguments(
+            AttributeArgumentListSyntax attributeArgumentList,
+            NamedTypeSymbol attributeType,
+            DiagnosticBag diagnostics)
         {
             var boundConstructorArguments = AnalyzedArguments.GetInstance();
             var boundNamedArguments = ImmutableArray<BoundExpression>.Empty;
@@ -260,20 +282,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // matching Dev10 compiler behavior.
                 bool hadError = false;
 
+                var shouldHaveName = false;
+
                 foreach (var argument in attributeArgumentList.Arguments)
                 {
                     if (argument.NameEquals == null)
                     {
+                        if (shouldHaveName)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NamedArgumentExpected, argument.Expression.GetLocation());
+                        }
+
                         // Constructor argument
                         hadError |= this.BindArgumentAndName(
                             boundConstructorArguments,
                             diagnostics,
                             hadError,
                             argument,
-                            argument.Expression,
+                            BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false),
                             argument.NameColon,
-                            refKind: RefKind.None,
-                            allowArglist: false);
+                            refKind: RefKind.None);
 
                         if (boundNamedArgumentsBuilder != null)
                         {
@@ -284,6 +312,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        shouldHaveName = true;
+
                         // Named argument
                         // TODO: use fully qualified identifier name for boundNamedArgumentsSet
                         string argumentName = argument.NameEquals.Name.Identifier.ValueText;
@@ -805,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
-                Conversion conversion = conversions.ClassifyConversion(argumentType, parameter.Type.TypeSymbol, ref useSiteDiagnostics, builtinOnly: true);
+                Conversion conversion = conversions.ClassifyBuiltInConversion(argumentType, parameter.Type.TypeSymbol, ref useSiteDiagnostics);
 
                 // NOTE: Won't always succeed, even though we've performed overload resolution.
                 // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].

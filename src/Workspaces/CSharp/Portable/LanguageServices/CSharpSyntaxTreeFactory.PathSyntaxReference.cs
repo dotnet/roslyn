@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (node != root)
                         {
-                            throw new InvalidOperationException(CSharpWorkspaceResources.NodeDoesNotDescendFromRoo);
+                            throw new InvalidOperationException(CSharpWorkspaceResources.Node_does_not_descend_from_root);
                         }
                     }
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         index++;
                     }
 
-                    throw new InvalidOperationException(CSharpWorkspaceResources.NodeNotInParentsChildLis);
+                    throw new InvalidOperationException(CSharpWorkspaceResources.Node_not_in_parent_s_child_list);
                 }
 
                 private int GetTriviaIndex(SyntaxTrivia trivia)
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         index++;
                     }
 
-                    throw new InvalidOperationException(CSharpWorkspaceResources.TriviaIsNotAssociatedWith);
+                    throw new InvalidOperationException(CSharpWorkspaceResources.Trivia_is_not_associated_with_token);
                 }
 
                 private SyntaxTrivia GetTrivia(SyntaxToken token, int triviaIndex)

@@ -2,9 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -110,6 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override Symbol AssociatedSymbol
         {
             get { return null; }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         internal override bool IsExplicitInterfaceImplementation

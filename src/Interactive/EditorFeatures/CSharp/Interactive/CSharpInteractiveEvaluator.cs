@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
     internal sealed class CSharpInteractiveEvaluator : InteractiveEvaluator
     {
         private static readonly CSharpParseOptions s_parseOptions =
-            new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, kind: SourceCodeKind.Script);
+            new CSharpParseOptions(languageVersion: LanguageVersion.Latest, kind: SourceCodeKind.Script);
 
         private const string InteractiveResponseFile = "CSharpInteractive.rsp";
 

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     /// <summary>
-    /// This class represents the view model for a <see cref="SimpleCodeStyleOption"/>
+    /// This class represents the view model for a <see cref="CodeStyleOption{T}"/>
     /// that binds to the codestyle options UI.
     /// </summary>
     internal class SimpleCodeStyleOptionViewModel : AbstractCodeStyleOptionViewModel
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 if (SetProperty(ref _selectedPreference, value))
                 {
-                    Info.SetOptionAndUpdatePreview(new SimpleCodeStyleOption(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
+                    Info.SetOptionAndUpdatePreview(new CodeStyleOption<bool>(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
                 }
             }
         }
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 if (SetProperty(ref _selectedNotificationPreference, value))
                 {
-                    Info.SetOptionAndUpdatePreview(new SimpleCodeStyleOption(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
+                    Info.SetOptionAndUpdatePreview(new CodeStyleOption<bool>(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
                 }
             }
         }
@@ -60,8 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             List<NotificationOptionViewModel> notificationPreferences = null)
             : base(option, description, truePreview, falsePreview, info, options, groupName, preferences, notificationPreferences)
         {
-            var codeStyleOption = ((SimpleCodeStyleOption)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
-            _selectedPreference = Preferences.Single(c => c.IsChecked == codeStyleOption.IsChecked);
+            var codeStyleOption = ((CodeStyleOption<bool>)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
+            _selectedPreference = Preferences.Single(c => c.IsChecked == codeStyleOption.Value);
 
             var notificationViewModel = NotificationPreferences.Single(i => i.Notification.Value == codeStyleOption.Notification.Value);
             _selectedNotificationPreference = NotificationPreferences.Single(p => p.Notification.Value == notificationViewModel.Notification.Value);

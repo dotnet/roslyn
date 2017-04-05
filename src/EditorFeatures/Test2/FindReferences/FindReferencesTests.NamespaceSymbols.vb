@@ -4,7 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespace1() As Task
             Dim input =
 <Workspace>
@@ -23,10 +23,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPI(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespace2() As Task
             Dim input =
 <Workspace>
@@ -57,10 +57,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPI(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespace3() As Task
             Dim input =
 <Workspace>
@@ -91,9 +91,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPI(input)
         End Function
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespace5() As Task
             Dim input =
 <Workspace>
@@ -105,16 +106,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             {
             }
         }
-        namespace {|Definition:[|N|]|}.Inner
+        namespace [|N|].Inner
         {
         }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPI(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespaceCaseSensitivity1() As Task
             Dim input =
 <Workspace>
@@ -135,10 +136,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPI(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespaceCaseSensitivity2() As Task
             Dim input =
 <Workspace>
@@ -163,10 +164,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPI(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespaceThroughAlias1() As Task
             Dim input =
 <Workspace>
@@ -188,10 +189,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPI(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespaceThroughAlias2() As Task
             Dim input =
 <Workspace>
@@ -213,10 +214,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPI(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespaceThroughAlias3() As Task
             Dim input =
 <Workspace>
@@ -242,11 +243,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPI(input)
         End Function
 
         <WorkItem(541162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespaceCalledVar1() As Task
             Dim input =
 <Workspace>
@@ -266,11 +267,11 @@ namespace {|Definition:$$[|var|]|} { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPI(input)
         End Function
 
         <WorkItem(541162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespaceCalledVar2() As Task
             Dim input =
 <Workspace>
@@ -290,10 +291,10 @@ namespace var { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespaceWithUnicodeCharacter() As Task
             Dim input =
 <Workspace>
@@ -311,10 +312,10 @@ namespace var { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPI(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespaceWithComment() As Task
             Dim input =
 <Workspace>
@@ -330,10 +331,10 @@ namespace var { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPI(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNamespaceWithVerbatimIdentifier() As Task
             Dim input =
 <Workspace>
@@ -349,10 +350,10 @@ namespace var { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPI(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestGlobalNamespace() As Task
             Dim input =
 <Workspace>
@@ -367,7 +368,7 @@ namespace var { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

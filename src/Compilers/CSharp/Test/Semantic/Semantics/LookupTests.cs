@@ -17,20 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region helpers
 
-        internal List<string> GetLookupNames(string testSrc, bool experimental = false)
+        internal List<string> GetLookupNames(string testSrc)
         {
-            var compilation = experimental
-                ? CreateExperimentalCompilationWithMscorlib45(testSrc)
-                : CreateCompilationWithMscorlib45(testSrc);
+            var parseOptions = TestOptions.Regular;
+            var compilation = CreateCompilationWithMscorlib45(testSrc, parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
             return model.LookupNames(position);
-        }
-
-        internal List<string> GetExperimentalLookupNames(string testSrc)
-        {
-            return GetLookupNames(testSrc, experimental: true);
         }
 
         internal List<ISymbol> GetLookupSymbols(string testSrc, NamespaceOrTypeSymbol container = null, string name = null, int? arity = null, bool isScript = false, IEnumerable<string> globalUsings = null)
@@ -54,7 +48,7 @@ class C
 {
     public int P => /*<bind>*/10/*</bind>*/;
 }";
-            var actual = GetExperimentalLookupNames(text).ListToSortedString();
+            var actual = GetLookupNames(text).ListToSortedString();
 
             var expected_lookupNames = new List<string>
             {
@@ -82,7 +76,7 @@ class C
 {
     public int M() => /*<bind>*/10/*</bind>*/;
 }";
-            var actual = GetExperimentalLookupNames(text).ListToSortedString();
+            var actual = GetLookupNames(text).ListToSortedString();
 
             var expected_lookupNames = new List<string>
             {

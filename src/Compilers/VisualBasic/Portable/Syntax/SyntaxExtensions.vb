@@ -15,10 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         <Extension()>
         Public Function ToSyntaxTriviaList(sequence As IEnumerable(Of SyntaxTrivia)) As SyntaxTriviaList
-            Return SyntaxFactory.TriviaList(sequence.Aggregate(New List(Of SyntaxTrivia), Function(list, trivia)
-                                                                                              list.Add(trivia)
-                                                                                              Return list
-                                                                                          End Function))
+            Return SyntaxFactory.TriviaList(sequence)
         End Function
 
         <Extension()>

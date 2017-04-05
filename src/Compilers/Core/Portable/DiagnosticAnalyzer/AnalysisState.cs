@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly HashSet<SyntaxTree> _treesWithGeneratedSourceEvents;
         private readonly HashSet<ISymbol> _partialSymbolsWithGeneratedSourceEvents;
         private readonly CompilationData _compilationData;
+        private readonly CompilationOptions _compilationOptions;
         private bool _compilationStartGenerated;
         private bool _compilationEndGenerated;
 
@@ -63,18 +64,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ObjectPool<HashSet<CompilationEvent>> _compilationEventsPool;
         private readonly HashSet<CompilationEvent> _pooledEventsWithAnyActionsSet;
 
-        // Create static pools for heavily allocated per-analyzer state objects - this helps in reducing allocations across CompilationWithAnalyzer instances.
-        private const int PoolSize = 5000;
-        private static readonly ObjectPool<AnalyzerStateData> s_analyzerStateDataPool = new ObjectPool<AnalyzerStateData>(() => new AnalyzerStateData(), PoolSize);
-        private static readonly ObjectPool<DeclarationAnalyzerStateData> s_declarationAnalyzerStateDataPool = new ObjectPool<DeclarationAnalyzerStateData>(() => new DeclarationAnalyzerStateData(), PoolSize);
-        private static readonly ObjectPool<Dictionary<int, DeclarationAnalyzerStateData>> s_currentlyAnalyzingDeclarationsMapPool = new ObjectPool<Dictionary<int, DeclarationAnalyzerStateData>>(() => new Dictionary<int, DeclarationAnalyzerStateData>(), PoolSize);
-        private static readonly ObjectPool<PerAnalyzerState> s_perAnalyzerStatePool = new ObjectPool<PerAnalyzerState>(() => new PerAnalyzerState(s_analyzerStateDataPool, s_declarationAnalyzerStateDataPool, s_currentlyAnalyzingDeclarationsMapPool), PoolSize);
-
-        public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationData compilationData)
+        public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationData compilationData, CompilationOptions compilationOptions)
         {
             _gate = new object();
             _analyzerStateMap = CreateAnalyzerStateMap(analyzers, out _analyzerStates);
             _compilationData = compilationData;
+            _compilationOptions = compilationOptions;
             _pendingSourceEvents = new Dictionary<SyntaxTree, HashSet<CompilationEvent>>();
             _pendingNonSourceEvents = new HashSet<CompilationEvent>();
             _lazyAnalyzerActionCountsMap = null;
@@ -87,33 +82,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _pooledEventsWithAnyActionsSet = new HashSet<CompilationEvent>();
         }
 
-        ~AnalysisState()
-        {
-            // Free the per-analyzer state tracking objects.
-            foreach (var analyzerState in _analyzerStates)
-            {
-                var shouldReturnToPool = analyzerState.Free();
-
-                // If we have too many symbols then just discard the state object from the pool - we don't want to hold onto really large dictionaries.
-                if (shouldReturnToPool)
-                {
-                    s_perAnalyzerStatePool.Free(analyzerState);
-                }
-                else
-                {
-                    s_perAnalyzerStatePool.ForgetTrackedObject(analyzerState);
-                }
-            }
-        }
-
         private static ImmutableDictionary<DiagnosticAnalyzer, int> CreateAnalyzerStateMap(ImmutableArray<DiagnosticAnalyzer> analyzers, out ImmutableArray<PerAnalyzerState> analyzerStates)
         {
+            var analyzerStateDataPool = new ObjectPool<AnalyzerStateData>(() => new AnalyzerStateData());
+            var declarationAnalyzerStateDataPool = new ObjectPool<DeclarationAnalyzerStateData>(() => new DeclarationAnalyzerStateData());
+            var currentlyAnalyzingDeclarationsMapPool = new ObjectPool<Dictionary<int, DeclarationAnalyzerStateData>>(
+                () => new Dictionary<int, DeclarationAnalyzerStateData>());
+
             var statesBuilder = ImmutableArray.CreateBuilder<PerAnalyzerState>();
             var map = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, int>();
             var index = 0;
             foreach (var analyzer in analyzers)
             {
-                statesBuilder.Add(s_perAnalyzerStatePool.Allocate());
+                statesBuilder.Add(new PerAnalyzerState(analyzerStateDataPool, declarationAnalyzerStateDataPool, currentlyAnalyzingDeclarationsMapPool));
                 map[analyzer] = index;
                 index++;
             }
@@ -423,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerActionCounts>();
                 foreach (var analyzer in _analyzerStateMap.Keys)
                 {
-                    var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                    var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, _compilationOptions, cancellationToken).ConfigureAwait(false);
                     builder.Add(analyzer, actionCounts);
                 }
 
@@ -431,9 +412,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal async Task<AnalyzerActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, AnalyzerDriver driver, CancellationToken cancellationToken)
+        internal async Task<AnalyzerActionCounts> GetOrComputeAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, AnalyzerDriver driver, CancellationToken cancellationToken)
         {
             await EnsureAnalyzerActionCountsInitializedAsync(driver, cancellationToken).ConfigureAwait(false);
+            return _lazyAnalyzerActionCountsMap[analyzer];
+        }
+
+        internal AnalyzerActionCounts GetAnalyzerActionCounts(DiagnosticAnalyzer analyzer)
+        {
+            Debug.Assert(_lazyAnalyzerActionCountsMap != null);
             return _lazyAnalyzerActionCountsMap[analyzer];
         }
 
@@ -710,6 +697,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Checks if the given event has been fully analyzed for the given analyzer.
+        /// </summary>
+        public bool IsEventComplete(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer)
+        {
+            return GetAnalyzerState(analyzer).IsEventAnalyzed(compilationEvent);
+        }
+
+        /// <summary>
         /// Attempts to start processing a symbol for the given analyzer's symbol actions.
         /// </summary>
         /// <returns>
@@ -742,11 +737,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// True if the given symbol declaration is fully analyzed.
+        /// True if the given symbol declaration is fully analyzed for all the analyzers.
         /// </summary>
         public bool IsDeclarationComplete(ISymbol symbol, int declarationIndex)
         {
-            foreach (var analyzerState in _analyzerStates)
+            return IsDeclarationComplete(symbol, declarationIndex, _analyzerStates);
+        }
+
+        /// <summary>
+        /// True if the given symbol declaration is fully analyzed for the given analyzer.
+        /// </summary>
+        public bool IsDeclarationComplete(ISymbol symbol, int declarationIndex, DiagnosticAnalyzer analyzer)
+        {
+            var analyzerState = GetAnalyzerState(analyzer);
+            return IsDeclarationComplete(symbol, declarationIndex, SpecializedCollections.SingletonEnumerable(analyzerState));
+        }
+
+        private static bool IsDeclarationComplete(ISymbol symbol, int declarationIndex, IEnumerable<PerAnalyzerState> analyzerStates)
+        {
+            foreach (var analyzerState in analyzerStates)
             {
                 if (!analyzerState.IsDeclarationComplete(symbol, declarationIndex))
                 {

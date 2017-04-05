@@ -1,10 +1,13 @@
 {
-  "dependencies": { },
+  "dependencies": {
+    "System.ValueTuple": "4.3.0",
+    "System.Dynamic.Runtime": "4.3.0",
+    "Microsoft.VisualBasic": "10.1.0"
+  },
   "frameworks": {
-    "net46": { }
+    "net46": {}
   },
   "runtimes": {
-    "win7": { },
-    "win7-anycpu": { }
+    "win7": {}
   }
 }

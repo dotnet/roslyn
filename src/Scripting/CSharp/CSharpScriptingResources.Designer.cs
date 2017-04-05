@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting {
         ///
         ///Options:
         ///  /help                          Display this usage message (alternative form: /?)
+        ///  /version                       Display the version and exit
         ///  /i                             Drop to REPL after executing the specified script.
-        ///  /r:&lt;file&gt;                      Reference metadata from the specified assembly file (alternative form: /reference)
-        ///  /r:&lt;file list&gt;                 Reference m [rest of string was truncated]&quot;;.
+        ///  /r:&lt;file&gt;                      Reference metadata from the specified assembly file (alternative  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string InteractiveHelp {
             get {

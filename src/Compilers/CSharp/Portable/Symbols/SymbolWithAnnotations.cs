@@ -8,7 +8,6 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-
     /// <summary>
     /// A simple class that combines a single symbol with annotations
     /// </summary>
@@ -73,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
     }
-
 
     internal abstract class NamespaceOrTypeOrAliasSymbolWithAnnotations : SymbolWithAnnotations
     {
@@ -209,7 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool IsStatic => TypeSymbol.IsStatic;
         public bool IsNullableTypeOrTypeParameter() => TypeSymbol.IsNullableTypeOrTypeParameter();
 
-
         public bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
             return TypeSymbol.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
@@ -230,6 +227,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
             var newTypeWithModifiers = typeMap.SubstituteType(this.TypeSymbol);
+            if (!newTypeWithModifiers.Is(this.TypeSymbol) || newCustomModifiers != this.CustomModifiers)
+            {
+                return DoUpdate(newTypeWithModifiers.TypeSymbol, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
+            }
+            else
+            {
+                return this; // substitution had no effect on the type or modifiers
+            }
+        }
+
+        public TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap)
+        {
+            var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
+            var newTypeWithModifiers = typeMap.SubstituteTypeWithTupleUnification(this.TypeSymbol);
             if (!newTypeWithModifiers.Is(this.TypeSymbol) || newCustomModifiers != this.CustomModifiers)
             {
                 return DoUpdate(newTypeWithModifiers.TypeSymbol, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));

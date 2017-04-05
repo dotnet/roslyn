@@ -24,12 +24,12 @@ namespace ProcessWatchdog
                 // System.ComponentModel.Win32Exception (0x80004005): The handle is invalid. This
                 // means we're not running in a console session, hence there's no UI to take a
                 // screenshot of. This is perfectly normal on the server.
-                ConsoleUtils.LogError(Resources.ErrorCannotTakeScreenshotNoConsoleSession, ex);
+                ConsoleUtils.LogError(ErrorCode.CannotTakeScreenShotNoConsoleSession, Resources.ErrorCannotTakeScreenshotNoConsoleSession, ex);
             }
             catch (Exception ex)
             {
                 // This is something else, we'd better know about this.
-                ConsoleUtils.LogError(Resources.ErrorCannotTakeScreenshotUnexpectedError, ex);
+                ConsoleUtils.LogError(ErrorCode.CannotTakeScreenShotUnexpectedError, Resources.ErrorCannotTakeScreenshotUnexpectedError, ex);
             }
         }
 

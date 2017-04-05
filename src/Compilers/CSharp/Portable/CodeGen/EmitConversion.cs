@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
@@ -18,8 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (conversion.ConversionKind)
             {
                 case ConversionKind.MethodGroup:
-                    EmitMethodGroupConversion(conversion, used);
-                    return;
+                    throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
                 case ConversionKind.NullToPointer:
                     // The null pointer is represented as 0u.
                     _builder.EmitIntConstant(0);
@@ -73,6 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.MethodGroup:
+                case ConversionKind.ImplicitTupleLiteral:
+                case ConversionKind.ImplicitTuple:
+                case ConversionKind.ExplicitTupleLiteral:
+                case ConversionKind.ExplicitTuple:
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitThrow:
@@ -293,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if ((object)ctor != null) EmitSymbolToken(ctor, node.Syntax, null);
         }
 
-        private MethodSymbol DelegateConstructor(CSharpSyntaxNode syntax, TypeSymbol delegateType)
+        private MethodSymbol DelegateConstructor(SyntaxNode syntax, TypeSymbol delegateType)
         {
             foreach (var possibleCtor in delegateType.GetMembers(WellKnownMemberNames.InstanceConstructorName))
             {
@@ -312,12 +311,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // The delegate '{0}' does not have a valid constructor
             _diagnostics.Add(ErrorCode.ERR_BadDelegateConstructor, syntax.Location, delegateType);
             return null;
-        }
-
-        private void EmitMethodGroupConversion(BoundConversion conversion, bool used)
-        {
-            var group = (BoundMethodGroup)conversion.Operand;
-            EmitDelegateCreation(conversion, group.InstanceOpt, conversion.IsExtensionMethod, conversion.SymbolOpt, conversion.Type, used);
         }
     }
 }

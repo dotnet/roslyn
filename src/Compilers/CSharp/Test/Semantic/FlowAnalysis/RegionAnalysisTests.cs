@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     ///     * FlowDiagnosticTests.cs - all tests on Diagnostics
     ///     * IterationJumpYieldStatementTests.cs - while, do, for, foreach, break, continue, goto, iterator (yield break, yield return)
     ///     * TryLockUsingStatementTests.cs - try-catch-finally, lock, &amp; using statement
+    ///     * PatternsVsRegions.cs - region analysis tests for pattern matching
     /// </summary>
     public partial class FlowAnalysisTests : FlowTestBase
     {
@@ -1593,7 +1594,7 @@ unsafe public class Test
             Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
             Assert.Equal("p", GetSymbolNamesJoined(analysis.Captured));
             Assert.Equal("i", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
-            Assert.Equal("<p>", GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Equal("<p0>", GetSymbolNamesJoined(analysis.VariablesDeclared));
 
             Assert.Equal("p", GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
@@ -1601,7 +1602,7 @@ unsafe public class Test
             Assert.Equal("p", GetSymbolNamesJoined(analysis.ReadInside));
             Assert.Equal("i", GetSymbolNamesJoined(analysis.ReadOutside));
 
-            Assert.Equal("<p>", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("<p0>", GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("i, p, d", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
@@ -4750,6 +4751,41 @@ class C
             Assert.Equal("this, p", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
+        [Fact]
+        [WorkItem(17281, "https://github.com/dotnet/roslyn/issues/17281")]
+        public void DiscardVsVariablesDeclared()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+class A { }
+
+class Test
+{
+    private void Repro(A node)
+    {
+/*<bind>*/
+        switch (node)
+        {
+            case A _:
+                break;
+            case Unknown:
+                break;
+            default:
+                return;
+        }
+/*</bind>*/
+    }
+}");
+            Assert.Empty(dataFlowAnalysisResults.Captured);
+            Assert.Empty(dataFlowAnalysisResults.VariablesDeclared);
+            Assert.Empty(dataFlowAnalysisResults.AlwaysAssigned);
+            Assert.Equal("node", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Empty(dataFlowAnalysisResults.DataFlowsOut);
+            Assert.Equal("node", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Empty(dataFlowAnalysisResults.WrittenInside);
+            Assert.Equal("this, node", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
         #endregion
 
         #region "Misc."
@@ -5039,6 +5075,234 @@ public class ExportedSymbol
             Assert.Equal(null, GetSymbolNamesJoined(analysis.DataFlowsOut));
         }
 
+        [Fact, WorkItem(14110, "https://github.com/dotnet/roslyn/issues/14110")]
+        public void Test14110()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+class Program
+{
+    static void Main()
+    {
+        var (a0, b0) = (1, 2);
+        (var c0, int d0) = (3, 4);
+        bool e0 = a0 is int f0;
+        bool g0 = a0 is var h0;
+        M(out int i0);
+        M(out var j0);
+
+/*<bind>*/
+        var (a, b) = (1, 2);
+        (var c, int d) = (3, 4);
+        bool e = a is int f;
+        bool g = a is var h;
+        M(out int i);
+        M(out var j);
+/*</bind>*/
+
+        var (a1, b1) = (1, 2);
+        (var c1, int d1) = (3, 4);
+        bool e1 = a1 is int f1;
+        bool g1 = a1 is var h1;
+        M(out int i1);
+        M(out var j1);
+}
+    static void M(out int z) => throw null;
+}
+");
+            Assert.Equal("a, b, c, d, e, f, g, h, i, j", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+        }
+
+        [Fact, WorkItem(15640, "https://github.com/dotnet/roslyn/issues/15640")]
+        public void Test15640()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class Programand 
+{
+    static void Main()
+    {
+        foreach (var (a0, b0) in new[] { (1, 2) }) {}
+
+/*<bind>*/
+        foreach (var (a, b) in new[] { (1, 2) }) {}
+/*</bind>*/
+
+        foreach (var (a1, b1) in new[] { (1, 2) }) {}
+    }
+}
+");
+            Assert.Equal("a, b", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        void Local() { }
+        /*</bind>*/
+    }
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions2()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        void Local() { }
+
+        /*<bind>*/
+        Local();
+        /*</bind>*/
+    }
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions3()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        void Local() { }
+
+        /*<bind>*/
+        Action = Local;
+        /*</bind>*/
+    }
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions4()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        void Local() { }
+
+        /*<bind>*/
+        var a = new Action(Local);
+        /*</bind>*/
+    }
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions5()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    static void Main()
+    {
+        void Local()
+        {
+            /*<bind>*/
+            int x = 0;
+            x++;
+            x = M(x + 1);
+            /*</bind>*/
+        }
+        Local();
+    }
+
+    int M(int i) => i;
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions6()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    static void Main()
+    {
+        var a = new Action(() =>
+        {
+            void Local()
+            {
+                /*<bind>*/
+                int x = 0;
+                x++;
+                x = M(x + 1);
+                /*</bind>*/
+            }
+        });
+        a();
+    }
+
+    int M(int i) => i;
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions7()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        void Local() { }
+
+        /*<bind>*/
+        var a = (Action)Local;
+        /*</bind>*/
+    }
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions8()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    static void Main()
+    {
+        int x = 0;
+        void Local() { x++; }
+        Local();
+
+        /*<bind>*/
+        x++;
+        x = M(x + 1);
+        /*</bind>*/
+    }
+
+    int M(int i) => i;
+}");
+            Assert.True(results.Succeeded);
+        }
         #endregion
     }
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 // We don't have to deal with the zero length case, since there's nothing to
                 // delegate.  It will fall out of the GenerateFieldDelegatingConstructor above.
-                for (int i = _state.Arguments.Count; i >= 1; i--)
+                for (int i = _state.Arguments.Length; i >= 1; i--)
                 {
                     var edit = await GenerateThisOrBaseDelegatingConstructorAsync(i).ConfigureAwait(false);
                     if (edit != null)
@@ -115,11 +117,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var isThis = namedType.Equals(delegatedConstructor.ContainingType);
                 var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
-                var baseConstructorArguments = isThis ? null : delegatingArguments;
-                var thisConstructorArguments = isThis ? delegatingArguments : null;
+                var baseConstructorArguments = isThis ? default(ImmutableArray<SyntaxNode>) : delegatingArguments;
+                var thisConstructorArguments = isThis ? delegatingArguments : default(ImmutableArray<SyntaxNode>);
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: Accessibility.Public,
                     modifiers: default(DeclarationModifiers),
                     typeName: _state.TypeToGenerateIn.Name,
@@ -155,9 +157,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 }
 
                 var arguments = _state.Arguments.Take(argumentCount).ToList();
-                var remainingArguments = _state.Arguments.Skip(argumentCount).ToList();
-                var remainingAttributeArguments = _state.AttributeArguments != null ? _state.AttributeArguments.Skip(argumentCount).ToList() : null;
-                var remainingParameterTypes = _state.ParameterTypes.Skip(argumentCount).ToList();
+                var remainingArguments = _state.Arguments.Skip(argumentCount).ToImmutableArray();
+                var remainingAttributeArguments = _state.AttributeArguments != null 
+                    ? _state.AttributeArguments.Skip(argumentCount).ToImmutableArray() 
+                    : (ImmutableArray<TAttributeArgumentSyntax>?)null;
+                var remainingParameterTypes = _state.ParameterTypes.Skip(argumentCount).ToImmutableArray();
 
                 var instanceConstructors = namedType.InstanceConstructors.Where(IsSymbolAccessible).ToSet();
                 if (instanceConstructors.IsEmpty())
@@ -183,38 +187,38 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 // Find the names of the parameters that will follow the parameters we're
                 // delegating.
                 var remainingParameterNames = _service.GenerateParameterNames(
-                    _document.SemanticModel, remainingArguments, delegatedConstructor.Parameters.Select(p => p.Name).ToList());
+                    _document.SemanticModel, remainingArguments,
+                    delegatedConstructor.Parameters.Select(p => p.Name).ToList());
 
                 // Can't generate the constructor if the parameter names we're copying over forcibly
                 // conflict with any names we generated.
-                if (delegatedConstructor.Parameters.Select(p => p.Name).Intersect(remainingParameterNames).Any())
+                if (delegatedConstructor.Parameters.Select(p => p.Name)
+                    .Intersect(remainingParameterNames.Select(n => n.BestNameForParameter)).Any())
                 {
                     return null;
                 }
-
                 // Try to map those parameters to fields.
-                Dictionary<string, ISymbol> parameterToExistingFieldMap;
-                Dictionary<string, string> parameterToNewFieldMap;
-                List<IParameterSymbol> remainingParameters;
-                this.GetParameters(remainingArguments, remainingAttributeArguments, remainingParameterTypes, remainingParameterNames, out parameterToExistingFieldMap, out parameterToNewFieldMap, out remainingParameters);
+                this.GetParameters(remainingArguments, remainingAttributeArguments,
+                    remainingParameterTypes, remainingParameterNames,
+                    out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var remainingParameters);
 
                 var fields = syntaxFactory.CreateFieldsForParameters(remainingParameters, parameterToNewFieldMap);
                 var assignStatements = syntaxFactory.CreateAssignmentStatements(remainingParameters, parameterToExistingFieldMap, parameterToNewFieldMap);
 
-                var allParameters = delegatedConstructor.Parameters.Concat(remainingParameters).ToList();
+                var allParameters = delegatedConstructor.Parameters.Concat(remainingParameters);
 
                 var isThis = namedType.Equals(_state.TypeToGenerateIn);
                 var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
-                var baseConstructorArguments = isThis ? null : delegatingArguments;
-                var thisConstructorArguments = isThis ? delegatingArguments : null;
+                var baseConstructorArguments = isThis ? default(ImmutableArray<SyntaxNode>) : delegatingArguments;
+                var thisConstructorArguments = isThis ? delegatingArguments : default(ImmutableArray<SyntaxNode>);
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: Accessibility.Public,
                     modifiers: default(DeclarationModifiers),
                     typeName: _state.TypeToGenerateIn.Name,
                     parameters: allParameters,
-                    statements: assignStatements.ToList(),
+                    statements: assignStatements.ToImmutableArray(),
                     baseConstructorArguments: baseConstructorArguments,
                     thisConstructorArguments: thisConstructorArguments);
 
@@ -232,18 +236,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             private async Task<Document> GenerateFieldDelegatingConstructorAsync()
             {
-                var arguments = _state.Arguments.ToList();
+                var arguments = _state.Arguments;
                 var parameterTypes = _state.ParameterTypes;
 
-                var typeParametersNames = _state.TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToList();
-                var parameterNames = _state.AttributeArguments != null
-                    ? _service.GenerateParameterNames(_document.SemanticModel, _state.AttributeArguments, typeParametersNames)
-                    : _service.GenerateParameterNames(_document.SemanticModel, arguments, typeParametersNames);
-
-                Dictionary<string, ISymbol> parameterToExistingFieldMap;
-                Dictionary<string, string> parameterToNewFieldMap;
-                List<IParameterSymbol> parameters;
-                GetParameters(arguments, _state.AttributeArguments, parameterTypes, parameterNames, out parameterToExistingFieldMap, out parameterToNewFieldMap, out parameters);
+                var typeParametersNames = _state.TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToImmutableArray();
+                var parameterNames = GetParameterNames(arguments, typeParametersNames);
+                GetParameters(arguments, _state.AttributeArguments, parameterTypes, parameterNames,
+                    out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var parameters);
 
                 var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
                 var syntaxFactory = provider.GetService<SyntaxGenerator>();
@@ -265,53 +264,69 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return result;
             }
 
+            private ImmutableArray<ParameterName> GetParameterNames(
+                ImmutableArray<TArgumentSyntax> arguments, ImmutableArray<string> typeParametersNames)
+            {
+                return _state.AttributeArguments != null
+                    ? _service.GenerateParameterNames(_document.SemanticModel, _state.AttributeArguments, typeParametersNames)
+                    : _service.GenerateParameterNames(_document.SemanticModel, arguments, typeParametersNames);
+            }
+
             private void GetParameters(
-                IList<TArgumentSyntax> arguments,
-                IList<TAttributeArgumentSyntax> attributeArguments,
-                IList<ITypeSymbol> parameterTypes,
-                IList<string> parameterNames,
+                ImmutableArray<TArgumentSyntax> arguments,
+                ImmutableArray<TAttributeArgumentSyntax>? attributeArguments,
+                ImmutableArray<ITypeSymbol> parameterTypes,
+                ImmutableArray<ParameterName> parameterNames,
                 out Dictionary<string, ISymbol> parameterToExistingFieldMap,
                 out Dictionary<string, string> parameterToNewFieldMap,
-                out List<IParameterSymbol> parameters)
+                out ImmutableArray<IParameterSymbol> parameters)
             {
                 parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
                 parameterToNewFieldMap = new Dictionary<string, string>();
-                parameters = new List<IParameterSymbol>();
+                var result = ArrayBuilder<IParameterSymbol>.GetInstance();
 
-                for (var i = 0; i < parameterNames.Count; i++)
+                for (var i = 0; i < parameterNames.Length; i++)
                 {
                     // See if there's a matching field we can use.  First test in a case sensitive
                     // manner, then case insensitively.
-                    if (!TryFindMatchingField(arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap, parameterToNewFieldMap, caseSensitive: true))
+                    if (!TryFindMatchingField(
+                            arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap, 
+                            parameterToNewFieldMap, caseSensitive: true, newParameterNames: out parameterNames))
                     {
-                        if (!TryFindMatchingField(arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap, parameterToNewFieldMap, caseSensitive: false))
+                        if (!TryFindMatchingField(arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap, 
+                                parameterToNewFieldMap, caseSensitive: false, newParameterNames: out parameterNames))
                         {
-                            parameterToNewFieldMap[parameterNames[i]] = parameterNames[i];
+                            parameterToNewFieldMap[parameterNames[i].BestNameForParameter] = 
+                                parameterNames[i].NameBasedOnArgument;
                         }
                     }
 
-                    parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: null,
+                    result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
+                        attributes: default(ImmutableArray<AttributeData>),
                         refKind: _service.GetRefKind(arguments[i]),
                         isParams: false,
                         type: parameterTypes[i],
-                        name: parameterNames[i]));
+                        name: parameterNames[i].BestNameForParameter));
                 }
+
+                parameters = result.ToImmutableAndFree();
             }
 
             private bool TryFindMatchingField(
-                IList<TArgumentSyntax> arguments,
-                IList<TAttributeArgumentSyntax> attributeArguments,
-                IList<string> parameterNames,
-                IList<ITypeSymbol> parameterTypes,
+                ImmutableArray<TArgumentSyntax> arguments,
+                ImmutableArray<TAttributeArgumentSyntax>? attributeArguments,
+                ImmutableArray<ParameterName> parameterNames,
+                ImmutableArray<ITypeSymbol> parameterTypes,
                 int index,
                 Dictionary<string, ISymbol> parameterToExistingFieldMap,
                 Dictionary<string, string> parameterToNewFieldMap,
-                bool caseSensitive)
+                bool caseSensitive,
+                out ImmutableArray<ParameterName> newParameterNames)
             {
                 var parameterName = parameterNames[index];
                 var parameterType = parameterTypes[index];
                 var isFixed = _service.IsNamedArgument(arguments[index]);
+                var newParameterNamesList = parameterNames.ToList();
 
                 // For non-out parameters, see if there's already a field there with the same name.
                 // If so, and it has a compatible type, then we can just assign to that field.
@@ -324,7 +339,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 {
                     var ignoreAccessibility = type.Equals(_state.TypeToGenerateIn);
                     var symbol = type.GetMembers()
-                                     .FirstOrDefault(s => s.Name.Equals(parameterName, comparison));
+                                     .FirstOrDefault(s => s.Name.Equals(parameterName.NameBasedOnArgument, comparison));
 
                     if (symbol != null)
                     {
@@ -333,7 +348,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                             if (IsViableFieldOrProperty(parameterType, symbol))
                             {
                                 // Ok!  We can just the existing field.  
-                                parameterToExistingFieldMap[parameterName] = symbol;
+                                parameterToExistingFieldMap[parameterName.BestNameForParameter] = symbol;
                             }
                             else
                             {
@@ -341,30 +356,33 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                 // this field.  So we need to create a new field.  Find a name not in
                                 // use so we can assign to that.  
                                 var newFieldName = NameGenerator.EnsureUniqueness(
-                                    attributeArguments != null ?
-                                    _service.GenerateNameForArgument(_document.SemanticModel, attributeArguments[index]) :
-                                    _service.GenerateNameForArgument(_document.SemanticModel, arguments[index]),
+                                    attributeArguments != null
+                                        ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArguments.Value[index])
+                                        : _service.GenerateNameForArgument(_document.SemanticModel, arguments[index]),
                                     GetUnavailableMemberNames().Concat(parameterToNewFieldMap.Values));
 
                                 if (isFixed)
                                 {
                                     // Can't change the parameter name, so map the existing parameter
                                     // name to the new field name.
-                                    parameterToNewFieldMap[parameterName] = newFieldName;
+                                    parameterToNewFieldMap[parameterName.NameBasedOnArgument] = newFieldName;
                                 }
                                 else
                                 {
                                     // Can change the parameter name, so do so.
-                                    parameterNames[index] = newFieldName;
-                                    parameterToNewFieldMap[newFieldName] = newFieldName;
+                                    var newParameterName = new ParameterName(newFieldName, isFixed: false);
+                                    newParameterNamesList[index] = newParameterName;
+                                    parameterToNewFieldMap[newParameterName.BestNameForParameter] = newFieldName;
                                 }
                             }
 
+                            newParameterNames = newParameterNamesList.ToImmutableArray();
                             return true;
                         }
                     }
                 }
 
+                newParameterNames = newParameterNamesList.ToImmutableArray();
                 return false;
             }
 
@@ -399,7 +417,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         var property = (IPropertySymbol)symbol;
                         return
                             property.Parameters.Length == 0 &&
-                            property.SetMethod != null &&
+                            property.IsWritableInConstructor() &&
                             _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, property.Type);
                     }
                 }

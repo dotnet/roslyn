@@ -9,6 +9,7 @@
 set -e
 
 BIN_DIR="$( cd $1 && pwd )"
+CONTAINING_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 UNAME=`uname`
 
@@ -23,8 +24,10 @@ if [ -z "$RID" ]; then
     fi
 fi
 
-# Replace with a robust method for finding the right crossgen.exe
-CROSSGEN_UTIL=~/.nuget/packages/runtime.$RID.Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23504/tools/crossgen
+DEPENDENCIES=$CONTAINING_DIR/../Targets/Dependencies.props
+CORECLR_VERSION="$(grep -o '<MicrosoftNETCoreRuntimeCoreCLRVersion>.*</MicrosoftNETCoreRuntimeCoreCLRVersion>' $DEPENDENCIES | sed 's/ *<\/*MicrosoftNETCoreRuntimeCoreCLRVersion> *//g')"
+
+CROSSGEN_UTIL=~/.nuget/packages/runtime.$RID.Microsoft.NETCore.Runtime.CoreCLR/$CORECLR_VERSION/tools/crossgen
 
 cd $BIN_DIR
 
@@ -38,8 +41,7 @@ chmod +x crossgen
 
 ./crossgen -nologo -platform_assemblies_paths $BIN_DIR System.Reflection.Metadata.dll
 
-# The bootstrap build is currently not copying a dependency. See dotnet/roslyn #7907
-./crossgen -nologo -MissingDependenciesOK -platform_assemblies_paths $BIN_DIR Microsoft.CodeAnalysis.dll
+./crossgen -nologo -platform_assemblies_paths $BIN_DIR Microsoft.CodeAnalysis.dll
 
 ./crossgen -nologo -platform_assemblies_paths $BIN_DIR Microsoft.CodeAnalysis.CSharp.dll
 

@@ -15,19 +15,25 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Completion.Providers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class NamedParameterCompletionProvider : CompletionListProvider, IEqualityComparer<IParameterSymbol>
+    internal partial class NamedParameterCompletionProvider : CommonCompletionProvider, IEqualityComparer<IParameterSymbol>
     {
         private const string ColonString = ":";
 
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        // Explicitly remove ":" from the set of filter characters because (by default)
+        // any character that appears in DisplayText gets treated as a filter char.
+        private static readonly CompletionItemRules s_rules = CompletionItemRules.Default
+            .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
+
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
             var position = context.Position;
@@ -75,11 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (token.IsMandatoryNamedParameterPosition())
             {
-                context.MakeExclusive(true);
+                context.IsExclusive = true;
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var filterSpan = CompletionUtilities.GetTextChangeSpan(text, position);
 
             var workspace = document.Project.Solution.Workspace;
 
@@ -90,17 +95,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // exact match.
                 var escapedName = parameter.Name.ToIdentifierToken().ToString();
 
-                context.AddItem(new CompletionItem(
-                    this,
-                    escapedName + ColonString,
-                    filterSpan,
-                    CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, token.SpanStart, parameter),
-                    parameter.GetGlyph(),
-                    sortText: parameter.Name,
-                    filterText: escapedName,
-                    rules: ItemRules.Instance));
+                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
+                    displayText: escapedName + ColonString,
+                    symbols: ImmutableArray.Create(parameter),
+                    rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
+                    contextPosition: token.SpanStart,
+                    filterText: escapedName));
             }
         }
+
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
         {
@@ -123,11 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             SyntaxNode invocableNode,
             CancellationToken cancellationToken)
         {
-            return invocableNode.TypeSwitch(
-                (InvocationExpressionSyntax invocationExpression) => GetInvocationExpressionParameterLists(semanticModel, position, invocationExpression, cancellationToken),
-                (ConstructorInitializerSyntax constructorInitializer) => GetConstructorInitializerParameterLists(semanticModel, position, constructorInitializer, cancellationToken),
-                (ElementAccessExpressionSyntax elementAccessExpression) => GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken),
-                (ObjectCreationExpressionSyntax objectCreationExpression) => GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken));
+            switch (invocableNode)
+            {
+                case InvocationExpressionSyntax invocationExpression: return GetInvocationExpressionParameterLists(semanticModel, position, invocationExpression, cancellationToken);
+                case ConstructorInitializerSyntax constructorInitializer: return GetConstructorInitializerParameterLists(semanticModel, position, constructorInitializer, cancellationToken);
+                case ElementAccessExpressionSyntax elementAccessExpression: return GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken);
+                case ObjectCreationExpressionSyntax objectCreationExpression: return GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken);
+                default: return null;
+            }
         }
 
         private IEnumerable<ImmutableArray<IParameterSymbol>> GetObjectCreationExpressionParameterLists(
@@ -229,6 +237,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         int IEqualityComparer<IParameterSymbol>.GetHashCode(IParameterSymbol obj)
         {
             return obj.Name.GetHashCode();
+        }
+
+        protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<TextChange?>(new TextChange(
+                selectedItem.Span,
+                selectedItem.DisplayText.Substring(0, selectedItem.DisplayText.Length - ColonString.Length)));
         }
     }
 }

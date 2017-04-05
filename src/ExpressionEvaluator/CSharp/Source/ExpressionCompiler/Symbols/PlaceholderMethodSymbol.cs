@@ -158,6 +158,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return true; }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
         public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get { return _typeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations); }

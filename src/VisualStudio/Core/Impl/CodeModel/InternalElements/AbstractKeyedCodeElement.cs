@@ -66,9 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         internal void ReacquireNodeKey(SyntaxPath syntaxPath, CancellationToken cancellationToken)
         {
             Debug.Assert(syntaxPath != null);
-
-            SyntaxNode node;
-            if (!syntaxPath.TryResolve(GetSyntaxTree(), cancellationToken, out node))
+            if (!syntaxPath.TryResolve(GetSyntaxTree(), cancellationToken, out SyntaxNode node))
             {
                 throw Exceptions.ThrowEFail();
             }

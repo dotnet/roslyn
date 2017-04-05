@@ -18,6 +18,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EditAndContinueTests
         Inherits EditAndContinueTestBase
 
+        <Fact>
+        Public Sub ModifyMethod_WithTuples()
+            Dim source0 =
+"
+Class C
+    Shared Sub Main
+    End Sub
+    Shared Function F() As (Integer, Integer)
+        Return (1, 2)
+    End Function
+End Class
+"
+            Dim source1 =
+"
+Class C
+    Shared Sub Main
+    End Sub
+    Shared Function F() As (Integer, Integer)
+        Return (2, 3)
+    End Function
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib({source0}, options:=TestOptions.DebugExe, references:={ValueTupleRef, SystemRuntimeFacadeRef})
+            Dim compilation1 = compilation0.WithSource(source1)
+
+            Dim bytes0 = compilation0.EmitToArray()
+            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+                Dim reader0 = md0.MetadataReader
+                Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+
+                Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+                Dim diff1 = compilation1.EmitDifference(generation0, ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+
+                ' Verify delta metadata contains expected rows.
+                Using md1 = diff1.GetMetadata()
+                    Dim reader1 = md1.Reader
+                    Dim readers = {reader0, reader1}
+                    EncValidation.VerifyModuleMvid(1, reader0, reader1)
+                    CheckNames(readers, reader1.GetTypeDefNames())
+                    CheckNames(readers, reader1.GetMethodDefNames(), "F")
+                    CheckNames(readers, reader1.GetMemberRefNames(), ".ctor") ' System.ValueTuple ctor
+                    CheckEncLog(reader1,
+                        Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default)) ' C.F
+                    CheckEncMap(reader1,
+                        Handle(8, TableIndex.TypeRef),
+                        Handle(9, TableIndex.TypeRef),
+                        Handle(3, TableIndex.MethodDef),
+                        Handle(7, TableIndex.MemberRef),
+                        Handle(2, TableIndex.StandAloneSig),
+                        Handle(2, TableIndex.TypeSpec),
+                        Handle(3, TableIndex.AssemblyRef),
+                        Handle(4, TableIndex.AssemblyRef))
+                End Using
+            End Using
+        End Sub
+
         <WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")>
         <Fact>
         Public Sub PartialMethod()
@@ -53,7 +117,7 @@ End Class
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
 
-                Dim methods = diff1.TestData.Methods
+                Dim methods = diff1.TestData.GetMethodsByName()
                 Assert.Equal(methods.Count, 1)
                 Assert.True(methods.ContainsKey("C.M2()"))
 
@@ -797,7 +861,8 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
-            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
+
             Dim members = compilation1.GetMember(Of NamedTypeSymbol)("A.B").GetMembers("M")
             Assert.Equal(members.Length, 2)
             For Each member In members
@@ -823,7 +888,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
-            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.M")
             Dim other = DirectCast(matcher.MapDefinition(DirectCast(member, Cci.IMethodDefinition)), MethodSymbol)
             Assert.NotNull(other)
@@ -858,7 +923,7 @@ End Class
             Const nModifiers As Integer = 1
             Assert.Equal(nModifiers, DirectCast(member1.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
 
-            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim other = DirectCast(matcher.MapDefinition(DirectCast(member1, Cci.IMethodDefinition)), MethodSymbol)
             Assert.NotNull(other)
             Assert.Equal(nModifiers, DirectCast(other.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
@@ -4436,7 +4501,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
-            Dim moduleMetadata0 = DirectCast(metadata0.GetMetadata(), AssemblyMetadata).GetModules(0)
+            Dim moduleMetadata0 = DirectCast(metadata0.GetMetadataNoCopy(), AssemblyMetadata).GetModules(0)
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
 
             Dim generation0 = EmitBaseline.CreateInitialBaseline(

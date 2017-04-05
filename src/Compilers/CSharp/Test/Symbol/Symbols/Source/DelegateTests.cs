@@ -709,12 +709,12 @@ class C
     D d = async delegate { };
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (4,11): error CS1988: Async methods cannot have ref or out parameters
+                // (4,17): error CS1988: Async methods cannot have ref or out parameters
                 //     D d = async delegate { };
-                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "async delegate { }"),
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "delegate").WithLocation(4, 17),
                 // (4,11): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     D d = async delegate { };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "async delegate { }")
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "async delegate { }").WithLocation(4, 11)
                 );
         }
 
@@ -723,7 +723,7 @@ class C
         {
             var source = @"delegate ref int D();";
 
-            var comp = CreateExperimentalCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;

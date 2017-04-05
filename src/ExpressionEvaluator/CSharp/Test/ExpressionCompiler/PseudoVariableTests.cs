@@ -525,7 +525,7 @@ class C
             if (valid)
             {
                 var expectedNames = new[] { "<>x.<>m0()" };
-                var actualNames = testData.Methods.Keys;
+                var actualNames = testData.GetMethodsByName().Keys;
                 AssertEx.SetEqual(expectedNames, actualNames);
             }
             else

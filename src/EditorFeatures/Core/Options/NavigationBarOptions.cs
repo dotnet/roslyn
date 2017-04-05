@@ -6,9 +6,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 {
     internal static class NavigationBarOptions
     {
-        public const string FeatureName = "Navigation Bar";
-
         [ExportOption]
-        public static readonly PerLanguageOption<bool> ShowNavigationBar = new PerLanguageOption<bool>(FeatureName, "Show Navigation Bar", defaultValue: true);
+        public static readonly PerLanguageOption<bool> ShowNavigationBar = new PerLanguageOption<bool>(nameof(NavigationBarOptions), nameof(ShowNavigationBar), defaultValue: true);
     }
 }

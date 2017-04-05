@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                 cancellationToken,
                 allowImplicitLineContinuation:=False) Then
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Step", VBFeaturesResources.StepKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Step", VBFeaturesResources.Specifies_how_much_to_increment_between_each_loop_iteration))
             Else
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If

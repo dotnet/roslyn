@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private readonly bool _forFixMultipleContext;
 
             public static PragmaWarningCodeAction Create(
-                    SuppressionTargetInfo suppressionTargetInfo,
-                    Document document,
-                    Diagnostic diagnostic,
-                    AbstractSuppressionCodeFixProvider fixer)
+                SuppressionTargetInfo suppressionTargetInfo,
+                Document document,
+                Diagnostic diagnostic,
+                AbstractSuppressionCodeFixProvider fixer)
             {
                 // We need to normalize the leading trivia on start token to account for
                 // the trailing trivia on its previous token (and similarly normalize trailing trivia for end token).
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 Diagnostic diagnostic,
                 AbstractSuppressionCodeFixProvider fixer,
                 bool forFixMultipleContext = false)
-                : base(fixer, title: FeaturesResources.SuppressWithPragma)
+                : base(fixer, title: FeaturesResources.in_Source)
             {
                 _suppressionTargetInfo = suppressionTargetInfo;
                 _document = document;

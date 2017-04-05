@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                     SyntaxKind.ForEachBlock,
                     SyntaxKind.WhileBlock) Then
 
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Continue", VBFeaturesResources.ContinueKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Continue", VBFeaturesResources.Transfers_execution_immediately_to_the_next_iteration_of_the_loop_Can_be_used_in_a_Do_loop_a_For_loop_or_a_While_loop))
                 End If
             End If
 

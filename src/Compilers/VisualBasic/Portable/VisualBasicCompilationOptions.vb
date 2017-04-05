@@ -24,6 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' those should come from the user's code.
         Private _suppressEmbeddedDeclarations As Boolean
 
+        Private _ignoreCorLibraryDuplicatedTypes As Boolean
+
         ''' <summary>
         ''' Initializes a new instance of the VisualBasicCompilationOptions type with various options.
         ''' </summary>
@@ -116,7 +118,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 deterministic:=deterministic,
                 currentLocalTime:=Nothing,
                 suppressEmbeddedDeclarations:=False,
-                extendedCustomDebugInformation:=True,
                 debugPlusMode:=False,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
@@ -124,14 +125,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
                 metadataImportOptions:=MetadataImportOptions.Public,
-                referencesSupersedeLowerVersions:=False)
+                referencesSupersedeLowerVersions:=False,
+                ignoreCorLibraryDuplicatedTypes:=False)
 
         End Sub
 
-        Friend Sub New(
+        Private Sub New(
             outputKind As OutputKind,
             reportSuppressedDiagnostics As Boolean,
-            ModuleName As String,
+            moduleName As String,
             mainTypeName As String,
             scriptClassName As String,
             globalImports As IEnumerable(Of GlobalImport),
@@ -156,7 +158,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             deterministic As Boolean,
             currentLocalTime As Date,
             suppressEmbeddedDeclarations As Boolean,
-            extendedCustomDebugInformation As Boolean,
             debugPlusMode As Boolean,
             xmlReferenceResolver As XmlReferenceResolver,
             sourceReferenceResolver As SourceReferenceResolver,
@@ -164,12 +165,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             assemblyIdentityComparer As AssemblyIdentityComparer,
             strongNameProvider As StrongNameProvider,
             metadataImportOptions As MetadataImportOptions,
-            referencesSupersedeLowerVersions As Boolean)
+            referencesSupersedeLowerVersions As Boolean,
+            ignoreCorLibraryDuplicatedTypes As Boolean)
 
             MyBase.New(
                 outputKind:=outputKind,
                 reportSuppressedDiagnostics:=reportSuppressedDiagnostics,
-                moduleName:=ModuleName,
+                moduleName:=moduleName,
                 mainTypeName:=mainTypeName,
                 scriptClassName:=scriptClassName,
                 cryptoKeyContainer:=cryptoKeyContainer,
@@ -186,7 +188,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 concurrentBuild:=concurrentBuild,
                 deterministic:=deterministic,
                 currentLocalTime:=currentLocalTime,
-                extendedCustomDebugInformation:=extendedCustomDebugInformation,
                 debugPlusMode:=debugPlusMode,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
@@ -205,12 +206,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _embedVbCoreRuntime = embedVbCoreRuntime
             _suppressEmbeddedDeclarations = suppressEmbeddedDeclarations
             _parseOptions = parseOptions
+            _ignoreCorLibraryDuplicatedTypes = ignoreCorLibraryDuplicatedTypes
 
             Debug.Assert(Not (_embedVbCoreRuntime AndAlso _suppressEmbeddedDeclarations),
                          "_embedVbCoreRuntime and _suppressEmbeddedDeclarations are mutually exclusive")
         End Sub
 
-        Private Sub New(other As VisualBasicCompilationOptions)
+        Friend Sub New(other As VisualBasicCompilationOptions)
             MyClass.New(
                 outputKind:=other.OutputKind,
                 reportSuppressedDiagnostics:=other.ReportSuppressedDiagnostics,
@@ -238,7 +240,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 concurrentBuild:=other.ConcurrentBuild,
                 deterministic:=other.Deterministic,
                 currentLocalTime:=other.CurrentLocalTime,
-                extendedCustomDebugInformation:=other.ExtendedCustomDebugInformation,
                 debugPlusMode:=other.DebugPlusMode,
                 xmlReferenceResolver:=other.XmlReferenceResolver,
                 sourceReferenceResolver:=other.SourceReferenceResolver,
@@ -247,8 +248,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 strongNameProvider:=other.StrongNameProvider,
                 metadataImportOptions:=other.MetadataImportOptions,
                 referencesSupersedeLowerVersions:=other.ReferencesSupersedeLowerVersions,
-                publicSign:=other.PublicSign)
+                publicSign:=other.PublicSign,
+                ignoreCorLibraryDuplicatedTypes:=other.IgnoreCorLibraryDuplicatedTypes)
         End Sub
+
+        Public Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
         Friend Overrides Function GetImports() As ImmutableArray(Of String)
             ' TODO: implement (only called from VBI) https://github.com/dotnet/roslyn/issues/5854
@@ -358,11 +366,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
+        ''' Gets the setting to ignore corlib types when duplicates are found.
+        ''' </summary>
+        Friend ReadOnly Property IgnoreCorLibraryDuplicatedTypes As Boolean
+            Get
+                Return _ignoreCorLibraryDuplicatedTypes
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Gets the Parse Options setting.
         ''' Compilation level parse options.  Used when compiling synthetic embedded code such as My template
         ''' </summary>
         ''' <returns>The Parse Options Setting.</returns>
-        Friend ReadOnly Property ParseOptions As VisualBasicParseOptions
+        Public ReadOnly Property ParseOptions As VisualBasicParseOptions
             Get
                 Return _parseOptions
             End Get
@@ -386,7 +403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="moduleName">The moduleName.</param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the module name is different; otherwise current instance.</returns>        
-        Public Function WithModuleName(moduleName As String) As VisualBasicCompilationOptions
+        Public Shadows Function WithModuleName(moduleName As String) As VisualBasicCompilationOptions
             If String.Equals(moduleName, Me.ModuleName, StringComparison.Ordinal) Then
                 Return Me
             End If
@@ -558,7 +575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a new VisualBasicCompilationOptions instance with a different deterministic mode specified.
         ''' <param name="deterministic"> The deterministic mode. </param>
-        ''' <returns> A new instance of VisualBasicCompilationOptions, if the concurrent build is different; otherwise the current instance.</returns>
+        ''' <returns> A new instance of VisualBasicCompilationOptions, if the deterministic mode is different; otherwise the current instance.</returns>
         ''' </summary>
         Public Shadows Function WithDeterministic(deterministic As Boolean) As VisualBasicCompilationOptions
             If deterministic = Me.Deterministic Then
@@ -574,19 +591,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New VisualBasicCompilationOptions(Me) With {.CurrentLocalTime_internal_protected_set = value}
-        End Function
-
-        ''' <summary>
-        ''' Creates a new VisualBasicCompilationOptions instance with a different extended custom debug information specified.
-        ''' </summary>
-        ''' <param name="extendedCustomDebugInformation">The extended custom debug information setting. </param>        
-        ''' <returns>A new instance of VisualBasicCompilationOptions, if the extended custom debug information is different; otherwise current instance.</returns>        
-        Friend Function WithExtendedCustomDebugInformation(extendedCustomDebugInformation As Boolean) As VisualBasicCompilationOptions
-            If extendedCustomDebugInformation = Me.ExtendedCustomDebugInformation Then
-                Return Me
-            End If
-
-            Return New VisualBasicCompilationOptions(Me) With {.ExtendedCustomDebugInformation_internal_protected_set = extendedCustomDebugInformation}
         End Function
 
         ''' <summary>
@@ -614,6 +618,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New VisualBasicCompilationOptions(Me) With {._suppressEmbeddedDeclarations = suppressEmbeddedDeclarations}
+        End Function
+
+        ''' <summary>
+        ''' Creates a new VisualBasicCompilationOptions instance with different ignoreCorLibraryDuplicatedTypes setting specified.
+        ''' </summary>
+        ''' <param name="ignoreCorLibraryDuplicatedTypes">The ignoreCorLibraryDuplicatedTypes setting. </param>
+        ''' <remarks>Only expected to be called from the expression compiler and interactive.</remarks>
+        Friend Function WithIgnoreCorLibraryDuplicatedTypes(ignoreCorLibraryDuplicatedTypes As Boolean) As VisualBasicCompilationOptions
+            If ignoreCorLibraryDuplicatedTypes = _ignoreCorLibraryDuplicatedTypes Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {._ignoreCorLibraryDuplicatedTypes = ignoreCorLibraryDuplicatedTypes}
         End Function
 
         ''' <summary>
@@ -691,6 +708,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New VisualBasicCompilationOptions(Me) With {.PublicSign = value}
+        End Function
+
+        Protected Overrides Function CommonWithConcurrentBuild(concurrent As Boolean) As CompilationOptions
+            Return Me.WithConcurrentBuild(concurrent)
         End Function
 
         Protected Overrides Function CommonWithDeterministic(deterministic As Boolean) As CompilationOptions
@@ -901,10 +922,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If ModuleName IsNot Nothing Then
-                Dim e As Exception = MetadataHelpers.CheckAssemblyOrModuleName(ModuleName, NameOf(ModuleName))
-                If e IsNot Nothing Then
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_BadCompilationOption, e.Message))
-                End If
+                MetadataHelpers.CheckAssemblyOrModuleName(ModuleName, MessageProvider.Instance, ERRID.ERR_BadModuleName, builder)
             End If
 
             If Not OutputKind.IsValid() Then
@@ -963,6 +981,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Me.OptionCompareText = other.OptionCompareText AndAlso
                    Me.EmbedVbCoreRuntime = other.EmbedVbCoreRuntime AndAlso
                    Me.SuppressEmbeddedDeclarations = other.SuppressEmbeddedDeclarations AndAlso
+                   Me.IgnoreCorLibraryDuplicatedTypes = other.IgnoreCorLibraryDuplicatedTypes AndAlso
                    If(Me.ParseOptions Is Nothing, other.ParseOptions Is Nothing, Me.ParseOptions.Equals(other.ParseOptions))
         End Function
 
@@ -990,7 +1009,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Hash.Combine(Me.OptionCompareText,
                    Hash.Combine(Me.EmbedVbCoreRuntime,
                    Hash.Combine(Me.SuppressEmbeddedDeclarations,
-                   Hash.Combine(Me.ParseOptions, 0))))))))))
+                   Hash.Combine(Me.IgnoreCorLibraryDuplicatedTypes,
+                   Hash.Combine(Me.ParseOptions, 0)))))))))))
         End Function
 
         Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
@@ -1184,7 +1204,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 deterministic:=deterministic,
                 currentLocalTime:=Nothing,
                 suppressEmbeddedDeclarations:=False,
-                extendedCustomDebugInformation:=True,
                 debugPlusMode:=False,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
@@ -1192,8 +1211,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
                 metadataImportOptions:=MetadataImportOptions.Public,
-                referencesSupersedeLowerVersions:=False)
+                referencesSupersedeLowerVersions:=False,
+                ignoreCorLibraryDuplicatedTypes:=False)
 
         End Sub
+
+        Protected Overrides Function CommonWithModuleName(moduleName As String) As CompilationOptions
+            Return WithModuleName(moduleName)
+        End Function
+
+        Protected Overrides Function CommonWithMainTypeName(mainTypeName As String) As CompilationOptions
+            Return WithMainTypeName(mainTypeName)
+        End Function
+
+        Protected Overrides Function CommonWithScriptClassName(scriptClassName As String) As CompilationOptions
+            Return WithScriptClassName(scriptClassName)
+        End Function
+
+        Protected Overrides Function CommonWithCryptoKeyContainer(cryptoKeyContainer As String) As CompilationOptions
+            Return WithCryptoKeyContainer(cryptoKeyContainer)
+        End Function
+
+        Protected Overrides Function CommonWithCryptoKeyFile(cryptoKeyFile As String) As CompilationOptions
+            Return WithCryptoKeyFile(cryptoKeyFile)
+        End Function
+
+        Protected Overrides Function CommonWithCryptoPublicKey(cryptoPublicKey As ImmutableArray(Of Byte)) As CompilationOptions
+            Return WithCryptoPublicKey(cryptoPublicKey)
+        End Function
+
+        Protected Overrides Function CommonWithDelaySign(delaySign As Boolean?) As CompilationOptions
+            Return WithDelaySign(delaySign)
+        End Function
+
+        Protected Overrides Function CommonWithCheckOverflow(checkOverflow As Boolean) As CompilationOptions
+            Return WithOverflowChecks(checkOverflow)
+        End Function
     End Class
 End Namespace

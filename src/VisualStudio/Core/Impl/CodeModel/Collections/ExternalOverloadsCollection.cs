@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                 return ImmutableArray.Create((EnvDTE.CodeElement)Parent);
             }
 
-            var overloadsBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>();
+            var overloadsBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance();
             foreach (var method in symbol.ContainingType.GetMembers(symbol.Name))
             {
                 if (method.Kind != SymbolKind.Method)
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                 }
             }
 
-            return overloadsBuilder.ToImmutable();
+            return overloadsBuilder.ToImmutableAndFree();
         }
 
         public override int Count

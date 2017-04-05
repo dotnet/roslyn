@@ -10,7 +10,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
         {
-            return AddSequencePoint((BoundStatement)base.VisitThrowStatement(node));
+            var result = (BoundStatement)base.VisitThrowStatement(node);
+            if (this.Instrument && !node.WasCompilerGenerated)
+            {
+                result = _instrumenter.InstrumentThrowStatement(node, result);
+            }
+
+            return result;
         }
     }
 }

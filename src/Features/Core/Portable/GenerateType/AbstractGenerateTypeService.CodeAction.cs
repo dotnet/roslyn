@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateType
 {
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     if (_intoNamespace)
                     {
-                        var namespaceToGenerateIn = string.IsNullOrEmpty(_state.NamespaceToGenerateInOpt) ? FeaturesResources.GlobalNamespace : _state.NamespaceToGenerateInOpt;
+                        var namespaceToGenerateIn = string.IsNullOrEmpty(_state.NamespaceToGenerateInOpt) ? FeaturesResources.Global_Namespace : _state.NamespaceToGenerateInOpt;
                         return FormatDisplayText(_state, _inNewFile, isNested: false);
                     }
                     else
@@ -83,13 +82,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            public override string EquivalenceKey
-            {
-                get
-                {
-                    return _equivalenceKey;
-                }
-            }
+            public override string EquivalenceKey => _equivalenceKey;
         }
 
         private class GenerateTypeCodeActionWithOption : CodeActionWithOptions
@@ -105,21 +98,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 _state = state;
             }
 
-            public override string Title
-            {
-                get
-                {
-                    return FeaturesResources.GenerateNewType;
-                }
-            }
+            public override string Title => FeaturesResources.Generate_new_type;
 
-            public override string EquivalenceKey
-            {
-                get
-                {
-                    return _state.Name;
-                }
-            }
+            public override string EquivalenceKey => _state.Name;
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
@@ -145,9 +126,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private TypeKindOptions GetTypeKindOption(State state)
             {
-                TypeKindOptions typeKindValue;
-
-                var gotPreassignedTypeOptions = GetPredefinedTypeKindOption(state, out typeKindValue);
+                var gotPreassignedTypeOptions = GetPredefinedTypeKindOption(state, out var typeKindValue);
                 if (!gotPreassignedTypeOptions)
                 {
                     typeKindValue = state.IsSimpleNameGeneric ? TypeKindOptionsHelper.RemoveOptions(typeKindValue, TypeKindOptions.GenericInCompatibleTypes) : typeKindValue;

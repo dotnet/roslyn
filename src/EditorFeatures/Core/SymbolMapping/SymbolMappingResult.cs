@@ -13,12 +13,6 @@ namespace Microsoft.CodeAnalysis.Editor.SymbolMapping
             this.Symbol = symbol;
         }
 
-        public Solution Solution
-        {
-            get
-            {
-                return this.Project.Solution;
-            }
-        }
+        public Solution Solution => Project.Solution;
     }
 }

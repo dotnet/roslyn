@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -81,11 +81,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         internal void ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, Operation operation)
         {
-            var title = operation == Operation.Comment ? EditorFeaturesResources.CommentSelection
-                                                       : EditorFeaturesResources.UncommentSelection;
+            var title = operation == Operation.Comment ? EditorFeaturesResources.Comment_Selection
+                                                       : EditorFeaturesResources.Uncomment_Selection;
 
-            var message = operation == Operation.Comment ? EditorFeaturesResources.CommentingCurrentlySelected
-                                                         : EditorFeaturesResources.UncommentingCurrentlySelected;
+            var message = operation == Operation.Comment ? EditorFeaturesResources.Commenting_currently_selected_text
+                                                         : EditorFeaturesResources.Uncommenting_currently_selected_text;
 
             _waitIndicator.Wait(
                 title,

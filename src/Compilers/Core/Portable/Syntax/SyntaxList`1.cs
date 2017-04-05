@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                throw new ArgumentException("nodeInList");
+                throw new ArgumentException(nameof(nodeInList));
             }
         }
 

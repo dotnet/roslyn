@@ -159,14 +159,6 @@ namespace Microsoft.CodeAnalysis
         internal DateTime CurrentLocalTime { get; private set; }
 
         internal DateTime CurrentLocalTime_internal_protected_set { set { CurrentLocalTime = value; } }
-       
-        /// <summary>
-        /// Emit extended custom debug information to the PDB file.
-        /// </summary>
-        internal bool ExtendedCustomDebugInformation { get; private set; }
-
-        // TODO: change visibility of the ExtendedCustomDebugInformation setter to internal & protected
-        internal bool ExtendedCustomDebugInformation_internal_protected_set { set { ExtendedCustomDebugInformation = value; } }
 
         /// <summary>
         /// Emit mode that favors debuggability. 
@@ -278,7 +270,6 @@ namespace Microsoft.CodeAnalysis
             bool concurrentBuild,
             bool deterministic,
             DateTime currentLocalTime,
-            bool extendedCustomDebugInformation,
             bool debugPlusMode,
             XmlReferenceResolver xmlReferenceResolver,
             SourceReferenceResolver sourceReferenceResolver,
@@ -306,7 +297,6 @@ namespace Microsoft.CodeAnalysis
             this.ConcurrentBuild = concurrentBuild;
             this.Deterministic = deterministic;
             this.CurrentLocalTime = currentLocalTime;
-            this.ExtendedCustomDebugInformation = extendedCustomDebugInformation;
             this.DebugPlusMode = debugPlusMode;
             this.XmlReferenceResolver = xmlReferenceResolver;
             this.SourceReferenceResolver = sourceReferenceResolver;
@@ -338,6 +328,11 @@ namespace Microsoft.CodeAnalysis
                 && object.Equals(this.MetadataReferenceResolver, other.MetadataReferenceResolver)
                 && object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer);
         }
+
+        /// <summary>
+        /// Gets the source language ("C#" or "Visual Basic").
+        /// </summary>
+        public abstract string Language { get; }
 
         internal bool EnableEditAndContinue
         {
@@ -395,6 +390,14 @@ namespace Microsoft.CodeAnalysis
         public CompilationOptions WithReportSuppressedDiagnostics(bool value)
         {
             return CommonWithReportSuppressedDiagnostics(value);
+        }
+
+        /// <summary>
+        /// Creates a new options instance with the concurrent build property set accordingly.
+        /// </summary>
+        public CompilationOptions WithConcurrentBuild(bool concurrent)
+        {
+            return CommonWithConcurrentBuild(concurrent);
         }
 
         /// <summary>
@@ -459,6 +462,47 @@ namespace Microsoft.CodeAnalysis
             return CommonWithStrongNameProvider(provider);
         }
 
+        public CompilationOptions WithModuleName(string moduleName)
+        {
+            return CommonWithModuleName(moduleName);
+        }
+
+        public CompilationOptions WithMainTypeName(string mainTypeName)
+        {
+            return CommonWithMainTypeName(mainTypeName);
+        }
+
+        public CompilationOptions WithScriptClassName(string scriptClassName)
+        {
+            return CommonWithScriptClassName(scriptClassName);
+        }
+
+        public CompilationOptions WithCryptoKeyContainer(string cryptoKeyContainer)
+        {
+            return CommonWithCryptoKeyContainer(cryptoKeyContainer);
+        }
+
+        public CompilationOptions WithCryptoKeyFile(string cryptoKeyFile)
+        {
+            return CommonWithCryptoKeyFile(cryptoKeyFile);
+        }
+
+        public CompilationOptions WithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey)
+        {
+            return CommonWithCryptoPublicKey(cryptoPublicKey);
+        }
+
+        public CompilationOptions WithDelaySign(bool? delaySign)
+        {
+            return CommonWithDelaySign(delaySign);
+        }
+
+        public CompilationOptions WithOverflowChecks(bool checkOverflow)
+        {
+            return CommonWithCheckOverflow(checkOverflow);
+        }
+
+        protected abstract CompilationOptions CommonWithConcurrentBuild(bool concurrent);
         protected abstract CompilationOptions CommonWithDeterministic(bool deterministic);
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
         protected abstract CompilationOptions CommonWithPlatform(Platform platform);
@@ -473,6 +517,15 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics);
+        protected abstract CompilationOptions CommonWithModuleName(string moduleName);
+        protected abstract CompilationOptions CommonWithMainTypeName(string mainTypeName);
+        protected abstract CompilationOptions CommonWithScriptClassName(string scriptClassName);
+        protected abstract CompilationOptions CommonWithCryptoKeyContainer(string cryptoKeyContainer);
+        protected abstract CompilationOptions CommonWithCryptoKeyFile(string cryptoKeyFile);
+        protected abstract CompilationOptions CommonWithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey);
+        protected abstract CompilationOptions CommonWithDelaySign(bool? delaySign);
+        protected abstract CompilationOptions CommonWithCheckOverflow(bool checkOverflow);
+
         [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);
 
@@ -502,10 +555,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (CryptoKeyFile != null && !PathUtilities.IsAbsolute(CryptoKeyFile))
                 {
-                    // TODO(https://github.com/dotnet/roslyn/issues/9153):
-                    // Produce better diagnostic message for passing a key file with a relative path
-                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_BadCompilationOptionValue,
-                        Location.None, nameof(CryptoKeyFile), CryptoKeyFile));
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_OptionMustBeAbsolutePath,
+                        Location.None, nameof(CryptoKeyFile)));
                 }
 
                 if (CryptoKeyContainer != null)
@@ -546,7 +597,6 @@ namespace Microsoft.CodeAnalysis
                    this.ConcurrentBuild == other.ConcurrentBuild &&
                    this.Deterministic == other.Deterministic &&
                    this.CurrentLocalTime == other.CurrentLocalTime &&
-                   this.ExtendedCustomDebugInformation == other.ExtendedCustomDebugInformation &&
                    this.DebugPlusMode == other.DebugPlusMode &&
                    string.Equals(this.CryptoKeyContainer, other.CryptoKeyContainer, StringComparison.Ordinal) &&
                    string.Equals(this.CryptoKeyFile, other.CryptoKeyFile, StringComparison.Ordinal) &&
@@ -582,7 +632,6 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.ConcurrentBuild,
                    Hash.Combine(this.Deterministic,
                    Hash.Combine(this.CurrentLocalTime.GetHashCode(),
-                   Hash.Combine(this.ExtendedCustomDebugInformation,
                    Hash.Combine(this.DebugPlusMode,
                    Hash.Combine(this.CryptoKeyContainer != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyContainer) : 0,
                    Hash.Combine(this.CryptoKeyFile != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyFile) : 0,
@@ -604,7 +653,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
-                   Hash.Combine(this.PublicSign, 0)))))))))))))))))))))))))));
+                   Hash.Combine(this.PublicSign, 0))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

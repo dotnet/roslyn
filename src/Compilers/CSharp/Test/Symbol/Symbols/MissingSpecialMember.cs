@@ -544,10 +544,11 @@ namespace System
                 SystemXmlRef,
                 SystemXmlLinqRef,
                 SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
             var comp = CreateCompilation("", refs);
 
-            for (var wkt = WellKnownType.First; wkt <= WellKnownType.Last; wkt++)
+            for (var wkt = WellKnownType.First; wkt < WellKnownType.NextAvailable; wkt++)
             {
                 switch (wkt)
                 {
@@ -558,13 +559,271 @@ namespace System
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
                         // Not yet in the platform.
+                    case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
+                        // Not always available.
                         continue;
+                    case WellKnownType.ExtSentinel:
+                        // Not a real type
+                        continue;
+                }
+
+                switch (wkt)
+                {
+                    case WellKnownType.System_ValueTuple_T1:
+                    case WellKnownType.System_ValueTuple_T2:
+                    case WellKnownType.System_ValueTuple_T3:
+                    case WellKnownType.System_ValueTuple_T4:
+                    case WellKnownType.System_ValueTuple_T5:
+                    case WellKnownType.System_ValueTuple_T6:
+                    case WellKnownType.System_ValueTuple_T7:
+                    case WellKnownType.System_ValueTuple_TRest:
+                        Assert.True(wkt.IsValueTupleType());
+                        break;
+
+                    default:
+                        Assert.False(wkt.IsValueTupleType());
+                        break;
                 }
 
                 var symbol = comp.GetWellKnownType(wkt);
                 Assert.NotNull(symbol);
                 Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
             }
+        }
+
+        [Fact]
+        public void AllWellKnownTypesBeforeCSharp7()
+        {
+            foreach (var type in new[] {
+                            WellKnownType.System_Math,
+                            WellKnownType.System_Array,
+                            WellKnownType.System_Attribute,
+                            WellKnownType.System_CLSCompliantAttribute,
+                            WellKnownType.System_Convert,
+                            WellKnownType.System_Exception,
+                            WellKnownType.System_FlagsAttribute,
+                            WellKnownType.System_FormattableString,
+                            WellKnownType.System_Guid,
+                            WellKnownType.System_IFormattable,
+                            WellKnownType.System_RuntimeTypeHandle,
+                            WellKnownType.System_RuntimeFieldHandle,
+                            WellKnownType.System_RuntimeMethodHandle,
+                            WellKnownType.System_MarshalByRefObject,
+                            WellKnownType.System_Type,
+                            WellKnownType.System_Reflection_AssemblyKeyFileAttribute,
+                            WellKnownType.System_Reflection_AssemblyKeyNameAttribute,
+                            WellKnownType.System_Reflection_MethodInfo,
+                            WellKnownType.System_Reflection_ConstructorInfo,
+                            WellKnownType.System_Reflection_MethodBase,
+                            WellKnownType.System_Reflection_FieldInfo,
+                            WellKnownType.System_Reflection_MemberInfo,
+                            WellKnownType.System_Reflection_Missing,
+                            WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
+                            WellKnownType.System_Runtime_CompilerServices_RuntimeHelpers,
+                            WellKnownType.System_Runtime_ExceptionServices_ExceptionDispatchInfo,
+                            WellKnownType.System_Runtime_InteropServices_StructLayoutAttribute,
+                            WellKnownType.System_Runtime_InteropServices_UnknownWrapper,
+                            WellKnownType.System_Runtime_InteropServices_DispatchWrapper,
+                            WellKnownType.System_Runtime_InteropServices_CallingConvention,
+                            WellKnownType.System_Runtime_InteropServices_ClassInterfaceAttribute,
+                            WellKnownType.System_Runtime_InteropServices_ClassInterfaceType,
+                            WellKnownType.System_Runtime_InteropServices_CoClassAttribute,
+                            WellKnownType.System_Runtime_InteropServices_ComAwareEventInfo,
+                            WellKnownType.System_Runtime_InteropServices_ComEventInterfaceAttribute,
+                            WellKnownType.System_Runtime_InteropServices_ComInterfaceType,
+                            WellKnownType.System_Runtime_InteropServices_ComSourceInterfacesAttribute,
+                            WellKnownType.System_Runtime_InteropServices_ComVisibleAttribute,
+                            WellKnownType.System_Runtime_InteropServices_DispIdAttribute,
+                            WellKnownType.System_Runtime_InteropServices_GuidAttribute,
+                            WellKnownType.System_Runtime_InteropServices_InterfaceTypeAttribute,
+                            WellKnownType.System_Runtime_InteropServices_Marshal,
+                            WellKnownType.System_Runtime_InteropServices_TypeIdentifierAttribute,
+                            WellKnownType.System_Runtime_InteropServices_BestFitMappingAttribute,
+                            WellKnownType.System_Runtime_InteropServices_DefaultParameterValueAttribute,
+                            WellKnownType.System_Runtime_InteropServices_LCIDConversionAttribute,
+                            WellKnownType.System_Runtime_InteropServices_UnmanagedFunctionPointerAttribute,
+                            WellKnownType.System_Activator,
+                            WellKnownType.System_Threading_Tasks_Task,
+                            WellKnownType.System_Threading_Tasks_Task_T,
+                            WellKnownType.System_Threading_Interlocked,
+                            WellKnownType.System_Threading_Monitor,
+                            WellKnownType.System_Threading_Thread,
+                            WellKnownType.Microsoft_CSharp_RuntimeBinder_Binder,
+                            WellKnownType.Microsoft_CSharp_RuntimeBinder_CSharpArgumentInfo,
+                            WellKnownType.Microsoft_CSharp_RuntimeBinder_CSharpArgumentInfoFlags,
+                            WellKnownType.Microsoft_CSharp_RuntimeBinder_CSharpBinderFlags,
+                            WellKnownType.Microsoft_VisualBasic_CallType,
+                            WellKnownType.Microsoft_VisualBasic_Embedded,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_Conversions,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_Operators,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_NewLateBinding,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_StandardModuleAttribute,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_Utils,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_LikeOperator,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_ProjectData,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_StaticLocalInitFlag,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_StringType,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_IncompleteInitialization,
+                            WellKnownType.Microsoft_VisualBasic_CompilerServices_Versioned,
+                            WellKnownType.Microsoft_VisualBasic_CompareMethod,
+                            WellKnownType.Microsoft_VisualBasic_Strings,
+                            WellKnownType.Microsoft_VisualBasic_ErrObject,
+                            WellKnownType.Microsoft_VisualBasic_FileSystem,
+                            WellKnownType.Microsoft_VisualBasic_ApplicationServices_ApplicationBase,
+                            WellKnownType.Microsoft_VisualBasic_ApplicationServices_WindowsFormsApplicationBase,
+                            WellKnownType.Microsoft_VisualBasic_Information,
+                            WellKnownType.Microsoft_VisualBasic_Interaction,
+
+                            WellKnownType.System_Func_T,
+                            WellKnownType.System_Func_T2,
+                            WellKnownType.System_Func_T3,
+                            WellKnownType.System_Func_T4,
+                            WellKnownType.System_Func_T5,
+                            WellKnownType.System_Func_T6,
+                            WellKnownType.System_Func_T7,
+                            WellKnownType.System_Func_T8,
+                            WellKnownType.System_Func_T9,
+                            WellKnownType.System_Func_T10,
+                            WellKnownType.System_Func_T11,
+                            WellKnownType.System_Func_T12,
+                            WellKnownType.System_Func_T13,
+                            WellKnownType.System_Func_T14,
+                            WellKnownType.System_Func_T15,
+                            WellKnownType.System_Func_T16,
+                            WellKnownType.System_Func_T17,
+
+                            WellKnownType.System_Action,
+                            WellKnownType.System_Action_T,
+                            WellKnownType.System_Action_T2,
+                            WellKnownType.System_Action_T3,
+                            WellKnownType.System_Action_T4,
+                            WellKnownType.System_Action_T5,
+                            WellKnownType.System_Action_T6,
+                            WellKnownType.System_Action_T7,
+                            WellKnownType.System_Action_T8,
+                            WellKnownType.System_Action_T9,
+                            WellKnownType.System_Action_T10,
+                            WellKnownType.System_Action_T11,
+                            WellKnownType.System_Action_T12,
+                            WellKnownType.System_Action_T13,
+                            WellKnownType.System_Action_T14,
+                            WellKnownType.System_Action_T15,
+                            WellKnownType.System_Action_T16,
+
+                            WellKnownType.System_AttributeUsageAttribute,
+                            WellKnownType.System_ParamArrayAttribute,
+                            WellKnownType.System_NonSerializedAttribute,
+                            WellKnownType.System_STAThreadAttribute,
+                            WellKnownType.System_Reflection_DefaultMemberAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_IUnknownConstantAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_IDispatchConstantAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_ExtensionAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_INotifyCompletion,
+                            WellKnownType.System_Runtime_CompilerServices_InternalsVisibleToAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_CompilerGeneratedAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_AccessedThroughPropertyAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_CompilationRelaxationsAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_UnsafeValueTypeAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_FixedBufferAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_DynamicAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_CallSiteBinder,
+                            WellKnownType.System_Runtime_CompilerServices_CallSite,
+                            WellKnownType.System_Runtime_CompilerServices_CallSite_T,
+
+                            WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken,
+                            WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T,
+                            WellKnownType.System_Runtime_InteropServices_WindowsRuntime_WindowsRuntimeMarshal,
+
+                            WellKnownType.Windows_Foundation_IAsyncAction,
+                            WellKnownType.Windows_Foundation_IAsyncActionWithProgress_T,
+                            WellKnownType.Windows_Foundation_IAsyncOperation_T,
+                            WellKnownType.Windows_Foundation_IAsyncOperationWithProgress_T2,
+
+                            WellKnownType.System_Diagnostics_Debugger,
+                            WellKnownType.System_Diagnostics_DebuggerDisplayAttribute,
+                            WellKnownType.System_Diagnostics_DebuggerNonUserCodeAttribute,
+                            WellKnownType.System_Diagnostics_DebuggerHiddenAttribute,
+                            WellKnownType.System_Diagnostics_DebuggerBrowsableAttribute,
+                            WellKnownType.System_Diagnostics_DebuggerStepThroughAttribute,
+                            WellKnownType.System_Diagnostics_DebuggerBrowsableState,
+                            WellKnownType.System_Diagnostics_DebuggableAttribute,
+                            WellKnownType.System_Diagnostics_DebuggableAttribute__DebuggingModes,
+
+                            WellKnownType.System_ComponentModel_DesignerSerializationVisibilityAttribute,
+
+                            WellKnownType.System_IEquatable_T,
+
+                            WellKnownType.System_Collections_IList,
+                            WellKnownType.System_Collections_ICollection,
+                            WellKnownType.System_Collections_Generic_EqualityComparer_T,
+                            WellKnownType.System_Collections_Generic_List_T,
+                            WellKnownType.System_Collections_Generic_IDictionary_KV,
+                            WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV,
+                            WellKnownType.System_Collections_ObjectModel_Collection_T,
+                            WellKnownType.System_Collections_ObjectModel_ReadOnlyCollection_T,
+                            WellKnownType.System_Collections_Specialized_INotifyCollectionChanged,
+                            WellKnownType.System_ComponentModel_INotifyPropertyChanged,
+                            WellKnownType.System_ComponentModel_EditorBrowsableAttribute,
+                            WellKnownType.System_ComponentModel_EditorBrowsableState,
+
+                            WellKnownType.System_Linq_Enumerable,
+                            WellKnownType.System_Linq_Expressions_Expression,
+                            WellKnownType.System_Linq_Expressions_Expression_T,
+                            WellKnownType.System_Linq_Expressions_ParameterExpression,
+                            WellKnownType.System_Linq_Expressions_ElementInit,
+                            WellKnownType.System_Linq_Expressions_MemberBinding,
+                            WellKnownType.System_Linq_Expressions_ExpressionType,
+                            WellKnownType.System_Linq_IQueryable,
+                            WellKnownType.System_Linq_IQueryable_T,
+
+                            WellKnownType.System_Xml_Linq_Extensions,
+                            WellKnownType.System_Xml_Linq_XAttribute,
+                            WellKnownType.System_Xml_Linq_XCData,
+                            WellKnownType.System_Xml_Linq_XComment,
+                            WellKnownType.System_Xml_Linq_XContainer,
+                            WellKnownType.System_Xml_Linq_XDeclaration,
+                            WellKnownType.System_Xml_Linq_XDocument,
+                            WellKnownType.System_Xml_Linq_XElement,
+                            WellKnownType.System_Xml_Linq_XName,
+                            WellKnownType.System_Xml_Linq_XNamespace,
+                            WellKnownType.System_Xml_Linq_XObject,
+                            WellKnownType.System_Xml_Linq_XProcessingInstruction,
+
+                            WellKnownType.System_Security_UnverifiableCodeAttribute,
+                            WellKnownType.System_Security_Permissions_SecurityAction,
+                            WellKnownType.System_Security_Permissions_SecurityAttribute,
+                            WellKnownType.System_Security_Permissions_SecurityPermissionAttribute,
+
+                            WellKnownType.System_NotSupportedException,
+
+                            WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion,
+                            WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine,
+                            WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder,
+                            WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder,
+                            WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T,
+                            WellKnownType.System_Runtime_CompilerServices_AsyncStateMachineAttribute,
+                            WellKnownType.System_Runtime_CompilerServices_IteratorStateMachineAttribute,
+
+                            WellKnownType.System_Windows_Forms_Form,
+                            WellKnownType.System_Windows_Forms_Application,
+
+                            WellKnownType.System_Environment,
+
+                            WellKnownType.System_Runtime_GCLatencyMode,
+                            WellKnownType.System_IFormatProvider }
+                )
+            {
+                Assert.True(type <= WellKnownType.CSharp7Sentinel);
+            }
+
+            // There were 204 well-known types prior to CSharp7
+            Assert.Equal(204, (int)(WellKnownType.CSharp7Sentinel - WellKnownType.First));
         }
 
         [Fact]
@@ -581,6 +840,7 @@ namespace System
                 SystemXmlRef,
                 SystemXmlLinqRef,
                 SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
             var comp = CreateCompilation("", refs);
 
@@ -596,7 +856,10 @@ namespace System
                         // C# can't embed VB core.
                         continue;
                     case WellKnownMember.System_Array__Empty:
-                        // Not available yet, but will be in upcoming release.
+                        // Not yet in the platform.
+                        continue;
+                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload:
+                        // Not always available.
                         continue;
                 }
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.
@@ -604,6 +867,1560 @@ namespace System
                 var symbol = comp.GetWellKnownTypeMember(wkm);
                 Assert.NotNull(symbol);
             }
+        }
+
+        [Fact, WorkItem(377890, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=377890")]
+        public void System_IntPtr__op_Explicit_FromInt32()
+        {
+            string source = @"
+using System;
+
+public class MyClass
+{
+    static void Main()
+    {
+        ((IntPtr)0).GetHashCode();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.MakeMemberMissing(SpecialMember.System_IntPtr__op_Explicit_FromInt32);
+            comp.VerifyEmitDiagnostics(
+                // (8,10): error CS0656: Missing compiler required member 'System.IntPtr.op_Explicit'
+                //         ((IntPtr)0).GetHashCode();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(IntPtr)0").WithArguments("System.IntPtr", "op_Explicit").WithLocation(8, 10)
+                );
+        }
+
+        [Fact]
+        public void System_Delegate__Combine()
+        {
+            var source =
+@"
+using System;
+using System.Threading.Tasks;
+
+namespace RoslynAsyncDelegate
+{
+    class Program
+    {
+        static EventHandler MyEvent;
+
+        static void Main(string[] args)
+        {
+           MyEvent += async delegate { await Task.Delay(0); };
+        }
+    }
+}
+
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.MakeMemberMissing(SpecialMember.System_Delegate__Combine);
+            compilation.VerifyEmitDiagnostics(
+                // (13,12): error CS0656: Missing compiler required member 'System.Delegate.Combine'
+                //            MyEvent += async delegate { await Task.Delay(0); };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "MyEvent += async delegate { await Task.Delay(0); }").WithArguments("System.Delegate", "Combine").WithLocation(13, 12)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T__ctor_01()
+        {
+            string source = @"
+using System;
+
+public struct S
+{
+    public static implicit operator int(S n) // 1 native compiler
+    {
+        Console.WriteLine(1);
+        return 0;
+    }
+
+    public static implicit operator int?(S n) // 2 Roslyn compiler
+    {
+        Console.WriteLine(2);
+        return null;
+    }
+
+    public static void Main()
+    {
+        int? qa = 5;
+        S b = default(S);
+        var sum = qa + b;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
+            compilation.VerifyEmitDiagnostics(
+                // (20,19): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         int? qa = 5;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "5").WithArguments("System.Nullable`1", ".ctor").WithLocation(20, 19),
+                // (22,19): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         var sum = qa + b;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "qa + b").WithArguments("System.Nullable`1", ".ctor").WithLocation(22, 19)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_GetValueOrDefault_01()
+        {
+            string source = @"
+using System;
+
+public struct S
+{
+    public static implicit operator int(S n) // 1 native compiler
+    {
+        Console.WriteLine(1);
+        return 0;
+    }
+
+    public static implicit operator int?(S n) // 2 Roslyn compiler
+    {
+        Console.WriteLine(2);
+        return null;
+    }
+
+    public static void Main()
+    {
+        int? qa = 5;
+        S b = default(S);
+        var sum = qa + b;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            compilation.VerifyEmitDiagnostics(
+                // (22,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         var sum = qa + b;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "qa + b").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(22, 19),
+                // (22,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         var sum = qa + b;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "qa + b").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(22, 19)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_get_HasValue_01()
+        {
+            string source = @"
+using System;
+
+public struct S
+{
+    public static implicit operator int(S n) // 1 native compiler
+    {
+        Console.WriteLine(1);
+        return 0;
+    }
+
+    public static implicit operator int?(S n) // 2 Roslyn compiler
+    {
+        Console.WriteLine(2);
+        return null;
+    }
+
+    public static void Main()
+    {
+        int? qa = 5;
+        S b = default(S);
+        var sum = qa + b;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
+            compilation.VerifyEmitDiagnostics(
+                // (22,19): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
+                //         var sum = qa + b;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "qa + b").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(22, 19),
+                // (22,19): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
+                //         var sum = qa + b;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "qa + b").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(22, 19)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_GetValueOrDefault_02()
+        {
+            string source = @"
+using System;
+namespace Test
+{
+    static class Program
+    {
+        static void Main()
+        {
+            int? i = 123;
+            C c = (C)i;
+        }
+    }
+
+    public class C
+    {
+        public readonly int v;
+        public C(int v) { this.v = v; }
+        public static implicit operator C(int v)
+        {
+            Console.Write(v);
+            return new C(v);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            compilation.VerifyEmitDiagnostics(
+                // (10,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //             C c = (C)i;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(C)i").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(10, 19)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_get_Value()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Test()
+    {
+        byte? b = 0;
+        IntPtr p = (IntPtr)b;
+        Console.WriteLine(p);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_Value);
+            compilation.VerifyEmitDiagnostics(
+                // (9,28): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
+                //         IntPtr p = (IntPtr)b;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "b").WithArguments("System.Nullable`1", "get_Value").WithLocation(9, 28)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T__ctor_02()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine((IntPtr?)M_int());
+        Console.WriteLine((IntPtr?)M_int(42));
+        Console.WriteLine((IntPtr?)M_long());
+        Console.WriteLine((IntPtr?)M_long(300));
+    }
+
+    static int? M_int(int? p = null) { return p; } 
+    static long? M_long(long? p = null) { return p; } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
+            compilation.VerifyEmitDiagnostics(
+                // (8,27): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         Console.WriteLine((IntPtr?)M_int());
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(IntPtr?)M_int()").WithArguments("System.Nullable`1", ".ctor").WithLocation(8, 27),
+                // (9,42): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         Console.WriteLine((IntPtr?)M_int(42));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "42").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 42),
+                // (9,27): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         Console.WriteLine((IntPtr?)M_int(42));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(IntPtr?)M_int(42)").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 27),
+                // (10,27): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         Console.WriteLine((IntPtr?)M_long());
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(IntPtr?)M_long()").WithArguments("System.Nullable`1", ".ctor").WithLocation(10, 27),
+                // (11,43): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         Console.WriteLine((IntPtr?)M_long(300));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "300").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 43),
+                // (11,27): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         Console.WriteLine((IntPtr?)M_long(300));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(IntPtr?)M_long(300)").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 27)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T__ctor_03()
+        {
+            var source =
+@"
+
+using System;
+
+class Class1
+{
+    static void Main()
+    {
+        MyClass b = (int?)1;
+    }
+}
+
+class MyClass
+{
+    public static implicit operator MyClass(decimal Value)
+    {
+        return new MyClass();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
+            compilation.VerifyEmitDiagnostics(
+                // (9,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         MyClass b = (int?)1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int?)1").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 21),
+                // (9,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         MyClass b = (int?)1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int?)1").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 21)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T__ctor_04()
+        {
+            var source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+public static class Test
+{
+    public static void Generic<T>([Optional][DecimalConstant(0, 0, 0, 0, 50)] T x)
+    {
+        Console.WriteLine(x == null ? ""null"" : x.ToString());
+    }
+
+    public static void Decimal([Optional][DecimalConstant(0, 0, 0, 0, 50)] Decimal x)
+    {
+        Console.WriteLine(x.ToString());
+    }
+
+    public static void NullableDecimal([Optional][DecimalConstant(0, 0, 0, 0, 50)] Decimal? x)
+    {
+        Console.WriteLine(x == null ? ""null"" : x.ToString());
+    }
+
+    public static void Object([Optional][DecimalConstant(0, 0, 0, 0, 50)] object x)
+    {
+        Console.WriteLine(x == null ? ""null"" : x.ToString());
+    }
+
+    public static void String([Optional][DecimalConstant(0, 0, 0, 0, 50)] string x)
+    {
+        Console.WriteLine(x == null ? ""null"" : x.ToString());
+    }
+
+    public static void Int32([Optional][DecimalConstant(0, 0, 0, 0, 50)] int x)
+    {
+        Console.WriteLine(x.ToString());
+    }
+
+    public static void IComparable([Optional][DecimalConstant(0, 0, 0, 0, 50)] IComparable x)
+    {
+        Console.WriteLine(x == null ? ""null"" : x.ToString());
+    }
+
+    public static void ValueType([Optional][DecimalConstant(0, 0, 0, 0, 50)] ValueType x)
+    {
+        Console.WriteLine(x == null ? ""null"" : x.ToString());
+    }
+}
+";
+
+            var source2 = @"
+class Program
+{
+    public static void Main()
+    {
+        // Respects default value
+        Test.Generic<decimal>();    
+        Test.Generic<decimal?>();   
+        Test.Generic<object>();             
+        Test.Decimal();                    
+        Test.NullableDecimal();            
+        Test.Object();                      
+        Test.IComparable();                 
+        Test.ValueType();                   
+        Test.Int32();                       
+
+        // Null, since not convertible
+        Test.Generic<string>();             
+        Test.String();                      
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source1 + source2);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
+            compilation.VerifyEmitDiagnostics(
+                // (55,9): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         Test.Generic<decimal?>();   
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Test.Generic<decimal?>()").WithArguments("System.Nullable`1", ".ctor").WithLocation(55, 9),
+                // (58,9): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         Test.NullableDecimal();            
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Test.NullableDecimal()").WithArguments("System.Nullable`1", ".ctor").WithLocation(58, 9)
+                );
+        }
+
+        [Fact]
+        public void System_String__ConcatObjectObject()
+        {
+            var source =
+@"
+
+using System;
+
+class Class1
+{
+    static void Main()
+    {
+    }
+}
+
+class MyClass
+{
+    public static implicit operator MyClass(decimal Value)
+    {
+        Console.WriteLine(""Value is: "" + Value);
+        return new MyClass();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObjectObject);
+            compilation.VerifyEmitDiagnostics(
+                // (16,27): error CS0656: Missing compiler required member 'System.String.Concat'
+                //         Console.WriteLine("Value is: " + Value);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""Value is: "" + Value").WithArguments("System.String", "Concat").WithLocation(16, 27)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_GetValueOrDefault_04()
+        {
+            var source =
+@"
+
+using System;
+
+class Class1
+{
+    static void Main()
+    {
+        int? a = 1;
+        a.ToString();
+        MyClass b = a;
+        b.ToString();
+    }
+}
+
+class MyClass
+{
+    public static implicit operator MyClass(decimal Value)
+    {
+        return new MyClass();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            compilation.VerifyEmitDiagnostics(
+                // (11,21): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         MyClass b = a;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "a").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(11, 21),
+                // (11,21): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         MyClass b = a;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "a").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(11, 21)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_get_HasValue_02()
+        {
+            var source =
+@"
+
+using System;
+
+class Class1
+{
+    static void Main()
+    {
+        int? a = 1;
+        a.ToString();
+        MyClass b = a;
+        b.ToString();
+    }
+}
+
+class MyClass
+{
+    public static implicit operator MyClass(decimal Value)
+    {
+        Console.WriteLine(""Value is: "" + Value);
+        return new MyClass();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
+            compilation.VerifyEmitDiagnostics(
+                // (11,21): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
+                //         MyClass b = a;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "a").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(11, 21)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_GetValueOrDefault_03()
+        {
+            string source = @"using System;
+
+namespace Test
+{
+    static class Program
+    {
+        static void Main()
+        {
+            S.v = 0;
+            S? S2 = 123;                  // not lifted, int=>int?, int?=>S, S=>S?
+            Console.WriteLine(S.v == 123);
+        }
+    }
+
+    public struct S
+    {
+        public static int v;
+        // s == null, return v = -1
+        public static implicit operator S(int? s)
+        {
+            Console.Write(""Imp S::int? -> S "");
+            S ss = new S();
+            S.v = s ?? -1;
+            return ss;
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            compilation.VerifyEmitDiagnostics(
+                // (23,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //             S.v = s ?? -1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "s").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(23, 19)
+                );
+        }
+
+        [Fact]
+        public void System_String__ConcatStringStringString()
+        {
+            string source = @"
+using System;
+struct S
+{
+    private string str;
+    public S(char chr) { this.str = chr.ToString(); }
+    public S(string str) { this.str = str; }
+    public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+}
+
+class C
+{
+    static void Main()
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatStringStringString);
+            compilation.VerifyEmitDiagnostics(
+                // (8,58): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '+'").WithArguments("System.String", "Concat").WithLocation(8, 58)
+                );
+        }
+
+        [Fact]
+        public void System_String__ConcatStringStringStringString()
+        {
+            string source = @"
+using System;
+struct S
+{
+    private string str;
+    public S(char chr) { this.str = chr.ToString(); }
+    public S(string str) { this.str = str; }
+    public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+}
+
+class C
+{
+    static void Main()
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatStringStringStringString);
+            compilation.VerifyEmitDiagnostics(
+                // (8,58): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '+' + y.str").WithArguments("System.String", "Concat").WithLocation(8, 58)
+                );
+        }
+
+        [Fact]
+        public void System_String__ConcatStringArray()
+        {
+            string source = @"
+using System;
+struct S
+{
+    private string str;
+    public S(char chr) { this.str = chr.ToString(); }
+    public S(string str) { this.str = str; }
+    public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+    public static S operator - (S x, S y) { return new S('(' + x.str + '-' + y.str + ')'); }
+    public static S operator % (S x, S y) { return new S('(' + x.str + '%' + y.str + ')'); }
+    public static S operator / (S x, S y) { return new S('(' + x.str + '/' + y.str + ')'); }
+    public static S operator * (S x, S y) { return new S('(' + x.str + '*' + y.str + ')'); }
+    public static S operator & (S x, S y) { return new S('(' + x.str + '&' + y.str + ')'); }
+    public static S operator | (S x, S y) { return new S('(' + x.str + '|' + y.str + ')'); }
+    public static S operator ^ (S x, S y) { return new S('(' + x.str + '^' + y.str + ')'); }
+    public static S operator << (S x, int y) { return new S('(' + x.str + '<' + '<' + y.ToString() + ')'); }
+    public static S operator >> (S x, int y) { return new S('(' + x.str + '>' + '>' + y.ToString() + ')'); }
+    public static S operator >= (S x, S y) { return new S('(' + x.str + '>' + '=' + y.str + ')'); }
+    public static S operator <= (S x, S y) { return new S('(' + x.str + '<' + '=' + y.str + ')'); }
+    public static S operator > (S x, S y) { return new S('(' + x.str + '>' + y.str + ')'); }
+    public static S operator < (S x, S y) { return new S('(' + x.str + '<' + y.str + ')'); }
+    public override string ToString() { return this.str; }
+}
+
+class C
+{
+    static void Main()
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatStringArray);
+            compilation.VerifyEmitDiagnostics(
+                // (8,58): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '+' + y.str + ')'").WithArguments("System.String", "Concat").WithLocation(8, 58),
+                // (9,58): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator - (S x, S y) { return new S('(' + x.str + '-' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '-' + y.str + ')'").WithArguments("System.String", "Concat").WithLocation(9, 58),
+                // (10,58): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator % (S x, S y) { return new S('(' + x.str + '%' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '%' + y.str + ')'").WithArguments("System.String", "Concat").WithLocation(10, 58),
+                // (11,58): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator / (S x, S y) { return new S('(' + x.str + '/' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '/' + y.str + ')'").WithArguments("System.String", "Concat").WithLocation(11, 58),
+                // (12,58): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator * (S x, S y) { return new S('(' + x.str + '*' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '*' + y.str + ')'").WithArguments("System.String", "Concat").WithLocation(12, 58),
+                // (13,58): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator & (S x, S y) { return new S('(' + x.str + '&' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '&' + y.str + ')'").WithArguments("System.String", "Concat").WithLocation(13, 58),
+                // (14,58): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator | (S x, S y) { return new S('(' + x.str + '|' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '|' + y.str + ')'").WithArguments("System.String", "Concat").WithLocation(14, 58),
+                // (15,58): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator ^ (S x, S y) { return new S('(' + x.str + '^' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '^' + y.str + ')'").WithArguments("System.String", "Concat").WithLocation(15, 58),
+                // (16,61): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator << (S x, int y) { return new S('(' + x.str + '<' + '<' + y.ToString() + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '<' + '<' + y.ToString() + ')'").WithArguments("System.String", "Concat").WithLocation(16, 61),
+                // (17,61): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator >> (S x, int y) { return new S('(' + x.str + '>' + '>' + y.ToString() + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '>' + '>' + y.ToString() + ')'").WithArguments("System.String", "Concat").WithLocation(17, 61),
+                // (18,59): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator >= (S x, S y) { return new S('(' + x.str + '>' + '=' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '>' + '=' + y.str + ')'").WithArguments("System.String", "Concat").WithLocation(18, 59),
+                // (19,59): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator <= (S x, S y) { return new S('(' + x.str + '<' + '=' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '<' + '=' + y.str + ')'").WithArguments("System.String", "Concat").WithLocation(19, 59),
+                // (20,58): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator > (S x, S y) { return new S('(' + x.str + '>' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '>' + y.str + ')'").WithArguments("System.String", "Concat").WithLocation(20, 58),
+                // (21,58): error CS0656: Missing compiler required member 'System.String.Concat'
+                //     public static S operator < (S x, S y) { return new S('(' + x.str + '<' + y.str + ')'); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '<' + y.str + ')'").WithArguments("System.String", "Concat").WithLocation(21, 58)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_GetValueOrDefault_05()
+        {
+            string source =
+@"
+struct S
+{
+    public static int operator +(S s) { return 1; }
+    public static void Main()
+    {
+        S s = new S();
+        S? sq = s;
+        var j = +sq;
+        System.Console.WriteLine(j);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            compilation.VerifyEmitDiagnostics(
+                // (9,17): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         var j = +sq;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "+sq").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 17)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T__ctor_05()
+        {
+            string source =
+@"
+struct S
+{
+    public static int operator +(S s) { return 1; }
+    public static void Main()
+    {
+        S s = new S();
+        S? sq = s;
+        var j = +sq;
+        System.Console.WriteLine(j);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
+            compilation.VerifyEmitDiagnostics(
+                // (8,17): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         S? sq = s;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "s").WithArguments("System.Nullable`1", ".ctor").WithLocation(8, 17),
+                // (9,17): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         var j = +sq;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "+sq").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 17)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T__ctor_06()
+        {
+            string source =
+@"
+class C
+{
+  public readonly int? i;
+  public C(int? i) { this.i = i; }
+  public static implicit operator int?(C c) { return c.i; }
+  public static implicit operator C(int? s) { return new C(s); }
+  static void Main()
+  {
+    C c = new C(null);
+    c++;
+    System.Console.WriteLine(object.ReferenceEquals(c, null) ? 1 : 0);
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
+            compilation.VerifyEmitDiagnostics(
+                // (11,5): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //     c++;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c++").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 5),
+                // (11,5): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //     c++;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c++").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 5)
+                );
+        }
+
+        [Fact]
+        public void System_Decimal__op_Multiply()
+        {
+            string source = @"
+using System;
+class Program
+{       
+    static void Main()
+    {
+        Func<decimal?, decimal?> lambda = a => { return checked(a * a); };
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Decimal__op_Multiply);
+            compilation.VerifyEmitDiagnostics(
+                // (7,65): error CS0656: Missing compiler required member 'System.Decimal.op_Multiply'
+                //         Func<decimal?, decimal?> lambda = a => { return checked(a * a); };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "a * a").WithArguments("System.Decimal", "op_Multiply").WithLocation(7, 65)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_GetValueOrDefault_06()
+        {
+            string source = @"
+using System;
+
+struct S : IDisposable
+{
+    public void Dispose()
+    {
+        Console.WriteLine(123);
+    }
+
+    static void Main()
+    {
+        using (S? r = new S())
+        {
+            Console.Write(r);
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            compilation.VerifyEmitDiagnostics(
+                // (13,9): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         using (S? r = new S())
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"using (S? r = new S())
+        {
+            Console.Write(r);
+        }").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(13, 9)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_GetValueOrDefault_07()
+        {
+            string source = @"
+using System;
+class C
+{
+  static void Main()
+  {
+    decimal q = 10;
+    decimal? x = 10;
+
+    T(2, (x++).Value == (q++));
+  }
+
+  static void T(int line, bool b)
+  {
+  }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            compilation.VerifyEmitDiagnostics(
+                // (10,11): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //     T(2, (x++).Value == (q++));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x++").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(10, 11)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T__ctor_07()
+        {
+            string source = @"
+using System;
+class C
+{
+  static void Main()
+  {
+    decimal q = 10;
+    decimal? x = 10;
+
+    T(2, (x++).Value == (q++));
+  }
+
+  static void T(int line, bool b)
+  {
+  }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
+            compilation.VerifyEmitDiagnostics(
+                // (8,18): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //     decimal? x = 10;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("System.Nullable`1", ".ctor").WithLocation(8, 18),
+                // (10,11): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //     T(2, (x++).Value == (q++));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x++").WithArguments("System.Nullable`1", ".ctor").WithLocation(10, 11),
+                // (10,11): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //     T(2, (x++).Value == (q++));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x++").WithArguments("System.Nullable`1", ".ctor").WithLocation(10, 11)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_GetValueOrDefault_08()
+        {
+            string source = @"
+using System;
+struct S
+{
+  public int x;
+  public S(int x) { this.x = x; }
+  public static S operator ++(S s) { return new S(s.x + 1); }
+  public static S operator --(S s) { return new S(s.x - 1); }
+}
+
+class C
+{
+  static void Main()
+  {
+    S? n = new S(1);
+    S s = new S(1);
+
+    T(2, (n++).Value.x == (s++).x);
+  }
+
+  static void T(int line, bool b)
+  {
+  }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            compilation.VerifyEmitDiagnostics(
+                // (18,11): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //     T(2, (n++).Value.x == (s++).x);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "n++").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(18, 11)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T__ctor_08()
+        {
+            string source = @"
+using System;
+struct S
+{
+  public int x;
+  public S(int x) { this.x = x; }
+  public static S operator ++(S s) { return new S(s.x + 1); }
+  public static S operator --(S s) { return new S(s.x - 1); }
+}
+
+class C
+{
+  static void Main()
+  {
+    S? n = new S(1);
+    S s = new S(1);
+
+    T(2, (n++).Value.x == (s++).x);
+  }
+
+  static void T(int line, bool b)
+  {
+  }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
+            compilation.VerifyEmitDiagnostics(
+                // (15,12): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //     S? n = new S(1);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new S(1)").WithArguments("System.Nullable`1", ".ctor").WithLocation(15, 12),
+                // (18,11): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //     T(2, (n++).Value.x == (s++).x);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "n++").WithArguments("System.Nullable`1", ".ctor").WithLocation(18, 11)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T__ctor_09()
+        {
+            string source = @"
+using System;
+class C
+{
+    
+    static void T(int x, bool? b) {}
+
+    static void Main()
+    {
+        bool bt = true;
+        bool? bnt = bt;
+
+        T(1, true & bnt);
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
+            compilation.VerifyEmitDiagnostics(
+                // (11,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         bool? bnt = bt;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "bt").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 21),
+                // (13,14): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         T(1, true & bnt);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14),
+                // (13,14): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         T(1, true & bnt);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true & bnt").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_GetValueOrDefault_09()
+        {
+            string source = @"
+using System;
+class C
+{
+    
+    static void T(int x, bool? b) {}
+
+    static void Main()
+    {
+        bool bt = true;
+        bool? bnt = bt;
+
+        T(13, bnt & bnt);
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            compilation.VerifyEmitDiagnostics(
+                // (13,15): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         T(13, bnt & bnt);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "bnt & bnt").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(13, 15),
+                // (13,15): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         T(13, bnt & bnt);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "bnt & bnt").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(13, 15)
+                );
+        }
+
+        [Fact]
+        public void System_String__op_Equality_01()
+        {
+            string source = @"
+using System;
+struct SZ
+{
+    public string str;
+    public SZ(string str) { this.str = str; }
+    public SZ(char c) { this.str = c.ToString(); }
+    public static bool operator ==(SZ sz1, SZ sz2) { return sz1.str == sz2.str; }
+    public static bool operator !=(SZ sz1, SZ sz2) { return sz1.str != sz2.str; }
+    public override bool Equals(object x) { return true; }
+    public override int GetHashCode() { return 0; }
+}
+class C
+{
+    static void Main()
+    {
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_String__op_Equality);
+            compilation.VerifyEmitDiagnostics(
+                // (8,61): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                //     public static bool operator ==(SZ sz1, SZ sz2) { return sz1.str == sz2.str; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "sz1.str == sz2.str").WithArguments("System.String", "op_Equality").WithLocation(8, 61)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_get_HasValue_03()
+        {
+            var source = @"
+using System;
+
+static class LiveList
+{
+    struct WhereInfo<TSource>
+    {
+        public int Key { get; set; }
+    }
+
+    static void Where<TSource>()
+    {
+        Action subscribe = () =>
+        {
+            WhereInfo<TSource>? previous = null;
+
+            var previousKey = previous?.Key;
+        };
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
+            compilation.VerifyEmitDiagnostics(
+                // (17,31): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
+                //             var previousKey = previous?.Key;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "previous?.Key").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(17, 31)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_GetValueOrDefault_10()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        var s = nameof(Main);
+        if (s is string t) Console.WriteLine(""1. {0}"", t);
+        s = null;
+        Console.WriteLine(""2. {0}"", s is string w ? w : nameof(X));
+        int? x = 12;
+        {if (x is var y) Console.WriteLine(""3. {0}"", y);}
+        {if (x is int y) Console.WriteLine(""4. {0}"", y);}
+        x = null;
+        {if (x is var y) Console.WriteLine(""5. {0}"", y);}
+        {if (x is int y) Console.WriteLine(""6. {0}"", y);}
+        Console.WriteLine(""7. {0}"", (x is bool is bool));
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            compilation.VerifyEmitDiagnostics(
+                // (16,38): warning CS0184: The given expression is never of the provided ('bool') type
+                //         Console.WriteLine("7. {0}", (x is bool is bool));
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "x is bool").WithArguments("bool").WithLocation(16, 38),
+                // (16,38): warning CS0183: The given expression is always of the provided ('bool') type
+                //         Console.WriteLine("7. {0}", (x is bool is bool));
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "x is bool is bool").WithArguments("bool").WithLocation(16, 38),
+                // (12,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         {if (x is int y) Console.WriteLine("4. {0}", y);}
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(12, 19),
+                // (15,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         {if (x is int y) Console.WriteLine("6. {0}", y);}
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(15, 19)
+                );
+        }
+
+        [Fact]
+        public void System_String__op_Equality_02()
+        {
+            var source =
+@"
+using System;
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    public static void M(object o)
+    {
+        switch (o)
+        {
+            case ""hmm"":
+                Console.WriteLine(""hmm""); break;
+            case null:
+                Console.WriteLine(""null""); break;
+            case 1:
+                Console.WriteLine(""int 1""); break;
+            case ((byte)1):
+                Console.WriteLine(""byte 1""); break;
+            case ((short)1):
+                Console.WriteLine(""short 1""); break;
+            case ""bar"":
+                Console.WriteLine(""bar""); break;
+            case object t when t != o:
+                Console.WriteLine(""impossible""); break;
+            case 2:
+                Console.WriteLine(""int 2""); break;
+            case ((byte)2):
+                Console.WriteLine(""byte 2""); break;
+            case ((short)2):
+                Console.WriteLine(""short 2""); break;
+            case ""baz"":
+                Console.WriteLine(""baz""); break;
+            default:
+                Console.WriteLine(""other "" + o); break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_String__op_Equality);
+            compilation.VerifyEmitDiagnostics(
+                // (11,9): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                //         switch (o)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (o)
+        {
+            case ""hmm"":
+                Console.WriteLine(""hmm""); break;
+            case null:
+                Console.WriteLine(""null""); break;
+            case 1:
+                Console.WriteLine(""int 1""); break;
+            case ((byte)1):
+                Console.WriteLine(""byte 1""); break;
+            case ((short)1):
+                Console.WriteLine(""short 1""); break;
+            case ""bar"":
+                Console.WriteLine(""bar""); break;
+            case object t when t != o:
+                Console.WriteLine(""impossible""); break;
+            case 2:
+                Console.WriteLine(""int 2""); break;
+            case ((byte)2):
+                Console.WriteLine(""byte 2""); break;
+            case ((short)2):
+                Console.WriteLine(""short 2""); break;
+            case ""baz"":
+                Console.WriteLine(""baz""); break;
+            default:
+                Console.WriteLine(""other "" + o); break;
+        }").WithArguments("System.String", "op_Equality").WithLocation(11, 9),
+                // (11,9): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                //         switch (o)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (o)
+        {
+            case ""hmm"":
+                Console.WriteLine(""hmm""); break;
+            case null:
+                Console.WriteLine(""null""); break;
+            case 1:
+                Console.WriteLine(""int 1""); break;
+            case ((byte)1):
+                Console.WriteLine(""byte 1""); break;
+            case ((short)1):
+                Console.WriteLine(""short 1""); break;
+            case ""bar"":
+                Console.WriteLine(""bar""); break;
+            case object t when t != o:
+                Console.WriteLine(""impossible""); break;
+            case 2:
+                Console.WriteLine(""int 2""); break;
+            case ((byte)2):
+                Console.WriteLine(""byte 2""); break;
+            case ((short)2):
+                Console.WriteLine(""short 2""); break;
+            case ""baz"":
+                Console.WriteLine(""baz""); break;
+            default:
+                Console.WriteLine(""other "" + o); break;
+        }").WithArguments("System.String", "op_Equality").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void System_String__Chars()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        bool hasB = false;
+        foreach (var c in ""ab"")
+        {
+           switch (c)
+           {
+              case char b when IsB(b):
+                 hasB = true;
+                 break;
+
+              default:
+                 hasB = false;
+                 break;
+           }
+        }
+        Console.WriteLine(hasB);
+    }
+
+    public static bool IsB(char value)
+    {
+        return value == 'b';
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_String__Chars);
+            compilation.VerifyEmitDiagnostics(
+                // (8,9): error CS0656: Missing compiler required member 'System.String.get_Chars'
+                //         foreach (var c in "ab")
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"foreach (var c in ""ab"")
+        {
+           switch (c)
+           {
+              case char b when IsB(b):
+                 hasB = true;
+                 break;
+
+              default:
+                 hasB = false;
+                 break;
+           }
+        }").WithArguments("System.String", "get_Chars").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T_GetValueOrDefault_11()
+        {
+            var source =
+@"using System;
+class Program
+{
+  static void Main(string[] args)
+  {
+  }
+  static void M(X? x)
+  {
+    switch (x)
+    {
+      case null:
+        Console.WriteLine(""null"");
+        break;
+      case 1:
+        Console.WriteLine(1);
+        break;
+    }
+  }
+}
+struct X
+{
+    public static implicit operator int? (X x)
+    {
+        return 1;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            compilation.VerifyEmitDiagnostics(
+                // (9,13): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //     switch (x)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 13),
+                // (9,5): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //     switch (x)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (x)
+    {
+      case null:
+        Console.WriteLine(""null"");
+        break;
+      case 1:
+        Console.WriteLine(1);
+        break;
+    }").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 5)
+                );
+        }
+
+        [Fact]
+        public void System_String__ConcatObject()
+        {
+            var source = @"
+using System;
+
+public class Test
+{
+    private static string S = ""F"";
+    private static object O = ""O"";
+
+    static void Main()
+    {
+        Console.WriteLine(O + null);
+        Console.WriteLine(S + null);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObject);
+            compilation.VerifyEmitDiagnostics(
+                // (11,27): error CS0656: Missing compiler required member 'System.String.Concat'
+                //         Console.WriteLine(O + null);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "O + null").WithArguments("System.String", "Concat").WithLocation(11, 27)
+                );
+        }
+
+        [Fact]
+        public void System_Object__ToString()
+        {
+            var source = @"
+using System;
+
+public class Test
+{
+    static void Main()
+    {
+        char c = 'c';
+        Console.WriteLine(c + ""3"");
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Object__ToString);
+            compilation.VerifyEmitDiagnostics(
+                // (9,27): error CS0656: Missing compiler required member 'System.Object.ToString'
+                //         Console.WriteLine(c + "3");
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"c + ""3""").WithArguments("System.Object", "ToString").WithLocation(9, 27)
+                );
+        }
+
+        [Fact]
+        public void System_String__ConcatStringString()
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Linq.Expressions;
+
+class Test
+{
+    public static void Main()
+    {
+        Expression<Func<string, string, string>> testExpr = (x, y) => x + y;
+        var result = testExpr.Compile()(""Hello "", ""World!"");
+        Console.WriteLine(result);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatStringString);
+            compilation.VerifyEmitDiagnostics(
+                // (10,71): error CS0656: Missing compiler required member 'System.String.Concat'
+                //         Expression<Func<string, string, string>> testExpr = (x, y) => x + y;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x + y").WithArguments("System.String", "Concat").WithLocation(10, 71)
+                );
+        }
+
+        [Fact]
+        public void System_Array__GetLowerBound()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        double[,] values = {
+            { 1.2, 2.3, 3.4, 4.5 },
+            { 5.6, 6.7, 7.8, 8.9 },
+        };
+
+        foreach (var x in values)
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Array__GetLowerBound);
+            compilation.VerifyEmitDiagnostics(
+                // (11,9): error CS0656: Missing compiler required member 'System.Array.GetLowerBound'
+                //         foreach (var x in values)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"foreach (var x in values)
+        {
+            System.Console.WriteLine(x);
+        }").WithArguments("System.Array", "GetLowerBound").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void System_Array__GetUpperBound()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        double[,] values = {
+            { 1.2, 2.3, 3.4, 4.5 },
+            { 5.6, 6.7, 7.8, 8.9 },
+        };
+
+        foreach (var x in values)
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Array__GetUpperBound);
+            compilation.VerifyEmitDiagnostics(
+                // (11,9): error CS0656: Missing compiler required member 'System.Array.GetUpperBound'
+                //         foreach (var x in values)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"foreach (var x in values)
+        {
+            System.Console.WriteLine(x);
+        }").WithArguments("System.Array", "GetUpperBound").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void System_Decimal__op_Implicit_FromInt32()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+
+public struct SampStruct
+{
+    public static implicit operator int(SampStruct ss1)
+    {
+        return 1;
+    }
+}
+
+public class Test
+{
+    static void Main()
+    {
+        Expression<Func<SampStruct?, decimal, decimal>> testExpr = (x, y) => x ?? y;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_Decimal__op_Implicit_FromInt32);
+            compilation.VerifyEmitDiagnostics(
+                // (16,78): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
+                //         Expression<Func<SampStruct?, decimal, decimal>> testExpr = (x, y) => x ?? y;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x ?? y").WithArguments("System.Decimal", "op_Implicit").WithLocation(16, 78)
+                );
+        }
+
+        [Fact]
+        public void System_Nullable_T__ctor_10()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System;
+
+class Test {
+    static void LogCallerLineNumber5([CallerLineNumber] int? lineNumber   = 5) { Console.WriteLine(""line: "" + lineNumber); }
+
+    public static void Main() {
+        LogCallerLineNumber5();
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef });
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
+            compilation.VerifyEmitDiagnostics(
+                // (10,9): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
+                //         LogCallerLineNumber5();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "LogCallerLineNumber5()").WithArguments("System.Nullable`1", ".ctor").WithLocation(10, 9)
+                );
         }
     }
 }

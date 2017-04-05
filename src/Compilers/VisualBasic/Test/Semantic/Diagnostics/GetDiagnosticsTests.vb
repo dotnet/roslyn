@@ -255,5 +255,15 @@ End Namespace
 
             Return True
         End Function
+
+        <Fact>
+        Public Sub TestEventQueueCompletionForEmptyCompilation()
+            Dim compilation = CreateCompilationWithMscorlib45(SpecializedCollections.EmptyEnumerable(Of SyntaxTree)()).WithEventQueue(New AsyncQueue(Of CompilationEvent)())
+
+            ' Force complete compilation event queue
+            Dim unused = compilation.GetDiagnostics()
+
+            Assert.True(compilation.EventQueue.IsCompleted)
+        End Sub
     End Class
 End Namespace

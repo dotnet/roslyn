@@ -12,22 +12,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     internal partial class InternalOptionsControl : AbstractOptionPageControl
     {
+        private readonly string _featureOptionName;
+
         public InternalOptionsControl(string featureOptionName, IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
+            _featureOptionName = featureOptionName;
+
             var panel = new StackPanel();
-            foreach (var option in OptionService.GetRegisteredOptions().Where(o => o.Feature == featureOptionName).OrderBy(o => o.Name))
-            {
-                if (!option.IsPerLanguage)
-                {
-                    AddOption(panel, option);
-                }
-                else
-                {
-                    AddPerLanguageOption(panel, option, LanguageNames.CSharp);
-                    AddPerLanguageOption(panel, option, LanguageNames.VisualBasic);
-                }
-            }
+            this.AddOptions(panel);
 
             var viewer = new ScrollViewer();
             viewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
@@ -50,36 +43,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             this.Content = viewer;
         }
 
-        private void AddOption(StackPanel panel, IOption option)
+        protected virtual void AddOptions(Panel panel)
         {
-            var uiElement = CreateControl(option);
+            foreach (var option in OptionService.GetRegisteredOptions().Where(o => o.Feature == _featureOptionName).OrderBy(o => o.Name))
+            {
+                if (!option.IsPerLanguage)
+                {
+                    AddOption(panel, option);
+                }
+                else
+                {
+                    AddPerLanguageOption(panel, option, LanguageNames.CSharp);
+                    AddPerLanguageOption(panel, option, LanguageNames.VisualBasic);
+                }
+            }
+        }
+
+        protected void AddOption(Panel panel, IOption option, string additional = null)
+        {
+            var uiElement = CreateControl(option, additional: additional);
             if (uiElement != null)
             {
                 panel.Children.Add(uiElement);
             }
         }
 
-        private void AddPerLanguageOption(StackPanel panel, IOption option, string languageName)
+        protected void AddPerLanguageOption(Panel panel, IOption option, string languageName, string additional = null)
         {
-            var uiElement = CreateControl(option, languageName);
+            var uiElement = CreateControl(option, languageName, additional);
             if (uiElement != null)
             {
                 panel.Children.Add(uiElement);
             }
         }
 
-        private UIElement CreateControl(IOption option, string languageName = null)
+        private UIElement CreateControl(IOption option, string languageName = null, string additional = null)
         {
             if (option.Type == typeof(bool))
             {
-                var checkBox = new CheckBox() { Content = option.Name + GetLanguage(languageName) };
+                var checkBox = new CheckBox() { Content = option.Name + GetLanguage(languageName) + GetAdditionalText(additional) };
                 BindToCheckBox(checkBox, option, languageName);
                 return checkBox;
             }
 
             if (option.Type == typeof(int))
             {
-                var label = new Label() { Content = option.Name + GetLanguage(languageName) };
+                var label = new Label() { Content = option.Name + GetLanguage(languageName) + GetAdditionalText(additional) };
                 var textBox = new TextBox();
                 BindToTextBox(textBox, option, languageName);
 
@@ -91,6 +100,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             return null;
+        }
+
+        private string GetAdditionalText(string additional)
+        {
+            if (additional == null)
+            {
+                return string.Empty;
+            }
+
+            return " [" + additional + "]";
         }
 
         private string GetLanguage(string languageName)

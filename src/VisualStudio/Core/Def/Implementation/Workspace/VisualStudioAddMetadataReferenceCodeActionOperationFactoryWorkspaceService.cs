@@ -53,26 +53,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     // This is the same approach done in CVBErrorFixApply::ApplyAddMetaReferenceFix
 
                     var uiHierarchy = visualStudioWorkspace.GetHierarchy(_projectId) as IVsUIHierarchy;
-                    OLECMD[] command = new OLECMD[1];
-                    command[0].cmdID = (uint)VSConstants.VSStd2KCmdID.ADDREFERENCE;
 
-                    if (ErrorHandler.Succeeded(uiHierarchy.QueryStatusCommand((uint)VSConstants.VSITEMID.Root, VSConstants.VSStd2K, 1, command, IntPtr.Zero)))
+                    if (uiHierarchy != null)
                     {
-                        if ((((OLECMDF)command[0].cmdf) & OLECMDF.OLECMDF_ENABLED) != 0)
+                        var command = new OLECMD[1];
+                        command[0].cmdID = (uint)VSConstants.VSStd2KCmdID.ADDREFERENCE;
+
+                        if (ErrorHandler.Succeeded(uiHierarchy.QueryStatusCommand((uint)VSConstants.VSITEMID.Root, VSConstants.VSStd2K, 1, command, IntPtr.Zero)))
                         {
-                            uiHierarchy.ExecCommand((uint)VSConstants.VSITEMID.Root, VSConstants.VSStd2K, (uint)VSConstants.VSStd2KCmdID.ADDREFERENCE, 0, IntPtr.Zero, IntPtr.Zero);
+                            if ((((OLECMDF)command[0].cmdf) & OLECMDF.OLECMDF_ENABLED) != 0)
+                            {
+                                uiHierarchy.ExecCommand((uint)VSConstants.VSITEMID.Root, VSConstants.VSStd2K, (uint)VSConstants.VSStd2KCmdID.ADDREFERENCE, 0, IntPtr.Zero, IntPtr.Zero);
+                            }
                         }
                     }
                 }
             }
 
             public override string Title
-            {
-                get
-                {
-                    return string.Format(ServicesVSResources.AddAReference, _assemblyIdentity.GetDisplayName());
-                }
-            }
+                => string.Format(ServicesVSResources.Add_a_reference_to_0, _assemblyIdentity.GetDisplayName());
         }
     }
 }

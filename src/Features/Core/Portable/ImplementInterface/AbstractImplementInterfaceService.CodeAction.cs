@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -85,19 +87,19 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 {
                     if (Explicitly)
                     {
-                        return FeaturesResources.ImplementInterfaceExplicitly;
+                        return FeaturesResources.Implement_interface_explicitly;
                     }
                     else if (Abstractly)
                     {
-                        return FeaturesResources.ImplementInterfaceAbstractly;
+                        return FeaturesResources.Implement_interface_abstractly;
                     }
                     else if (ThroughMember != null)
                     {
-                        return string.Format(FeaturesResources.ImplementInterfaceThrough, GetDescription(ThroughMember));
+                        return string.Format(FeaturesResources.Implement_interface_through_0, GetDescription(ThroughMember));
                     }
                     else
                     {
-                        return FeaturesResources.ImplementInterface;
+                        return FeaturesResources.Implement_interface;
                     }
                 }
             }
@@ -137,20 +139,17 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     codeActionTypeName;
             }
 
-            public override string EquivalenceKey
-            {
-                get
-                {
-                    return _equivalenceKey;
-                }
-            }
+            public override string EquivalenceKey => _equivalenceKey;
 
             private static string GetDescription(ISymbol throughMember)
             {
-                return throughMember.TypeSwitch(
-                    (IFieldSymbol field) => field.Name,
-                    (IPropertySymbol property) => property.Name,
-                    _ => Contract.FailWithReturn<string>());
+                switch (throughMember)
+                {
+                    case IFieldSymbol field: return field.Name;
+                    case IPropertySymbol property: return property.Name;
+                    default:
+                        throw new InvalidOperationException();
+                }
             }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -160,36 +159,50 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             public Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
             {
-                var unimplementedMembers = Explicitly ? State.UnimplementedExplicitMembers : State.UnimplementedMembers;
+                var unimplementedMembers = Explicitly 
+                    ? State.UnimplementedExplicitMembers 
+                    : State.UnimplementedMembers;
                 return GetUpdatedDocumentAsync(Document, unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
             }
 
             public virtual async Task<Document> GetUpdatedDocumentAsync(
-                    Document document,
-                    IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers,
-                    INamedTypeSymbol classOrStructType,
-                    SyntaxNode classOrStructDecl,
-                    CancellationToken cancellationToken)
+                Document document,
+                ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
+                INamedTypeSymbol classOrStructType,
+                SyntaxNode classOrStructDecl,
+                CancellationToken cancellationToken)
             {
                 var result = document;
                 var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
+                var isComImport = unimplementedMembers.Any(t => t.Item1.IsComImport);
                 var memberDefinitions = GenerateMembers(
                     compilation,
                     unimplementedMembers,
                     cancellationToken);
 
+                // Only group the members in the destination if the user wants that *and* 
+                // it's not a ComImport interface.  Member ordering in ComImport interfaces 
+                // matters, so we don't want to much with them.
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var insertionBehavior = options.GetOption(ImplementTypeOptions.InsertionBehavior);
+                var groupMembers = !isComImport &&
+                    insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+
                 result = await CodeGenerator.AddMemberDeclarationsAsync(
                     result.Project.Solution, classOrStructType, memberDefinitions,
-                    new CodeGenerationOptions(contextLocation: classOrStructDecl.GetLocation()),
+                    new CodeGenerationOptions(
+                        contextLocation: classOrStructDecl.GetLocation(),
+                        autoInsertionLocation: groupMembers,
+                        sortMembers: groupMembers),
                     cancellationToken).ConfigureAwait(false);
 
                 return result;
             }
 
-            private IList<ISymbol> GenerateMembers(
+            private ImmutableArray<ISymbol> GenerateMembers(
                 Compilation compilation,
-                IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers,
+                ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
                 CancellationToken cancellationToken)
             {
                 // As we go along generating members we may end up with conflicts.  For example, say
@@ -207,12 +220,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // signature otherwise.  i.e. if we chose to implement IFoo.Bar explicitly, then we
                 // could implement IQuux.Bar implicitly (and vice versa).
                 var implementedVisibleMembers = new List<ISymbol>();
-                var implementedMembers = new List<ISymbol>();
+                var implementedMembers = ArrayBuilder<ISymbol>.GetInstance();
 
                 foreach (var tuple in unimplementedMembers)
                 {
-                    var interfaceType = tuple.Item1;
-                    var unimplementedInterfaceMembers = tuple.Item2;
+                    var interfaceType = tuple.type;
+                    var unimplementedInterfaceMembers = tuple.members;
 
                     foreach (var unimplementedInterfaceMember in unimplementedInterfaceMembers)
                     {
@@ -229,7 +242,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     }
                 }
 
-                return implementedMembers;
+                return implementedMembers.ToImmutableAndFree();
             }
 
             private bool IsReservedName(string name)
@@ -369,7 +382,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var modifiers = new DeclarationModifiers(isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
 
                 var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
-                var accessibility = member.Name == memberName ? Accessibility.Public : Accessibility.Private;
+                var accessibility = member.Name == memberName || generateAbstractly
+                    ? Accessibility.Public
+                    : Accessibility.Private;
 
                 if (member.Kind == SymbolKind.Method)
                 {
@@ -388,7 +403,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     var @event = (IEventSymbol)member;
 
                     var accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        attributes: null,
+                        attributes: default(ImmutableArray<AttributeData>),
                         accessibility: Accessibility.NotApplicable,
                         statements: factory.CreateThrowNotImplementedStatementBlock(compilation));
 
@@ -398,11 +413,32 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                         modifiers: modifiers,
                         explicitInterfaceSymbol: useExplicitInterfaceSymbol ? @event : null,
                         name: memberName,
-                        addMethod: generateInvisibly ? accessor : null,
-                        removeMethod: generateInvisibly ? accessor : null);
+                        addMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.AddEventHandler),
+                        removeMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.RemoveEventHandler));
                 }
 
                 return null;
+            }
+
+            private IMethodSymbol GetAddOrRemoveMethod(bool generateInvisibly,
+                                                       IMethodSymbol accessor,
+                                                       string memberName,
+                                                       Func<SyntaxNode, SyntaxNode, SyntaxNode> createAddOrRemoveHandler)
+            {
+                if (ThroughMember != null)
+                {
+                    var factory = Document.GetLanguageService<SyntaxGenerator>();
+                    var throughExpression = CreateThroughExpression(factory);
+                    var statement = factory.ExpressionStatement(createAddOrRemoveHandler(
+                        factory.MemberAccessExpression(throughExpression, memberName), factory.IdentifierName("value")));
+
+                    return CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                           attributes: default(ImmutableArray<AttributeData>),
+                           accessibility: Accessibility.NotApplicable,
+                           statements: ImmutableArray.Create(statement));
+                }
+
+                return generateInvisibly ? accessor : null;
             }
 
             private SyntaxNode CreateThroughExpression(SyntaxGenerator factory)

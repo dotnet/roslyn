@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract RefKind RefKind { get; }
 
         /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
+
+        /// <summary>
         /// Describes how the parameter is marshalled when passed to native code.
         /// Null if no specific marshalling information is available for the parameter.
         /// </summary>
@@ -86,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case UnmanagedType.Interface:
                     case UnmanagedType.IUnknown:
-                    case UnmanagedType.IDispatch:
+                    case Cci.Constants.UnmanagedType_IDispatch:
                         return true;
                 }
 
@@ -129,7 +134,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //
                 // Also when we call f() where signature of f is void([Optional]params int[] args) 
                 // an empty array is created and passed to f.
-                return !IsParams && IsMetadataOptional;
+                //
+                // We also do not consider ref/out parameters as optional, unless in COM interop scenarios 
+                // and only for ref.
+                RefKind refKind;
+                return !IsParams && IsMetadataOptional &&
+                       ((refKind = RefKind) == RefKind.None ||
+                        (refKind == RefKind.Ref && ContainingSymbol.ContainingType.IsComImport));
             }
         }
 
@@ -382,14 +393,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// The CLI spec says that custom modifiers must precede the ByRef type code in the encoding of a parameter.
-        /// Unfortunately, the managed C++ compiler emits them in the reverse order.  In order to avoid breaking
-        /// interop scenarios, we need to support such signatures.
-        /// Should be 0 for non-ref parameters.
-        /// </summary>
-        internal abstract ushort CountOfCustomModifiersPrecedingByRef { get; }
-
         #region IParameterSymbol Members
 
         ITypeSymbol IParameterSymbol.Type
@@ -400,6 +403,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
         {
             get { return this.Type.CustomModifiers; }
+        }
+
+        ImmutableArray<CustomModifier> IParameterSymbol.RefCustomModifiers
+        {
+            get { return this.RefCustomModifiers; }
         }
 
         IParameterSymbol IParameterSymbol.OriginalDefinition

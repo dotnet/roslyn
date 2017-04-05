@@ -13,11 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// </summary>
     internal class WrappingViewModel : AbstractOptionPreviewViewModel
     {
-        internal override bool ShouldPersistOption(OptionKey key)
-        {
-            return key.Option.Feature == CSharpFormattingOptions.WrappingFeatureName;
-        }
-
         private static readonly string s_blockPreview = @"
 class C
 {
@@ -38,8 +33,8 @@ class C{
 
         public WrappingViewModel(OptionSet options, IServiceProvider serviceProvider) : base(options, serviceProvider, LanguageNames.CSharp)
         {
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.WrappingPreserveSingleLine, CSharpVSResources.WrappingPreserveSingleLine, s_blockPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, CSharpVSResources.WrappingKeepStatementsOnSingleLine, s_declarationPreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.WrappingPreserveSingleLine, CSharpVSResources.Leave_block_on_single_line, s_blockPreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, CSharpVSResources.Leave_statements_and_member_declarations_on_the_same_line, s_declarationPreview, this, options));
         }
     }
 }
