@@ -173,7 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
             _lazyReturnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
-            if (_lazyReturnType.IsRestrictedType())
+            // span-like types are returnable in general
+            if (_lazyReturnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 if (_lazyReturnType.SpecialType == SpecialType.System_TypedReference &&
                     (this.ContainingType.SpecialType == SpecialType.System_TypedReference || this.ContainingType.SpecialType == SpecialType.System_ArgIterator))

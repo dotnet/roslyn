@@ -639,6 +639,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract bool IsManagedType { get; }
 
+        //PROTOTYPE(span): this will completely change depending on how span-like types are implemented.
+        //                 Span<T> and ReadOnlySpan<T> will be special types (currently they are not always)
+        //                 Users may be able to define their own Spanlike types, but that is completely NYI 
+        //                 For now we will be simply looking at "System.Span" and "System.ReadOnlySpan" names
+        /// <summary>
+        /// Returns true if the type is a Span/ReadOnlySpan
+        /// </summary>
+        internal bool IsSpanLikeType()
+        {
+            var originalDef = this.OriginalDefinition;
+
+            if (originalDef.Name != "Span" && originalDef.Name != "ReadonlySpan")
+            {
+                return false;
+            }
+
+            var ns = originalDef.ContainingSymbol as NamespaceSymbol;
+            if (ns?.Name != "System")
+            {
+                return false;
+            }
+
+            return (object)ns.ContainingNamespace != null;
+        }
+
         #region ITypeSymbol Members
 
         INamedTypeSymbol ITypeSymbol.BaseType

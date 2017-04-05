@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var objectType = binder.GetSpecialType(SpecialType.System_Object, diagnostics, syntax);
             var intPtrType = binder.GetSpecialType(SpecialType.System_IntPtr, diagnostics, syntax);
 
-            if (returnType.IsRestrictedType())
+            if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // Method or delegate cannot return type '{0}'
                 diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType);

@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax.Location);
             }
+            //PROTOTYPE(span): span-like instance fields are allowed in span-like types, for now disallow always
             else if (type.IsRestrictedType())
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax.Location, type);

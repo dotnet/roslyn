@@ -146,7 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _lazyReturnType = signatureBinder.BindType(ReturnTypeSyntax, diagnostics);
 
-            if (_lazyReturnType.IsRestrictedType())
+            // restricted types cannot be returned. 
+            // NOTE: Span-like types can be returned (if expression is returnable).
+            if (_lazyReturnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // Method or delegate cannot return type '{0}'
                 diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, ReturnTypeSyntax.Location, _lazyReturnType);

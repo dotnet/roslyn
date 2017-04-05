@@ -355,6 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
                         CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, hoistedField);
 
+                        //PROTOTYPE(span): move the check to the binding?
                         if (hoistedField.Type.IsRestrictedType())
                         {
                             foreach (CSharpSyntaxNode syntax in _analysis.CapturedVariables[captured])
