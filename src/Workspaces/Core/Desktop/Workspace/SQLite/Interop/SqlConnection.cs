@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 using SQLitePCL;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         /// If we want that, we can achieve it through sqlite "save points".  However, that's adds a 
         /// lot of complexity that is nice to avoid.
         /// </summary>
-        private bool _inTransaction;
+        public bool IsInTransaction { get; private set; }
 
         public SqlConnection(string databasePath)
         {
@@ -113,18 +114,18 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         {
             try
             {
-                if (_inTransaction)
+                if (IsInTransaction)
                 {
                     throw new InvalidOperationException("Nested transactions not currently supported");
                 }
 
-                _inTransaction = true;
+                IsInTransaction = true;
 
                 ExecuteCommand("begin transaction");
                 action();
                 ExecuteCommand("commit transaction");
             }
-            catch (SqlException ex) when (ex.Result == Result.FULL || 
+            catch (SqlException ex) when (ex.Result == Result.FULL ||
                                           ex.Result == Result.IOERR ||
                                           ex.Result == Result.BUSY ||
                                           ex.Result == Result.NOMEM)
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             }
             finally
             {
-                _inTransaction = false;
+                IsInTransaction = false;
             }
         }
 
@@ -162,6 +163,61 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
         public int LastInsertRowId()
             => (int)raw.sqlite3_last_insert_rowid(_handle);
+
+        public Stream ReadBlob(string dataTableName, string dataColumnName, long rowId)
+        {
+            // NOTE: we do need to do the blob reading in a transaction because of the
+            // following: https://www.sqlite.org/c3ref/blob_open.html
+            //
+            // If the row that a BLOB handle points to is modified by an UPDATE, DELETE, 
+            // or by ON CONFLICT side-effects then the BLOB handle is marked as "expired".
+            // This is true if any column of the row is changed, even a column other than
+            // the one the BLOB handle is open on. Calls to sqlite3_blob_read() and 
+            // sqlite3_blob_write() for an expired BLOB handle fail with a return code of
+            // SQLITE_ABORT.
+            Stream stream = null;
+            RunInTransaction(() =>
+            {
+                stream = ReadBlobWorker(dataTableName, dataColumnName, rowId);
+            });
+
+            return stream;
+        }
+
+        private Stream ReadBlobWorker(string tableName, string columnName, long rowId)
+        {
+            const int ReadOnlyFlags = 0;
+            ThrowIfNotOk(raw.sqlite3_blob_open(_handle, "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob));
+            try
+            {
+                var length = raw.sqlite3_blob_bytes(blob);
+
+                // If it's a small blob, just read it into one of our pooled arrays, and then
+                // create a PooledStream over it. 
+                if (length <= SQLitePersistentStorage.MaxPooledByteArrayLength)
+                {
+                    var bytes = SQLitePersistentStorage.GetPooledBytes();
+                    ThrowIfNotOk(raw.sqlite3_blob_read(blob, bytes, length, offset: 0));
+
+                    // Copy those bytes into a pooled 
+                    var result = SerializableBytes.CreateReadableStream(bytes, length);
+                    SQLitePersistentStorage.ReturnPooledBytes(bytes);
+
+                    return result;
+                }
+                else
+                {
+                    // Otherwise, it's a large stream.  Just take the hit of allocating.
+                    var bytes = new byte[length];
+                    ThrowIfNotOk(raw.sqlite3_blob_read(blob, bytes, length, offset: 0));
+                    return new MemoryStream(bytes);
+                }
+            }
+            finally
+            {
+                ThrowIfNotOk(raw.sqlite3_blob_close(blob));
+            }
+        }
 
         public void ThrowIfNotOk(int result)
             => ThrowIfNotOk((Result)result);

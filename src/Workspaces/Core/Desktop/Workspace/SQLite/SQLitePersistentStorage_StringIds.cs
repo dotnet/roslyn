@@ -4,7 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Storage;
-using SQLitePCL;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite
 {
@@ -67,7 +67,13 @@ namespace Microsoft.CodeAnalysis.SQLite
             // values.
             try
             {
-                return InsertStringIntoDatabase(connection, value);
+                connection.RunInTransaction(() =>
+                {
+                    stringId = InsertStringIntoDatabase_MustRunInTransaction(connection, value);
+                });
+
+                Contract.ThrowIfTrue(stringId == null);
+                return stringId;
             }
             catch (SqlException ex) when (ex.Result == Result.CONSTRAINT)
             {
@@ -85,8 +91,15 @@ namespace Microsoft.CodeAnalysis.SQLite
             return null;
         }
 
-        private static int InsertStringIntoDatabase(SqlConnection connection, string value)
+        private static int InsertStringIntoDatabase_MustRunInTransaction(SqlConnection connection, string value)
         {
+            if (!connection.IsInTransaction)
+            {
+                throw new InvalidOperationException("Must call this while connection has transaction open");
+            }
+
+            int id = -1;
+
             using (var resettableStatement = connection.GetResettableStatement(
                 $@"insert into ""{StringInfoTableName}""(""{DataColumnName}"") values (?)"))
             {
@@ -99,11 +112,14 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // other process beat us to this string.
                 statement.Step();
 
-                // Successfully added the string.  The ID for it can be retrieved as
-                // the LastInsertRowId for the db.
-                var id = connection.LastInsertRowId();
-                return id;
+                // Successfully added the string.  The ID for it can be retrieved as the LastInsertRowId
+                // for the db.  This is also safe to call because we must be in a transaction when this
+                // is invoked.
+                id = connection.LastInsertRowId();
             }
+
+            Contract.ThrowIfTrue(id == -1);
+            return id;
         }
 
         private int? TryGetStringIdFromDatabaseWorker(

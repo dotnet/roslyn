@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SQLite.Interop;
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             // Many threads many be trying to flush a specific queue.  If some other thread
             // beats us to writing this queue, we want to still wait until it is down.  To
             // accomplish that, we use a countdown that effectively states how many current
-            // writers there are, and which only lets us past once all the conurrent writers
+            // writers there are, and which only lets us past once all the concurrent writers
             // say they are done.
             CountdownEvent countdown;
 

@@ -66,20 +66,14 @@ namespace Microsoft.CodeAnalysis.SQLite
                             // we can find them below.
                             FlushPendingWrites(connection, key);
 
-                            byte[] data = null;
                             try
                             {
                                 // Lookup the row from the DocumentData table corresponding to our dataId.
-                                data = FindBlob(connection, dataId);
+                                return Task.FromResult(ReadBlob(connection, dataId));
                             }
                             catch (Exception ex)
                             {
                                 StorageDatabaseLogger.LogException(ex);
-                            }
-
-                            if (data != null)
-                            {
-                                return Task.FromResult<Stream>(new MemoryStream(data, writable: false));
                             }
                         }
                     }
@@ -104,11 +98,15 @@ namespace Microsoft.CodeAnalysis.SQLite
                         // Determine the appropriate data-id to store this stream at.
                         if (TryGetDatabaseId(pooledConnection.Connection, key, out var dataId))
                         {
-                            var bytes = GetBytes(stream);
+                            var (bytes, length, pooled) = GetBytes(stream);
 
                             AddWriteTask(key, con =>
                             {
-                                InsertOrReplaceBlob(con, dataId, bytes);
+                                InsertOrReplaceBlob(con, dataId, bytes, length);
+                                if (pooled)
+                                {
+                                    ReturnPooledBytes(bytes);
+                                }
                             });
 
                             return SpecializedTasks.True;
@@ -126,11 +124,35 @@ namespace Microsoft.CodeAnalysis.SQLite
             private void AddWriteTask(TKey key, Action<SqlConnection> action)
                 => Storage.AddWriteTask(_writeQueueKeyToWrites, GetWriteQueueKey(key), action);
 
-            private byte[] FindBlob(
-                SqlConnection connection, TDatabaseId dataId)
+            private Stream ReadBlob(
+                 SqlConnection connection, TDatabaseId dataId)
             {
+                if (TryGetRowId(connection, dataId, out var rowId))
+                {
+                    // Note: it's possible that someone may write to this row between when we
+                    // get the row ID above and now.  That's fine.  We'll just read the new
+                    // bytes that have been written to this location.  Note that only the
+                    // data for a row in our system can change, the ID will always stay the
+                    // same, and the data will always be valid for our ID.  So there is no
+                    // safety issue here.
+                    return connection.ReadBlob(DataTableName, DataColumnName, rowId);
+                }
+
+                return null;
+            }
+
+            private bool TryGetRowId(SqlConnection connection, TDatabaseId dataId, out long rowId)
+            {
+                // See https://sqlite.org/autoinc.html
+                // > In SQLite, table rows normally have a 64-bit signed integer ROWID which is 
+                // unique among all rows in the same table. (WITHOUT ROWID tables are the exception.)
+                // 
+                // You can access the ROWID of an SQLite table using one of the special column names 
+                // ROWID, _ROWID_, or OID. Except if you declare an ordinary table column to use one 
+                // of those special names, then the use of that name will refer to the declared column
+                // not to the internal ROWID.
                 using (var resettableStatement = connection.GetResettableStatement(
-                    $@"select * from ""{this.DataTableName}"" where ""{IdColumnName}"" = ?"))
+                    $@"select rowid from ""{this.DataTableName}"" where ""{DataIdColumnName}"" = ?"))
                 {
                     var statement = resettableStatement.Statement;
 
@@ -140,25 +162,26 @@ namespace Microsoft.CodeAnalysis.SQLite
                     var stepResult = statement.Step();
                     if (stepResult == Result.ROW)
                     {
-                        // "Id" is column 0, "Data" is column 1.
-                        return statement.GetBlobAt(columnIndex: 1);
+                        rowId = statement.GetInt64At(columnIndex: 0);
+                        return true;
                     }
                 }
 
-                return null;
+                rowId = -1;
+                return false;
             }
 
             private void InsertOrReplaceBlob(
-                SqlConnection conection, TDatabaseId dataId, byte[] bytes)
+                SqlConnection conection, TDatabaseId dataId, byte[] bytes, int length)
             {
                 using (var resettableStatement = conection.GetResettableStatement(
-                    $@"insert or replace into ""{this.DataTableName}""(""{IdColumnName}"",""{DataColumnName}"") values (?,?)"))
+                    $@"insert or replace into ""{this.DataTableName}""(""{DataIdColumnName}"",""{DataColumnName}"") values (?,?)"))
                 {
                     var statement = resettableStatement.Statement;
 
                     // Binding indices are 1 based.
                     BindFirstParameter(statement, dataId);
-                    statement.BindBlobParameter(parameterIndex: 2, value: bytes);
+                    statement.BindBlobParameter(parameterIndex: 2, value: bytes, length: length);
 
                     statement.Step();
                 }

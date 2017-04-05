@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                             {
                                 foreach (var value in stringsToAdd)
                                 {
-                                    var id = InsertStringIntoDatabase(connection, value);
+                                    var id = InsertStringIntoDatabase_MustRunInTransaction(connection, value);
                                     idToString.Object.Add(id, value);
                                 }
                             });

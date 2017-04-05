@@ -27,15 +27,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         private readonly string _persistentFolder;
 
-        private const string Data1 = "Hello ESENT";
-        private const string Data2 = "Goodbye ESENT";
+        private const string SmallData1 = "Hello ESENT";
+        private const string SmallData2 = "Goodbye ESENT";
+
+        private const int LargeSize = (int)(SQLite.SQLitePersistentStorage.MaxPooledByteArrayLength * 2);
+
+        private string LargeData1 = string.Join(",", Enumerable.Repeat(SmallData1, LargeSize / SmallData1.Length));
+        private string LargeData2 = string.Join(",", Enumerable.Repeat(SmallData2, LargeSize / SmallData2.Length));
 
         protected AbstractPersistentStorageTests()
         {
             _persistentFolder = Path.Combine(Path.GetTempPath(), PersistentFolderPrefix + Guid.NewGuid());
             Directory.CreateDirectory(_persistentFolder);
-            int workerThreads, completionPortThreads;
-            ThreadPool.GetMinThreads(out workerThreads, out completionPortThreads);
+
+            ThreadPool.GetMinThreads(out var workerThreads, out var completionPortThreads);
             ThreadPool.SetMinThreads(Math.Max(workerThreads, NumThreads), completionPortThreads);
         }
 
@@ -47,28 +52,35 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        private void CleanUpPersistentFolder()
-        {
-        }
+        private string GetData1(bool small)
+            => small ? SmallData1 : LargeData1;
+
+        private string GetData2(bool small)
+            => small ? SmallData2 : LargeData2;
 
         [Fact]
         public async Task PersistentService_Solution_WriteReadDifferentInstances()
         {
             var solution = CreateOrOpenSolution();
+            await PersistentService_Solution_WriteReadDifferentInstances(solution, small: true);
+            await PersistentService_Solution_WriteReadDifferentInstances(solution, small: false);
+        }
 
+        private async Task PersistentService_Solution_WriteReadDifferentInstances(Solution solution, bool small)
+        {
             var streamName1 = "PersistentService_Solution_WriteReadDifferentInstances1";
             var streamName2 = "PersistentService_Solution_WriteReadDifferentInstances2";
 
             using (var storage = GetStorage(solution))
             {
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(Data1)));
-                Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(Data2)));
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(small))));
+                Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(GetData2(small))));
             }
 
             using (var storage = GetStorage(solution))
             {
-                Assert.Equal(Data1, ReadStringToEnd(await storage.ReadStreamAsync(streamName1)));
-                Assert.Equal(Data2, ReadStringToEnd(await storage.ReadStreamAsync(streamName2)));
+                Assert.Equal(GetData1(small), ReadStringToEnd(await storage.ReadStreamAsync(streamName1)));
+                Assert.Equal(GetData2(small), ReadStringToEnd(await storage.ReadStreamAsync(streamName2)));
             }
         }
 
@@ -76,22 +88,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public async Task PersistentService_Solution_WriteReadReopenSolution()
         {
             var solution = CreateOrOpenSolution();
+            await PersistentService_Solution_WriteReadReopenSolution(solution, small: true);
+            await PersistentService_Solution_WriteReadReopenSolution(solution, small: false);
+        }
 
+        private async Task PersistentService_Solution_WriteReadReopenSolution(Solution solution, bool small)
+        {
             var streamName1 = "PersistentService_Solution_WriteReadReopenSolution1";
             var streamName2 = "PersistentService_Solution_WriteReadReopenSolution2";
 
             using (var storage = GetStorage(solution))
             {
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(Data1)));
-                Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(Data2)));
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(small))));
+                Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(GetData2(small))));
             }
 
             solution = CreateOrOpenSolution();
 
             using (var storage = GetStorage(solution))
             {
-                Assert.Equal(Data1, ReadStringToEnd(await storage.ReadStreamAsync(streamName1)));
-                Assert.Equal(Data2, ReadStringToEnd(await storage.ReadStreamAsync(streamName2)));
+                Assert.Equal(GetData1(small), ReadStringToEnd(await storage.ReadStreamAsync(streamName1)));
+                Assert.Equal(GetData2(small), ReadStringToEnd(await storage.ReadStreamAsync(streamName2)));
             }
         }
 
@@ -99,17 +116,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public async Task PersistentService_Solution_WriteReadSameInstance()
         {
             var solution = CreateOrOpenSolution();
+            await PersistentService_Solution_WriteReadSameInstance(solution, small: true);
+            await PersistentService_Solution_WriteReadSameInstance(solution, small: false);
+        }
 
+        private async Task PersistentService_Solution_WriteReadSameInstance(Solution solution, bool small)
+        {
             var streamName1 = "PersistentService_Solution_WriteReadSameInstance1";
             var streamName2 = "PersistentService_Solution_WriteReadSameInstance2";
 
             using (var storage = GetStorage(solution))
             {
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(Data1)));
-                Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(Data2)));
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(small))));
+                Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(GetData2(small))));
 
-                Assert.Equal(Data1, ReadStringToEnd(await storage.ReadStreamAsync(streamName1)));
-                Assert.Equal(Data2, ReadStringToEnd(await storage.ReadStreamAsync(streamName2)));
+                Assert.Equal(GetData1(small), ReadStringToEnd(await storage.ReadStreamAsync(streamName1)));
+                Assert.Equal(GetData2(small), ReadStringToEnd(await storage.ReadStreamAsync(streamName2)));
             }
         }
 
@@ -117,7 +139,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public async Task PersistentService_Project_WriteReadSameInstance()
         {
             var solution = CreateOrOpenSolution();
+            await PersistentService_Project_WriteReadSameInstance(solution, small: true);
+            await PersistentService_Project_WriteReadSameInstance(solution, small: false);
+        }
 
+        private async Task PersistentService_Project_WriteReadSameInstance(Solution solution, bool small)
+        {
             var streamName1 = "PersistentService_Project_WriteReadSameInstance1";
             var streamName2 = "PersistentService_Project_WriteReadSameInstance2";
 
@@ -125,11 +152,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             {
                 var project = solution.Projects.Single();
 
-                Assert.True(await storage.WriteStreamAsync(project, streamName1, EncodeString(Data1)));
-                Assert.True(await storage.WriteStreamAsync(project, streamName2, EncodeString(Data2)));
+                Assert.True(await storage.WriteStreamAsync(project, streamName1, EncodeString(GetData1(small))));
+                Assert.True(await storage.WriteStreamAsync(project, streamName2, EncodeString(GetData2(small))));
 
-                Assert.Equal(Data1, ReadStringToEnd(await storage.ReadStreamAsync(project, streamName1)));
-                Assert.Equal(Data2, ReadStringToEnd(await storage.ReadStreamAsync(project, streamName2)));
+                Assert.Equal(GetData1(small), ReadStringToEnd(await storage.ReadStreamAsync(project, streamName1)));
+                Assert.Equal(GetData2(small), ReadStringToEnd(await storage.ReadStreamAsync(project, streamName2)));
             }
         }
 
@@ -137,7 +164,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public async Task PersistentService_Document_WriteReadSameInstance()
         {
             var solution = CreateOrOpenSolution();
+            await PersistentService_Document_WriteReadSameInstance(solution, small: true);
+            await PersistentService_Document_WriteReadSameInstance(solution, small: false);
+        }
 
+        private async Task PersistentService_Document_WriteReadSameInstance(Solution solution, bool small)
+        {
             var streamName1 = "PersistentService_Document_WriteReadSameInstance1";
             var streamName2 = "PersistentService_Document_WriteReadSameInstance2";
 
@@ -145,11 +177,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             {
                 var document = solution.Projects.Single().Documents.Single();
 
-                Assert.True(await storage.WriteStreamAsync(document, streamName1, EncodeString(Data1)));
-                Assert.True(await storage.WriteStreamAsync(document, streamName2, EncodeString(Data2)));
+                Assert.True(await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(small))));
+                Assert.True(await storage.WriteStreamAsync(document, streamName2, EncodeString(GetData2(small))));
 
-                Assert.Equal(Data1, ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
-                Assert.Equal(Data2, ReadStringToEnd(await storage.ReadStreamAsync(document, streamName2)));
+                Assert.Equal(GetData1(small), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
+                Assert.Equal(GetData2(small), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName2)));
             }
         }
 
@@ -223,13 +255,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public async Task PersistentService_Solution_SimultaneousReads()
         {
             var solution = CreateOrOpenSolution();
+            await PersistentService_Solution_SimultaneousReads(solution, small: true);
+            await PersistentService_Solution_SimultaneousReads(solution, small: false);
+        }
 
+        private async Task PersistentService_Solution_SimultaneousReads(Solution solution, bool small)
+        {
             var streamName1 = "PersistentService_Solution_SimultaneousReads1";
 
             using (var storage = GetStorage(solution))
             {
-                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(Data1)));
-                DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(streamName1)), Data1);
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(small))));
+                DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(streamName1)), GetData1(small));
             }
         }
 
@@ -237,13 +274,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public async Task PersistentService_Project_SimultaneousReads()
         {
             var solution = CreateOrOpenSolution();
+            await PersistentService_Project_SimultaneousReads(solution, small: true);
+            await PersistentService_Project_SimultaneousReads(solution, small: false);
+        }
 
+        private async Task PersistentService_Project_SimultaneousReads(Solution solution, bool small)
+        {
             var streamName1 = "PersistentService_Project_SimultaneousReads1";
 
             using (var storage = GetStorage(solution))
             {
-                Assert.True(await storage.WriteStreamAsync(solution.Projects.Single(), streamName1, EncodeString(Data1)));
-                DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single(), streamName1)), Data1);
+                Assert.True(await storage.WriteStreamAsync(solution.Projects.Single(), streamName1, EncodeString(GetData1(small))));
+                DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single(), streamName1)), GetData1(small));
             }
         }
 
@@ -251,13 +293,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public async Task PersistentService_Document_SimultaneousReads()
         {
             var solution = CreateOrOpenSolution();
+            await PersistentService_Document_SimultaneousReads(solution, small: true);
+            await PersistentService_Document_SimultaneousReads(solution, small: false);
+        }
 
+        private async Task PersistentService_Document_SimultaneousReads(Solution solution, bool small)
+        {
             var streamName1 = "PersistentService_Document_SimultaneousReads1";
 
             using (var storage = GetStorage(solution))
             {
-                Assert.True(await storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(Data1)));
-                DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single().Documents.Single(), streamName1)), Data1);
+                Assert.True(await storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(GetData1(small))));
+                DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single().Documents.Single(), streamName1)), GetData1(small));
             }
         }
 

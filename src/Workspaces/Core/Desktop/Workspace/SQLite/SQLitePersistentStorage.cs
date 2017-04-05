@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// The format of the table is:
         /// 
         ///  SolutionData
-        ///  -------------------------------------------
-        ///  | Id (primary key, varchar) | Data (blob) |
-        ///  -------------------------------------------
+        ///  -----------------------------------------------
+        ///  | DataId (varchar primary key ) | Data (blob) |
+        ///  -----------------------------------------------
         /// </summary>
         private const string SolutionDataTableName = "SolutionData" + Version;
 
@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// The format of the table is:
         /// 
         ///  ProjectData
-        ///  -------------------------------------------
-        ///  | Id (primary key, integer) | Data (blob) |
-        ///  -------------------------------------------
+        ///  -----------------------------------------------
+        ///  | DataId (primary key, integer) | Data (blob) |
+        ///  -----------------------------------------------
         /// </summary>
         private const string ProjectDataTableName = "ProjectData" + Version;
 
@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// The format of the table is:
         /// 
         ///  DocumentData
-        ///  -------------------------------------------
-        ///  | Id (primary key, integer) | Data (blob) |
-        ///  -------------------------------------------
+        ///  ----------------------------------------------
+        ///  | DataId (primary key integer) | Data (blob) |
+        ///  ----------------------------------------------
         /// </summary>
         private const string DocumentDataTableName = "DocumentData" + Version;
 
-        private const string IdColumnName = "Id";
+        private const string DataIdColumnName = "DataId";
         private const string DataColumnName = "Data";
 
         static SQLitePersistentStorage()
@@ -206,28 +206,34 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // First, create all our tables
                 connection.ExecuteCommand(
 $@"create table if not exists ""{StringInfoTableName}"" (
-    ""{IdColumnName}"" integer primary key autoincrement not null,
+    ""{DataIdColumnName}"" integer primary key autoincrement not null,
     ""{DataColumnName}"" varchar)");
+
+                connection.ExecuteCommand(
+$@"create table if not exists ""{SolutionDataTableName}"" (
+    ""{DataIdColumnName}"" varchar primary key not null,
+    ""{DataColumnName}"" blob)");
+
+                connection.ExecuteCommand(
+$@"create table if not exists ""{ProjectDataTableName}"" (
+    ""{DataIdColumnName}"" integer primary key not null,
+    ""{DataColumnName}"" blob)");
+
+                connection.ExecuteCommand(
+$@"create table if not exists ""{DocumentDataTableName}"" (
+    ""{DataIdColumnName}"" integer primary key not null,
+    ""{DataColumnName}"" blob)");
 
                 // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
                 // We don't allow duplicate strings in this table.
                 connection.ExecuteCommand(
 $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on ""{StringInfoTableName}""(""{DataColumnName}"")");
 
-                connection.ExecuteCommand(
-$@"create table if not exists ""{SolutionDataTableName}"" (
-    ""{IdColumnName}"" varchar primary key not null,
-    ""{DataColumnName}"" blob)");
-
-                connection.ExecuteCommand(
-$@"create table if not exists ""{ProjectDataTableName}"" (
-    ""{IdColumnName}"" integer primary key not null,
-    ""{DataColumnName}"" blob)");
-
-                connection.ExecuteCommand(
-$@"create table if not exists ""{DocumentDataTableName}"" (
-    ""{IdColumnName}"" integer primary key not null,
-    ""{DataColumnName}"" blob)");
+                // Name, make the indices for the solution, project, and data tables so we can
+                // look up by DataId very easily
+                //CreateIndex(SolutionDataTableName);
+                //CreateIndex(ProjectDataTableName);
+                //CreateIndex(DocumentDataTableName);
 
                 // Also get the known set of string-to-id mappings we already have in the DB.
                 FetchStringTable(connection);
