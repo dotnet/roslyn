@@ -22,16 +22,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => visualStudioInstance.ExecuteInHostProcess<TInProcComponent>( type: typeof(TInProcComponent), methodName: "Create"); 
 
         protected void WaitForCompletionSet()
-            => VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+            => VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
 
         protected void WaitForSignatureHelp()
-            => VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
+            => VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
 
         protected void WaitForQuickInfo()
         {
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.ErrorSquiggles);
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.QuickInfo);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.ErrorSquiggles);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.QuickInfo);
         }
     }
 }

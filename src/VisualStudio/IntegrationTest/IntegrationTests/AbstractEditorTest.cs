@@ -3,19 +3,15 @@
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractEditorTest : AbstractIntegrationTest
     {
-        protected readonly Editor_OutOfProc Editor;
-
         protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, visualStudio => visualStudio.Instance.Editor)
+            : base(instanceFactory)
         {
-            Editor = (Editor_OutOfProc)TextViewWindow;
         }
 
         protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
@@ -27,19 +23,17 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudioInstanceFactory instanceFactory,
             string solutionName,
             string projectTemplate)
-           : base(instanceFactory, visualStudio => visualStudio.Instance.Editor)
+           : base(instanceFactory)
         {
-            this.CreateSolution(solutionName);
-            this.AddProject(projectTemplate, new ProjectUtils.Project(ProjectName), LanguageName);
-
-            Editor = (Editor_OutOfProc)TextViewWindow;
+            VisualStudio.SolutionExplorer.CreateSolution(solutionName);
+            VisualStudio.SolutionExplorer.AddProject(new ProjectUtils.Project(ProjectName), projectTemplate, LanguageName);
 
             // Winforms and XAML do not open text files on creation
             // so these editor tasks will not work if that is the project template being used.
             if (projectTemplate != WellKnownProjectTemplates.WinFormsApplication &&
                 projectTemplate != WellKnownProjectTemplates.WpfApplication)
             {
-                VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
+                VisualStudio.Workspace.SetUseSuggestionMode(false);
                 ClearEditor();
             }
         }
@@ -53,17 +47,17 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             MarkupTestFile.GetPosition(markupCode, out string code, out int caretPosition);
 
-            var originalValue = VisualStudioWorkspaceOutOfProc.IsPrettyListingOn(LanguageName);
+            var originalValue = VisualStudio.Workspace.IsPrettyListingOn(LanguageName);
 
-            VisualStudioWorkspaceOutOfProc.SetPrettyListing(LanguageName, false);
+            VisualStudio.Workspace.SetPrettyListing(LanguageName, false);
             try
             {
-                Editor.SetText(code);
-                Editor.MoveCaret(caretPosition);
+                VisualStudio.Editor.SetText(code);
+                VisualStudio.Editor.MoveCaret(caretPosition);
             }
             finally
             {
-                VisualStudioWorkspaceOutOfProc.SetPrettyListing(LanguageName, originalValue);
+                VisualStudio.Workspace.SetPrettyListing(LanguageName, originalValue);
             }
         }
     }

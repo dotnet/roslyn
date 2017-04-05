@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -61,20 +60,20 @@ class C
     void OutAndParam(ref string[][,] strings, out string[] outArr, params dynamic d) {outArr = null;}
 }");
 
-            this.SendKeys("var m = Method(1,");
-            this.InvokeSignatureHelp();
-            this.VerifyCurrentSignature("C C.Method(int i, int i2)\r\nHello World 2.0!");
-            this.VerifyCurrentParameter("i2", "an integer, anything you like.");
-            this.VerifyParameters(
+            VisualStudio.SendKeys.Send("var m = Method(1,");
+            VisualStudio.Editor.InvokeSignatureHelp();
+            VisualStudio.Editor.Verify.CurrentSignature("C C.Method(int i, int i2)\r\nHello World 2.0!");
+            VisualStudio.Editor.Verify.CurrentParameter("i2", "an integer, anything you like.");
+            VisualStudio.Editor.Verify.Parameters(
                 ("i", "an integer, preferably 42."),
                 ("i2", "an integer, anything you like."));
 
-            this.SendKeys(new object[] { VirtualKey.Home, new KeyPress(VirtualKey.End, ShiftState.Shift), VirtualKey.Delete });
-            this.SendKeys("var op = OutAndParam(");
+            VisualStudio.Editor.SendKeys(new object[] { VirtualKey.Home, new KeyPress(VirtualKey.End, ShiftState.Shift), VirtualKey.Delete });
+            VisualStudio.Editor.SendKeys("var op = OutAndParam(");
 
-            this.VerifyCurrentSignature("void C.OutAndParam(ref string[][,] strings, out string[] outArr, params dynamic d)\r\nComplex Method Params");
-            this.VerifyCurrentParameter("strings", "Jagged MultiDimensional Array");
-            this.VerifyParameters(
+            VisualStudio.Editor.Verify.CurrentSignature("void C.OutAndParam(ref string[][,] strings, out string[] outArr, params dynamic d)\r\nComplex Method Params");
+            VisualStudio.Editor.Verify.CurrentParameter("strings", "Jagged MultiDimensional Array");
+            VisualStudio.Editor.Verify.Parameters(
                 ("strings", "Jagged MultiDimensional Array"),
                 ("outArr", "Out Array"),
                 ("d", "Dynamic and Params param"));
@@ -120,10 +119,10 @@ class C
     void OutAndParam(ref string[][,] strings, out string[] outArr, params dynamic d) {outArr = null;}
 }");
 
-            this.InvokeSignatureHelp();
-            this.VerifyCurrentSignature("C C.GenericMethod<T1, T2>(T1 i, T2 i2)");
-            this.VerifyCurrentParameter("T1", "");
-            this.VerifyParameters(
+            VisualStudio.Editor.InvokeSignatureHelp();
+            VisualStudio.Editor.Verify.CurrentSignature("C C.GenericMethod<T1, T2>(T1 i, T2 i2)");
+            VisualStudio.Editor.Verify.CurrentParameter("T1", "");
+            VisualStudio.Editor.Verify.Parameters(
                 ("T1", ""),
                 ("T2", ""));
         }
@@ -168,10 +167,10 @@ class C
     void OutAndParam(ref string[][,] strings, out string[] outArr, params dynamic d) {outArr = null;}
 }");
 
-            this.InvokeSignatureHelp();
-            this.VerifyCurrentSignature("C C.GenericMethod<string, int>(string i, int i2)");
-            this.VerifyCurrentParameter("i", "");
-            this.VerifyParameters(
+            VisualStudio.Editor.InvokeSignatureHelp();
+            VisualStudio.Editor.Verify.CurrentSignature("C C.GenericMethod<string, int>(string i, int i2)");
+            VisualStudio.Editor.Verify.CurrentParameter("i", "");
+            VisualStudio.Editor.Verify.Parameters(
                 ("i", ""),
                 ("i2", ""));
         }

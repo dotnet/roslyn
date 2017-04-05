@@ -183,6 +183,11 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
         OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree)
     End Sub
 
+    Friend Sub VerifyNoOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0)
+        Dim actualOperationTree = GetOperationTreeForTest(Of TSyntaxNode)(testSrc, parseOptions, which)
+        Assert.Null(actualOperationTree)
+    End Sub
+
     Friend Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, expectedOperationTree As String, expectedDiagnostics As String, Optional which As Integer = 0)
         compilation.AssertTheseDiagnostics(FilterString(expectedDiagnostics))
         VerifyOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, which)
