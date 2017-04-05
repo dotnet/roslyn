@@ -2116,7 +2116,6 @@ BC37254: Public sign was specified and requires a public key, but no public key 
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC37254: Public sign was specified and requires a public key, but no public key was specified
-BC37257: Option 'CryptoKeyFile' must be an absolute path.
 </errors>)
     End Sub
 

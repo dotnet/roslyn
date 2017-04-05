@@ -2300,19 +2300,17 @@ class B
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: null, publicSign: true);
             CreateCompilationWithMscorlib(string.Empty, options: options).VerifyDiagnostics(
                 // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
-                Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_PublicSignButNoKey));
         }
 
         [Fact]
         [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
-        public void ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSigne()
+        public void ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign()
         {
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: string.Empty, publicSign: true);
             CreateCompilationWithMscorlib(string.Empty, options: options).VerifyDiagnostics(
-                // error CS8106: Option 'CryptoKeyFile' must be an absolute path.
-                Diagnostic(ErrorCode.ERR_OptionMustBeAbsolutePath).WithArguments("CryptoKeyFile").WithLocation(1, 1),
                 // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
-                Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_PublicSignButNoKey));
         }
 
         #endregion
