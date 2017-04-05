@@ -33,8 +33,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            return await FindAllDeclarationsWithNormalQueryAsync(
+            var symbolAndProjectIds = await FindAllDeclarationsWithNormalQueryAsync(
                 project, SearchQuery.Create(name, ignoreCase), SymbolFilter.All, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return symbolAndProjectIds.SelectAsArray(t => t.Symbol);
         }
 
         /// <summary>
@@ -53,11 +54,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            return await FindAllDeclarationsWithNormalQueryAsync(
+            var symbolAndProjectIds = await FindAllDeclarationsWithNormalQueryAsync(
                 project, SearchQuery.Create(name, ignoreCase), filter, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return symbolAndProjectIds.SelectAsArray(t => t.Symbol);
         }
 
-        internal static async Task<ImmutableArray<ISymbol>> FindAllDeclarationsWithNormalQueryAsync(
+        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -71,12 +73,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<SymbolAndProjectId>.Empty;
             }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var list = ArrayBuilder<ISymbol>.GetInstance();
+            var list = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
             // get declarations from the compilation's assembly
             await AddCompilationDeclarationsWithNormalQueryAsync(project, query, criteria, list, cancellationToken).ConfigureAwait(false);
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 else
                 {
                     await AddMetadataDeclarationsWithNormalQueryAsync(
-                        project.Solution, assembly, compilation.GetMetadataReference(assembly) as PortableExecutableReference,
+                        project, assembly, compilation.GetMetadataReference(assembly) as PortableExecutableReference,
                         query, criteria, list, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -100,10 +102,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Make certain all namespace symbols returned by API are from the compilation.
             for (var i = 0; i < list.Count; i++)
             {
-                var symbol = list[i];
-                if (symbol is INamespaceSymbol ns)
+                var symbolAndProjectId = list[i];
+                if (symbolAndProjectId.Symbol is INamespaceSymbol ns)
                 {
-                    list[i] = compilation.GetCompilationNamespace(ns);
+                    list[i] = symbolAndProjectId.WithSymbol(compilation.GetCompilationNamespace(ns));
                 }
             }
 
