@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 solution, SearchQuery.CreateCustom(predicate), filter, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsAsync(
+        private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsAsync(
             Solution solution, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (solution == null)
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 project, SearchQuery.CreateCustom(predicate), filter, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsAsync(
+        private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsAsync(
             Project project, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (project == null)
