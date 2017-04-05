@@ -37,6 +37,7 @@ Public MustInherit Class BasicTestBase
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         expectedOutput As XCData,
+        Optional args As String() = Nothing,
         Optional additionalRefs As MetadataReference() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
@@ -52,6 +53,7 @@ Public MustInherit Class BasicTestBase
         Return CompileAndVerify(
             source,
             XCDataToString(expectedOutput),
+            args,
             additionalRefs,
             dependencies,
             sourceSymbolValidator,
@@ -73,6 +75,7 @@ Public MustInherit Class BasicTestBase
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional expectedOutput As String = Nothing,
+        Optional args As String() = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
         Optional verify As Boolean = True) As CompilationVerifier
 
@@ -85,6 +88,7 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            args,
             emitOptions,
             verify)
     End Function
@@ -92,6 +96,7 @@ Public MustInherit Class BasicTestBase
     Friend Shadows Function CompileAndVerify(
         compilation As Compilation,
         expectedOutput As XCData,
+        Optional args As String() = Nothing,
         Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
@@ -110,6 +115,7 @@ Public MustInherit Class BasicTestBase
             symbolValidator,
             expectedSignatures,
             XCDataToString(expectedOutput),
+            args,
             emitOptions,
             verify)
     End Function
@@ -117,6 +123,7 @@ Public MustInherit Class BasicTestBase
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         Optional expectedOutput As String = Nothing,
+        Optional args As String() = Nothing,
         Optional additionalRefs As MetadataReference() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
@@ -136,6 +143,7 @@ Public MustInherit Class BasicTestBase
         Return Me.CompileAndVerify(source,
                                    allReferences,
                                    expectedOutput,
+                                   args,
                                    dependencies,
                                    sourceSymbolValidator,
                                    validator,
@@ -152,6 +160,7 @@ Public MustInherit Class BasicTestBase
         source As XElement,
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
+        Optional args As String() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -180,6 +189,7 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            args,
             emitOptions,
             verify)
     End Function
@@ -188,6 +198,7 @@ Public MustInherit Class BasicTestBase
         source As String,
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
+        Optional args As String() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -215,6 +226,7 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            args,
             emitOptions,
             verify)
     End Function
@@ -223,6 +235,7 @@ Public MustInherit Class BasicTestBase
         source As XElement,
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
+        Optional args As String() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -236,6 +249,7 @@ Public MustInherit Class BasicTestBase
             source,
             allReferences,
             If(OSVersion.IsWin8, expectedOutput, Nothing),
+            args,
             dependencies,
             sourceSymbolValidator,
             validator,
@@ -249,6 +263,7 @@ Public MustInherit Class BasicTestBase
     Friend Shadows Function CompileAndVerifyOnWin8Only(
         source As XElement,
         expectedOutput As XCData,
+        Optional args As String() = Nothing,
         Optional allReferences() As MetadataReference = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
@@ -263,6 +278,7 @@ Public MustInherit Class BasicTestBase
             source,
             allReferences,
             XCDataToString(expectedOutput),
+            args,
             dependencies,
             sourceSymbolValidator,
             validator,
