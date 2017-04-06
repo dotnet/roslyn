@@ -56,26 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 set { _flags = value ? (_flags | ReturnsVoidBit) : (_flags & ~ReturnsVoidBit); }
             }
 
-            public MethodKind MethodKind
-            {
-                get { return (MethodKind)((_flags >> MethodKindOffset) & MethodKindMask); }
-            }
-
-            public bool IsExtensionMethod
-            {
-                get { return (_flags & IsExtensionMethodBit) != 0; }
-            }
-
-            public bool IsMetadataVirtualLocked
-            {
-                get { return (_flags & IsMetadataVirtualLockedBit) != 0; }
-            }
-
-            public DeclarationModifiers DeclarationModifiers
-            {
-                get { return (DeclarationModifiers)((_flags >> DeclarationModifiersOffset) & DeclarationModifiersMask); }
-            }
-
+            public MethodKind MethodKind => (MethodKind)((_flags >> MethodKindOffset) & MethodKindMask);
+            public bool IsExtensionMethod => (_flags & IsExtensionMethodBit) != 0;
+            public bool IsMetadataVirtualLocked => (_flags & IsMetadataVirtualLockedBit) != 0;
+            public DeclarationModifiers DeclarationModifiers => (DeclarationModifiers)((_flags >> DeclarationModifiersOffset) & DeclarationModifiersMask);
 #if DEBUG
             static Flags()
             {
@@ -177,11 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //are stashed here in service of API usage patterns
         //where method body diagnostics are requested multiple times.
         private ImmutableArray<Diagnostic> _cachedDiagnostics;
-        internal ImmutableArray<Diagnostic> Diagnostics
-        {
-            get { return _cachedDiagnostics; }
-        }
-
+        internal ImmutableArray<Diagnostic> Diagnostics => _cachedDiagnostics;
         internal ImmutableArray<Diagnostic> SetDiagnostics(ImmutableArray<Diagnostic> newSet, out bool diagsWritten)
         {
             //return the diagnostics that were actually saved in the event that there were two threads racing. 
@@ -268,11 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// their own lock objects, so that we don't have to add a new field to every
         /// SourceMethodSymbol.
         /// </summary>
-        protected virtual object MethodChecksLockObject
-        {
-            get { return this.syntaxReferenceOpt; }
-        }
-
+        protected virtual object MethodChecksLockObject => this.syntaxReferenceOpt;
         protected void LazyMethodChecks()
         {
             if (!state.HasComplete(CompletionPart.FinishMethodChecks))
@@ -332,63 +308,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
         }
 
-        public sealed override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _containingType;
-            }
-        }
+        public sealed override Symbol ContainingSymbol => _containingType;
 
-        public override NamedTypeSymbol ContainingType
-        {
-            get
-            {
-                return _containingType;
-            }
-        }
+        public override NamedTypeSymbol ContainingType => _containingType;
 
-        public override Symbol AssociatedSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public override Symbol AssociatedSymbol => null;
 
         #region Flags
 
-        public override bool ReturnsVoid
-        {
-            get
-            {
-                return this.flags.ReturnsVoid;
-            }
-        }
+        public override bool ReturnsVoid => this.flags.ReturnsVoid;
 
-        public sealed override MethodKind MethodKind
-        {
-            get
-            {
-                return this.flags.MethodKind;
-            }
-        }
+        public sealed override MethodKind MethodKind => this.flags.MethodKind;
 
-        public override bool IsExtensionMethod
-        {
-            get
-            {
-                return this.flags.IsExtensionMethod;
-            }
-        }
+        public override bool IsExtensionMethod => this.flags.IsExtensionMethod;
 
-        private bool IsMetadataVirtualLocked
-        {
-            get
-            {
-                return this.flags.IsMetadataVirtualLocked;
-            }
-        }
+        private bool IsMetadataVirtualLocked => this.flags.IsMetadataVirtualLocked;
 
         // TODO (tomat): sealed
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -414,102 +348,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 
-        protected DeclarationModifiers DeclarationModifiers
-        {
-            get
-            {
-                return this.flags.DeclarationModifiers;
-            }
-        }
+        protected DeclarationModifiers DeclarationModifiers => this.flags.DeclarationModifiers;
 
         // TODO (tomat): sealed?
-        public override Accessibility DeclaredAccessibility
-        {
-            get
-            {
-                return ModifierUtils.EffectiveAccessibility(this.DeclarationModifiers);
-            }
-        }
+        public override Accessibility DeclaredAccessibility => ModifierUtils.EffectiveAccessibility(this.DeclarationModifiers);
 
-        public sealed override bool IsExtern
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Extern) != 0;
-            }
-        }
+        public sealed override bool IsExtern => (this.DeclarationModifiers & DeclarationModifiers.Extern) != 0;
 
-        public sealed override bool IsSealed
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Sealed) != 0;
-            }
-        }
+        public sealed override bool IsSealed => (this.DeclarationModifiers & DeclarationModifiers.Sealed) != 0;
 
-        public sealed override bool IsAbstract
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Abstract) != 0;
-            }
-        }
+        public sealed override bool IsAbstract => (this.DeclarationModifiers & DeclarationModifiers.Abstract) != 0;
 
-        public sealed override bool IsOverride
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Override) != 0;
-            }
-        }
+        public sealed override bool IsOverride => (this.DeclarationModifiers & DeclarationModifiers.Override) != 0;
 
-        internal bool IsPartial
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Partial) != 0;
-            }
-        }
+        internal bool IsPartial => (this.DeclarationModifiers & DeclarationModifiers.Partial) != 0;
 
-        public sealed override bool IsVirtual
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Virtual) != 0;
-            }
-        }
+        public sealed override bool IsVirtual => (this.DeclarationModifiers & DeclarationModifiers.Virtual) != 0;
 
-        internal bool IsNew
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.New) != 0;
-            }
-        }
+        internal bool IsNew => (this.DeclarationModifiers & DeclarationModifiers.New) != 0;
 
-        public sealed override bool IsStatic
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Static) != 0;
-            }
-        }
+        public sealed override bool IsStatic => (this.DeclarationModifiers & DeclarationModifiers.Static) != 0;
 
-        internal bool IsUnsafe
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
-            }
-        }
+        internal bool IsUnsafe => (this.DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
 
-        public sealed override bool IsAsync
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Async) != 0;
-            }
-        }
+        public sealed override bool IsAsync => (this.DeclarationModifiers & DeclarationModifiers.Async) != 0;
 
         internal sealed override Cci.CallingConvention CallingConvention
         {
@@ -535,57 +397,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Syntax
 
-        internal SyntaxNode BodySyntax
-        {
-            get
-            {
-                return this.bodySyntaxReferenceOpt?.GetSyntax();
-            }
-        }
+        internal SyntaxNode BodySyntax => this.bodySyntaxReferenceOpt?.GetSyntax();
 
-        internal SyntaxReference SyntaxRef
-        {
-            get
-            {
-                return this.syntaxReferenceOpt;
-            }
-        }
+        internal SyntaxReference SyntaxRef => this.syntaxReferenceOpt;
 
-        internal CSharpSyntaxNode SyntaxNode
-        {
-            get
-            {
-                return (this.syntaxReferenceOpt == null) ? null : (CSharpSyntaxNode)this.syntaxReferenceOpt.GetSyntax();
-            }
-        }
+        internal CSharpSyntaxNode SyntaxNode => (this.syntaxReferenceOpt == null) ? null : (CSharpSyntaxNode)this.syntaxReferenceOpt.GetSyntax();
 
-        internal SyntaxTree SyntaxTree
-        {
-            get
-            {
-                return this.syntaxReferenceOpt?.SyntaxTree;
-            }
-        }
+        internal SyntaxTree SyntaxTree => this.syntaxReferenceOpt?.SyntaxTree;
 
         /// <summary>
         /// Overridden by <see cref="SourceMemberMethodSymbol"/>, 
         /// which might return locations of partial methods.
         /// </summary>
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return this.locations;
-            }
-        }
+        public override ImmutableArray<Location> Locations => this.locations;
 
-        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return (this.syntaxReferenceOpt == null) ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create(this.syntaxReferenceOpt);
-            }
-        }
+        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => (this.syntaxReferenceOpt == null) ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create(this.syntaxReferenceOpt);
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -594,37 +420,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-        }
+        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-        }
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
-        public sealed override ImmutableArray<TypeSymbol> TypeArguments
-        {
-            get
-            {
-                return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
-            }
-        }
+        public sealed override ImmutableArray<TypeSymbol> TypeArguments => TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
 
-        public sealed override int Arity
-        {
-            get
-            {
-                return TypeParameters.Length;
-            }
-        }
+        public sealed override int Arity => TypeParameters.Length;
 
         internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
@@ -653,13 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         //overridden appropriately in SourceMemberMethodSymbol
-        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
-        {
-            get
-            {
-                return ImmutableArray<MethodSymbol>.Empty;
-            }
-        }
+        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
         internal sealed override OverriddenOrHiddenMembersResult OverriddenOrHiddenMembers
         {
@@ -675,11 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool RequiresCompletion
-        {
-            get { return true; }
-        }
-
+        internal sealed override bool RequiresCompletion => true;
         internal sealed override bool HasComplete(CompletionPart part)
         {
             return state.HasComplete(part);
@@ -762,29 +554,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Used for example for event accessors. The "remove" method delegates attribute binding to the "add" method. 
         /// The bound attribute data are then applied to both accessors.
         /// </remarks>
-        protected virtual SourceMethodSymbol BoundAttributesSource
-        {
-            get
-            {
-                return null;
-            }
-        }
+        protected virtual SourceMethodSymbol BoundAttributesSource => null;
 
-        protected virtual IAttributeTargetSymbol AttributeOwner
-        {
-            get { return this; }
-        }
-
-        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner
-        {
-            get { return this.AttributeOwner; }
-        }
-
-        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation
-        {
-            get { return AttributeLocation.Method; }
-        }
-
+        protected virtual IAttributeTargetSymbol AttributeOwner => this;
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this.AttributeOwner;
+        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Method;
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
         {
             get
@@ -1401,21 +1175,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 
-        public sealed override bool HidesBaseMethodsByName
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public sealed override bool HidesBaseMethodsByName => false;
 
-        internal override bool HasRuntimeSpecialName
-        {
-            get
-            {
-                return base.HasRuntimeSpecialName || IsVtableGapInterfaceMethod();
-            }
-        }
+        internal override bool HasRuntimeSpecialName => base.HasRuntimeSpecialName || IsVtableGapInterfaceMethod();
 
         private bool IsVtableGapInterfaceMethod()
         {
