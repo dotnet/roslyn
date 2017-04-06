@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-
 namespace Microsoft.CodeAnalysis.SQLite.Interop
 {
     // From: https://sqlite.org/c3ref/c_open_autoproxy.html
@@ -9,8 +8,8 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
     internal enum OpenFlags
     {
         // SQLITE_OPEN_READONLY         = 0x00000001, /* Ok for sqlite3_open_v2() */
-        SQLITE_OPEN_READWRITE        = 0x00000002, /* Ok for sqlite3_open_v2() */
-        SQLITE_OPEN_CREATE           = 0x00000004, /* Ok for sqlite3_open_v2() */
+        SQLITE_OPEN_READWRITE           = 0x00000002, /* Ok for sqlite3_open_v2() */
+        SQLITE_OPEN_CREATE              = 0x00000004, /* Ok for sqlite3_open_v2() */
         // SQLITE_OPEN_DELETEONCLOSE    = 0x00000008, /* VFS only */
         // SQLITE_OPEN_EXCLUSIVE        = 0x00000010, /* VFS only */
         // SQLITE_OPEN_AUTOPROXY        = 0x00000020, /* VFS only */

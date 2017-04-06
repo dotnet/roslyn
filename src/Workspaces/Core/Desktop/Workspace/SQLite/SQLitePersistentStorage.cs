@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// The format of the table is:
         /// 
         ///  SolutionData
-        ///  -------------------------------------------
-        ///  | Id (primary key, varchar) | Data (blob) |
-        ///  -------------------------------------------
+        ///  -----------------------------------------------
+        ///  | DataId (primary key, varchar) | Data (blob) |
+        ///  -----------------------------------------------
         /// </summary>
         private const string SolutionDataTableName = "SolutionData" + Version;
 
@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// The format of the table is:
         /// 
         ///  ProjectData
-        ///  -------------------------------------------
-        ///  | Id (primary key, integer) | Data (blob) |
-        ///  -------------------------------------------
+        ///  -----------------------------------------------
+        ///  | DataId (primary key, integer) | Data (blob) |
+        ///  -----------------------------------------------
         /// </summary>
         private const string ProjectDataTableName = "ProjectData" + Version;
 
@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// The format of the table is:
         /// 
         ///  DocumentData
-        ///  -------------------------------------------
-        ///  | Id (primary key, integer) | Data (blob) |
-        ///  -------------------------------------------
+        ///  ----------------------------------------------
+        ///  | DataId (primary key, integer) | Data (blob) |
+        ///  ----------------------------------------------
         /// </summary>
         private const string DocumentDataTableName = "DocumentData" + Version;
 
-        private const string IdColumnName = "Id";
+        private const string DataIdColumnName = "DataId";
         private const string DataColumnName = "Data";
 
         static SQLitePersistentStorage()
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // First, create all our tables
                 connection.ExecuteCommand(
 $@"create table if not exists ""{StringInfoTableName}"" (
-    ""{IdColumnName}"" integer primary key autoincrement not null,
+    ""{DataIdColumnName}"" integer primary key autoincrement not null,
     ""{DataColumnName}"" varchar)");
 
                 // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
@@ -216,17 +216,17 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
 
                 connection.ExecuteCommand(
 $@"create table if not exists ""{SolutionDataTableName}"" (
-    ""{IdColumnName}"" varchar primary key not null,
+    ""{DataIdColumnName}"" varchar primary key not null,
     ""{DataColumnName}"" blob)");
 
                 connection.ExecuteCommand(
 $@"create table if not exists ""{ProjectDataTableName}"" (
-    ""{IdColumnName}"" integer primary key not null,
+    ""{DataIdColumnName}"" integer primary key not null,
     ""{DataColumnName}"" blob)");
 
                 connection.ExecuteCommand(
 $@"create table if not exists ""{DocumentDataTableName}"" (
-    ""{IdColumnName}"" integer primary key not null,
+    ""{DataIdColumnName}"" integer primary key not null,
     ""{DataColumnName}"" blob)");
 
                 // Also get the known set of string-to-id mappings we already have in the DB.
