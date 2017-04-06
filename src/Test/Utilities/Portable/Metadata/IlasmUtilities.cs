@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             else
             {
-                return Path.Combine(AppContext.BaseDirectory, "ilasm.exe");
+                return Path.Combine(AppContext.BaseDirectory, "ilasm");
             }
         }
 
@@ -74,12 +74,12 @@ $@".assembly '{sourceFileName}' {{}}
 
                 sourceFile.WriteAllText(completeIL);
 
-                var arguments = $"\"{sourceFile.Path}\" /DLL /out=\"{assemblyPath}\"";
+                var arguments = $"\"{sourceFile.Path}\" -DLL -out=\"{assemblyPath}\"";
 
                 if (includePdb && !MonoHelpers.IsRunningOnMono())
                 {
                     pdbPath = Path.ChangeExtension(assemblyPath, "pdb");
-                    arguments += string.Format(" /PDB=\"{0}\"", pdbPath);
+                    arguments += string.Format(" -PDB=\"{0}\"", pdbPath);
                 }
                 else
                 {
