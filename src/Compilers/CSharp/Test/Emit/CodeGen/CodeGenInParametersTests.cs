@@ -632,7 +632,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"42");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput:@"42");
 
             comp.VerifyIL("Program.Main", @"
 {
