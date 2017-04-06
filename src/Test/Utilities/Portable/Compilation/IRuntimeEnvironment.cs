@@ -252,7 +252,7 @@ namespace Roslyn.Test.Utilities
                         xmlDocumentationStream: null,
                         win32Resources: null,
                         manifestResources: manifestResources,
-                        options: emitOptions ?? EmitOptions.Default,
+                        options: emitOptions,
                         debugEntryPoint: null,
                         sourceLinkStream: null,
                         embeddedTexts: null,
