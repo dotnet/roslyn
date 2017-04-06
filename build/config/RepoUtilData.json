@@ -31,6 +31,7 @@
       "path": "build\\Targets\\Dependencies.props",
       "values": [
         "Microsoft.Dia.*",
+        "Microsoft.Metadata.*",
         "System.*",
         "Microsoft.CodeAnalysis.Analyzers",
         "Microsoft.VisualBasic",
