@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     var length = (int)stream.Length;
                     byte[] bytes;
                     bool fromPool;
-                    if (stream.Length <= MaxPooledByteArrayLength)
+                    if (length <= MaxPooledByteArrayLength)
                     {
                         // use a pooled byte[] to store our data in.
                         bytes = GetPooledBytes();
@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.SQLite
                     {
                         // We knew the length, but it was large.  Copy the stream into that
                         // array, but don't pool it so we don't hold onto huge arrays forever.
-
                         bytes = new byte[length];
                         fromPool = false;
                     }
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
             }
 
-            // Couldn't use our pool.  Just copy the bytes out of the stream entirely.
+            // Not something we could get the length of. Just copy the bytes out of the stream entirely.
             using (var tempStream = new MemoryStream())
             {
                 stream.CopyTo(tempStream);
