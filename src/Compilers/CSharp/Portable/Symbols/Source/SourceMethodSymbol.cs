@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (this.bodySyntaxReferenceOpt == null) ? null : this.bodySyntaxReferenceOpt.GetSyntax();
+                return this.bodySyntaxReferenceOpt?.GetSyntax();
             }
         }
 
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.syntaxReferenceOpt == null ? null : this.syntaxReferenceOpt.SyntaxTree;
+                return this.syntaxReferenceOpt?.SyntaxTree;
             }
         }
 
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
                     var data = (CommonMethodEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
-                    return data != null ? data.ObsoleteAttributeData : null;
+                    return data?.ObsoleteAttributeData;
                 }
 
                 var reference = this.syntaxReferenceOpt;
@@ -1490,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override DllImportData GetDllImportData()
         {
             var data = this.GetDecodedWellKnownAttributeData();
-            return data != null ? data.DllImportPlatformInvokeData : null;
+            return data?.DllImportPlatformInvokeData;
         }
 
         internal sealed override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
@@ -1498,7 +1498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var data = this.GetDecodedReturnTypeWellKnownAttributeData();
-                return data != null ? data.MarshallingInformation : null;
+                return data?.MarshallingInformation;
             }
         }
 
