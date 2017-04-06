@@ -9043,45 +9043,12 @@ public class C
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
                 );
 
-            // PROTOTYPE(refout) failing differently than expected
-            //VerifyNullReferenceException(refDir, "a.dll");
+            // Runtime won't load assembly with ReferenceAssemblyAttribute
+            ProcessUtilities.RunAndGetOutput(Path.Combine(refDir.Path, "a.dll"), startFolder: refDir.Path, expectedRetCode: -532462766);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);
             CleanupAllGeneratedFiles(refDir.Path);
-        }
-
-        /// <summary>
-        /// Calls C.Main() on the program and verifies that a null reference exception is thrown.
-        /// </summary>
-        private static void VerifyNullReferenceException(TempDirectory dir, string programName)
-        {
-            var src = dir.CreateFile("verifier.cs");
-            src.WriteAllText(@"
-class Verifier
-{
-    public static void Main()
-    {
-        try
-        {
-            C.Main();
-        }
-        catch(System.NullReferenceException)
-        {
-            System.Console.Write(""Got expected exception"");
-        }
-    }
-}");
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = new MockCSharpCompiler(null, dir.Path,
-                new[] { "/nologo", "/out:verifier.exe", $"/reference:{programName}", "verifier.cs" });
-
-            int exitCode = csc.Run(outWriter);
-            Assert.Equal(0, exitCode);
-            string dirPath = dir.ToString();
-            string output = ProcessUtilities.RunAndGetOutput(Path.Combine(dirPath, "verifier.exe"), startFolder: dirPath, expectedRetCode: 0);
-            Assert.Equal("Got expected exception", output);
         }
 
         [Fact]

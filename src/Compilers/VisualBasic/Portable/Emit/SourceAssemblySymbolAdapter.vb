@@ -17,7 +17,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Symbol.AddSynthesizedAttribute(synthesized, referenceAssemblyAttribute)
             End If
 
-            ' PROTOTYPE(refout) How to avoid closure on emittingAssemblyAttributesInNetModule?
             Return GetCustomAttributesToEmit(Me.GetAttributes(), synthesized,
                                              Function(attribute, symbol)
                                                  Return attribute.ShouldEmitAttribute(symbol, isReturnType:=False,

@@ -347,6 +347,8 @@ namespace System
         [InlineData("private struct S { }", "", Match.Different)]
         [InlineData("public struct S { private int i; }", "public struct S { }", Match.Different)]
         [InlineData("private int i;", "", Match.RefOut)]
+        [InlineData("public C() { }", "", Match.BothMetadataAndRefOut)]
+        //[InlineData("public int NoBody();", "public int NoBody() { }", Match.BothMetadataAndRefOut)] // PROTOTYPE(refout) Further refinement https://github.com/dotnet/roslyn/issues/17612
         public void RefAssembly_InvariantToSomeChanges(string left, string right, Match expectedMatch)
         {
             string sourceTemplate = @"

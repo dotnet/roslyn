@@ -8140,41 +8140,12 @@ a
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
                 )
 
-            'PROTOTYPE(refout) failing differently than expected
-            'VerifyNullReferenceException(refDir, "a.dll")
-            'Assert.Equal("", ProcessUtilities.RunAndGetOutput(refDll, startFolder:=refDir.Path))
+            ' Runtime won't load assembly with ReferenceAssemblyAttribute
+            ProcessUtilities.RunAndGetOutput(Path.Combine(refDir.Path, "a.dll"), startFolder:=refDir.Path, expectedRetCode:=-532462766)
 
             ' Clean up temp files
             CleanupAllGeneratedFiles(dir.Path)
             CleanupAllGeneratedFiles(refDir.Path)
-        End Sub
-
-        ''' <summary>
-        ''' Calls C.Main() on the program and verifies that a null reference exception is thrown.
-        ''' </summary>
-        Private Shared Sub VerifyNullReferenceException(dir As TempDirectory, referenceName As String)
-
-            Dim src = dir.CreateFile("verifier.vb")
-            src.WriteAllText("
-Class Verifier
-    Public Shared Sub Main()
-        Try
-            C.Main()
-        Catch ex As System.NullReferenceException
-            System.Console.Write(""Got expected exception"")
-        End Try
-    End Sub
-End Class")
-
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
-                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:verifier.exe", $"/reference:{referenceName}", "verifier.vb"})
-
-            Dim exitCode = vbc.Run(outWriter)
-            Assert.Equal(0, exitCode)
-            Dim dirPath As String = dir.ToString()
-            Dim output = ProcessUtilities.RunAndGetOutput(Path.Combine(dirPath, "verifier.exe"), startFolder:=dirPath, expectedRetCode:=0)
-            Assert.Equal("Got expected exception", output)
         End Sub
 
         <Fact>
