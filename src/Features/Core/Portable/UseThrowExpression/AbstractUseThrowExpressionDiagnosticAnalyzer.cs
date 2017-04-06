@@ -233,8 +233,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             localOrParameter = null;
 
             var condition = ifStatement.Condition;
-            var binaryOperator = condition as IBinaryOperatorExpression;
-            if (binaryOperator == null)
+            if (!(condition is IBinaryOperatorExpression binaryOperator))
             {
                 return false;
             }
@@ -262,21 +261,18 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         private bool TryGetLocalOrParameterSymbol(
             IOperation operation, out ISymbol localOrParameter)
         {
-            if (operation.Kind == OperationKind.ConversionExpression)
+            if (operation is IConversionExpression conversion && !conversion.IsExplicit)
             {
-                var conversionExpression = (IConversionExpression)operation;
-                return TryGetLocalOrParameterSymbol(
-                    conversionExpression.Operand, out localOrParameter);
+                return TryGetLocalOrParameterSymbol(conversion.Operand, out localOrParameter);
             }
-
-            if (operation.Kind == OperationKind.LocalReferenceExpression)
+            else if (operation is ILocalReferenceExpression localReference)
             {
-                localOrParameter = ((ILocalReferenceExpression)operation).Local;
+                localOrParameter = localReference.Local;
                 return true;
             }
-            else if (operation.Kind == OperationKind.ParameterReferenceExpression)
+            else if (operation is IParameterReferenceExpression parameterReference)
             {
-                localOrParameter = ((IParameterReferenceExpression)operation).Parameter;
+                localOrParameter = parameterReference.Parameter;
                 return true;
             }
 

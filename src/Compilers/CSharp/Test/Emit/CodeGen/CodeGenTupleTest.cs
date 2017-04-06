@@ -17236,10 +17236,10 @@ public class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (6,31): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, int)'.
+                // (6,31): warning CS8123: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(int a, int)'.
                 //         (int a, int) x1 = (1, b: 2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: 2").WithArguments("b", "(int a, int)").WithLocation(6, 31),
-                // (7,34): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, string)'.
+                // (7,34): warning CS8123: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(int a, string)'.
                 //         (int a, string) x2 = (1, b: null);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: null").WithArguments("b", "(int a, string)").WithLocation(7, 34),
                 // (6,22): warning CS0219: The variable 'x1' is assigned but its value is never used

@@ -1,7 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
+using System.Windows.Automation;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using System.Collections.Immutable;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -10,12 +18,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     /// </summary>
     public partial class Editor_OutOfProc : TextViewWindow_OutOfProc
     {
+        public new Verifier Verify { get; }
+
         private readonly Editor_InProc _editorInProc;
+        private readonly VisualStudioInstance _instance;
 
         internal Editor_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
+            _instance = visualStudioInstance;
             _editorInProc = (Editor_InProc)_textViewWindowInProc;
+            Verify = new Verifier(this, _instance);
         }
 
         internal override TextViewWindow_InProc CreateInProcComponent(VisualStudioInstance visualStudioInstance)
@@ -57,6 +70,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.IsCompletionActive();
         }
 
+        public void InvokeSignatureHelp()
+        {
+            _instance.ExecuteCommand(WellKnownCommandNames.Edit_ParameterInfo);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
+        }
+
         public bool IsSignatureHelpActive()
         {
             WaitForSignatureHelp();
@@ -73,6 +92,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             WaitForSignatureHelp();
             return _editorInProc.GetCurrentSignature();
+        }
+
+        public void InvokeNavigateTo(string text)
+        {
+            _instance.ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);
+            NavigateToSendKeys(text);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigateTo);
+        }
+
+        public void SelectTextInCurrentDocument(string text)
+        {
+            PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
+            PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
+        }
+
+        public void DeleteText(string text)
+        {
+            SelectTextInCurrentDocument(text);
+            SendKeys(VirtualKey.Delete);
         }
 
         public bool IsCaretOnScreen()
@@ -107,6 +145,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void MessageBox(string message)
             => _editorInProc.MessageBox(message);
 
+        public AutomationElement GetDialog(string dialogAutomationId)
+        {
+            var dialog = DialogHelpers.GetOpenDialogById(_instance.Shell.GetHWnd(), dialogAutomationId);
+            return dialog;
+        }
+
         public void VerifyDialog(string dialogName, bool isOpen)
             => _editorInProc.VerifyDialog(dialogName, isOpen);
 
@@ -130,5 +174,103 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public string[] GetErrorTags()
             => _editorInProc.GetErrorTags();
+
+        public List<string> GetF1Keyword()
+            => _editorInProc.GetF1Keywords();        
+
+        public void ExpandProjectNavBar()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.ExpandNavigationBar(0);
+        }
+
+        public void ExpandTypeNavBar()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.ExpandNavigationBar(1);
+        }
+
+        public void ExpandMemberNavBar()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.ExpandNavigationBar(2);
+        }
+
+        public string[] GetProjectNavBarItems()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetNavBarItems(0);
+        }
+
+        public string[] GetTypeNavBarItems()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetNavBarItems(1);
+        }
+
+        public string[] GetMemberNavBarItems()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetNavBarItems(2);
+        }
+
+        public string GetProjectNavBarSelection()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetSelectedNavBarItem(0);
+        }
+
+        public string GetTypeNavBarSelection()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetSelectedNavBarItem(1);
+        }
+
+        public string GetMemberNavBarSelection()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetSelectedNavBarItem(2);
+        }
+
+        public void SelectProjectNavbarItem(string item)
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+             _editorInProc.SelectNavBarItem(0, item);
+        }
+
+        public void SelectTypeNavBarItem(string item)
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.SelectNavBarItem(1, item);
+        }
+
+        public void SelectMemberNavBarItem(string item)
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.SelectNavBarItem(2, item);
+        }
+
+        public bool IsNavBarEnabled()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.IsNavBarEnabled();
+        }
+
+        public TextSpan[] GetKeywordHighlightTags()
+            => Deserialize(_editorInProc.GetHighlightTags());
+
+        private TextSpan[] Deserialize(string[] v)
+        {
+            // returned tag looks something like 'text'[12-13]
+            return v.Select(tag =>
+            {
+                var open = tag.LastIndexOf('[') + 1;
+                var comma = tag.LastIndexOf('-');
+                var close = tag.LastIndexOf(']');
+                var start = tag.Substring(open, comma - open);
+                var end = tag.Substring(comma + 1, close - comma - 1);
+                return TextSpan.FromBounds(int.Parse(start), int.Parse(end));
+            }).ToArray();
+        }
     }
 }

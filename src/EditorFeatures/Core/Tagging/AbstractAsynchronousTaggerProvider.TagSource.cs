@@ -80,6 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public event EventHandler Paused;
             public event EventHandler Resumed;
 
+            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
+            public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
+
             public TagSource(
                 ITextView textViewOpt,
                 ITextBuffer subjectBuffer,
@@ -111,9 +114,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Kick off a task to compute the initial set of tags.
                 RecalculateTagsOnChanged(new TaggerEventArgs(TaggerDelay.Short));
             }
-
-            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
-            public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
 
             private ITaggerEventSource CreateEventSource()
             {
@@ -196,9 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
-            {
-                _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
-            }
+                => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
 
             /// <summary>
             /// Called by derived types to enqueue tags re-calculation request
@@ -209,7 +207,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // want to continue it if new changes have come in.
                 _workQueue.CancelCurrentWork();
 
-                RegisterNotification(RecomputeTagsForeground, (int)e.Delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds, _workQueue.CancellationToken);
+                RegisterNotification(
+                    RecomputeTagsForeground,
+                    (int)e.Delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds,
+                    _workQueue.CancellationToken);
             }
 
             private void Connect()

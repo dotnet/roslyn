@@ -327,10 +327,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Public Function GetEventRegistrationTokenType() As NamedTypeSymbol
-            Return GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken, False)
+            Return GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
         End Function
 
-        Private Function GetWellKnownType(type As WellKnownType, Optional careAboutAmbiguity As Boolean = True) As NamedTypeSymbol
+        Private Function GetWellKnownType(type As WellKnownType) As NamedTypeSymbol
             Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(type.GetMetadataName(), useCLSCompliantNameArityEncoding:=True)
 
             ' First, check this module
@@ -354,10 +354,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         ' being returned.  Do we want to differentiate between no result and ambiguous
                         ' results?  There doesn't seem to be an existing error code for "duplicate well-
                         ' known type".
-                        If (careAboutAmbiguity) Then
+                        If referencedAssemblyResult IsNot currResult Then
                             referencedAssemblyResult = Nothing
+                            Exit For
                         End If
-                        Exit For
                     End If
                 End If
             Next

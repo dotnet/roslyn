@@ -6,25 +6,22 @@ using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Windows.Automation;
-using System.Windows.Documents;
 using System.Windows.Forms;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Hosting.Diagnostics.Waiters;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
-    internal class Editor_InProc : TextViewWindow_InProc
+    internal partial class Editor_InProc : TextViewWindow_InProc
     {
         private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
@@ -147,6 +144,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string[] GetErrorTags()
             => GetTags<IErrorTag>();
 
+        public string[] GetHighlightTags()
+           => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
+
         private string[] GetTags<TTag>(Predicate<TTag> filter = null)
             where TTag : ITag
         {
@@ -229,7 +229,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void VerifyDialog(string dialogAutomationId, bool isOpen)
         {
-            var dialogAutomationElement = DialogHelpers.FindDialog(GetDTE().MainWindow.HWnd, dialogAutomationId, isOpen);
+            var dialogAutomationElement = DialogHelpers.FindDialogByAutomationId(GetDTE().MainWindow.HWnd, dialogAutomationId, isOpen);
 
             if ((isOpen && dialogAutomationElement == null) ||
                 (!isOpen && dialogAutomationElement != null))
@@ -240,7 +240,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void DialogSendKeys(string dialogAutomationName, string keys)
         {
-            var dialogAutomationElement = DialogHelpers.GetOpenDialog(GetDTE().MainWindow.HWnd, dialogAutomationName);
+            var dialogAutomationElement = DialogHelpers.GetOpenDialogById(GetDTE().MainWindow.HWnd, dialogAutomationName);
 
             dialogAutomationElement.SetFocus();
             SendKeys.SendWait(keys);
@@ -500,6 +500,39 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
             return view.GetBufferContainingCaret();
+        }
+
+        public List<string> GetF1Keywords()
+        {
+            return InvokeOnUIThread(() =>
+            {
+                var results = new List<string>();
+                GetActiveVsTextView().GetBuffer(out var textLines);
+                Marshal.ThrowExceptionForHR(textLines.GetLanguageServiceID(out var languageServiceGuid));
+                Marshal.ThrowExceptionForHR(Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.QueryService(languageServiceGuid, out var languageService));
+                var languageContextProvider = languageService as IVsLanguageContextProvider;
+
+                IVsMonitorUserContext monitorUserContext = GetGlobalService<SVsMonitorUserContext, IVsMonitorUserContext>();
+                Marshal.ThrowExceptionForHR(monitorUserContext.CreateEmptyContext(out var emptyUserContext));
+                Marshal.ThrowExceptionForHR(GetActiveVsTextView().GetCaretPos(out var line, out var column));
+                var span = new TextSpan()
+                {
+                    iStartLine = line,
+                    iStartIndex = column,
+                    iEndLine = line,
+                    iEndIndex = column
+                };
+                
+                Marshal.ThrowExceptionForHR(languageContextProvider.UpdateLanguageContext(0, textLines, new[] { span }, emptyUserContext));
+                Marshal.ThrowExceptionForHR(emptyUserContext.CountAttributes("keyword", VSConstants.S_FALSE, out var count));
+                for (int i = 0; i < count; i++)
+                {
+                    emptyUserContext.GetAttribute(i, "keyword", VSConstants.S_FALSE, out var key, out var value);
+                    results.Add(value);
+                }
+
+                return results;
+            });
         }
     }
 }

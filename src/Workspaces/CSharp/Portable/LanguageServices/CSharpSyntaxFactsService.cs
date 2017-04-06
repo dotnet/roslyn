@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool SupportsIndexingInitializer(ParseOptions options) 
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
 
+        public bool SupportsThrowExpression(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
+
         public bool IsAwaitKeyword(SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.AwaitKeyword);
@@ -194,9 +197,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsNamedParameter(SyntaxNode node)
-        {
-            return node.CheckParent<NameColonSyntax>(p => p.Name == node);
-        }
+            => node.CheckParent<NameColonSyntax>(p => p.Name == node);
+
+        public SyntaxNode GetDefaultOfParameter(SyntaxNode node)
+            => (node as ParameterSyntax)?.Default;
 
         public bool IsSkippedTokensTrivia(SyntaxNode node)
         {
@@ -255,19 +259,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsQueryExpression(SyntaxNode node)
-        {
-            return node is QueryExpressionSyntax;
-        }
+            => node.Kind() == SyntaxKind.QueryExpression;
+
+        public bool IsThrowExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.ThrowExpression;
 
         public bool IsPredefinedType(SyntaxToken token)
-        {
-            return TryGetPredefinedType(token, out var actualType) && actualType != PredefinedType.None;
-        }
+            => TryGetPredefinedType(token, out var actualType) && actualType != PredefinedType.None;
 
         public bool IsPredefinedType(SyntaxToken token, PredefinedType type)
-        {
-            return TryGetPredefinedType(token, out var actualType) && actualType == type;
-        }
+            => TryGetPredefinedType(token, out var actualType) && actualType == type;
 
         public bool TryGetPredefinedType(SyntaxToken token, out PredefinedType type)
         {

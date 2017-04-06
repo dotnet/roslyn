@@ -8639,6 +8639,54 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
+        [Fact]
+        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        public void ConsistentErrorMessageWhenProvidingNoKeyFile()
+        {
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/keyfile:", "/target:library", "/nologo", "/preferreduilang:en", "a.cs" });
+            int exitCode = csc.Run(outWriter);
+
+            Assert.Equal(1, exitCode);
+            Assert.Equal("error CS2005: Missing file specification for 'keyfile' option", outWriter.ToString().Trim());
+        }
+
+        [Fact]
+        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        public void ConsistentErrorMessageWhenProvidingEmptyKeyFile()
+        {
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/keyfile:\"\"", "/target:library", "/nologo", "/preferreduilang:en", "a.cs" });
+            int exitCode = csc.Run(outWriter);
+
+            Assert.Equal(1, exitCode);
+            Assert.Equal("error CS2005: Missing file specification for 'keyfile' option", outWriter.ToString().Trim());
+        }
+
+        [Fact]
+        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        public void ConsistentErrorMessageWhenProvidingNoKeyFile_PublicSign()
+        {
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/keyfile:", "/publicsign", "/target:library", "/nologo", "/preferreduilang:en", "a.cs" });
+            int exitCode = csc.Run(outWriter);
+
+            Assert.Equal(1, exitCode);
+            Assert.Equal("error CS2005: Missing file specification for 'keyfile' option", outWriter.ToString().Trim());
+        }
+
+        [Fact]
+        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        public void ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign()
+        {
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/keyfile:\"\"", "/publicsign", "/target:library", "/nologo", "/preferreduilang:en", "a.cs" });
+            int exitCode = csc.Run(outWriter);
+
+            Assert.Equal(1, exitCode);
+            Assert.Equal("error CS2005: Missing file specification for 'keyfile' option", outWriter.ToString().Trim());
+        }
+
         [WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
         [Fact]
         public void NoWarnAndWarnAsError_CompilerErrorDiagnostic()

@@ -2,8 +2,6 @@
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -19,7 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyColorOfSomeTokens()
         {
-            this.InsertCode(@"using System.Console;
+            VisualStudio.InteractiveWindow.InsertCode(@"using System.Console;
 /// <summary>innertext
 /// </summary>
 /// <see cref=""System.Environment"" />
@@ -31,33 +29,33 @@ public static void Main(string[] args)
                 WriteLine(""Hello World"");
             }");
 
-            this.PlaceCaret("using");
-            this.VerifyCurrentTokenType(tokenType: "keyword");
-            this.PlaceCaret("{");
-            this.VerifyCurrentTokenType(tokenType: "punctuation");
-            this.PlaceCaret("Main");
-            this.VerifyCurrentTokenType(tokenType: "identifier");
-            this.PlaceCaret("Hello");
-            this.VerifyCurrentTokenType(tokenType: "string");
-            this.PlaceCaret("<summary", charsOffset: -1);
-            this.SendKeys(new KeyPress(VirtualKey.Right, ShiftState.Alt));
-            this.VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            this.PlaceCaret("summary");
-            this.VerifyCurrentTokenType(tokenType: "xml doc comment - name");
-            this.PlaceCaret("innertext");
-            this.VerifyCurrentTokenType(tokenType: "xml doc comment - text");
-            this.PlaceCaret("!--");
-            this.VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            this.PlaceCaret("comment");
-            this.VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
-            this.PlaceCaret("CDATA");
-            this.VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            this.PlaceCaret("cdata");
-            this.VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
-            this.PlaceCaret("attribute");
-            this.VerifyCurrentTokenType(tokenType: "identifier");
-            this.PlaceCaret("Environment");
-            this.VerifyCurrentTokenType(tokenType: "class name");
+            VisualStudio.InteractiveWindow.PlaceCaret("using");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "keyword");
+            VisualStudio.InteractiveWindow.PlaceCaret("{");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "punctuation");
+            VisualStudio.InteractiveWindow.PlaceCaret("Main");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.InteractiveWindow.PlaceCaret("Hello");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "string");
+            VisualStudio.InteractiveWindow.PlaceCaret("<summary", charsOffset: -1);
+            VisualStudio.SendKeys.Send(new KeyPress(VirtualKey.Right, ShiftState.Alt));
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
+            VisualStudio.InteractiveWindow.PlaceCaret("summary");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - name");
+            VisualStudio.InteractiveWindow.PlaceCaret("innertext");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - text");
+            VisualStudio.InteractiveWindow.PlaceCaret("!--");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
+            VisualStudio.InteractiveWindow.PlaceCaret("comment");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - comment");
+            VisualStudio.InteractiveWindow.PlaceCaret("CDATA");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
+            VisualStudio.InteractiveWindow.PlaceCaret("cdata");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - cdata section");
+            VisualStudio.InteractiveWindow.PlaceCaret("attribute");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.InteractiveWindow.PlaceCaret("Environment");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "class name");
         }
     }
 }
