@@ -652,6 +652,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="path">The cryptography key file path. </param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the cryptography key path is different; otherwise current instance.</returns>        
         Public Shadows Function WithCryptoKeyFile(path As String) As VisualBasicCompilationOptions
+            If String.IsNullOrEmpty(path) Then
+                path = Nothing
+            End If
+
             If String.Equals(path, Me.CryptoKeyFile, StringComparison.Ordinal) Then
                 Return Me
             End If
