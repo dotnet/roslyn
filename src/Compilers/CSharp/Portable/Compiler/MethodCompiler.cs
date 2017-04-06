@@ -185,6 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // Returns the MethodSymbol for the assembly entrypoint.  If the user has a Task returning main,
+        // this function returns the synthesized Main MethodSymbol.
         private static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             var entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken);
@@ -241,7 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
             }
 
-            if (addedDefinition && moduleBeingBuilt != null) {
+            if (addedDefinition && moduleBeingBuilt != null)
+            {
                 moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
             }
 

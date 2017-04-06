@@ -359,12 +359,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Task -> Void
             // Task<_> -> Int32
-            private static TypeSymbol TranslateReturnType(CSharpCompilation compilation, TypeSymbol returnType) {
+            private static TypeSymbol TranslateReturnType(CSharpCompilation compilation, TypeSymbol returnType)
+            {
                 if (returnType.IsGenericTaskType(compilation)) {
 
                     return compilation.GetSpecialType(SpecialType.System_Int32);
                 } 
-                else {
+                else
+                {
                     return compilation.GetSpecialType(SpecialType.System_Void);
                 }
             }
@@ -373,11 +375,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (returnType.IsGenericTaskType(compilation)) {
                     return ReturnKind.IntReturning;
                 } 
-                else {
+                else
+                {
                     return ReturnKind.VoidReturning;
                 }
             }
-
 
             internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, MethodSymbol userMain): 
                 base(containingType, TranslateReturnType(compilation, userMain.ReturnType)) {
@@ -388,7 +390,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _compilation = compilation;
                 _paramKind = userMain.ParameterCount == 0 ? ParamKind.NoArgs : ParamKind.StringArrayArgs;
                 _returnKind = GetReturnKind(compilation, userMain.ReturnType);
-
 
                 switch (_paramKind)
                 {
@@ -434,7 +435,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         resultKind: LookupResultKind.Viable,
                         type: _userMain.ReturnType)
                 { WasCompilerGenerated = true };
-
 
                 // PROTOTYPE(async-main): Errors should likely be reported here instead of bailing.
                 var getAwaiterMethod = GetRequiredMethod(_userMain.ReturnType, WellKnownMemberNames.GetAwaiter, _diagnosticBag);
@@ -490,7 +490,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax: syntax,
                     locals: ImmutableArray<LocalSymbol>.Empty,
                     statements: ImmutableArray.Create<BoundStatement>(statement));
-                
             }
         }
 
