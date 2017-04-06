@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 using SQLitePCL;
 
@@ -66,14 +67,23 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         internal void BindInt64Parameter(int parameterIndex, long value)
             => _connection.ThrowIfNotOk(raw.sqlite3_bind_int64(_rawStatement, parameterIndex, value));
 
-        internal void BindBlobParameter(int parameterIndex, byte[] value)
-            => _connection.ThrowIfNotOk(raw.sqlite3_bind_blob(_rawStatement, parameterIndex, value));
+        // SQLite PCL does not expose sqlite3_bind_blob function that takes a length.  So we explicitly
+        // DLL import it here.  See https://github.com/ericsink/SQLitePCL.raw/issues/135
+
+        internal void BindBlobParameter(int parameterIndex, byte[] value, int length)
+            => _connection.ThrowIfNotOk(sqlite3_bind_blob(_rawStatement.ptr, parameterIndex, value, length, new IntPtr(-1)));
+
+        [DllImport("e_sqlite3.dll", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int sqlite3_bind_blob(IntPtr stmt, int index, byte[] val, int nSize, IntPtr nTransient);
 
         internal byte[] GetBlobAt(int columnIndex)
             => raw.sqlite3_column_blob(_rawStatement, columnIndex);
 
         internal int GetInt32At(int columnIndex)
             => raw.sqlite3_column_int(_rawStatement, columnIndex);
+
+        internal long GetInt64At(int columnIndex)
+            => raw.sqlite3_column_int64(_rawStatement, columnIndex);
 
         internal string GetStringAt(int columnIndex)
             => raw.sqlite3_column_text(_rawStatement, columnIndex);
