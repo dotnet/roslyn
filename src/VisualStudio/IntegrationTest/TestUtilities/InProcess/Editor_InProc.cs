@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 
@@ -150,14 +151,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string[] GetHighlightTags()
            => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
 
+        private string PrintSpan(SnapshotSpan span)
+                => $"'{span.GetText()}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
+
         private string[] GetTags<TTag>(Predicate<TTag> filter = null)
             where TTag : ITag
         {
             bool Filter(TTag tag)
                 => true;
-
-            string PrintSpan(SnapshotSpan span)
-                => $"'{span.GetText()}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
 
             if (filter == null)
             {
@@ -500,6 +501,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
             return view.GetBufferContainingCaret();
+        }
+
+        public string[] GetOutliningSpans()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var manager = GetComponentModelService<IOutliningManagerService>().GetOutliningManager(view);
+                var span = new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length);
+                var regions = manager.GetAllRegions(span);
+                return regions
+                    .OrderBy(s => s.Extent.GetStartPoint(view.TextSnapshot))
+                    .Select(r => PrintSpan(r.Extent.GetSpan(view.TextSnapshot)))
+                    .ToArray();
+            });
         }
 
         public List<string> GetF1Keywords()
