@@ -3,8 +3,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -24,21 +22,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         public void SimpleGoToImplementation()
         {
             var project = new ProjectUtils.Project(ProjectName);
-            this.AddFile("FileImplementation.vb", project);
-            this.OpenFile("FileImplementation.vb", project);
-            Editor.SetText(
+            VisualStudio.SolutionExplorer.AddFile(project, "FileImplementation.vb");
+            VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.vb");
+            VisualStudio.Editor.SetText(
 @"Class Implementation
   Implements IFoo
 End Class");
-            this.AddFile("FileInterface.vb", project);
-            this.OpenFile("FileInterface.vb", project);
-            Editor.SetText(
+            VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.vb");
+            VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.vb");
+            VisualStudio.Editor.SetText(
 @"Interface IFoo 
 End Interface");
-            this.PlaceCaret("Interface IFoo");
-            Editor.GoToImplementation();
-            this.VerifyTextContains(@"Class Implementation$$", assertCaretPosition: true);
-            Assert.False(VisualStudio.Instance.Shell.IsActiveTabProvisional());
+            VisualStudio.Editor.PlaceCaret("Interface IFoo");
+            VisualStudio.Editor.GoToImplementation();
+            VisualStudio.Editor.Verify.TextContains(@"Class Implementation$$", assertCaretPosition: true);
+            Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }
     }
 }
