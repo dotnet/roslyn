@@ -89,8 +89,7 @@ End Module");
             VisualStudio.Editor.Verify.TextContains(@"Sub Main(x As Integer)");
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Undo);
             VisualStudio.Editor.Verify.TextContains(@"Sub Main(x   As   Integer)");
-            VisualStudio.Editor.Verify.CaretPosition(18);
-            VisualStudio.Editor.Verify.CaretPosition(16);
+            VisualStudio.Editor.Verify.CaretPosition(45);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
@@ -101,10 +100,10 @@ End Module");
     End Sub
 End Module");
 
-            VisualStudio.Editor.PlaceCaret("End Sub", charsOffset:- 1);
+            VisualStudio.Editor.PlaceCaret("End Sub", charsOffset: -1);
             VisualStudio.Editor.SendKeys(" ");
             VisualStudio.SolutionExplorer.AddFile(new ProjName(ProjectName), "TestZ.vb", open: true); // Cause focus lost
-            VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb");
+            VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb"); // Work around https://github.com/dotnet/roslyn/issues/18488
             VisualStudio.Editor.SendKeys("                  ");
             VisualStudio.SolutionExplorer.CloseFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
             VisualStudio.Editor.Verify.TextContains(@"
@@ -116,22 +115,29 @@ End Module");
         [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
         void CommitOnFocusLostDoesNotFormatWithPrettyListingOff()
         {
-            VisualStudio.Workspace.SetPerLanguageOption("PrettyListing", "FeatureOnOffOptions", LanguageNames.VisualBasic, false);
-            VisualStudio.Editor.SetText(@"Module M
+            try
+            {
+                VisualStudio.Workspace.SetPerLanguageOption("PrettyListing", "FeatureOnOffOptions", LanguageNames.VisualBasic, false);
+                VisualStudio.Editor.SetText(@"Module M
     Sub M()
     End Sub
 End Module");
 
-            VisualStudio.Editor.PlaceCaret("End Sub", charsOffset: -1);
-            VisualStudio.Editor.SendKeys(" ");
-            VisualStudio.SolutionExplorer.AddFile(new ProjName(ProjectName), "TestZ.vb", open: true); // Cause focus lost
-            VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb");
-            VisualStudio.Editor.SendKeys("                  ");
-            VisualStudio.SolutionExplorer.CloseFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
-            VisualStudio.Editor.Verify.TextContains(@"
+                VisualStudio.Editor.PlaceCaret("End Sub", charsOffset: -1);
+                VisualStudio.Editor.SendKeys(" ");
+                VisualStudio.SolutionExplorer.AddFile(new ProjName(ProjectName), "TestZ.vb", open: true); // Cause focus lost
+                VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb"); // Work around https://github.com/dotnet/roslyn/issues/18488
+                VisualStudio.Editor.SendKeys("                  ");
+                VisualStudio.SolutionExplorer.CloseFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
+                VisualStudio.Editor.Verify.TextContains(@"
     Sub M()
      End Sub
 ");
+            }
+            finally
+            {
+                VisualStudio.Workspace.SetPerLanguageOption("PrettyListing", "FeatureOnOffOptions", LanguageNames.VisualBasic, true);
+            }
         }
     }
 }
