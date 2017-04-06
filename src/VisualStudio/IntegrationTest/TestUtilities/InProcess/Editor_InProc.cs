@@ -142,8 +142,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string[] GetErrorTags()
             => GetTags<IErrorTag>();
 
-        public int GetHighlightTagCount()
-           => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId).Length;
+        public string[] GetHighlightTags()
+           => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
 
         private string[] GetTags<TTag>(Predicate<TTag> filter = null)
             where TTag : ITag

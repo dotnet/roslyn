@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
 
@@ -22,65 +26,82 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Foreach()
         {
-            VisualStudio.Editor.SetText(@"
-class C
+            var input = @"class C
 {
     void M()
     {
-        foreach(var c in """") { if(true) break; else continue; }
+        [|foreach|](var c in """") { if(true) [|break|]; else [|continue|]; }
     }
-}");
+}";
 
-            Verify("foreach", 3);
-            Verify("break", 3);
-            Verify("continue", 3);
-            Verify("in", 0);
+            Roslyn.Test.Utilities.MarkupTestFile.GetSpans(input, out var text, out ImmutableArray<TextSpan> spans);
+
+            VisualStudio.Editor.SetText(text);
+
+            Verify("foreach", spans);
+            Verify("break", spans);
+            Verify("continue", spans);
+            Verify("in", ImmutableArray.Create<TextSpan>());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PreprocessorConditionals()
         {
-            VisualStudio.Editor.SetText(@"
+            var input = @"
 #define Debug
 #undef Trace
 class PurchaseTransaction
 {
     void Commit() {
-        #if Debug
+        {|if:#if|} Debug
             CheckConsistency();
-            #if Trace
+            {|else:#if|} Trace
                 WriteToLog(this.ToString());
-            #else
+            {|else:#else|}
                 Exit();
-            #endif
-        #endif
+            {|else:#endif|}
+        {|if:#endif|}
         CommitHelper();
     }
-}");
+}";
+            Test.Utilities.MarkupTestFile.GetSpans(
+                input,
+                out var text,
+                out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
-            Verify("#if", expectedCount: 2);
-            Verify("#else", expectedCount: 3);
-            Verify("#endif", expectedCount: 3);
+
+            VisualStudio.Editor.SetText(text);
+
+            Verify("#if", spans["if"]);
+            Verify("#else", spans["else"]);
+            Verify("#endif", spans["else"]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PreprocessorRegions()
         {
-            VisualStudio.Editor.SetText(@"
+            var input = @"
 class C
 {
-    #region Main
+    [|#region|] Main
     static void Main()
     {
     }
-    #endregion
-}");
+    [|#endregion|]
+}";
 
-            Verify("#region", expectedCount: 2);
-            Verify("#endregion", expectedCount: 2);
+            Test.Utilities.MarkupTestFile.GetSpans(
+                input,
+                out var text,
+                out ImmutableArray<TextSpan> spans);
+
+            VisualStudio.Editor.SetText(text);
+
+            Verify("#region", spans);
+            Verify("#endregion", spans);
         }
 
-        private void Verify(string marker, int expectedCount)
+        private void Verify(string marker, ImmutableArray<TextSpan> expectedCount)
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
             VisualStudio.Workspace.WaitForAsyncOperations(string.Concat(
@@ -88,7 +109,7 @@ class C
                FeatureAttribute.DiagnosticService,
                FeatureAttribute.Classification,
                FeatureAttribute.KeywordHighlighting));
-            Assert.Equal(expectedCount, VisualStudio.Editor.GetKeywordHighlightTagCount());
+            Assert.Equal(expectedCount, VisualStudio.Editor.GetKeywordHighlightTags());
         }
     }
 }
