@@ -57,7 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
+            CheckDefinitionInvariant();
+
             Debug.Assert(this.Kind != SymbolKind.Assembly);
+            return GetCustomAttributesToEmit(compilationState, emittingAssemblyAttributesInNetModule: false);
+        }
+
+        internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState, bool emittingAssemblyAttributesInNetModule)
+        {
             CheckDefinitionInvariant();
 
             ImmutableArray<CSharpAttributeData> userDefined;
@@ -65,10 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             userDefined = this.GetAttributes();
             this.AddSynthesizedAttributes(compilationState, ref synthesized);
 
-            // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate
+            // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             // all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
-            return GetCustomAttributesToEmit(userDefined, synthesized,
-                (attribute, symbol) => attribute.ShouldEmitAttribute(symbol, isReturnType: false, emittingAssemblyAttributesInNetModule: false));
+            return GetCustomAttributesToEmit(userDefined, synthesized, isReturnType: false, emittingAssemblyAttributesInNetModule: emittingAssemblyAttributesInNetModule);
         }
 
         /// <summary>
@@ -78,7 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(
             ImmutableArray<CSharpAttributeData> userDefined,
             ArrayBuilder<SynthesizedAttributeData> synthesized,
-            Func<CSharpAttributeData, Symbol, bool> shouldEmitAttribute)
+            bool isReturnType,
+            bool emittingAssemblyAttributesInNetModule)
         {
             CheckDefinitionInvariant();
 
@@ -88,13 +95,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<CSharpAttributeData>();
             }
 
-            return GetCustomAttributesToEmitIterator(userDefined, synthesized, shouldEmitAttribute);
+            return GetCustomAttributesToEmitIterator(userDefined, synthesized, isReturnType, emittingAssemblyAttributesInNetModule);
         }
 
         private IEnumerable<CSharpAttributeData> GetCustomAttributesToEmitIterator(
             ImmutableArray<CSharpAttributeData> userDefined,
             ArrayBuilder<SynthesizedAttributeData> synthesized,
-            Func<CSharpAttributeData, Symbol, bool> shouldEmitAttribute)
+            bool isReturnType,
+            bool emittingAssemblyAttributesInNetModule)
         {
             CheckDefinitionInvariant();
 
@@ -103,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var attribute in synthesized)
                 {
                     // only synthesize attributes that are emitted:
-                    Debug.Assert(shouldEmitAttribute(attribute, this));
+                    Debug.Assert(attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule));
                     yield return attribute;
                 }
 
@@ -124,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (shouldEmitAttribute(attribute, this))
+                if (attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule))
                 {
                     yield return attribute;
                 }

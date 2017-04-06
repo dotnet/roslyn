@@ -474,8 +474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             ' all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
-            Return GetCustomAttributesToEmit(userDefined, synthesized,
-                                             Function(attribute, symbol) attribute.ShouldEmitAttribute(symbol, isReturnType:=True, emittingAssemblyAttributesInNetModule:=False))
+            Return GetCustomAttributesToEmit(userDefined, synthesized, isReturnType:=True, emittingAssemblyAttributesInNetModule:=False)
         End Function
 
         Private ReadOnly Property IMethodDefinitionReturnValueIsMarshalledExplicitly As Boolean Implements Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly

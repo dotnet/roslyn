@@ -17,11 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Symbol.AddSynthesizedAttribute(synthesized, referenceAssemblyAttribute)
             End If
 
-            Return GetCustomAttributesToEmit(Me.GetAttributes(), synthesized,
-                                             Function(attribute, symbol)
-                                                 Return attribute.ShouldEmitAttribute(symbol, isReturnType:=False,
-                                                                                      emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule)
-                                             End Function)
+            Return GetCustomAttributesToEmit(Me.GetAttributes(), synthesized, isReturnType:=False, emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule)
         End Function
 
     End Class

@@ -597,12 +597,12 @@ End Structure
 ",
 Sub(comp)
     comp.AssertTheseDiagnostics(<errors>
-BC30294: Structure 'Usage' cannot contain an instance of itself:
+BC30294: Structure 'Usage' cannot contain an instance of itself: 
     'Usage' contains 'Container(Of Usage)' (variable 'x').
     'Container(Of Usage)' contains 'Usage' (variable 'contained').
     Public Dim x As Container(Of Usage)
                ~
-</errors>)
+                                </errors>)
 End Sub)
         End Sub
 
