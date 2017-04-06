@@ -178,44 +178,59 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             Stream stream = null;
             RunInTransaction(() =>
             {
-                stream = ReadBlobWorker(dataTableName, dataColumnName, rowId);
+                stream = ReadBlob_InTransaction(dataTableName, dataColumnName, rowId);
             });
 
             return stream;
         }
 
-        private Stream ReadBlobWorker(string tableName, string columnName, long rowId)
+        private Stream ReadBlob_InTransaction(string tableName, string columnName, long rowId)
         {
             const int ReadOnlyFlags = 0;
             ThrowIfNotOk(raw.sqlite3_blob_open(_handle, "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob));
             try
             {
-                var length = raw.sqlite3_blob_bytes(blob);
-
-                // If it's a small blob, just read it into one of our pooled arrays, and then
-                // create a PooledStream over it. 
-                if (length <= SQLitePersistentStorage.MaxPooledByteArrayLength)
-                {
-                    var bytes = SQLitePersistentStorage.GetPooledBytes();
-                    ThrowIfNotOk(raw.sqlite3_blob_read(blob, bytes, length, offset: 0));
-
-                    // Copy those bytes into a pooled 
-                    var result = SerializableBytes.CreateReadableStream(bytes, length);
-                    SQLitePersistentStorage.ReturnPooledBytes(bytes);
-
-                    return result;
-                }
-                else
-                {
-                    // Otherwise, it's a large stream.  Just take the hit of allocating.
-                    var bytes = new byte[length];
-                    ThrowIfNotOk(raw.sqlite3_blob_read(blob, bytes, length, offset: 0));
-                    return new MemoryStream(bytes);
-                }
+                return ReadBlob(blob);
             }
             finally
             {
                 ThrowIfNotOk(raw.sqlite3_blob_close(blob));
+            }
+        }
+
+        private Stream ReadBlob(sqlite3_blob blob)
+        {
+            var length = raw.sqlite3_blob_bytes(blob);
+
+            // If it's a small blob, just read it into one of our pooled arrays, and then
+            // create a PooledStream over it. 
+            if (length <= SQLitePersistentStorage.MaxPooledByteArrayLength)
+            {
+                return ReadBlobIntoPooledStream(blob, length);
+            }
+            else
+            {
+                // Otherwise, it's a large stream.  Just take the hit of allocating.
+                var bytes = new byte[length];
+                ThrowIfNotOk(raw.sqlite3_blob_read(blob, bytes, length, offset: 0));
+                return new MemoryStream(bytes);
+            }
+        }
+
+        private Stream ReadBlobIntoPooledStream(sqlite3_blob blob, int length)
+        {
+            var bytes = SQLitePersistentStorage.GetPooledBytes();
+            try
+            {
+                ThrowIfNotOk(raw.sqlite3_blob_read(blob, bytes, length, offset: 0));
+
+                // Copy those bytes into a pooled stream
+                return SerializableBytes.CreateReadableStream(bytes, length);
+            }
+            finally
+            {
+                // Return our small array back to the pool.
+                SQLitePersistentStorage.ReturnPooledBytes(bytes);
             }
         }
 
