@@ -117,7 +117,7 @@ End Module",
 assertCaretPosition: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18397"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TypeAVariableDeclaration()
         {
             SetUpEditor(@"
