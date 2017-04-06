@@ -2300,7 +2300,7 @@ class B
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: null, publicSign: true);
             CreateCompilationWithMscorlib(string.Empty, options: options).VerifyDiagnostics(
                 // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
-                Diagnostic(ErrorCode.ERR_PublicSignButNoKey));
+                Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
 
         [Fact]
@@ -2310,7 +2310,7 @@ class B
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: string.Empty, publicSign: true);
             CreateCompilationWithMscorlib(string.Empty, options: options).VerifyDiagnostics(
                 // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
-                Diagnostic(ErrorCode.ERR_PublicSignButNoKey));
+                Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
 
         #endregion
