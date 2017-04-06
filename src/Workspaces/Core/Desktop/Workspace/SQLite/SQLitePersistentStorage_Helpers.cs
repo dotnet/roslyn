@@ -71,7 +71,28 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
+        /// <summary>
+        /// Amount of time to wait between flushing writes to disk.  250ms means we can flush
+        /// writes to disk four times a second.
+        /// </summary>
+        private const int FlushAllDelayMS = 250;
+
+        /// <summary>
+        /// We use a pool to cache reads/writes that are less than 4k.  Testing with Roslyn,
+        /// 99% of all writes (48.5k out of 49.5k) are less than that size.  So this helps
+        /// ensure that we can pool as much as possible, without caching excessively large 
+        /// arrays (for example, Roslyn does write out nearly 50 chunks that are larger than
+        /// 100k each).
+        /// </summary>
         internal const long MaxPooledByteArrayLength = 4 * 1024;
+
+        /// <summary>
+        /// The max amount of byte[]s we cache.  This caps our cache at 4MB while allowing
+        /// us to massively speed up writing (by batching writes).  Because we can write to
+        /// disk 4 times a second.  That means a total of 16MB/s that can be written to disk
+        /// using only our cache.  Given that Roslyn itself only writes about 50MB to disk
+        /// after several minutes of analysis, this amount of bandwidth is more than sufficient.
+        /// </summary>
         private const int MaxPooledByteArrays = 1024;
 
         private static readonly Stack<byte[]> s_byteArrayPool = new Stack<byte[]>();
