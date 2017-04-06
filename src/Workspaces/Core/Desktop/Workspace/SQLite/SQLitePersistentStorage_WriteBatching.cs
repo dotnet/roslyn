@@ -34,14 +34,13 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // request, then it will see this write request when it runs.
                 if (_flushAllTask == null)
                 {
-                    var delay = Task.Delay(
-                        (int)TimeSpan.FromMilliseconds(250).TotalMilliseconds, _shutdownTokenSource.Token);
-
-                    _flushAllTask = delay.ContinueWith(
-                        _ => FlushAllPendingWrites(),
-                        _shutdownTokenSource.Token,
-                        TaskContinuationOptions.None,
-                        TaskScheduler.Default);
+                    var delay = 
+                        Task.Delay(FlushAllDelayMS, _shutdownTokenSource.Token)
+                            .ContinueWith(
+                                _ => FlushAllPendingWrites(),
+                                _shutdownTokenSource.Token,
+                                TaskContinuationOptions.None,
+                                TaskScheduler.Default);
                 }
             }
         }
