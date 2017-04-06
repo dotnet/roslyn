@@ -28,7 +28,7 @@ Reference assemblies will include an assembly-level `ReferenceAssembly` attribut
 ## API changes
 
 ### Command-line
-Two mutually exclusive command-line parameters will be added:
+Two mutually exclusive command-line parameters will be added to `csc.exe` and `vbc.exe`:
 - `/refout`
 - `/refonly`
 
@@ -43,6 +43,11 @@ When the compiler produces documentation, the contents produced will match the A
 The compilation from the command-line will either produce both assemblies (implementation and ref) or neither. There is no "partial success" scenario.
 
 ### CscTask/CoreCompile
+The `CoreCompile` target will support a new output, called `IntermediateRefAssembly`, which parallels the existing `IntermediateAssembly`.
+The `Csc` task will support a new output, called `OutputRefAssembly`, which parallels the existing `OutputAssembly`.
+Both of those basically map to the `/refout` command-line parameter.
+
+An additional task, called `CopyRefAssembly`, will be provided along with the existing `Csc` task. It takes a `SourcePath` and a `DestinationPath` and generally copies the file from the source over to the destination. But if it can determine that the contents of those two files match, then the destination file is left untouched.
 
 ### CodeAnalysis APIs
 It is already possible to produce metadata-only assemblies by using `EmitOptions.EmitMetadataOnly`, which is used in IDE scenarios with cross-language dependencies.
