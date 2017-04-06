@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -25,45 +22,45 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void SimpleGoToImplementation()
         {
             var project = new ProjectUtils.Project(ProjectName);
-            this.AddFile("FileImplementation.cs", project);
-            this.OpenFile("FileImplementation.cs", project);
-            Editor.SetText(
+            VisualStudio.SolutionExplorer.AddFile(project, "FileImplementation.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.cs");
+            VisualStudio.Editor.SetText(
 @"class Implementation : IFoo
 {
 }");
-            this.AddFile("FileInterface.cs", project);
-            this.OpenFile("FileInterface.cs", project);
-            Editor.SetText(
+            VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.cs");
+            VisualStudio.Editor.SetText(
 @"interface IFoo 
 {
 }");
-            this.PlaceCaret("interface IFoo");
-            Editor.GoToImplementation();
-            this.VerifyTextContains(@"class Implementation$$", assertCaretPosition: true);
-            Assert.False(VisualStudio.Instance.Shell.IsActiveTabProvisional());
+            VisualStudio.Editor.PlaceCaret("interface IFoo");
+            VisualStudio.Editor.GoToImplementation();
+            VisualStudio.Editor.Verify.TextContains(@"class Implementation$$", assertCaretPosition: true);
+            Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationOpensProvisionalTabIfDocumentNotOpen()
         {
             var project = new ProjectUtils.Project(ProjectName);
-            this.AddFile("FileImplementation.cs", project);
-            this.OpenFile("FileImplementation.cs", project);
-            Editor.SetText(
+            VisualStudio.SolutionExplorer.AddFile(project, "FileImplementation.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.cs");
+            VisualStudio.Editor.SetText(
 @"class Implementation : IBar
 {
 }");
-            this.CloseFile("FileImplementation.cs", project);
-            this.AddFile("FileInterface.cs", project);
-            this.OpenFile("FileInterface.cs", project);
-            Editor.SetText(
+            VisualStudio.SolutionExplorer.CloseFile(project, "FileImplementation.cs", saveFile: true);
+            VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.cs");
+            VisualStudio.Editor.SetText(
 @"interface IBar
 {
 }");
-            this.PlaceCaret("interface IBar");
-            Editor.GoToImplementation();
-            this.VerifyTextContains(@"class Implementation$$", assertCaretPosition: true);
-            Assert.True(VisualStudio.Instance.Shell.IsActiveTabProvisional());
+            VisualStudio.Editor.PlaceCaret("interface IBar");
+            VisualStudio.Editor.GoToImplementation();
+            VisualStudio.Editor.Verify.TextContains(@"class Implementation$$", assertCaretPosition: true);
+            Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
 
@@ -72,9 +69,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void GoToImplementationFromMetadataAsSource()
         {
             var project = new ProjectUtils.Project(ProjectName);
-            this.AddFile("FileImplementation.cs", project);
-            this.OpenFile("FileImplementation.cs", project);
-            Editor.SetText(
+            VisualStudio.SolutionExplorer.AddFile(project, "FileImplementation.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.cs");
+            VisualStudio.Editor.SetText(
 @"using System;
 
 class Implementation : IDisposable
@@ -84,10 +81,10 @@ class Implementation : IDisposable
         IDisposable d;
     }
 }");
-            this.PlaceCaret("IDisposable d", charsOffset: -1);
-            Editor.GoToDefinition();
-            Editor.GoToImplementation();
-            this.VerifyTextContains(@"class Implementation$$ : IDisposable", assertCaretPosition: true);
+            VisualStudio.Editor.PlaceCaret("IDisposable d", charsOffset: -1);
+            VisualStudio.Editor.GoToDefinition();
+            VisualStudio.Editor.GoToImplementation();
+            VisualStudio.Editor.Verify.TextContains(@"class Implementation$$ : IDisposable", assertCaretPosition: true);
         }
     }
 }
