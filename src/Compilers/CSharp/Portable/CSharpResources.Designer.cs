@@ -3203,6 +3203,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The modifier &apos;{0}&apos; is not valid for this item in C# {1}. Please use language version {2} or greater..
+        /// </summary>
+        internal static string ERR_DefaultInterfaceImplementationModifier {
+            get {
+                return ResourceManager.GetString("ERR_DefaultInterfaceImplementationModifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot specify the DefaultMember attribute on a type containing an indexer.
         /// </summary>
         internal static string ERR_DefaultMemberOnIndexedType {
@@ -5354,7 +5363,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; in explicit interface declaration is not a member of interface.
+        ///   Looks up a localized string similar to &apos;{0}&apos; in explicit interface declaration is not found among members of the interface that can be implemented.
         /// </summary>
         internal static string ERR_InterfaceMemberNotFound {
             get {

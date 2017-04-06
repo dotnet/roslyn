@@ -31,7 +31,12 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateCompilationWithMscorlib(source1, options:TestOptions.DebugDll, 
+            ValidateMethodImplementation_011(source1);
+        }
+
+        private void ValidateMethodImplementation_011(string source1)
+        {
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -82,6 +87,7 @@ class Test2 : I1
             Assert.True(m1.IsVirtual);
             Assert.True(i1.IsAbstract);
             Assert.True(i1.IsMetadataAbstract);
+            Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
 
             if (m is PEModuleSymbol peModule)
             {
@@ -1104,23 +1110,21 @@ class Test1 : I1
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
 
             Assert.False(m1.IsAbstract);
-            Assert.True(m1.IsVirtual);
-            Assert.False(m1.IsStatic);
+            Assert.False(m1.IsVirtual);
+            Assert.True(m1.IsStatic);
+            Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
 
             var test1 = compilation1.GetTypeByMetadataName("Test1");
 
-            Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
+            Assert.Null(test1.FindImplementationForInterfaceMember(m1));
 
             compilation1.VerifyDiagnostics(
-                // (4,17): error CS0106: The modifier 'static' is not valid for this item
-                //     static void M1() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("static").WithLocation(4, 17),
                 // (4,17): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
                 //     static void M1() 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M1").WithArguments("default interface implementation", "7.1").WithLocation(4, 17)
                 );
 
-            Assert.True(m1.IsMetadataVirtual());
+            Assert.False(m1.IsMetadataVirtual());
         }
 
         [Fact]
@@ -5658,6 +5662,1805 @@ public interface I2 : I1
                 //     public int F2;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F2").WithLocation(39, 16)
                 );
+        }
+
+        [Fact]
+        public void MethodModifiers_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public void M01();
+    protected void M02();
+    protected internal void M03();
+    internal void M04();
+    private void M05();
+    static void M06();
+    virtual void M07();
+    sealed void M08();
+    override void M09();
+    abstract void M10();
+    extern void M11();
+    async void M12();
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (5,20): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected void M02();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M02").WithArguments("protected"),
+                // (6,29): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal void M03();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M03").WithArguments("protected internal"),
+                // (12,19): error CS0106: The modifier 'override' is not valid for this item
+                //     override void M09();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override"),
+                // (15,16): error CS1994: The 'async' modifier can only be used in methods that have a body.
+                //     async void M12();
+                Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M12").WithLocation(15, 16),
+                // (8,18): error CS0501: 'I1.M05()' must declare a body because it is not marked abstract, extern, or partial
+                //     private void M05();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M05").WithArguments("I1.M05()").WithLocation(8, 18),
+                // (9,17): error CS0501: 'I1.M06()' must declare a body because it is not marked abstract, extern, or partial
+                //     static void M06();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M06").WithArguments("I1.M06()").WithLocation(9, 17),
+                // (10,18): error CS0501: 'I1.M07()' must declare a body because it is not marked abstract, extern, or partial
+                //     virtual void M07();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M07").WithArguments("I1.M07()").WithLocation(10, 18),
+                // (11,17): error CS0238: 'I1.M08()' cannot be sealed because it is not an override
+                //     sealed void M08();
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "M08").WithArguments("I1.M08()").WithLocation(11, 17),
+                // (14,17): warning CS0626: Method, operator, or accessor 'I1.M11()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern void M11();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M11").WithArguments("I1.M11()").WithLocation(14, 17)
+                );
+
+            ValidateSymbolsMethodModifiers_01(compilation1);
+        }
+
+        private static void ValidateSymbolsMethodModifiers_01(CSharpCompilation compilation1)
+        { 
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m01 = i1.GetMember<MethodSymbol>("M01");
+
+            Assert.True(m01.IsAbstract);
+            Assert.False(m01.IsVirtual);
+            Assert.True(m01.IsMetadataVirtual());
+            Assert.False(m01.IsSealed);
+            Assert.False(m01.IsStatic);
+            Assert.False(m01.IsExtern);
+            Assert.False(m01.IsAsync);
+            Assert.False(m01.IsOverride);
+            Assert.Equal(Accessibility.Public, m01.DeclaredAccessibility);
+
+            var m02 = i1.GetMember<MethodSymbol>("M02");
+
+            Assert.True(m02.IsAbstract);
+            Assert.False(m02.IsVirtual);
+            Assert.True(m02.IsMetadataVirtual());
+            Assert.False(m02.IsSealed);
+            Assert.False(m02.IsStatic);
+            Assert.False(m02.IsExtern);
+            Assert.False(m02.IsAsync);
+            Assert.False(m02.IsOverride);
+            Assert.Equal(Accessibility.Public, m02.DeclaredAccessibility);
+
+            var m03 = i1.GetMember<MethodSymbol>("M03");
+
+            Assert.True(m03.IsAbstract);
+            Assert.False(m03.IsVirtual);
+            Assert.True(m03.IsMetadataVirtual());
+            Assert.False(m03.IsSealed);
+            Assert.False(m03.IsStatic);
+            Assert.False(m03.IsExtern);
+            Assert.False(m03.IsAsync);
+            Assert.False(m03.IsOverride);
+            Assert.Equal(Accessibility.Public, m03.DeclaredAccessibility);
+
+            var m04 = i1.GetMember<MethodSymbol>("M04");
+
+            Assert.True(m04.IsAbstract);
+            Assert.False(m04.IsVirtual);
+            Assert.True(m04.IsMetadataVirtual());
+            Assert.False(m04.IsSealed);
+            Assert.False(m04.IsStatic);
+            Assert.False(m04.IsExtern);
+            Assert.False(m04.IsAsync);
+            Assert.False(m04.IsOverride);
+            Assert.Equal(Accessibility.Internal, m04.DeclaredAccessibility);
+
+            var m05 = i1.GetMember<MethodSymbol>("M05");
+
+            Assert.False(m05.IsAbstract);
+            Assert.False(m05.IsVirtual);
+            Assert.False(m05.IsMetadataVirtual());
+            Assert.False(m05.IsSealed);
+            Assert.False(m05.IsStatic);
+            Assert.False(m05.IsExtern);
+            Assert.False(m05.IsAsync);
+            Assert.False(m05.IsOverride);
+            Assert.Equal(Accessibility.Private, m05.DeclaredAccessibility);
+
+            var m06 = i1.GetMember<MethodSymbol>("M06");
+
+            Assert.False(m06.IsAbstract);
+            Assert.False(m06.IsVirtual);
+            Assert.False(m06.IsMetadataVirtual());
+            Assert.False(m06.IsSealed);
+            Assert.True(m06.IsStatic);
+            Assert.False(m06.IsExtern);
+            Assert.False(m06.IsAsync);
+            Assert.False(m06.IsOverride);
+            Assert.Equal(Accessibility.Public, m06.DeclaredAccessibility);
+
+            var m07 = i1.GetMember<MethodSymbol>("M07");
+
+            Assert.False(m07.IsAbstract);
+            Assert.True(m07.IsVirtual);
+            Assert.True(m07.IsMetadataVirtual());
+            Assert.False(m07.IsSealed);
+            Assert.False(m07.IsStatic);
+            Assert.False(m07.IsExtern);
+            Assert.False(m07.IsAsync);
+            Assert.False(m07.IsOverride);
+            Assert.Equal(Accessibility.Public, m07.DeclaredAccessibility);
+
+            var m08 = i1.GetMember<MethodSymbol>("M08");
+
+            Assert.True(m08.IsAbstract);
+            Assert.False(m08.IsVirtual);
+            Assert.True(m08.IsMetadataVirtual());
+            Assert.True(m08.IsSealed);
+            Assert.False(m08.IsStatic);
+            Assert.False(m08.IsExtern);
+            Assert.False(m08.IsAsync);
+            Assert.False(m08.IsOverride);
+            Assert.Equal(Accessibility.Public, m08.DeclaredAccessibility);
+
+            var m09 = i1.GetMember<MethodSymbol>("M09");
+
+            Assert.True(m09.IsAbstract);
+            Assert.False(m09.IsVirtual);
+            Assert.True(m09.IsMetadataVirtual());
+            Assert.False(m09.IsSealed);
+            Assert.False(m09.IsStatic);
+            Assert.False(m09.IsExtern);
+            Assert.False(m09.IsAsync);
+            Assert.False(m09.IsOverride);
+            Assert.Equal(Accessibility.Public, m09.DeclaredAccessibility);
+
+            var m10 = i1.GetMember<MethodSymbol>("M10");
+
+            Assert.True(m10.IsAbstract);
+            Assert.False(m10.IsVirtual);
+            Assert.True(m10.IsMetadataVirtual());
+            Assert.False(m10.IsSealed);
+            Assert.False(m10.IsStatic);
+            Assert.False(m10.IsExtern);
+            Assert.False(m10.IsAsync);
+            Assert.False(m10.IsOverride);
+            Assert.Equal(Accessibility.Public, m10.DeclaredAccessibility);
+
+            var m11 = i1.GetMember<MethodSymbol>("M11");
+
+            Assert.False(m11.IsAbstract);
+            Assert.True(m11.IsVirtual);
+            Assert.True(m11.IsMetadataVirtual());
+            Assert.False(m11.IsSealed);
+            Assert.False(m11.IsStatic);
+            Assert.True(m11.IsExtern);
+            Assert.False(m11.IsAsync);
+            Assert.False(m11.IsOverride);
+            Assert.Equal(Accessibility.Public, m11.DeclaredAccessibility);
+
+            var m12 = i1.GetMember<MethodSymbol>("M12");
+
+            Assert.True(m12.IsAbstract);
+            Assert.False(m12.IsVirtual);
+            Assert.True(m12.IsMetadataVirtual());
+            Assert.False(m12.IsSealed);
+            Assert.False(m12.IsStatic);
+            Assert.False(m12.IsExtern);
+            Assert.True(m12.IsAsync);
+            Assert.False(m12.IsOverride);
+            Assert.Equal(Accessibility.Public, m12.DeclaredAccessibility);
+        }
+
+        [Fact]
+        public void MethodModifiers_02()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public void M01();
+    protected void M02();
+    protected internal void M03();
+    internal void M04();
+    private void M05();
+    static void M06();
+    virtual void M07();
+    sealed void M08();
+    override void M09();
+    abstract void M10();
+    extern void M11();
+    async void M12();
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (4,17): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public void M01();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M01").WithArguments("public", "7", "7.1").WithLocation(4, 17),
+                // (5,20): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected void M02();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M02").WithArguments("protected").WithLocation(5, 20),
+                // (6,29): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal void M03();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M03").WithArguments("protected internal").WithLocation(6, 29),
+                // (7,19): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     internal void M04();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M04").WithArguments("internal", "7", "7.1").WithLocation(7, 19),
+                // (8,18): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private void M05();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M05").WithArguments("private", "7", "7.1").WithLocation(8, 18),
+                // (9,17): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     static void M06();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M06").WithArguments("static", "7", "7.1").WithLocation(9, 17),
+                // (10,18): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     virtual void M07();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M07").WithArguments("virtual", "7", "7.1").WithLocation(10, 18),
+                // (11,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     sealed void M08();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M08").WithArguments("sealed", "7", "7.1").WithLocation(11, 17),
+                // (12,19): error CS0106: The modifier 'override' is not valid for this item
+                //     override void M09();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(12, 19),
+                // (13,19): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     abstract void M10();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M10").WithArguments("abstract", "7", "7.1").WithLocation(13, 19),
+                // (14,17): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern void M11();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M11").WithArguments("extern", "7", "7.1").WithLocation(14, 17),
+                // (15,16): error CS8503: The modifier 'async' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     async void M12();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M12").WithArguments("async", "7", "7.1").WithLocation(15, 16),
+                // (15,16): error CS1994: The 'async' modifier can only be used in methods that have a body.
+                //     async void M12();
+                Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M12").WithLocation(15, 16),
+                // (8,18): error CS0501: 'I1.M05()' must declare a body because it is not marked abstract, extern, or partial
+                //     private void M05();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M05").WithArguments("I1.M05()").WithLocation(8, 18),
+                // (9,17): error CS0501: 'I1.M06()' must declare a body because it is not marked abstract, extern, or partial
+                //     static void M06();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M06").WithArguments("I1.M06()").WithLocation(9, 17),
+                // (10,18): error CS0501: 'I1.M07()' must declare a body because it is not marked abstract, extern, or partial
+                //     virtual void M07();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M07").WithArguments("I1.M07()").WithLocation(10, 18),
+                // (11,17): error CS0238: 'I1.M08()' cannot be sealed because it is not an override
+                //     sealed void M08();
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "M08").WithArguments("I1.M08()").WithLocation(11, 17),
+                // (14,17): warning CS0626: Method, operator, or accessor 'I1.M11()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern void M11();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M11").WithArguments("I1.M11()").WithLocation(14, 17)
+                );
+
+            ValidateSymbolsMethodModifiers_01(compilation1);
+        }
+
+        [Fact]
+        public void MethodModifiers_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public virtual void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+
+class Test1 : I1
+{}
+";
+            ValidateMethodImplementation_011(source1);
+        }
+
+        [Fact]
+        public void MethodModifiers_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public abstract void M1(); 
+    void M2(); 
+}
+
+class Test1 : I1
+{
+    public void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+
+    public void M2() 
+    {
+        System.Console.WriteLine(""M2"");
+    }
+
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+        x.M2();
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            CompileAndVerify(compilation1, expectedOutput:
+@"M1
+M2", symbolValidator: Validate);
+
+            Validate(compilation1.SourceModule);
+
+            void Validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+
+                Assert.True(m1.IsAbstract);
+                Assert.False(m1.IsVirtual);
+                Assert.True(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+                Assert.Same(test1.GetMember("M1"), test1.FindImplementationForInterfaceMember(m1));
+
+                var m2 = i1.GetMember<MethodSymbol>("M2");
+
+                Assert.True(m2.IsAbstract);
+                Assert.False(m2.IsVirtual);
+                Assert.True(m2.IsMetadataVirtual());
+                Assert.False(m2.IsSealed);
+                Assert.False(m2.IsStatic);
+                Assert.False(m2.IsExtern);
+                Assert.False(m2.IsAsync);
+                Assert.False(m2.IsOverride);
+                Assert.Equal(Accessibility.Public, m2.DeclaredAccessibility);
+                Assert.Same(test1.GetMember("M2"), test1.FindImplementationForInterfaceMember(m2));
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_05()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public abstract void M1();
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (4,26): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public abstract void M1();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("abstract", "7", "7.1").WithLocation(4, 26),
+                // (4,26): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public abstract void M1();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("public", "7", "7.1").WithLocation(4, 26)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m1 = i1.GetMember<MethodSymbol>("M1");
+
+            Assert.True(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.True(m1.IsMetadataVirtual());
+            Assert.False(m1.IsSealed);
+            Assert.False(m1.IsStatic);
+            Assert.False(m1.IsExtern);
+            Assert.False(m1.IsAsync);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+        }
+
+        [Fact]
+        public void MethodModifiers_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+
+    internal static void M2() 
+    {
+        System.Console.WriteLine(""M2"");
+        M3();
+    }
+
+    private static void M3() 
+    {
+        System.Console.WriteLine(""M3"");
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.M1();
+        I1.M2();
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1, expectedOutput:
+@"M1
+M2
+M3", symbolValidator:Validate);
+
+            Validate(compilation1.SourceModule);
+
+            void Validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+
+                Assert.False(m1.IsAbstract);
+                Assert.False(m1.IsVirtual);
+                Assert.False(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.True(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(m1));
+
+                var m2 = i1.GetMember<MethodSymbol>("M2");
+
+                Assert.False(m2.IsAbstract);
+                Assert.False(m2.IsVirtual);
+                Assert.False(m2.IsMetadataVirtual());
+                Assert.False(m2.IsSealed);
+                Assert.True(m2.IsStatic);
+                Assert.False(m2.IsExtern);
+                Assert.False(m2.IsAsync);
+                Assert.False(m2.IsOverride);
+                Assert.Equal(Accessibility.Internal, m2.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(m2));
+
+                var m3 = i1.GetMember<MethodSymbol>("M3");
+
+                Assert.False(m3.IsAbstract);
+                Assert.False(m3.IsVirtual);
+                Assert.False(m3.IsMetadataVirtual());
+                Assert.False(m3.IsSealed);
+                Assert.True(m3.IsStatic);
+                Assert.False(m3.IsExtern);
+                Assert.False(m3.IsAsync);
+                Assert.False(m3.IsOverride);
+                Assert.Equal(Accessibility.Private, m3.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(m3));
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_07()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M1(); 
+
+    virtual static void M2() 
+    {
+    }
+
+    sealed static void M3() 
+    {
+    }
+
+    static void M4() 
+    {
+    }
+}
+
+class Test1 : I1
+{
+    void I1.M4() {}
+    void I1.M1() {}
+    void I1.M2() {}
+    void I1.M3() {}
+}
+
+class Test2 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (10,24): error CS0238: 'I1.M3()' cannot be sealed because it is not an override
+                //     sealed static void M3() 
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "M3").WithArguments("I1.M3()").WithLocation(10, 24),
+                // (6,25): error CS0112: A static member 'I1.M2()' cannot be marked as override, virtual, or abstract
+                //     virtual static void M2() 
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M2").WithArguments("I1.M2()").WithLocation(6, 25),
+                // (4,26): error CS0112: A static member 'I1.M1()' cannot be marked as override, virtual, or abstract
+                //     abstract static void M1(); 
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M1").WithArguments("I1.M1()").WithLocation(4, 26),
+                // (21,13): error CS0539: 'Test1.M4()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.M4() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("Test1.M4()").WithLocation(21, 13),
+                // (22,13): error CS0539: 'Test1.M1()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.M1() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("Test1.M1()").WithLocation(22, 13),
+                // (23,13): error CS0539: 'Test1.M2()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.M2() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("Test1.M2()").WithLocation(23, 13),
+                // (24,13): error CS0539: 'Test1.M3()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.M3() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M3").WithArguments("Test1.M3()").WithLocation(24, 13)
+                );
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m1 = i1.GetMember<MethodSymbol>("M1");
+
+            Assert.True(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.True(m1.IsMetadataVirtual());
+            Assert.False(m1.IsSealed);
+            Assert.True(m1.IsStatic);
+            Assert.False(m1.IsExtern);
+            Assert.False(m1.IsAsync);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(m1));
+
+            var m2 = i1.GetMember<MethodSymbol>("M2");
+
+            Assert.False(m2.IsAbstract);
+            Assert.True(m2.IsVirtual);
+            Assert.True(m2.IsMetadataVirtual());
+            Assert.False(m2.IsSealed);
+            Assert.True(m2.IsStatic);
+            Assert.False(m2.IsExtern);
+            Assert.False(m2.IsAsync);
+            Assert.False(m2.IsOverride);
+            Assert.Equal(Accessibility.Public, m2.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(m2));
+
+            var m3 = i1.GetMember<MethodSymbol>("M3");
+
+            Assert.False(m3.IsAbstract);
+            Assert.False(m3.IsVirtual);
+            Assert.False(m3.IsMetadataVirtual());
+            Assert.True(m3.IsSealed);
+            Assert.True(m3.IsStatic);
+            Assert.False(m3.IsExtern);
+            Assert.False(m3.IsAsync);
+            Assert.False(m3.IsOverride);
+            Assert.Equal(Accessibility.Public, m3.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(m3));
+        }
+
+        [Fact]
+        public void MethodModifiers_08()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+
+    void M4()
+    {
+        System.Console.WriteLine(""M4"");
+        M1();
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M4();
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1/*, expectedOutput:
+@"M4
+M1"*/, verify:false, symbolValidator: Validate);
+
+            Validate(compilation1.SourceModule);
+
+            void Validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+
+                Assert.False(m1.IsAbstract);
+                Assert.False(m1.IsVirtual);
+                Assert.False(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(m1));
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_09()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract private void M1(); 
+
+    virtual private void M2() 
+    {
+    }
+
+    sealed private void M3() 
+    {
+    }
+}
+
+class Test1 : I1
+{
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (10,25): error CS0238: 'I1.M3()' cannot be sealed because it is not an override
+                //     sealed private void M3() 
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "M3").WithArguments("I1.M3()").WithLocation(10, 25),
+                // (6,26): error CS0621: 'I1.M2()': virtual or abstract members cannot be private
+                //     virtual private void M2() 
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "M2").WithArguments("I1.M2()").WithLocation(6, 26),
+                // (4,27): error CS0621: 'I1.M1()': virtual or abstract members cannot be private
+                //     abstract private void M1(); 
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "M1").WithArguments("I1.M1()").WithLocation(4, 27),
+                // (15,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(15, 15)
+                );
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m1 = i1.GetMember<MethodSymbol>("M1");
+
+            Assert.True(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.True(m1.IsMetadataVirtual());
+            Assert.False(m1.IsSealed);
+            Assert.False(m1.IsStatic);
+            Assert.False(m1.IsExtern);
+            Assert.False(m1.IsAsync);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(m1));
+
+            var m2 = i1.GetMember<MethodSymbol>("M2");
+
+            Assert.False(m2.IsAbstract);
+            Assert.True(m2.IsVirtual);
+            Assert.True(m2.IsMetadataVirtual());
+            Assert.False(m2.IsSealed);
+            Assert.False(m2.IsStatic);
+            Assert.False(m2.IsExtern);
+            Assert.False(m2.IsAsync);
+            Assert.False(m2.IsOverride);
+            Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
+            Assert.Same(m2, test1.FindImplementationForInterfaceMember(m2));
+
+            var m3 = i1.GetMember<MethodSymbol>("M3");
+
+            Assert.False(m3.IsAbstract);
+            Assert.False(m3.IsVirtual);
+            Assert.False(m3.IsMetadataVirtual());
+            Assert.True(m3.IsSealed);
+            Assert.False(m3.IsStatic);
+            Assert.False(m3.IsExtern);
+            Assert.False(m3.IsAsync);
+            Assert.False(m3.IsOverride);
+            Assert.Equal(Accessibility.Private, m3.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(m3));
+        }
+
+        [Fact]
+        public void MethodModifiers_10()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal abstract void M1(); 
+
+    void M2() {M1();}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+
+    public void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1 + source2, options: TestOptions.DebugExe,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1/*, expectedOutput:"M1"*/, verify:false, symbolValidator: Validate1);
+
+            Validate1(compilation1.SourceModule);
+
+            void Validate1(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = test1.Interfaces.Single();
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+
+                Assert.True(m1.IsAbstract);
+                Assert.False(m1.IsVirtual);
+                Assert.True(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
+                Assert.Same(test1.GetMember("M1"), test1.FindImplementationForInterfaceMember(m1));
+            }
+
+            var compilation2 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+
+            {
+                var i1 = compilation2.GetTypeByMetadataName("I1");
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+
+                Assert.True(m1.IsAbstract);
+                Assert.False(m1.IsVirtual);
+                Assert.True(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
+            }
+
+            var compilation3 = CreateCompilationWithMscorlib(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation3/*, expectedOutput:"M1"*/, verify: false, symbolValidator: Validate1);
+
+            Validate1(compilation3.SourceModule);
+
+            var compilation4 = CreateCompilationWithMscorlib(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation4/*, expectedOutput:"M1"*/, verify: false, symbolValidator: Validate1);
+
+            Validate1(compilation4.SourceModule); 
+
+            var source3 =
+@"
+class Test2 : I1
+{
+}
+";
+
+            var compilation5 = CreateCompilationWithMscorlib(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation5.VerifyDiagnostics(
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M1()").WithLocation(2, 15)
+                );
+
+            {
+                var test2 = compilation5.GetTypeByMetadataName("Test2");
+                var i1 = compilation5.GetTypeByMetadataName("I1");
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+                Assert.Null(test2.FindImplementationForInterfaceMember(m1));
+            }
+
+            var compilation6 = CreateCompilationWithMscorlib(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation6.VerifyDiagnostics(
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M1()").WithLocation(2, 15)
+                );
+
+            {
+                var test2 = compilation6.GetTypeByMetadataName("Test2");
+                var i1 = compilation6.GetTypeByMetadataName("I1");
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+                Assert.Null(test2.FindImplementationForInterfaceMember(m1));
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_11()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal abstract void M1(); 
+}
+
+class Test1 : I1
+{
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(7, 15)
+                );
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m1 = i1.GetMember<MethodSymbol>("M1");
+
+            Assert.True(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.True(m1.IsMetadataVirtual());
+            Assert.False(m1.IsSealed);
+            Assert.False(m1.IsStatic);
+            Assert.False(m1.IsExtern);
+            Assert.False(m1.IsAsync);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(m1));
+        }
+
+        [Fact]
+        public void MethodModifiers_12()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public sealed void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+    }
+
+    public void M1() 
+    {
+        System.Console.WriteLine(""Test1.M1"");
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            void Validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+
+                Assert.False(m1.IsAbstract);
+                Assert.False(m1.IsVirtual);
+                Assert.False(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(m1));
+            }
+
+            CompileAndVerify(compilation1/*, expectedOutput:"M1"*/, verify: false, symbolValidator: Validate);
+            Validate(compilation1.SourceModule);
+        }
+
+        [Fact]
+        public void MethodModifiers_13()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public sealed void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+
+    abstract sealed void M2(); 
+
+    virtual sealed void M3() 
+    {
+    }
+}
+
+class Test1 : I1
+{
+    void I1.M1() {}
+    void I1.M2() {}
+    void I1.M3() {}
+}
+
+class Test2 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (11,25): error CS0238: 'I1.M3()' cannot be sealed because it is not an override
+                //     virtual sealed void M3() 
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "M3").WithArguments("I1.M3()").WithLocation(11, 25),
+                // (9,26): error CS0238: 'I1.M2()' cannot be sealed because it is not an override
+                //     abstract sealed void M2(); 
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "M2").WithArguments("I1.M2()").WithLocation(9, 26),
+                // (18,13): error CS0539: 'Test1.M1()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.M1() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("Test1.M1()").WithLocation(18, 13),
+                // (23,15): error CS0535: 'Test2' does not implement interface member 'I1.M2()'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M2()").WithLocation(23, 15)
+                );
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m1 = i1.GetMember<MethodSymbol>("M1");
+
+            Assert.False(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.False(m1.IsMetadataVirtual());
+            Assert.False(m1.IsSealed);
+            Assert.False(m1.IsStatic);
+            Assert.False(m1.IsExtern);
+            Assert.False(m1.IsAsync);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(m1));
+            Assert.Null(test2.FindImplementationForInterfaceMember(m1));
+
+            var m2 = i1.GetMember<MethodSymbol>("M2");
+
+            Assert.True(m2.IsAbstract);
+            Assert.False(m2.IsVirtual);
+            Assert.True(m2.IsMetadataVirtual());
+            Assert.True(m2.IsSealed);
+            Assert.False(m2.IsStatic);
+            Assert.False(m2.IsExtern);
+            Assert.False(m2.IsAsync);
+            Assert.False(m2.IsOverride);
+            Assert.Equal(Accessibility.Public, m2.DeclaredAccessibility);
+            Assert.Same(test1.GetMember("I1.M2"), test1.FindImplementationForInterfaceMember(m2));
+            Assert.Null(test2.FindImplementationForInterfaceMember(m2));
+
+            var m3 = i1.GetMember<MethodSymbol>("M3");
+
+            Assert.False(m3.IsAbstract);
+            Assert.True(m3.IsVirtual);
+            Assert.True(m3.IsMetadataVirtual());
+            Assert.True(m3.IsSealed);
+            Assert.False(m3.IsStatic);
+            Assert.False(m3.IsExtern);
+            Assert.False(m3.IsAsync);
+            Assert.False(m3.IsOverride);
+            Assert.Equal(Accessibility.Public, m3.DeclaredAccessibility);
+            Assert.Same(test1.GetMember("I1.M3"), test1.FindImplementationForInterfaceMember(m3));
+            Assert.Same(m3, test2.FindImplementationForInterfaceMember(m3));
+        }
+
+        [Fact]
+        public void MethodModifiers_14()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract virtual void M2(); 
+
+    virtual abstract void M3() 
+    {
+    }
+}
+
+class Test1 : I1
+{
+    void I1.M2() {}
+    void I1.M3() {}
+}
+
+class Test2 : I1
+{}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (6,27): error CS0500: 'I1.M3()' cannot declare a body because it is marked abstract
+                //     virtual abstract void M3() 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M3").WithArguments("I1.M3()").WithLocation(6, 27),
+                // (6,27): error CS0503: The abstract method 'I1.M3()' cannot be marked virtual
+                //     virtual abstract void M3() 
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M3").WithArguments("I1.M3()").WithLocation(6, 27),
+                // (4,27): error CS0503: The abstract method 'I1.M2()' cannot be marked virtual
+                //     abstract virtual void M2(); 
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M2").WithArguments("I1.M2()").WithLocation(4, 27),
+                // (17,15): error CS0535: 'Test2' does not implement interface member 'I1.M3()'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M3()").WithLocation(17, 15),
+                // (17,15): error CS0535: 'Test2' does not implement interface member 'I1.M2()'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M2()").WithLocation(17, 15)
+                );
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m2 = i1.GetMember<MethodSymbol>("M2");
+
+            Assert.True(m2.IsAbstract);
+            Assert.True(m2.IsVirtual);
+            Assert.True(m2.IsMetadataVirtual());
+            Assert.False(m2.IsSealed);
+            Assert.False(m2.IsStatic);
+            Assert.False(m2.IsExtern);
+            Assert.False(m2.IsAsync);
+            Assert.False(m2.IsOverride);
+            Assert.Equal(Accessibility.Public, m2.DeclaredAccessibility);
+            Assert.Same(test1.GetMember("I1.M2"), test1.FindImplementationForInterfaceMember(m2));
+            Assert.Null(test2.FindImplementationForInterfaceMember(m2));
+
+            var m3 = i1.GetMember<MethodSymbol>("M3");
+
+            Assert.True(m3.IsAbstract);
+            Assert.True(m3.IsVirtual);
+            Assert.True(m3.IsMetadataVirtual());
+            Assert.False(m3.IsSealed);
+            Assert.False(m3.IsStatic);
+            Assert.False(m3.IsExtern);
+            Assert.False(m3.IsAsync);
+            Assert.False(m3.IsOverride);
+            Assert.Equal(Accessibility.Public, m3.DeclaredAccessibility);
+            Assert.Same(test1.GetMember("I1.M3"), test1.FindImplementationForInterfaceMember(m3));
+            Assert.Null(test2.FindImplementationForInterfaceMember(m3));
+        }
+
+        [Fact]
+        public void MethodModifiers_15()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    extern void M1(); 
+    virtual extern void M2(); 
+    static extern void M3(); 
+    private extern void M4();
+    extern sealed void M5();
+}
+
+class Test1 : I1
+{
+}
+
+class Test2 : I1
+{
+    void I1.M1() {}
+    void I1.M2() {}
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+
+            Validate(compilation1.SourceModule);
+
+            void Validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var test2 = m.GlobalNamespace.GetTypeMember("Test2");
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+                bool isSource = !(m is PEModuleSymbol);
+
+                Assert.False(m1.IsAbstract);
+                Assert.True(m1.IsVirtual);
+                Assert.True(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.Equal(isSource, m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+                Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
+                Assert.Same(test2.GetMember("I1.M1"), test2.FindImplementationForInterfaceMember(m1));
+
+                var m2 = i1.GetMember<MethodSymbol>("M2");
+
+                Assert.False(m2.IsAbstract);
+                Assert.True(m2.IsVirtual);
+                Assert.True(m2.IsMetadataVirtual());
+                Assert.False(m2.IsSealed);
+                Assert.False(m2.IsStatic);
+                Assert.Equal(isSource, m2.IsExtern);
+                Assert.False(m2.IsAsync);
+                Assert.False(m2.IsOverride);
+                Assert.Equal(Accessibility.Public, m2.DeclaredAccessibility);
+                Assert.Same(m2, test1.FindImplementationForInterfaceMember(m2));
+                Assert.Same(test2.GetMember("I1.M2"), test2.FindImplementationForInterfaceMember(m2));
+
+                var m3 = i1.GetMember<MethodSymbol>("M3");
+
+                Assert.False(m3.IsAbstract);
+                Assert.False(m3.IsVirtual);
+                Assert.False(m3.IsMetadataVirtual());
+                Assert.False(m3.IsSealed);
+                Assert.True(m3.IsStatic);
+                Assert.Equal(isSource, m3.IsExtern);
+                Assert.False(m3.IsAsync);
+                Assert.False(m3.IsOverride);
+                Assert.Equal(Accessibility.Public, m3.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(m3));
+                Assert.Null(test2.FindImplementationForInterfaceMember(m3));
+
+                var m4 = i1.GetMember<MethodSymbol>("M4");
+
+                Assert.False(m4.IsAbstract);
+                Assert.False(m4.IsVirtual);
+                Assert.False(m4.IsMetadataVirtual());
+                Assert.False(m4.IsSealed);
+                Assert.False(m4.IsStatic);
+                Assert.Equal(isSource, m4.IsExtern);
+                Assert.False(m4.IsAsync);
+                Assert.False(m4.IsOverride);
+                Assert.Equal(Accessibility.Private, m4.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(m4));
+                Assert.Null(test2.FindImplementationForInterfaceMember(m4));
+
+                var m5 = i1.GetMember<MethodSymbol>("M5");
+
+                Assert.False(m5.IsAbstract);
+                Assert.False(m5.IsVirtual);
+                Assert.False(m5.IsMetadataVirtual());
+                Assert.False(m5.IsSealed);
+                Assert.False(m5.IsStatic);
+                Assert.Equal(isSource, m5.IsExtern);
+                Assert.False(m5.IsAsync);
+                Assert.False(m5.IsOverride);
+                Assert.Equal(Accessibility.Public, m5.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(m5));
+                Assert.Null(test2.FindImplementationForInterfaceMember(m5));
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_16()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract extern void M1(); 
+    extern void M2() {} 
+    static extern void M3(); 
+    private extern void M4();
+    extern sealed void M5();
+}
+
+class Test1 : I1
+{
+}
+
+class Test2 : I1
+{
+    void I1.M1() {}
+    void I1.M2() {}
+    void I1.M3() {}
+    void I1.M4() {}
+    void I1.M5() {}
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (4,26): error CS0180: 'I1.M1()' cannot be both extern and abstract
+                //     abstract extern void M1(); 
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "M1").WithArguments("I1.M1()").WithLocation(4, 26),
+                // (5,17): error CS0179: 'I1.M2()' cannot be extern and declare a body
+                //     extern void M2() {} 
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "M2").WithArguments("I1.M2()").WithLocation(5, 17),
+                // (11,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(11, 15),
+                // (19,13): error CS0539: 'Test2.M3()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.M3() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M3").WithArguments("Test2.M3()").WithLocation(19, 13),
+                // (20,13): error CS0539: 'Test2.M4()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.M4() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("Test2.M4()").WithLocation(20, 13),
+                // (21,13): error CS0539: 'Test2.M5()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.M5() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M5").WithArguments("Test2.M5()").WithLocation(21, 13),
+                // (6,24): warning CS0626: Method, operator, or accessor 'I1.M3()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern void M3(); 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M3").WithArguments("I1.M3()").WithLocation(6, 24),
+                // (7,25): warning CS0626: Method, operator, or accessor 'I1.M4()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     private extern void M4();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M4").WithArguments("I1.M4()").WithLocation(7, 25),
+                // (8,24): warning CS0626: Method, operator, or accessor 'I1.M5()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern sealed void M5();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M5").WithArguments("I1.M5()").WithLocation(8, 24)
+                );
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m1 = i1.GetMember<MethodSymbol>("M1");
+
+            Assert.True(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.True(m1.IsMetadataVirtual());
+            Assert.False(m1.IsSealed);
+            Assert.False(m1.IsStatic);
+            Assert.True(m1.IsExtern);
+            Assert.False(m1.IsAsync);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(m1));
+            Assert.Same(test2.GetMember("I1.M1"), test2.FindImplementationForInterfaceMember(m1));
+
+            var m2 = i1.GetMember<MethodSymbol>("M2");
+
+            Assert.False(m2.IsAbstract);
+            Assert.True(m2.IsVirtual);
+            Assert.True(m2.IsMetadataVirtual());
+            Assert.False(m2.IsSealed);
+            Assert.False(m2.IsStatic);
+            Assert.True(m2.IsExtern);
+            Assert.False(m2.IsAsync);
+            Assert.False(m2.IsOverride);
+            Assert.Equal(Accessibility.Public, m2.DeclaredAccessibility);
+            Assert.Same(m2, test1.FindImplementationForInterfaceMember(m2));
+            Assert.Same(test2.GetMember("I1.M2"), test2.FindImplementationForInterfaceMember(m2));
+
+            var m3 = i1.GetMember<MethodSymbol>("M3");
+            Assert.Null(test2.FindImplementationForInterfaceMember(m3));
+
+            var m4 = i1.GetMember<MethodSymbol>("M4");
+            Assert.Null(test2.FindImplementationForInterfaceMember(m4));
+
+            var m5 = i1.GetMember<MethodSymbol>("M5");
+            Assert.Null(test2.FindImplementationForInterfaceMember(m5));
+        }
+
+        [Fact]
+        public void MethodModifiers_17()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract void M1() {} 
+    abstract private void M2() {} 
+    abstract static void M3() {} 
+    static extern void M4() {}
+    override sealed void M5() {}
+}
+
+class Test1 : I1
+{
+}
+
+class Test2 : I1
+{
+    void I1.M1() {}
+    void I1.M2() {}
+    void I1.M3() {}
+    void I1.M4() {}
+    void I1.M5() {}
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (4,19): error CS0500: 'I1.M1()' cannot declare a body because it is marked abstract
+                //     abstract void M1() {} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M1").WithArguments("I1.M1()").WithLocation(4, 19),
+                // (5,27): error CS0500: 'I1.M2()' cannot declare a body because it is marked abstract
+                //     abstract private void M2() {} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M2").WithArguments("I1.M2()").WithLocation(5, 27),
+                // (6,26): error CS0500: 'I1.M3()' cannot declare a body because it is marked abstract
+                //     abstract static void M3() {} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M3").WithArguments("I1.M3()").WithLocation(6, 26),
+                // (7,24): error CS0179: 'I1.M4()' cannot be extern and declare a body
+                //     static extern void M4() {}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "M4").WithArguments("I1.M4()").WithLocation(7, 24),
+                // (8,26): error CS0106: The modifier 'override' is not valid for this item
+                //     override sealed void M5() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M5").WithArguments("override").WithLocation(8, 26),
+                // (5,27): error CS0621: 'I1.M2()': virtual or abstract members cannot be private
+                //     abstract private void M2() {} 
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "M2").WithArguments("I1.M2()").WithLocation(5, 27),
+                // (6,26): error CS0112: A static member 'I1.M3()' cannot be marked as override, virtual, or abstract
+                //     abstract static void M3() {} 
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M3").WithArguments("I1.M3()").WithLocation(6, 26),
+                // (11,15): error CS0535: 'Test1' does not implement interface member 'I1.M2()'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M2()").WithLocation(11, 15),
+                // (11,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(11, 15),
+                // (19,13): error CS0539: 'Test2.M3()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.M3() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M3").WithArguments("Test2.M3()").WithLocation(19, 13),
+                // (20,13): error CS0539: 'Test2.M4()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.M4() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("Test2.M4()").WithLocation(20, 13),
+                // (21,13): error CS0539: 'Test2.M5()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.M5() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M5").WithArguments("Test2.M5()").WithLocation(21, 13)
+                );
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m1 = i1.GetMember<MethodSymbol>("M1");
+
+            Assert.True(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.True(m1.IsMetadataVirtual());
+            Assert.False(m1.IsSealed);
+            Assert.False(m1.IsStatic);
+            Assert.False(m1.IsExtern);
+            Assert.False(m1.IsAsync);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(m1));
+            Assert.Same(test2.GetMember("I1.M1"), test2.FindImplementationForInterfaceMember(m1));
+
+            var m2 = i1.GetMember<MethodSymbol>("M2");
+
+            Assert.True(m2.IsAbstract);
+            Assert.False(m2.IsVirtual);
+            Assert.True(m2.IsMetadataVirtual());
+            Assert.False(m2.IsSealed);
+            Assert.False(m2.IsStatic);
+            Assert.False(m2.IsExtern);
+            Assert.False(m2.IsAsync);
+            Assert.False(m2.IsOverride);
+            Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(m2));
+            Assert.Same(test2.GetMember("I1.M2"), test2.FindImplementationForInterfaceMember(m2));
+
+            var m3 = i1.GetMember<MethodSymbol>("M3");
+
+            Assert.True(m3.IsAbstract);
+            Assert.False(m3.IsVirtual);
+            Assert.True(m3.IsMetadataVirtual());
+            Assert.False(m3.IsSealed);
+            Assert.True(m3.IsStatic);
+            Assert.False(m3.IsExtern);
+            Assert.False(m3.IsAsync);
+            Assert.False(m3.IsOverride);
+            Assert.Equal(Accessibility.Public, m3.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(m3));
+            Assert.Null(test2.FindImplementationForInterfaceMember(m3));
+
+            var m4 = i1.GetMember<MethodSymbol>("M4");
+
+            Assert.False(m4.IsAbstract);
+            Assert.False(m4.IsVirtual);
+            Assert.False(m4.IsMetadataVirtual());
+            Assert.False(m4.IsSealed);
+            Assert.True(m4.IsStatic);
+            Assert.True(m4.IsExtern);
+            Assert.False(m4.IsAsync);
+            Assert.False(m4.IsOverride);
+            Assert.Equal(Accessibility.Public, m4.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(m4));
+            Assert.Null(test2.FindImplementationForInterfaceMember(m4));
+
+            var m5 = i1.GetMember<MethodSymbol>("M5");
+
+            Assert.False(m5.IsAbstract);
+            Assert.False(m5.IsVirtual);
+            Assert.False(m5.IsMetadataVirtual());
+            Assert.False(m5.IsSealed);
+            Assert.False(m5.IsStatic);
+            Assert.False(m5.IsExtern);
+            Assert.False(m5.IsAsync);
+            Assert.False(m5.IsOverride);
+            Assert.Equal(Accessibility.Public, m5.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(m5));
+            Assert.Null(test2.FindImplementationForInterfaceMember(m5));
+        }
+        
+        [Fact]
+        public void MethodModifiers_18()
+        {
+            var source1 =
+@"
+using System.Threading;
+using System.Threading.Tasks;
+
+public interface I1
+{
+    public static async Task M1() 
+    {
+        await Task.Factory.StartNew(() => System.Console.WriteLine(""M1""));
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.M1().Wait();
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugExe,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1, expectedOutput:"M1", symbolValidator: Validate);
+
+            Validate(compilation1.SourceModule);
+
+            void Validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+
+                Assert.False(m1.IsAbstract);
+                Assert.False(m1.IsVirtual);
+                Assert.False(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.True(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.Equal(!(m is PEModuleSymbol), m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(m1));
+            }
+        }
+        [Fact]
+        public void MethodModifiers_19()
+        {
+            var source1 =
+@"
+
+public interface I2 {}
+
+public interface I1
+{
+    public void I2.M01();
+    protected void I2.M02();
+    protected internal void I2.M03();
+    internal void I2.M04();
+    private void I2.M05();
+    static void I2.M06();
+    virtual void I2.M07();
+    sealed void I2.M08();
+    override void I2.M09();
+    abstract void I2.M10();
+    extern void I2.M11();
+    async void I2.M12();
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            var expected = new[]
+            {
+                // (7,20): error CS0106: The modifier 'public' is not valid for this item
+                //     public void I2.M01();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("public").WithLocation(7, 20),
+                // (8,23): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected void I2.M02();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M02").WithArguments("protected").WithLocation(8, 23),
+                // (9,32): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal void I2.M03();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M03").WithArguments("protected internal").WithLocation(9, 32),
+                // (10,22): error CS0106: The modifier 'internal' is not valid for this item
+                //     internal void I2.M04();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("internal").WithLocation(10, 22),
+                // (11,21): error CS0106: The modifier 'private' is not valid for this item
+                //     private void I2.M05();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M05").WithArguments("private").WithLocation(11, 21),
+                // (12,20): error CS0106: The modifier 'static' is not valid for this item
+                //     static void I2.M06();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("static").WithLocation(12, 20),
+                // (13,21): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual void I2.M07();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("virtual").WithLocation(13, 21),
+                // (14,20): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed void I2.M08();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(14, 20),
+                // (15,22): error CS0106: The modifier 'override' is not valid for this item
+                //     override void I2.M09();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(15, 22),
+                // (16,22): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract void I2.M10();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("abstract").WithLocation(16, 22),
+                // (17,20): error CS0106: The modifier 'extern' is not valid for this item
+                //     extern void I2.M11();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M11").WithArguments("extern").WithLocation(17, 20),
+                // (18,19): error CS0106: The modifier 'async' is not valid for this item
+                //     async void I2.M12();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M12").WithArguments("async").WithLocation(18, 19),
+                // (7,20): error CS0541: 'I1.M01()': explicit interface declaration can only be declared in a class or struct
+                //     public void I2.M01();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M01").WithArguments("I1.M01()").WithLocation(7, 20),
+                // (8,23): error CS0541: 'I1.M02()': explicit interface declaration can only be declared in a class or struct
+                //     protected void I2.M02();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M02").WithArguments("I1.M02()").WithLocation(8, 23),
+                // (9,32): error CS0541: 'I1.M03()': explicit interface declaration can only be declared in a class or struct
+                //     protected internal void I2.M03();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M03").WithArguments("I1.M03()").WithLocation(9, 32),
+                // (10,22): error CS0541: 'I1.M04()': explicit interface declaration can only be declared in a class or struct
+                //     internal void I2.M04();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M04").WithArguments("I1.M04()").WithLocation(10, 22),
+                // (11,21): error CS0541: 'I1.M05()': explicit interface declaration can only be declared in a class or struct
+                //     private void I2.M05();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M05").WithArguments("I1.M05()").WithLocation(11, 21),
+                // (12,20): error CS0541: 'I1.M06()': explicit interface declaration can only be declared in a class or struct
+                //     static void I2.M06();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M06").WithArguments("I1.M06()").WithLocation(12, 20),
+                // (13,21): error CS0541: 'I1.M07()': explicit interface declaration can only be declared in a class or struct
+                //     virtual void I2.M07();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M07").WithArguments("I1.M07()").WithLocation(13, 21),
+                // (14,20): error CS0541: 'I1.M08()': explicit interface declaration can only be declared in a class or struct
+                //     sealed void I2.M08();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M08").WithArguments("I1.M08()").WithLocation(14, 20),
+                // (15,22): error CS0541: 'I1.M09()': explicit interface declaration can only be declared in a class or struct
+                //     override void I2.M09();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M09").WithArguments("I1.M09()").WithLocation(15, 22),
+                // (16,22): error CS0541: 'I1.M10()': explicit interface declaration can only be declared in a class or struct
+                //     abstract void I2.M10();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M10").WithArguments("I1.M10()").WithLocation(16, 22),
+                // (17,20): error CS0541: 'I1.M11()': explicit interface declaration can only be declared in a class or struct
+                //     extern void I2.M11();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M11").WithArguments("I1.M11()").WithLocation(17, 20),
+                // (18,19): error CS0541: 'I1.M12()': explicit interface declaration can only be declared in a class or struct
+                //     async void I2.M12();
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M12").WithArguments("I1.M12()").WithLocation(18, 19)
+            };
+
+            compilation1.VerifyDiagnostics(expected);
+
+            ValidateSymbolsMethodModifiers_19(compilation1);
+
+            var compilation2 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(expected);
+
+            ValidateSymbolsMethodModifiers_19(compilation2);
+        }
+
+        private static void ValidateSymbolsMethodModifiers_19(CSharpCompilation compilation1)
+        {
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var m01 = i1.GetMember<MethodSymbol>("I2.M01");
+
+            Assert.True(m01.IsAbstract);
+            Assert.False(m01.IsVirtual);
+            Assert.True(m01.IsMetadataVirtual());
+            Assert.False(m01.IsSealed);
+            Assert.False(m01.IsStatic);
+            Assert.False(m01.IsExtern);
+            Assert.False(m01.IsAsync);
+            Assert.False(m01.IsOverride);
+            Assert.Equal(Accessibility.Public, m01.DeclaredAccessibility);
+
+            var m02 = i1.GetMember<MethodSymbol>("I2.M02");
+
+            Assert.True(m02.IsAbstract);
+            Assert.False(m02.IsVirtual);
+            Assert.True(m02.IsMetadataVirtual());
+            Assert.False(m02.IsSealed);
+            Assert.False(m02.IsStatic);
+            Assert.False(m02.IsExtern);
+            Assert.False(m02.IsAsync);
+            Assert.False(m02.IsOverride);
+            Assert.Equal(Accessibility.Public, m02.DeclaredAccessibility);
+
+            var m03 = i1.GetMember<MethodSymbol>("I2.M03");
+
+            Assert.True(m03.IsAbstract);
+            Assert.False(m03.IsVirtual);
+            Assert.True(m03.IsMetadataVirtual());
+            Assert.False(m03.IsSealed);
+            Assert.False(m03.IsStatic);
+            Assert.False(m03.IsExtern);
+            Assert.False(m03.IsAsync);
+            Assert.False(m03.IsOverride);
+            Assert.Equal(Accessibility.Public, m03.DeclaredAccessibility);
+
+            var m04 = i1.GetMember<MethodSymbol>("I2.M04");
+
+            Assert.True(m04.IsAbstract);
+            Assert.False(m04.IsVirtual);
+            Assert.True(m04.IsMetadataVirtual());
+            Assert.False(m04.IsSealed);
+            Assert.False(m04.IsStatic);
+            Assert.False(m04.IsExtern);
+            Assert.False(m04.IsAsync);
+            Assert.False(m04.IsOverride);
+            Assert.Equal(Accessibility.Public, m04.DeclaredAccessibility);
+
+            var m05 = i1.GetMember<MethodSymbol>("I2.M05");
+
+            Assert.True(m05.IsAbstract);
+            Assert.False(m05.IsVirtual);
+            Assert.True(m05.IsMetadataVirtual());
+            Assert.False(m05.IsSealed);
+            Assert.False(m05.IsStatic);
+            Assert.False(m05.IsExtern);
+            Assert.False(m05.IsAsync);
+            Assert.False(m05.IsOverride);
+            Assert.Equal(Accessibility.Public, m05.DeclaredAccessibility);
+
+            var m06 = i1.GetMember<MethodSymbol>("I2.M06");
+
+            Assert.True(m06.IsAbstract);
+            Assert.False(m06.IsVirtual);
+            Assert.True(m06.IsMetadataVirtual());
+            Assert.False(m06.IsSealed);
+            Assert.False(m06.IsStatic);
+            Assert.False(m06.IsExtern);
+            Assert.False(m06.IsAsync);
+            Assert.False(m06.IsOverride);
+            Assert.Equal(Accessibility.Public, m06.DeclaredAccessibility);
+
+            var m07 = i1.GetMember<MethodSymbol>("I2.M07");
+
+            Assert.True(m07.IsAbstract);
+            Assert.False(m07.IsVirtual);
+            Assert.True(m07.IsMetadataVirtual());
+            Assert.False(m07.IsSealed);
+            Assert.False(m07.IsStatic);
+            Assert.False(m07.IsExtern);
+            Assert.False(m07.IsAsync);
+            Assert.False(m07.IsOverride);
+            Assert.Equal(Accessibility.Public, m07.DeclaredAccessibility);
+
+            var m08 = i1.GetMember<MethodSymbol>("I2.M08");
+
+            Assert.True(m08.IsAbstract);
+            Assert.False(m08.IsVirtual);
+            Assert.True(m08.IsMetadataVirtual());
+            Assert.False(m08.IsSealed);
+            Assert.False(m08.IsStatic);
+            Assert.False(m08.IsExtern);
+            Assert.False(m08.IsAsync);
+            Assert.False(m08.IsOverride);
+            Assert.Equal(Accessibility.Public, m08.DeclaredAccessibility);
+
+            var m09 = i1.GetMember<MethodSymbol>("I2.M09");
+
+            Assert.True(m09.IsAbstract);
+            Assert.False(m09.IsVirtual);
+            Assert.True(m09.IsMetadataVirtual());
+            Assert.False(m09.IsSealed);
+            Assert.False(m09.IsStatic);
+            Assert.False(m09.IsExtern);
+            Assert.False(m09.IsAsync);
+            Assert.False(m09.IsOverride);
+            Assert.Equal(Accessibility.Public, m09.DeclaredAccessibility);
+
+            var m10 = i1.GetMember<MethodSymbol>("I2.M10");
+
+            Assert.True(m10.IsAbstract);
+            Assert.False(m10.IsVirtual);
+            Assert.True(m10.IsMetadataVirtual());
+            Assert.False(m10.IsSealed);
+            Assert.False(m10.IsStatic);
+            Assert.False(m10.IsExtern);
+            Assert.False(m10.IsAsync);
+            Assert.False(m10.IsOverride);
+            Assert.Equal(Accessibility.Public, m10.DeclaredAccessibility);
+
+            var m11 = i1.GetMember<MethodSymbol>("I2.M11");
+
+            Assert.True(m11.IsAbstract);
+            Assert.False(m11.IsVirtual);
+            Assert.True(m11.IsMetadataVirtual());
+            Assert.False(m11.IsSealed);
+            Assert.False(m11.IsStatic);
+            Assert.False(m11.IsExtern);
+            Assert.False(m11.IsAsync);
+            Assert.False(m11.IsOverride);
+            Assert.Equal(Accessibility.Public, m11.DeclaredAccessibility);
+
+            var m12 = i1.GetMember<MethodSymbol>("I2.M12");
+
+            Assert.True(m12.IsAbstract);
+            Assert.False(m12.IsVirtual);
+            Assert.True(m12.IsMetadataVirtual());
+            Assert.False(m12.IsSealed);
+            Assert.False(m12.IsStatic);
+            Assert.False(m12.IsExtern);
+            Assert.False(m12.IsAsync);
+            Assert.False(m12.IsOverride);
+            Assert.Equal(Accessibility.Public, m12.DeclaredAccessibility);
         }
 
         [Fact]

@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // At this point, we know that explicitInterfaceNamedType is an interface, so candidate must be public
                 // and, therefore, accessible.  So we don't need to check that.
                 // However, metadata interface members can be static - we ignore them, as does Dev10.
-                if (interfaceMember.Kind != implementingMember.Kind || interfaceMember.IsStatic)
+                if (interfaceMember.Kind != implementingMember.Kind || !interfaceMember.IsImplementableInterfaceMember())
                 {
                     continue;
                 }

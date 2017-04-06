@@ -1475,5 +1475,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8501,
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8502,
+        ERR_DefaultInterfaceImplementationModifier = 8503,
     }
 }

@@ -466,6 +466,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentNullException(nameof(interfaceMember));
             }
 
+            if (!interfaceMember.IsImplementableInterfaceMember())
+            {
+                return null;
+            }
+
             return FindImplementationForInterfaceMemberWithDiagnostics(interfaceMember).Symbol;
         }
 
@@ -777,6 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static Symbol ComputeImplementationForInterfaceMember(Symbol interfaceMember, TypeSymbol implementingType, DiagnosticBag diagnostics)
         {
             Debug.Assert(interfaceMember.Kind == SymbolKind.Method || interfaceMember.Kind == SymbolKind.Property || interfaceMember.Kind == SymbolKind.Event);
+            Debug.Assert(interfaceMember.IsImplementableInterfaceMember());
 
             NamedTypeSymbol interfaceType = interfaceMember.ContainingType;
             Debug.Assert((object)interfaceType != null && interfaceType.IsInterface);

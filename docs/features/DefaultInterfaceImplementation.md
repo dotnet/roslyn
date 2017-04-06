@@ -31,5 +31,7 @@ class Test1 : I1
 
 - Supplying an implementation along with declaration of an event and recognizing that implementation as default implementation for the event when a type implements the interface. 
 
+- Using **public**, **internal**, **private**, **static**, **virtual**, **sealed**, **abstract**, **extern** and **async** modifiers with interface methods.
+
 
 **Open issues and work items** are tracked in https://github.com/dotnet/roslyn/issues/17952.

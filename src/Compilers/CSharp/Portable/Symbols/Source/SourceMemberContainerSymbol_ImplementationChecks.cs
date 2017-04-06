@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case SymbolKind.Method:
                         case SymbolKind.Property:
                         case SymbolKind.Event:
-                            if (interfaceMember.IsStatic)
+                            if (!interfaceMember.IsImplementableInterfaceMember())
                             {
                                 continue;
                             }
