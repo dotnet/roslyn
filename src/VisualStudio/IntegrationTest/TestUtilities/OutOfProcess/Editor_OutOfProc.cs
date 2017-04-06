@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
 using System.Windows.Automation;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -174,5 +177,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public List<string> GetF1Keyword()
             => _editorInProc.GetF1Keywords();
+            
+        public TextSpan[] GetKeywordHighlightTags()
+            => Deserialize(_editorInProc.GetHighlightTags());
+
+        private TextSpan[] Deserialize(string[] v)
+        {
+            // returned tag looks something like 'text'[12-13]
+            return v.Select(tag =>
+            {
+                var open = tag.LastIndexOf('[') + 1;
+                var comma = tag.LastIndexOf('-');
+                var close = tag.LastIndexOf(']');
+                var start = tag.Substring(open, comma - open);
+                var end = tag.Substring(comma + 1, close - comma - 1);
+                return TextSpan.FromBounds(int.Parse(start), int.Parse(end));
+            }).ToArray();
+        }
     }
 }
