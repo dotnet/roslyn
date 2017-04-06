@@ -3,11 +3,13 @@
 using System;
 using System.Linq;
 using System.Windows.Automation;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using System.Collections.Immutable;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -172,6 +174,87 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public string[] GetErrorTags()
             => _editorInProc.GetErrorTags();
+
+        public List<string> GetF1Keyword()
+            => _editorInProc.GetF1Keywords();        
+
+        public void ExpandProjectNavBar()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.ExpandNavigationBar(0);
+        }
+
+        public void ExpandTypeNavBar()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.ExpandNavigationBar(1);
+        }
+
+        public void ExpandMemberNavBar()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.ExpandNavigationBar(2);
+        }
+
+        public string[] GetProjectNavBarItems()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetNavBarItems(0);
+        }
+
+        public string[] GetTypeNavBarItems()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetNavBarItems(1);
+        }
+
+        public string[] GetMemberNavBarItems()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetNavBarItems(2);
+        }
+
+        public string GetProjectNavBarSelection()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetSelectedNavBarItem(0);
+        }
+
+        public string GetTypeNavBarSelection()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetSelectedNavBarItem(1);
+        }
+
+        public string GetMemberNavBarSelection()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetSelectedNavBarItem(2);
+        }
+
+        public void SelectProjectNavbarItem(string item)
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+             _editorInProc.SelectNavBarItem(0, item);
+        }
+
+        public void SelectTypeNavBarItem(string item)
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.SelectNavBarItem(1, item);
+        }
+
+        public void SelectMemberNavBarItem(string item)
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.SelectNavBarItem(2, item);
+        }
+
+        public bool IsNavBarEnabled()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.IsNavBarEnabled();
+        }
 
         public TextSpan[] GetKeywordHighlightTags()
             => Deserialize(_editorInProc.GetHighlightTags());
