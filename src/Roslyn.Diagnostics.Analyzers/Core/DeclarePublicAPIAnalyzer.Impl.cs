@@ -204,7 +204,7 @@ namespace Roslyn.Diagnostics.Analyzers
                                 {
                                     var overloadPublicApiName = GetPublicApiName(overload);
                                     var isOverloadUnshipped = !_publicApiMap.TryGetValue(overloadPublicApiName, out ApiLine overloadPublicApiLine) ||
-    !overloadPublicApiLine.IsShippedApi;
+                                        !overloadPublicApiLine.IsShippedApi;
                                     if (isOverloadUnshipped)
                                     {
                                         string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
@@ -386,8 +386,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             private bool IsPublicAPI(ISymbol symbol)
             {
-                if (symbol is IMethodSymbol methodSymbol &&
-    s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
+                if (symbol is IMethodSymbol methodSymbol && s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
                 {
                     return false;
                 }
