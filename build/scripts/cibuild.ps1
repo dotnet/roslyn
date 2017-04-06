@@ -6,6 +6,7 @@ param (
     [switch]$testPerfCorrectness = $false,
     [switch]$testPerfRun = $false,
     [switch]$testVsi = $false,
+    [switch]$testVsiNetCore = $false,
     [switch]$skipTest = $false,
     [switch]$skipRestore = $false,
     [switch]$skipCommitPrinting = $false,
@@ -21,6 +22,8 @@ function Print-Usage() {
     Write-Host "  -release Perform release build."
     Write-Host "  -test32  Run unit tests in the 32-bit runner.  This is the default."
     Write-Host "  -test64  Run units tests in the 64-bit runner."
+    Write-Host "  -$testVsi  Run all integration tests."
+    Write-Host "  -$testVsiNetCore  Run just dotnet core integration tests."
 }
 
 function Run-MSBuild() {
@@ -139,9 +142,16 @@ try {
     $target = if ($skipTest) { "Build" } else { "BuildAndTest" }
     $test64Arg = if ($test64) { "true" } else { "false" }
     $testVsiArg = if ($testVsi) { "true" } else { "false" }
+    $testVsiArg = if ($testVsiNetCore) { "true" } else { "false" }
     $buildLog = Join-Path $binariesdir "Build.log"
 
-    Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+    if ($testVsiNetCore) { 
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+    }
+    else {
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+    }
+
     exit 0
 }
 catch {

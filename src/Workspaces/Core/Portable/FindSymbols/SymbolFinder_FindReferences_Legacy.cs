@@ -11,6 +11,11 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    // This file contains the legacy FindReferences APIs.  The APIs are legacy because they
+    // do not contain enough information for us to effectively remote them over to the OOP
+    // process to do the work.  Specifically, they lack the "current project context" necessary
+    // to be able to effectively serialize symbols to/from the remote process.
+
     public static partial class SymbolFinder
     {
         /// <summary>
@@ -71,29 +76,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 SymbolAndProjectId.Create(symbol, projectId: null),
                 solution, streamingProgress, documents, cancellationToken).ConfigureAwait(false);
             return streamingProgress.GetReferencedSymbols();
-        }
-
-        internal static async Task<ImmutableArray<ReferencedSymbol>> FindRenamableReferencesAsync(
-            SymbolAndProjectId symbolAndProjectId,
-            Solution solution,
-            CancellationToken cancellationToken)
-        {
-            using (Logger.LogBlock(FunctionId.FindReference_Rename, cancellationToken))
-            {
-                var streamingProgress = new StreamingProgressCollector(
-                    StreamingFindReferencesProgress.Instance);
-
-                IImmutableSet<Document> documents = null;
-                var engine = new FindReferencesSearchEngine(
-                    solution,
-                    documents,
-                    ReferenceFinders.DefaultRenameReferenceFinders,
-                    streamingProgress,
-                    cancellationToken);
-
-                await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
-                return streamingProgress.GetReferencedSymbols();
-            }
         }
     }
 }
