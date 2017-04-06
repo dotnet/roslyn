@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription MarshalAsAttribute = new AttributeDescription("System.Runtime.InteropServices", "MarshalAsAttribute", s_signaturesOfMarshalAsAttribute);
         internal static readonly AttributeDescription InAttribute = new AttributeDescription("System.Runtime.InteropServices", "InAttribute", s_signaturesOfInAttribute);
         internal static readonly AttributeDescription OutAttribute = new AttributeDescription("System.Runtime.InteropServices", "OutAttribute", s_signaturesOfOutAttribute);
-        internal static readonly AttributeDescription ReadOnlyAttribute = new AttributeDescription("System.Runtime.InteropServices", "ReadOnlyAttribute", s_signaturesOfReadOnlyAttribute);
+        internal static readonly AttributeDescription ReadOnlyAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ReadOnlyAttribute", s_signaturesOfReadOnlyAttribute);
         internal static readonly AttributeDescription CoClassAttribute = new AttributeDescription("System.Runtime.InteropServices", "CoClassAttribute", s_signaturesOfCoClassAttribute);
         internal static readonly AttributeDescription GuidAttribute = new AttributeDescription("System.Runtime.InteropServices", "GuidAttribute", s_signaturesOfGuidAttribute);
         internal static readonly AttributeDescription CLSCompliantAttribute = new AttributeDescription("System", "CLSCompliantAttribute", s_signaturesOfCLSCompliantAttribute);

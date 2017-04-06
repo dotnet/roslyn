@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RefReadOnlyIsWrittenToMetadata_SameAssembly_Method()
         {
             var text = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }
@@ -50,7 +50,7 @@ class Test
         public void RefReadOnlyIsWrittenToMetadata_DifferentAssembly_Method()
         {
             var codeA = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }";
@@ -87,7 +87,7 @@ class Test
         public void RefReadOnlyIsWrittenToMetadata_SameAssembly_Property()
         {
             var text = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }
@@ -122,7 +122,7 @@ class Test
         public void RefReadOnlyIsWrittenToMetadata_DifferentAssembly_Property()
         {
             var codeA = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }";
@@ -161,7 +161,7 @@ class Test
         public void RefReadOnlyIsWrittenToMetadata_SameAssembly_Indexer()
         {
             var text = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }
@@ -194,7 +194,7 @@ class Test
         public void RefReadOnlyIsWrittenToMetadata_DifferentAssembly_Indexer()
         {
             var codeA = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }";
@@ -231,7 +231,7 @@ class Test
         public void RefReadOnlyIsWrittenToMetadata_SameAssembly_Delegate()
         {
             var text = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }
@@ -261,7 +261,7 @@ public delegate ref readonly int D(ref readonly int x);
         public void RefReadOnlyIsWrittenToMetadata_DifferentAssembly_Delegate()
         {
             var codeA = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }";
@@ -295,7 +295,7 @@ public delegate ref readonly int D(ref readonly int x);
         public void RefReadOnlyIsWrittenToMetadata_SameAssembly_LocalFunctions()
         {
             var text = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }
@@ -335,7 +335,7 @@ public class Test
         public void RefReadOnlyIsWrittenToMetadata_DifferentAssembly_LocalFunctions()
         {
             var codeA = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }";
@@ -378,7 +378,7 @@ public class Test
         public void RefReadOnlyIsWrittenToMetadata_SameAssembly_Lambda()
         {
             var text = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }
@@ -420,7 +420,7 @@ class Test
         public void RefReadOnlyIsWrittenToMetadata_DifferentAssembly_Lambda()
         {
             var codeA = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }";
@@ -465,7 +465,7 @@ class Test
         public void ReadOnlyAttributeIsDisallowedEverywhereInSource_Delegates()
         {
             var codeA = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }";
@@ -473,7 +473,7 @@ namespace System.Runtime.InteropServices
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 [ReadOnly]
 public delegate ref readonly int D([ReadOnly] ref readonly int x);
@@ -492,7 +492,7 @@ public delegate ref readonly int D([ReadOnly] ref readonly int x);
         public void ReadOnlyAttributeIsDisallowedEverywhereInSource_Types()
         {
             var codeA = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }";
@@ -500,7 +500,7 @@ namespace System.Runtime.InteropServices
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 [ReadOnly]
 public class Test
@@ -518,7 +518,7 @@ public class Test
         public void ReadOnlyAttributeIsDisallowedEverywhereInSource_Fields()
         {
             var codeA = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }";
@@ -526,7 +526,7 @@ namespace System.Runtime.InteropServices
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 public class Test
 {
@@ -547,7 +547,7 @@ public class Test
         public void ReadOnlyAttributeIsDisallowedEverywhereInSource_Properties()
         {
             var codeA = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }";
@@ -555,7 +555,7 @@ namespace System.Runtime.InteropServices
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 public class Test
 {
@@ -576,7 +576,7 @@ public class Test
         public void ReadOnlyAttributeIsDisallowedEverywhereInSource_Methods()
         {
             var codeA = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }";
@@ -584,7 +584,7 @@ namespace System.Runtime.InteropServices
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 public class Test
 {
@@ -613,7 +613,7 @@ public class Test
         public void ReadOnlyAttributeIsDisallowedEverywhereInSource_Indexers()
         {
             var codeA = @"
-namespace System.Runtime.InteropServices
+namespace System.Runtime.CompilerServices
 {
     public class ReadOnlyAttribute : System.Attribute { }
 }";
@@ -621,7 +621,7 @@ namespace System.Runtime.InteropServices
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 public class Test
 {

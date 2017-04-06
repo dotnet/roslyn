@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ReturnsByRefReadonly)
             {
                 // PROTOTYPE(readonlyRefs) it is optional now as it will be generated in the next PR
-                var constructor = WellKnownMember.System_Runtime_InteropServices_ReadOnlyAttribute__ctor;
+                var constructor = WellKnownMember.System_Runtime_CompilerServices_ReadOnlyAttribute__ctor;
                 AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.TrySynthesizeAttribute(constructor, isOptionalUse: true));
             }
         }

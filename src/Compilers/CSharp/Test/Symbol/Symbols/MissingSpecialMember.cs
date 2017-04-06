@@ -558,7 +558,7 @@ namespace System
                         continue;
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
-                    case WellKnownType.System_Runtime_InteropServices_ReadOnlyAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute:
                         // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
@@ -860,7 +860,7 @@ namespace System
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload:
-                    case WellKnownMember.System_Runtime_InteropServices_ReadOnlyAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_ReadOnlyAttribute__ctor:
                         // Not always available.
                         continue;
                 }

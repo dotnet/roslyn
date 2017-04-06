@@ -508,7 +508,7 @@ End Namespace
                         ' Not a real type
                         Continue For
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
-                         WellKnownType.System_Runtime_InteropServices_ReadOnlyAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -544,7 +544,7 @@ End Namespace
                         ' Not a real type
                         Continue For
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
-                         WellKnownType.System_Runtime_InteropServices_ReadOnlyAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -583,7 +583,7 @@ End Namespace
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload,
-                         WellKnownMember.System_Runtime_InteropServices_ReadOnlyAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_ReadOnlyAttribute__ctor
                         ' Not always available.
                         Continue For
                 End Select
@@ -664,7 +664,7 @@ End Namespace
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload,
-                         WellKnownMember.System_Runtime_InteropServices_ReadOnlyAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_ReadOnlyAttribute__ctor
                         ' Not always available.
                         Continue For
                 End Select

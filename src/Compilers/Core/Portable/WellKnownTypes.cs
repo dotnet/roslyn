@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
 
-        System_Runtime_InteropServices_ReadOnlyAttribute,
+        System_Runtime_CompilerServices_ReadOnlyAttribute,
 
         NextAvailable,
     }
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis
 
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 
-            "System.Runtime.InteropServices.ReadOnlyAttribute",
+            "System.Runtime.CompilerServices.ReadOnlyAttribute",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
