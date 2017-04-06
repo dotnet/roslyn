@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -31,8 +30,8 @@ $$class C
     }
 }");
 
-            Editor.FormatDocument();
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.FormatDocument();
+            VisualStudio.Editor.Verify.TextContains(@"
 class C
 {
     void Main()
@@ -55,8 +54,8 @@ public class C
     }
 }");
 
-            this.SendKeys(VirtualKey.Backspace, ";");
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.SendKeys(VirtualKey.Backspace, ";");
+            VisualStudio.Editor.Verify.TextContains(@"
 public class C
 {
     void Foo()
@@ -77,9 +76,9 @@ public class C {
         }
 }");
 
-            this.SelectTextInCurrentDocument("public void M( ) {");
-            Editor.FormatSelection();
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.SelectTextInCurrentDocument("public void M( ) {");
+            VisualStudio.Editor.FormatSelection();
+            VisualStudio.Editor.Verify.TextContains(@"
 public class C {
     public void M()
     {
@@ -105,12 +104,12 @@ class Program
         };
     }
 }");
-            Editor.Paste(@"        Action b = () =>
+            VisualStudio.Editor.Paste(@"        Action b = () =>
         {
 
             };");
 
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 using System;
 class Program
 {
@@ -129,8 +128,8 @@ class Program
     }
 }");
             // Undo should only undo the formatting
-            Editor.Undo();
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Undo();
+            VisualStudio.Editor.Verify.TextContains(@"
 using System;
 class Program
 {
@@ -168,12 +167,12 @@ class Program
         };
     }
 }");
-            Editor.Paste(@"        Action<int> b = n =>
+            VisualStudio.Editor.Paste(@"        Action<int> b = n =>
         {
             Console.Writeline(n);
         };");
 
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 using System;
 class Program
 {
@@ -211,12 +210,12 @@ class Program
         };
     }
 }");
-            Editor.Paste(@"        D d = delegate(int x)
+            VisualStudio.Editor.Paste(@"        D d = delegate(int x)
 {
     return 2 * x;
 };");
 
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 using System;
 class Program
 {
@@ -248,9 +247,9 @@ class Program
         return M$$
     }
 }");
-            VisualStudio.Instance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            Editor.SendKeys("(ba", new KeyPress(VirtualKey.Enter, ShiftState.Shift), "// comment");
-            this.VerifyTextContains(@"
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudio.Editor.SendKeys("(ba", new KeyPress(VirtualKey.Enter, ShiftState.Shift), "// comment");
+            VisualStudio.Editor.Verify.TextContains(@"
 class Program
 {
     object M(object bar)

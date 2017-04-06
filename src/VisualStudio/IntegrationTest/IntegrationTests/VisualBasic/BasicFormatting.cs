@@ -6,13 +6,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
-
-// *************************************************************
-// ***** Turn on visible whitespace when editing this file *****
-// *************************************************************
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -39,8 +33,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
             SetUpEditor(testCode);
 
-            Editor.FormatDocument();
-            this.VerifyTextContains(
+            VisualStudio.Editor.FormatDocument();
+            VisualStudio.Editor.Verify.TextContains(
 @"Module A
     Sub Main(args As String())
 
@@ -54,8 +48,8 @@ End Module");
             SetUpEditor(@"
 $$module A
 end module");
-            Editor.FormatDocument();
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.FormatDocument();
+            VisualStudio.Editor.Verify.TextContains(@"
 Module A
 End Module");
         }
@@ -70,9 +64,9 @@ Module Program
         Return Main$$
     End Function
 End Module");
-            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            Editor.SendKeys("(o", new KeyPress(VirtualKey.Enter, ShiftState.Shift), "'comment");
-            this.VerifyTextContains(@"
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudio.Editor.SendKeys("(o", new KeyPress(VirtualKey.Enter, ShiftState.Shift), "'comment");
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Program
     Function Main(ooo As Object) As Object
         Return Main(ooo)
