@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Linq;
@@ -503,37 +504,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return view.GetBufferContainingCaret();
         }
 
-        public List<string> GetF1Keyword()
+        public List<string> GetF1Keywords()
         {
             return InvokeOnUIThread(() =>
             {
-                List<string> results = new List<string>();
-                IVsTextLines textLines;
-                GetActiveVsTextView().GetBuffer(out textLines);
-                Guid languageServiceGuid;
-                textLines.GetLanguageServiceID(out languageServiceGuid);
-                object languageService;
-                Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.QueryService(languageServiceGuid, out languageService);
+                var results = new List<string>();
+                GetActiveVsTextView().GetBuffer(out var textLines);
+                Marshal.ThrowExceptionForHR(textLines.GetLanguageServiceID(out var languageServiceGuid));
+                Marshal.ThrowExceptionForHR(Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.QueryService(languageServiceGuid, out var languageService));
                 var languageContextProvider = languageService as IVsLanguageContextProvider;
 
                 IVsMonitorUserContext monitorUserContext = GetGlobalService<SVsMonitorUserContext, IVsMonitorUserContext>();
-                IVsUserContext emptyUserContext;
-                monitorUserContext.CreateEmptyContext(out emptyUserContext);
-                int line;
-                int column;
-                GetActiveVsTextView().GetCaretPos(out line, out column);
-                var span = new TextSpan();
-                span.iStartLine = line;
-                span.iStartIndex = column;
-                span.iEndLine = line;
-                span.iEndIndex = column;
-                languageContextProvider.UpdateLanguageContext(0, textLines, new[] { span }, emptyUserContext);
-                int count;
-                emptyUserContext.CountAttributes("keyword", VSConstants.S_FALSE, out count);
+                Marshal.ThrowExceptionForHR(monitorUserContext.CreateEmptyContext(out var emptyUserContext));
+                Marshal.ThrowExceptionForHR(GetActiveVsTextView().GetCaretPos(out var line, out var column));
+                var span = new TextSpan()
+                {
+                    iStartLine = line,
+                    iStartIndex = column,
+                    iEndLine = line,
+                    iEndIndex = column
+                };
+                
+                Marshal.ThrowExceptionForHR(languageContextProvider.UpdateLanguageContext(0, textLines, new[] { span }, emptyUserContext));
+                Marshal.ThrowExceptionForHR(emptyUserContext.CountAttributes("keyword", VSConstants.S_FALSE, out var count));
                 for (int i = 0; i < count; i++)
                 {
-                    string key, value;
-                    emptyUserContext.GetAttribute(i, "keyword", VSConstants.S_FALSE, out key, out value);
+                    emptyUserContext.GetAttribute(i, "keyword", VSConstants.S_FALSE, out var key, out var value);
                     results.Add(value);
                 }
 

@@ -3,10 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -71,13 +68,12 @@ namespace F1TestNamespace
             Verify("ascending", "ascending_CSharpKeyword");
             Verify("from", "from_CSharpKeyword");
             Verify("First();", "System.Linq.Enumerable.First``1");
-
         }
 
         private void Verify(string word, string expectedKeyword)
         {
-            Editor.PlaceCaret(word, charsOffset: -1);
-            Assert.Contains(expectedKeyword, Editor.GetF1Keyword());
+            VisualStudio.Editor.PlaceCaret(word, charsOffset: -1);
+            Assert.Contains(expectedKeyword, VisualStudio.Editor.GetF1Keyword());
         }
     }
 }

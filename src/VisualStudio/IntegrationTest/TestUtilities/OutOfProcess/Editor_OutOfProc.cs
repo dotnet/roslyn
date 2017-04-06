@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using System.Collections.Immutable;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -172,6 +173,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _editorInProc.GetErrorTags();
 
         public List<string> GetF1Keyword()
-            => _editorInProc.GetF1Keyword();
+            => _editorInProc.GetF1Keywords();
     }
 }
