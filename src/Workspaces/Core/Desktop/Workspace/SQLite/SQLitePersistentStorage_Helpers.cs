@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        internal const long MaxPooledByteArrayLength = 128 * 1024;
+        internal const long MaxPooledByteArrayLength = 4 * 1024;
+        private const int MaxPooledByteArrays = 1024;
 
         private static readonly Stack<byte[]> s_byteArrayPool = new Stack<byte[]>();
 
@@ -98,7 +99,10 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             lock (s_byteArrayPool)
             {
-                s_byteArrayPool.Push(bytes);
+                if (s_byteArrayPool.Count < MaxPooledByteArrays)
+                {
+                    s_byteArrayPool.Push(bytes);
+                }
             }
         }
     }

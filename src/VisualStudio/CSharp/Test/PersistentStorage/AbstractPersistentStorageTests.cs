@@ -36,12 +36,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         private readonly string _persistentFolder;
 
         private const int LargeSize = (int)(SQLitePersistentStorage.MaxPooledByteArrayLength * 2);
+        private const int MediumSize = (int)(SQLitePersistentStorage.MaxPooledByteArrayLength / 2);
 
         private const string SmallData1 = "Hello ESENT";
         private const string SmallData2 = "Goodbye ESENT";
 
-        private static string MediumData1 = string.Join(",", Enumerable.Repeat(SmallData1, 1000));
-        private static string MediumData2 = string.Join(",", Enumerable.Repeat(SmallData2, 1000));
+        private static string MediumData1 = string.Join(",", Enumerable.Repeat(SmallData1, MediumSize / SmallData1.Length));
+        private static string MediumData2 = string.Join(",", Enumerable.Repeat(SmallData2, MediumSize / SmallData2.Length));
 
         private static string LargeData1 = string.Join(",", Enumerable.Repeat(SmallData1, LargeSize / SmallData1.Length));
         private static string LargeData2 = string.Join(",", Enumerable.Repeat(SmallData2, LargeSize / SmallData2.Length));
