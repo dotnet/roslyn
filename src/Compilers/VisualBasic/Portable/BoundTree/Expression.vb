@@ -355,14 +355,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         argument,
                         Function(argumentValue) New ByRefArgument(If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)))
                 Case Else
-                    ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
                     Return s_argumentMappings.GetValue(
                         argument,
                         Function(argumentValue)
-                            If index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray Then
-                                Return New Argument(ArgumentKind.ParamArray, parameters(parameters.Length - 1), argumentValue)
+                            Dim lastParameterIndex = parameters.Length - 1
+                            If index >= lastParameterIndex AndAlso parameters.Length > 0 AndAlso parameters(lastParameterIndex).IsParamArray Then
+                                ' TODO: figure out if this is true:
+                                '       a compiler generated argument for a ParamArray parameter is created iff 
+                                '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source
+                                Dim kind = If(argument.WasCompilerGenerated, ArgumentKind.ParamArray, ArgumentKind.Explicit)
+                                Debug.Assert(argument.Type.TypeKind = TypeKind.Array)
+                                Return New Argument(kind, parameters(lastParameterIndex), argumentValue)
                             Else
-                                Return New Argument(ArgumentKind.Positional, If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), argumentValue)
+                                ' TODO: figure our if this is true:
+                                '       a compiler generated argument for an Optional parameter is created iff
+                                '       the argument is omitted from the source
+                                Dim kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
+                                Dim parameter = If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing)
+                                Return New Argument(kind, parameter, argumentValue)
                             End If
                         End Function)
             End Select
@@ -476,8 +486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides ReadOnly Property ArgumentKind As ArgumentKind
                 Get
-                    ' Do the VB bound trees encode named arguments?
-                    Return ArgumentKind.Positional
+                    Return ArgumentKind.Explicit
                 End Get
             End Property
 

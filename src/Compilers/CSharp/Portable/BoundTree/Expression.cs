@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Collections;
-using System.Collections.Concurrent;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (refMode != RefKind.None)
                         {
-                            return new Argument(ArgumentKind.Positional, parameter, argument);
+                            return new Argument(ArgumentKind.Explicit, parameter, argument);
                         }
 
                         if (argumentIndex >= parameters.Length - 1 &&
@@ -170,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            return new Argument(ArgumentKind.Positional, parameter, argument);
+                            return new Argument(ArgumentKind.Explicit, parameter, argument);
                         }
                     }
 
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new Argument(ArgumentKind.ParamArray, parameter, CreateParamArray(parameter, argument));
                     }
 
-                    return new Argument(ArgumentKind.Named, parameter, argument);    
+                    return new Argument(ArgumentKind.Explicit, parameter, argument);    
                 });
         }
 
