@@ -1318,5 +1318,27 @@ namespace n2
     }
 }");
         }
+
+        [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestContextualKeyword1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+namespace N
+{
+    class nameof
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [|nameof|]
+    }
+}");
+        }
     }
 }
