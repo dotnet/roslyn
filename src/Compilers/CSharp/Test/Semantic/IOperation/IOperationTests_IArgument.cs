@@ -18,21 +18,22 @@ class P
 {
     static void M1()
     {
-        /*<bind>*/M2(1, """")/*</bind>*/;
+        /*<bind>*/M2(1, 2.0)/*</bind>*/;
     }
 
-    static void M2(int x, string y) { }
+    static void M2(int x, double y) { }
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (static void P.M2(System.Int32 x, System.String y)) (OperationKind.InvocationExpression, Type: System.Void)
-  IArgument (ArgumentKind.Positional Matching Parameter: x) (OperationKind.Argument)
-    ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IArgument (ArgumentKind.Positional Matching Parameter: y) (OperationKind.Argument)
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
+IInvocationExpression (static void P.M2(System.Int32 x, System.Double y)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, 2.0)')
+  Arguments(2): IArgument (ArgumentKind.Positional Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.Positional Matching Parameter: y) (OperationKind.Argument) (Syntax: '2.0')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
 ";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -46,18 +47,98 @@ class P
         /*<bind>*/M2(1)/*</bind>*/;
     }
 
-    static void M2(int x, string y = null) { }
+    static void M2(int x, double y = 0.0) { }
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (static void P.M2(System.Int32 x, [System.String y = null])) (OperationKind.InvocationExpression, Type: System.Void)
-  IArgument (ArgumentKind.Positional Matching Parameter: x) (OperationKind.Argument)
-    ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IArgument (ArgumentKind.DefaultValue Matching Parameter: y) (OperationKind.Argument)
-    ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: System.String, Constant: null)
+IInvocationExpression (static void P.M2(System.Int32 x, [System.Double y = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+  Arguments(2): IArgument (ArgumentKind.Positional Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.DefaultValue Matching Parameter: y) (OperationKind.Argument) (Syntax: 'M2(1)')
+      ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Double, Constant: 0) (Syntax: 'M2(1)')
 ";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }                    
+
+        [Fact]
+        public void ExplicitNamedArgument()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(x: 1, y: 9.9)/*</bind>*/;
+    }
+
+    static void M2(int x, double y = 0.0) { }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2(System.Int32 x, [System.Double y = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(x: 1, y: 9.9)')
+  Arguments(2): IArgument (ArgumentKind.Named Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.Named Matching Parameter: y) (OperationKind.Argument) (Syntax: '9.9')
+      ILiteralExpression (Text: 9.9) (OperationKind.LiteralExpression, Type: System.Double, Constant: 9.9) (Syntax: '9.9')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+
+        [Fact]
+        public void OutOfOrderExplicitNamedArgument()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(y: 9.9, x: 1)/*</bind>*/;
+    }
+
+    static void M2(int x, double y = 0.0) { }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2(System.Int32 x, [System.Double y = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(y: 9.9, x: 1)')
+  Arguments(2): IArgument (ArgumentKind.Named Matching Parameter: y) (OperationKind.Argument) (Syntax: '9.9')
+      ILiteralExpression (Text: 9.9) (OperationKind.LiteralExpression, Type: System.Double, Constant: 9.9) (Syntax: '9.9')
+    IArgument (ArgumentKind.Named Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DefaultNamedArgument()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(y: 9.9)/*</bind>*/;
+    }
+
+    static void M2(int x = 1, double y = 0.0) { }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2([System.Int32 x = 1], [System.Double y = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(y: 9.9)')
+  Arguments(2): IArgument (ArgumentKind.Named Matching Parameter: y) (OperationKind.Argument) (Syntax: '9.9')
+      ILiteralExpression (Text: 9.9) (OperationKind.LiteralExpression, Type: System.Double, Constant: 9.9) (Syntax: '9.9')
+    IArgument (ArgumentKind.DefaultValue Matching Parameter: x) (OperationKind.Argument) (Syntax: 'M2(y: 9.9)')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(y: 9.9)')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -75,92 +156,19 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (static void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [System.Int32 z = 3])) (OperationKind.InvocationExpression, Type: System.Void)
-  IArgument (ArgumentKind.Positional Matching Parameter: x) (OperationKind.Argument)
-    ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IArgument (ArgumentKind.Named Matching Parameter: z) (OperationKind.Argument)
-    ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10)
-  IArgument (ArgumentKind.DefaultValue Matching Parameter: y) (OperationKind.Argument)
-    ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
+IInvocationExpression (static void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [System.Int32 z = 3])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, z: 10)')
+  Arguments(3): IArgument (ArgumentKind.Positional Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.Named Matching Parameter: z) (OperationKind.Argument) (Syntax: '10')
+      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+    IArgument (ArgumentKind.DefaultValue Matching Parameter: y) (OperationKind.Argument) (Syntax: 'M2(1, z: 10)')
+      ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(1, z: 10)')
 ";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
-        }                         
-
-        [Fact]
-        public void ExplicitNamedArgument()
-        {
-            string source = @"
-class P
-{
-    static void M1()
-    {
-        /*<bind>*/M2(x: 1, y: """")/*</bind>*/;
-    }
-
-    static void M2(int x, string y = null) { }
-}
-";
-            string expectedOperationTree = @"
-IInvocationExpression (static void P.M2(System.Int32 x, [System.String y = null])) (OperationKind.InvocationExpression, Type: System.Void)
-  IArgument (ArgumentKind.Named Matching Parameter: x) (OperationKind.Argument)
-    ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IArgument (ArgumentKind.Named Matching Parameter: y) (OperationKind.Argument)
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
-";
-
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact]
-        public void OutOfOrderExplicitNamedArgument()
-        {
-            string source = @"
-class P
-{
-    static void M1()
-    {
-        /*<bind>*/M2(y: """", x: 1)/*</bind>*/;
-    }
-
-    static void M2(int x = 1, string y = null) { }
-}
-";
-            string expectedOperationTree = @"
-IInvocationExpression (static void P.M2([System.Int32 x = 1], [System.String y = null])) (OperationKind.InvocationExpression, Type: System.Void)
-  IArgument (ArgumentKind.Named Matching Parameter: y) (OperationKind.Argument)
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
-  IArgument (ArgumentKind.Named Matching Parameter: x) (OperationKind.Argument)
-    ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-";
-
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
-        }
-
-        [Fact]
-        public void DefaultNamedArgument()
-        {
-            string source = @"
-class P
-{
-    static void M1()
-    {
-        /*<bind>*/M2(y: """")/*</bind>*/;
-    }
-
-    static void M2(int x = 1, string y = null) { }
-}
-";
-            string expectedOperationTree = @"
-IInvocationExpression (static void P.M2([System.Int32 x = 1], [System.String y = null])) (OperationKind.InvocationExpression, Type: System.Void)
-  IArgument (ArgumentKind.Named Matching Parameter: y) (OperationKind.Argument)
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
-  IArgument (ArgumentKind.DefaultValue Matching Parameter: x) (OperationKind.Argument)
-    ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-";
-
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
-        }
         [Fact]
         public void RefAndOutArguments()
         {
@@ -178,15 +186,16 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.InvocationExpression, Type: System.Void)
-  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P)
-  IArgument (ArgumentKind.Positional Matching Parameter: x) (OperationKind.Argument)
-    ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32)
-  IArgument (ArgumentKind.Positional Matching Parameter: y) (OperationKind.Argument)
-    ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32)
-";                       
+IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(ref a, out b)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(2): IArgument (ArgumentKind.Positional Matching Parameter: x) (OperationKind.Argument) (Syntax: 'a')
+      ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+    IArgument (ArgumentKind.Positional Matching Parameter: y) (OperationKind.Argument) (Syntax: 'b')
+      ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -206,16 +215,17 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.InvocationExpression, Type: System.Void)
-  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P)
-  IArgument (ArgumentKind.Named Matching Parameter: y) (OperationKind.Argument)
-    ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32)
-  IArgument (ArgumentKind.Named Matching Parameter: x) (OperationKind.Argument)
-    ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32)
-";                 
+IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(y: out b, x: ref a)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(2): IArgument (ArgumentKind.Named Matching Parameter: y) (OperationKind.Argument) (Syntax: 'b')
+      ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+    IArgument (ArgumentKind.Named Matching Parameter: x) (OperationKind.Argument) (Syntax: 'a')
+      ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
-        }      
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
         [Fact]
         public void OmittedParamsArrayArgument()
@@ -223,25 +233,28 @@ IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (Oper
             string source = @"
 class P
 {
-    static void M1(string[] args)
+    void M1()
     {
-        /*<bind>*/M2("""")/*</bind>*/;
+        /*<bind>*/M2(null)/*</bind>*/;
     }
 
-    static void M2(string str, params int[] array) { }
+    void M2(string str, params int[] array) { }
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (static void P.M2(System.String str, params System.Int32[] array)) (OperationKind.InvocationExpression, Type: System.Void)
-  IArgument (ArgumentKind.Positional Matching Parameter: str) (OperationKind.Argument)
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
-  IArgument (ArgumentKind.ParamArray Matching Parameter: array) (OperationKind.Argument)
-    IArrayCreationExpression (Dimension sizes: 1, Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[])
-      ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: null, Constant: 0)
-      IArrayInitializer (OperationKind.ArrayInitializer)
+IInvocationExpression ( void P.M2(System.String str, params System.Int32[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(null)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(2): IArgument (ArgumentKind.Positional Matching Parameter: str) (OperationKind.Argument) (Syntax: 'null')
+      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'null')
+        ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+    IArgument (ArgumentKind.ParamArray Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(null)')
+      IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'M2(null)')
+        Dimension Sizes(1): ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: null, Constant: 0) (Syntax: 'M2(null)')
+        Initializer: IArrayInitializer (OperationKind.ArrayInitializer) (Syntax: 'M2(null)')
 ";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -250,27 +263,30 @@ IInvocationExpression (static void P.M2(System.String str, params System.Int32[]
             string source = @"
 class P
 {
-    static void M1(string[] args)
+    void M1()
     {
-        /*<bind>*/M2("""", 1, 2)/*</bind>*/;
+        /*<bind>*/M2(null, 1, 2)/*</bind>*/;
     }
 
-    static void M2(string str, params int[] array) { }
+    void M2(string str, params int[] array) { }
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (static void P.M2(System.String str, params System.Int32[] array)) (OperationKind.InvocationExpression, Type: System.Void)
-  IArgument (ArgumentKind.Positional Matching Parameter: str) (OperationKind.Argument)
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
-  IArgument (ArgumentKind.ParamArray Matching Parameter: array) (OperationKind.Argument)
-    IArrayCreationExpression (Dimension sizes: 1, Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[])
-      ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: null, Constant: 2)
-      IArrayInitializer (OperationKind.ArrayInitializer)
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-        ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
+IInvocationExpression ( void P.M2(System.String str, params System.Int32[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(null, 1, 2)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(2): IArgument (ArgumentKind.Positional Matching Parameter: str) (OperationKind.Argument) (Syntax: 'null')
+      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'null')
+        ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+    IArgument (ArgumentKind.ParamArray Matching Parameter: array) (OperationKind.Argument) (Syntax: '1')
+      IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: '1')
+        Dimension Sizes(1): ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: null, Constant: 2) (Syntax: '1')
+        Initializer: IArrayInitializer (OperationKind.ArrayInitializer) (Syntax: '1')
+            Element Values(2): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -279,27 +295,30 @@ IInvocationExpression (static void P.M2(System.String str, params System.Int32[]
             string source = @"
 class P
 {
-    static void M1(string[] args)
+    void M1()
     {
-        /*<bind>*/M2("""", new int[] { 1, 2 })/*</bind>*/;
+        /*<bind>*/M2(null, new[] { 1, 2 })/*</bind>*/;
     }
 
-    static void M2(string str, params int[] array) { }
+    void M2(string str, params int[] array) { }
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (static void P.M2(System.String str, params System.Int32[] array)) (OperationKind.InvocationExpression, Type: System.Void)
-  IArgument (ArgumentKind.Positional Matching Parameter: str) (OperationKind.Argument)
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
-  IArgument (ArgumentKind.Positional Matching Parameter: array) (OperationKind.Argument)
-    IArrayCreationExpression (Dimension sizes: 1, Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[])
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
-      IArrayInitializer (OperationKind.ArrayInitializer)
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-        ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
+IInvocationExpression ( void P.M2(System.String str, params System.Int32[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(null, new[] { 1, 2 })')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(2): IArgument (ArgumentKind.Positional Matching Parameter: str) (OperationKind.Argument) (Syntax: 'null')
+      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'null')
+        ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+    IArgument (ArgumentKind.Positional Matching Parameter: array) (OperationKind.Argument) (Syntax: 'new[] { 1, 2 }')
+      IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new[] { 1, 2 }')
+        Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'new[] { 1, 2 }')
+        Initializer: IArrayInitializer (OperationKind.ArrayInitializer) (Syntax: '{ 1, 2 }')
+            Element Values(2): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -308,26 +327,29 @@ IInvocationExpression (static void P.M2(System.String str, params System.Int32[]
             string source = @"
 class P
 {
-    static void M1(string[] args)
+    void M1()
     {
-        /*<bind>*/M2(array: 1, str: """")/*</bind>*/;
+        /*<bind>*/M2(array: 1, str: null)/*</bind>*/;
     }
 
-    static void M2(string str, params int[] array) { }
+    void M2(string str, params int[] array) { }
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (static void P.M2(System.String str, params System.Int32[] array)) (OperationKind.InvocationExpression, Type: System.Void)
-  IArgument (ArgumentKind.ParamArray Matching Parameter: array) (OperationKind.Argument)
-    IArrayCreationExpression (Dimension sizes: 1, Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[])
-      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: null, Constant: 1)
-      IArrayInitializer (OperationKind.ArrayInitializer)
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IArgument (ArgumentKind.Named Matching Parameter: str) (OperationKind.Argument)
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
+IInvocationExpression ( void P.M2(System.String str, params System.Int32[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: 1, str: null)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(2): IArgument (ArgumentKind.ParamArray Matching Parameter: array) (OperationKind.Argument) (Syntax: '1')
+      IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: '1')
+        Dimension Sizes(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: null, Constant: 1) (Syntax: '1')
+        Initializer: IArrayInitializer (OperationKind.ArrayInitializer) (Syntax: '1')
+            Element Values(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.Named Matching Parameter: str) (OperationKind.Argument) (Syntax: 'null')
+      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'null')
+        ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
 ";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -336,26 +358,30 @@ IInvocationExpression (static void P.M2(System.String str, params System.Int32[]
             string source = @"
 class P
 {
-    static void M1(string[] args)
+    void M1()
     {
-        /*<bind>*/M2(array: new[] { 1 }, str: """")/*</bind>*/;
+        /*<bind>*/M2(array: new[] { 1, 2 }, str: null)/*</bind>*/;
     }
 
-    static void M2(string str, params int[] array) { }
+    void M2(string str, params int[] array) { }
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (static void P.M2(System.String str, params System.Int32[] array)) (OperationKind.InvocationExpression, Type: System.Void)
-  IArgument (ArgumentKind.Named Matching Parameter: array) (OperationKind.Argument)
-    IArrayCreationExpression (Dimension sizes: 1, Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[])
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-      IArrayInitializer (OperationKind.ArrayInitializer)
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IArgument (ArgumentKind.Named Matching Parameter: str) (OperationKind.Argument)
-    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: )
+IInvocationExpression ( void P.M2(System.String str, params System.Int32[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: n ...  str: null)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(2): IArgument (ArgumentKind.Named Matching Parameter: array) (OperationKind.Argument) (Syntax: 'new[] { 1, 2 }')
+      IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new[] { 1, 2 }')
+        Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'new[] { 1, 2 }')
+        Initializer: IArrayInitializer (OperationKind.ArrayInitializer) (Syntax: '{ 1, 2 }')
+            Element Values(2): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+    IArgument (ArgumentKind.Named Matching Parameter: str) (OperationKind.Argument) (Syntax: 'null')
+      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'null')
+        ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
 ";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

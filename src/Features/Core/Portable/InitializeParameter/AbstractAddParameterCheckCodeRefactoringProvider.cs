@@ -139,8 +139,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private bool IsStringCheck(IOperation condition, IParameterSymbol parameter)
         {
             if (condition is IInvocationExpression invocation &&
-                invocation.ArgumentsInSourceOrder.Length == 1 &&
-                IsParameterReference(invocation.ArgumentsInSourceOrder[0].Value, parameter))
+                invocation.ArgumentsInEvaluationOrder.Length == 1 &&
+                IsParameterReference(invocation.ArgumentsInEvaluationOrder[0].Value, parameter))
             {
                 var targetMethod = invocation.TargetMethod;
                 if (targetMethod?.Name == nameof(string.IsNullOrEmpty) ||

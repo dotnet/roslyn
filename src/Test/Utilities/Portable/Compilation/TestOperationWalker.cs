@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Semantics;
 using Xunit;
 
@@ -204,18 +205,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var targetMethod = operation.TargetMethod;
             var isVirtual = operation.IsVirtual;
-            foreach (var argument in operation.ArgumentsInEvaluationOrder)
-            {
-                Visit(argument);
-            }
-            if (targetMethod != null)
-            {
-                foreach (var parameter in targetMethod.Parameters)
-                {
-                    var matchingArgument = operation.GetArgumentMatchingParameter(parameter);
-                    Visit(matchingArgument);
-                }
-            }
+            // base.VisitInvocationExpression only visits operations in ArgumentsInEvaluationOrder.
+            VisitArgumentsInParameterOrder(operation, targetMethod?.Parameters);
 
             base.VisitInvocationExpression(operation);
         }
@@ -331,14 +322,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var member = operation.Member;
             var property = operation.Property;
-            if (property != null)
-            {
-                foreach (var parameter in property.Parameters)
-                {
-                    var matchingArgument = operation.GetArgumentMatchingParameter(parameter);
-                    Visit(matchingArgument);
-                }
-            }
+            // base.VisitPropertyReferenceExpression only visits operations in ArgumentsInEvaluationOrder.
+            VisitArgumentsInParameterOrder(operation, property?.Parameters);
 
             base.VisitIndexedPropertyReferenceExpression(operation);
         }
@@ -429,14 +414,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
         {
             var ctor = operation.Constructor;
-            if (ctor != null)
-            {
-                foreach (var parameter in ctor.Parameters)
-                {
-                    var matchingArgument = operation.GetArgumentMatchingParameter(parameter);
-                    Visit(matchingArgument);
-                }
-            }
+            // base.VisitObjectCreationExpression only visits operations in ArgumentsInEvaluationOrder.
+            VisitArgumentsInParameterOrder(operation, ctor?.Parameters);
 
             base.VisitObjectCreationExpression(operation);
         }
@@ -535,6 +514,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInvalidExpression(IInvalidExpression operation)
         {
             base.VisitInvalidExpression(operation);
+        }
+
+        private void VisitArgumentsInParameterOrder(IHasArgumentsExpression operation, ImmutableArray<IParameterSymbol>? parameters)
+        {
+            foreach (var argument in operation.ArgumentsInParameterOrder())
+            {
+                Visit(argument);
+            }
+
+            if (parameters.HasValue)
+            {
+                foreach (var parameter in parameters.Value)
+                {
+                    var matchingArgument = operation.GetArgumentMatchingParameter(parameter);
+                    Visit(matchingArgument);
+                }
+            }
         }
     }
 }
