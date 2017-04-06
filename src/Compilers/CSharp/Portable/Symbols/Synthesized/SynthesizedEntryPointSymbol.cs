@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type: method.ReturnType)
             { WasCompilerGenerated = true };
         }
-        
+
         // A synthesized entrypoint that forwards all calls to an async Main Method
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (returnType.IsGenericTaskType(compilation)) {
 
                     return compilation.GetSpecialType(SpecialType.System_Int32);
-                } 
+                }
                 else
                 {
                     return compilation.GetSpecialType(SpecialType.System_Void);
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private static ReturnKind GetReturnKind(CSharpCompilation compilation, TypeSymbol returnType) {
                 if (returnType.IsGenericTaskType(compilation)) {
                     return ReturnKind.IntReturning;
-                } 
+                }
                 else
                 {
                     return ReturnKind.VoidReturning;
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
             }
-             
+
             public override string Name => MainName;
 
             public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(getResultMethod != null);
 
                 // GetAwaiter().GetResult()
-                BoundCall getAwaiterGetResult = 
+                BoundCall getAwaiterGetResult =
                     CreateParameterlessCall(
                             syntax: syntax,
                             method: getResultMethod,

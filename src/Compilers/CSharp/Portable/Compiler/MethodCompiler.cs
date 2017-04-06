@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (entryPoint is SynthesizedEntryPointSymbol s)
             {
                 synthesizedEntryPoint = s;
-            } 
+            }
             else if (entryPoint.HasAsyncMainReturnType(compilation) && compilation.LanguageVersion >= LanguageVersion.CSharp7_1)
             {
                 synthesizedEntryPoint = new AsyncForwardEntryPoint(compilation, diagnostics, entryPoint.ContainingType, entryPoint);
