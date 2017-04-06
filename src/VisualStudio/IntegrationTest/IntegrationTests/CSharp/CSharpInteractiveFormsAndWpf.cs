@@ -2,7 +2,6 @@
 
 using System.Windows.Automation;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -13,13 +12,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public CSharpInteractiveFormsAndWpf(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
-            this.SubmitText(@"#r ""System.Windows.Forms""
+            VisualStudio.InteractiveWindow.SubmitText(@"#r ""System.Windows.Forms""
 #r ""WindowsBase""
 #r ""PresentationCore""
 #r ""PresentationFramework""
 #r ""System.Xaml""");
 
-            this.SubmitText(@"using System.Windows;
+            VisualStudio.InteractiveWindow.SubmitText(@"using System.Windows;
 using System.Windows.Forms;
 using Wpf = System.Windows.Controls;");
         }
@@ -28,7 +27,7 @@ using Wpf = System.Windows.Controls;");
         public void InteractiveWithDisplayFormAndWpfWindow()
         {
             // 1) Create and display form and WPF window
-            this.SubmitText(@"Form form = new Form();
+            VisualStudio.InteractiveWindow.SubmitText(@"Form form = new Form();
 form.Text = ""win form text"";
 form.Show();
 Window wind = new Window();
@@ -39,7 +38,7 @@ wind.Show();");
             AutomationElement  wpf = AutomationElementHelper.FindAutomationElementAsync("wpf window text").Result;
 
             // 3) Add UI elements to windows and verify
-            this.SubmitText(@"// add a label to the form
+            VisualStudio.InteractiveWindow.SubmitText(@"// add a label to the form
 Label l = new Label();
 l.Text = ""forms label text"";
 form.Controls.Add(l);
@@ -55,7 +54,7 @@ wind.Content = t;");
             Assert.Equal("wpf body text", wpfContent.Current.Name);
 
             // 4) Close windows
-            this.SubmitText(@"form.Close();
+            VisualStudio.InteractiveWindow.SubmitText(@"form.Close();
 wind.Close();");
         }
     }

@@ -7,21 +7,18 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractInteractiveWindowTest : AbstractIntegrationTest
     {
-        internal readonly CSharpInteractiveWindow_OutOfProc InteractiveWindow;
-
         protected AbstractInteractiveWindowTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, visualStudio => visualStudio.Instance.CSharpInteractiveWindow)
+            : base(instanceFactory)
         {
-            InteractiveWindow = (CSharpInteractiveWindow_OutOfProc)TextViewWindow;
             ClearInteractiveWindow();
         }
 
         protected void ClearInteractiveWindow()
         {
-            InteractiveWindow.Initialize();
-            InteractiveWindow.ClearScreen();
-            InteractiveWindow.ShowWindow();
-            InteractiveWindow.Reset();
+            VisualStudio.InteractiveWindow.Initialize();
+            VisualStudio.InteractiveWindow.ClearScreen();
+            VisualStudio.InteractiveWindow.ShowWindow();
+            VisualStudio.InteractiveWindow.Reset();
         }
     }
 }

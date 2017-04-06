@@ -15,18 +15,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorList()
         {
             base.ErrorList();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorLevelWarning()
         {
             base.ErrorLevelWarning();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorsDuringMethodBodyEditing()
         {
             base.ErrorsDuringMethodBodyEditing();

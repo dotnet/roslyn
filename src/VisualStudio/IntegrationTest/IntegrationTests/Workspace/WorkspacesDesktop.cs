@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 {
@@ -36,8 +37,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public override void ProjectProperties()
         {
-            VisualStudio.Instance.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));
-            VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
+            VisualStudio.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
             base.ProjectProperties();
         }
     }

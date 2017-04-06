@@ -3,8 +3,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
@@ -32,8 +30,8 @@ End Module";
         {
             SetUpEditor(TestSource);
 
-            var encapsulateField = VisualStudio.Instance.EncapsulateField;
-            var dialog = VisualStudio.Instance.PreviewChangesDialog;
+            var encapsulateField = VisualStudio.EncapsulateField;
+            var dialog = VisualStudio.PreviewChangesDialog;
             encapsulateField.Invoke();
             dialog.VerifyOpen(encapsulateField.DialogName);
             dialog.ClickCancel(encapsulateField.DialogName);
@@ -41,7 +39,7 @@ End Module";
             encapsulateField.Invoke();
             dialog.VerifyOpen(encapsulateField.DialogName);
             dialog.ClickApply(encapsulateField.DialogName);
-            this.VerifyTextContains(@"    Private _name As Integer? = 0
+            VisualStudio.Editor.Verify.TextContains(@"    Private _name As Integer? = 0
 
     Public Property Name As Integer?
         Get
@@ -57,9 +55,9 @@ End Module";
         public void EncapsulateThroughLightbulbIncludingReferences()
         {
             SetUpEditor(TestSource);
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Encapsulate field: 'name' (and use property)", applyFix: true, blockUntilComplete: true);
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'name' (and use property)", applyFix: true, blockUntilComplete: true);
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Private _name As Integer? = 0
 
@@ -82,9 +80,9 @@ End Module");
         public void EncapsulateThroughLightbulbDefinitionsOnly()
         {
             SetUpEditor(TestSource);
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Encapsulate field: 'name' (but still use field)", applyFix: true, blockUntilComplete: true);
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'name' (but still use field)", applyFix: true, blockUntilComplete: true);
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Private _name As Integer? = 0
 
