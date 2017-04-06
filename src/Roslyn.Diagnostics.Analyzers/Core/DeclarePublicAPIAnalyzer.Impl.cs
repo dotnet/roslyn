@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -86,14 +87,22 @@ namespace Roslyn.Diagnostics.Analyzers
 
             internal void OnSymbolAction(SymbolAnalysisContext symbolContext)
             {
-                ISymbol symbol = symbolContext.Symbol;
+                OnSymbolActionCore(symbolContext.Symbol, symbolContext.ReportDiagnostic);
+            }
+
+            /// <param name="symbol">The symbol to analyze. Will also analyze implicit constructors too.</param>
+            /// <param name="reportDiagnostic">Action called to actually report a diagnostic.</param>
+            /// <param name="explicitLocation">A location to report the diagnostics for a symbol at. If null, then
+            /// the location of the symbol will be used.</param>
+            private void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, Location explicitLocation = null)
+            {
                 if (!IsPublicAPI(symbol))
                 {
                     return;
                 }
 
                 Debug.Assert(!symbol.IsImplicitlyDeclared);
-                OnSymbolActionCore(symbol, symbolContext.ReportDiagnostic, isImplicitlyDeclaredConstructor: false);
+                OnSymbolActionCore(symbol, reportDiagnostic, isImplicitlyDeclaredConstructor: false, explicitLocation: explicitLocation);
 
                 // Handle implicitly declared public constructors.
                 if (symbol.Kind == SymbolKind.NamedType)
@@ -105,18 +114,43 @@ namespace Roslyn.Diagnostics.Analyzers
                         var instanceConstructor = namedType.InstanceConstructors[0];
                         if (instanceConstructor.IsImplicitlyDeclared)
                         {
-                            OnSymbolActionCore(instanceConstructor, symbolContext.ReportDiagnostic, isImplicitlyDeclaredConstructor: true);
+                            OnSymbolActionCore(instanceConstructor, reportDiagnostic, isImplicitlyDeclaredConstructor: true, explicitLocation: explicitLocation);
                         }
                     }
                 }
             }
 
-            internal void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, bool isImplicitlyDeclaredConstructor)
+            /// <param name="symbol">The symbol to analyze.</param>
+            /// <param name="reportDiagnostic">Action called to actually report a diagnostic.</param>
+            /// <param name="isImplicitlyDeclaredConstructor">If the symbol is an implicitly declared constructor.</param>
+            /// <param name="explicitLocation">A location to report the diagnostics for a symbol at. If null, then
+            /// the location of the symbol will be used.</param>
+            private void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, bool isImplicitlyDeclaredConstructor, Location explicitLocation = null)
             {
                 Debug.Assert(IsPublicAPI(symbol));
 
                 string publicApiName = GetPublicApiName(symbol);
                 _visitedApiList.Add(publicApiName);
+
+                List<Location> locationsToReport = new List<Location>();
+
+                if (explicitLocation != null)
+                {
+                    locationsToReport.Add(explicitLocation);
+                }
+                else
+                {
+                    var locations = isImplicitlyDeclaredConstructor ? symbol.ContainingType.Locations : symbol.Locations;
+                    locationsToReport.AddRange(locations.Where(l => l.IsInSource));
+                }
+
+                void reportDiagnosticAtLocations(DiagnosticDescriptor descriptor, ImmutableDictionary<string, string> propertyBag, params object[] args)
+                {
+                    foreach (Location location in locationsToReport)
+                    {
+                        reportDiagnostic(Diagnostic.Create(descriptor, location, propertyBag, args));
+                    }
+                }
 
                 var hasPublicApiEntry = _publicApiMap.TryGetValue(publicApiName, out ApiLine apiLine);
                 if (!hasPublicApiEntry)
@@ -130,11 +164,7 @@ namespace Roslyn.Diagnostics.Analyzers
                         .Add(MinimalNamePropertyBagKey, errorMessageName)
                         .Add(PublicApiNamesOfSiblingsToRemovePropertyBagKey, siblingPublicApiNamesToRemove);
 
-                    var locations = isImplicitlyDeclaredConstructor ? symbol.ContainingType.Locations : symbol.Locations;
-                    foreach (Location sourceLocation in locations.Where(loc => loc.IsInSource))
-                    {
-                        reportDiagnostic(Diagnostic.Create(DeclareNewApiRule, sourceLocation, propertyBag, errorMessageName));
-                    }
+                    reportDiagnosticAtLocations(DeclareNewApiRule, propertyBag, errorMessageName);
                 }
 
                 if (symbol.Kind == SymbolKind.Method)
@@ -184,7 +214,7 @@ namespace Roslyn.Diagnostics.Analyzers
                                 if (!isMethodShippedApi)
                                 {
                                     string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
-                                    reportDiagnostic(Diagnostic.Create(AvoidMultipleOverloadsWithOptionalParameters, method.Locations[0], errorMessageName, AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri));
+                                    reportDiagnosticAtLocations(AvoidMultipleOverloadsWithOptionalParameters, ImmutableDictionary<string, string>.Empty, errorMessageName, AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri);
                                     break;
                                 }
                             }
@@ -197,7 +227,7 @@ namespace Roslyn.Diagnostics.Analyzers
                                 if (!isMethodShippedApi)
                                 {
                                     string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
-                                    reportDiagnostic(Diagnostic.Create(OverloadWithOptionalParametersShouldHaveMostParameters, method.Locations[0], errorMessageName, OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri));
+                                    reportDiagnosticAtLocations(OverloadWithOptionalParametersShouldHaveMostParameters, ImmutableDictionary<string, string>.Empty, errorMessageName, OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri);
                                     break;
                                 }
                                 else if (!overloadHasOptionalParams)
@@ -208,7 +238,7 @@ namespace Roslyn.Diagnostics.Analyzers
                                     if (isOverloadUnshipped)
                                     {
                                         string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
-                                        reportDiagnostic(Diagnostic.Create(OverloadWithOptionalParametersShouldHaveMostParameters, method.Locations[0], errorMessageName, OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri));
+                                        reportDiagnosticAtLocations(OverloadWithOptionalParametersShouldHaveMostParameters, ImmutableDictionary<string, string>.Empty, errorMessageName, OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri);
                                         break;
                                     }
                                 }
@@ -349,6 +379,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             internal void OnCompilationEnd(CompilationAnalysisContext context)
             {
+                ProcessTypeForwardedAttributes(context.Compilation, context.ReportDiagnostic, context.CancellationToken);
                 List<ApiLine> deletedApiList = GetDeletedApiList();
                 foreach (ApiLine cur in deletedApiList)
                 {
@@ -356,6 +387,53 @@ namespace Roslyn.Diagnostics.Analyzers
                     Location location = Location.Create(cur.Path, cur.Span, linePositionSpan);
                     ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty.Add(PublicApiNamePropertyBagKey, cur.Text);
                     context.ReportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, propertyBag, cur.Text));
+                }
+            }
+
+            private void ProcessTypeForwardedAttributes(Compilation compilation, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+            {
+                var typeForwardedToAttribute = compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.TypeForwardedToAttribute");
+
+                if (typeForwardedToAttribute != null)
+                {
+                    foreach (var attribute in compilation.Assembly.GetAttributes())
+                    {
+                        if (attribute.AttributeClass.Equals(typeForwardedToAttribute))
+                        {
+                            if (attribute.AttributeConstructor.Parameters.Length == 1 &&
+                                attribute.ConstructorArguments.Length == 1)
+                            {
+                                var forwardedType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
+
+                                if (forwardedType != null)
+                                {
+                                    VisitForwardedTypeRecursively(forwardedType, reportDiagnostic, attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken).GetLocation(), cancellationToken);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            private void VisitForwardedTypeRecursively(ISymbol symbol, Action<Diagnostic> reportDiagnostic, Location typeForwardedAttributeLocation, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                OnSymbolActionCore(symbol, reportDiagnostic, typeForwardedAttributeLocation);
+
+                if (symbol is INamedTypeSymbol namedTypeSymbol)
+                {
+                    foreach (var nestedType in namedTypeSymbol.GetTypeMembers())
+                    {
+                        VisitForwardedTypeRecursively(nestedType, reportDiagnostic, typeForwardedAttributeLocation, cancellationToken);
+                    }
+
+                    foreach (var member in namedTypeSymbol.GetMembers())
+                    {
+                        if (!(member.IsImplicitlyDeclared && member.IsDefaultConstructor()))
+                        {
+                            VisitForwardedTypeRecursively(member, reportDiagnostic, typeForwardedAttributeLocation, cancellationToken);
+                        }
+                    }
                 }
             }
 

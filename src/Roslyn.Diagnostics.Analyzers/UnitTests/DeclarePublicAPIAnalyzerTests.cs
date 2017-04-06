@@ -532,6 +532,28 @@ C.Method() -> void
                 GetAdditionalFileResultAt(7, 1, shippedFilePath, DeclarePublicAPIAnalyzer.RemoveDeletedApiRule, "C.Method() -> void"));
         }
 
+
+        [Fact]
+        public void TypeForwardsAreProcessed()
+        {
+            var source = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparison))]
+";
+
+            string shippedText = $@"
+System.StringComparison
+System.StringComparison.CurrentCulture = 0 -> System.StringComparison
+System.StringComparison.CurrentCultureIgnoreCase = 1 -> System.StringComparison
+System.StringComparison.InvariantCulture = 2 -> System.StringComparison
+System.StringComparison.InvariantCultureIgnoreCase = 3 -> System.StringComparison
+System.StringComparison.Ordinal = 4 -> System.StringComparison
+System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison
+";
+            string unshippedText = $@"";
+
+            VerifyCSharp(source, shippedText, unshippedText);
+        }
+
         [Fact, WorkItem(851, "https://github.com/dotnet/roslyn-analyzers/issues/851")]
         public void TestAvoidMultipleOverloadsWithOptionalParameters()
         {
