@@ -432,7 +432,7 @@ class D
 ";
             var dll = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidDynamicAttributeArgs.AsImmutableOrNull());
 
-            var c = CreateCompilationWithMscorlib(csSource, new[] { dll });
+            var c = CreateStandardCompilation(csSource, new[] { dll });
 
             c.VerifyDiagnostics(
                 // (7,20): error CS0570: 'C.F1' is not supported by the language

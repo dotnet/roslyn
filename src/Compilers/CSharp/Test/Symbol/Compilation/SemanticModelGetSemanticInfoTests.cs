@@ -888,7 +888,7 @@ class C
         /*<bind>*/a.Where/*</bind>*/(
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            var compilation = CreateStandardCompilation(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbols(semanticInfo.MethodGroup,
                 "IEnumerable<double> IEnumerable<double>.Where<double>(Func<double, bool> predicate)",
@@ -1104,7 +1104,7 @@ static class E
 {
     internal static void F(this object x, object y) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            var compilation = CreateStandardCompilation(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1138,7 +1138,7 @@ static class E
 {
     internal static void F(this object x, object y) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            compilation = CreateStandardCompilation(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1168,7 +1168,7 @@ static class E
 {
     internal static void F(this object x) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            compilation = CreateStandardCompilation(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1198,7 +1198,7 @@ static class E
 {
     internal static void F(this object x) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            compilation = CreateStandardCompilation(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1224,7 +1224,7 @@ static class E
 {
     internal static void F<T>(this object x) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            compilation = CreateStandardCompilation(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1251,7 +1251,7 @@ static class E
 {
     internal static void F(this object x) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            compilation = CreateStandardCompilation(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1279,7 +1279,7 @@ static class E
     internal static void F(this object x, object y) { }
     internal static void F<T>(this T t) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            compilation = CreateStandardCompilation(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
             type = compilation.GetSpecialType(SpecialType.System_String);
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1306,7 +1306,7 @@ static class E
     internal static void F(this object x, object y) { }
     private static void F<T>(this T t) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            compilation = CreateStandardCompilation(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
             type = compilation.GetSpecialType(SpecialType.System_String);
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1347,7 +1347,7 @@ static class E
 {
     internal static void F(this object x, object y, object z) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            compilation = CreateStandardCompilation(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("N2").GetMember<NamedTypeSymbol>("C");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1385,7 +1385,7 @@ static class E
 {
     internal static void F(this object x, object y, object z) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            compilation = CreateStandardCompilation(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("N").GetMember<NamedTypeSymbol>("C");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1444,7 +1444,7 @@ End Class";
         /*<bind>*/a.P/*</bind>*/[1, null] = string.Empty;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation = CreateStandardCompilation(source2, new[] { reference1 });
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbol(semanticInfo.Symbol, "string A.P[int x, string y]");
             Utils.CheckSymbols(semanticInfo.MemberGroup,
@@ -1462,7 +1462,7 @@ End Class";
         /*<bind>*/a.P[1, null]/*</bind>*/ = string.Empty;
     }
 }";
-            compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            compilation = CreateStandardCompilation(source2, new[] { reference1 });
             semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbol(semanticInfo.Symbol, "string A.P[int x, string y]");
             Utils.CheckSymbols(semanticInfo.MemberGroup);
@@ -1474,7 +1474,7 @@ End Class";
 {
     static A F = new A() { /*<bind>*/P/*</bind>*/ = 1 };
 }";
-            compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            compilation = CreateStandardCompilation(source2, new[] { reference1 });
             semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbol(semanticInfo.Symbol, "object A.P[int x = 0]");
             Utils.CheckSymbols(semanticInfo.MemberGroup);
@@ -1489,7 +1489,7 @@ End Class";
         var o = /*<bind>*/a.P/*</bind>*/[1, a
     }
 }";
-            compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            compilation = CreateStandardCompilation(source2, new[] { reference1 });
             semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Assert.Null(semanticInfo.Symbol);
             Utils.CheckSymbols(semanticInfo.MemberGroup,
@@ -1510,7 +1510,7 @@ End Class";
         var o = /*<bind>*/a.P[1, a/*</bind>*/
     }
 }";
-            compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            compilation = CreateStandardCompilation(source2, new[] { reference1 });
             semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Assert.Null(semanticInfo.Symbol);
             Utils.CheckSymbols(semanticInfo.MemberGroup);
@@ -1583,7 +1583,7 @@ End Class";
         return /*<bind>*/b.P1/*</bind>*/[null];
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation = CreateStandardCompilation(source2, new[] { reference1 });
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbol(semanticInfo.Symbol, "object B.P1[object index]");
             Utils.CheckSymbols(semanticInfo.MemberGroup, "object B.P1[object index]");
@@ -1598,7 +1598,7 @@ End Class";
         return /*<bind>*/b.P2/*</bind>*/[null];
     }
 }";
-            compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            compilation = CreateStandardCompilation(source2, new[] { reference1 });
             semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbol(semanticInfo.Symbol, "object B.P2[string index]");
             Utils.CheckSymbols(semanticInfo.MemberGroup, "object B.P2[string index]");
@@ -1613,7 +1613,7 @@ End Class";
         return /*<bind>*/b.P3/*</bind>*/[null];
     }
 }";
-            compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            compilation = CreateStandardCompilation(source2, new[] { reference1 });
             semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbol(semanticInfo.Symbol, "object A.P3[object index]");
             Utils.CheckSymbols(semanticInfo.MemberGroup, "object A.P3[object index]", "object A.P3[object x, object y]");
@@ -1654,7 +1654,7 @@ class C
         [Fact]
         public void GetSemanticInfoOfNull()
         {
-            var compilation = CreateCompilationWithMscorlib("");
+            var compilation = CreateStandardCompilation("");
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 
@@ -5469,7 +5469,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            var compilation = CreateStandardCompilation(sourceCode);
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(compilation);
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
@@ -8299,7 +8299,7 @@ public class Test
 public class CSEvent {
     [
 ";
-            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            var compilation = CreateStandardCompilation(sourceCode);
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
             var attributeNode = tree.FindNodeOrTokenByKind(SyntaxKind.Attribute).AsNode() as AttributeSyntax;
@@ -8323,7 +8323,7 @@ public class CSEvent {
 public class CSEvent {
     [
 }";
-            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            var compilation = CreateStandardCompilation(sourceCode);
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
             var attributeNode = tree.FindNodeOrTokenByKind(SyntaxKind.Attribute).AsNode() as AttributeSyntax;
@@ -11991,7 +11991,7 @@ class D {
 }
 ";
             var tree = Parse(sourceCode);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -14277,7 +14277,7 @@ class A
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            var compilation = CreateStandardCompilation(sourceCode);
             var tree = compilation.SyntaxTrees.First();
             var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<OmittedArraySizeExpressionSyntax>().Last();
             var model = compilation.GetSemanticModel(tree);
@@ -14445,7 +14445,7 @@ class C<[T(a: 1)]T>
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.GetParseDiagnostics().Verify(); // Syntactically correct.
 
             var tree = comp.SyntaxTrees.Single();
@@ -14527,7 +14527,7 @@ class C2
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(new[] { sourceCode1, sourceCode2 });
+            var compilation = CreateStandardCompilation(new[] { sourceCode1, sourceCode2 });
 
             for (int i = 0; i < 2; i++)
             {
@@ -14545,7 +14545,7 @@ class C2
         [Fact, WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")]
         public void ObjectCreation1()
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
 @"
 using System.Collections;
 
@@ -14628,7 +14628,7 @@ namespace Test
         [Fact, WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")]
         public void ObjectCreation2()
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
 @"
 using System.Collections;
 
@@ -14725,7 +14725,7 @@ namespace Test
         [WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")]
         public void ObjectCreation3()
         {
-            var pia = CreateCompilationWithMscorlib(
+            var pia = CreateStandardCompilation(
 @"
 using System;
 using System.Collections;
@@ -14764,7 +14764,7 @@ namespace Test
 
             pia.VerifyDiagnostics();
 
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
 @"
 namespace Test
 {
@@ -14846,7 +14846,7 @@ namespace Test
         return this;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            var compilation = CreateStandardCompilation(sourceCode);
             var tree = compilation.SyntaxTrees.First();
             var expr = (ExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ThisKeyword).Parent;
             var model = compilation.GetSemanticModel(tree);
@@ -15088,7 +15088,7 @@ public class C
         [Fact, WorkItem(998050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998050")]
         public void Bug998050()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class BaselineLog
 {}
 
@@ -15164,7 +15164,7 @@ public class C {
             select true?i:i;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            var compilation = CreateStandardCompilation(sourceCode);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);

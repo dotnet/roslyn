@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 metadataReferences = metadataReferences.Concat(references);
             }
 
-            return CreateCompilationWithMscorlib(source, metadataReferences, options);
+            return CreateStandardCompilation(source, metadataReferences, options);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlib45(
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 assemblyName);
         }
 
-        public static CSharpCompilation CreateCompilationWithMscorlib(
+        public static CSharpCompilation CreateStandardCompilation(
             string text,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string assemblyName = "",
             string sourceFileName = "")
         {
-            return CreateCompilationWithMscorlib(
+            return CreateStandardCompilation(
                 new[] { Parse(text, sourceFileName, parseOptions) },
                 references: references,
                 options: options,
@@ -462,23 +462,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CreateCompilation(new[] { Parse(text, options: parseOptions) }, refs, options);
         }
 
-        public static CSharpCompilation CreateCompilationWithMscorlib(
+        public static CSharpCompilation CreateStandardCompilation(
             IEnumerable<string> sources,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string assemblyName = "")
         {
-            return CreateCompilationWithMscorlib(Parse(sources, parseOptions), references, options, assemblyName);
+            return CreateStandardCompilation(Parse(sources, parseOptions), references, options, assemblyName);
         }
 
-        public static CSharpCompilation CreateCompilationWithMscorlib(
+        public static CSharpCompilation CreateStandardCompilation(
             SyntaxTree syntaxTree,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             string assemblyName = "")
         {
-            return CreateCompilationWithMscorlib(new SyntaxTree[] { syntaxTree }, references, options, assemblyName);
+            return CreateStandardCompilation(new SyntaxTree[] { syntaxTree }, references, options, assemblyName);
         }
 
         private static readonly ImmutableArray<MetadataReference> s_stdRefs = CoreClrShim.IsRunningOnCoreClr
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         private static readonly ImmutableArray<MetadataReference> s_desktopRefsToRemove = ImmutableArray.Create(SystemRef, SystemCoreRef);
 
-        public static CSharpCompilation CreateCompilationWithMscorlib(
+        public static CSharpCompilation CreateStandardCompilation(
             IEnumerable<SyntaxTree> trees,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
@@ -516,9 +516,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpParseOptions parseOptions = null,
             string assemblyName = "")
         {
-            references = (references != null) ? new[] { SystemCoreRef }.Concat(references) : new[] { SystemCoreRef };
+            references = (references != null) ? new[] { MscorlibRef, SystemCoreRef }.Concat(references) : new[] { MscorlibRef, SystemCoreRef };
 
-            return CreateCompilationWithMscorlib(
+            return CreateCompilation(
                 new[] { Parse(text, "", parseOptions) },
                 references: references,
                 options: options,
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             if (ilSource == null)
             {
-                var c = CreateCompilationWithMscorlib(cSharpSource, options: compilationOptions);
+                var c = CreateStandardCompilation(cSharpSource, options: compilationOptions);
                 return CompileAndVerify(c, expectedOutput: expectedOutput);
             }
 
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
             }
 
-            var compilation = CreateCompilationWithMscorlib(cSharpSource, new[] { reference }, compilationOptions);
+            var compilation = CreateStandardCompilation(cSharpSource, new[] { reference }, compilationOptions);
             compilationVerifier?.Invoke(compilation);
 
             return CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CompilationOptions options,
             ParseOptions parseOptions)
         {
-            return CreateCompilationWithMscorlib(
+            return CreateStandardCompilation(
                 source,
                 references: additionalRefs,
                 options: (CSharpCompilationOptions)options,
@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// <param name="expectedMessage">Ignored if null.</param>
         internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false) where T : Exception
         {
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe));
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe));
             return CompileAndVerifyException<T>(comp, expectedMessage);
         }
 

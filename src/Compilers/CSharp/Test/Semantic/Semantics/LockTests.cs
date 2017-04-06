@@ -32,7 +32,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
@@ -69,7 +69,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0185: 'method group' is not a reference type as required by the lock statement
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "Main").WithArguments("method group"));
         }
@@ -89,7 +89,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0185: 'lambda expression' is not a reference type as required by the lock statement
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "x => x").WithArguments("lambda expression"));
         }
@@ -109,7 +109,7 @@ class C
 }
 ";
             // Dev10 allows this.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -128,7 +128,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,53): warning CS0642: Possible mistaken empty statement
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
         }
@@ -155,7 +155,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (16,14): error CS0631: ref and out are not valid in this context
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "out"),
                 // (9,13): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
@@ -187,7 +187,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (15,14): error CS0631: ref and out are not valid in this context
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "out"),
                 // (8,13): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
@@ -212,7 +212,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,15): error CS0185: 'int' is not a reference type as required by the lock statement
                 //         lock (x)
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "x").WithArguments("int"),
@@ -233,7 +233,7 @@ struct Conv
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0185: 'Conv' is not a reference type as required by the lock statement
                 //         lock (this) { } 
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "this").WithArguments("Conv"));
@@ -254,7 +254,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,15): error CS0185: 'int?' is not a reference type as required by the lock statement
                 //         lock (a)
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "a").WithArguments("int?"));
@@ -282,7 +282,7 @@ partial class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0185: 'method group' is not a reference type as required by the lock statement
                 //         lock (PM)
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "PM").WithArguments("method group"),
@@ -309,7 +309,7 @@ class Res
 {
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(// (6,19): error CS1026: ) expected
+            CreateStandardCompilation(source).VerifyDiagnostics(// (6,19): error CS1026: ) expected
                                                                     //         lock (Res d = new Res ())// Invalid
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "d"),
                 // (6,33): error CS1002: ; expected
@@ -345,7 +345,7 @@ class Test
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0185: 'lambda expression' is not a reference type as required by the lock statement
                 //         lock ((ref int y) => { y = y + 1; return y; })     // Invalid
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "(ref int y) => { y = y + 1; return y; }").WithArguments("lambda expression"),
@@ -375,7 +375,7 @@ class Test
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,26): error CS1026: ) expected
                 //         lock ((C + yield return +D).ToString())
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "return"),
@@ -423,7 +423,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i"));
+            CreateStandardCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i"));
         }
 
         [WorkItem(543168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
@@ -441,7 +441,7 @@ class D
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,26): error CS1026: ) expected
                 //             lock (varnew object)
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "object"),
@@ -465,7 +465,7 @@ class D
         [Fact]
         public void LockNull()
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
 @"
 public class Test
 {
@@ -489,7 +489,7 @@ public class Test
         [Fact]
         public void LockThis()
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
 @"
 public class Test
 {
@@ -508,7 +508,7 @@ public class Test
         [Fact]
         public void LockExpression()
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
 @"
 public class Test
 {
@@ -527,7 +527,7 @@ public class Test
         [Fact]
         public void LockTypeParameterExpression()
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
 @"
 public class Test
 {
@@ -575,7 +575,7 @@ class Test
         [Fact]
         public void LockDelegate()
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
 @"
 delegate void D(int p1);
 partial class Test
@@ -603,7 +603,7 @@ partial class Test
         [Fact()]
         public void LockAnonymousTypes()
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
 @"
 class Test
 {
@@ -627,7 +627,7 @@ class Test
         [Fact()]
         public void LockTypeOf()
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
 @"
 class Test
 {
@@ -646,7 +646,7 @@ class Test
         [Fact()]
         public void LockString()
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
 @"
 class Test
 {
@@ -665,7 +665,7 @@ class Test
         [Fact()]
         public void AssignmentInLock()
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
 @"
 class Test
 {
@@ -725,7 +725,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,20): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = new object();"));
         }
@@ -765,8 +765,8 @@ class Gen3<T> where T : class
     }
 }
 ";
-            var regularCompilation = CreateCompilationWithMscorlib(source);
-            var strictCompilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithStrictFeature());
+            var regularCompilation = CreateStandardCompilation(source);
+            var strictCompilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
 
             regularCompilation.VerifyDiagnostics(
                 // (16,15): error CS0185: 'T' is not a reference type as required by the lock statement

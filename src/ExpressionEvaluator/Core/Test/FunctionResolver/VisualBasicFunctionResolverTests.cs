@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     static void F() { }
 }";
-            var bytes = CreateCompilationWithMscorlib(source).EmitToArray();
+            var bytes = CreateStandardCompilation(source).EmitToArray();
             var resolver = Resolver.VisualBasicResolver;
             var unknownId = Guid.Parse("F02FB87B-64EC-486E-B039-D4A97F48858C");
             var csharpLanguageId = Guid.Parse("3f5162f8-07c6-11d3-9053-00c04fa302a1");
@@ -114,7 +114,7 @@ interface I
 {
     object P { get; set; }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.VisualBasicResolver;
@@ -151,7 +151,7 @@ class B
     static void Method() { }
     object Property { get; set; }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.VisualBasicResolver;
@@ -182,7 +182,7 @@ namespace One.Two
         static void Method(Three t) { }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.VisualBasicResolver;

@@ -2270,7 +2270,7 @@ class CL2 : CL1
         return c;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll }, 
+            var compilation = CreateStandardCompilation(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll }, 
                                                             options: TestOptions.ReleaseExe);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
@@ -2316,7 +2316,7 @@ class CL3 : I1
         return c;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll },
+            var compilation = CreateStandardCompilation(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll },
                                                             options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
