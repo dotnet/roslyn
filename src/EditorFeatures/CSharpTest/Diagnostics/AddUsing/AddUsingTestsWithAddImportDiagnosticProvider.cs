@@ -13,30 +13,28 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 {
-    public partial class AddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
-        {
-            internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-                => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new CSharpAddImportCodeFixProvider());
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new CSharpAddImportCodeFixProvider());
 
-            private Task TestAsync(
-                 string initialMarkup,
-                 string expected,
-                 bool systemSpecialCase,
-                 int index = 0)
-            {
-                return TestInRegularAndScriptAsync(initialMarkup, expected, index: index, options: new Dictionary<OptionKey, object>
+        private Task TestAsync(
+             string initialMarkup,
+             string expected,
+             bool systemSpecialCase,
+             int index = 0)
+        {
+            return TestInRegularAndScriptAsync(initialMarkup, expected, index: index, options: new Dictionary<OptionKey, object>
                 {
                     { new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
                 });
-            }
+        }
 
-            [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-            public async Task TestIncompleteLambda1()
-            {
-                await TestInRegularAndScriptAsync(
+        [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestIncompleteLambda1()
+        {
+            await TestInRegularAndScriptAsync(
 @"using System.Linq;
 
 class C
@@ -54,13 +52,13 @@ class C
     {
         """".Select(() => {
         new Byte");
-            }
+        }
 
-            [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-            public async Task TestIncompleteLambda2()
-            {
-                await TestInRegularAndScriptAsync(
+        [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestIncompleteLambda2()
+        {
+            await TestInRegularAndScriptAsync(
 @"using System.Linq;
 
 class C
@@ -78,14 +76,14 @@ class C
     {
         """".Select(() => {
             new Byte() }");
-            }
+        }
 
-            [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
-            [WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-            public async Task TestIncompleteSimpleLambdaExpression()
-            {
-                await TestInRegularAndScriptAsync(
+        [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
+        [WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestIncompleteSimpleLambdaExpression()
+        {
+            await TestInRegularAndScriptAsync(
 @"using System.Linq;
 
 class Program
@@ -107,13 +105,13 @@ class Program
         string a;
     }
 }");
-            }
+        }
 
-            [WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-            public async Task TestUnknownIdentifierGenericName()
-            {
-                await TestInRegularAndScriptAsync(
+        [WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestUnknownIdentifierGenericName()
+        {
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     private [|List<int>|]
@@ -124,13 +122,13 @@ class C
 {
     private List<int>
 }");
-            }
+        }
 
-            [WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-            public async Task TestUnknownIdentifierInAttributeSyntaxWithoutTarget()
-            {
-                await TestInRegularAndScriptAsync(
+        [WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestUnknownIdentifierInAttributeSyntaxWithoutTarget()
+        {
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     [[|Extension|]]
@@ -141,12 +139,12 @@ class C
 {
     [Extension]
 }");
-            }
+        }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-            public async Task TestOutsideOfMethodWithMalformedGenericParameters()
-            {
-                await TestInRegularAndScriptAsync(
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestOutsideOfMethodWithMalformedGenericParameters()
+        {
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -158,13 +156,13 @@ using System.Reflection.Emit;
 class Program
 {
     Func<FlowControl x }");
-            }
+        }
 
-            [WorkItem(752640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752640")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-            public async Task TestUnknownIdentifierWithSyntaxError()
-            {
-                await TestInRegularAndScriptAsync(
+        [WorkItem(752640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestUnknownIdentifierWithSyntaxError()
+        {
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     [|Directory|] private int i;
@@ -175,13 +173,13 @@ class C
 {
     Directory private int i;
 }");
-            }
+        }
 
-            [WorkItem(855748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855748")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-            public async Task TestGenericNameWithBrackets()
-            {
-                await TestInRegularAndScriptAsync(
+        [WorkItem(855748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855748")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestGenericNameWithBrackets()
+        {
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|List|]
@@ -193,7 +191,7 @@ class Class
     List
 }");
 
-                await TestInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|List<>|]
@@ -205,7 +203,7 @@ class Class
     List<>
 }");
 
-                await TestInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     List[|<>|]
@@ -216,13 +214,13 @@ class Class
 {
     List<>
 }");
-            }
+        }
 
-            [WorkItem(867496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867496")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-            public async Task TestMalformedGenericParameters()
-            {
-                await TestInRegularAndScriptAsync(
+        [WorkItem(867496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867496")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestMalformedGenericParameters()
+        {
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|List<|] }",
@@ -232,7 +230,7 @@ class Class
 {
     List< }");
 
-                await TestInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|List<Y x;|] }",
@@ -241,7 +239,6 @@ class Class
 class Class
 {
     List<Y x; }");
-            }
         }
     }
 }
