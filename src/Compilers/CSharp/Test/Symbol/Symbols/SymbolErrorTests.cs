@@ -1682,21 +1682,53 @@ class C
     public extern object P6 { get; } // no error
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 3, Column = 23 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 3, Column = 23 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 18 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 30 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 5, Column = 27 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 5, Column = 27 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 6, Column = 21 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 7, Column = 21 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 11, Column = 29 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 12, Column = 30 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 13, Column = 25 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 14, Column = 21 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 15, Column = 64 },
-                new ErrorDescription { Code = (int)ErrorCode.WRN_ExternMethodNoImplementation, Line = 16, Column = 31, IsWarning = true });
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (11,29): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public int P1 { virtual get { return 0; } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("virtual").WithLocation(11, 29),
+                // (12,30): error CS0106: The modifier 'static' is not valid for this item
+                //     internal int P2 { static set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("static").WithLocation(12, 30),
+                // (13,25): error CS0106: The modifier 'new' is not valid for this item
+                //     static int P3 { new get { return 0; } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("new").WithLocation(13, 25),
+                // (14,21): error CS0106: The modifier 'sealed' is not valid for this item
+                //     int P4 { sealed get { return 0; } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("sealed").WithLocation(14, 21),
+                // (15,64): error CS0106: The modifier 'extern' is not valid for this item
+                //     protected internal object P5 { get { return null; } extern set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(15, 64),
+                // (3,23): error CS0106: The modifier 'static' is not valid for this item
+                //     public static int P1 { get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("static").WithLocation(3, 23),
+                // (3,23): error CS0106: The modifier 'public' is not valid for this item
+                //     public static int P1 { get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("public").WithLocation(3, 23),
+                // (4,18): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract int P2 { static set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P2").WithArguments("abstract").WithLocation(4, 18),
+                // (4,30): error CS0106: The modifier 'static' is not valid for this item
+                //     abstract int P2 { static set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("static").WithLocation(4, 30),
+                // (5,27): error CS0106: The modifier 'abstract' is not valid for this item
+                //     int P4 { new abstract get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("abstract").WithLocation(5, 27),
+                // (5,27): error CS0106: The modifier 'new' is not valid for this item
+                //     int P4 { new abstract get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("new").WithLocation(5, 27),
+                // (6,21): error CS0106: The modifier 'static' is not valid for this item
+                //     int P5 { static set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("static").WithLocation(6, 21),
+                // (7,21): error CS0106: The modifier 'sealed' is not valid for this item
+                //     int P6 { sealed get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("sealed").WithLocation(7, 21),
+                // (15,64): error CS0501: 'C.P5.set' must declare a body because it is not marked abstract, extern, or partial
+                //     protected internal object P5 { get { return null; } extern set; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.P5.set").WithLocation(15, 64),
+                // (16,31): warning CS0626: Method, operator, or accessor 'C.P6.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     public extern object P6 { get; } // no error
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.P6.get").WithLocation(16, 31));
         }
 
         [WorkItem(539584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539584")]
@@ -1716,22 +1748,25 @@ class C
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
     // (4,20): error CS0106: The modifier 'sealed' is not valid for this item
     //     sealed private C() { }
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("sealed"),
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("sealed").WithLocation(4, 20),
     // (5,18): error CS0106: The modifier 'abstract' is not valid for this item
     //     new abstract C(object o);
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("abstract"),
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("abstract").WithLocation(5, 18),
     // (5,18): error CS0106: The modifier 'new' is not valid for this item
     //     new abstract C(object o);
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new"),
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(5, 18),
     // (6,20): error CS0106: The modifier 'virtual' is not valid for this item
     //     public virtual C(C c) { }
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("virtual"),
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("virtual").WithLocation(6, 20),
     // (7,33): error CS0106: The modifier 'override' is not valid for this item
     //     protected internal override C(int i, int j) { }
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("override"),
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("override").WithLocation(7, 33),
     // (8,24): error CS0106: The modifier 'volatile' is not valid for this item
     //     volatile const int x = 1;
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "x").WithArguments("volatile")
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "x").WithArguments("volatile").WithLocation(8, 24),
+    // (5,18): error CS0501: 'C.C(object)' must declare a body because it is not marked abstract, extern, or partial
+    //     new abstract C(object o);
+    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C(object)").WithLocation(5, 18)
                 );
         }
 
@@ -7682,12 +7717,18 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
     extern public C(object o); // no error
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (3,12): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()"),
                 // (4,23): error CS0106: The modifier 'abstract' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("abstract"),
+                //     internal abstract C(C c);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("abstract").WithLocation(4, 23),
+                // (3,12): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
+                //     public C();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(3, 12),
+                // (4,23): error CS0501: 'C.C(C)' must declare a body because it is not marked abstract, extern, or partial
+                //     internal abstract C(C c);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C(C)").WithLocation(4, 23),
                 // (5,19): warning CS0824: Constructor 'C.C(object)' is marked external
-                Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "C").WithArguments("C.C(object)"));
+                //     extern public C(object o); // no error
+                Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "C").WithArguments("C.C(object)").WithLocation(5, 19));
         }
 
         [Fact]
@@ -8826,8 +8867,15 @@ struct S6<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 5, Column = 18 });
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (5,18): error CS0106: The modifier 'abstract' is not valid for this item
+                //         abstract C();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("abstract").WithLocation(5, 18),
+                // (5,18): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
+                //         abstract C();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("NS.C.C()").WithLocation(5, 18)
+                );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -10258,7 +10306,10 @@ interface IA
             comp.VerifyDiagnostics(
 // (4,17): error CS0567: Interfaces cannot contain operators
 //    int operator +(int aa, int bb);   // CS0567
-Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
+Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+").WithLocation(4, 17),
+// (4,17): error CS0501: 'IA.operator +(int, int)' must declare a body because it is not marked abstract, extern, or partial
+//    int operator +(int aa, int bb);   // CS0567
+Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("IA.operator +(int, int)").WithLocation(4, 17)
                 );
         }
 
@@ -10802,10 +10853,20 @@ class Class2 { }
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_VirtualPrivate, Line = 5, Column = 30 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_VirtualPrivate, Line = 9, Column = 30 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_VirtualPrivate, Line = 10, Column = 19 });
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (5,30): error CS0621: 'Foo.vf()': virtual or abstract members cannot be private
+                //         private virtual void vf() { }
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "vf").WithArguments("x.Foo.vf()").WithLocation(5, 30),
+                // (10,19): error CS0621: 'Bar<T>.M2<V>(T)': virtual or abstract members cannot be private
+                //         virtual V M2<V>(T t);
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "M2").WithArguments("x.Bar<T>.M2<V>(T)").WithLocation(10, 19),
+                // (9,30): error CS0621: 'Bar<T>.M1(T)': virtual or abstract members cannot be private
+                //         private virtual void M1(T t) { }
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "M1").WithArguments("x.Bar<T>.M1(T)").WithLocation(9, 30),
+                // (10,19): error CS0501: 'Bar<T>.M2<V>(T)' must declare a body because it is not marked abstract, extern, or partial
+                //         virtual V M2<V>(T t);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M2").WithArguments("x.Bar<T>.M2<V>(T)").WithLocation(10, 19));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("x").Single() as NamespaceSymbol;
             // TODO...

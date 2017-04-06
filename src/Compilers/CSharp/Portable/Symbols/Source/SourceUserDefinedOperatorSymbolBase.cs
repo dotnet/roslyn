@@ -89,13 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
             }
-            else if (bodySyntaxReference == null && !IsExtern && !IsAbstract && !IsPartial)
-            {
-                // Do not report that the body is missing if the operator is marked as
-                // partial or abstract; we will already have given an error for that so
-                // there's no need to "cascade" the error.
-                diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
-            }
 
             // SPEC: It is an error for the same modifier to appear multiple times in an
             // SPEC: operator declaration.
