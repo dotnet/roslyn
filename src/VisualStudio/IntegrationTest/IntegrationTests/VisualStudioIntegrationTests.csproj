@@ -21,6 +21,7 @@
   <ItemGroup>
     <Compile Include="AbstractIntegrationTest.cs" />
     <Compile Include="AbstractInteractiveWindowTest.cs" />
+    <Compile Include="CSharp\CSharpEncapsulateField.cs" />
     <Compile Include="CSharp\CSharpInteractiveBoxSelection.cs" />
     <Compile Include="CSharp\CSharpChangeSignatureDialog.cs" />
     <Compile Include="CSharp\CSharpClassification.cs" />
@@ -52,17 +53,8 @@
     <Compile Include="CSharp\CSharpSquigglesNetCore.cs" />
     <Compile Include="CSharp\CSharpWinForms.cs" />
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
-    <Compile Include="Extensions\CommonExtensions.cs" />
-    <Compile Include="Extensions\CommonExtensions.Verifiers.cs" />
-    <Compile Include="Extensions\EditorExtensions.cs" />
-    <Compile Include="Extensions\EditorExtensions.Verifiers.cs" />
-    <Compile Include="Extensions\ErrorListExtensions.Verifiers.cs" />
-    <Compile Include="Extensions\ErrorListExtensions.cs" />
-    <Compile Include="Extensions\InteractiveExtensions.cs" />
-    <Compile Include="Extensions\InteractiveExtensions.Verifiers.cs" />
-    <Compile Include="Extensions\SolutionExplorerExtensions.Verifiers.cs" />
-    <Compile Include="Extensions\SolutionExplorerExtensions.cs" />
-    <Compile Include="Extensions\SetOptionsExtensions.cs" />
+    <Compile Include="VisualBasic\BasicEncapsulateField.cs" />
+    <Compile Include="VisualBasic\BasicLineCommit.cs" />
     <Compile Include="VisualBasic\BasicSquigglesCommon.cs" />
     <Compile Include="VisualBasic\BasicSquigglesDesktop.cs" />
     <Compile Include="VisualBasic\BasicSquigglesNetCore.cs" />
@@ -242,5 +234,6 @@
     <Reference Include="UIAutomationClient" />
     <Reference Include="UIAutomationTypes" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

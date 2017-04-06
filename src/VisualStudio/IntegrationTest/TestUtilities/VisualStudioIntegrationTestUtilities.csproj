@@ -53,10 +53,17 @@
     <Compile Include="Interop\NativeMethods.cs" />
     <Compile Include="LightBulbHelper.cs" />
     <Compile Include="OutOfProcess\ChangeSignatureDialog_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\Editor_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\ErrorList_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\InteractiveWindow_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\TextViewWindow_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\EncapsulateField_OutOfProc.cs" />
     <Compile Include="OutOfProcess\ErrorList_OutOfProc.cs" />
     <Compile Include="OutOfProcess\FindReferencesWindow_OutOfProc.cs" />
     <Compile Include="OutOfProcess\GenerateTypeDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\OutOfProcComponent.cs" />
+    <Compile Include="OutOfProcess\PreviewChangesDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\Shell_OutOfProc.cs" />
     <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
     <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
