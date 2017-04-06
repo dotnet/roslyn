@@ -5086,5 +5086,779 @@ class Test1 : I1
 
             ValidateEventImplementation_501(compilation1.SourceModule, "Test1");
         }
+
+        [Fact]
+        public void BaseIsNotAllowed_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() 
+    {
+        base.GetHashCode();
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (6,9): error CS0174: A base class is required for a 'base' reference
+                //         base.GetHashCode();
+                Diagnostic(ErrorCode.ERR_NoBaseClass, "base").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void ThisIsAllowed_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    }
+
+    int P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I1.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I1.set_P1"");
+    }
+
+    event System.Action E1
+    {
+        add => System.Console.WriteLine(""I1.add_E1"");
+        remove => System.Console.WriteLine(""I1.remove_E1"");
+    }
+}
+
+public interface I2 : I1
+{
+    void M2() 
+    {
+        System.Console.WriteLine(""I2.M2"");
+        System.Console.WriteLine(this.GetHashCode());
+        this.M1();
+        this.P1 = this.P1;
+        this.E1 += null;
+        this.E1 -= null;
+        this.M3();
+        this.P3 = this.P3;
+        this.E3 += null;
+        this.E3 -= null;
+    }
+
+    int P2
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.get_P2"");
+            System.Console.WriteLine(this.GetHashCode());
+            this.M1();
+            this.P1 = this.P1;
+            this.E1 += null;
+            this.E1 -= null;
+            this.M3();
+            this.P3 = this.P3;
+            this.E3 += null;
+            this.E3 -= null;
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""I2.set_P2"");
+            System.Console.WriteLine(this.GetHashCode());
+            this.M1();
+            this.P1 = this.P1;
+            this.E1 += null;
+            this.E1 -= null;
+            this.M3();
+            this.P3 = this.P3;
+            this.E3 += null;
+            this.E3 -= null;
+        }
+    }
+
+    event System.Action E2
+    {
+        add
+        {
+            System.Console.WriteLine(""I2.add_E2"");
+            System.Console.WriteLine(this.GetHashCode());
+            this.M1();
+            this.P1 = this.P1;
+            this.E1 += null;
+            this.E1 -= null;
+            this.M3();
+            this.P3 = this.P3;
+            this.E3 += null;
+            this.E3 -= null;
+        }
+        remove
+        {
+            System.Console.WriteLine(""I2.remove_E2"");
+            System.Console.WriteLine(this.GetHashCode());
+            this.M1();
+            this.P1 = this.P1;
+            this.E1 += null;
+            this.E1 -= null;
+            this.M3();
+            this.P3 = this.P3;
+            this.E3 += null;
+            this.E3 -= null;
+        }
+    }
+
+    void M3() 
+    {
+        System.Console.WriteLine(""I2.M3"");
+    }
+
+    int P3
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.get_P3"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I2.set_P3"");
+    }
+
+    event System.Action E3
+    {
+        add => System.Console.WriteLine(""I2.add_E3"");
+        remove => System.Console.WriteLine(""I2.remove_E3"");
+    }
+}
+
+
+class Test1 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test1();
+        x.M2();
+        x.P2 = x.P2;
+        x.E2 += null;
+        x.E2 -= null;
+    }
+
+    public override int GetHashCode()
+    {
+        return 123;
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            CompileAndVerify(compilation1, verify: false);
+
+/* Expected output
+I2.M2
+123
+I1.M1
+I1.get_P1
+I1.set_P1
+I1.add_E1
+I1.remove_E1
+I2.M3
+I2.get_P3
+I2.set_P3
+I2.add_E3
+I2.remove_E3
+I2.get_P2
+123
+I1.M1
+I1.get_P1
+I1.set_P1
+I1.add_E1
+I1.remove_E1
+I2.M3
+I2.get_P3
+I2.set_P3
+I2.add_E3
+I2.remove_E3
+I2.set_P2
+123
+I1.M1
+I1.get_P1
+I1.set_P1
+I1.add_E1
+I1.remove_E1
+I2.M3
+I2.get_P3
+I2.set_P3
+I2.add_E3
+I2.remove_E3
+I2.add_E2
+123
+I1.M1
+I1.get_P1
+I1.set_P1
+I1.add_E1
+I1.remove_E1
+I2.M3
+I2.get_P3
+I2.set_P3
+I2.add_E3
+I2.remove_E3
+I2.remove_E2
+123
+I1.M1
+I1.get_P1
+I1.set_P1
+I1.add_E1
+I1.remove_E1
+I2.M3
+I2.get_P3
+I2.set_P3
+I2.add_E3
+I2.remove_E3
+*/
+        }
+
+        [Fact]
+        public void ThisIsAllowed_02()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public int F1;
+}
+
+public interface I2 : I1
+{
+    void M2() 
+    {
+        this.F1 = this.F2;
+    }
+
+    int P2
+    {
+        get
+        {
+            this.F1 = this.F2;
+            return 0;
+        }
+        set
+        {
+            this.F1 = this.F2;
+        }
+    }
+
+    event System.Action E2
+    {
+        add
+        {
+            this.F1 = this.F2;
+        }
+        remove
+        {
+            this.F1 = this.F2;
+        }
+    }
+
+    public int F2;
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (4,16): error CS0525: Interfaces cannot contain fields
+                //     public int F1;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 16),
+                // (39,16): error CS0525: Interfaces cannot contain fields
+                //     public int F2;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F2").WithLocation(39, 16)
+                );
+        }
+
+        [Fact]
+        public void ImplicitThisIsAllowed_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    }
+
+    int P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I1.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I1.set_P1"");
+    }
+
+    event System.Action E1
+    {
+        add => System.Console.WriteLine(""I1.add_E1"");
+        remove => System.Console.WriteLine(""I1.remove_E1"");
+    }
+}
+
+public interface I2 : I1
+{
+    void M2() 
+    {
+        System.Console.WriteLine(""I2.M2"");
+        System.Console.WriteLine(GetHashCode());
+        M1();
+        P1 = P1;
+        E1 += null;
+        E1 -= null;
+        M3();
+        P3 = P3;
+        E3 += null;
+        E3 -= null;
+    }
+
+    int P2
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.get_P2"");
+            System.Console.WriteLine(GetHashCode());
+            M1();
+            P1 = P1;
+            E1 += null;
+            E1 -= null;
+            M3();
+            P3 = P3;
+            E3 += null;
+            E3 -= null;
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""I2.set_P2"");
+            System.Console.WriteLine(GetHashCode());
+            M1();
+            P1 = P1;
+            E1 += null;
+            E1 -= null;
+            M3();
+            P3 = P3;
+            E3 += null;
+            E3 -= null;
+        }
+    }
+
+    event System.Action E2
+    {
+        add
+        {
+            System.Console.WriteLine(""I2.add_E2"");
+            System.Console.WriteLine(GetHashCode());
+            M1();
+            P1 = P1;
+            E1 += null;
+            E1 -= null;
+            M3();
+            P3 = P3;
+            E3 += null;
+            E3 -= null;
+        }
+        remove
+        {
+            System.Console.WriteLine(""I2.remove_E2"");
+            System.Console.WriteLine(GetHashCode());
+            M1();
+            P1 = P1;
+            E1 += null;
+            E1 -= null;
+            M3();
+            P3 = P3;
+            E3 += null;
+            E3 -= null;
+        }
+    }
+
+    void M3() 
+    {
+        System.Console.WriteLine(""I2.M3"");
+    }
+
+    int P3
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.get_P3"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I2.set_P3"");
+    }
+
+    event System.Action E3
+    {
+        add => System.Console.WriteLine(""I2.add_E3"");
+        remove => System.Console.WriteLine(""I2.remove_E3"");
+    }
+}
+
+
+class Test1 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test1();
+        x.M2();
+        x.P2 = x.P2;
+        x.E2 += null;
+        x.E2 -= null;
+    }
+
+    public override int GetHashCode()
+    {
+        return 123;
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, verify: false);
+
+/* Expected output
+I2.M2
+123
+I1.M1
+I1.get_P1
+I1.set_P1
+I1.add_E1
+I1.remove_E1
+I2.M3
+I2.get_P3
+I2.set_P3
+I2.add_E3
+I2.remove_E3
+I2.get_P2
+123
+I1.M1
+I1.get_P1
+I1.set_P1
+I1.add_E1
+I1.remove_E1
+I2.M3
+I2.get_P3
+I2.set_P3
+I2.add_E3
+I2.remove_E3
+I2.set_P2
+123
+I1.M1
+I1.get_P1
+I1.set_P1
+I1.add_E1
+I1.remove_E1
+I2.M3
+I2.get_P3
+I2.set_P3
+I2.add_E3
+I2.remove_E3
+I2.add_E2
+123
+I1.M1
+I1.get_P1
+I1.set_P1
+I1.add_E1
+I1.remove_E1
+I2.M3
+I2.get_P3
+I2.set_P3
+I2.add_E3
+I2.remove_E3
+I2.remove_E2
+123
+I1.M1
+I1.get_P1
+I1.set_P1
+I1.add_E1
+I1.remove_E1
+I2.M3
+I2.get_P3
+I2.set_P3
+I2.add_E3
+I2.remove_E3
+*/
+        }
+
+        [Fact]
+        public void ImplicitThisIsAllowed_02()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public int F1;
+}
+
+public interface I2 : I1
+{
+    void M2() 
+    {
+        F1 = F2;
+    }
+
+    int P2
+    {
+        get
+        {
+            F1 = F2;
+            return 0;
+        }
+        set
+        {
+            F1 = F2;
+        }
+    }
+
+    event System.Action E2
+    {
+        add
+        {
+            F1 = F2;
+        }
+        remove
+        {
+            F1 = F2;
+        }
+    }
+
+    public int F2;
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (4,16): error CS0525: Interfaces cannot contain fields
+                //     public int F1;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 16),
+                // (39,16): error CS0525: Interfaces cannot contain fields
+                //     public int F2;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F2").WithLocation(39, 16)
+                );
+        }
+
+        [Fact]
+        public void ImplicitThisIsAllowed_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public int F1;
+
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    }
+
+    int P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I1.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I1.set_P1"");
+    }
+
+    event System.Action E1
+    {
+        add => System.Console.WriteLine(""I1.add_E1"");
+        remove => System.Console.WriteLine(""I1.remove_E1"");
+    }
+
+    public interface I2 : I1
+    {
+        void M2() 
+        {
+            M1();
+            P1 = P1;
+            E1 += null;
+            E1 -= null;
+            F1 = 0;
+        }
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (27,22): error CS0524: 'I1.I2': interfaces cannot declare types
+                //     public interface I2 : I1
+                Diagnostic(ErrorCode.ERR_InterfacesCannotContainTypes, "I2").WithArguments("I1.I2").WithLocation(27, 22),
+                // (4,16): error CS0525: Interfaces cannot contain fields
+                //     public int F1;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 16)
+                );
+        }
+
+        [Fact]
+        public void ImplicitThisIsAllowed_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public int F1;
+
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    }
+
+    int P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I1.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I1.set_P1"");
+    }
+
+    event System.Action E1
+    {
+        add => System.Console.WriteLine(""I1.add_E1"");
+        remove => System.Console.WriteLine(""I1.remove_E1"");
+    }
+
+    public interface I2
+    {
+        void M2() 
+        {
+            M1();
+            P1 = P1;
+            E1 += null;
+            E1 -= null;
+            F1 = 0;
+        }
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (27,22): error CS0524: 'I1.I2': interfaces cannot declare types
+                //     public interface I2
+                Diagnostic(ErrorCode.ERR_InterfacesCannotContainTypes, "I2").WithArguments("I1.I2").WithLocation(27, 22),
+                // (4,16): error CS0525: Interfaces cannot contain fields
+                //     public int F1;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 16),
+                // (31,13): error CS0120: An object reference is required for the non-static field, method, or property 'I1.M1()'
+                //             M1();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "M1").WithArguments("I1.M1()").WithLocation(31, 13),
+                // (32,13): error CS0120: An object reference is required for the non-static field, method, or property 'I1.P1'
+                //             P1 = P1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "P1").WithArguments("I1.P1").WithLocation(32, 13),
+                // (32,18): error CS0120: An object reference is required for the non-static field, method, or property 'I1.P1'
+                //             P1 = P1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "P1").WithArguments("I1.P1").WithLocation(32, 18),
+                // (33,13): error CS0120: An object reference is required for the non-static field, method, or property 'I1.E1'
+                //             E1 += null;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "E1").WithArguments("I1.E1").WithLocation(33, 13),
+                // (34,13): error CS0120: An object reference is required for the non-static field, method, or property 'I1.E1'
+                //             E1 -= null;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "E1").WithArguments("I1.E1").WithLocation(34, 13),
+                // (35,13): error CS0120: An object reference is required for the non-static field, method, or property 'I1.F1'
+                //             F1 = 0;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F1").WithArguments("I1.F1").WithLocation(35, 13)
+                );
+        }
+
+        [Fact]
+        public void ImplicitThisIsAllowed_05()
+        {
+            var source1 =
+@"
+public class C1
+{
+    public int F1;
+
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    }
+
+    int P1
+    {
+        get
+        {
+            System.Console.WriteLine(""I1.get_P1"");
+            return 0;
+        }
+        set => System.Console.WriteLine(""I1.set_P1"");
+    }
+
+    event System.Action E1
+    {
+        add => System.Console.WriteLine(""I1.add_E1"");
+        remove => System.Console.WriteLine(""I1.remove_E1"");
+    }
+
+    public interface I2
+    {
+        void M2() 
+        {
+            M1();
+            P1 = P1;
+            E1 += null;
+            E1 -= null;
+            F1 = 0;
+        }
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (31,13): error CS0120: An object reference is required for the non-static field, method, or property 'C1.M1()'
+                //             M1();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "M1").WithArguments("C1.M1()").WithLocation(31, 13),
+                // (32,13): error CS0120: An object reference is required for the non-static field, method, or property 'C1.P1'
+                //             P1 = P1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "P1").WithArguments("C1.P1").WithLocation(32, 13),
+                // (32,18): error CS0120: An object reference is required for the non-static field, method, or property 'C1.P1'
+                //             P1 = P1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "P1").WithArguments("C1.P1").WithLocation(32, 18),
+                // (33,13): error CS0120: An object reference is required for the non-static field, method, or property 'C1.E1'
+                //             E1 += null;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "E1").WithArguments("C1.E1").WithLocation(33, 13),
+                // (34,13): error CS0120: An object reference is required for the non-static field, method, or property 'C1.E1'
+                //             E1 -= null;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "E1").WithArguments("C1.E1").WithLocation(34, 13),
+                // (35,13): error CS0120: An object reference is required for the non-static field, method, or property 'C1.F1'
+                //             F1 = 0;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F1").WithArguments("C1.F1").WithLocation(35, 13)
+                );
+        }
     }
 }

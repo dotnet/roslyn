@@ -1319,7 +1319,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declaringType = members[0].ContainingType;
 
             HashSet<DiagnosticInfo> unused = null;
-            if (currentType.IsEqualToOrDerivedFrom(declaringType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref unused))
+            if (currentType.IsEqualToOrDerivedFrom(declaringType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref unused) ||
+                (currentType.IsInterface && (declaringType.IsObjectType() || currentType.AllInterfacesNoUseSiteDiagnostics.Contains(declaringType))))
             {
                 return ThisReference(syntax, currentType, wasCompilerGenerated: true);
             }
@@ -1537,8 +1538,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var currentType = this.ContainingType;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
-            if (currentType.IsEqualToOrDerivedFrom(member.ContainingType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
+            NamedTypeSymbol declaringType = member.ContainingType;
+            if (currentType.IsEqualToOrDerivedFrom(declaringType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics) ||
+                (currentType.IsInterface && (declaringType.IsObjectType() || currentType.AllInterfacesNoUseSiteDiagnostics.Contains(declaringType))))
             {
                 bool hasErrors = false;
                 if (EnclosingNameofArgument != node)
@@ -1577,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return TryBindInteractiveReceiver(node, this.ContainingMemberOrLambda, currentType, member.ContainingType);
+                return TryBindInteractiveReceiver(node, this.ContainingMemberOrLambda, currentType, declaringType);
             }
         }
 
