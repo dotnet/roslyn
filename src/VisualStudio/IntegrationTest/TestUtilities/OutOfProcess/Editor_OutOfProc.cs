@@ -250,6 +250,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
             return _editorInProc.IsNavBarEnabled();
+        }
 
         public TextSpan[] GetKeywordHighlightTags()
             => Deserialize(_editorInProc.GetHighlightTags());
