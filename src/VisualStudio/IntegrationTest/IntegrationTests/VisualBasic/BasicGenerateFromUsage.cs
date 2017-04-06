@@ -3,8 +3,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -28,8 +26,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         Dim x As String = $$xyz
     End Sub
 End Module");
-            this.VerifyCodeAction("Generate local 'xyz'", applyFix: true);
-            this.VerifyTextContains(
+            VisualStudio.Editor.Verify.CodeAction("Generate local 'xyz'", applyFix: true);
+            VisualStudio.Editor.Verify.TextContains(
 @"Module Program
     Sub Main(args As String())
         Dim xyz As String = Nothing

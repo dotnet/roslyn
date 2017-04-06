@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -32,8 +28,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         string s = $$xyz;
     }
 }");
-            this.VerifyCodeAction("Generate local 'xyz'", applyFix: true);
-            this.VerifyTextContains(
+            VisualStudio.Editor.Verify.CodeAction("Generate local 'xyz'", applyFix: true);
+            VisualStudio.Editor.Verify.TextContains(
 @"class Program
 {
     static void Main(string[] args)
