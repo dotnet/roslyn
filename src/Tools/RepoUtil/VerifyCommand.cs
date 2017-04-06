@@ -101,10 +101,10 @@ namespace RepoUtil
                 var packages = GenerateUtil.GetFilteredPackages(data, repoData);
 
                 // Need to verify the contents of the generated file are correct.
-                var fileName = new FileName(_generateDirectory, data.RelativeFilePath);
+                var fileName = new FileName(_generateDirectory, data.RelativeFilePath.Replace("\\", "/"));
                 var actualContent = File.ReadAllText(fileName.FullPath, GenerateUtil.Encoding);
                 var expectedContent = GenerateUtil.GenerateMSBuildContent(packages);
-                if (actualContent != expectedContent)
+                if (actualContent.Trim() != expectedContent.Trim())
                 {
                     writer.WriteLine($"{fileName.RelativePath} does not have the expected contents");
                     allGood = false;
@@ -112,7 +112,7 @@ namespace RepoUtil
 
                 if (!allGood)
                 {
-                    writer.WriteLine($@"Generated contents out of date. Run ""RepoUtil.change"" to correct");
+                    writer.WriteLine($@"Generated contents out of date. Run ""RepoUtil change"" to correct");
                     return false;
                 }
 
