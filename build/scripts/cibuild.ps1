@@ -108,7 +108,7 @@ try {
     Terminate-BuildProcesses
 
     if ($testDeterminism) {
-        Exec { & ".\build\scripts\test-determinism.ps1" $bootstrapDir }
+        Exec { & ".\build\scripts\test-determinism.ps1" -buildDir $bootstrapDir }
         Terminate-BuildProcesses
         exit 0
     }
