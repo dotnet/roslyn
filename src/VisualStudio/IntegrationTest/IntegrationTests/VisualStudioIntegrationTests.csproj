@@ -40,6 +40,7 @@
     <Compile Include="CSharp\CSharpInteractive.cs" />
     <Compile Include="AbstractEditorTest.cs" />
     <Compile Include="CSharp\CSharpInteractiveCommands.cs" />
+    <Compile Include="CSharp\CSharpOrganizing.cs" />
     <Compile Include="CSharp\CSharpNavigationBar.cs" />
     <Compile Include="CSharp\CSharpKeywordHighlighting.cs" />
     <Compile Include="CSharp\CSharpReplClassification.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="VisualBasic\BasicErrorListCommon.cs" />
     <Compile Include="VisualBasic\BasicErrorListDesktop.cs" />
     <Compile Include="VisualBasic\BasicErrorListNetCore.cs" />
+    <Compile Include="VisualBasic\BasicOrganizing.cs" />
     <Compile Include="Workspace\WorkspaceBase.cs" />
     <Compile Include="Workspace\WorkspacesDesktop.cs" />
     <Compile Include="Workspace\WorkspacesNetCore.cs" />
