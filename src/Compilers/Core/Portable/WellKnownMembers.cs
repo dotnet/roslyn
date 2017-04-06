@@ -2881,7 +2881,7 @@ namespace Microsoft.CodeAnalysis
 
                  // System_Runtime_CompilerServices_ReadOnlyAttribute__ctor
                  (byte)(MemberFlags.Constructor),                                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute - WellKnownType.ExtSentinel),        // DeclaringTypeId
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute - WellKnownType.ExtSentinel),          // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                      0,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
