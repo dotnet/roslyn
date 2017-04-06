@@ -54,6 +54,7 @@
     <Compile Include="CSharp\CSharpWinForms.cs" />
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
     <Compile Include="VisualBasic\BasicEncapsulateField.cs" />
+    <Compile Include="VisualBasic\BasicLineCommit.cs" />
     <Compile Include="VisualBasic\BasicSquigglesCommon.cs" />
     <Compile Include="VisualBasic\BasicSquigglesDesktop.cs" />
     <Compile Include="VisualBasic\BasicSquigglesNetCore.cs" />
