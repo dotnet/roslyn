@@ -209,6 +209,11 @@ $@"create table if not exists ""{StringInfoTableName}"" (
     ""{DataIdColumnName}"" integer primary key autoincrement not null,
     ""{DataColumnName}"" varchar)");
 
+                // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
+                // We don't allow duplicate strings in this table.
+                connection.ExecuteCommand(
+$@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on ""{StringInfoTableName}""(""{DataColumnName}"")");
+
                 connection.ExecuteCommand(
 $@"create table if not exists ""{SolutionDataTableName}"" (
     ""{DataIdColumnName}"" varchar primary key not null,
@@ -223,17 +228,6 @@ $@"create table if not exists ""{ProjectDataTableName}"" (
 $@"create table if not exists ""{DocumentDataTableName}"" (
     ""{DataIdColumnName}"" integer primary key not null,
     ""{DataColumnName}"" blob)");
-
-                // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
-                // We don't allow duplicate strings in this table.
-                connection.ExecuteCommand(
-$@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on ""{StringInfoTableName}""(""{DataColumnName}"")");
-
-                // Name, make the indices for the solution, project, and data tables so we can
-                // look up by DataId very easily
-                //CreateIndex(SolutionDataTableName);
-                //CreateIndex(ProjectDataTableName);
-                //CreateIndex(DocumentDataTableName);
 
                 // Also get the known set of string-to-id mappings we already have in the DB.
                 FetchStringTable(connection);
