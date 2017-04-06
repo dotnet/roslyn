@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -17,7 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        private InlineRenameDialog_OutOfProc InlineRenameDialog => VisualStudio.Instance.InlineRenameDialog;
+        private InlineRenameDialog_OutOfProc InlineRenameDialog => VisualStudio.InlineRenameDialog;
 
         public BasicRename(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, nameof(BasicRename))
@@ -46,11 +45,11 @@ End Module";
             InlineRenameDialog.Invoke();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.Verify.TextContains(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -94,11 +93,11 @@ End Module";
             InlineRenameDialog.ToggleIncludeComments();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.Verify.TextContains(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -137,11 +136,11 @@ End Module";
             InlineRenameDialog.ToggleIncludeStrings();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.Verify.TextContains(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -175,11 +174,11 @@ End Class";
             InlineRenameDialog.ToggleIncludeOverloads();
 
             MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.Verify.TextContains(@"
 Interface I
     Sub y(y As Integer)
     Sub y(y As String)
