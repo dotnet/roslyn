@@ -317,8 +317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var simpleNameText = token.ValueText;
                 return simpleNameText == "var" ||
-                    simpleNameText == "dynamic" ||
-                    SyntaxFacts.GetContextualKeywordKind(simpleNameText) != SyntaxKind.None;
+                       simpleNameText == "dynamic" ||
+                       SyntaxFacts.GetContextualKeywordKind(simpleNameText) != SyntaxKind.None;
             }
 
             return false;
