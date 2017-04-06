@@ -62,6 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
+            if (simpleName.IsVar)
+            {
+                // 'var' is much more likely to represent a keyword rather than "a possible type name".
+                return false;
+            }
+
             // Looks good.  However, feel free to add additional checks if this function is too
             // lenient in some circumstances.
             return true;

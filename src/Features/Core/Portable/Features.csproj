@@ -100,6 +100,10 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddImport\SearchScopes\AllSymbolsProjectSearchScope.cs" />
+    <Compile Include="AddImport\SearchScopes\MetadataSymbolsSearchScope.cs" />
+    <Compile Include="AddImport\SearchScopes\ProjectSearchScope.cs" />
+    <Compile Include="AddImport\SearchScopes\SourceSymbolsProjectSearchScope.cs" />
     <Compile Include="AddImport\SymbolReferenceFinder_PackageAssemblySearch.cs" />
     <Compile Include="AddPackage\AbstractAddPackageCodeFixProvider.cs" />
     <Compile Include="AddPackage\AbstractAddSpecificPackageCodeFixProvider.cs" />
@@ -126,14 +130,14 @@
     <Compile Include="Diagnostics\SymbolAnalysisContextExtensions.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldRefactoringProvider.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
+    <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
+    <Compile Include="AddConstructorParametersFromMembers\State.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
-    <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
-    <Compile Include="AddConstructorParametersFromMembers\State.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersOptions.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorWithDialogCodeAction.cs" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\FormatLargeBinaryExpressionRule.cs" />
@@ -141,6 +145,9 @@
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndHashWithDialogCodeAction.cs" />
     <Compile Include="GenerateOverrides\GenerateOverridesWithDialogCodeAction.cs" />
     <Compile Include="GenerateOverrides\GenerateOverridesCodeRefactoringProvider.cs" />
+    <Compile Include="InitializeParameter\AbstractInitializeMemberFromParameterCodeRefactoringProviderMemberCreation.cs" />
+    <Compile Include="InitializeParameter\AbstractAddParameterCheckCodeRefactoringProvider.cs" />
+    <Compile Include="InitializeParameter\AbstractInitializeParameterCodeRefactoringProvider.cs" />
     <Compile Include="PickMembers\IPickMembersService.cs" />
     <Compile Include="PickMembers\PickMembersResult.cs" />
     <Compile Include="GenerateFromMembers\SelectedMemberInfo.cs" />
@@ -172,6 +179,7 @@
     <Compile Include="TodoComments\IRemoteTodoCommentService.cs" />
     <Compile Include="TodoComments\ITodoCommentService.cs" />
     <Compile Include="UpgradeProject\AbstractUpgradeProjectCodeFixProvider.cs" />
+    <Compile Include="UseCollectionInitializer\AbstractObjectCreationExpressionAnalyzer.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
@@ -212,7 +220,7 @@
     <Compile Include="AddImport\References\PackageReference.cs" />
     <Compile Include="AddImport\References\ProjectSymbolReference.cs" />
     <Compile Include="AddImport\References\Reference.cs" />
-    <Compile Include="AddImport\SearchScope.cs" />
+    <Compile Include="AddImport\SearchScopes\SearchScope.cs" />
     <Compile Include="AddImport\References\SymbolReference.cs" />
     <Compile Include="AddImport\SymbolReferenceFinder.cs" />
     <Compile Include="AddImport\SymbolResult.cs" />

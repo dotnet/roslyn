@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CodeFixes;
+using System.Windows.Automation;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -11,12 +13,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     /// </summary>
     public partial class Editor_OutOfProc : TextViewWindow_OutOfProc
     {
+        public new Verifier Verify { get; }
+
         private readonly Editor_InProc _editorInProc;
+        private readonly VisualStudioInstance _instance;
 
         internal Editor_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
+            _instance = visualStudioInstance;
             _editorInProc = (Editor_InProc)_textViewWindowInProc;
+            Verify = new Verifier(this, _instance);
         }
 
         internal override TextViewWindow_InProc CreateInProcComponent(VisualStudioInstance visualStudioInstance)
@@ -58,6 +65,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.IsCompletionActive();
         }
 
+        public void InvokeSignatureHelp()
+        {
+            _instance.ExecuteCommand(WellKnownCommandNames.Edit_ParameterInfo);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
+        }
+
         public bool IsSignatureHelpActive()
         {
             WaitForSignatureHelp();
@@ -76,29 +89,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.GetCurrentSignature();
         }
 
-        public string GetQuickInfo()
+        public void InvokeNavigateTo(string text)
         {
-            WaitForQuickInfo();
-            return _editorInProc.GetQuickInfo();
+            _instance.ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);
+            NavigateToSendKeys(text);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigateTo);
         }
 
-        public void ShowLightBulb()
-            => _editorInProc.ShowLightBulb();
+        public void SelectTextInCurrentDocument(string text)
+        {
+            PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
+            PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
+        }
 
-        public void WaitForLightBulbSession()
-            => _editorInProc.WaitForLightBulbSession();
-
-        public void DismissLightBulbSession()
-            => _editorInProc.DismissLightBulbSession();
-
-        public bool IsLightBulbSessionExpanded()
-            => _editorInProc.IsLightBulbSessionExpanded();
-
-        public string[] GetLightBulbActions()
-            => _editorInProc.GetLightBulbActions();
-
-        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
-            => _editorInProc.ApplyLightBulbAction(action, fixAllScope, blockUntilComplete);
+        public void DeleteText(string text)
+        {
+            SelectTextInCurrentDocument(text);
+            SendKeys(VirtualKey.Delete);
+        }
 
         public bool IsCaretOnScreen()
             => _editorInProc.IsCaretOnScreen();
@@ -132,6 +140,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void MessageBox(string message)
             => _editorInProc.MessageBox(message);
 
+        public AutomationElement GetDialog(string dialogAutomationId)
+        {
+            var dialog = DialogHelpers.GetOpenDialogById(_instance.Shell.GetHWnd(), dialogAutomationId);
+            return dialog;
+        }
+
         public void VerifyDialog(string dialogName, bool isOpen)
             => _editorInProc.VerifyDialog(dialogName, isOpen);
 
@@ -144,10 +158,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void Undo()
             => _editorInProc.Undo();
 
+        public void GoToDefinition()
+            => _editorInProc.GoToDefinition();
+
         public void NavigateToSendKeys(string keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
 
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);
+
+        public string[] GetErrorTags()
+            => _editorInProc.GetErrorTags();
     }
 }

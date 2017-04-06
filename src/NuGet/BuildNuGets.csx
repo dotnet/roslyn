@@ -85,6 +85,7 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.Compilers",
     "Microsoft.CodeAnalysis.CSharp.Features",
     "Microsoft.CodeAnalysis.CSharp",
+    "Microsoft.CodeAnalysis.CSharp.CodeStyle",
     "Microsoft.CodeAnalysis.CSharp.Scripting",
     "Microsoft.CodeAnalysis.CSharp.Workspaces",
     "Microsoft.CodeAnalysis.EditorFeatures",
@@ -96,6 +97,7 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.Scripting",
     "Microsoft.CodeAnalysis.VisualBasic.Features",
     "Microsoft.CodeAnalysis.VisualBasic",
+    "Microsoft.CodeAnalysis.VisualBasic.CodeStyle",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
     "Microsoft.CodeAnalysis.Workspaces.Common",
@@ -215,8 +217,12 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
 
     if (!IsCoreBuild)
     {
+        // The -NoPackageAnalysis argument is to work around the following issue.  The warning output of 
+        // NuGet gets promoted to an error by MSBuild /warnaserror
+        // https://github.com/dotnet/roslyn/issues/18152
         commonArgs = $"-BasePath \"{BinDir}\" " +
         $"-OutputDirectory \"{OutDir}\" " +
+        $"-NoPackageAnalysis " +
         string.Join(" ", commonProperties.Select(p => $"-prop {p.Key}=\"{p.Value}\""));
     }
     else

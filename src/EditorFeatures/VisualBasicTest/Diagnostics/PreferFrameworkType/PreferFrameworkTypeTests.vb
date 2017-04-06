@@ -1,6 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
+Option Strict On
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
@@ -13,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
     Partial Public Class PreferFrameworkTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Private ReadOnly onWithInfo = New CodeStyleOption(Of Boolean)(True, NotificationOption.Suggestion)
-        Private ReadOnly offWithInfo = New CodeStyleOption(Of Boolean)(False, NotificationOption.Suggestion)
+        Private ReadOnly onWithInfo As New CodeStyleOption(Of Boolean)(True, NotificationOption.Suggestion)
+        Private ReadOnly offWithInfo As New CodeStyleOption(Of Boolean)(False, NotificationOption.Suggestion)
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicPreferFrameworkTypeDiagnosticAnalyzer(),
