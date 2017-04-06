@@ -11,10 +11,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IHasArgumentsExpression : IOperation
     {
         /// <summary>
-        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order,
-        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
-        /// optional arguments missing in source.
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// Default values are supplied for optional arguments missing in source. Because they are always constant, their
+        /// evaluation will not impact the evaluation order of the remaining arguments, therefore are appended at the end 
+        /// of the returned argument list.
+        /// </remarks>
         ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
     }
 }
