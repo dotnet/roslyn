@@ -202,7 +202,7 @@ namespace RepoUtil
             var msbuildData = _repoData.RepoConfig.MSBuildGenerateData;
             if (msbuildData.HasValue)
             {
-                var fileName = new FileName(_generateDirectory, msbuildData.Value.RelativeFilePath.Replace("\\", "/"));
+                var fileName = new FileName(_generateDirectory, msbuildData.Value.RelativeFilePath);
                 var packages = GenerateUtil.GetFilteredPackages(msbuildData.Value, _repoData);
                 GenerateUtil.WriteMSBuildContent(fileName, packages);
             }
