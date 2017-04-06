@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// 
         ///  SolutionData
         ///  -----------------------------------------------
-        ///  | DataId (varchar primary key ) | Data (blob) |
+        ///  | DataId (primary key, varchar) | Data (blob) |
         ///  -----------------------------------------------
         /// </summary>
         private const string SolutionDataTableName = "SolutionData" + Version;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// 
         ///  DocumentData
         ///  ----------------------------------------------
-        ///  | DataId (primary key integer) | Data (blob) |
+        ///  | DataId (primary key, integer) | Data (blob) |
         ///  ----------------------------------------------
         /// </summary>
         private const string DocumentDataTableName = "DocumentData" + Version;
