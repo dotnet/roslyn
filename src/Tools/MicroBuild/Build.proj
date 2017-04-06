@@ -23,7 +23,7 @@
   </PropertyGroup>
 
   <Target Name="Build">
-    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(RepoRoot)build\scripts\restore.ps1 -msbuildDir &quot;$(MSBuildBinPath)&quot;" Condition="'$(SkipRestore)' != 'true'" />
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(RepoRoot)build\scripts\build.ps1 -restore -msbuildDir &quot;$(MSBuildBinPath)&quot;" Condition="'$(SkipRestore)' != 'true'" />
 
     <MSBuild Projects="$(RepoRoot)Roslyn.sln" BuildInParallel="true" Properties="DeployExtension=false" />
 
