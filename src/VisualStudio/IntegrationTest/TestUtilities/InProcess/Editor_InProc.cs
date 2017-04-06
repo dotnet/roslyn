@@ -21,7 +21,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
-    internal class Editor_InProc : TextViewWindow_InProc
+    internal partial class Editor_InProc : TextViewWindow_InProc
     {
         private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
