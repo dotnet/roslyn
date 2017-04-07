@@ -194,8 +194,8 @@ End Class
                 Dim previousToken = token.GetPreviousToken(includeZeroWidth:=True)
                 Dim ignoreMissingToken = previousToken.IsMissing AndAlso line.Start.Position = position
 
-                Assert.True(VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                            formattingRules, root, line.AsTextLine, workspace.Options, Nothing, ignoreMissingToken))
+                'Assert.True(VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
+                '            formattingRules, root, line.AsTextLine, workspace.Options, Nothing, ignoreMissingToken))
 
                 Dim smartFormatter = New SmartTokenFormatter(Await document.GetOptionsAsync(CancellationToken.None), formattingRules, root)
                 Dim changes = Await smartFormatter.FormatTokenAsync(workspace, token, Nothing)
