@@ -996,6 +996,7 @@ namespace Microsoft.Cci
                 case TypeMemberVisibility.Private:
                     return context.IncludePrivateMembers;
                 case TypeMemberVisibility.Assembly:
+                case TypeMemberVisibility.FamilyAndAssembly:
                     return context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
             }
             return true;
