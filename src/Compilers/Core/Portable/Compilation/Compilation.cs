@@ -2169,7 +2169,7 @@ namespace Microsoft.CodeAnalysis
             options = options ?? EmitOptions.Default.WithIncludePrivateMembers(metadataPEStream == null);
             bool embedPdb = options.DebugInformationFormat == DebugInformationFormat.Embedded;
             Debug.Assert(!embedPdb || pdbStream == null);
-            Debug.Assert(metadataPEStream == null || !options.IncludePrivateMembers);
+            Debug.Assert(metadataPEStream == null || !options.IncludePrivateMembers); // you may not use a secondary stream and include private members together
 
             var diagnostics = DiagnosticBag.GetInstance();
 
