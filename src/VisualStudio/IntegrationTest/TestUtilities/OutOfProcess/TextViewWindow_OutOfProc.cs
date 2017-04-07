@@ -91,6 +91,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
+        /// <summary>
+        /// Invokes the lightbulb without waiting for diagnostics
+        /// Compare to <see cref="InvokeCodeActionList"/>
+        /// </summary>
+        /// <param name="test"></param>
+        public void InvokeCodeActionListWithoutWaiting()
+        {
+            ShowLightBulb();
+            WaitForLightBulbSession();
+        }
+
         public void InvokeQuickInfo()
         {
             _instance.ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
