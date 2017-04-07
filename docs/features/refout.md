@@ -36,7 +36,7 @@ The `/refout` parameter specifies a file path where the ref assembly should be o
 
 The `/refonly` parameter is a flag that indicates that a ref assembly should be output instead of an implementation assembly. 
 The `/refonly` parameter is not allowed together with the `/refout` parameter, as it doesn't make sense to have both the primary and secondary outputs be ref assemblies. Also, the `/refonly` parameter silently disables outputting PDBs, as ref assemblies cannot be executed. 
-The `/refonly` parameter translates to `EmitMetadataOnly` being `true`, `IncludePrivateMembers` being `false` and `TolerateErrors` being `true` in the `Emit` API (see details below).
+The `/refonly` parameter translates to `EmitMetadataOnly` being `true`, and `IncludePrivateMembers` being `false` in the `Emit` API (see details below).
 
 When the compiler produces documentation, the contents produced will match the APIs that go into the primary output. In other words, the documentation will be filtered down when using the `/refonly` parameter.
 
@@ -52,13 +52,13 @@ An additional task, called `CopyRefAssembly`, will be provided along with the ex
 ### CodeAnalysis APIs
 It is already possible to produce metadata-only assemblies by using `EmitOptions.EmitMetadataOnly`, which is used in IDE scenarios with cross-language dependencies.
 The compiler will be updated to honour the `EmitOptions.IncludePrivateMembers` flag as well. When combined with `EmitMetadataOnly` or a `metadataPeStream` in `Emit`, a ref assembly will be produced.
-The `EmitOptions.TolerateErrors` flag will allow emitting methods lacking a body (`void M();`).
+The diagnostic check for emitting methods lacking a body (`void M();`) will be moved from declaration diagnostics to regular diagnostics, so that code will successfully emit with `EmitMetadataOnly`.
 Later on, the `EmitOptions.TolerateErrors` flag will allow emitting error types as well.
 
 Going back to the 4 driving scenarios:
 1. For a regular compilation, `EmitMetadataOnly` is left to `false` and no `metadataPeStream` is passed into `Emit`.
 2. For the IDE scenario, `EmitMetadataOnly` is set to `true`, but `IncludePrivateMembers` is left to `true`.
-3. For the CoreFX scenario, ref assembly source code is used as input, `EmitMetadataOnly` is set to `true`, `IncludePrivateMembers` is set to `false` and `TolerateErrors` is set to `true`.
+3. For the CoreFX scenario, ref assembly source code is used as input, `EmitMetadataOnly` is set to `true`, and `IncludePrivateMembers` is set to `false`.
 4. For the MSBuild scenario, `EmitMetadataOnly` is left to `false`, a `metadataPeStream` is passed in and `IncludePrivateMembers` is set to `false`.
 
 ## Future
