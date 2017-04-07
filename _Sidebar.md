@@ -32,6 +32,13 @@
 [Edit-and-Continue Supported Edits](https://github.com/dotnet/roslyn/wiki/EnC-Supported-Edits)
 
 ***
+
+# .NET Core 
+
+[Runtime Code Generation](https://github.com/dotnet/roslyn/wiki/Runtime-code-generation-using-Roslyn-compilations-in-.NET-Core-App)
+
+***
+
 # Interactive Docs
 [Interactive Window Documentation](https://github.com/dotnet/roslyn/wiki/Interactive-Window)
 
