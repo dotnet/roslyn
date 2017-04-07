@@ -329,7 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Location loc = parameterSyntax.Identifier.GetNextToken(includeZeroWidth: true).GetLocation(); //could be missing
                 diagnostics.Add(ErrorCode.ERR_DefaultValueBeforeRequiredValue, loc);
             }
-            else if (parameter.RefKind != RefKind.None && parameter.Type.IsRestrictedType())
+            else if (parameter.RefKind != RefKind.None && 
+                parameter.Type.IsRestrictedType(ignoreSpanLikeTypes: parameter.RefKind == RefKind.RefReadOnly))
             {
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);

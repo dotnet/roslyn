@@ -133,6 +133,7 @@
     <Compile Include="Semantics\InteractiveUsingTests.cs" />
     <Compile Include="Semantics\ScriptSemanticsTests.cs" />
     <Compile Include="Semantics\SemanticAnalyzerTests.cs" />
+    <Compile Include="Semantics\SpanStackSafetyTests.cs" />
     <Compile Include="Semantics\SemanticErrorTests.cs" />
     <Compile Include="Semantics\StructsTests.cs" />
     <Compile Include="Semantics\SuppressAccessibilityChecksTests.cs" />
