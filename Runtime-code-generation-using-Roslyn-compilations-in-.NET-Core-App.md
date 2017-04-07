@@ -28,5 +28,7 @@ To find out what reference assemblies you need and where to get them you can cre
 
 This approach has the benefit of stable APIs - the reference assemblies will never change, so your code will work on future versions of CoreCLR runtimes.
 
+---
+
 Related issues:
 - https://github.com/dotnet/roslyn/issues/16846
