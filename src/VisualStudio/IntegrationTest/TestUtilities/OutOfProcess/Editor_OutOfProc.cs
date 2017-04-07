@@ -163,12 +163,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _editorInProc.DialogSendKeys(dialogAutomationName, keys);
 
         public void FormatDocument() {
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
         }
 
         public void FormatSelection() {
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
         }
 
