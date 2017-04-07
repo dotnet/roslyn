@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             AddSynthesizedAttributes(compilationState, synthesized)
 
             If emittingRefAssembly AndAlso Not HasReferenceAssemblyAttribute Then
-                Dim referenceAssemblyAttribute = Me.DeclaringCompilation?.
+                Dim referenceAssemblyAttribute = Me.DeclaringCompilation.
                     TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor, isOptionalUse:=True)
 
                 Symbol.AddSynthesizedAttribute(synthesized, referenceAssemblyAttribute)

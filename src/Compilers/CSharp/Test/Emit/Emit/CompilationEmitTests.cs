@@ -243,18 +243,6 @@ class Test2
         {
             var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
 
-            Action<ModuleSymbol> sourceSymbolValidator = module =>
-            {
-                var sourceModule = (SourceModuleSymbol)module;
-                var sourceAssembly = (SourceAssemblySymbol)sourceModule.DeclaringCompilation.Assembly;
-                AssertEx.Equal(new[] {
-                        "System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)",
-                        "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)",
-                        "System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)"
-                    },
-                    sourceAssembly.GetSynthesizedAttributes().Select(a => a.ToString()));
-            };
-
             Action<PEAssembly> assemblyValidator = assembly =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -268,44 +256,29 @@ class Test2
                     attributes.Select(a => MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)));
             };
 
-            CompileAndVerify("", emitOptions: emitRefAssembly, sourceSymbolValidator: sourceSymbolValidator, assemblyValidator: assemblyValidator);
+            CompileAndVerify("", emitOptions: emitRefAssembly, assemblyValidator: assemblyValidator);
         }
 
         [Fact]
         public void RefAssembly_HandlesMissingReferenceAssemblyAttribute()
         {
             var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            var mslib_cs = @"
-namespace System
-{
-    public class Object { }
-    public struct Int32 { }
-    public class ValueType { }
-    public class Attribute { }
-    public struct Void { }
-}";
-            var mslibComp = CreateCompilation(new string[] { mslib_cs }).VerifyDiagnostics();
-            var mslibRef = mslibComp.EmitToImageReference();
-
-            Action<IModuleSymbol> sourceSymbolValidator = module =>
-            {
-                var sourceModule = (SourceModuleSymbol)module;
-                var sourceAssembly = (SourceAssemblySymbol)sourceModule.DeclaringCompilation.Assembly;
-                AssertEx.SetEqual(
-                    new string[] { },
-                    sourceAssembly.GetSynthesizedAttributes().Select(a => a.ToString()));
-            };
 
             Action<PEAssembly> assemblyValidator = assembly =>
             {
                 var reader = assembly.GetMetadataReader();
                 var attributes = reader.GetAssemblyDefinition().GetCustomAttributes();
                 AssertEx.SetEqual(attributes.Select(a => MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)),
-                    new string[] { });
+                    new string[] {
+                        "MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
+                        "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
+                        "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)"
+                    });
             };
 
-            var comp = CreateCompilation("", references: new[] { mslibRef });
-            CompileAndVerify(compilation: comp, emitOptions: emitRefAssembly, sourceSymbolValidator: sourceSymbolValidator, assemblyValidator: assemblyValidator);
+            var comp = CreateCompilationWithMscorlib("");
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor);
+            CompileAndVerify(compilation: comp, emitOptions: emitRefAssembly, assemblyValidator: assemblyValidator);
         }
 
         [Fact]

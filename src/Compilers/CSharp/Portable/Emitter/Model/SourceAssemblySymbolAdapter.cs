@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (emittingRefAssembly && !HasReferenceAssemblyAttribute)
             {
-                var referenceAssemblyAttribute = this.DeclaringCompilation?
+                var referenceAssemblyAttribute = this.DeclaringCompilation
                     .TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor, isOptionalUse: true);
                 Symbol.AddSynthesizedAttribute(ref synthesized, referenceAssemblyAttribute);
             }

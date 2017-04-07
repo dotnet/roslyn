@@ -9043,9 +9043,6 @@ public class C
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
                 );
 
-            // Runtime won't load assembly with ReferenceAssemblyAttribute
-            ProcessUtilities.RunAndGetOutput(Path.Combine(refDir.Path, "a.dll"), startFolder: refDir.Path, expectedRetCode: -532462766);
-
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);
             CleanupAllGeneratedFiles(refDir.Path);

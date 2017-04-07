@@ -323,23 +323,6 @@ End Class
         <Fact>
         Public Sub RefAssembly_HandlesMissingReferenceAssemblyAttribute()
             Dim emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
-            Dim mslib = "
-Namespace System
-    Public Class [Object]
-    End Class
-    Public Class Int32
-    End Class
-    Public Class ValueType
-    End Class
-    Public Class Attribute
-    End Class
-    Public Class Void
-    End Class
-End Namespace
-"
-
-            Dim mslibComp = CreateCompilation({Parse(mslib)}).VerifyDiagnostics()
-            Dim mslibRef = mslibComp.EmitToImageReference()
 
             Dim assemblyValidator As Action(Of PEAssembly) =
                 Sub(assembly)
@@ -348,7 +331,8 @@ End Namespace
                     AssertEx.Empty(attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)))
                 End Sub
 
-            Dim comp = CreateCompilation({Parse("")}, references:={mslibRef})
+            Dim comp = CreateCompilation({Parse("")})
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor)
             CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=True, validator:=assemblyValidator)
         End Sub
 
