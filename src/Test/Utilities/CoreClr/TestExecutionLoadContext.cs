@@ -139,11 +139,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
         {
             var assemblyNames = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            // AppContext.GetData returns a string containing a semicolon-delimited list
+            // AppContext.GetData returns a string containing a separated list
             // of paths to the Trusted Platform Assemblies for this program. The TPA is the
-            // set of assemblies which will always be loaded from this location, regardless
+            // set of assemblies we will always load from this location, regardless
             // of whether or not a load from another location is requested.
-            var platformAssemblies = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")).Split(';');
+            var platformAssemblies = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")).Split(Path.PathSeparator);
             foreach (var assemblyPath in platformAssemblies)
             {
                 if (TryGetAssemblyName(assemblyPath, out string assemblyName))
