@@ -1222,7 +1222,10 @@ End Class
         ' We should get only unique netmodule/assembly attributes here, duplicate ones should not be emitted.
         Dim expectedEmittedAttrsCount As Integer = expectedSrcAttrCount - expectedDuplicateAttrCount
 
-        Dim allEmittedAttrs = assembly.GetCustomAttributesToEmit(New ModuleCompilationState).Cast(Of VisualBasicAttributeData)()
+        Dim allEmittedAttrs = DirectCast(assembly, SourceAssemblySymbol).
+            GetAssemblyCustomAttributesToEmit(New ModuleCompilationState, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
+            Cast(Of VisualBasicAttributeData)()
+
         Dim emittedAttrs = allEmittedAttrs.Where(Function(a) a.AttributeClass.Name.Equals(attrTypeName)).AsImmutable()
 
         Assert.Equal(expectedEmittedAttrsCount, emittedAttrs.Length)
@@ -1504,7 +1507,10 @@ End Class
             expectedDuplicateAttrCount:=1,
             attrTypeName:="AssemblyTitleAttribute")
 
-        Dim attrs = consoleappCompilation.Assembly.GetCustomAttributesToEmit(New ModuleCompilationState).Cast(Of VisualBasicAttributeData)()
+        Dim attrs = DirectCast(consoleappCompilation.Assembly, SourceAssemblySymbol).
+            GetAssemblyCustomAttributesToEmit(New ModuleCompilationState, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
+            Cast(Of VisualBasicAttributeData)()
+
         For Each a In attrs
             Select Case a.AttributeClass.Name
                 Case "AssemblyTitleAttribute"
