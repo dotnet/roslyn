@@ -90,11 +90,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// Returns whether the solution overall has Lightweight solution load enabled,  either
+        /// through the global option in Tools\Options, or the .suo specific option.
+        /// 
+        /// NOTE: Does *NOT* mean that all projects in the solution are deferred.  Project types
+        /// can opt out.  Use <see cref="IVsSolution7.IsDeferredProjectLoadAllowed(string)"/> to
+        /// see if a specific project can be deferred.
+        /// </summary>
         internal static bool IsDeferredSolutionLoadEnabled(IServiceProvider serviceProvider)
         {
-            var solution7 = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution7;
-            return solution7?.IsSolutionLoadDeferred() == true;
+            var solution7 = (IVsSolution7)serviceProvider.GetService(typeof(SVsSolution));
+            return solution7.IsSolutionLoadDeferred();
         }
-
     }
 }
