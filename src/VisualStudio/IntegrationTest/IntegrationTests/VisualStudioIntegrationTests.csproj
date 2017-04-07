@@ -25,6 +25,7 @@
     <Compile Include="CSharp\CSharpF1Help.cs" />
     <Compile Include="CSharp\CSharpInteractiveBoxSelection.cs" />
     <Compile Include="CSharp\CSharpChangeSignatureDialog.cs" />
+    <Compile Include="CSharp\CSharpGenerateFromUsage.cs" />
     <Compile Include="CSharp\CSharpClassification.cs" />
     <Compile Include="CSharp\CSharpErrorListCommon.cs" />
     <Compile Include="CSharp\CSharpErrorListDesktop.cs" />
@@ -90,6 +91,7 @@
     <Compile Include="VisualBasic\BasicQuickInfo.cs" />
     <Compile Include="VisualBasic\BasicNavigateTo.cs" />
     <Compile Include="VisualBasic\BasicGoToDefinition.cs" />
+    <Compile Include="VisualBasic\BasicGenerateFromUsage.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
