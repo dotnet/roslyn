@@ -10037,11 +10037,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to /sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified)..
+        '''  Looks up a localized string similar to /sourcelink switch is only supported when emitting PDB..
         '''</summary>
-        Friend ReadOnly Property ERR_SourceLinkRequiresPortablePdb() As String
+        Friend ReadOnly Property ERR_SourceLinkRequiresPdb() As String
             Get
-                Return ResourceManager.GetString("ERR_SourceLinkRequiresPortablePdb", resourceCulture)
+                Return ResourceManager.GetString("ERR_SourceLinkRequiresPdb", resourceCulture)
             End Get
         End Property
         

@@ -120,7 +120,8 @@ namespace Microsoft.Cci
             OpenMapTokensToSourceSpans,
             MapTokenToSourceSpan,
             CloseMapTokensToSourceSpans,
-            SetSource
+            SetSource,
+            SetSourceLinkData,
         }
 
         public bool LogOperation(PdbWriterOperation op)
@@ -825,9 +826,9 @@ namespace Microsoft.Cci
                 {
                     symWriter.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _pdbStream, fullBuild: true);
                 }
-                else if (symWriter is ISymUnmanagedWriter7 symWriter7)
+                else if (symWriter is ISymUnmanagedWriter8 symWriter8)
                 {
-                    symWriter7.InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
+                    symWriter8.InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
                 }
                 else
                 {
@@ -855,7 +856,7 @@ namespace Microsoft.Cci
                 {
                     fixed (byte* hashPtr = &hash[0])
                     {
-                        ((ISymUnmanagedWriter7)_symWriter).UpdateSignatureByHashingContent(hashPtr, hash.Length);
+                        ((ISymUnmanagedWriter8)_symWriter).UpdateSignatureByHashingContent(hashPtr, hash.Length);
                     }
                 }
                 catch (Exception ex)
@@ -1502,6 +1503,34 @@ namespace Microsoft.Cci
                         throw new PdbWritingException(ex);
                     }
                 }
+            }
+        }
+
+        public unsafe void EmbedSourceLink(Stream stream)
+        {
+            if (!(_symWriter is ISymUnmanagedWriter8 symWriter8))
+            {
+                throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterDoesNotSupportSourceLink, LoadedDiaSymReaderModuleName));
+            }
+
+            try
+            {
+                var buffer = stream.ReadAllBytes();
+
+                fixed (byte* bufferPtr = buffer)
+                {
+                    byte b = 0;
+                    symWriter8.SetSourceLinkData((bufferPtr != null) ? bufferPtr : &b, buffer.Length);
+                }
+
+                if (_callLogger.LogOperation(OP.SetSourceLinkData))
+                {
+                    _callLogger.LogArgument(buffer);
+                }
+            }
+            catch (Exception e) when (!(e is OperationCanceledException))
+            {
+                throw new PdbWritingException(e);
             }
         }
 

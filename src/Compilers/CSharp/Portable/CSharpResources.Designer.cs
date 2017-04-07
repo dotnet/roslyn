@@ -8675,11 +8675,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified)..
+        ///   Looks up a localized string similar to /sourcelink switch is only supported when emitting PDB..
         /// </summary>
-        internal static string ERR_SourceLinkRequiresPortablePdb {
+        internal static string ERR_SourceLinkRequiresPdb {
             get {
-                return ResourceManager.GetString("ERR_SourceLinkRequiresPortablePdb", resourceCulture);
+                return ResourceManager.GetString("ERR_SourceLinkRequiresPdb", resourceCulture);
             }
         }
         
