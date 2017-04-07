@@ -39,11 +39,9 @@ End Class
 
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction("Generate method 'Foo.Bar'", applyFix: true);
-            VisualStudio.Editor.Verify.TextContains(@"
-Imports System
-
+            VisualStudio.SolutionExplorer.Verify.FileContents(project, "Foo.vb", @"
 Class Foo
-    Public Sub Foo()
+    Friend Sub Bar()
         Throw New NotImplementedException()
     End Sub
 End Class

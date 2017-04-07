@@ -48,7 +48,6 @@ public class Program
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction("Generate method 'Foo.Bar'", applyFix: true);
             VisualStudio.SolutionExplorer.Verify.FileContents(project, "Foo.cs", @"
-
 using System;
 
 public class Foo
