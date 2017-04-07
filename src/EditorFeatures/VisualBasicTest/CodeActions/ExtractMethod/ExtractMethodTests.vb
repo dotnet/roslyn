@@ -530,5 +530,39 @@ End Namespace")
 
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")>
+        Public Async Function TestTupleWith1Arity() As Task
+
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Sub Main(args As String())
+        Dim y = New ValueTuple(Of Integer)(1)
+        [|y.Item1.ToString()|]
+    End Sub
+End Class
+Structure ValueTuple(Of T1)
+    Public Property Item1 As T1
+    Public Sub New(item1 As T1)
+    End Sub
+End Structure",
+"Class Program
+    Sub Main(args As String())
+        Dim y = New ValueTuple(Of Integer)(1)
+        {|Rename:NewMethod|}(y)
+    End Sub
+
+    Private Shared Sub NewMethod(y As ValueTuple(Of Integer))
+        y.Item1.ToString()
+    End Sub
+End Class
+Structure ValueTuple(Of T1)
+    Public Property Item1 As T1
+    Public Sub New(item1 As T1)
+    End Sub
+End Structure")
+
+        End Function
+
     End Class
 End Namespace
