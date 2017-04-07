@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Task<_> -> Int32
             private static TypeSymbol TranslateReturnType(CSharpCompilation compilation, TypeSymbol returnType)
             {
-                return returnType.IsGenericTaskType(compilation) 
+                return returnType.IsGenericTaskType(compilation)
                     ? compilation.GetSpecialType(SpecialType.System_Int32)
                     : compilation.GetSpecialType(SpecialType.System_Void);
             }
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return returnType.IsGenericTaskType(compilation) ? ReturnKind.IntReturning : ReturnKind.VoidReturning;
             }
 
-            internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, MethodSymbol userMain): 
+            internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, MethodSymbol userMain) :
                 base(containingType, TranslateReturnType(compilation, userMain.ReturnType))
             {
                 // There should be no way for a userMain to be passed in unless it already passed the 

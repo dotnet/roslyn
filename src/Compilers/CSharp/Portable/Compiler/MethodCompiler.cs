@@ -209,14 +209,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool addedDefinition = false;
             SynthesizedEntryPointSymbol synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
 
-            if ((object) synthesizedEntryPoint == null && entryPoint.HasAsyncMainReturnType(compilation) && compilation.LanguageVersion >= LanguageVersion.CSharp7_1)
+            if ((object)synthesizedEntryPoint == null && entryPoint.HasAsyncMainReturnType(compilation) && compilation.LanguageVersion >= LanguageVersion.CSharp7_1)
             {
                 synthesizedEntryPoint = new AsyncForwardEntryPoint(compilation, diagnostics, entryPoint.ContainingType, entryPoint);
                 entryPoint = synthesizedEntryPoint;
                 addedDefinition = true;
             }
 
-            if (((object) synthesizedEntryPoint != null) &&
+            if (((object)synthesizedEntryPoint != null) &&
                 (moduleBeingBuilt != null) &&
                 !hasDeclarationErrors &&
                 !diagnostics.HasAnyErrors())
