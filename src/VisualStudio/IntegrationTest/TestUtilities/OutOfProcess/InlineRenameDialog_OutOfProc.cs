@@ -19,25 +19,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void Invoke()
         {
             VisualStudioInstance.ExecuteCommand("Refactor.Rename");
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.Rename);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
         }
 
         public void ToggleIncludeComments()
         {
             VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKey.C, ShiftState.Alt));
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.Rename);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
         }
 
         public void ToggleIncludeStrings()
         {
             VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKey.S, ShiftState.Alt));
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.Rename);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
         }
 
         public void ToggleIncludeOverloads()
         {
             VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKey.O, ShiftState.Alt));
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.Rename);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
         }            
     }
 }

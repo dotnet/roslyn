@@ -515,7 +515,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 IVsMonitorUserContext monitorUserContext = GetGlobalService<SVsMonitorUserContext, IVsMonitorUserContext>();
                 Marshal.ThrowExceptionForHR(monitorUserContext.CreateEmptyContext(out var emptyUserContext));
                 Marshal.ThrowExceptionForHR(GetActiveVsTextView().GetCaretPos(out var line, out var column));
-                var span = new TextSpan()
+                var span = new TextManager.Interop.TextSpan()
                 {
                     iStartLine = line,
                     iStartIndex = column,
