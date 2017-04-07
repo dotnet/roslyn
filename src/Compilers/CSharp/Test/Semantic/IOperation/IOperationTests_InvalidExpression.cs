@@ -26,11 +26,17 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( ? ?.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid)
-  Instance Receiver: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
-      IOperation:  (OperationKind.None)
+IInvocationExpression ( ? ?.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'Console.WriteLine2()')
+  Instance Receiver: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Console.WriteLine2')
+      Children(1): IOperation:  (OperationKind.None) (Syntax: 'Console')
 ";
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0117: 'Console' does not contain a definition for 'WriteLine2'
+                //         /*<bind>*/Console.WriteLine2()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "WriteLine2").WithArguments("System.Console", "WriteLine2").WithLocation(8, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
@@ -52,12 +58,18 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void Program.F(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid)
-  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program)
-  IArgument (Matching Parameter: x) (OperationKind.Argument)
-    IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String)
+IInvocationExpression ( void Program.F(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F(string.Empty)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'F')
+  Arguments(1): IArgument (Matching Parameter: x) (OperationKind.Argument) (Syntax: 'string.Empty')
+      IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'string.Empty')
 ";
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1503: Argument 1: cannot convert from 'string' to 'int'
+                //         /*<bind>*/F(string.Empty)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "string.Empty").WithArguments("1", "string", "int").WithLocation(8, 21)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8813"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
@@ -79,12 +91,16 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void Program.F(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid)
-  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program)
-  IArgument (Matching Parameter: x) (OperationKind.Argument)
-    IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String)
+IInvocationExpression ( void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F(string.Empty)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'F')
 ";
-            VerifyOperationTreeForTest<InvocationExpressionSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1501: No overload for method 'F' takes 1 arguments
+                //         /*<bind>*/F(string.Empty)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgCount, "F").WithArguments("F", "1").WithLocation(8, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
@@ -107,12 +123,18 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: ? y (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
-        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var y /*<bi ... *</bind>*/;')
+  IVariableDeclaration: ? y (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'var y /*<bi ... *</bind>*/;')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x.MissingField')
+        Children(1): ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
 ";
-            VerifyOperationTreeForTest<EqualsValueClauseSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1061: 'Program' does not contain a definition for 'MissingField' and no extension method 'MissingField' accepting a first argument of type 'Program' could be found (are you missing a using directive or an assembly reference?)
+                //         var y /*<bind>*/= x.MissingField/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "MissingField").WithArguments("Program", "MissingField").WithLocation(9, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
@@ -136,13 +158,22 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: System.String y (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.String, IsInvalid)
-        IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32)
-          Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'string y /* ... *</bind>*/;')
+  IVariableDeclaration: System.String y (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'string y /* ... *</bind>*/;')
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: 'x.i1')
+        IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x.i1')
+          Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
 ";
-            VerifyOperationTreeForTest<EqualsValueClauseSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         string y /*<bind>*/= x.i1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x.i1").WithArguments("int", "string").WithLocation(10, 30),
+                // CS0649: Field 'Program.i1' is never assigned to, and will always have its default value 0
+                //     int i1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i1").WithArguments("Program.i1", "0").WithLocation(6, 9)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
@@ -166,13 +197,22 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: Program y (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IConversionExpression (ConversionKind.Invalid, Explicit) (OperationKind.ConversionExpression, Type: Program, IsInvalid)
-        IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32)
-          Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Program y / ... *</bind>*/;')
+  IVariableDeclaration: Program y (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Program y / ... *</bind>*/;')
+    Initializer: IConversionExpression (ConversionKind.Invalid, Explicit) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: '(Program)x.i1')
+        IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x.i1')
+          Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
 ";
-            VerifyOperationTreeForTest<EqualsValueClauseSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0030: Cannot convert type 'int' to 'Program'
+                //         Program y /*<bind>*/= (Program)x.i1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Program)x.i1").WithArguments("int", "Program").WithLocation(10, 31),
+                // CS0649: Field 'Program.i1' is never assigned to, and will always have its default value 0
+                //     int i1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i1").WithArguments("Program.i1", "0").WithLocation(6, 9)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18056"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
@@ -195,11 +235,17 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IIncrementExpression (UnaryOperandKind.Invalid) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid)
-  Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program)
-  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Object, Constant: 1)
+IIncrementExpression (UnaryOperandKind.Invalid) (BinaryOperationKind.Invalid) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: '++x')
+  Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
+  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Object, Constant: 1) (Syntax: '++x')
 ";
-            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0023: Operator '++' cannot be applied to operand of type 'Program'
+                //         Console.Write(/*<bind>*/++x/*</bind>*/);
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "Program").WithLocation(9, 33)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
@@ -222,14 +268,20 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid)
-  Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program)
-  Right: IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid)
-      Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
-      Right: IPropertyReferenceExpression: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32)
-          Instance Receiver: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String[])
+IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'x + (y * args.Length)')
+  Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
+  Right: IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'y * args.Length')
+      Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'y')
+      Right: IPropertyReferenceExpression: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'args.Length')
+          Instance Receiver: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String[]) (Syntax: 'args')
 ";
-            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0103: The name 'y' does not exist in the current context
+                //         Console.Write(/*<bind>*/x + (y * args.Length)/*</bind>*/);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(9, 38)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18057"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
@@ -250,36 +302,61 @@ class Program
     }
 }
 ";
-
-            string expectedLambdaOperationTree = @"
-ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IInvocationExpression (static void Program.F()) (OperationKind.InvocationExpression, Type: System.Void)
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var x /*<bi ... *</bind>*/;')
+  IVariableDeclaration: var x (OperationKind.VariableDeclaration) (Syntax: 'var x /*<bi ... *</bind>*/;')
+    Initializer: IUnboundLambdaExpression (OperationKind.UnboundLambdaExpression, Type: null) (Syntax: '() => F()
+        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => F()')
+          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'F()')
+            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'F()')
+              IInvocationExpression (static void Program.F()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'F()')')
 ";
-            VerifyOperationTreeForTest<ParenthesizedLambdaExpressionSyntax>(source, expectedLambdaOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                //         var x /*<bind>*/= () => F()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x /*<bind>*/= () => F()").WithArguments("lambda expression").WithLocation(8, 13)
+            };
 
-            string expectedEqualsValueOperationTree = @"
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: var x (OperationKind.VariableDeclaration)
-    Initializer: IUnboundLambdaExpression (OperationKind.UnboundLambdaExpression, Type: null)
-        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null)
-          IBlockStatement (1 statements) (OperationKind.BlockStatement)
-            IExpressionStatement (OperationKind.ExpressionStatement)
-              IInvocationExpression (static void Program.F()) (OperationKind.InvocationExpression, Type: System.Void)
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        public void InvalidLambdaBinding_LambdaExpression()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = /*<bind>*/() => F()/*</bind>*/;
+    }
+
+    static void F()
+    {
+    }
+}
 ";
-            VerifyOperationTreeForTest<EqualsValueClauseSyntax>(source, expectedEqualsValueOperationTree);
+            string expectedOperationTree = @"
+ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => F()')
+  IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'F()')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'F()')
+      IInvocationExpression (static void Program.F()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'F()')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                //         var x = /*<bind>*/() => F()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = /*<bind>*/() => F()").WithArguments("lambda expression").WithLocation(8, 13)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedLambdaExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidFieldInitializer()
         {
             string source = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 class Program
 {
     int x /*<bind>*/= Program/*</bind>*/;
@@ -290,23 +367,27 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IFieldInitializer (Field: System.Int32 Program.x) (OperationKind.FieldInitializerAtDeclaration, IsInvalid)
-  IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid)
-    IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid)
-      IOperation:  (OperationKind.None)
+IFieldInitializer (Field: System.Int32 Program.x) (OperationKind.FieldInitializerAtDeclaration, IsInvalid) (Syntax: '= Program')
+  IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
+    IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid) (Syntax: 'Program')
+      Children(1): IOperation:  (OperationKind.None) (Syntax: 'Program')
 ";
-            VerifyOperationTreeForTest<EqualsValueClauseSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0119: 'Program' is a type, which is not valid in the given context
+                //     int x /*<bind>*/= Program/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(4, 23),
+                // CS0119: 'Program' is a type, which is not valid in the given context
+                //         var x = new Program() { x = Program };
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(7, 37)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidArrayInitializer()
         {
             string source = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 class Program
 {
     static void Main(string[] args)
@@ -316,31 +397,35 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid)
-  IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid)
-    IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid)
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
-        IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid)
-          IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object)
-            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-          IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object)
-            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IArrayInitializer (2 elements) (OperationKind.ArrayInitializer)
-    ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
-    ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
+IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ { { 1, 1  ...  { 2, 2 } }')
+  Element Values(2): IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ { 1, 1 } }')
+      Element Values(1): IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '{ 1, 1 }')
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '{ 1, 1 }')
+            Children(1): IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ 1, 1 }')
+                Element Values(2): IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '1')
+                    ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '1')
+                    ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{ 2, 2 }')
+      Element Values(2): ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
-            VerifyOperationTreeForTest<InitializerExpressionSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0623: Array initializers can only be used in a variable or field initializer. Try using a new expression instead.
+                //         var x = new int[2, 2] /*<bind>*/{ { { 1, 1 } }, { 2, 2 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArrayInitInBadPlace, "{ 1, 1 }").WithLocation(6, 45),
+                // CS0847: An array initializer of length '2' is expected
+                //         var x = new int[2, 2] /*<bind>*/{ { { 1, 1 } }, { 2, 2 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "{ { 1, 1 } }").WithArguments("2").WithLocation(6, 43)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidArrayCreation()
         {
             string source = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 class Program
 {
     static void Main(string[] args)
@@ -350,17 +435,29 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (Dimension sizes: 1, Element Type: X) (OperationKind.ArrayCreationExpression, Type: X[], IsInvalid)
-  IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid)
-    IOperation:  (OperationKind.None)
-  IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid)
-    IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: X, IsInvalid)
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
-        IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid)
-          IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object)
-            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpression, Type: X[], IsInvalid) (Syntax: 'new X[Program] { { 1 } }')
+  Dimension Sizes(1): IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid) (Syntax: 'Program')
+      Children(1): IOperation:  (OperationKind.None) (Syntax: 'Program')
+  Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ { 1 } }')
+      Element Values(1): IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: X, IsInvalid) (Syntax: '{ 1 }')
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '{ 1 }')
+            Children(1): IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{ 1 }')
+                Element Values(1): IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '1')
+                    ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-            VerifyOperationTreeForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                //         var x = /*<bind>*/new X[Program] { { 1 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(6, 31),
+                // CS0119: 'Program' is a type, which is not valid in the given context
+                //         var x = /*<bind>*/new X[Program] { { 1 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 33),
+                // CS0623: Array initializers can only be used in a variable or field initializer. Try using a new expression instead.
+                //         var x = /*<bind>*/new X[Program] { { 1 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArrayInitInBadPlace, "{ 1 }").WithLocation(6, 44)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18059"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
@@ -381,10 +478,16 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IParameterInitializer (Parameter: [System.Int32 p = default(System.Int32)]) (OperationKind.ParameterInitializerAtDeclaration, IsInvalid)
-  IInvocationExpression (static System.Int32 Program.M()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid)
+IParameterInitializer (Parameter: [System.Int32 p = default(System.Int32)]) (OperationKind.ParameterInitializerAtDeclaration, IsInvalid) (Syntax: '= M()')
+  IInvocationExpression (static System.Int32 Program.M()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'M()')
 ";
-            VerifyOperationTreeForTest<EqualsValueClauseSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1736: Default parameter value for 'p' must be a compile-time constant
+                //     void F(int p /*<bind>*/= M()/*</bind>*/)
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M()").WithArguments("p").WithLocation(10, 30)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

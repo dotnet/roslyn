@@ -13,6 +13,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </remarks>
     public interface IInvalidStatement : IOperation
     {
+        /// <summary>
+        /// Child operations.
+        /// </summary>
+        ImmutableArray<IOperation> Children { get; }
     }
 }
 

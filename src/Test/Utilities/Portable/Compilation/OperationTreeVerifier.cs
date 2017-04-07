@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        private void VisitArray<T>(ImmutableArray<T> list, string header, bool logElementCount = false)
+        private void VisitArray<T>(ImmutableArray<T> list, string header, bool logElementCount)
             where T : IOperation
         {
             Debug.Assert(!string.IsNullOrEmpty(header));
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Value, header: "Switch expression");
-            VisitArray(operation.Cases, "Sections");
+            VisitArray(operation.Cases, "Sections", logElementCount: false);
         }
 
         public override void VisitSwitchCase(ISwitchCase operation)
@@ -310,8 +310,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Indent();
-            VisitArray(operation.Clauses, "Clauses");
-            VisitArray(operation.Body, "Body");
+            VisitArray(operation.Clauses, "Clauses", logElementCount: false);
+            VisitArray(operation.Body, "Body", logElementCount: false);
             Unindent();
         }
 
@@ -333,8 +333,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.Condition, "Condition");
             LogLocals(operation.Locals);
-            VisitArray(operation.Before, "Before");
-            VisitArray(operation.AtLoopBottom, "AtLoopBottom");
+            VisitArray(operation.Before, "Before", logElementCount: false);
+            VisitArray(operation.AtLoopBottom, "AtLoopBottom", logElementCount: false);
             Visit(operation.Body, "Body");
         }
 
@@ -1022,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IInvalidStatement));
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitInvalidStatement(operation);
+            VisitArray(operation.Children, "Children", logElementCount: true);
         }
 
         public override void VisitInvalidExpression(IInvalidExpression operation)
@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IInvalidExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitInvalidExpression(operation);
+            VisitArray(operation.Children, "Children", logElementCount: true);
         }
 
         public override void VisitIfStatement(IIfStatement operation)
