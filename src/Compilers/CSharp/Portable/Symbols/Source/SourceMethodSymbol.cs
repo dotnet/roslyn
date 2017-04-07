@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected Flags flags;
 
-        private readonly NamedTypeSymbol _containingType;
+        private readonly Symbol _containingSymbol;
         private ParameterSymbol _lazyThisParameter;
         private TypeSymbol _iteratorElementType;
 
@@ -169,17 +169,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _cachedDiagnostics;
         }
 
-        protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, Location location)
-            : this(containingType, syntaxReferenceOpt, bodySyntaxReferenceOpt, ImmutableArray.Create(location))
+        protected SourceMethodSymbol(Symbol containingSymbol, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, Location location)
+            : this(containingSymbol, syntaxReferenceOpt, bodySyntaxReferenceOpt, ImmutableArray.Create(location))
         {
         }
 
-        protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, ImmutableArray<Location> locations)
+        protected SourceMethodSymbol(Symbol containingSymbol, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, ImmutableArray<Location> locations)
         {
-            Debug.Assert((object)containingType != null);
+            Debug.Assert((object)containingSymbol != null);
             Debug.Assert(!locations.IsEmpty);
 
-            _containingType = containingType;
+            _containingSymbol = containingSymbol;
             this.syntaxReferenceOpt = syntaxReferenceOpt;
             this.bodySyntaxReferenceOpt = bodySyntaxReferenceOpt;
             this.locations = locations;
@@ -308,9 +308,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
         }
 
-        public sealed override Symbol ContainingSymbol => _containingType;
+        public sealed override Symbol ContainingSymbol => _containingSymbol;
 
-        public override NamedTypeSymbol ContainingType => _containingType;
+        public override NamedTypeSymbol ContainingType => (_containingSymbol as NamedTypeSymbol) ?? base.ContainingType;
 
         public override Symbol AssociatedSymbol => null;
 
@@ -350,7 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected DeclarationModifiers DeclarationModifiers => this.flags.DeclarationModifiers;
 
-        // TODO (tomat): sealed?
         public override Accessibility DeclaredAccessibility => ModifierUtils.EffectiveAccessibility(this.DeclarationModifiers);
 
         public sealed override bool IsExtern => (this.DeclarationModifiers & DeclarationModifiers.Extern) != 0;
@@ -428,7 +427,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override int Arity => TypeParameters.Length;
 
-        internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        internal TypeParameterConstraintKind GetTypeParameterConstraints(int ordinal)
+        {
+            var clause = this.GetTypeParameterConstraintClause(ordinal);
+            return (clause != null) ? clause.Constraints : TypeParameterConstraintKind.None;
+        }
+
+        internal ImmutableArray<TypeSymbol> GetTypeParameterConstraintTypes(int ordinal)
+        {
+            var clause = this.GetTypeParameterConstraintClause(ordinal);
+            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
+        }
+
+        private TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
+        {
+            var clauses = TypeParameterConstraints;
+            return (clauses.Length > 0) ? clauses[ordinal] : null;
+        }
+
+        protected virtual ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraints => throw ExceptionUtilities.Unreachable;
+
+        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
             thisParameter = _lazyThisParameter;
             if ((object)thisParameter != null || IsStatic)
@@ -1034,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasErrors = true;
             }
 
-            if (this.IsGenericMethod || (object)_containingType != null && _containingType.IsGenericType)
+            if (this.IsGenericMethod || ContainingType?.IsGenericType == true)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnGenericMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
@@ -1146,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(_lazyCustomAttributesBag != null);
                 Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
 
-                if (_containingType.IsComImport && _containingType.TypeKind == TypeKind.Class)
+                if (ContainingType.IsComImport && ContainingType.TypeKind == TypeKind.Class)
                 {
                     switch (this.MethodKind)
                     {
@@ -1164,7 +1183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (!this.IsAbstract && !this.IsExtern)
                             {
                                 // CS0423: Since '{1}' has the ComImport attribute, '{0}' must be extern or abstract
-                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.Locations[0], this, _containingType);
+                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.Locations[0], this, _containingSymbol);
                             }
 
                             break;
@@ -1322,7 +1341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected void CheckModifiersForBody(Location location, DiagnosticBag diagnostics)
         {
-            if (_containingType.IsInterface)
+            if (_containingSymbol is NamedTypeSymbol containingType && containingType.IsInterface)
             {
                 diagnostics.Add(ErrorCode.ERR_InterfaceMemberHasBody, location, this);
             }
