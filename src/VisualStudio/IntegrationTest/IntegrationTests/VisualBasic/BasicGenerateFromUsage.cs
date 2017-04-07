@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -34,6 +35,24 @@ End Module");
         Dim x As String = xyz
     End Sub
 End Module");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void GenerateTypeInNewFile()
+        {
+            SetUpEditor(
+@"Module Program
+    Sub Main(args As String())
+        Dim x As New $$ClassInNewFile()
+    End Sub
+End Module");
+            VisualStudio.Editor.Verify.CodeAction("Generate class 'ClassInNewFile' in new file", applyFix: true);
+            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "ClassInNewFile.vb");
+            VisualStudio.Editor.Verify.TextContains(
+@"Friend Class ClassInNewFile
+    Public Sub New()
+    End Sub
+End Class");
         }
     }
 }
