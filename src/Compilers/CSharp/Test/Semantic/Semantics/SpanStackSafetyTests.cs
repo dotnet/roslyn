@@ -238,8 +238,9 @@ public class Program
 
     public struct S1
     {
-        public static Span<byte> fs;
-        public static Span<int> fi; 
+        //PROTOTYPE(span): instance Span fields in structs are ok for now, - until span-like types can be declared
+        public static Span<byte> fs1;
+        public Span<int> fi1; 
     }
 }
 ";
@@ -247,18 +248,15 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (16,23): error CS0610: Field or property cannot be of type 'Span<int>'
-                //         public static Span<int> fi; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(16, 23),
-                // (15,23): error CS0610: Field or property cannot be of type 'Span<byte>'
-                //         public static Span<byte> fs;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(15, 23),
+                // (16,23): error CS0610: Field or property cannot be of type 'Span<byte>'
+                //         public static Span<byte> fs1;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(16, 23),
                 // (10,19): error CS0610: Field or property cannot be of type 'Span<byte>'
                 //     public static Span<byte> fs;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>"),
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(10, 19),
                 // (11,12): error CS0610: Field or property cannot be of type 'Span<int>'
                 //     public Span<int> fi; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>")
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(11, 12)
             );
         }
 
