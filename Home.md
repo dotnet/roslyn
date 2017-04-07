@@ -1,6 +1,6 @@
 # Getting Started
 
-* [Roslyn Overview](Roslyn Overview)
+* [Roslyn Overview](Roslyn%20Overview)
 * [Samples and Walkthroughs](https://github.com/dotnet/roslyn/wiki/Samples-and-Walkthroughs)
 * [Roadmap](Roadmap)
 * [Labels used for issues](Labels-used-for-issues)
