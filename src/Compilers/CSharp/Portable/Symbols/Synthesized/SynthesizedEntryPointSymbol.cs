@@ -302,12 +302,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static MethodSymbol GetRequiredMethod(TypeSymbol type, string methodName, DiagnosticBag diagnostics)
+        private static MethodSymbol GetRequiredMethod(TypeSymbol type, string methodName, DiagnosticBag diagnostics, Location location = null)
         {
+            if ((object)location == null) {
+                location = NoLocation.Singleton;
+            }
+
             var method = type.GetMembers(methodName).SingleOrDefault() as MethodSymbol;
             if ((object)method == null)
             {
-                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, NoLocation.Singleton, type, methodName);
+                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, location, type, methodName);
             }
             return method;
         }
@@ -335,10 +339,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // The user-defined asyncrhonous main method.
             private readonly MethodSymbol _userMain;
-            private DiagnosticBag _diagnosticBag;
 
             private readonly ReturnKind _returnKind;
             private readonly ParamKind _paramKind;
+
+            private readonly MethodSymbol _getAwaiterMethod;
+            private readonly MethodSymbol _getResultMethod;
 
             private readonly ImmutableArray<ParameterSymbol> _parameters;
 
@@ -380,7 +386,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(userMain.ParameterCount == 0 || userMain.ParameterCount == 1);
 
                 _userMain = userMain;
-                _diagnosticBag = diagnosticBag;
                 _paramKind = userMain.ParameterCount == 0 ? ParamKind.NoArgs : ParamKind.StringArrayArgs;
                 _returnKind = GetReturnKind(compilation, userMain.ReturnType);
 
@@ -396,6 +401,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         _parameters = ImmutableArray<ParameterSymbol>.Empty;
                         break;
                 }
+
+                var userMainLocation = userMain.DeclaringSyntaxReferences.SingleOrDefault()?.GetLocation() ?? NoLocation.Singleton;
+
+                _getAwaiterMethod = GetRequiredMethod(_userMain.ReturnType, WellKnownMemberNames.GetAwaiter, diagnosticBag, userMainLocation);
+                _getResultMethod = GetRequiredMethod(_getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnosticBag);
             }
 
             public override string Name => MainName;
@@ -424,21 +434,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         type: _userMain.ReturnType)
                 { WasCompilerGenerated = true };
 
-                // PROTOTYPE(async-main): Errors should likely be reported here instead of bailing.
-                var getAwaiterMethod = GetRequiredMethod(_userMain.ReturnType, WellKnownMemberNames.GetAwaiter, _diagnosticBag);
-                Debug.Assert(getAwaiterMethod != null);
-
-                var getResultMethod = GetRequiredMethod(getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, _diagnosticBag);
-                Debug.Assert(getResultMethod != null);
 
                 // GetAwaiter().GetResult()
                 BoundCall getAwaiterGetResult =
                     CreateParameterlessCall(
                             syntax: syntax,
-                            method: getResultMethod,
+                            method: _getResultMethod,
                             receiver: CreateParameterlessCall(
                                 syntax: syntax,
-                                method: getAwaiterMethod,
+                                method: _getAwaiterMethod,
                                 receiver: userMainInvocation
                             )
                     );
