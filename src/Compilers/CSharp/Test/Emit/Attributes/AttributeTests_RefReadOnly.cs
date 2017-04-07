@@ -4,10 +4,9 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -36,13 +35,8 @@ class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
-                Assert.Equal(module.ContainingAssembly.Name, parameterAttribute.ContainingAssembly.Name);
-
-                var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
-                Assert.Equal(module.ContainingAssembly.Name, returnTypeAttribute.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -73,13 +67,8 @@ class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
-                Assert.Equal(referenceA.Compilation.AssemblyName, parameterAttribute.ContainingAssembly.Name);
-
-                var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
-                Assert.Equal(referenceA.Compilation.AssemblyName, returnTypeAttribute.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
 
@@ -111,9 +100,7 @@ class Test
                     Assert.Equal(RefKind.RefReadOnly, property.RefKind);
                     Assert.True(property.ReturnsByRefReadonly);
 
-                    var returnTypeAttribute = property.GetAttributes().Single().AttributeClass;
-                    Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
-                    Assert.Equal(module.ContainingAssembly.Name, returnTypeAttribute.ContainingAssembly.Name);
+                    AssertSingleReadOnlyAttribute(property.GetAttributes(), module.ContainingAssembly.Name);
                 }
             });
         }
@@ -150,9 +137,7 @@ class Test
                     Assert.Equal(RefKind.RefReadOnly, property.RefKind);
                     Assert.True(property.ReturnsByRefReadonly);
 
-                    var returnTypeAttribute = property.GetAttributes().Single().AttributeClass;
-                    Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
-                    Assert.Equal(referenceA.Compilation.AssemblyName, returnTypeAttribute.ContainingAssembly.Name);
+                    AssertSingleReadOnlyAttribute(property.GetAttributes(), referenceA.Compilation.AssemblyName);
                 }
             });
         }
@@ -179,14 +164,9 @@ class Test
 
                 var parameter = indexer.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
-
-                var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
-                Assert.Equal(module.ContainingAssembly.Name, parameterAttribute.ContainingAssembly.Name);
-
-                var returnTypeAttribute = indexer.GetAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
-                Assert.Equal(module.ContainingAssembly.Name, returnTypeAttribute.ContainingAssembly.Name);
+                
+                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(indexer.GetAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -217,13 +197,8 @@ class Test
                 var parameter = indexer.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
-                Assert.Equal(referenceA.Compilation.AssemblyName, parameterAttribute.ContainingAssembly.Name);
-
-                var returnTypeAttribute = indexer.GetAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
-                Assert.Equal(referenceA.Compilation.AssemblyName, returnTypeAttribute.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertSingleReadOnlyAttribute(indexer.GetAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
 
@@ -247,13 +222,8 @@ public delegate ref readonly int D(ref readonly int x);
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
-                Assert.Equal(module.ContainingAssembly.Name, parameterAttribute.ContainingAssembly.Name);
-
-                var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
-                Assert.Equal(module.ContainingAssembly.Name, returnTypeAttribute.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -281,13 +251,8 @@ public delegate ref readonly int D(ref readonly int x);
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
-                Assert.Equal(referenceA.Compilation.AssemblyName, parameterAttribute.ContainingAssembly.Name);
-
-                var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
-                Assert.Equal(referenceA.Compilation.AssemblyName, returnTypeAttribute.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
 
@@ -321,13 +286,8 @@ public class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
-                Assert.Equal(module.ContainingAssembly.Name, parameterAttribute.ContainingAssembly.Name);
-
-                var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
-                Assert.Equal(module.ContainingAssembly.Name, returnTypeAttribute.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -364,13 +324,8 @@ public class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
-                Assert.Equal(referenceA.Compilation.AssemblyName, parameterAttribute.ContainingAssembly.Name);
-
-                var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
-                Assert.Equal(referenceA.Compilation.AssemblyName, returnTypeAttribute.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
 
@@ -406,13 +361,8 @@ class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
-                Assert.Equal(module.ContainingAssembly.Name, parameterAttribute.ContainingAssembly.Name);
-
-                var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
-                Assert.Equal(module.ContainingAssembly.Name, returnTypeAttribute.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -451,13 +401,8 @@ class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                var parameterAttribute = parameter.GetAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", parameterAttribute.MetadataName);
-                Assert.Equal(referenceA.Compilation.AssemblyName, parameterAttribute.ContainingAssembly.Name);
-
-                var returnTypeAttribute = method.GetReturnTypeAttributes().Single().AttributeClass;
-                Assert.Equal("ReadOnlyAttribute", returnTypeAttribute.MetadataName);
-                Assert.Equal(referenceA.Compilation.AssemblyName, returnTypeAttribute.ContainingAssembly.Name);
+                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
         
@@ -637,6 +582,13 @@ public class Test
                 // (7,35): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
                 //     public ref readonly int this[[ReadOnly] ref readonly int x] { get { return ref x; } }
                 Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(7, 35));
+        }
+
+        private void AssertSingleReadOnlyAttribute(ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
+        {
+            var attributeType = attributes.Single().AttributeClass;
+            Assert.Equal("ReadOnlyAttribute", attributeType.MetadataName);
+            Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
         }
     }
 }
