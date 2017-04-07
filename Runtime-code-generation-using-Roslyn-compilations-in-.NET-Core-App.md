@@ -1,4 +1,4 @@
-A question that arises when emitting assemblies via Roslyn Compilation APIs in .NET Core app is how to create MetadataReferences for the .NET Core Framework libraries (such as ```System.Runtime.dll```, ```System.IO.dll```, etc.). 
+A question that arises when emitting assemblies via Roslyn Compilation APIs in .NET Core app is how to create MetadataReferences for .NET Core Framework libraries (such as ```System.Runtime.dll```, ```System.IO.dll```, etc.). 
 
 There are two approaches to runtime code generation:
 1) Compile against runtime (implementation) assemblies
