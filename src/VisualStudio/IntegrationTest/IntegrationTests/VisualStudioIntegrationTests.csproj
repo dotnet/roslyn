@@ -30,6 +30,7 @@
     <Compile Include="CSharp\CSharpErrorListDesktop.cs" />
     <Compile Include="CSharp\CSharpErrorListNetCore.cs" />
     <Compile Include="CSharp\CSharpFindReferences.cs" />
+    <Compile Include="CSharp\CSharpGoToImplementation.cs" />
     <Compile Include="CSharp\CSharpGenerateTypeDialog.cs" />
     <Compile Include="CSharp\CSharpGoToDefinition.cs" />
     <Compile Include="CSharp\CSharpInteractiveAsyncOutput.cs" />
@@ -82,6 +83,7 @@
     <Compile Include="VisualBasic\BasicChangeSignatureDialog.cs" />
     <Compile Include="VisualBasic\BasicFindReferences.cs" />
     <Compile Include="VisualBasic\BasicGenerateTypeDialog.cs" />
+    <Compile Include="VisualBasic\BasicGoToImplementation.cs" />
     <Compile Include="VisualBasic\BasicIntelliSense.cs" />
     <Compile Include="VisualBasic\BasicSignatureHelp.cs" />
     <Compile Include="VisualBasic\BasicWinForms.cs" />

@@ -494,9 +494,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void Undo()
             => GetDTE().ExecuteCommand(WellKnownCommandNames.Edit_Undo);
 
-        public void GoToDefinition()
-            => GetDTE().ExecuteCommand("Edit.GoToDefinition");
-
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
             return view.GetBufferContainingCaret();
@@ -534,5 +531,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return results;
             });
         }
+
+        public void GoToDefinition()
+            => GetDTE().ExecuteCommand("Edit.GoToDefinition");
+
+        public void GoToImplementation()
+            => GetDTE().ExecuteCommand("Edit.GoToImplementation");
     }
 }
