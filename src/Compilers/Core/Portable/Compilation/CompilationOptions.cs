@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis
             this.MainTypeName = mainTypeName;
             this.ScriptClassName = scriptClassName ?? WellKnownMemberNames.DefaultScriptClassName;
             this.CryptoKeyContainer = cryptoKeyContainer;
-            this.CryptoKeyFile = cryptoKeyFile;
+            this.CryptoKeyFile = string.IsNullOrEmpty(cryptoKeyFile) ? null : cryptoKeyFile;
             this.CryptoPublicKey = cryptoPublicKey.NullToEmpty();
             this.DelaySign = delaySign;
             this.CheckOverflow = checkOverflow;
