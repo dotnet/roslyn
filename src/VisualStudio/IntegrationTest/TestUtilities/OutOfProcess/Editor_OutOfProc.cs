@@ -4,6 +4,8 @@ using System;
 using System.Linq;
 using System.Windows.Automation;
 using System.Collections.Generic;
+using System.Threading;
+using System.Windows;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
@@ -159,6 +161,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void DialogSendKeys(string dialogAutomationName, string keys)
             => _editorInProc.DialogSendKeys(dialogAutomationName, keys);
+
+        public void FormatDocument() {
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
+        }
+
+        public void FormatSelection() {
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
+        }
+
+        public void Paste(string text)
+        {
+            var thread = new Thread(() => Clipboard.SetText(text));
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            VisualStudioInstance.Dte.ExecuteCommand("Edit.Paste");
+        }
 
         public void Undo()
             => _editorInProc.Undo();
