@@ -297,7 +297,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => Deserialize(_editorInProc.GetHighlightTags());
 
         public TextSpan[] GetOutliningSpans()
-            => Deserialize(_editorInProc.GetOutliningSpans());
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Outlining);
+            return Deserialize(_editorInProc.GetOutliningSpans());
+        }
 
         private TextSpan[] Deserialize(string[] v)
         {

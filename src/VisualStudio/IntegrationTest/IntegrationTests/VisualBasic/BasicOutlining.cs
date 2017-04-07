@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -39,7 +37,6 @@ Imports System.Text|]
 End Namespace|]";
             MarkupTestFile.GetSpans(input, out var text, out ImmutableArray<TextSpan> spans);
             VisualStudio.Editor.SetText(text);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Outlining);
             Assert.Equal(spans.OrderBy(s => s.Start), VisualStudio.Editor.GetOutliningSpans());
         }
     }

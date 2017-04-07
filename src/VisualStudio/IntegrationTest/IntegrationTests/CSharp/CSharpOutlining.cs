@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -43,7 +42,6 @@ namespace ConsoleApplication1[|
 }|]";
             MarkupTestFile.GetSpans(input, out var text, out ImmutableArray<TextSpan> spans);
             VisualStudio.Editor.SetText(text);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Outlining);
             Assert.Equal(spans.OrderBy(s => s.Start), VisualStudio.Editor.GetOutliningSpans());
         }
 
@@ -73,15 +71,14 @@ namespace ClassLibrary1[|
             MarkupTestFile.GetSpans(input, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
             VisualStudio.Editor.SetText(text);
 
-            Verify(spans, "Release");
-            Verify(spans, "Debug");
+            VerifySpansInConfiguration(spans, "Release");
+            VerifySpansInConfiguration(spans, "Debug");
         }
 
-        private void Verify(IDictionary<string, ImmutableArray<TextSpan>> spans, string configuration)
+        private void VerifySpansInConfiguration(IDictionary<string, ImmutableArray<TextSpan>> spans, string configuration)
         {
             VisualStudio.ExecuteCommand("Build.SolutionConfigurations", configuration);
 
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Outlining);
             var expectedSpans = spans[""].Concat(spans[configuration]).OrderBy(s => s.Start);
             Assert.Equal(expectedSpans, VisualStudio.Editor.GetOutliningSpans());
         }
