@@ -206,20 +206,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            SynthesizedEntryPointSymbol synthesizedEntryPoint = null;
             bool addedDefinition = false;
-            if (entryPoint is SynthesizedEntryPointSymbol s)
-            {
-                synthesizedEntryPoint = s;
-            }
-            else if (entryPoint.HasAsyncMainReturnType(compilation) && compilation.LanguageVersion >= LanguageVersion.CSharp7_1)
+            SynthesizedEntryPointSymbol synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
+
+            if ((object) synthesizedEntryPoint == null && entryPoint.HasAsyncMainReturnType(compilation) && compilation.LanguageVersion >= LanguageVersion.CSharp7_1)
             {
                 synthesizedEntryPoint = new AsyncForwardEntryPoint(compilation, diagnostics, entryPoint.ContainingType, entryPoint);
                 entryPoint = synthesizedEntryPoint;
                 addedDefinition = true;
             }
 
-            if ((synthesizedEntryPoint != null) &&
+            if (((object) synthesizedEntryPoint != null) &&
                 (moduleBeingBuilt != null) &&
                 !hasDeclarationErrors &&
                 !diagnostics.HasAnyErrors())
