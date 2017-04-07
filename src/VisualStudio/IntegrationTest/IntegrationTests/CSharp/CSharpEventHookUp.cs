@@ -21,7 +21,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         void VerifyQuickInfoTooltip()
         {
             SetUpEditor(@"
@@ -41,7 +41,7 @@ class Program
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         void VerifyCommitAndRenameTags()
         {
             SetUpEditor(@"
