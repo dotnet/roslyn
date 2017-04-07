@@ -296,6 +296,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public TextSpan[] GetKeywordHighlightTags()
             => Deserialize(_editorInProc.GetHighlightTags());
 
+        public TextSpan[] GetOutliningSpans()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Outlining);
+            return Deserialize(_editorInProc.GetOutliningSpans());
+        }
+
         private TextSpan[] Deserialize(string[] v)
         {
             // returned tag looks something like 'text'[12-13]
