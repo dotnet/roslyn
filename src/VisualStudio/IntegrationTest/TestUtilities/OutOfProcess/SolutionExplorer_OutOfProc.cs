@@ -128,5 +128,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void EditProjectFile(ProjectUtils.Project project)
             => _inProc.EditProjectFile(project.Name);
+
+		public void AddStandaloneFile(string fileName)
+            => _inProc.AddStandaloneFile(fileName);
     }
 }

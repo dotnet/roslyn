@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Windows.Automation;
 using System.Collections.Generic;
 using System.Threading;
 using System.Windows;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using System.Collections.Immutable;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -59,6 +59,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void MoveCaret(int position)
             => _editorInProc.MoveCaret(position);
+
+        public ImmutableArray<TextSpan> GetTagSpans(string tagId)
+        {
+            var tagInfo = _editorInProc.GetTagSpans(tagId).ToList();
+
+            // The spans are returned in an array:
+            //    [s1.Start, s1.Length, s2.Start, s2.Length, ...]
+            // Reconstruct the spans from their component parts
+
+            var builder = ArrayBuilder<TextSpan>.GetInstance();
+
+            for (int i = 0; i < tagInfo.Count; i += 2)
+            {
+                builder.Add(new TextSpan(tagInfo[i], tagInfo[i + 1]));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
 
         public string GetCurrentCompletionItem()
         {

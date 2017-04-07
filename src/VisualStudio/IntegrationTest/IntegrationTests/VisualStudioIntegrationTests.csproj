@@ -54,6 +54,7 @@
     <Compile Include="CSharp\CSharpQuickInfo.cs" />
     <Compile Include="CSharp\CSharpSendToInteractive.cs" />
     <Compile Include="CSharp\CSharpNavigateTo.cs" />
+    <Compile Include="CSharp\CSharpRename.cs" />
     <Compile Include="CSharp\CSharpSignatureHelp.cs" />
     <Compile Include="CSharp\CSharpSquigglesDesktop.cs" />
     <Compile Include="CSharp\CSharpSquigglesCommon.cs" />
@@ -94,6 +95,7 @@
     <Compile Include="VisualBasic\BasicNavigateTo.cs" />
     <Compile Include="VisualBasic\BasicGoToDefinition.cs" />
     <Compile Include="VisualBasic\BasicGenerateFromUsage.cs" />
+    <Compile Include="VisualBasic\BasicRename.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
