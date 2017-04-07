@@ -1,7 +1,8 @@
 A question that arises when emitting assemblies via Roslyn Compilation APIs in .NET Core app is how to create MetadataReferences for .NET Core Framework libraries (such as ```System.Runtime.dll```, ```System.IO.dll```, etc.). 
 
 There are two approaches to runtime code generation:
-1) Compile against runtime (implementation) assemblies
+
+### Compile against runtime (implementation) assemblies
 
 This is what [C# Scripting API](https://github.com/dotnet/roslyn/wiki/Scripting-API-Samples) currently does. There are a few gotchas with this approach:
 - the implementation assemblies currently contain some duplicate public types (this is gonna be fixed in a future CoreFX release, see https://github.com/dotnet/corefx/issues/5540).
@@ -19,7 +20,7 @@ AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")
 Enumerate this and find paths to assemblies you're interested in (you'll find "mscorlib.dll" on that list too).
 You can use RuntimeMetadataReferenceResolver to do this for you.
 
-2) Compile against reference (contract) assemblies
+### Compile against reference (contract) assemblies
 
 This is what the compiler does when invoked from msbuild. You need to decide what reference assemblies to use (e.g. ```netstandard1.5```). Once you decide, you need to get them from nuget packages and distribute them with your application, e.g. in a form of embedded resources. Then in your application extract the binaries from resources and create MetadataReferences for them. 
 
