@@ -34,53 +34,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntaxRefs = syntaxRefs;
         }
 
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return _locations;
-            }
-        }
+        public override ImmutableArray<Location> Locations => _locations;
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return _syntaxRefs;
-            }
-        }
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => _syntaxRefs;
 
-        internal ImmutableArray<SyntaxReference> SyntaxReferences
-        {
-            get
-            {
-                return _syntaxRefs;
-            }
-        }
+        internal ImmutableArray<SyntaxReference> SyntaxReferences => _syntaxRefs;
 
-        public override int Ordinal
-        {
-            get
-            {
-                return _ordinal;
-            }
-        }
+        public override int Ordinal => _ordinal;
 
-        public override VarianceKind Variance
-        {
-            get
-            {
-                return VarianceKind.None;
-            }
-        }
+        public override VarianceKind Variance => VarianceKind.None;
 
-        public override string Name
-        {
-            get
-            {
-                return _name;
-            }
-        }
+        public override string Name => _name;
 
         internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
@@ -133,21 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner
-        {
-            get { return this; }
-        }
-
-        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation
-        {
-            get { return AttributeLocation.TypeParameter; }
-        }
-
-        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-        {
-            get { return AttributeLocation.TypeParameter; }
-        }
-
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
+        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.TypeParameter;
+        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.TypeParameter;
         /// <summary>
         /// Gets the attributes applied on this symbol.
         /// Returns an empty array if there are no attributes.
@@ -317,24 +269,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _varianceKind = varianceKind;
         }
 
-        public override TypeParameterKind TypeParameterKind
-        {
-            get
-            {
-                return TypeParameterKind.Type;
-            }
-        }
+        public override TypeParameterKind TypeParameterKind => TypeParameterKind.Type;
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _owner; }
-        }
-
-        public override VarianceKind Variance
-        {
-            get { return _varianceKind; }
-        }
-
+        public override Symbol ContainingSymbol => _owner;
+        public override VarianceKind Variance => _varianceKind;
         public override bool HasConstructorConstraint
         {
             get
@@ -362,11 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters
-        {
-            get { return _owner.TypeParameters; }
-        }
-
+        protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters => _owner.TypeParameters;
         protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
         {
             var constraintTypes = _owner.GetTypeParameterConstraintTypes(this.Ordinal);
@@ -391,19 +325,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics) => _owner.AddDeclarationDiagnostics(diagnostics);
 
-        public override TypeParameterKind TypeParameterKind
-        {
-            get
-            {
-                return TypeParameterKind.Method;
-            }
-        }
+        public override TypeParameterKind TypeParameterKind => TypeParameterKind.Method;
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _owner; }
-        }
-
+        public override Symbol ContainingSymbol => _owner;
         public override bool HasConstructorConstraint
         {
             get
@@ -431,11 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters
-        {
-            get { return _owner.TypeParameters; }
-        }
-
+        protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters => _owner.TypeParameters;
         protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
         {
             var constraintTypes = _owner.GetTypeParameterConstraintTypes(this.Ordinal);
@@ -469,11 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _overridingMethod = overridingMethod;
         }
 
-        public SourceMemberMethodSymbol OverridingMethod
-        {
-            get { return _overridingMethod; }
-        }
-
+        public SourceMemberMethodSymbol OverridingMethod => _overridingMethod;
         public TypeParameterSymbol GetOverriddenTypeParameter(int ordinal)
         {
             var overriddenMethod = this.OverriddenMethod;
@@ -574,24 +490,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _map = map;
         }
 
-        public SourceMemberMethodSymbol Owner
-        {
-            get { return _map.OverridingMethod; }
-        }
+        public SourceMemberMethodSymbol Owner => _map.OverridingMethod;
+        public override TypeParameterKind TypeParameterKind => TypeParameterKind.Method;
 
-        public override TypeParameterKind TypeParameterKind
-        {
-            get
-            {
-                return TypeParameterKind.Method;
-            }
-        }
-
-        public override Symbol ContainingSymbol
-        {
-            get { return this.Owner; }
-        }
-
+        public override Symbol ContainingSymbol => this.Owner;
         public override bool HasConstructorConstraint
         {
             get
@@ -619,11 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters
-        {
-            get { return this.Owner.TypeParameters; }
-        }
-
+        protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters => this.Owner.TypeParameters;
         protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
         {
             var typeParameter = this.OverriddenTypeParameter;
@@ -644,12 +542,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// method that the owner method is overriding, the corresponding type
         /// parameter on that method is used. Otherwise, the result is null.
         /// </summary>
-        private TypeParameterSymbol OverriddenTypeParameter
-        {
-            get
-            {
-                return _map.GetOverriddenTypeParameter(this.Ordinal);
-            }
-        }
+        private TypeParameterSymbol OverriddenTypeParameter => _map.GetOverriddenTypeParameter(this.Ordinal);
     }
 }
