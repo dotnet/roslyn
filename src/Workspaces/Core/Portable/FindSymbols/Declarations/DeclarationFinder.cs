@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    public static partial class SymbolFinder
+    internal static partial class DeclarationFinder
     {
         private static Task AddCompilationDeclarationsWithNormalQueryAsync(
             Project project, SearchQuery query, SymbolFilter filter,

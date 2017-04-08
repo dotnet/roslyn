@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                             .Select(s => new SymbolAndProjectId(s, project.Id))
                                             .ToImmutableArray();
                     
-                return FilterByCriteria(unfiltered, filter);
+                return DeclarationFinder.FilterByCriteria(unfiltered, filter);
             }
         }
     }

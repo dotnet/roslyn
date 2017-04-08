@@ -367,6 +367,9 @@
     <Compile Include="Execution\SolutionAsset.cs" />
     <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
     <Compile Include="Experiments\IExperimentationService.cs" />
+    <Compile Include="FindSymbols\Declarations\DeclarationFinder.cs" />
+    <Compile Include="FindSymbols\Declarations\DeclarationFinder_AllDeclarations.cs" />
+    <Compile Include="FindSymbols\Declarations\DeclarationFinder_SourceDeclarations.cs" />
     <Compile Include="FindSymbols\FindLiterals\FindLiteralsSearchEngine.cs" />
     <Compile Include="FindSymbols\SearchKind.cs" />
     <Compile Include="FindSymbols\SearchQuery.cs" />
@@ -689,7 +692,6 @@
     <Compile Include="FindSymbols\ReferenceLocationExtensions.cs" />
     <Compile Include="FindSymbols\SymbolCallerInfo.cs" />
     <Compile Include="FindSymbols\SymbolFinder.cs" />
-    <Compile Include="FindSymbols\SymbolFinder_Declarations.cs" />
     <Compile Include="FindSymbols\SymbolFinder_Hierarchy.cs" />
     <Compile Include="FindSymbols\SymbolFinder_FindReferences_Legacy.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.cs" />
