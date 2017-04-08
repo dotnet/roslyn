@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 string name, SymbolFilter filter, SearchQuery searchQuery)
             {
-                var declarations = await SymbolFinder.FindAllDeclarationsWithNormalQueryAsync(
+                var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
                     _project, searchQuery, filter, CancellationToken).ConfigureAwait(false);
 
                 return declarations.SelectAsArray(d => d.Symbol);

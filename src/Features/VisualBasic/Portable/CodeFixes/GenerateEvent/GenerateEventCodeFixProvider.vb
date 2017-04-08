@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Dim syntaxFactService = document.Project.Solution.Workspace.Services.GetLanguageServices(targetType.Language).GetService(Of ISyntaxFactsService)
 
             Dim eventHandlerName As String = actualEventName + "Handler"
-            Dim existingSymbolAndProjectIds = Await SymbolFinder.FindSourceDeclarationsWithNormalQueryInLocalProcessAsync(
+            Dim existingSymbolAndProjectIds = Await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInLocalProcessAsync(
                 document.Project.Solution, eventHandlerName, Not syntaxFactService.IsCaseSensitive, SymbolFilter.Type, cancellationToken).ConfigureAwait(False)
 
             Dim existingSymbols = existingSymbolAndProjectIds.SelectAsArray(Function(t) t.Symbol)

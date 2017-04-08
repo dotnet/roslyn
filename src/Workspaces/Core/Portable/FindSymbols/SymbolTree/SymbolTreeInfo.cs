@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var symbols = await FindAsyncWorker(query, lazyAssembly, cancellationToken).ConfigureAwait(false);
 
-            return SymbolFinder.FilterByCriteria(
+            return DeclarationFinder.FilterByCriteria(
                 symbols.SelectAsArray(s => new SymbolAndProjectId(s, assemblyProjectId)),
                 filter);
         }
