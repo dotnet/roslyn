@@ -173,6 +173,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private const bool CaseInsensitive = !CaseSensitive;
 
         [Theory]
+        [InlineData("[|Foo|]", "Foo", PatternMatchKind.Exact, CaseSensitive)]
+        [InlineData("[|foo|]", "Foo", PatternMatchKind.Exact, CaseInsensitive)]
+        [InlineData("[|Foo|]", "foo", PatternMatchKind.Exact, CaseInsensitive)]
         [InlineData("BazBar[|F|]oo[|F|]oo[|F|]oo", "FFF", PatternMatchKind.CamelCase, CaseSensitive, PatternMatcher.CamelCaseContiguousBonus)]
         [InlineData("Baz[|F|]ogBar[|F|]oo[|F|]oo", "FFF", PatternMatchKind.CamelCase, CaseSensitive, PatternMatcher.NoBonus)]
         [InlineData("[|CO|]DE_FIX_[|PRO|]VIDER", "copro", PatternMatchKind.CamelCase, CaseInsensitive, PatternMatcher.CamelCaseMatchesFromStartBonus)]
@@ -185,7 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("Code[|Fi|]x[|Pro|]vider", "fipro", PatternMatchKind.CamelCase, CaseInsensitive, PatternMatcher.CamelCaseContiguousBonus)]
         [InlineData("[|F|]ogBar[|F|]oo[|F|]oo", "FFF", PatternMatchKind.CamelCase, CaseSensitive, PatternMatcher.CamelCaseMatchesFromStartBonus)]
         [InlineData("Bar[|F|]oo[|F|]oo[|F|]oo", "FFF", PatternMatchKind.CamelCase, CaseSensitive, PatternMatcher.CamelCaseContiguousBonus)]
-        [InlineData("[|Foo|]", "Foo", PatternMatchKind.Exact, CaseSensitive)]
         [InlineData("[|AbCd|]xxx[|Ef|]Cd[|Gh|]", "AbCdEfGh", PatternMatchKind.CamelCase, CaseSensitive, PatternMatcher.CamelCaseMatchesFromStartBonus)]
         [InlineData("_my[|_b|]utton", "_b", PatternMatchKind.Substring, CaseSensitive)]
         [InlineData("[|_f|]og[|B|]ar", "_fB", PatternMatchKind.CamelCase, CaseSensitive, PatternMatcher.CamelCaseMaxWeight)]
@@ -193,7 +195,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("[|Co|]deFix[|Pro|]vider", "copro", PatternMatchKind.CamelCase, CaseInsensitive, PatternMatcher.CamelCaseMatchesFromStartBonus)]
         [InlineData("my[|_B|]utton", "_b", PatternMatchKind.Substring, CaseInsensitive)]
         [InlineData("[|F|]og_[|B|]ar", "FB", PatternMatchKind.CamelCase, CaseSensitive, PatternMatcher.CamelCaseMatchesFromStartBonus)]
-        [InlineData("[|foo|]", "Foo", PatternMatchKind.Exact, CaseInsensitive)]
         [InlineData("FogBar[|ChangedEventArgs|]", "changedeventargs", PatternMatchKind.CamelCase, CaseInsensitive, PatternMatcher.CamelCaseContiguousBonus)]
         [InlineData("my[|_b|]utton", "_b", PatternMatchKind.Substring, CaseSensitive)]
         [InlineData("[|fog|]BarFoo", "Fog", PatternMatchKind.Prefix, CaseInsensitive)]
@@ -209,7 +210,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("_[|myb|]utton", "myb", PatternMatchKind.Substring, CaseSensitive)]
         [InlineData("[|Fo|]o", "Fo", PatternMatchKind.Prefix, CaseSensitive)]
         [InlineData("_my[|_B|]utton", "_b", PatternMatchKind.Substring, CaseInsensitive)]
-        [InlineData("[|Foo|]", "foo", PatternMatchKind.Exact, CaseInsensitive)]
         [InlineData("[|Co|]de[|Fi|]x[|Pro|]vider", "cofipro", PatternMatchKind.CamelCase, CaseInsensitive, PatternMatcher.CamelCaseMaxWeight)]
         [InlineData("Code[|Fi|]xObject[|Pro|]vider", "fipro", PatternMatchKind.CamelCase, CaseInsensitive, PatternMatcher.NoBonus)]
         [InlineData("_[|myB|]utton", "myB", PatternMatchKind.Substring, CaseSensitive)]
