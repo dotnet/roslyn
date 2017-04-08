@@ -17,6 +17,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     public static partial class SymbolFinder
     {
+        #region Legacy API
+
+        // This region contains the legacy FindDeclarations APIs.  The APIs are legacy because they
+        // do not contain enough information for us to effectively remote them over to the OOP
+        // process to do the work.  Specifically, they lack the "current project context" necessary
+        // to be able to effectively serialize symbols to/from the remote process.
+
         /// <summary>
         /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
         /// </summary>
@@ -27,6 +34,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return declarations.SelectAsArray(t => t.Symbol);
         }
 
+        /// <summary>
+        /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
+        /// </summary>
+        public static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+            Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var declarations = await FindAllDeclarationsAsync(project, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
+            return declarations.SelectAsArray(t => t.Symbol);
+        }
+
+        #endregion
+
+        #region Current API
+
+        // This region contains the current FindDeclaratins APIs.  The current APIs allow for OOP 
+        // implementation and will defer to the oop server if it is available.  If not, it will
+        // compute the results in process.
+
+        /// <summary>
+        /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
+        /// </summary>
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsAsync(
             Project project, string name, bool ignoreCase, CancellationToken cancellationToken)
         {
@@ -42,16 +70,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return await FindAllDeclarationsWithNormalQueryAsync(
                 project, SearchQuery.Create(name, ignoreCase), SymbolFilter.All, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
-        /// </summary>
-        public static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
-            Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var declarations = await FindAllDeclarationsAsync(project, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
-            return declarations.SelectAsArray(t => t.Symbol);
         }
 
         /// <summary>
@@ -132,5 +150,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return list.ToImmutableAndFree();
         }
+
+        #endregion
     }
 }
