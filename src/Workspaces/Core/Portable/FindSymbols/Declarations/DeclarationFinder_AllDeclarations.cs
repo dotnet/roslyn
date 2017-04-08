@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -18,52 +16,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DeclarationFinder
     {
-        /// <summary>
-        /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
-        /// </summary>
-        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsAsync(
-            Project project, string name, bool ignoreCase, CancellationToken cancellationToken)
-        {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return ImmutableArray<SymbolAndProjectId>.Empty;
-            }
-
-            return await FindAllDeclarationsWithNormalQueryAsync(
-                project, SearchQuery.Create(name, ignoreCase), SymbolFilter.All, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
-        /// </summary>
-        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsAsync(
-            Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return ImmutableArray<SymbolAndProjectId>.Empty;
-            }
-
-            return await FindAllDeclarationsWithNormalQueryAsync(
-                project, SearchQuery.Create(name, ignoreCase), filter, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
+        public static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             if (project == null)
             {
