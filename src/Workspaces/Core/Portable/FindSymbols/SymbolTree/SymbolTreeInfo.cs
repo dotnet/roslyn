@@ -115,19 +115,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
-            Project project, SearchQuery query, IAssemblySymbol assembly, SymbolFilter filter, CancellationToken cancellationToken)
+            SearchQuery query, IAssemblySymbol assembly, ProjectId assemblyProjectId, SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
             Debug.Assert(query.Kind != SearchKind.Custom);
 
             return this.FindAsync(
-                project, query, new AsyncLazy<IAssemblySymbol>(assembly),
-                filter, cancellationToken);
+                query, new AsyncLazy<IAssemblySymbol>(assembly),
+                assemblyProjectId, filter, cancellationToken);
         }
 
         public async Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
-            Project project, SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly,
+            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, ProjectId assemblyProjectId,
             SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var symbols = await FindAsyncWorker(query, lazyAssembly, cancellationToken).ConfigureAwait(false);
 
             return SymbolFinder.FilterByCriteria(
-                symbols.SelectAsArray(s => new SymbolAndProjectId(s, project.Id)),
+                symbols.SelectAsArray(s => new SymbolAndProjectId(s, assemblyProjectId)),
                 filter);
         }
 
