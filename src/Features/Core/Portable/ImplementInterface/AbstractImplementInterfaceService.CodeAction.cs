@@ -159,8 +159,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             public Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
             {
-                var unimplementedMembers = Explicitly 
-                    ? State.UnimplementedExplicitMembers 
+                var unimplementedMembers = Explicitly
+                    ? State.UnimplementedExplicitMembers
                     : State.UnimplementedMembers;
                 return GetUpdatedDocumentAsync(Document, unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
             }
@@ -476,13 +476,36 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     // uncommon case and optimize for the common one - in other words, we only apply the cast
                     // in cases where we can unambiguously figure out which interface we are trying to implement.
                     var interfaceBeingImplemented = State.InterfaceTypes.SingleOrDefault();
-                    if ((interfaceBeingImplemented != null) && (!throughMemberType.Equals(interfaceBeingImplemented)))
+                    if ((interfaceBeingImplemented != null))
                     {
-                        through = factory.CastExpression(interfaceBeingImplemented,
-                            through.WithAdditionalAnnotations(Simplifier.Annotation));
+                        if (!throughMemberType.Equals(interfaceBeingImplemented))
+                        {
+                            through = factory.CastExpression(interfaceBeingImplemented,
+                                through.WithAdditionalAnnotations(Simplifier.Annotation));
 
-                        var facts = this.Document.GetLanguageService<ISyntaxFactsService>();
-                        through = facts.Parenthesize(through);
+                            var facts = this.Document.GetLanguageService<ISyntaxFactsService>();
+                            through = facts.Parenthesize(through);
+                        }
+                        else if (!ThroughMember.IsStatic && ThroughMember is IPropertySymbol throughMemberProperty && throughMemberProperty.ExplicitInterfaceImplementations.Any())
+                        {
+                            // If we are implementing through an explicitly implemented property, we need to cast 'this' to
+                            // the explicitly implemented property type before calling the member, as in:
+                            //       ((IA)this).Prop.Member();
+                            //
+                            var explicitlyImplementedProperty = throughMemberProperty.ExplicitInterfaceImplementations[0];
+
+                            var explicitImplementationCast = factory.CastExpression(
+                                explicitlyImplementedProperty.ContainingType,
+                                factory.ThisExpression());
+
+                            var facts = this.Document.GetLanguageService<ISyntaxFactsService>();
+                            explicitImplementationCast = facts.Parenthesize(explicitImplementationCast);
+
+                            through = factory.MemberAccessExpression(explicitImplementationCast,
+                                factory.IdentifierName(explicitlyImplementedProperty.Name))
+                                .WithAdditionalAnnotations(Simplifier.Annotation);
+
+                        }
                     }
                 }
 
