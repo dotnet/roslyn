@@ -220,6 +220,59 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         }
 
         [Fact]
+        public void TryMatchSingleWordPattern_UnderscoreInCandidateButNotInPattern7()
+        {
+            var match = TryMatchSingleWordPattern("_my[|_b|]utton", "_b");
+
+            Assert.Equal(PatternMatchKind.Substring, match.Value.Kind);
+            Assert.True(match.Value.IsCaseSensitive);
+        }
+
+        [Fact]
+        public void TryMatchSingleWordPattern_UnderscoreInCandidateButNotInPattern8()
+        {
+            var match = TryMatchSingleWordPattern("_my[|_B|]utton", "_b");
+
+            Assert.Equal(PatternMatchKind.Substring, match.Value.Kind);
+            Assert.False(match.Value.IsCaseSensitive);
+        }
+
+        [Fact]
+        public void TryMatchSingleWordPattern_UnderscoreInCandidateButNotInPattern9()
+        {
+            var match = TryMatchSingleWordPattern("[|_|]my_[|b|]utton", "_B");
+
+            Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
+            Assert.False(match.Value.IsCaseSensitive);
+        }
+
+        [Fact]
+        public void TryMatchSingleWordPattern_UnderscoreInCandidateButNotInPattern10()
+        {
+            var match = TryMatchSingleWordPattern("my[|_b|]utton", "_b");
+
+            Assert.Equal(PatternMatchKind.Substring, match.Value.Kind);
+            Assert.True(match.Value.IsCaseSensitive);
+        }
+
+        [Fact]
+        public void TryMatchSingleWordPattern_UnderscoreInCandidateButNotInPattern11()
+        {
+            var match = TryMatchSingleWordPattern("my[|_B|]utton", "_b");
+
+            Assert.Equal(PatternMatchKind.Substring, match.Value.Kind);
+            Assert.False(match.Value.IsCaseSensitive);
+        }
+
+        [Fact]
+        public void TryMatchSingleWordPattern_UnderscoreInCandidateButNotInPattern12()
+        {
+            var match = TryMatchSingleWordPattern("my[|_b|]utton", "_B");
+            Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
+            Assert.False(match.Value.IsCaseSensitive);
+        }
+
+        [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveExact()
         {
             var match = TryMatchSingleWordPattern("[|Foo|]", "Foo");

@@ -338,7 +338,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     //    substring match.  i.e. if the user is testing mybutton against _myButton
                     //    then this should hit. As we really are finding the match at the beginning of 
                     //    a word.
-                    if (char.IsPunctuation(candidate[caseInsensitiveIndex - 1]))
+                    if (char.IsPunctuation(candidate[caseInsensitiveIndex - 1]) ||
+                        char.IsPunctuation(patternChunk.Text[0]))
                     {
                         return new PatternMatch(
                             PatternMatchKind.Substring, punctuationStripped,
