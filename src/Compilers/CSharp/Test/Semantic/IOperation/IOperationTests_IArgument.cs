@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class IOperationTests : SemanticModelTestBase
     {
         [Fact]
-        public void PositinalArgument()
+        public void PositionalArgument()
         {
             string source = @"
 class P
