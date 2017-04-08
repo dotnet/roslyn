@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -74,6 +75,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<SymbolAndProjectId>.Empty;
             }
 
+            var (succeeded, results) = await TryFindAllDeclarationsWithNormalQueryInRemoteProcessAsync(
+                project, query, criteria, cancellationToken).ConfigureAwait(false);
+
+            if (succeeded)
+            {
+                return results;
+            }
+
+            return await FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
+                project, query, criteria, cancellationToken).ConfigureAwait(false);
+        }
+
+        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
+            Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
+        {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var list = ArrayBuilder<SymbolAndProjectId>.GetInstance();
@@ -114,6 +130,41 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return list.ToImmutableAndFree();
+        }
+
+        private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindAllDeclarationsWithNormalQueryInRemoteProcessAsync(
+            Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
+        {
+            var session = await SymbolFinder.TryGetRemoteSessionAsync(
+                project.Solution, cancellationToken).ConfigureAwait(false);
+            if (session != null)
+            {
+                var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                    nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
+                    project.Id, query.Name, query.Kind, criteria).ConfigureAwait(false);
+
+                var rehydrated = await RehydrateAsync(
+                    project.Solution, result, cancellationToken).ConfigureAwait(false);
+
+                return (true, rehydrated);
+            }
+
+            return (false, ImmutableArray<SymbolAndProjectId>.Empty);
+        }
+
+        private static async Task<ImmutableArray<SymbolAndProjectId>> RehydrateAsync(
+            Solution solution, SerializableSymbolAndProjectId[] array, CancellationToken cancellationToken)
+        {
+            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+
+            foreach (var dehydrated in array)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var rehydrated = await dehydrated.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                result.Add(rehydrated);
+            }
+
+            return result.ToImmutableAndFree();
         }
     }
 }
