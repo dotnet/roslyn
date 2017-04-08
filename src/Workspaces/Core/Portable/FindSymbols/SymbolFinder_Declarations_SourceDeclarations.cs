@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Name_FindSourceDeclarationsAsync, cancellationToken))
             {
-                var declarations = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInLocalProcessAsync(
+                var declarations = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
                     solution, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
                 return declarations.SelectAsArray(t => t.Symbol);
             }
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Name_FindSourceDeclarationsAsync, cancellationToken))
             {
-                var declarations = await DeclarationFinder.FindSourceDeclarationsithNormalQueryInLocalProcessAsync(
+                var declarations = await DeclarationFinder.FindSourceDeclarationsithNormalQueryAsync(
                     project, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
 
                 return declarations.SelectAsArray(t => t.Symbol);

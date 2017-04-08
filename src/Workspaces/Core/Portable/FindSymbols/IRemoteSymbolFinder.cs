@@ -12,5 +12,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         Task<SerializableSymbolAndProjectId[]> FindAllDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, SearchKind searchKind, SymbolFilter criteria);
+
+        Task<SerializableSymbolAndProjectId[]> FindSolutionSourceDeclarationsWithNormalQuery(
+            string name, bool ignoreCase, SymbolFilter criteria);
+
+        Task<SerializableSymbolAndProjectId[]> FindProjectSourceDeclarationsWithNormalQuery(
+            ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria);
     }
 }

@@ -46,6 +46,28 @@ namespace Microsoft.CodeAnalysis.Remote
             return result.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();
         }
 
+        public async Task<SerializableSymbolAndProjectId[]> FindSolutionSourceDeclarationsWithNormalQuery(
+            string name, bool ignoreCase, SymbolFilter criteria)
+        {
+            var solution = await GetSolutionAsync().ConfigureAwait(false);
+            var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
+                solution, name, ignoreCase, criteria, CancellationToken).ConfigureAwait(false);
+
+            return result.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();
+        }
+
+        public async Task<SerializableSymbolAndProjectId[]> FindProjectSourceDeclarationsWithNormalQuery(
+            ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria)
+        {
+            var solution = await GetSolutionAsync().ConfigureAwait(false);
+            var project = solution.GetProject(projectId);
+
+            var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
+                project, name, ignoreCase, criteria, CancellationToken).ConfigureAwait(false);
+
+            return result.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();
+        }
+
         private class FindLiteralReferencesProgressCallback : IStreamingFindLiteralReferencesProgress
         {
             private readonly CodeAnalysisService _service;
