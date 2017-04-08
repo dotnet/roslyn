@@ -2278,7 +2278,7 @@ class B
         public void ConsistentErrorMessageWhenProvidingNullKeyFile()
         {
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: null);
-            var compilation = CreateCompilationWithMscorlib(string.Empty, options: options).VerifyDiagnostics();
+            var compilation = CreateStandardCompilation(string.Empty, options: options).VerifyDiagnostics();
 
             VerifySignedBitSetAfterEmit(compilation, expectedToBeSigned: false);
         }
@@ -2288,7 +2288,7 @@ class B
         public void ConsistentErrorMessageWhenProvidingEmptyKeyFile()
         {
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: string.Empty);
-            var compilation = CreateCompilationWithMscorlib(string.Empty, options: options).VerifyDiagnostics();
+            var compilation = CreateStandardCompilation(string.Empty, options: options).VerifyDiagnostics();
 
             VerifySignedBitSetAfterEmit(compilation, expectedToBeSigned: false);
         }
@@ -2298,7 +2298,7 @@ class B
         public void ConsistentErrorMessageWhenProvidingNullKeyFile_PublicSign()
         {
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: null, publicSign: true);
-            CreateCompilationWithMscorlib(string.Empty, options: options).VerifyDiagnostics(
+            CreateStandardCompilation(string.Empty, options: options).VerifyDiagnostics(
                 // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
                 Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
@@ -2308,7 +2308,7 @@ class B
         public void ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign()
         {
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: string.Empty, publicSign: true);
-            CreateCompilationWithMscorlib(string.Empty, options: options).VerifyDiagnostics(
+            CreateStandardCompilation(string.Empty, options: options).VerifyDiagnostics(
                 // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
                 Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
