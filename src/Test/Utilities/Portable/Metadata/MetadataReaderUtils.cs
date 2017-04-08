@@ -261,21 +261,51 @@ namespace Roslyn.Test.Utilities
 
         public static string Dump(this MetadataReader reader, EntityHandle handle)
         {
+            string value = DumpRec(reader, handle);
+            string kind = handle.Kind.ToString();
+            if (value != null)
+            {
+                return $"{kind}:{value}";
+            }
+            else
+            {
+                return kind;
+            }
+        }
+
+        private static string DumpRec(this MetadataReader reader, EntityHandle handle)
+        {
             switch (handle.Kind)
             {
                 case HandleKind.AssemblyReference:
-                    return "AssemblyRef:" + reader.GetString(reader.GetAssemblyReference((AssemblyReferenceHandle)handle).Name);
+                    return reader.GetString(reader.GetAssemblyReference((AssemblyReferenceHandle)handle).Name);
                 case HandleKind.TypeDefinition:
-                    return "TypeDef:" + reader.GetString(reader.GetTypeDefinition((TypeDefinitionHandle)handle).Name);
+                    return reader.GetString(reader.GetTypeDefinition((TypeDefinitionHandle)handle).Name);
                 case HandleKind.MethodDefinition:
-                    var method = reader.GetMethodDefinition((MethodDefinitionHandle)handle);
-                    var blob = reader.GetBlobReader(method.Signature);
-                    var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
-                    var signature =  decoder.DecodeMethodSignature(ref blob);
-                    var parameters = signature.ParameterTypes.Join(", ");
-                    return $"MethodDef: {signature.ReturnType} {reader.GetString(method.Name)}({parameters})";
+                    {
+                        var method = reader.GetMethodDefinition((MethodDefinitionHandle)handle);
+                        var blob = reader.GetBlobReader(method.Signature);
+                        var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
+                        var signature = decoder.DecodeMethodSignature(ref blob);
+                        var parameters = signature.ParameterTypes.Join(", ");
+                        return $"{signature.ReturnType} {reader.GetString(method.Name)}({parameters})";
+                    }
+                case HandleKind.MemberReference:
+                    {
+                        var member = reader.GetMemberReference((MemberReferenceHandle)handle);
+                        var blob = reader.GetBlobReader(member.Signature);
+                        var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
+                        var signature = decoder.DecodeMethodSignature(ref blob);
+                        var parameters = signature.ParameterTypes.Join(", ");
+                        return $"{signature.ReturnType} {DumpRec(reader, member.Parent)}{reader.GetString(member.Name)}({parameters})";
+                    }
+                case HandleKind.TypeReference:
+                    {
+                        var type = reader.GetTypeReference((TypeReferenceHandle)handle);
+                        return $"{reader.GetString(type.Namespace)}.{reader.GetString(type.Name)}";
+                    }
                 default:
-                    return handle.Kind.ToString();
+                    return null;
             }
         }
 

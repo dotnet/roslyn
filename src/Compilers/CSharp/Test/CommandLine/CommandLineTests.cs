@@ -9006,8 +9006,8 @@ public class C
             Assert.True(File.Exists(exe));
 
             MetadataReaderUtils.VerifyPEMetadata(exe,
-                new[] { "TypeDef:<Module>", "TypeDef:C" },
-                new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
+                new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
+                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
                 );
 
@@ -9036,52 +9036,16 @@ public class C
             Assert.True(File.Exists(refDll));
 
             // The types and members that are included needs further refinement.
-            // ReferenceAssemblyAttribute is missing.
             // See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
-                new[] { "TypeDef:<Module>", "TypeDef:C" },
-                new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
-                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
+                new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
+                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
+                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
                 );
-
-            VerifyNullReferenceException(refDir, "a.dll");
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);
             CleanupAllGeneratedFiles(refDir.Path);
-        }
-
-        /// <summary>
-        /// Calls C.Main() on the program and verifies that a null reference exception is thrown.
-        /// </summary>
-        private static void VerifyNullReferenceException(TempDirectory dir, string programName)
-        {
-            var src = dir.CreateFile("verifier.cs");
-            src.WriteAllText(@"
-class Verifier
-{
-    public static void Main()
-    {
-        try
-        {
-            C.Main();
-        }
-        catch(System.NullReferenceException)
-        {
-            System.Console.Write(""Got expected exception"");
-        }
-    }
-}");
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = new MockCSharpCompiler(null, dir.Path,
-                new[] { "/nologo", "/out:verifier.exe", $"/reference:{programName}", "verifier.cs" });
-
-            int exitCode = csc.Run(outWriter);
-            Assert.Equal(0, exitCode);
-            string dirPath = dir.ToString();
-            string output = ProcessUtilities.RunAndGetOutput(Path.Combine(dirPath, "verifier.exe"), startFolder: dirPath, expectedRetCode: 0);
-            Assert.Equal("Got expected exception", output);
         }
 
         [Fact]
@@ -9118,6 +9082,7 @@ class Verifier
 
             var src = dir.CreateFile("a.cs");
             src.WriteAllText(@"
+using System;
 class C
 {
     /// <summary>Main method</summary>
@@ -9125,24 +9090,30 @@ class C
     {
         error(); // semantic error in method body
     }
+    private event Action E1
+    {
+        add { }
+        remove { }
+    }
+    private event Action E2;
 }");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, dir.Path,
                 new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/doc:doc.xml", "a.cs" });
             int exitCode = csc.Run(outWriter);
+            Assert.Equal("", outWriter.ToString());
             Assert.Equal(0, exitCode);
 
             var refDll = Path.Combine(dir.Path, "a.dll");
             Assert.True(File.Exists(refDll));
 
             // The types and members that are included needs further refinement.
-            // ReferenceAssemblyAttribute is missing.
             // See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
-                new[] { "TypeDef:<Module>", "TypeDef:C" },
-                new[] { "MethodDef: Void Main()", "MethodDef: Void .ctor()" },
-                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
+                new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
+                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
+                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
                 );
 
             var pdb = Path.Combine(dir.Path, "a.pdb");

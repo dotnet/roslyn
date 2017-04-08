@@ -1707,7 +1707,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_ExplicitTupleElementNamesAttribute = 37269
         ERR_TupleLiteralDisallowsTypeChar = 37270
 
-        ' Available 37270
         ERR_DuplicateProcDefWithDifferentTupleNames2 = 37271
         ERR_InterfaceImplementedTwiceWithDifferentTupleNames2 = 37272
         ERR_InterfaceImplementedTwiceWithDifferentTupleNames3 = 37273

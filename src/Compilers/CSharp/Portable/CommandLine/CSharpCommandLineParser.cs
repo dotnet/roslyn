@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<KeyValuePair<string, string>> pathMap = ImmutableArray<KeyValuePair<string, string>>.Empty;
             string outputFileName = null;
             string outputRefFilePath = null;
-            bool metadataOnly = false;
+            bool refOnly = false;
             string documentationPath = null;
             string errorLogPath = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (value != null)
                                 break;
 
-                            metadataOnly = true;
+                            refOnly = true;
                             continue;
 
                         case "t":
@@ -1170,12 +1170,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnosticOptions[o.Key] = o.Value;
             }
 
-            if (metadataOnly && outputRefFilePath != null)
+            if (refOnly && outputRefFilePath != null)
             {
                 AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoRefOutWhenRefOnly);
             }
 
-            if (outputKind == OutputKind.NetModule && (metadataOnly || outputRefFilePath != null))
+            if (outputKind == OutputKind.NetModule && (refOnly || outputRefFilePath != null))
             {
                 AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoNetModuleOutputWhenRefOutOrRefOnly);
             }
@@ -1294,7 +1294,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var emitOptions = new EmitOptions
             (
-                metadataOnly: metadataOnly,
+                metadataOnly: refOnly,
+                includePrivateMembers: !refOnly && outputRefFilePath == null,
                 debugInformationFormat: debugInformationFormat,
                 pdbFilePath: null, // to be determined later
                 outputNameOverride: null, // to be determined later
@@ -1322,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OutputFileName = outputFileName,
                 OutputRefFilePath = outputRefFilePath,
                 PdbPath = pdbPath,
-                EmitPdb = emitPdb && !metadataOnly, // silently ignore emitPdb when metadataOnly is set
+                EmitPdb = emitPdb && !refOnly, // silently ignore emitPdb when refOnly is set
                 SourceLink = sourceLink,
                 OutputDirectory = outputDirectory,
                 DocumentationPath = documentationPath,

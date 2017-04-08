@@ -39,12 +39,13 @@ namespace Microsoft.Cci
             CommonMessageProvider messageProvider,
             bool metadataOnly,
             bool deterministic,
+            bool emitTestCoverageData,
             bool hasPdbStream,
             CancellationToken cancellationToken)
         {
             var builder = new MetadataBuilder();
             MetadataBuilder debugBuilderOpt;
-            switch (context.Module.EmitOptions.DebugInformationFormat)
+            switch (context.Module.DebugInformationFormat)
             {
                 case DebugInformationFormat.PortablePdb:
                     debugBuilderOpt = hasPdbStream ? new MetadataBuilder() : null;
@@ -59,11 +60,12 @@ namespace Microsoft.Cci
                     break;
             }
 
-            var dynamicAnalysisDataWriterOpt = context.Module.EmitOptions.EmitTestCoverageData ? 
-                new DynamicAnalysisDataWriter(context.Module.DebugDocumentCount, context.Module.HintNumberOfMethodDefinitions) : 
+            var dynamicAnalysisDataWriterOpt = emitTestCoverageData ?
+                new DynamicAnalysisDataWriter(context.Module.DebugDocumentCount, context.Module.HintNumberOfMethodDefinitions) :
                 null;
 
-            return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, metadataOnly, deterministic, cancellationToken);
+            return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, metadataOnly, deterministic,
+                emitTestCoverageData, cancellationToken);
         }
 
         private FullMetadataWriter(
@@ -74,8 +76,10 @@ namespace Microsoft.Cci
             CommonMessageProvider messageProvider,
             bool metadataOnly,
             bool deterministic,
+            bool emitTestCoverageData,
             CancellationToken cancellationToken)
-            : base(builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, metadataOnly, deterministic, cancellationToken)
+            : base(builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, metadataOnly, deterministic,
+                  emitTestCoverageData, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
@@ -390,7 +394,7 @@ namespace Microsoft.Cci
                 this.methodImplList.Add(methodImplementation);
             }
 
-            foreach (IEventDefinition eventDef in typeDef.Events)
+            foreach (IEventDefinition eventDef in typeDef.GetEvents(Context))
             {
                 _eventDefs.Add(eventDef);
             }

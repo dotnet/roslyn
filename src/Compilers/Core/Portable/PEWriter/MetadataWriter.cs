@@ -66,6 +66,7 @@ namespace Microsoft.Cci
         private readonly bool _deterministic;
 
         internal readonly bool MetadataOnly;
+        internal readonly bool EmitTestCoverageData;
 
         // A map of method body before token translation to RVA. Used for deduplication of small bodies.
         private readonly Dictionary<ImmutableArray<byte>, int> _smallMethodBodies;
@@ -86,11 +87,13 @@ namespace Microsoft.Cci
             CommonMessageProvider messageProvider,
             bool metadataOnly,
             bool deterministic,
+            bool emitTestCoverageData,
             CancellationToken cancellationToken)
         {
             this.module = context.Module;
             _deterministic = deterministic;
             this.MetadataOnly = metadataOnly;
+            this.EmitTestCoverageData = emitTestCoverageData;
 
             // EDMAURER provide some reasonable size estimates for these that will avoid
             // much of the reallocation that would occur when growing these from empty.
@@ -506,7 +509,7 @@ namespace Microsoft.Cci
 
         private void CreateIndicesForModule()
         {
-            var nestedTypes = new Queue<ITypeDefinition>();
+            var nestedTypes = new Queue<INestedTypeDefinition>();
 
             foreach (INamespaceTypeDefinition typeDef in this.GetTopLevelTypes(this.module))
             {
@@ -515,7 +518,8 @@ namespace Microsoft.Cci
 
             while (nestedTypes.Count > 0)
             {
-                this.CreateIndicesFor(nestedTypes.Dequeue(), nestedTypes);
+                var nestedType = nestedTypes.Dequeue();
+                this.CreateIndicesFor(nestedType, nestedTypes);
             }
         }
 
@@ -523,7 +527,7 @@ namespace Microsoft.Cci
         {
         }
 
-        private void CreateIndicesFor(ITypeDefinition typeDef, Queue<ITypeDefinition> nestedTypes)
+        private void CreateIndicesFor(ITypeDefinition typeDef, Queue<INestedTypeDefinition> nestedTypes)
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -1790,9 +1794,16 @@ namespace Microsoft.Cci
                 }
             }
 
-            int[] methodBodyOffsets = MetadataOnly ?
-                SerializeThrowNullMethodBodies(ilBuilder, out mvidStringFixup) :
-                SerializeMethodBodies(ilBuilder, nativePdbWriterOpt, out mvidStringFixup);
+            int[] methodBodyOffsets;
+            if (MetadataOnly)
+            {
+                methodBodyOffsets = SerializeThrowNullMethodBodies(ilBuilder);
+                mvidStringFixup = default(Blob);
+            }
+            else
+            {
+                methodBodyOffsets = SerializeMethodBodies(ilBuilder, nativePdbWriterOpt, out mvidStringFixup);
+            }
 
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -2011,7 +2022,7 @@ namespace Microsoft.Cci
             }
 
             AddAssemblyAttributesToTable(
-                this.module.GetSourceAssemblyAttributes(),
+                this.module.GetSourceAssemblyAttributes(Context.IsRefAssembly),
                 needsDummyParent: writingNetModule,
                 isSecurity: false);
         }
@@ -2815,8 +2826,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private int[] SerializeThrowNullMethodBodies(BlobBuilder ilBuilder, out Blob mvidStringFixup)
+        private int[] SerializeThrowNullMethodBodies(BlobBuilder ilBuilder)
         {
+            Debug.Assert(MetadataOnly);
             var methods = this.GetMethodDefs();
             int[] bodyOffsets = new int[methods.Count];
 
@@ -2840,7 +2852,6 @@ namespace Microsoft.Cci
                 methodRid++;
             }
 
-            mvidStringFixup = default(Blob);
             return bodyOffsets;
         }
 

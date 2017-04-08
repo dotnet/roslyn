@@ -23,7 +23,7 @@ namespace Microsoft.Cci
         {
             // Visit these assembly-level attributes even when producing a module.
             // They'll be attached off the "AssemblyAttributesGoHere" typeRef if a module is being produced.
-            Visit(module.GetSourceAssemblyAttributes());
+            Visit(module.GetSourceAssemblyAttributes(Context.IsRefAssembly));
             Visit(module.GetSourceAssemblySecurityAttributes());
 
             Visit(module.GetAssemblyReferences(Context));

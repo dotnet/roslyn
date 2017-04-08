@@ -83,9 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(attributeConstructor);
         }
 
-        public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes()
+        public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly)
         {
-            return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(this.CompilationState, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
+            return SourceModule.ContainingSourceAssembly
+                .GetCustomAttributesToEmit(this.CompilationState, isRefAssembly, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
         }
 
         public sealed override IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes()
@@ -358,9 +359,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return false;
         }
 
-        internal sealed override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
+        internal sealed override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes(EmitContext context)
         {
-            if (EmitOptions.EmitMetadataOnly)
+            if (context.MetadataOnly)
             {
                 return ImmutableArray<Cci.INamespaceTypeDefinition>.Empty;
             }

@@ -8101,8 +8101,8 @@ End Class")
             Assert.True(File.Exists(exe))
 
             MetadataReaderUtils.VerifyPEMetadata(exe,
-                {"TypeDef:<Module>", "TypeDef:C"},
-                {"MethodDef: Void Main()", "MethodDef: Void .ctor()"},
+                {"TypeDefinition:<Module>", "TypeDefinition:C"},
+                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
                 )
 
@@ -8133,47 +8133,16 @@ a
             Assert.True(File.Exists(refDll))
 
             ' The types and members that are included needs further refinement.
-            ' ReferenceAssemblyAttribute is missing.
             ' See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
-                {"TypeDef:<Module>", "TypeDef:C"},
-                {"MethodDef: Void Main()", "MethodDef: Void .ctor()"},
-                {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
+                {"TypeDefinition:<Module>", "TypeDefinition:C"},
+                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
+                {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
                 )
-
-            VerifyNullReferenceException(refDir, "a.dll")
 
             ' Clean up temp files
             CleanupAllGeneratedFiles(dir.Path)
             CleanupAllGeneratedFiles(refDir.Path)
-        End Sub
-
-        ''' <summary>
-        ''' Calls C.Main() on the program and verifies that a null reference exception is thrown.
-        ''' </summary>
-        Private Shared Sub VerifyNullReferenceException(dir As TempDirectory, referenceName As String)
-
-            Dim src = dir.CreateFile("verifier.vb")
-            src.WriteAllText("
-Class Verifier
-    Public Shared Sub Main()
-        Try
-            C.Main()
-        Catch ex As System.NullReferenceException
-            System.Console.Write(""Got expected exception"")
-        End Try
-    End Sub
-End Class")
-
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
-                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:verifier.exe", $"/reference:{referenceName}", "verifier.vb"})
-
-            Dim exitCode = vbc.Run(outWriter)
-            Assert.Equal(0, exitCode)
-            Dim dirPath As String = dir.ToString()
-            Dim output = ProcessUtilities.RunAndGetOutput(Path.Combine(dirPath, "verifier.exe"), startFolder:=dirPath, expectedRetCode:=0)
-            Assert.Equal("Got expected exception", output)
         End Sub
 
         <Fact>
@@ -8239,12 +8208,11 @@ End Class")
             Assert.True(File.Exists(refDll))
 
             ' The types and members that are included needs further refinement.
-            ' ReferenceAssemblyAttribute is missing.
             ' See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
-                {"TypeDef:<Module>", "TypeDef:C"},
-                {"MethodDef: Void Main()", "MethodDef: Void .ctor()"},
-                {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
+                {"TypeDefinition:<Module>", "TypeDefinition:C"},
+                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
+                {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
                 )
 
             Dim pdb = Path.Combine(dir.Path, "a.pdb")

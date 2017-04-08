@@ -1739,6 +1739,8 @@ namespace Microsoft.CodeAnalysis
         internal abstract bool CompileMethods(
             CommonPEModuleBuilder moduleBuilder,
             bool emittingPdb,
+            bool emitMetadataOnly,
+            bool emitTestCoverageData,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken);
@@ -1830,6 +1832,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBeingBuilt,
             Stream xmlDocumentationStream,
             Stream win32ResourcesStream,
+            string outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
 
@@ -1864,9 +1867,11 @@ namespace Microsoft.CodeAnalysis
                 return CompileMethods(
                     moduleBuilder,
                     emittingPdb,
-                    diagnostics,
-                    filterOpt,
-                    cancellationToken);
+                    emitMetadataOnly: false,
+                    emitTestCoverageData: false,
+                    diagnostics: diagnostics,
+                    filterOpt: filterOpt,
+                    cancellationToken: cancellationToken);
             }
             finally
             {
@@ -2072,6 +2077,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.MetadataPeStreamUnexpectedWhenEmittingMetadataOnly, nameof(metadataPEStream));
             }
 
+            if (metadataPEStream != null && options?.IncludePrivateMembers == true)
+            {
+                throw new ArgumentException(CodeAnalysisResources.IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream, nameof(metadataPEStream));
+            }
+
             if (options?.DebugInformationFormat == DebugInformationFormat.Embedded &&
                 options?.EmitMetadataOnly == true)
             {
@@ -2156,8 +2166,10 @@ namespace Microsoft.CodeAnalysis
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
-            bool embedPdb = options?.DebugInformationFormat == DebugInformationFormat.Embedded;
+            options = options ?? EmitOptions.Default.WithIncludePrivateMembers(metadataPEStream == null);
+            bool embedPdb = options.DebugInformationFormat == DebugInformationFormat.Embedded;
             Debug.Assert(!embedPdb || pdbStream == null);
+            Debug.Assert(metadataPEStream == null || !options.IncludePrivateMembers); // you may not use a secondary stream and include private members together
 
             var diagnostics = DiagnosticBag.GetInstance();
 
@@ -2180,16 +2192,19 @@ namespace Microsoft.CodeAnalysis
                     success = CompileMethods(
                         moduleBeingBuilt,
                         emittingPdb: pdbStream != null || embedPdb,
+                        emitMetadataOnly: options.EmitMetadataOnly,
+                        emitTestCoverageData: options.EmitTestCoverageData,
                         diagnostics: diagnostics,
                         filterOpt: null,
                         cancellationToken: cancellationToken);
 
-                    if (!moduleBeingBuilt.EmitOptions.EmitMetadataOnly)
+                    if (!options.EmitMetadataOnly)
                     {
                         if (!GenerateResourcesAndDocumentationComments(
                             moduleBeingBuilt,
                             xmlDocumentationStream,
                             win32Resources,
+                            options.OutputNameOverride,
                             diagnostics,
                             cancellationToken))
                         {
@@ -2216,7 +2231,10 @@ namespace Microsoft.CodeAnalysis
                         (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
                         testData?.SymWriterFactory,
                         diagnostics,
-                        metadataOnly: (options != null) && options.EmitMetadataOnly,
+                        metadataOnly: options.EmitMetadataOnly,
+                        includePrivateMembers: options.IncludePrivateMembers,
+                        emitTestCoverageData: options.EmitTestCoverageData,
+                        pdbFilePath: options.PdbFilePath,
                         cancellationToken: cancellationToken);
                 }
             }
@@ -2321,14 +2339,7 @@ namespace Microsoft.CodeAnalysis
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
-            if (options != null)
-            {
-                options.ValidateOptions(diagnostics, this.MessageProvider);
-            }
-            else
-            {
-                options = EmitOptions.Default;
-            }
+            options.ValidateOptions(diagnostics, this.MessageProvider);
 
             if (debugEntryPoint != null)
             {
@@ -2384,6 +2395,9 @@ namespace Microsoft.CodeAnalysis
             Func<object> testSymWriterFactory,
             DiagnosticBag diagnostics,
             bool metadataOnly,
+            bool includePrivateMembers,
+            bool emitTestCoverageData,
+            string pdbFilePath,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -2397,13 +2411,12 @@ namespace Microsoft.CodeAnalysis
             Stream portablePdbStream = null;
 
             bool deterministic = IsEmitDeterministic;
-            var debugFormat = moduleBeingBuilt.EmitOptions.DebugInformationFormat;
 
             // PDB Stream provider should not be given if PDB is to be embedded into the PE file:
-            Debug.Assert(debugFormat != DebugInformationFormat.Embedded || pdbStreamProvider == null);
+            Debug.Assert(moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Embedded || pdbStreamProvider == null);
 
-            string pdbPath = (pdbStreamProvider != null || debugFormat == DebugInformationFormat.Embedded) ? 
-                (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
+            string pdbPath = (pdbStreamProvider != null || moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded) ?
+                (pdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
             // The PDB path is emitted in it's entirety into the PE.  This makes it impossible to have deterministic
             // builds that occur in different source directories.  To enable this we shave all path information from
@@ -2413,7 +2426,7 @@ namespace Microsoft.CodeAnalysis
             // tracks getting an official solution here.
             //
             // https://github.com/dotnet/roslyn/issues/9813
-            string pePdbPath = (debugFormat == DebugInformationFormat.Embedded || Feature("pdb-path-determinism") != null) && !string.IsNullOrEmpty(pdbPath)
+            string pePdbPath = (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded || Feature("pdb-path-determinism") != null) && !string.IsNullOrEmpty(pdbPath)
                 ? Path.GetFileName(pdbPath)
                 : pdbPath;
 
@@ -2421,7 +2434,7 @@ namespace Microsoft.CodeAnalysis
             {
                 metadataDiagnostics = DiagnosticBag.GetInstance();
 
-                if (debugFormat == DebugInformationFormat.Pdb && pdbStreamProvider != null)
+                if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Pdb && pdbStreamProvider != null)
                 {
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
@@ -2430,7 +2443,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Func<Stream> getPortablePdbStream;
-                if (debugFormat == DebugInformationFormat.PortablePdb && pdbStreamProvider != null)
+                if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStreamProvider != null)
                 {
                     getPortablePdbStream = () =>
                     {
@@ -2515,7 +2528,8 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     if (SerializePeToStream(
-                        new EmitContext(moduleBeingBuilt, null, metadataDiagnostics),
+                        moduleBeingBuilt,
+                        metadataDiagnostics,
                         this.MessageProvider,
                         getPeStream,
                         getRefPeStream,
@@ -2523,7 +2537,9 @@ namespace Microsoft.CodeAnalysis
                         nativePdbWriter,
                         pePdbPath,
                         metadataOnly,
+                        includePrivateMembers,
                         deterministic,
+                        emitTestCoverageData,
                         cancellationToken))
                     {
                         if (nativePdbWriter != null)
@@ -2598,19 +2614,25 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static bool SerializePeToStream(
-             EmitContext context,
-             CommonMessageProvider messageProvider,
-             Func<Stream> getPeStream,
-             Func<Stream> getMetadataPeStreamOpt,
-             Func<Stream> getPortablePdbStreamOpt,
-             Cci.PdbWriter nativePdbWriterOpt,
-             string pdbPathOpt,
-             bool metadataOnly,
-             bool isDeterministic,
-             CancellationToken cancellationToken)
+            CommonPEModuleBuilder moduleBeingBuilt,
+            DiagnosticBag metadataDiagnostics,
+            CommonMessageProvider messageProvider,
+            Func<Stream> getPeStream,
+            Func<Stream> getMetadataPeStreamOpt,
+            Func<Stream> getPortablePdbStreamOpt,
+            Cci.PdbWriter nativePdbWriterOpt,
+            string pdbPathOpt,
+            bool metadataOnly,
+            bool includePrivateMembers,
+            bool isDeterministic,
+            bool emitTestCoverageData,
+            CancellationToken cancellationToken)
         {
+            bool emitSecondaryAssembly = getMetadataPeStreamOpt != null;
+
+            bool includePrivateMembersOnPrimaryOutput = metadataOnly ? includePrivateMembers : true;
             if (!Cci.PeWriter.WritePeToStream(
-                context,
+                new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly, includePrivateMembersOnPrimaryOutput),
                 messageProvider,
                 getPeStream,
                 getPortablePdbStreamOpt,
@@ -2618,18 +2640,20 @@ namespace Microsoft.CodeAnalysis
                 pdbPathOpt,
                 metadataOnly,
                 isDeterministic,
+                emitTestCoverageData,
                 cancellationToken))
             {
                 return false;
             }
 
             // produce the secondary output (ref assembly) if needed
-            if (getMetadataPeStreamOpt != null)
+            if (emitSecondaryAssembly)
             {
                 Debug.Assert(!metadataOnly);
+                Debug.Assert(!includePrivateMembers);
 
                 if (!Cci.PeWriter.WritePeToStream(
-                    context,
+                    new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly: true, includePrivateMembers: false),
                     messageProvider,
                     getMetadataPeStreamOpt,
                     getPortablePdbStreamOpt: null,
@@ -2637,6 +2661,7 @@ namespace Microsoft.CodeAnalysis
                     pdbPathOpt: null,
                     metadataOnly: true,
                     isDeterministic: isDeterministic,
+                    emitTestCoverageData: false,
                     cancellationToken: cancellationToken))
                 {
                     return false;
@@ -2657,17 +2682,18 @@ namespace Microsoft.CodeAnalysis
             ICollection<MethodDefinitionHandle> updatedMethods,
             DiagnosticBag diagnostics,
             Func<object> testSymWriterFactory,
+            string pdbFilePath,
             CancellationToken cancellationToken)
         {
-            var nativePdbWriterOpt = (moduleBeingBuilt.EmitOptions.DebugInformationFormat != DebugInformationFormat.Pdb) ? null :
+            var nativePdbWriterOpt = (moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Pdb) ? null :
                 new Cci.PdbWriter(
-                    moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
+                    pdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
                     testSymWriterFactory,
                     deterministic: false);
 
             using (nativePdbWriterOpt)
             {
-                var context = new EmitContext(moduleBeingBuilt, null, diagnostics);
+                var context = new EmitContext(moduleBeingBuilt, null, diagnostics, metadataOnly: false, includePrivateMembers: true);
                 var encId = Guid.NewGuid();
 
                 try

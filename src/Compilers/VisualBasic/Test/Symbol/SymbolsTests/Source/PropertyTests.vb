@@ -8143,7 +8143,7 @@ End Class
             Dim typeDef = DirectCast([class], Cci.ITypeDefinition)
             Dim [module] = New PEAssemblyBuilder(DirectCast([class].ContainingAssembly, SourceAssemblySymbol), EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable(Of ResourceDescription)())
 
-            Dim context = New EmitContext([module], Nothing, New DiagnosticBag())
+            Dim context = New EmitContext([module], Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
             Dim explicitOverrides = typeDef.GetExplicitImplementationOverrides(context)
             Assert.Equal(2, explicitOverrides.Count())
             Assert.True(explicitOverrides.All(Function(override) [class] Is override.ContainingType))

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var paramArrayAttributeCtor = (MethodSymbol)emitModule.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ParamArrayAttribute__ctor);
             bool found = false;
 
-            var context = new EmitContext(emitModule, null, new DiagnosticBag());
+            var context = new EmitContext(emitModule, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             foreach (Microsoft.Cci.ICustomAttribute attr in parameter.GetSynthesizedAttributes())
             {

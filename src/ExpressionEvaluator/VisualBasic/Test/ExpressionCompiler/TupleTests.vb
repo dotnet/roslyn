@@ -142,9 +142,9 @@ End Class"
                 Dim appRef = app.Assembly.Identity.Name
                 AssertEx.SetEqual({"corlib 2.0", appRef + " 0.0"}, reader.DumpAssemblyReferences())
 
-                AssertEx.SetEqual({"Object, System, AssemblyRef:corlib",
-                    "ValueTuple`2, System, AssemblyRef:" + appRef, ' ValueTuple comes from app, not corlib
-                    ", System, AssemblyRef:" + appRef},
+                AssertEx.SetEqual({"Object, System, AssemblyReference:corlib",
+                    "ValueTuple`2, System, AssemblyReference:" + appRef, ' ValueTuple comes from app, not corlib
+                    ", System, AssemblyReference:" + appRef},
                     reader.DumpTypeReferences())
             End Using
         End Sub

@@ -344,7 +344,7 @@ End Class
             Dim displayClass = peAssemblyBuilder.GetSynthesizedTypes(c).Single()
             Assert.Equal("_Closure$__1-0", displayClass.Name)
 
-            Dim emitContext = New EmitContext(peAssemblyBuilder, Nothing, New DiagnosticBag())
+            Dim emitContext = New EmitContext(peAssemblyBuilder, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
             Dim fields = displayClass.GetFields(emitContext).ToArray()
             Dim x1 = fields(0)
@@ -415,7 +415,7 @@ End Class
             Dim displayClass = peAssemblyBuilder.GetSynthesizedTypes(c).Single()
             Assert.Equal("_Closure$__1-0", displayClass.Name)
 
-            Dim emitContext = New EmitContext(peAssemblyBuilder, Nothing, New DiagnosticBag())
+            Dim emitContext = New EmitContext(peAssemblyBuilder, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
             Dim fields = displayClass.GetFields(emitContext).ToArray()
             Dim x1 = fields(0)
@@ -492,7 +492,7 @@ End Class
             Assert.Equal("_Closure$__1-0", displayClasses(0).Name)
             Assert.Equal("_Closure$__", displayClasses(1).Name)
 
-            Dim emitContext = New EmitContext(peAssemblyBuilder, Nothing, New DiagnosticBag())
+            Dim emitContext = New EmitContext(peAssemblyBuilder, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
             Dim fields = displayClasses(0).GetFields(emitContext).ToArray()
             Dim x1 = fields(0)
