@@ -206,6 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            // True if a Main definition has been created and needs to be added to the module being built
             bool addedDefinition = false;
             SynthesizedEntryPointSymbol synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
 
