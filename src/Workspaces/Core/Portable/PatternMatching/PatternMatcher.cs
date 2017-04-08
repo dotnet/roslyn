@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     /// </summary>
     internal sealed partial class PatternMatcher : IDisposable
     {
+        public const int NoBonus = 0;
         public const int CamelCaseContiguousBonus = 1;
         public const int CamelCaseMatchesFromStartBonus = 2;
         public const int CamelCaseMaxWeight = CamelCaseContiguousBonus + CamelCaseMatchesFromStartBonus;
