@@ -405,7 +405,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var userMainLocation = userMain.DeclaringSyntaxReferences.SingleOrDefault()?.GetLocation() ?? NoLocation.Singleton;
 
                 _getAwaiterMethod = GetRequiredMethod(_userMain.ReturnType, WellKnownMemberNames.GetAwaiter, diagnosticBag, userMainLocation);
-                _getResultMethod = GetRequiredMethod(_getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnosticBag);
+                if ((object)_getAwaiterMethod != null)
+                {
+                    _getResultMethod = GetRequiredMethod(_getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnosticBag);
+                }
             }
 
             public override string Name => MainName;
