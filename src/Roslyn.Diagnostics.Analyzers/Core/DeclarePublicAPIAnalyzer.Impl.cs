@@ -65,13 +65,15 @@ namespace Roslyn.Diagnostics.Analyzers
                 MethodKind.EventRemove
             };
 
+            private readonly Compilation _compilation;
             private readonly ApiData _unshippedData;
             private readonly Dictionary<ITypeSymbol, bool> _typeCanBeExtendedCache = new Dictionary<ITypeSymbol, bool>();
             private readonly HashSet<string> _visitedApiList = new HashSet<string>(StringComparer.Ordinal);
             private readonly Dictionary<string, ApiLine> _publicApiMap = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
 
-            internal Impl(ApiData shippedData, ApiData unshippedData)
+            internal Impl(Compilation compilation, ApiData shippedData, ApiData unshippedData)
             {
+                _compilation = compilation;
                 _unshippedData = unshippedData;
 
                 foreach (ApiLine cur in shippedData.ApiList)
@@ -353,6 +355,46 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
 
                 return string.Empty;
+            }
+
+            private string GetPublicApiName(ISymbol symbol)
+            {
+                string publicApiName = symbol.ToDisplayString(s_publicApiFormat);
+
+                ITypeSymbol memberType = null;
+                if (symbol is IMethodSymbol)
+                {
+                    memberType = ((IMethodSymbol)symbol).ReturnType;
+                }
+                else if (symbol is IPropertySymbol)
+                {
+                    memberType = ((IPropertySymbol)symbol).Type;
+                }
+                else if (symbol is IEventSymbol)
+                {
+                    memberType = ((IEventSymbol)symbol).Type;
+                }
+                else if (symbol is IFieldSymbol)
+                {
+                    memberType = ((IFieldSymbol)symbol).Type;
+                }
+
+                if (memberType != null)
+                {
+                    publicApiName = publicApiName + " -> " + memberType.ToDisplayString(s_publicApiFormat);
+                }
+
+                if (((symbol as INamespaceSymbol)?.IsGlobalNamespace).GetValueOrDefault())
+                {
+                    return string.Empty;
+                }
+
+                if (symbol.ContainingAssembly != null && !symbol.ContainingAssembly.Equals(_compilation.Assembly))
+                {
+                    publicApiName += $" (forwarded, contained in {symbol.ContainingAssembly.Name})";
+                }
+    
+                return publicApiName;
             }
 
             private static bool ContainsPublicApiName(string apiLineText, string publicApiNameToSearch)

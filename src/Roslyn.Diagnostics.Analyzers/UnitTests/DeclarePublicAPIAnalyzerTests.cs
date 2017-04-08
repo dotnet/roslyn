@@ -541,13 +541,13 @@ C.Method() -> void
 ";
 
             string shippedText = $@"
-System.StringComparison
-System.StringComparison.CurrentCulture = 0 -> System.StringComparison
-System.StringComparison.CurrentCultureIgnoreCase = 1 -> System.StringComparison
-System.StringComparison.InvariantCulture = 2 -> System.StringComparison
-System.StringComparison.InvariantCultureIgnoreCase = 3 -> System.StringComparison
-System.StringComparison.Ordinal = 4 -> System.StringComparison
-System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison
+System.StringComparison (forwarded, contained in mscorlib)
+System.StringComparison.CurrentCulture = 0 -> System.StringComparison (forwarded, contained in mscorlib)
+System.StringComparison.CurrentCultureIgnoreCase = 1 -> System.StringComparison (forwarded, contained in mscorlib)
+System.StringComparison.InvariantCulture = 2 -> System.StringComparison (forwarded, contained in mscorlib)
+System.StringComparison.InvariantCultureIgnoreCase = 3 -> System.StringComparison (forwarded, contained in mscorlib)
+System.StringComparison.Ordinal = 4 -> System.StringComparison (forwarded, contained in mscorlib)
+System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwarded, contained in mscorlib)
 ";
             string unshippedText = $@"";
 
