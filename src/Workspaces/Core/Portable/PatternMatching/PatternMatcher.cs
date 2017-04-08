@@ -333,6 +333,21 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     //    Note: We only have a substring match if the lowercase part is prefix match of some
                     //    word part. That way we don't match something like 'Class' when the user types 'a'.
                     //    But we would match 'FooAttribute' (since 'Attribute' starts with 'a').
+                    //
+                    //    Also, if we matched at location right after punctuation, then this is a good
+                    //    substring match.  i.e. if the user is testing mybutton against _myButton
+                    //    then this should hit. As we really are finding the match at the beginning of 
+                    //    a word.
+                    if (char.IsPunctuation(candidate[caseInsensitiveIndex - 1]))
+                    {
+                        return new PatternMatch(
+                            PatternMatchKind.Substring, punctuationStripped,
+                            isCaseSensitive: PartStartsWith(
+                                candidate, new TextSpan(caseInsensitiveIndex, patternChunk.Text.Length),
+                                patternChunk.Text, CompareOptions.None),
+                            matchedSpan: GetMatchedSpan(includeMatchSpans, caseInsensitiveIndex, patternChunk.Text.Length));
+                    }
+
                     var wordSpans = GetWordSpans(candidate);
                     for (int i = 0; i < wordSpans.Count; i++)
                     {
