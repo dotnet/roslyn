@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
+namespace Microsoft.CodeAnalysis.Editor.Suggestions
 {
     [Export(typeof(ISuggestedActionsSourceProvider))]
     [Export(typeof(SuggestedActionsSourceProvider))]

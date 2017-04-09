@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
+namespace Microsoft.CodeAnalysis.Editor.Suggestions
 {
     /// <summary>
     /// Service to compute and apply <see cref="FixMultipleCodeAction"/> code fixes.

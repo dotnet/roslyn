@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
+namespace Microsoft.CodeAnalysis.Editor.Suggestions
 {
     using CodeFixGroupKey = Tuple<DiagnosticData, CodeActionPriority>;
 
@@ -677,8 +677,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     {
                         await InvokeBelowInputPriority(() =>
                         {
-                                // This operation needs to happen on UI thread because it needs to access textView.Selection.
-                                selection = TryGetCodeRefactoringSelection(buffer, view, range);
+                            // This operation needs to happen on UI thread because it needs to access textView.Selection.
+                            selection = TryGetCodeRefactoringSelection(buffer, view, range);
                         }).ConfigureAwait(false);
                     }
 
