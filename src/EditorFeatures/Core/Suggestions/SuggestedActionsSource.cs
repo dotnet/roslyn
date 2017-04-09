@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -104,12 +105,28 @@ namespace Microsoft.CodeAnalysis.Editor.Suggestions
                 }
             }
 
+            private bool IsSolutionLoadComplete()
+            {
+                if (_workspace != null)
+                {
+                    var uiService = _workspace.Services.GetService<IHostContextService>();
+                    return uiService.SolutionExistsAndFullyLoaded;
+                }
+
+                return false;
+            }
+
             public IEnumerable<SuggestedActionSet> GetSuggestedActions(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
                 CancellationToken cancellationToken)
             {
                 AssertIsForeground();
+
+                if (!IsSolutionLoadComplete())
+                {
+                    return null;
+                }
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
                 {
@@ -590,6 +607,11 @@ namespace Microsoft.CodeAnalysis.Editor.Suggestions
 
             public async Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
+                if (!IsSolutionLoadComplete())
+                {
+                    return false;
+                }
+
                 // Explicitly hold onto below fields in locals and use these locals throughout this code path to avoid crashes
                 // if these fields happen to be cleared by Dispose() below. This is required since this code path involves
                 // code that can run asynchronously from background thread.
