@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Name_FindSourceDeclarationsAsync, cancellationToken))
             {
-                var declarations = await DeclarationFinder.FindSourceDeclarationsithNormalQueryAsync(
+                var declarations = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
                     project, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
 
                 return declarations.SelectAsArray(t => t.Symbol);

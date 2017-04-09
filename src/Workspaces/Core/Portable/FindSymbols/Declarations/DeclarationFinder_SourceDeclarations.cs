@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 solution, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsithNormalQueryAsync(
+        public static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryAsync(
             Project project, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             if (project == null)
