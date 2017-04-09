@@ -23,6 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
     internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
+        private static int s_instanceId = 0;
+
         private readonly HubClient _hubClient;
         private readonly JsonRpc _rpc;
         private readonly HostGroup _hostGroup;
@@ -33,8 +35,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
             {
+                // let each client to have unique id so that we can distinguish different clients when service is restarted
+                var currentInstanceId = Interlocked.Add(ref s_instanceId, 1);
+
                 var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
-                var current = $"VS ({Process.GetCurrentProcess().Id})";
+                var current = $"VS ({Process.GetCurrentProcess().Id}) ({currentInstanceId})";
 
                 var hostGroup = new HostGroup(current);
                 var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
@@ -43,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, remoteHostStream);
 
                 // make sure connection is done right
-                var host = await instance._rpc.InvokeAsync<string>(WellKnownRemoteHostServices.RemoteHostService_Connect, current, TelemetryService.DefaultSession.SerializeSettings()).ConfigureAwait(false);
+                var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, TelemetryService.DefaultSession.SerializeSettings()).ConfigureAwait(false);
 
                 // TODO: change this to non fatal watson and make VS to use inproc implementation
                 Contract.ThrowIfFalse(host == current.ToString());
@@ -115,6 +120,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         protected override void OnDisconnected()
         {
+            // we are asked to disconnect. unsubscribe and dispose to disconnect.
+            // there are 2 ways to get disconnected. one is Roslyn decided to disconnect with RemoteHost (ex, cancellation or recycle OOP) and
+            // the other is external thing disconnecting remote host from us (ex, user killing OOP process).
+            // the Disconnected event we subscribe is to detect #2 case. and this method is for #1 case. so when we are willingly disconnecting
+            // we don't need the event, otherwise, Disconnected event will be called twice.
+            _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
         }
 

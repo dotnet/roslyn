@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             public Task OnReferenceFoundAsync(Document document, TextSpan span)
                 => _context.OnReferenceFoundAsync(new SourceReferenceItem(
-                    _definition, new DocumentSpan(document, span)));
+                    _definition, new DocumentSpan(document, span), isWrittenTo: false));
 
             public Task ReportProgressAsync(int current, int maximum)
                 => _context.ReportProgressAsync(current, maximum);

@@ -131,6 +131,7 @@
     <Compile Include="BlindAggregatorFactory.cs" />
     <Compile Include="BlockCommentEditing\AbstractBlockCommentEditingTests.cs" />
     <Compile Include="BraceHighlighting\AbstractBraceHighlightingTests.cs" />
+    <Compile Include="BraceHighlighting\MultiCharacterBraceHighlightingTests.cs" />
     <Compile Include="BraceMatching\AbstractBraceMatcherTests.cs" />
     <Compile Include="CallHierarchy\CallHierarchyTestState.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureTests.cs" />
@@ -181,6 +182,7 @@
     <Compile Include="ExtractInterface\ExtractInterfaceTestState.cs" />
     <Compile Include="ExtractInterface\TestExtractInterfaceOptions.cs" />
     <Compile Include="GoToAdjacentMember\AbstractGoToAdjacentMemberTests.cs" />
+    <Compile Include="InProcRemoteHostClientFactory.cs" />
     <Compile Include="KeywordHighlighting\AbstractKeywordHighlighterTests.cs" />
     <Compile Include="MinimalTestExportProvider.cs" />
     <Compile Include="MoveType\AbstractMoveTypeTest.cs" />

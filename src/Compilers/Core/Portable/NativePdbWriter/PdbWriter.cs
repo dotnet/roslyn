@@ -306,7 +306,8 @@ namespace Microsoft.Cci
                 return;
             }
 
-            int methodToken = MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(methodBody.MethodDefinition));
+            var methodHandle = (MethodDefinitionHandle)_metadataWriter.GetMethodHandle(methodBody.MethodDefinition);
+            int methodToken = MetadataTokens.GetToken(methodHandle);
 
             OpenMethod(methodToken, methodBody.MethodDefinition);
 
@@ -324,7 +325,7 @@ namespace Microsoft.Cci
             if (!isIterator && methodBody.ImportScope != null)
             {
                 IMethodDefinition forwardToMethod;
-                if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodToken, out forwardToMethod))
+                if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodHandle, out forwardToMethod))
                 {
                     if (forwardToMethod != null)
                     {
@@ -365,7 +366,7 @@ namespace Microsoft.Cci
             bool emitEncInfo = compilationOptions.EnableEditAndContinue && _metadataWriter.IsFullMetadata;
 
             bool emitExternNamespaces;
-            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodToken, emitEncInfo, suppressNewCustomDebugInfo, out emitExternNamespaces);
+            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodHandle, emitEncInfo, suppressNewCustomDebugInfo, out emitExternNamespaces);
             if (blob != null)
             {
                 DefineCustomMetadata("MD2", blob);
@@ -737,11 +738,11 @@ namespace Microsoft.Cci
 
         private static bool s_MicrosoftDiaSymReaderNativeLoadFailed;
 
-        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
-        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 

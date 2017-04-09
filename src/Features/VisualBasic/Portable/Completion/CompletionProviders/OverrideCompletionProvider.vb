@@ -1,13 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class OverrideCompletionProvider
@@ -138,34 +139,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return True
         End Function
 
-        Public Overrides Function FilterOverrides(members As ISet(Of ISymbol), returnType As ITypeSymbol) As ISet(Of ISymbol)
+        Public Overrides Function FilterOverrides(members As ImmutableArray(Of ISymbol),
+                                                  returnType As ITypeSymbol) As ImmutableArray(Of ISymbol)
             ' Start by removing Finalize(), which we never want to show.
             Dim finalizeMethod = members.OfType(Of IMethodSymbol)().Where(Function(x) x.Name = "Finalize" AndAlso OverridesObjectMethod(x)).SingleOrDefault()
             If finalizeMethod IsNot Nothing Then
-                members.Remove(finalizeMethod)
+                members = members.Remove(finalizeMethod)
             End If
 
             If Me._isFunction Then
                 ' Function: look for non-void return types
                 Dim filteredMembers = members.OfType(Of IMethodSymbol)().Where(Function(m) Not m.ReturnsVoid)
                 If filteredMembers.Any Then
-                    Return New HashSet(Of ISymbol)(filteredMembers)
+                    Return ImmutableArray(Of ISymbol).CastUp(filteredMembers.ToImmutableArray())
                 End If
             ElseIf Me._isProperty Then
                 ' Property: return properties
                 Dim filteredMembers = members.Where(Function(m) m.Kind = SymbolKind.Property)
                 If filteredMembers.Any Then
-                    Return New HashSet(Of ISymbol)(filteredMembers)
+                    Return filteredMembers.ToImmutableArray()
                 End If
             ElseIf Me._isSub Then
                 ' Sub: look for void return types
                 Dim filteredMembers = members.OfType(Of IMethodSymbol)().Where(Function(m) m.ReturnsVoid)
                 If filteredMembers.Any Then
-                    Return New HashSet(Of ISymbol)(filteredMembers)
+                    Return ImmutableArray(Of ISymbol).CastUp(filteredMembers.ToImmutableArray())
                 End If
             End If
 
-            Return members.Where(Function(m) Not m.IsKind(SymbolKind.Event)).ToSet()
+            Return members.WhereAsArray(Function(m) Not m.IsKind(SymbolKind.Event))
         End Function
 
         Private Function OverridesObjectMethod(method As IMethodSymbol) As Boolean

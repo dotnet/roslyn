@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         SyntaxEditorBasedCodeFixProvider
         where TDeclaration : SyntaxNode
     {
-        private readonly Option<CodeStyleOption<bool>> _option;
+        private readonly Option<CodeStyleOption<ExpressionBodyPreference>> _option;
         private readonly string _useExpressionBodyTitle;
         private readonly string _useBlockBodyTitle;
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         protected AbstractUseExpressionBodyCodeFixProvider(
             string diagnosticId,
-            Option<CodeStyleOption<bool>> option,
+            Option<CodeStyleOption<ExpressionBodyPreference>> option,
             string useExpressionBodyTitle,
             string useBlockBodyTitle)
         {
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             if (preferExpressionBody)
             {
                 GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options,
-                    out var expressionBody, out var semicolonToken);
+                    ExpressionBodyPreference.WhenPossible, out var expressionBody, out var semicolonToken);
 
                 var trailingTrivia = semicolonToken.TrailingTrivia
                                                    .Where(t => t.Kind() != SyntaxKind.EndOfLineTrivia)
@@ -141,10 +141,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var expressionBody = GetExpressionBody(declaration);
             var semicolonToken = GetSemicolonToken(declaration);
 
-            var preferExpressionBodiedAccessors = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+            var expressionBodyPreference = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
 
             AccessorDeclarationSyntax accessor;
-            if (preferExpressionBodiedAccessors)
+            if (expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                         .WithExpressionBody(expressionBody)

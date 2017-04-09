@@ -2816,7 +2816,7 @@ class C
 ";
             CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp3)).VerifyDiagnostics();
             CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp2)).VerifyDiagnostics(
-                // (14,16): error CS8023: Feature 'automatically implemented properties' is not available in C# 2.  Please use language version 3 or greater.
+                // (14,16): error CS8023: Feature 'automatically implemented properties' is not available in C# 2. Please use language version 3 or greater.
                 //     public int P { get; set; } // Error
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "P").WithArguments("automatically implemented properties", "3"));
         }
@@ -2849,21 +2849,17 @@ class Test
             var text = @"
 unsafe class Test
 {
-    int[] property { get; } = stackalloc int[256];
+    int* property { get; } = stackalloc int[256];
 
     static void Main(string[] args)
     {
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-    // (4,31): error CS1525: Invalid expression term 'stackalloc'
-    //     int[] property { get; } = stackalloc int[256];
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 31),
-    // (2,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
-    // unsafe class Test
-    Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Test").WithLocation(2, 14)
-                );
+            CreateCompilationWithMscorlib(text, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (4,30): error CS1525: Invalid expression term 'stackalloc'
+                //     int* property { get; } = stackalloc int[256];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 30));
         }
         [Fact]
         public void RefPropertyWithoutGetter()
@@ -2925,7 +2921,7 @@ interface I1
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             comp.GetDeclarationDiagnostics().Verify(
-    // (9,19): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5.  Please use language version 6 or greater.
+    // (9,19): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5. Please use language version 6 or greater.
     //     public string Prop1 { get; }
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Prop1").WithArguments("readonly automatically implemented properties", "6").WithLocation(9, 19)
                 );

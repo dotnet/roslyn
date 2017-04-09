@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     {
         public string Name => PredefinedCodeCleanupProviderNames.Format;
 
-        public async Task<Document> CleanupAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
             // If the old text already exists, use the fast path for formatting.
             if (document.TryGetText(out var oldText))
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             return await Formatter.FormatAsync(document, spans, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
+        public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
         {
             // If the old text already exists, use the fast path for formatting.
             if (root.SyntaxTree != null && root.SyntaxTree.TryGetText(out var oldText))

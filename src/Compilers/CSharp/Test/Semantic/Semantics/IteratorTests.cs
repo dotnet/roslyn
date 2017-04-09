@@ -429,5 +429,79 @@ class Test
                 Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(7, 15)
                 );
         }
+
+        [Fact]
+        [WorkItem(3825, "https://github.com/dotnet/roslyn/issues/3825")]
+        public void ObjectCreationExpressionSyntax_01()
+        {
+            var text = @"
+using System.Collections.Generic;
+
+class Test<TKey, TValue>
+{
+    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator(KeyValuePair<TKey, TValue> kvp)
+    {
+        yield return new KeyValuePair<TKey, TValue>(kvp.Key, kvp.Value);
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(text);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+
+            Assert.Equal("new KeyValuePair<TKey, TValue>(kvp.Key, kvp.Value)", node.ToString());
+
+            var model = comp.GetSemanticModel(tree);
+            var typeInfo = model.GetTypeInfo(node);
+            var symbolInfo = model.GetSymbolInfo(node);
+
+            Assert.Null(model.GetDeclaredSymbol(node));
+            Assert.Equal("System.Collections.Generic.KeyValuePair<TKey, TValue>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+            Assert.True(model.GetConversion(node).IsIdentity);
+
+            Assert.Equal("System.Collections.Generic.KeyValuePair<TKey, TValue>..ctor(TKey key, TValue value)", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(3825, "https://github.com/dotnet/roslyn/issues/3825")]
+        public void ObjectCreationExpressionSyntax_02()
+        {
+            var text = @"
+using System.Collections.Generic;
+
+class Test<TKey, TValue>
+{
+    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator(KeyValuePair<TKey, TValue> kvp)
+    {
+        yield return new KeyValuePair<TKey, TValue>(kvp, kvp.Value);
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(text);
+            comp.VerifyDiagnostics(
+                // (8,53): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<TKey, TValue>' to 'TKey'
+                //         yield return new KeyValuePair<TKey, TValue>(kvp, kvp.Value);
+                Diagnostic(ErrorCode.ERR_BadArgType, "kvp").WithArguments("1", "System.Collections.Generic.KeyValuePair<TKey, TValue>", "TKey").WithLocation(8, 53)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+
+            Assert.Equal("new KeyValuePair<TKey, TValue>(kvp, kvp.Value)", node.ToString());
+
+            var model = comp.GetSemanticModel(tree);
+            var typeInfo = model.GetTypeInfo(node);
+            var symbolInfo = model.GetSymbolInfo(node);
+
+            Assert.Null(model.GetDeclaredSymbol(node));
+            Assert.Equal("System.Collections.Generic.KeyValuePair<TKey, TValue>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+            Assert.True(model.GetConversion(node).IsIdentity);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Contains("System.Collections.Generic.KeyValuePair<TKey, TValue>..ctor(TKey key, TValue value)", symbolInfo.CandidateSymbols.Select(c => c.ToTestDisplayString()));
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+        }
     }
 }

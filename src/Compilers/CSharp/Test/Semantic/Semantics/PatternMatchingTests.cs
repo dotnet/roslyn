@@ -44,22 +44,22 @@ public class Vec
 }
 ";
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (7,18): error CS8059: Feature 'binary literals' is not available in C# 6.  Please use language version 7 or greater.
+                // (7,18): error CS8059: Feature 'binary literals' is not available in C# 6. Please use language version 7 or greater.
                 //         int i1 = 0b001010; // binary literals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("binary literals", "7").WithLocation(7, 18),
-                // (8,18): error CS8059: Feature 'digit separators' is not available in C# 6.  Please use language version 7 or greater.
+                // (8,18): error CS8059: Feature 'digit separators' is not available in C# 6. Please use language version 7 or greater.
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("digit separators", "7").WithLocation(8, 18),
-                // (12,13): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                // (12,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
                 //         int f() => 2;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7").WithLocation(12, 13),
-                // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
+                // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
                 //         ref int i3 = ref i1; // ref locals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(13, 9),
-                // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
+                // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
                 //         ref int i3 = ref i1; // ref locals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(13, 22),
-                // (14,20): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (14,20): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //         string s = o is string k ? k : null; // pattern matching
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "o is string k").WithArguments("pattern matching", "7").WithLocation(14, 20),
                 // (12,13): warning CS0168: The variable 'f' is declared but never used
@@ -3398,7 +3398,7 @@ other 6");
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
-                // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //             case 1 when true:
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case 1 when true:").WithArguments("pattern matching", "7").WithLocation(7, 13)
                 );
@@ -4103,10 +4103,10 @@ class B
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //         Console.WriteLine(3 is One + 2); // should print True
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is One + 2").WithArguments("pattern matching", "7").WithLocation(15, 27),
-                // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //         Console.WriteLine(One + 2 is 3); // should print True
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7").WithLocation(16, 27)
                 );
@@ -5618,6 +5618,61 @@ public class C
             compilation.VerifyDiagnostics();
             var expectedOutput = @"eval";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
+        public void Dynamic_01()
+        {
+            var source =
+@"using System;
+public class X
+{
+    static void M1(dynamic d)
+    {
+        if (d is 1)
+        {
+            Console.Write('r');
+        }
+        else if (d is int i)
+        {
+            Console.Write('o');
+        }
+        else if (d is var z)
+        {
+            long l = z;
+            Console.Write('s');
+        }
+    }
+    static void M2(dynamic d)
+    {
+        switch (d)
+        {
+            case 1:
+                Console.Write('l');
+                break;
+            case int i:
+                Console.Write('y');
+                break;
+            case var z:
+                long l = z;
+                Console.Write('n');
+                break;
+        }
+    }
+    public static void Main(string[] args)
+    {
+        M1(1);
+        M1(2);
+        M1(3L);
+        M2(1);
+        M2(2);
+        M2(3L);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var comp = CompileAndVerify(compilation, expectedOutput: "roslyn");
         }
     }
 }

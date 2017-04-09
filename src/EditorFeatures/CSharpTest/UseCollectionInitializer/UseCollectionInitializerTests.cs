@@ -275,7 +275,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestMissingBeforeCSharp3()
         {
 
@@ -698,6 +698,286 @@ class Program
         var myStringArray = new string[] { ""Test"", ""123"", ""ABC"" };
         var myStringList = myStringArray?.ToList() ?? new [||]List<string>();
         myStringList.Add(""Done"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
+        public async Task TestMissingWhenReferencedInInitializer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        var items = new [||]List<object>();
+        items[0] = items[0];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
+        public async Task TestWhenReferencedInInitializer_LocalVar()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        var items = new [||]List<object>();
+        items[0] = 1;
+        items[1] = items[0];
+    }
+}",
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        var items = new [||]List<object>
+        {
+            [0] = 1
+        };
+        items[1] = items[0];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
+        public async Task TestWhenReferencedInInitializer_LocalVar2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        var t = [||]new List<int>(new int[] { 1, 2, 3 });
+        t.Add(t.Min() - 1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
+        public async Task TestWhenReferencedInInitializer_Assignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        List<object> items = null;
+        items = new [||]List<object>();
+        items[0] = 1;
+        items[1] = items[0];
+    }
+}",
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        List<object> items = null;
+        items = new [||]List<object>
+        {
+            [0] = 1
+        };
+        items[1] = items[0];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
+        public async Task TestWhenReferencedInInitializer_Assignment2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        List<int> t = null;
+        t = [||]new List<int>(new int[] { 1, 2, 3 });
+        t.Add(t.Min() - 1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
+        public async Task TestFieldReference()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class C
+{
+    private List<int> myField;
+    void M()
+    {
+        myField = [||]new List<int>();
+        myField.Add(this.myField.Count);
+    }
+}");
+        }
+
+        [WorkItem(17853, "https://github.com/dotnet/roslyn/issues/17853")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestMissingForDynamic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Dynamic;
+
+class C
+{
+    void Foo()
+    {
+        dynamic body = [||]new ExpandoObject();
+        body[0] = new ExpandoObject();
+    }
+}");
+        }
+
+        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestMissingAcrossPreprocessorDirective()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+        var items = new [||]List<object>();
+#if true
+        items.Add(1);
+#endif
+    }
+}");
+        }
+
+        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestAvailableInsidePreprocessorDirective()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+#if true
+        var items = new [||]List<object>();
+        items.Add(1);
+#endif
+    }
+}",
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+#if true
+        var items = new List<object>
+        {
+            1
+        };
+#endif
+    }
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestObjectInitializerAssignmentAmbiguity()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+        int lastItem;
+        var list = [||]new List<int>();
+        list.Add(lastItem = 5);
+    }
+}",
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+        int lastItem;
+        var list = new List<int>
+        {
+            (lastItem = 5)
+        };
+    }
+}");
+        }
+
+        [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestObjectInitializerCompoundAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+        int lastItem = 0;
+        var list = [||]new List<int>();
+        list.Add(lastItem += 5);
+    }
+}",
+@"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public void M()
+    {
+        int lastItem = 0;
+        var list = new List<int>
+        {
+            (lastItem += 5)
+        };
     }
 }");
         }

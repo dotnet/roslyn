@@ -1,18 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
+using Microsoft.CodeAnalysis.PickMembers;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.PickMembers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHashCodeFromMembers
 {
+    using static GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider;
+
     public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -385,6 +388,13 @@ class Program
 {
     int i;
 
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               i == program.i;
+    }
+
     public override int GetHashCode()
     {
         return 165851236 + i.GetHashCode();
@@ -408,6 +418,13 @@ class Program
 class Program
 {
     int j;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               j == program.j;
+    }
 
     public override int GetHashCode()
     {
@@ -440,6 +457,13 @@ class Base {
 class Program : Base
 {
     int j;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               j == program.j;
+    }
 
     public override int GetHashCode()
     {
@@ -477,6 +501,12 @@ class Program : Base
 {
     int j;
 
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null;
+    }
+
     public override int GetHashCode()
     {
         return base.GetHashCode();
@@ -502,10 +532,17 @@ class Program
 {
     int i;
 
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               i == program.i;
+    }
+
     public override int GetHashCode() => 165851236 + i.GetHashCode();
 }",
 index: 1,
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -523,6 +560,13 @@ class Program<T>
 class Program<T>
 {
     T i;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program<T>;
+        return program != null &&
+               EqualityComparer<T>.Default.Equals(i, program.i);
+    }
 
     public override int GetHashCode()
     {
@@ -547,6 +591,13 @@ class Program<T>
 class Program<T>
 {
     Program<T> i;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program<T>;
+        return program != null &&
+               EqualityComparer<Program<T>>.Default.Equals(i, program.i);
+    }
 
     public override int GetHashCode()
     {
@@ -575,6 +626,14 @@ class Program
     int i;
 
     string S { get; }
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               i == program.i &&
+               S == program.S;
+    }
 
     public override int GetHashCode()
     {
@@ -622,7 +681,7 @@ class Program
         this.b = b;
     }
 }",
-FeaturesResources.Generate_GetHashCode,
+FeaturesResources.Generate_Equals_and_GetHashCode,
 index: 1);
         }
 
@@ -642,8 +701,8 @@ class Program
         this.b = b;
     }
 }",
-FeaturesResources.Generate_Both,
-index: 2);
+FeaturesResources.Generate_Equals_and_GetHashCode,
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -665,7 +724,8 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null && EqualityComparer<(int, string)>.Default.Equals(a, c.a);
+        return c != null &&
+               a.Equals(c.a);
     }
 }",
 index: 0,
@@ -691,7 +751,8 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null && EqualityComparer<(int, string)>.Default.Equals(a, c.a);
+        return c != null &&
+               a.Equals(c.a);
     }
 }");
         }
@@ -715,7 +776,8 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null && EqualityComparer<(int x, string y)>.Default.Equals(a, c.a);
+        return c != null &&
+               a.Equals(c.a);
     }
 }");
         }
@@ -735,6 +797,13 @@ class Program
 class Program
 {
     (int, string) i;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               i.Equals(program.i);
+    }
 
     public override int GetHashCode()
     {
@@ -759,6 +828,13 @@ class Program
 class Program
 {
     (int x, string y) i;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               i.Equals(program.i);
+    }
 
     public override int GetHashCode()
     {
@@ -860,6 +936,294 @@ class Program
     }
 }",
 chosenSymbols: new string[] { },
+ignoreTrivia: false);
+        }
+
+        [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialogNoBackingFields()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Program
+{
+    public int F { get; set; }
+    [||]
+}",
+@"
+class Program
+{
+    public int F { get; set; }
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               F == program.F;
+    }
+}",
+chosenSymbols: null,
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateOperators1()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               s == program.s;
+    }
+
+    public static bool operator ==(Program program1, Program program2)
+    {
+        return EqualityComparer<Program>.Default.Equals(program1, program2);
+    }
+
+    public static bool operator !=(Program program1, Program program2)
+    {
+        return !(program1 == program2);
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateOperators2()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               s == program.s;
+    }
+
+    public static bool operator ==(Program program1, Program program2)
+        => EqualityComparer<Program>.Default.Equals(program1, program2);
+
+    public static bool operator !=(Program program1, Program program2)
+        => !(program1 == program2);
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+parameters: new TestParameters(
+    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateOperators3()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+
+    public static bool operator ==(Program program1, Program program2) => true;
+}",
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               s == program.s;
+    }
+
+    public static bool operator ==(Program program1, Program program2) => true;
+}",
+chosenSymbols: null,
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateOperators4()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+struct Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System.Collections.Generic;
+
+struct Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is Program))
+        {
+            return false;
+        }
+
+        var program = (Program)obj;
+        return s == program.s;
+    }
+
+    public static bool operator ==(Program program1, Program program2)
+    {
+        return program1.Equals(program2);
+    }
+
+    public static bool operator !=(Program program1, Program program2)
+    {
+        return !(program1 == program2);
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnStruct()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+struct Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+struct Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Program && Equals((Program)obj);
+    }
+
+    public bool Equals(Program other)
+    {
+        return s == other.s;
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClass()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Program);
+    }
+
+    public bool Equals(Program other)
+    {
+        return other != null &&
+               s == other.s;
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestDoNotOfferIEquatableIfTypeAlreadyImplementsIt()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+class Program : System.IEquatable<Program>
+{
+    public string s;
+    [||]
+}",
+@"
+using System.Collections.Generic;
+
+class Program : System.IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               s == program.s;
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)),
 ignoreTrivia: false);
         }
     }

@@ -70,7 +70,7 @@ string GetExistingPackageVersion(string name)
     return null;
 }
 
-var IsCoreBuild = Directory.Exists(ToolsetPath);
+var IsCoreBuild = File.Exists(Path.Combine(ToolsetPath, "corerun"));
 
 #endregion
 
@@ -85,6 +85,7 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.Compilers",
     "Microsoft.CodeAnalysis.CSharp.Features",
     "Microsoft.CodeAnalysis.CSharp",
+    "Microsoft.CodeAnalysis.CSharp.CodeStyle",
     "Microsoft.CodeAnalysis.CSharp.Scripting",
     "Microsoft.CodeAnalysis.CSharp.Workspaces",
     "Microsoft.CodeAnalysis.EditorFeatures",
@@ -96,6 +97,7 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.Scripting",
     "Microsoft.CodeAnalysis.VisualBasic.Features",
     "Microsoft.CodeAnalysis.VisualBasic",
+    "Microsoft.CodeAnalysis.VisualBasic.CodeStyle",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
     "Microsoft.CodeAnalysis.Workspaces.Common",
@@ -129,6 +131,7 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
+    "Microsoft.VisualStudio.IntegrationTest.Utilities",
     "Microsoft.VisualStudio.LanguageServices.Next",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
 };
@@ -171,6 +174,26 @@ void ReportError(string message)
     Console.ForegroundColor = color;
 }
 
+string GetPackageVersion(string packageName)
+{
+    // HACK: since Microsoft.Net.Compilers 2.0.0 was uploaded by accident and later deleted, we must bump the minor.
+    // We will do this to both the regular Microsoft.Net.Compilers package and also the netcore package to keep them
+    // in sync.
+    if (BuildVersion.StartsWith("2.0.") && packageName.StartsWith("Microsoft.Net.Compilers", StringComparison.OrdinalIgnoreCase))
+    {
+        string[] buildVersionParts = BuildVersion.Split('-');
+        string[] buildVersionBaseParts = buildVersionParts[0].Split('.');
+        
+        buildVersionBaseParts[buildVersionBaseParts.Length - 1] =
+            (int.Parse(buildVersionBaseParts[buildVersionBaseParts.Length - 1]) + 1).ToString();
+
+        buildVersionParts[0] = string.Join(".", buildVersionBaseParts);
+        return string.Join("-", buildVersionParts);
+    }
+
+    return BuildVersion;
+}
+
 int PackFiles(string[] nuspecFiles, string licenseUrl)
 {
     var commonProperties = new Dictionary<string, string>()
@@ -194,8 +217,12 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
 
     if (!IsCoreBuild)
     {
+        // The -NoPackageAnalysis argument is to work around the following issue.  The warning output of 
+        // NuGet gets promoted to an error by MSBuild /warnaserror
+        // https://github.com/dotnet/roslyn/issues/18152
         commonArgs = $"-BasePath \"{BinDir}\" " +
         $"-OutputDirectory \"{OutDir}\" " +
+        $"-NoPackageAnalysis " +
         string.Join(" ", commonProperties.Select(p => $"-prop {p.Key}=\"{p.Value}\""));
     }
     else
@@ -212,8 +239,10 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
 
         if (!IsCoreBuild)
         {
+            string packageArgs = commonArgs.Replace($"-prop version=\"{BuildVersion}\"", $"-prop version=\"{GetPackageVersion(Path.GetFileNameWithoutExtension(file))}\"");
+
             p.StartInfo.FileName = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
-            p.StartInfo.Arguments = $@"pack {file} {commonArgs}";
+            p.StartInfo.Arguments = $@"pack {file} {packageArgs}";
         }
         else
         {
@@ -266,7 +295,7 @@ XElement MakePackageElement(string packageName, string version)
 
 IEnumerable<XElement> MakeRoslynPackageElements(string[] roslynPackageNames)
 {
-    return roslynPackageNames.Select(packageName => MakePackageElement(packageName, BuildVersion));
+    return roslynPackageNames.Select(packageName => MakePackageElement(packageName, GetPackageVersion(packageName)));
 }
 
 void GeneratePublishingConfig(string fileName, IEnumerable<XElement> packages)

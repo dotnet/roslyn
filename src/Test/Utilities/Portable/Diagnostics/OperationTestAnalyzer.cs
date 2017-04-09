@@ -1150,14 +1150,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private static long IntegralValue(object value)
         {
-            if (value is long)
+            if (value is long v)
             {
-                return (long)value;
+                return v;
             }
 
-            if (value is int)
+            if (value is int i)
             {
-                return (int)value;
+                return i;
             }
 
             return 0;

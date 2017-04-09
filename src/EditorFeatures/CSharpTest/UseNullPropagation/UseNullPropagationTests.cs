@@ -338,5 +338,27 @@ class D
 }
 class C { public void M(string s) { } }");
         }
+
+        [WorkItem(17623, "https://github.com/dotnet/roslyn/issues/17623")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestInExpressionTree()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    void Main(string s)
+    {
+        Method<string>(t => [||]s != null ? s.ToString() : null); // works
+    }
+
+    public void Method<T>(Expression<Func<T, string>> functor)
+    {
+    }
+}");
+        }
     }
 }

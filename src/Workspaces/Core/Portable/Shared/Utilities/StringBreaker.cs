@@ -197,12 +197,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Breaks an identifier string into constituent parts.
         /// </summary>
-        public static StringBreaks BreakIntoCharacterParts(string identifier) => StringBreaks.Create(identifier, s_characterPartsGenerator);
+        public static StringBreaks BreakIntoCharacterParts(string identifier) 
+            => StringBreaks.Create(identifier, s_characterPartsGenerator);
 
         /// <summary>
         /// Breaks an identifier string into constituent parts.
         /// </summary>
-        public static StringBreaks BreakIntoWordParts(string identifier) => StringBreaks.Create(identifier, s_wordPartsGenerator);
+        public static StringBreaks BreakIntoWordParts(string identifier) 
+            => StringBreaks.Create(identifier, s_wordPartsGenerator);
 
         private static readonly Func<string, int, TextSpan> s_characterPartsGenerator = (identifier, start) => GenerateSpan(identifier, start, word: false);
 

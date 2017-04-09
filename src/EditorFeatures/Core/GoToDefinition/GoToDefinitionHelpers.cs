@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // We can't go to the definition of the alias, so use the target type.
 
             var solution = project.Solution;
-            if (symbol is IAliasSymbol)
+            if (alias != null)
             {
                 var sourceLocations = NavigableItemFactory.GetPreferredSourceLocations(
                     solution, symbol, cancellationToken);
 
                 if (sourceLocations.All(l => project.Solution.GetDocument(l.SourceTree) == null))
                 {
-                    symbol = ((IAliasSymbol)symbol).Target;
+                    symbol = alias.Target;
                 }
             }
 
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             // If it is a partial method declaration with no body, choose to go to the implementation
             // that has a method body.
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol method)
             {
-                symbol = ((IMethodSymbol)symbol).PartialImplementationPart ?? symbol;
+                symbol = method.PartialImplementationPart ?? symbol;
             }
 
             var options = project.Solution.Options;

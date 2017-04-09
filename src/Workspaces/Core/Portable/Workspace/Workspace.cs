@@ -1113,7 +1113,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             if (projectChanges.OldProject.ParseOptions != projectChanges.NewProject.ParseOptions
-                && !this.CanApplyChange(ApplyChangesKind.ChangeParseOptions))
+                && !this.CanApplyChange(ApplyChangesKind.ChangeParseOptions)
+                && !this.CanApplyParseOptionChange(
+                    projectChanges.OldProject.ParseOptions, projectChanges.NewProject.ParseOptions, projectChanges.NewProject))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_parse_options_is_not_supported);
             }
@@ -1185,6 +1187,9 @@ namespace Microsoft.CodeAnalysis
                 throw new NotSupportedException(WorkspacesResources.Removing_analyzer_references_is_not_supported);
             }
         }
+
+        protected virtual bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
+            => false;
 
         /// <summary>
         /// This method is called during <see cref="TryApplyChanges(Solution)"/> for each project 

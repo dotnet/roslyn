@@ -81,12 +81,7 @@ namespace Bar
 using $$System;
 </Code>
 
-            Dim expectedPropertyNames =
-                {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind", "IsCodeType",
-                 "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
-                 "ExtenderCATID", "Namespace", "Alias", "Parent"}
-
-            TestPropertyDescriptors(code, expectedPropertyNames)
+            TestPropertyDescriptors(Of EnvDTE80.CodeImport)(code)
         End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String

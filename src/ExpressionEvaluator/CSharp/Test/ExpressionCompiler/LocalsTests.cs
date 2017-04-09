@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.NotNull(assembly);
                 Assert.Equal(assembly.Count, 0);
                 Assert.Equal(locals.Count, 0);
+                locals.Free();
             });
         }
 
@@ -801,7 +802,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            WithRuntimeInstance(comp, references: null, includeLocalSignatures: false, validator: runtime =>
+            WithRuntimeInstance(comp, references: null, includeLocalSignatures: false, includeIntrinsicAssembly: true, validator: runtime =>
             {
                 var context = CreateMethodContext(
                     runtime,

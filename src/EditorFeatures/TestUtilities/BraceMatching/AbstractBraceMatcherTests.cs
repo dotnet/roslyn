@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,11 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching
 {
     public abstract class AbstractBraceMatcherTests
     {
-        private Document GetDocument(TestWorkspace workspace)
-        {
-            return workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-        }
-
         protected abstract TestWorkspace CreateWorkspaceFromCode(string code, ParseOptions options);
 
         protected async Task TestAsync(string markup, string expectedCode, ParseOptions options = null)
@@ -27,11 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching
             using (var workspace = CreateWorkspaceFromCode(markup, options))
             {
                 var position = workspace.Documents.Single().CursorPosition.Value;
-                var document = GetDocument(workspace);
+                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
                 var braceMatcher = workspace.GetService<IBraceMatchingService>();
 
                 var foundSpan = await braceMatcher.FindMatchingSpanAsync(document, position, CancellationToken.None);
-                MarkupTestFile.GetSpans(expectedCode, out var parsedExpectedCode, out IList<TextSpan> expectedSpans);
+                MarkupTestFile.GetSpans(expectedCode, out var parsedExpectedCode, out ImmutableArray<TextSpan> expectedSpans);
 
                 if (expectedSpans.Any())
                 {

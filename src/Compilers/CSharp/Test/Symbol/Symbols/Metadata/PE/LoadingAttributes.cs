@@ -1452,5 +1452,48 @@ public class Class1
             Assert.Empty(m1.Parameters[1].GetAttributes());
             Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters[1].GetCustomAttributesToEmit(state).Single().ToString());
         }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(18092, "https://github.com/dotnet/roslyn/issues/18092")]
+        public void ForwardedSystemType()
+        {
+            var ilSource = @"
+.class extern forwarder System.Type
+{
+  .assembly extern mscorlib
+}
+
+.class public auto ansi beforefieldinit MyAttribute
+       extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(class [mscorlib]System.Type val) cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  nop
+    IL_0008:  ret
+  } // end of method MyAttribute::.ctor
+
+} // end of class MyAttribute
+";
+
+            var c = CreateCompilationWithCustomILSource(@"
+[MyAttribute(typeof(MyAttribute))]
+public class Test
+{
+}", ilSource);
+
+            const string expected = "MyAttribute(typeof(MyAttribute))";
+            Assert.Equal(expected, c.GetTypeByMetadataName("Test").GetAttributes().Single().ToString());
+
+            CompileAndVerify(c, symbolValidator: (m) =>
+                                                  {
+                                                      Assert.Equal(expected, m.GlobalNamespace.GetTypeMember("Test").GetAttributes().Single().ToString());
+                                                  });
+        }
     }
 }

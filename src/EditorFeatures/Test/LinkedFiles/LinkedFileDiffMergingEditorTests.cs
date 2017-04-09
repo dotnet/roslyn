@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                     workspace,
                     expectedText: expectedCode,
                     index: 0,
-                    actions: codeIssueOrRefactoring.Actions.ToList(),
+                    actions: codeIssueOrRefactoring.Actions,
                     expectedPreviewContents: expectedCode);
             }
         }

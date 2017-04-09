@@ -31,28 +31,31 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// </summary>
         private class DocumentSpanEntry : AbstractDocumentSpanEntry
         {
-            private readonly bool _isDefinitionLocation;
+            private readonly HighlightSpanKind _spanKind;
             private readonly ClassifiedSpansAndHighlightSpan _classifiedSpansAndHighlights;
 
             public DocumentSpanEntry(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
-                bool isDefinitionLocation,
+                HighlightSpanKind spanKind,
+                string documentName,
                 Guid projectGuid,
                 SourceText sourceText,
                 ClassifiedSpansAndHighlightSpan classifiedSpans)
-                : base(context, definitionBucket, documentSpan, projectGuid, sourceText)
+                : base(context, definitionBucket, documentSpan, documentName, projectGuid, sourceText)
             {
-                _isDefinitionLocation = isDefinitionLocation;
+                _spanKind = spanKind;
                 _classifiedSpansAndHighlights = classifiedSpans;
             }
 
             protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()
             {
-                var propertyId = _isDefinitionLocation
+                var propertyId = _spanKind == HighlightSpanKind.Definition
                     ? DefinitionHighlightTag.TagId
-                    : ReferenceHighlightTag.TagId;
+                    : _spanKind == HighlightSpanKind.WrittenReference
+                        ? WrittenReferenceHighlightTag.TagId
+                        : ReferenceHighlightTag.TagId;
 
                 var properties = Presenter.FormatMapService
                                           .GetEditorFormatMap("text")
@@ -79,6 +82,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     });
 
                 return inlines;
+            }
+
+            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
+            {
+                if (base.TryCreateColumnContent(columnName, out content))
+                {
+                    LazyToolTip.AttachTo(content, CreateDisposableToolTip);
+
+                    return true;
+                }
+
+                return false;
             }
 
             private DisposableToolTip CreateDisposableToolTip()
@@ -146,9 +161,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     _sourceText.ToString(), contentType);
 
                 // Create an appropriate highlight span on that buffer for the reference.
-                var key = _isDefinitionLocation
+                var key = _spanKind == HighlightSpanKind.Definition
                     ? PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey
-                    : PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
+                    : _spanKind == HighlightSpanKind.WrittenReference
+                        ? PredefinedPreviewTaggerKeys.WrittenReferenceHighlightingSpansKey
+                        : PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
                 textBuffer.Properties.RemoveProperty(key);
                 textBuffer.Properties.AddProperty(key, new NormalizedSnapshotSpanCollection(
                     SourceSpan.ToSnapshotSpan(textBuffer.CurrentSnapshot)));

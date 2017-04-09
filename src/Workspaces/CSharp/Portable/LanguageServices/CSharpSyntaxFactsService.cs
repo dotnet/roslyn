@@ -30,8 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsCaseSensitive => true;
 
+        protected override IDocumentationCommentService DocumentationCommentService
+            => CSharpDocumentationCommentService.Instance;
+
         public bool SupportsIndexingInitializer(ParseOptions options) 
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
+
+        public bool SupportsThrowExpression(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
         public bool IsAwaitKeyword(SyntaxToken token)
         {
@@ -191,9 +197,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsNamedParameter(SyntaxNode node)
-        {
-            return node.CheckParent<NameColonSyntax>(p => p.Name == node);
-        }
+            => node.CheckParent<NameColonSyntax>(p => p.Name == node);
+
+        public SyntaxNode GetDefaultOfParameter(SyntaxNode node)
+            => (node as ParameterSyntax)?.Default;
 
         public bool IsSkippedTokensTrivia(SyntaxNode node)
         {
@@ -252,19 +259,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsQueryExpression(SyntaxNode node)
-        {
-            return node is QueryExpressionSyntax;
-        }
+            => node.Kind() == SyntaxKind.QueryExpression;
+
+        public bool IsThrowExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.ThrowExpression;
 
         public bool IsPredefinedType(SyntaxToken token)
-        {
-            return TryGetPredefinedType(token, out var actualType) && actualType != PredefinedType.None;
-        }
+            => TryGetPredefinedType(token, out var actualType) && actualType != PredefinedType.None;
 
         public bool IsPredefinedType(SyntaxToken token, PredefinedType type)
-        {
-            return TryGetPredefinedType(token, out var actualType) && actualType == type;
-        }
+            => TryGetPredefinedType(token, out var actualType) && actualType == type;
 
         public bool TryGetPredefinedType(SyntaxToken token, out PredefinedType type)
         {
@@ -1012,26 +1016,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private string GetTypeName(TypeSyntax type)
         {
-            if (type is SimpleNameSyntax)
+            if (type is SimpleNameSyntax simpleName)
             {
-                return GetSimpleTypeName((SimpleNameSyntax)type);
+                return GetSimpleTypeName(simpleName);
             }
-            else if (type is QualifiedNameSyntax)
+            else if (type is QualifiedNameSyntax qualifiedName)
             {
-                return GetSimpleTypeName(((QualifiedNameSyntax)type).Right);
+                return GetSimpleTypeName(qualifiedName.Right);
             }
-            else if (type is AliasQualifiedNameSyntax)
+            else if (type is AliasQualifiedNameSyntax aliasName)
             {
-                return GetSimpleTypeName(((AliasQualifiedNameSyntax)type).Name);
+                return GetSimpleTypeName(aliasName.Name);
             }
 
             return null;
         }
 
         private static string GetSimpleTypeName(SimpleNameSyntax name)
-        {
-            return name.Identifier.ValueText;
-        }
+            => name.Identifier.ValueText;
 
         private static string ExpandExplicitInterfaceName(string identifier, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
         {
@@ -1516,9 +1518,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var structure = triviaTok.GetStructure();
-                        if (structure is BranchingDirectiveTriviaSyntax)
+                        if (structure is BranchingDirectiveTriviaSyntax branch)
                         {
-                            var branch = (BranchingDirectiveTriviaSyntax)structure;
                             return !branch.IsActive || !branch.BranchTaken ? TextSpan.FromBounds(branch.FullSpan.Start, position) : default(TextSpan);
                         }
                     }
@@ -1592,8 +1593,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((interpolatedString as InterpolatedStringExpressionSyntax)?.Contents).Value;
         }
 
-        public bool IsStringLiteral(SyntaxToken token)
+        public override bool IsStringLiteral(SyntaxToken token)
             => token.IsKind(SyntaxKind.StringLiteralToken);
+
+        public override bool IsInterpolatedStringTextToken(SyntaxToken token)
+            => token.IsKind(SyntaxKind.InterpolatedStringTextToken);
 
         public bool IsStringLiteralExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.StringLiteralExpression;
@@ -1608,15 +1612,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             => token.Kind() == SyntaxKind.CharacterLiteralToken;
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
-        {
-            return ((invocationExpression as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;
-        }
+            => GetArgumentsOfArgumentList((invocationExpression as InvocationExpressionSyntax)?.ArgumentList);
+
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode invocationExpression)
+            => GetArgumentsOfArgumentList((invocationExpression as ObjectCreationExpressionSyntax)?.ArgumentList);
+
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
+            => (argumentList as ArgumentListSyntax)?.Arguments ?? default(SeparatedSyntaxList<SyntaxNode>);
 
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
 
         public bool IsDocumentationComment(SyntaxTrivia trivia)
             => trivia.IsDocComment();
+
+        public bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia)
+            => trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia;
 
         public bool IsDocumentationComment(SyntaxNode node)
             => SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
@@ -1695,10 +1706,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             newContextNode = newRoot.GetAnnotatedNodes(s_annotation).Single();
         }
 
-        public SyntaxNode GetObjectCreationInitializer(SyntaxNode objectCreationExpression)
-        {
-            return ((ObjectCreationExpressionSyntax)objectCreationExpression).Initializer;
-        }
+        public SyntaxNode GetObjectCreationInitializer(SyntaxNode node)
+            => ((ObjectCreationExpressionSyntax)node).Initializer;
+
+        public SyntaxNode GetObjectCreationType(SyntaxNode node)
+            => ((ObjectCreationExpressionSyntax)node).Type;
 
         public bool IsSimpleAssignmentStatement(SyntaxNode statement)
         {
@@ -1828,11 +1840,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetNextExecutableStatement(SyntaxNode statement)
             => ((StatementSyntax)statement).GetNextStatement();
 
-        public bool IsWhitespaceTrivia(SyntaxTrivia trivia)
+        public override bool IsWhitespaceTrivia(SyntaxTrivia trivia)
             => trivia.IsWhitespace();
 
-        public bool IsEndOfLineTrivia(SyntaxTrivia trivia)
+        public override bool IsEndOfLineTrivia(SyntaxTrivia trivia)
             => trivia.IsEndOfLine();
+
+        public override bool IsSingleLineCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsSingleLineComment();
+
+        public override bool IsMultiLineCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsMultiLineComment();
+
+        public override bool IsShebangDirectiveTrivia(SyntaxTrivia trivia)
+            => trivia.IsShebangDirective();
+
+        public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
+            => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
         {
@@ -1975,5 +1999,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan)
             => ImmutableArray<SyntaxNode>.CastUp(root.GetMembersInSpan(textSpan));
+
+        protected override bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
+            => token.ContainsInterleavedDirective(span, cancellationToken);
     }
 }

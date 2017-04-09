@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Moq;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.Remote;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
@@ -73,6 +74,24 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task SynchronizeGlobalAssets()
+        {
+            var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
+
+            var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
+            var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference));
+
+            service.Enable();
+
+            // make sure client is ready
+            var client = await service.GetRemoteHostClientAsync(CancellationToken.None) as InProcRemoteHostClient;
+
+            Assert.Equal(1, client.AssetStorage.GetGlobalAssetsOfType<AnalyzerReference>(CancellationToken.None).Count());
+
+            service.Disable();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task UpdaterService()
         {
             var exportProvider = TestHostServices.CreateMinimalExportProvider();
@@ -120,6 +139,34 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 await session.InvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), "emptySource", Path.GetTempPath());
             }
+
+            service.Disable();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestRequestNewRemoteHost()
+        {
+            var service = CreateRemoteHostClientService();
+
+            service.Enable();
+
+            var completionTask = new TaskCompletionSource<bool>();
+
+            var client1 = await service.GetRemoteHostClientAsync(CancellationToken.None);
+            client1.ConnectionChanged += (s, connected) =>
+            {
+                // mark done
+                completionTask.SetResult(connected);
+            };
+
+            await service.RequestNewRemoteHostAsync(CancellationToken.None);
+
+            var result = await completionTask.Task;
+            Assert.False(result);
+
+            var client2 = await service.GetRemoteHostClientAsync(CancellationToken.None);
+
+            Assert.NotEqual(client1, client2);
 
             service.Disable();
         }

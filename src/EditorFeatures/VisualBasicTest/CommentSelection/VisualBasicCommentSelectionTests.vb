@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -71,7 +72,7 @@ End Module</code>
             expected = expected.Replace(vbLf, vbCrLf)
 
             Dim codeWithoutMarkup As String = Nothing
-            Dim spans As IList(Of TextSpan) = Nothing
+            Dim spans As ImmutableArray(Of TextSpan) = Nothing
 
             MarkupTestFile.GetSpans(code, codeWithoutMarkup, spans)
 

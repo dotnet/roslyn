@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
                        insertionText: null,
-                       symbol: p,
+                       symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,
                        sortText: p.Name,
                        rules: _spaceItemFilterRule);
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                    select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString() + ColonString,
                        insertionText: null,
-                       symbol: p,
+                       symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,
                        sortText: p.Name,
                        rules: CompletionItemRules.Default);

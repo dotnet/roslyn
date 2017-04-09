@@ -742,8 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case SyntaxKind.DiscardDesignation:
                     {
-                        var discarded = (DiscardDesignationSyntax)node;
-                        return BindDiscardExpression(discarded, declType);
+                        return BindDiscardExpression(syntax, declType);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -764,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             default(ImmutableArray<string>),
                             Compilation,
                             shouldCheckConstraints: false);
-                        return new BoundTupleLiteral(node, default(ImmutableArray<string>), subExpressions, tupleType);
+                        return new BoundTupleLiteral(syntax, default(ImmutableArray<string>), subExpressions, tupleType);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -1223,7 +1222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDiscard = containingDeconstruction != null || IsOutVarDiscardIdentifier(node);
             if (isDiscard)
             {
-                CheckFeatureAvailability(node.Location, MessageID.IDS_FeatureTuples, diagnostics);
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureTuples, diagnostics);
             }
 
             return isDiscard;
@@ -2159,13 +2158,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (argumentSyntax.Expression.Kind() == SyntaxKind.DeclarationExpression)
             {
-                return BindOutVariableArgument((DeclarationExpressionSyntax)argumentSyntax.Expression, diagnostics);
+                var declarationExpression = (DeclarationExpressionSyntax)argumentSyntax.Expression;
+                if (declarationExpression.IsOutDeclaration())
+                {
+                    return BindOutDeclarationArgument(declarationExpression, diagnostics);
+                }
             }
 
             return BindArgumentExpression(diagnostics, argumentSyntax.Expression, refKind, allowArglist);
         }
 
-        private BoundExpression BindOutVariableArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
+        private BoundExpression BindOutDeclarationArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
         {
             TypeSyntax typeSyntax = declarationExpression.Type;
             VariableDesignationSyntax designation = declarationExpression.Designation;
@@ -2192,6 +2195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
              DeclarationExpressionSyntax declarationExpression,
              DiagnosticBag diagnostics)
         {
+            Debug.Assert(declarationExpression.IsOutVarDeclaration());
             bool isVar;
             var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
             TypeSyntax typeSyntax = declarationExpression.Type;
@@ -2200,6 +2204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
             if ((object)localSymbol != null)
             {
+                Debug.Assert(localSymbol.DeclarationKind == LocalDeclarationKind.OutVariable);
                 if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                 {
                     Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, declarationExpression);
@@ -2918,8 +2923,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
-        private BoundExpression BindStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindStackAllocArrayCreationExpression(
+            StackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
+            if (!IsLegalStackAllocLocation(node))
+            { 
+                diagnostics.Add(
+                    ErrorCode.ERR_InvalidExprTerm,
+                    node.StackAllocKeyword.GetLocation(),
+                    SyntaxFacts.GetText(SyntaxKind.StackAllocKeyword));
+            }
+
             bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics);
 
             // Check if we're syntactically within a catch or finally clause.
@@ -3002,6 +3016,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundStackAllocArrayCreation(node, count, pointerType, hasErrors || typeHasErrors);
+        }
+
+        private static bool IsLegalStackAllocLocation(StackAllocArrayCreationExpressionSyntax node)
+        {
+            // First, StackAllocs are only legal in variable declaration initializers.
+            if (node.Parent == null ||
+                node.Parent.Kind() != SyntaxKind.EqualsValueClause ||
+                node.Parent.Parent.Kind() != SyntaxKind.VariableDeclarator ||
+                node.Parent.Parent.Parent.Kind() != SyntaxKind.VariableDeclaration)
+            {
+                return false;
+            }
+
+            // However, they're not legal for the variable declarations in fields/event-fields.
+            var variableDeclaration = (VariableDeclarationSyntax)node.Parent.Parent.Parent;
+            var owner = variableDeclaration.Parent;
+            if (owner.Kind() == SyntaxKind.FieldDeclaration ||
+                owner.Kind() == SyntaxKind.EventFieldDeclaration)
+            {
+                return false;
+            }
+
+            // This leaves variable-declarations inside a method-body.  Stack-allocs are legal
+            // in all cases here except for const-locals.
+            if (owner.Kind() == SyntaxKind.LocalDeclarationStatement)
+            {
+                var localDeclaration = (LocalDeclarationStatementSyntax)owner;
+                if (localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static int? GetIntegerConstantForArraySize(BoundExpression expression)

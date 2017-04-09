@@ -67,9 +67,6 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\CodeLens\CodeLensArguments.cs">
-      <Link>CodeLens\CodeLensArguments.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
       <Link>Shared\ClientDirectStream.cs</Link>
     </Compile>
@@ -78,6 +75,9 @@
     </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.cs">
       <Link>Shared\RoslynJsonConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.RoslynOnly.cs">
+      <Link>Shared\RoslynJsonConverter.RoslynOnly.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.SolutionIdConverters.cs">
       <Link>Shared\RoslynJsonConverter.SolutionIdConverters.cs</Link>

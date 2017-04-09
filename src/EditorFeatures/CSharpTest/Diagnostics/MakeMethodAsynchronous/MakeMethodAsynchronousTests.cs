@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeMethodA
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpMakeMethodAsynchronousCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AwaitInVoidMethodWithModifiers()
         {
             var initial =
@@ -42,7 +42,7 @@ class Program
 }";
             await TestInRegularAndScriptAsync(initial, expected, index: 1);
         }
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AwaitInVoidMethodWithModifiers2()
         {
             var initial =
@@ -71,7 +71,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AwaitInTaskMethodNoModifiers()
         {
             var initial =
@@ -100,7 +100,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AwaitInTaskMethodWithModifiers()
         {
             var initial =
@@ -129,7 +129,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AwaitInLambdaFunction()
         {
             var initial =
@@ -160,7 +160,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AwaitInLambdaAction()
         {
             var initial =
@@ -189,7 +189,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task BadAwaitInNonAsyncMethod()
         {
             var initial =
@@ -214,7 +214,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task BadAwaitInNonAsyncMethod2()
         {
             var initial =
@@ -239,7 +239,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task BadAwaitInNonAsyncMethod3()
         {
             var initial =
@@ -264,7 +264,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task BadAwaitInNonAsyncMethod4()
         {
             var initial =
@@ -289,7 +289,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task BadAwaitInNonAsyncMethod5()
         {
             var initial =
@@ -312,7 +312,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task BadAwaitInNonAsyncMethod6()
         {
             var initial =
@@ -335,7 +335,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task BadAwaitInNonAsyncMethod7()
         {
             var initial =
@@ -358,7 +358,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task BadAwaitInNonAsyncMethod8()
         {
             var initial =
@@ -381,7 +381,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task BadAwaitInNonAsyncMethod9()
         {
             var initial =
@@ -404,7 +404,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task BadAwaitInNonAsyncMethod10()
         {
             var initial =
@@ -427,7 +427,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AwaitInMember()
         {
             var code =
@@ -440,7 +440,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AddAsyncInDelegate()
         {
             await TestInRegularAndScriptAsync(
@@ -472,7 +472,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AddAsyncInDelegate2()
         {
             await TestInRegularAndScriptAsync(
@@ -504,7 +504,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AddAsyncInDelegate3()
         {
             await TestInRegularAndScriptAsync(
@@ -537,7 +537,7 @@ class Program
         }
 
         [WorkItem(6477, @"https://github.com/dotnet/roslyn/issues/6477")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task NullNodeCrash()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -556,6 +556,48 @@ class C
         }
     }
 }");
+        }
+
+        [WorkItem(17470, "https://github.com/dotnet/roslyn/issues/17470")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        public async Task AwaitInValueTaskMethod()
+        {
+            var initial =
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask<T>
+    {
+    }
+}
+
+class Program 
+{
+    ValueTask<int> Test() 
+    {
+        [|await Task.Delay(1);|]
+    }
+}";
+
+            var expected =
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask<T>
+    {
+    }
+}
+
+class Program 
+{
+    async ValueTask<int> TestAsync() 
+    {
+        await Task.Delay(1);
+    }
+}";
+            await TestInRegularAndScriptAsync(initial, expected);
         }
     }
 }

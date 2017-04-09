@@ -438,8 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // time, so it doesn't really matter.
                     if (switchGoverningType.SpecialType == SpecialType.System_Boolean)
                     {
-                        // GetLocation() so that it also works in speculative contexts.
-                        CheckFeatureAvailability(node.GetLocation(), MessageID.IDS_FeatureSwitchOnBool, diagnostics);
+                        CheckFeatureAvailability(node, MessageID.IDS_FeatureSwitchOnBool, diagnostics);
                     }
 
                     return switchExpression;

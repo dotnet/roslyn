@@ -1857,8 +1857,8 @@
   <data name="ERR_EventHandlerSignatureIncompatible2" xml:space="preserve">
     <value>Method '{0}' cannot handle event '{1}' because they do not have a compatible signature.</value>
   </data>
-  <data name="ERR_ProjectCCError1" xml:space="preserve">
-    <value>Project-level conditional compilation constant '{1}' is not valid: {0}</value>
+  <data name="ERR_ConditionalCompilationConstantNotValid" xml:space="preserve">
+    <value>Conditional compilation constant '{1}' is not valid: {0}</value>
   </data>
   <data name="ERR_InterfaceImplementedTwice1" xml:space="preserve">
     <value>Interface '{0}' can be implemented only once by this type.</value>
@@ -5263,7 +5263,7 @@
   <data name="ERR_InvalidFormatSpecifier" xml:space="preserve">
     <value>'{0}' is not a valid format specifier</value>
   </data>
-  <data name="IDS_InvalidPreprocessorConstantType" xml:space="preserve">
+  <data name="ERR_InvalidPreprocessorConstantType" xml:space="preserve">
     <value>Preprocessor constant '{0}' of type '{1}' is not supported, only primitive types are allowed.</value>
   </data>
   <data name="ERR_ExpectedWarningKeyword" xml:space="preserve">
@@ -5426,10 +5426,10 @@
     <value>Tuple element names must be unique.</value>
   </data>
   <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
-    <value>The tuple element name '{0}' is ignored because a different name is specified by the target type '{1}'.</value>
+    <value>The tuple element name '{0}' is ignored because a different name or no name is specified by the target type '{1}'.</value>
   </data>
   <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
-    <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
+    <value>The tuple element name is ignored because a different name or no name is specified by the assignment target.</value>
   </data>
   <data name="ERR_TupleReservedElementName" xml:space="preserve">
     <value>Tuple element name '{0}' is only allowed at position {1}.</value>
@@ -5466,5 +5466,14 @@
   </data>
   <data name="ERR_Merge_conflict_marker_encountered" xml:space="preserve">
     <value>Merge conflict marker encountered</value>
+  </data>
+  <data name="ERR_BadDocumentationMode" xml:space="preserve">
+    <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_BadLanguageVersion" xml:space="preserve">
+    <value>Provided language version is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_BadSourceCodeKind" xml:space="preserve">
+    <value>Provided source code kind is unsupported or invalid: '{0}'</value>
   </data>
 </root>

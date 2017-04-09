@@ -78,9 +78,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccessibilityTests.cs" />
+    <Compile Include="CompileExpressionsTests.cs" />
     <Compile Include="DebuggerDisplayAttributeTests.cs" />
     <Compile Include="DeclarationTests.cs" />
     <Compile Include="ExpressionCompilerTestBase.cs" />
+    <Compile Include="LocalFunctionTests.cs" />
     <Compile Include="MissingAssemblyTests.cs" />
     <Compile Include="InstructionDecoderTests.cs" />
     <Compile Include="HoistedStateMachineLocalTests.cs" />

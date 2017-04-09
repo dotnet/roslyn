@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -35,10 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateVar
             return options;
         }
 
-        protected override IList<CodeAction> MassageActions(IList<CodeAction> actions)
-        {
-            return FlattenActions(actions);
-        }
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+            => FlattenActions(actions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSimpleLowercaseIdentifier1()
@@ -7124,6 +7123,56 @@ class C
     public void Foo()
     {
         ref int i = ref this.bar;
+    }
+}");
+        }
+
+        [WorkItem(17621, "https://github.com/dotnet/roslyn/issues/17621")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestWithMatchingTypeName()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class Foo
+{
+    public Foo(String foo)
+    {
+        [|String|] = foo;
+    }
+}",
+@"using System;
+
+public class Foo
+{
+    public Foo(String foo)
+    {
+        String = foo;
+    }
+
+    public string String { get; private set; }
+}");
+        }
+
+        [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestContextualKeyword1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+namespace N
+{
+    class nameof
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [|nameof|]
     }
 }");
         }

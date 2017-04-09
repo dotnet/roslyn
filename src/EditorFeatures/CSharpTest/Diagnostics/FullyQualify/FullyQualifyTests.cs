@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FullyQualif
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpFullyQualifyCodeFixProvider());
 
-        protected override IList<CodeAction> MassageActions(IList<CodeAction> actions)
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
@@ -126,6 +127,44 @@ index: 1);
         Foo();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestNotOnVar1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace N
+{
+    class var { }
+}
+
+class C
+{
+    void M()
+    {
+        [|var|]
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestNotOnVar2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace N
+{
+    class Bar { }
+}
+
+class C
+{
+    void M()
+    {
+        [|var|]
+    }
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
@@ -1115,7 +1154,8 @@ public class Program
 {
     static void M()
     {
-        [|Xaml|] }
+        [|Xaml|]
+    }
 }",
 @"namespace MS.Internal.Xaml
 {
@@ -1135,7 +1175,8 @@ public class Program
 {
     static void M()
     {
-        System.Xaml }
+        System.Xaml
+    }
 }");
 
             await TestInRegularAndScriptAsync(
@@ -1157,7 +1198,8 @@ public class Program
 {
     static void M()
     {
-        [|Xaml|] }
+        [|Xaml|]
+    }
 }",
 @"namespace MS.Internal.Xaml
 {
@@ -1177,8 +1219,9 @@ public class Program
 {
     static void M()
     {
-        MS.Internal.Xaml }
-}");
+        MS.Internal.Xaml
+    }
+}", index: 1);
         }
 
         [WorkItem(11071, "https://github.com/dotnet/roslyn/issues/11071")]
@@ -1272,6 +1315,28 @@ namespace n2
     (System.Collections.IDictionary a, string) Method()
     {
         Foo();
+    }
+}");
+        }
+
+        [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestContextualKeyword1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+namespace N
+{
+    class nameof
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [|nameof|]
     }
 }");
         }

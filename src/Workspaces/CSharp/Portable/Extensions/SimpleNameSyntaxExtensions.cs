@@ -62,6 +62,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
+            if (simpleName.Identifier.CouldBeKeyword())
+            {
+                // Something that looks like a keyword is almost certainly not intended to be a
+                // "Standalone type name".  
+                //
+                // 1. Users are not going to name types the same name as C# keywords (contextual or otherwise).
+                // 2. Types in .Net are virtually always start with a Uppercase. While keywords are lowercase)
+                //
+                // Having a lowercase identifier which matches a c# keyword is enough of a signal 
+                // to just not treat this as a standalone type name (even though for some identifiers
+                // it could be according to the language).
+                return false;
+            }
+
             // Looks good.  However, feel free to add additional checks if this function is too
             // lenient in some circumstances.
             return true;
