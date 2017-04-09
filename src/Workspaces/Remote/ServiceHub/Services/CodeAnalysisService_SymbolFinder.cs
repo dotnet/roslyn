@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return result.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();
         }
 
-        public async Task<SerializableSymbolAndProjectId[]> FindSolutionSourceDeclarationsWithNormalQuery(
+        public async Task<SerializableSymbolAndProjectId[]> FindSolutionSourceDeclarationsWithNormalQueryAsync(
             string name, bool ignoreCase, SymbolFilter criteria)
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return result.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();
         }
 
-        public async Task<SerializableSymbolAndProjectId[]> FindProjectSourceDeclarationsWithNormalQuery(
+        public async Task<SerializableSymbolAndProjectId[]> FindProjectSourceDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria)
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
@@ -64,6 +64,18 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
                 project, name, ignoreCase, criteria, CancellationToken).ConfigureAwait(false);
+
+            return result.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();
+        }
+
+        public async Task<SerializableSymbolAndProjectId[]> FindProjectSourceDeclarationsWithPatternAsync(
+            ProjectId projectId, string pattern, SymbolFilter criteria)
+        {
+            var solution = await GetSolutionAsync().ConfigureAwait(false);
+            var project = solution.GetProject(projectId);
+
+            var result = await DeclarationFinder.FindSourceDeclarationsWithPatternInCurrentProcessAsync(
+                project, pattern, criteria, CancellationToken).ConfigureAwait(false);
 
             return result.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();
         }

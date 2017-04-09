@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return declarations.SelectAsArray(d => d.Symbol);
         }
 
-        private static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithCustomQueryAsync(
+        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithCustomQueryAsync(
             Project project, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (project == null)
