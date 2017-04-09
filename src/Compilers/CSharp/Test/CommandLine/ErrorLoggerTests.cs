@@ -73,7 +73,7 @@ public class C
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
             var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
-                "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" });
+                "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:\"{errorLogFile}\"" });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -169,7 +169,7 @@ public class C
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
             var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
-                "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" });
+                "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:\"{errorLogFile}\"" });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -267,7 +267,7 @@ public class C
             var outputFilePath = Path.Combine(outputDir.Path, "test.dll");
 
             var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
-                "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" },
+                "/nologo", "/t:library", $"/out:\"{outputFilePath}\"", sourceFile, "/preferreduilang:en", $"/errorlog:\"{errorLogFile}\"" },
                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
