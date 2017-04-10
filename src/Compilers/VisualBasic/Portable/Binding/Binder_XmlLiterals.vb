@@ -670,7 +670,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If memberAccess Is Nothing Then
-                memberAccess = BadExpression(syntax, ImmutableArray.Create(Of BoundNode)(receiver, name), Compilation.GetSpecialType(SpecialType.System_String))
+                memberAccess = BadExpression(syntax, ImmutableArray.Create(receiver, name), Compilation.GetSpecialType(SpecialType.System_String))
             End If
 
             Return New BoundXmlMemberAccess(syntax, memberAccess, memberAccess.Type)
@@ -730,7 +730,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If memberAccess Is Nothing Then
-                memberAccess = BadExpression(syntax, ImmutableArray.Create(Of BoundNode)(receiver, name), ErrorTypeSymbol.UnknownResultType)
+                memberAccess = BadExpression(syntax, ImmutableArray.Create(receiver, name), ErrorTypeSymbol.UnknownResultType)
             End If
 
             Return New BoundXmlMemberAccess(syntax, memberAccess, memberAccess.Type)
@@ -1015,7 +1015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function BindInvocationExpressionIfGroupNotNothing(syntax As SyntaxNode, groupOpt As BoundMethodOrPropertyGroup, arguments As ImmutableArray(Of BoundExpression), diagnostics As DiagnosticBag) As BoundExpression
             If groupOpt Is Nothing Then
-                Return BadExpression(syntax, StaticCast(Of BoundNode).From(arguments), ErrorTypeSymbol.UnknownResultType)
+                Return BadExpression(syntax, arguments, ErrorTypeSymbol.UnknownResultType)
             Else
                 Return BindInvocationExpression(syntax,
                                                 syntax,

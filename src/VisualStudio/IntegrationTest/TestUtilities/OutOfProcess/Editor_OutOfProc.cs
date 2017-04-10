@@ -1,7 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Windows.Automation;
+using System.Collections.Generic;
+using System.Threading;
+using System.Windows;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -52,6 +59,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void MoveCaret(int position)
             => _editorInProc.MoveCaret(position);
+
+        public ImmutableArray<TextSpan> GetTagSpans(string tagId)
+        {
+            var tagInfo = _editorInProc.GetTagSpans(tagId).ToList();
+
+            // The spans are returned in an array:
+            //    [s1.Start, s1.Length, s2.Start, s2.Length, ...]
+            // Reconstruct the spans from their component parts
+
+            var builder = ArrayBuilder<TextSpan>.GetInstance();
+
+            for (int i = 0; i < tagInfo.Count; i += 2)
+            {
+                builder.Add(new TextSpan(tagInfo[i], tagInfo[i + 1]));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
 
         public string GetCurrentCompletionItem()
         {
@@ -155,19 +180,149 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void DialogSendKeys(string dialogAutomationName, string keys)
             => _editorInProc.DialogSendKeys(dialogAutomationName, keys);
 
+        public void FormatDocument() {
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
+        }
+
+        public void FormatSelection() {
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
+        }
+
+        public void Paste(string text)
+        {
+            var thread = new Thread(() => Clipboard.SetText(text));
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            VisualStudioInstance.Dte.ExecuteCommand("Edit.Paste");
+        }
+
         public void Undo()
             => _editorInProc.Undo();
 
-        public void GoToDefinition()
-            => _editorInProc.GoToDefinition();
-
         public void NavigateToSendKeys(string keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
+            
+        public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
+            _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);
 
         public string[] GetErrorTags()
             => _editorInProc.GetErrorTags();
+
+        public List<string> GetF1Keyword()
+            => _editorInProc.GetF1Keywords();        
+
+        public void ExpandProjectNavBar()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.ExpandNavigationBar(0);
+        }
+
+        public void ExpandTypeNavBar()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.ExpandNavigationBar(1);
+        }
+
+        public void ExpandMemberNavBar()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.ExpandNavigationBar(2);
+        }
+
+        public string[] GetProjectNavBarItems()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetNavBarItems(0);
+        }
+
+        public string[] GetTypeNavBarItems()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetNavBarItems(1);
+        }
+
+        public string[] GetMemberNavBarItems()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetNavBarItems(2);
+        }
+
+        public string GetProjectNavBarSelection()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetSelectedNavBarItem(0);
+        }
+
+        public string GetTypeNavBarSelection()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetSelectedNavBarItem(1);
+        }
+
+        public string GetMemberNavBarSelection()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.GetSelectedNavBarItem(2);
+        }
+
+        public void SelectProjectNavbarItem(string item)
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+             _editorInProc.SelectNavBarItem(0, item);
+        }
+
+        public void SelectTypeNavBarItem(string item)
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.SelectNavBarItem(1, item);
+        }
+
+        public void SelectMemberNavBarItem(string item)
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            _editorInProc.SelectNavBarItem(2, item);
+        }
+
+        public bool IsNavBarEnabled()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
+            return _editorInProc.IsNavBarEnabled();
+        }
+
+        public TextSpan[] GetKeywordHighlightTags()
+            => Deserialize(_editorInProc.GetHighlightTags());
+
+        public TextSpan[] GetOutliningSpans()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Outlining);
+            return Deserialize(_editorInProc.GetOutliningSpans());
+        }
+
+        private TextSpan[] Deserialize(string[] v)
+        {
+            // returned tag looks something like 'text'[12-13]
+            return v.Select(tag =>
+            {
+                var open = tag.LastIndexOf('[') + 1;
+                var comma = tag.LastIndexOf('-');
+                var close = tag.LastIndexOf(']');
+                var start = tag.Substring(open, comma - open);
+                var end = tag.Substring(comma + 1, close - comma - 1);
+                return TextSpan.FromBounds(int.Parse(start), int.Parse(end));
+            }).ToArray();
+        }
+
+        public void GoToDefinition()
+            => _editorInProc.GoToDefinition();
+
+        public void GoToImplementation()
+            => _editorInProc.GoToImplementation();
     }
 }

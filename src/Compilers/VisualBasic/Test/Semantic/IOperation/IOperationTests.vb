@@ -336,13 +336,21 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
         ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')")
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:=
-"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... ), Nothing)')")
+"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... ), Nothing)')
+  Children(3): IOperation:  (OperationKind.None) (Syntax: 'Test2')
+    IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid) (Syntax: 'New System.Guid()')
+    ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')")
 
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:=
-"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test1(AddressOf Main)')")
+"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test1(AddressOf Main)')
+  Children(2): IOperation:  (OperationKind.None) (Syntax: 'Test1')
+    IOperation:  (OperationKind.None) (Syntax: 'AddressOf Main')")
 
             comp.VerifyOperationTree(nodes(3), expectedOperationTree:=
-"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... essOf Main)')")
+"IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... essOf Main)')
+  Children(3): IOperation:  (OperationKind.None) (Syntax: 'Test2')
+    IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid) (Syntax: 'New System.Guid()')
+    IOperation:  (OperationKind.None) (Syntax: 'AddressOf Main')")
         End Sub
     End Class
 End Namespace

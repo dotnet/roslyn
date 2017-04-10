@@ -25,10 +25,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
             }
 
-            protected override Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
+            protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 string name, SymbolFilter filter, SearchQuery searchQuery)
             {
-                return SymbolFinder.FindAllDeclarationsWithNormalQueryAsync(_project, searchQuery, filter, CancellationToken);
+                var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                    _project, searchQuery, filter, CancellationToken).ConfigureAwait(false);
+
+                return declarations.SelectAsArray(d => d.Symbol);
             }
         }
     }

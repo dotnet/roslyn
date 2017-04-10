@@ -474,8 +474,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
-        Public Function BadExpression(ParamArray subExpressions As BoundNode()) As BoundExpression
-            Dim boundNode = New BoundBadExpression(_syntax, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(subExpressions), ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
+        Public Function BadExpression(ParamArray subExpressions As BoundExpression()) As BoundExpression
+            Dim boundNode = New BoundBadExpression(_syntax, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(subExpressions), ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function

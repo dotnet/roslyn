@@ -165,6 +165,7 @@
   <ItemGroup>
     <Compile Include="AddBraces\AddBracesFixAllTests.cs" />
     <Compile Include="AddBraces\AddBracesTests.cs" />
+    <Compile Include="Diagnostics\AddUsing\AddUsingTestsWithAddImportDiagnosticProvider.cs" />
     <Compile Include="InitializeParameter\AddParameterCheckTests.cs" />
     <Compile Include="AddParameter\AddParameterTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBraceCompletionTests.cs" />

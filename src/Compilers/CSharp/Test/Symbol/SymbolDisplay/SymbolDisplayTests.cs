@@ -4549,6 +4549,39 @@ public class C
                 SymbolDisplayPartKind.FieldName);
         }
 
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        public void TupleWith1Arity()
+        {
+            var text = @"
+using System;
+public class C
+{
+    public ValueTuple<int> f;
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs;
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.
+                GetTypeMembers("C").Single().
+                GetMembers("f").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType, 
+                                                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                TestOptions.Regular,
+                "ValueTuple<Int32> f",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+        }
+
         [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void TupleWithNames()
         {

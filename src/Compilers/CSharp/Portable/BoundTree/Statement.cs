@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Semantics;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -590,6 +591,24 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundBadStatement : IInvalidStatement
     {
         protected override OperationKind StatementKind => OperationKind.InvalidStatement;
+
+        ImmutableArray<IOperation> IInvalidStatement.Children
+        {
+            get
+            {
+                var builder = ArrayBuilder<IOperation>.GetInstance(this.ChildBoundNodes.Length);
+                foreach (var childNode in this.ChildBoundNodes)
+                {
+                    var operation = childNode as IOperation;
+                    if (operation != null)
+                    {
+                        builder.Add(operation);
+                    }
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
