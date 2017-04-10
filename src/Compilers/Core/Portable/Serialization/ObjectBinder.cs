@@ -69,14 +69,6 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static void RegisterTypeReader(Type type, Func<ObjectReader, object> typeReader)
-        {
-            lock (s_gate)
-            {
-                s_state.RegisterTypeReader(type, typeReader);
-            }
-        }
-
         public static Type GetTypeFromId(int typeId)
         {
             lock (s_gate)
@@ -98,6 +90,14 @@ namespace Roslyn.Utilities
             lock (s_gate)
             {
                 return s_state.GetTypeReader(index);
+            }
+        }
+
+        public static void RegisterTypeReader(Type type, Func<ObjectReader, object> typeReader)
+        {
+            lock (s_gate)
+            {
+                s_state.RegisterTypeReader(type, typeReader);
             }
         }
     }
