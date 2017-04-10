@@ -21,19 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
         AbstractGenerateVariableService<CSharpGenerateVariableService, SimpleNameSyntax, ExpressionSyntax>
     {
         protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
-        {
-            return node is PropertyDeclarationSyntax;
-        }
+            => node is PropertyDeclarationSyntax;
 
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
-        {
-            return node is IdentifierNameSyntax;
-        }
+            => node is IdentifierNameSyntax identifier && !identifier.Identifier.CouldBeKeyword();
 
         protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
-        {
-            return containingType.ContainingTypesOrSelfHasUnsafeKeyword();
-        }
+            => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
 
         protected override bool TryInitializeExplicitInterfaceState(
             SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken,

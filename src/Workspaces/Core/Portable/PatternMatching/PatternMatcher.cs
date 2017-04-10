@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     /// </summary>
     internal sealed partial class PatternMatcher : IDisposable
     {
+        public const int NoBonus = 0;
+        public const int CamelCaseContiguousBonus = 1;
+        public const int CamelCaseMatchesFromStartBonus = 2;
+        public const int CamelCaseMaxWeight = CamelCaseContiguousBonus + CamelCaseMatchesFromStartBonus;
+
         private static readonly char[] s_dotCharacterArray = { '.' };
 
         private readonly object _gate = new object();
@@ -31,7 +36,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private readonly PatternSegment[] _dotSeparatedPatternSegments;
 
         private readonly Dictionary<string, StringBreaks> _stringToWordSpans = new Dictionary<string, StringBreaks>();
-        private readonly Func<string, StringBreaks> _breakIntoWordSpans = StringBreaker.BreakIntoWordParts;
+        private static readonly Func<string, StringBreaks> _breakIntoWordSpans = StringBreaker.BreakIntoWordParts;
 
         // PERF: Cache the culture's compareInfo to avoid the overhead of asking for them repeatedly in inner loops
         private readonly CompareInfo _compareInfo;
@@ -42,8 +47,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public PatternMatcher(
             string pattern,
             bool verbatimIdentifierPrefixIsWordCharacter = false,
-            bool allowFuzzyMatching = false) 
-            :  this(pattern, CultureInfo.CurrentCulture, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching)
+            bool allowFuzzyMatching = false)
+            : this(pattern, CultureInfo.CurrentCulture, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching)
         {
         }
 
@@ -329,6 +334,22 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     //    Note: We only have a substring match if the lowercase part is prefix match of some
                     //    word part. That way we don't match something like 'Class' when the user types 'a'.
                     //    But we would match 'FooAttribute' (since 'Attribute' starts with 'a').
+                    //
+                    //    Also, if we matched at location right after punctuation, then this is a good
+                    //    substring match.  i.e. if the user is testing mybutton against _myButton
+                    //    then this should hit. As we really are finding the match at the beginning of 
+                    //    a word.
+                    if (char.IsPunctuation(candidate[caseInsensitiveIndex - 1]) ||
+                        char.IsPunctuation(patternChunk.Text[0]))
+                    {
+                        return new PatternMatch(
+                            PatternMatchKind.Substring, punctuationStripped,
+                            isCaseSensitive: PartStartsWith(
+                                candidate, new TextSpan(caseInsensitiveIndex, patternChunk.Text.Length),
+                                patternChunk.Text, CompareOptions.None),
+                            matchedSpan: GetMatchedSpan(includeMatchSpans, caseInsensitiveIndex, patternChunk.Text.Length));
+                    }
+
                     var wordSpans = GetWordSpans(candidate);
                     for (int i = 0; i < wordSpans.Count; i++)
                     {
@@ -356,39 +377,25 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
             }
 
-            if (!isLowercase)
+            var match = TryCamelCaseMatch(
+                candidate, includeMatchSpans, patternChunk,
+                punctuationStripped, isLowercase);
+            if (match.HasValue)
             {
-                // e) If the part was not entirely lowercase, then attempt a camel cased match as well.
-                if (patternChunk.CharacterSpans.Count > 0)
-                {
-                    var candidateParts = GetWordSpans(candidate);
-                    var camelCaseWeight = TryCamelCaseMatch(candidate, includeMatchSpans, candidateParts, patternChunk, CompareOptions.None, out var matchedSpans);
-                    if (camelCaseWeight.HasValue)
-                    {
-                        return new PatternMatch(
-                            PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: true, camelCaseWeight: camelCaseWeight,
-                            matchedSpans: GetMatchedSpans(includeMatchSpans, matchedSpans));
-                    }
-
-                    camelCaseWeight = TryCamelCaseMatch(candidate, includeMatchSpans, candidateParts, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
-                    if (camelCaseWeight.HasValue)
-                    {
-                        return new PatternMatch(
-                            PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: false, camelCaseWeight: camelCaseWeight,
-                            matchedSpans: GetMatchedSpans(includeMatchSpans, matchedSpans));
-                    }
-                }
+                return match.Value;
             }
 
             if (isLowercase)
             {
-                // f) Is the pattern a substring of the candidate starting on one of the candidate's word boundaries?
+                //   g) The word is all lower case. Is it a case insensitive substring of the candidate
+                //      starting on a part boundary of the candidate?
 
-                // We could check every character boundary start of the candidate for the pattern. However, that's
-                // an m * n operation in the worst case. Instead, find the first instance of the pattern 
-                // substring, and see if it starts on a capital letter. It seems unlikely that the user will try to 
-                // filter the list based on a substring that starts on a capital letter and also with a lowercase one.
-                // (Pattern: fogbar, Candidate: quuxfogbarFogBar).
+                // We could check every character boundary start of the candidate for the pattern. 
+                // However, that's an m * n operation in the worst case. Instead, find the first 
+                // instance of the pattern  substring, and see if it starts on a capital letter. 
+                // It seems unlikely that the user will try to filter the list based on a substring
+                // that starts on a capital letter and also with a lowercase one. (Pattern: fogbar, 
+                // Candidate: quuxfogbarFogBar).
                 if (patternChunk.Text.Length < candidate.Length)
                 {
                     if (caseInsensitiveIndex != -1 && char.IsUpper(candidate[caseInsensitiveIndex]))
@@ -414,7 +421,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private ImmutableArray<TextSpan> GetMatchedSpans(bool includeMatchSpans, List<TextSpan> matchedSpans)
         {
-            return includeMatchSpans 
+            return includeMatchSpans
                 ? new NormalizedTextSpanCollection(matchedSpans).ToImmutableArray()
                 : ImmutableArray<TextSpan>.Empty;
         }
@@ -446,7 +453,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return ImmutableArray<PatternMatch>.Empty;
             }
 
-            var singleMatch = MatchPatternSegment(candidate, includeMatchSpans, patternSegment, 
+            var singleMatch = MatchPatternSegment(candidate, includeMatchSpans, patternSegment,
                 wantAllMatches: true, fuzzyMatch: fuzzyMatch, allMatches: out var matches);
             if (singleMatch.HasValue)
             {
@@ -496,7 +503,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             // multi-word segment.
             if (!ContainsSpaceOrAsterisk(segment.TotalTextChunk.Text))
             {
-                var match = MatchPatternChunk(candidate, includeMatchSpans, 
+                var match = MatchPatternChunk(candidate, includeMatchSpans,
                     segment.TotalTextChunk, punctuationStripped: false, fuzzyMatch: fuzzyMatch);
                 if (match != null)
                 {
@@ -533,10 +540,13 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             //      candidate in a case *sensitive* manner. If so, return that there was a substring
             //      match.
             //
-            //   e) If the word was not entirely lowercase, then attempt a camel cased match as
-            //      well.
+            //   e) If the word was entirely lowercase, then attempt a special lower cased camel cased 
+            //      match.  i.e. cofipro would match CodeFixProvider.
             //
-            //   f) The word is all lower case. Is it a case insensitive substring of the candidate starting 
+            //   f) If the word was not entirely lowercase, then attempt a normal camel cased match.
+            //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
+            //
+            //   g) The word is all lower case. Is it a case insensitive substring of the candidate starting 
             //      on a part boundary of the candidate?
             //
             // Only if all words have some sort of match is the pattern considered matched.
@@ -609,15 +619,70 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// <param name="compareOptions">Options for doing the comparison (case sensitive or not)</param>
         /// <returns>True if the span identified by <paramref name="candidatePart"/> within <paramref name="candidate"/> starts with <paramref name="pattern"/></returns>
         private bool PartStartsWith(string candidate, TextSpan candidatePart, string pattern, CompareOptions compareOptions)
+            => PartStartsWith(candidate, candidatePart, pattern, new TextSpan(0, pattern.Length), compareOptions);
+
+        private PatternMatch? TryCamelCaseMatch(
+            string candidate, bool includeMatchSpans, TextChunk patternChunk,
+            bool punctuationStripped, bool isLowercase)
         {
-            return PartStartsWith(candidate, candidatePart, pattern, new TextSpan(0, pattern.Length), compareOptions);
+            if (isLowercase)
+            {
+                //   e) If the word was entirely lowercase, then attempt a special lower cased camel cased 
+                //      match.  i.e. cofipro would match CodeFixProvider.
+                var candidateParts = GetWordSpans(candidate);
+                var camelCaseWeight = TryAllLowerCamelCaseMatch(
+                    candidate, includeMatchSpans, candidateParts, patternChunk, out var matchedSpans);
+                if (camelCaseWeight.HasValue)
+                {
+                    return new PatternMatch(
+                        PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: false, camelCaseWeight: camelCaseWeight,
+                        matchedSpans: GetMatchedSpans(includeMatchSpans, matchedSpans));
+                }
+            }
+            else
+            {
+                //   f) If the word was not entirely lowercase, then attempt a normal camel cased match.
+                //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
+                if (patternChunk.CharacterSpans.Count > 0)
+                {
+                    var candidateParts = GetWordSpans(candidate);
+                    var camelCaseWeight = TryUpperCaseCamelCaseMatch(candidate, includeMatchSpans, candidateParts, patternChunk, CompareOptions.None, out var matchedSpans);
+                    if (camelCaseWeight.HasValue)
+                    {
+                        return new PatternMatch(
+                            PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: true, camelCaseWeight: camelCaseWeight,
+                            matchedSpans: GetMatchedSpans(includeMatchSpans, matchedSpans));
+                    }
+
+                    camelCaseWeight = TryUpperCaseCamelCaseMatch(candidate, includeMatchSpans, candidateParts, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
+                    if (camelCaseWeight.HasValue)
+                    {
+                        return new PatternMatch(
+                            PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: false, camelCaseWeight: camelCaseWeight,
+                            matchedSpans: GetMatchedSpans(includeMatchSpans, matchedSpans));
+                    }
+                }
+            }
+
+            return null;
         }
 
-        private int? TryCamelCaseMatch(
-            string candidate, 
+        private int? TryAllLowerCamelCaseMatch(
+            string candidate,
             bool includeMatchedSpans,
-            StringBreaks candidateParts, 
-            TextChunk patternChunk, 
+            StringBreaks candidateParts,
+            TextChunk patternChunk,
+            out List<TextSpan> matchedSpans)
+        {
+            var matcher = new AllLowerCamelCaseMatcher(candidate, includeMatchedSpans, candidateParts, patternChunk);
+            return matcher.TryMatch(out matchedSpans);
+        }
+
+        private int? TryUpperCaseCamelCaseMatch(
+            string candidate,
+            bool includeMatchedSpans,
+            StringBreaks candidateParts,
+            TextChunk patternChunk,
             CompareOptions compareOption,
             out List<TextSpan> matchedSpans)
         {
@@ -643,18 +708,18 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     Contract.Requires(contiguous.HasValue);
 
                     // We did match! We shall assign a weight to this
-                    int weight = 0;
+                    var weight = 0;
 
                     // Was this contiguous?
                     if (contiguous.Value)
                     {
-                        weight += 1;
+                        weight += CamelCaseContiguousBonus;
                     }
 
                     // Did we start at the beginning of the candidate?
                     if (firstMatch.Value == 0)
                     {
-                        weight += 2;
+                        weight += CamelCaseMatchesFromStartBonus;
                     }
 
                     return weight;

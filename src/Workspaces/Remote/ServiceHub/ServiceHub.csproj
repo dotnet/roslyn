@@ -63,7 +63,7 @@
     <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
     <Compile Include="Services\CodeAnalysisService_DesignerAttributes.cs" />
     <Compile Include="Services\CodeAnalysisService_TodoComments.cs" />
-    <Compile Include="Services\CodeAnalysisService_FindReferences.cs" />
+    <Compile Include="Services\CodeAnalysisService_SymbolFinder.cs" />
     <Compile Include="Services\RemoteSymbolSearchUpdateEngine.cs" />
     <Compile Include="Services\CodeAnalysisService_NavigateTo.cs" />
     <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />

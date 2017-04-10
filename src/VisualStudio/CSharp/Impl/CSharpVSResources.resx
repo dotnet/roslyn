@@ -507,4 +507,13 @@
   <data name="Automatically_format_when_typing" xml:space="preserve">
     <value>Automatically format when typing</value>
   </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="When_on_single_line" xml:space="preserve">
+    <value>When on single line</value>
+  </data>
+  <data name="When_possible" xml:space="preserve">
+    <value>When possible</value>
+  </data>
 </root>

@@ -77,7 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public Workspace Workspace => _workspace;
 
-            public string ProjectSystemName => "MiscellaneousFiles";
+            public string DisplayName => "MiscellaneousFiles";
+            public string ProjectSystemName => DisplayName;
 
             public IVisualStudioHostDocument GetDocumentOrAdditionalDocument(DocumentId id)
             {

@@ -144,7 +144,7 @@ class Class3
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "/// <summary> Hello C#!", autoCollapse: true));
+                Region("span", "/// <summary>Hello C#!", autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -157,7 +157,7 @@ class Class3
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "/** <summary> Hello C#!", autoCollapse: true));
+                Region("span", "/** <summary>Hello C#!", autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -170,7 +170,7 @@ class Class3
     }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "/// <summary> Hello C#!", autoCollapse: true));
+                Region("span", "/// <summary>Hello C#!", autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -183,7 +183,7 @@ class Class3
     }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "/** <summary> Hello C#!", autoCollapse: true));
+                Region("span", "/** <summary>Hello C#!", autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -234,7 +234,27 @@ class C
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "/// <summary> Summary with SeeClass , SeeAlsoClass , null , T , t , and not-supported .", autoCollapse: true));
+                Region("span", "/// <summary> Summary with SeeClass, SeeAlsoClass, null, T, t, and not-supported.", autoCollapse: true));
+        }
+
+        [WorkItem(402822, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=402822")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestSummaryWithPunctuation()
+        {
+            const string code = @"
+class C
+{
+    {|span:/// $$<summary>
+    /// The main entrypoint for <see cref=""Program""/>.
+    /// </summary>
+    /// <param name=""args""></param>|}
+    void Main()
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("span", "/// <summary> The main entrypoint for Program.", autoCollapse: true));
         }
     }
 }
