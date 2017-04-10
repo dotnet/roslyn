@@ -35,15 +35,12 @@ try
     # We need to remove 'refs/heads/' from the beginning of the string
     $branchName = $branchName -Replace "^refs/heads/"
     
-    # We also need to replace all instances of '/' with '_'
-    $branchName = $branchName.Replace("/", "_")
-
     switch ($branchName)
     {
         "dev15.0.x" { } 
         "dev15.1.x" { } 
+        "dev15.2.x" { } 
         "master" { } 
-        "dev_pilchie_Fix389698" { }
         default
         {
             if (-not $test)

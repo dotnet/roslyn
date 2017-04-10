@@ -16,6 +16,9 @@ namespace Roslyn.Test.Performance.Utilities
         private static readonly string s_outputDirectory = GetCPCDirectoryPath();
         private static readonly string[] s_validSubmissionTypes = new string[] { "rolling", "private", "local" };
 
+        private static string s_submissionType;
+        private static string s_branch;
+
         public static string[] ValidSubmissionTypes
         {
             get
@@ -63,21 +66,27 @@ namespace Roslyn.Test.Performance.Utilities
             return true;
         }
 
-        public static void UploadBenchviewReport(string submissionType, string submissionName, string branch)
+        public static void SetConfiguration(string submissionType, string branch)
         {
-            var consumptionXml = Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults.xml");
-            UploadBenchviewReport(consumptionXml, submissionType, submissionName, branch);
+            s_submissionType = submissionType;
+            s_branch = branch;
         }
 
-        public static void UploadBenchviewReport(string filepath, string submissionType, string submissionName, string branch)
+        public static void UploadBenchviewReport(string submissionName)
+        {
+            var consumptionXml = Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults.xml");
+            UploadBenchviewReport(consumptionXml, submissionName);
+        }
+
+        public static void UploadBenchviewReport(string filepath, string submissionName)
         {
             var consumptionXml = Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults.xml");
             var result = ConvertConsumptionToMeasurementJson(filepath);
 
             if (result)
             {
-                var submissionJson = CreateSubmissionJson(submissionType, submissionName, branch, Path.Combine(s_outputDirectory, "measurement.json"));
-
+                var submissionJson = CreateSubmissionJson(s_submissionType, submissionName, s_branch, Path.Combine(s_outputDirectory, "measurement.json"));
+                System.Console.Write(System.IO.File.ReadAllText(submissionJson));
                 Log("Uploading json to Azure blob storage");
                 var uploadPy = Path.Combine(s_scriptDirectory, "upload.py");
                 ShellOutVital("py", $"\"{uploadPy}\" \"{submissionJson}\" --container roslyn");

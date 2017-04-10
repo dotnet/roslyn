@@ -825,13 +825,13 @@ references: s_valueTupleRefs);
             var partialParamType = partialNamesMethod.Parameters.Single().Type;
             Assert.False(partialParamType.IsErrorType());
             Assert.True(partialParamType.IsTupleType);
-            Assert.Equal("((System.Int32 e1, System.Int32))", partialParamType.ToTestDisplayString());
+            Assert.Equal("ValueTuple<(System.Int32 e1, System.Int32)>", partialParamType.ToTestDisplayString());
 
             var allNullNamesMethod = c.GetMember<MethodSymbol>("AllNullNamesMethod");
             var allNullParamType = allNullNamesMethod.Parameters.Single().Type;
             Assert.False(allNullParamType.IsErrorType());
             Assert.True(allNullParamType.IsTupleType);
-            Assert.Equal("((System.Int32, System.Int32))", allNullParamType.ToTestDisplayString());
+            Assert.Equal("ValueTuple<(System.Int32, System.Int32)>", allNullParamType.ToTestDisplayString());
         }
 
         [Fact]
@@ -8870,19 +8870,19 @@ class C
             comp.VerifyDiagnostics(
                 // (42,53): error CS0452: The type '(int)' must be a reference type in order to use it as parameter 'TRest' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'
                 //     void M((int, int, int, int, int, int, int, int) p)
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "p").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "TRest", "(int)").WithLocation(42, 53),
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "p").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "TRest", "ValueTuple<int>").WithLocation(42, 53),
                 // (42,53): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'ValueTuple<T1>'
                 //     void M((int, int, int, int, int, int, int, int) p)
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "p").WithArguments("System.ValueTuple<T1>", "T1", "int").WithLocation(42, 53),
                 // (44,18): error CS0452: The type '(int)' must be a reference type in order to use it as parameter 'TRest' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'
                 //         var t0 = (1, 2, 3, 4, 5, 6, 7, 8);
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "(1, 2, 3, 4, 5, 6, 7, 8)").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "TRest", "(int)").WithLocation(44, 18),
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "(1, 2, 3, 4, 5, 6, 7, 8)").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "TRest", "ValueTuple<int>").WithLocation(44, 18),
                 // (44,40): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'ValueTuple<T1>'
                 //         var t0 = (1, 2, 3, 4, 5, 6, 7, 8);
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "8").WithArguments("System.ValueTuple<T1>", "T1", "int").WithLocation(44, 40),
                 // (45,9): error CS0452: The type '(int)' must be a reference type in order to use it as parameter 'TRest' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'
                 //         (int, int, int, int, int, int, int, int) t1 = t0;
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "(int, int, int, int, int, int, int, int)").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "TRest", "(int)").WithLocation(45, 9),
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "(int, int, int, int, int, int, int, int)").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "TRest", "ValueTuple<int>").WithLocation(45, 9),
                 // (45,45): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'ValueTuple<T1>'
                 //         (int, int, int, int, int, int, int, int) t1 = t0;
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("System.ValueTuple<T1>", "T1", "int").WithLocation(45, 45)
@@ -9209,10 +9209,10 @@ CS0151ERR_IntegralTypeValueExpected}
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //         (int, int) x = (1, 1);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int, int)").WithArguments("tuples", "7").WithLocation(6, 9),
-                // (6,24): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,24): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //         (int, int) x = (1, 1);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 1)").WithArguments("tuples", "7").WithLocation(6, 24),
                 // (8,36): error CS1519: Invalid token '}' in class, struct, or interface member declaration
@@ -10541,9 +10541,9 @@ class C
                 "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).a6",
                 "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Item7",
                 "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).a7",
-                "(System.Int32) (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Rest",
+                "ValueTuple<System.Int32> (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Rest",
                 "(System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1)..ctor()",
-                "(System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, (System.Int32) rest)",
+                "(System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, ValueTuple<System.Int32> rest)",
                 "System.Boolean (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Equals(System.Object obj)",
                 "System.Boolean (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Equals((System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32) other)",
                 "System.Boolean (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).System.Collections.IStructuralEquatable.Equals(System.Object other, System.Collections.IEqualityComparer comparer)",
@@ -10606,22 +10606,22 @@ class C
             AssertTupleTypeEquality(m8TupleRestTuple);
 
             AssertTestDisplayString(m8TupleRestTuple.GetMembers(),
-                "System.Int32 (System.Int32).Item1",
-                "(System.Int32)..ctor()",
-                "(System.Int32)..ctor(System.Int32 item1)",
-                "System.Boolean (System.Int32).Equals(System.Object obj)",
-                "System.Boolean (System.Int32).Equals((System.Int32) other)",
-                "System.Boolean (System.Int32).System.Collections.IStructuralEquatable.Equals(System.Object other, System.Collections.IEqualityComparer comparer)",
-                "System.Int32 (System.Int32).System.IComparable.CompareTo(System.Object other)",
-                "System.Int32 (System.Int32).CompareTo((System.Int32) other)",
-                "System.Int32 (System.Int32).System.Collections.IStructuralComparable.CompareTo(System.Object other, System.Collections.IComparer comparer)",
-                "System.Int32 (System.Int32).GetHashCode()",
-                "System.Int32 (System.Int32).System.Collections.IStructuralEquatable.GetHashCode(System.Collections.IEqualityComparer comparer)",
-                "System.Int32 (System.Int32).System.ITupleInternal.GetHashCode(System.Collections.IEqualityComparer comparer)",
-                "System.String (System.Int32).ToString()",
-                "System.String (System.Int32).System.ITupleInternal.ToStringEnd()",
-                "System.Int32 (System.Int32).System.ITupleInternal.Size.get",
-                "System.Int32 (System.Int32).System.ITupleInternal.Size { get; }");
+                "System.Int32 ValueTuple<System.Int32>.Item1",
+                "ValueTuple<System.Int32>..ctor()",
+                "ValueTuple<System.Int32>..ctor(System.Int32 item1)",
+                "System.Boolean ValueTuple<System.Int32>.Equals(System.Object obj)",
+                "System.Boolean ValueTuple<System.Int32>.Equals(ValueTuple<System.Int32> other)",
+                "System.Boolean ValueTuple<System.Int32>.System.Collections.IStructuralEquatable.Equals(System.Object other, System.Collections.IEqualityComparer comparer)",
+                "System.Int32 ValueTuple<System.Int32>.System.IComparable.CompareTo(System.Object other)",
+                "System.Int32 ValueTuple<System.Int32>.CompareTo(ValueTuple<System.Int32> other)",
+                "System.Int32 ValueTuple<System.Int32>.System.Collections.IStructuralComparable.CompareTo(System.Object other, System.Collections.IComparer comparer)",
+                "System.Int32 ValueTuple<System.Int32>.GetHashCode()",
+                "System.Int32 ValueTuple<System.Int32>.System.Collections.IStructuralEquatable.GetHashCode(System.Collections.IEqualityComparer comparer)",
+                "System.Int32 ValueTuple<System.Int32>.System.ITupleInternal.GetHashCode(System.Collections.IEqualityComparer comparer)",
+                "System.String ValueTuple<System.Int32>.ToString()",
+                "System.String ValueTuple<System.Int32>.System.ITupleInternal.ToStringEnd()",
+                "System.Int32 ValueTuple<System.Int32>.System.ITupleInternal.Size.get",
+                "System.Int32 ValueTuple<System.Int32>.System.ITupleInternal.Size { get; }");
         }
 
         [Fact]
@@ -17236,10 +17236,10 @@ public class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (6,31): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, int)'.
+                // (6,31): warning CS8123: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(int a, int)'.
                 //         (int a, int) x1 = (1, b: 2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: 2").WithArguments("b", "(int a, int)").WithLocation(6, 31),
-                // (7,34): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, string)'.
+                // (7,34): warning CS8123: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(int a, string)'.
                 //         (int a, string) x2 = (1, b: null);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: null").WithArguments("b", "(int a, string)").WithLocation(7, 34),
                 // (6,22): warning CS0219: The variable 'x1' is assigned but its value is never used

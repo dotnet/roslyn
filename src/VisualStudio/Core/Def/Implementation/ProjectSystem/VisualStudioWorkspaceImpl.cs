@@ -33,6 +33,7 @@ using VSLangProj;
 using VSLangProj140;
 using OLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.CodeAnalysis.Esent;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -126,6 +127,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Microsoft.CodeAnalysis.Solution newSolution,
             IProgressTracker progressTracker)
         {
+            if (_foregroundObject.IsValueCreated && !_foregroundObject.Value.IsForeground())
+            {
+                throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
+            }
+
             var projectChanges = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().ToList();
             var projectsToLoad = new HashSet<Guid>();
             foreach (var pc in projectChanges)
@@ -1305,7 +1311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private void RegisterPrimarySolutionForPersistentStorage(
                 SolutionId solutionId)
             {
-                var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
+                var service = _workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
                 if (service == null)
                 {
                     return;
@@ -1317,7 +1323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private void UnregisterPrimarySolutionForPersistentStorage(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
+                var service = _workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
                 if (service == null)
                 {
                     return;

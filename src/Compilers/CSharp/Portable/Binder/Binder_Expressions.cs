@@ -2923,8 +2923,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
-        private BoundExpression BindStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindStackAllocArrayCreationExpression(
+            StackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
+            if (!IsLegalStackAllocLocation(node))
+            { 
+                diagnostics.Add(
+                    ErrorCode.ERR_InvalidExprTerm,
+                    node.StackAllocKeyword.GetLocation(),
+                    SyntaxFacts.GetText(SyntaxKind.StackAllocKeyword));
+            }
+
             bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics);
 
             // Check if we're syntactically within a catch or finally clause.
@@ -3007,6 +3016,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundStackAllocArrayCreation(node, count, pointerType, hasErrors || typeHasErrors);
+        }
+
+        private static bool IsLegalStackAllocLocation(StackAllocArrayCreationExpressionSyntax node)
+        {
+            // First, StackAllocs are only legal in variable declaration initializers.
+            if (node.Parent == null ||
+                node.Parent.Kind() != SyntaxKind.EqualsValueClause ||
+                node.Parent.Parent.Kind() != SyntaxKind.VariableDeclarator ||
+                node.Parent.Parent.Parent.Kind() != SyntaxKind.VariableDeclaration)
+            {
+                return false;
+            }
+
+            // However, they're not legal for the variable declarations in fields/event-fields.
+            var variableDeclaration = (VariableDeclarationSyntax)node.Parent.Parent.Parent;
+            var owner = variableDeclaration.Parent;
+            if (owner.Kind() == SyntaxKind.FieldDeclaration ||
+                owner.Kind() == SyntaxKind.EventFieldDeclaration)
+            {
+                return false;
+            }
+
+            // This leaves variable-declarations inside a method-body.  Stack-allocs are legal
+            // in all cases here except for const-locals.
+            if (owner.Kind() == SyntaxKind.LocalDeclarationStatement)
+            {
+                var localDeclaration = (LocalDeclarationStatementSyntax)owner;
+                if (localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static int? GetIntegerConstantForArraySize(BoundExpression expression)

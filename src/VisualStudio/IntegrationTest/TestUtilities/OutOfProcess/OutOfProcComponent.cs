@@ -19,12 +19,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         internal static TInProcComponent CreateInProcComponent<TInProcComponent>(VisualStudioInstance visualStudioInstance)
             where TInProcComponent : InProcComponent
-        => visualStudioInstance.ExecuteInHostProcess<TInProcComponent>( type: typeof(TInProcComponent), methodName: "Create"); 
+            => visualStudioInstance.ExecuteInHostProcess<TInProcComponent>( type: typeof(TInProcComponent), methodName: "Create"); 
 
         protected void WaitForCompletionSet()
-            => VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+            => VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
 
         protected void WaitForSignatureHelp()
-            => VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
+            => VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
+
+        protected void WaitForQuickInfo()
+        {
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.ErrorSquiggles);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.QuickInfo);
+        }
     }
 }

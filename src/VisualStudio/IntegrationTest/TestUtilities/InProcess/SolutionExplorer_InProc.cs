@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using VSLangProj;
@@ -59,9 +59,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             };
         }
 
-        public string DirectoryName => Path.GetDirectoryName(FileName);
+        public void AddMetadataReference(string assemblyName, string projectName)
+        {
+            var project = GetProject(projectName);
+            var vsproject = ((VSProject)project.Object);
+            vsproject.References.Add(assemblyName);
+        }
 
-        public string FileName
+        public void RemoveMetadataReference(string assemblyName, string projectName)
+        {
+            var project = GetProject(projectName);
+            var reference = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.Name == assemblyName).First();
+            reference.Remove();
+        }
+
+        public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
+
+        public string SolutionFileFullPath
         {
             get
             {
@@ -88,7 +102,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 CloseSolution(saveExistingSolutionIfExists);
             }
 
-            var solutionPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            string solutionPath = IntegrationHelper.CreateTemporaryPath();
             IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
 
             dte.Solution.Create(solutionPath, solutionName);
@@ -104,6 +118,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 .Where(x => x.SourceProject == null)
                 .Select(x => x.Name + "," + x.Version + "," + x.PublicKeyToken).ToArray();
             return references;
+        }
+
+        public void EditProjectFile(string projectName)
+        {
+            var solutionExplorer = ((DTE2)GetDTE()).ToolWindows.SolutionExplorer;
+            solutionExplorer.Parent.Activate();
+            var rootHierarchyItems = solutionExplorer.UIHierarchyItems.Cast<EnvDTE.UIHierarchyItem>();
+            var solution = rootHierarchyItems.First();
+            var solutionHierarchyItems = solution.UIHierarchyItems.Cast<EnvDTE.UIHierarchyItem>();
+            var project = solutionHierarchyItems.Where(x => x.Name == projectName).FirstOrDefault();
+            if (project == null)
+            {
+                throw new ArgumentException($"Could not find project file, current hierarchy items '{string.Join(", ", rootHierarchyItems.Select(x => x.Name))}'");
+            }
+            project.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+            ExecuteCommand("Project.EditProjectFile");
         }
 
         public string[] GetProjectReferences(string projectName)
@@ -171,6 +201,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             ((VSProject)project.Object).References.AddProject(projectToReference);
         }
 
+        public void AddReference(string projectName, string fullyQualifiedAssemblyName)
+        {
+            var project = GetProject(projectName);
+            ((VSProject)project.Object).References.Add(fullyQualifiedAssemblyName);
+        }
+
+        public void RemoveProjectReference(string projectName, string projectReferenceName)
+        {
+            var project = GetProject(projectName);
+            var vsproject = (VSProject)project.Object;
+            var references = vsproject.References.Cast<Reference>();
+            var reference = references.Where(x => x.ContainingProject != null && x.Name == projectReferenceName).FirstOrDefault();
+            if (reference == null)
+            {
+                var projectReference = references.Where(x => x.ContainingProject != null).Select(x => x.Name);
+                throw new ArgumentException($"reference to project {projectReferenceName} not found, references: '{string.Join(", ", projectReference)}'");
+            }
+            reference.Remove();
+        }
+
         public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
         {
             var dte = GetDTE();
@@ -179,7 +229,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 CloseSolution(saveExistingSolutionIfExists);
             }
-
             dte.Solution.Open(path);
 
             _solution = (EnvDTE80.Solution2)dte.Solution;
@@ -242,7 +291,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 // cleanup any folders after the solution is closed.
                 foreach (EnvDTE.Project project in dte.Solution.Projects)
                 {
-                    directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
+                    if (!string.IsNullOrEmpty(project.FullName))
+                    {
+                        directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
+                    }
                 }
 
                 // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
@@ -362,6 +414,37 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
+        /// <summary>
+        /// Adds a new standalone file to the Miscellaneous Files workspace.
+        /// </summary>
+        /// <param name="fileName">The name of the file to add.</param>
+        public void AddStandaloneFile(string fileName)
+        {
+            string itemTemplate;
+
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            switch (extension)
+            {
+                case ".cs":
+                    itemTemplate = @"General\Visual C# Class";
+                    break;
+                case ".csx":
+                    itemTemplate = @"Script\Visual C# Script";
+                    break;
+                case ".vb":
+                    itemTemplate = @"General\Visual Basic Class";
+                    break;
+                case ".txt":
+                    itemTemplate = @"General\Text File";
+                    break;
+                default:
+                    throw new NotSupportedException($"File type '{extension}' is not yet supported.");
+            }
+
+            GetDTE().ItemOperations.NewFile(itemTemplate, fileName);
+        }
+            
+
         public void SetFileContents(string projectName, string relativeFilePath, string contents)
         {
             var project = GetProject(projectName);
@@ -382,69 +465,196 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void BuildSolution(bool waitForBuildToFinish)
         {
+            var buildOutputWindowPane = GetBuildOutputWindowPane();
+            buildOutputWindowPane.Clear();
+            ExecuteCommand(WellKnownCommandNames.Build_BuildSolution);
+            WaitForBuildToFinish(buildOutputWindowPane);
+        }
+
+        public void ClearBuildOutputWindowPane()
+        {
+            var buildOutputWindowPane = GetBuildOutputWindowPane();
+            buildOutputWindowPane.Clear();
+        }
+
+        public void WaitForBuildToFinish()
+        {
+            var buildOutputWindowPane = GetBuildOutputWindowPane();
+            WaitForBuildToFinish(buildOutputWindowPane);
+        }
+
+        private EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
+        {
             var dte = (DTE2)GetDTE();
             var outputWindow = dte.ToolWindows.OutputWindow;
+            return outputWindow.OutputWindowPanes.Item("Build");
+        }
 
-            var buildOutputWindowPane = outputWindow.OutputWindowPanes.Item("Build");
-            buildOutputWindowPane.Clear();
-
-            ExecuteCommand("Build.BuildSolution");
-
-            if (waitForBuildToFinish)
+        private void WaitForBuildToFinish(EnvDTE.OutputWindowPane buildOutputWindowPane)
+        {
+            var buildManager = GetGlobalService<SVsSolutionBuildManager, IVsSolutionBuildManager2>();
+            using (var semaphore = new SemaphoreSlim(1))
+            using (var solutionEvents = new UpdateSolutionEvents(buildManager))
             {
-                var textDocument = buildOutputWindowPane.TextDocument;
-                var textDocumentSelection = textDocument.Selection;
-
-                var buildFinishedRegex = new Regex(@"^========== Build: \d+ succeeded, \d+ failed, \d+ up-to-date, \d+ skipped ==========$", RegexOptions.Compiled);
-
-                do
+                semaphore.Wait();
+                UpdateSolutionEvents.UpdateSolutionDoneEvent @event = (bool succeeded, bool modified, bool canceled) => semaphore.Release();
+                solutionEvents.OnUpdateSolutionDone += @event;
+                try
                 {
-                    Thread.Yield();
-
-                    try
-                    {
-                        textDocumentSelection.GotoLine(textDocument.EndPoint.Line - 1, Select: true);
-                    }
-                    catch (ArgumentException)
-                    {
-                        // Its possible that the window will still be initializing, clearing,
-                        // etc... We should ignore those errors and just try again
-                    }
+                    semaphore.Wait();
                 }
-                while (!buildFinishedRegex.IsMatch(textDocumentSelection.Text));
+                finally
+                {
+                    solutionEvents.OnUpdateSolutionDone -= @event;
+                }
             }
         }
 
-        public int GetErrorListErrorCount()
+        internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IVsUpdateSolutionEvents2, IDisposable
         {
-            var dte = (DTE2)GetDTE();
-            var errorList = dte.ToolWindows.ErrorList;
+            private uint cookie;
+            private IVsSolutionBuildManager2 solutionBuildManager;
 
-            var errorItems = errorList.ErrorItems;
-            var errorItemsCount = errorItems.Count;
+            internal delegate void UpdateSolutionDoneEvent(bool succeeded, bool modified, bool canceled);
+            internal delegate void UpdateSolutionBeginEvent(ref bool cancel);
+            internal delegate void UpdateSolutionStartUpdateEvent(ref bool cancel);
+            internal delegate void UpdateProjectConfigDoneEvent(IVsHierarchy projectHierarchy, IVsCfg projectConfig, int success);
+            internal delegate void UpdateProjectConfigBeginEvent(IVsHierarchy projectHierarchy, IVsCfg projectConfig);
 
-            var errorCount = 0;
+            public event UpdateSolutionDoneEvent OnUpdateSolutionDone;
+            public event UpdateSolutionBeginEvent OnUpdateSolutionBegin;
+            public event UpdateSolutionStartUpdateEvent OnUpdateSolutionStartUpdate;
+            public event Action OnActiveProjectConfigurationChange;
+            public event Action OnUpdateSolutionCancel;
+            public event UpdateProjectConfigDoneEvent OnUpdateProjectConfigDone;
+            public event UpdateProjectConfigBeginEvent OnUpdateProjectConfigBegin;
 
-            try
+            internal UpdateSolutionEvents(IVsSolutionBuildManager2 solutionBuildManager)
             {
-                for (var index = 1; index <= errorItemsCount; index++)
+                this.solutionBuildManager = solutionBuildManager;
+                var hresult = solutionBuildManager.AdviseUpdateSolutionEvents(this, out cookie);
+                if (hresult != 0)
                 {
-                    var errorItem = errorItems.Item(index);
+                    System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(hresult);
+                }
+            }
 
-                    if (errorItem.ErrorLevel == vsBuildErrorLevel.vsBuildErrorLevelHigh)
+            int IVsUpdateSolutionEvents.UpdateSolution_Begin(ref int pfCancelUpdate)
+            {
+                var cancel = false;
+                OnUpdateSolutionBegin?.Invoke(ref cancel);
+                if (cancel)
+                {
+                    pfCancelUpdate = 1;
+                }
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
+            {
+                OnUpdateSolutionDone?.Invoke(fSucceeded != 0, fModified != 0, fCancelCommand != 0);
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+            {
+                return UpdateSolution_StartUpdate(ref pfCancelUpdate);
+            }
+
+            int IVsUpdateSolutionEvents.UpdateSolution_Cancel()
+            {
+                OnUpdateSolutionCancel?.Invoke();
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            {
+                return OnActiveProjectCfgChange(pIVsHierarchy);
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_Begin(ref int pfCancelUpdate)
+            {
+                var cancel = false;
+                OnUpdateSolutionBegin?.Invoke(ref cancel);
+                if (cancel)
+                {
+                    pfCancelUpdate = 1;
+                }
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
+            {
+                OnUpdateSolutionDone?.Invoke(fSucceeded != 0, fModified != 0, fCancelCommand != 0);
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+            {
+                return UpdateSolution_StartUpdate(ref pfCancelUpdate);
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateSolution_Cancel()
+            {
+                OnUpdateSolutionCancel?.Invoke();
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            {
+                return OnActiveProjectCfgChange(pIVsHierarchy);
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
+            {
+                OnUpdateProjectConfigBegin?.Invoke(pHierProj, pCfgProj);
+                return 0;
+            }
+
+            int IVsUpdateSolutionEvents2.UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
+            {
+                OnUpdateProjectConfigDone?.Invoke(pHierProj, pCfgProj, fSuccess);
+                return 0;
+            }
+
+            private int UpdateSolution_StartUpdate(ref int pfCancelUpdate)
+            {
+                var cancel = false;
+                OnUpdateSolutionStartUpdate?.Invoke(ref cancel);
+                if (cancel)
+                {
+                    pfCancelUpdate = 1;
+                }
+                return 0;
+            }
+
+            private int OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            {
+                OnActiveProjectConfigurationChange?.Invoke();
+                return 0;
+            }
+
+            void IDisposable.Dispose()
+            {
+                OnUpdateSolutionDone = null;
+                OnUpdateSolutionBegin = null;
+                OnUpdateSolutionStartUpdate = null;
+                OnActiveProjectConfigurationChange = null;
+                OnUpdateSolutionCancel = null;
+                OnUpdateProjectConfigDone = null;
+                OnUpdateProjectConfigBegin = null;
+
+                if (cookie != 0)
+                {
+                    var tempCookie = cookie;
+                    cookie = 0;
+                    var hresult = solutionBuildManager.UnadviseUpdateSolutionEvents(tempCookie);
+                    if (hresult != 0)
                     {
-                        errorCount += 1;
+                        System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(hresult);
                     }
                 }
             }
-            catch (IndexOutOfRangeException)
-            {
-                // It is entirely possible that the items in the error list are modified
-                // after we start iterating, in which case we want to try again.
-                return GetErrorListErrorCount();
-            }
-
-            return errorCount;
         }
 
         public void OpenFileWithDesigner(string projectName, string relativeFilePath)
@@ -467,7 +677,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var filePath = GetFilePath(projectName, relativeFilePath);
             var fileName = Path.GetFileName(filePath);
 
-            ExecuteCommand("File.OpenFile", filePath);
+            ExecuteCommand(WellKnownCommandNames.File_OpenFile, filePath);
 
             var dte = GetDTE();
             while (!dte.ActiveWindow.Caption.Contains(fileName))
@@ -540,16 +750,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void RestoreNuGetPackages()
-            => ExecuteCommand("ProjectAndSolutionContextMenus.Solution.RestoreNuGetPackages");
+            => ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages);
 
         public void SaveAll()
-            => ExecuteCommand("File.SaveAll");
+            => ExecuteCommand(WellKnownCommandNames.File_SaveAll);
 
         public void ShowErrorList()
-            => ExecuteCommand("View.ErrorList");
+            => ExecuteCommand(WellKnownCommandNames.View_ErrorList);
 
         public void ShowOutputWindow()
-            => ExecuteCommand("View.Output");
+            => ExecuteCommand(WellKnownCommandNames.View_Output);
 
         public void UnloadProject(string projectName)
         {
@@ -557,12 +767,40 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             _solution.Remove(project);
         }
 
-        public void WaitForNoErrorsInErrorList()
+        public void SelectItem(string itemName)
         {
-            while (GetErrorListErrorCount() != 0)
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
+            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+            solutionExplorer.Parent.Activate();
+        }
+
+        private static EnvDTE.UIHierarchyItem FindFirstItemRecursively(
+            EnvDTE.UIHierarchyItems currentItems,
+            string itemName)
+        {
+            if (currentItems == null)
             {
-                Thread.Yield();
+                return null;
             }
+
+            foreach (var item in currentItems.Cast<EnvDTE.UIHierarchyItem>())
+            {
+                if (item.Name == itemName)
+                {
+                    return item;
+                }
+
+                var result = FindFirstItemRecursively(item.UIHierarchyItems, itemName);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
         }
     }
 }

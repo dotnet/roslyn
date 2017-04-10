@@ -805,6 +805,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "/langversion:");
                             }
+                            else if (value.StartsWith("0", StringComparison.Ordinal))
+                            {
+                                // This error was added in 7.1 to stop parsing versions as ints (behaviour in previous Roslyn compilers), and explicitly
+                                // treat them as identifiers (behaviour in native compiler). This error helps users identify that breaking change.
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes, value);
+                            }
                             else if (!value.TryParse(out languageVersion))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_BadCompatMode, value);
@@ -850,13 +856,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "keyfile":
+                            value = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, "keyfile");
                             }
                             else
                             {
-                                keyFileSetting = RemoveQuotesAndSlashes(value);
+                                keyFileSetting = value;
                             }
                             // NOTE: Dev11/VB also clears "keycontainer", see also:
                             //

@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax> : CodeFixProvider, IEqualityComparer<PortableExecutableReference>
+    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax> 
     {
         private partial class PackageReference
         {

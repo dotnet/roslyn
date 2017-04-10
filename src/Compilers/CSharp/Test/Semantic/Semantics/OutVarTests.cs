@@ -41,7 +41,7 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             compilation.VerifyDiagnostics(
-                // (6,29): error CS8059: Feature 'out variable declaration' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,29): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7 or greater.
                 //         Test2(Test1(out int x1), x1);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7").WithLocation(6, 29)
                 );
@@ -74,10 +74,10 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             compilation.VerifyDiagnostics(
-                // (6,22): error CS8059: Feature 'out variable declaration' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,22): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7 or greater.
                 //         Test(out int x1);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7").WithLocation(6, 22),
-                // (11,33): error CS8059: Feature 'out variable declaration' is not available in C# 6.  Please use language version 7 or greater.
+                // (11,33): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7 or greater.
                 //         var x = new Cls(out int x2);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x2").WithArguments("out variable declaration", "7").WithLocation(11, 33),
                 // (6,9): error CS0103: The name 'Test' does not exist in the current context

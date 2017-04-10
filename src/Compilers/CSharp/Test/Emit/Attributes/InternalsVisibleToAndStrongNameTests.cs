@@ -491,21 +491,17 @@ public class C {}
             Assert.True(c.Options.PublicSign);
         }
 
-        private void VerifySignedBitSetAfterEmit(Compilation comp)
+        private void VerifySignedBitSetAfterEmit(Compilation comp, bool expectedToBeSigned = true)
         {
-            var outStrm = new MemoryStream();
-            var emitResult = comp.Emit(outStrm);
-            Assert.True(emitResult.Success);
-
-            outStrm.Position = 0;
-
-            // Verify that the sign bit is set
-            using (var reader = new PEReader(outStrm))
+            using (var outStream = comp.EmitToStream())
             {
-                Assert.True(reader.HasMetadata);
+                outStream.Position = 0;
 
-                var flags = reader.PEHeaders.CorHeader.Flags;
-                Assert.True(flags.HasFlag(CorFlags.StrongNameSigned));
+                using (var reader = new PEReader(outStream))
+                {
+                    var flags = reader.PEHeaders.CorHeader.Flags;
+                    Assert.Equal(expectedToBeSigned, flags.HasFlag(CorFlags.StrongNameSigned));
+                }
             }
         }
 
@@ -2275,6 +2271,46 @@ class B
                 Assert.NotNull(assembly);
                 Assert.False(assembly.GetAttributes().Any(attr => attr.IsTargetAttribute(assembly, AttributeDescription.InternalsVisibleToAttribute)));
             });
+        }
+
+        [Fact]
+        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        public void ConsistentErrorMessageWhenProvidingNullKeyFile()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: null);
+            var compilation = CreateCompilationWithMscorlib(string.Empty, options: options).VerifyDiagnostics();
+
+            VerifySignedBitSetAfterEmit(compilation, expectedToBeSigned: false);
+        }
+
+        [Fact]
+        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        public void ConsistentErrorMessageWhenProvidingEmptyKeyFile()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: string.Empty);
+            var compilation = CreateCompilationWithMscorlib(string.Empty, options: options).VerifyDiagnostics();
+
+            VerifySignedBitSetAfterEmit(compilation, expectedToBeSigned: false);
+        }
+
+        [Fact]
+        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        public void ConsistentErrorMessageWhenProvidingNullKeyFile_PublicSign()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: null, publicSign: true);
+            CreateCompilationWithMscorlib(string.Empty, options: options).VerifyDiagnostics(
+                // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
+                Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
+        }
+
+        [Fact]
+        [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
+        public void ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: string.Empty, publicSign: true);
+            CreateCompilationWithMscorlib(string.Empty, options: options).VerifyDiagnostics(
+                // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
+                Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
 
         #endregion

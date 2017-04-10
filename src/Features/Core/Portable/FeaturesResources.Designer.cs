@@ -162,6 +162,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add null check.
+        /// </summary>
+        internal static string Add_null_check {
+            get {
+                return ResourceManager.GetString("Add_null_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add null checks.
+        /// </summary>
+        internal static string Add_null_checks {
+            get {
+                return ResourceManager.GetString("Add_null_checks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add optional parameters to &apos;{0}&apos;.
         /// </summary>
         internal static string Add_optional_parameters_to_0 {
@@ -203,6 +221,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Add_reference_to_0 {
             get {
                 return ResourceManager.GetString("Add_reference_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add &apos;string.IsNullOrEmpty&apos; check.
+        /// </summary>
+        internal static string Add_string_IsNullOrEmpty_check {
+            get {
+                return ResourceManager.GetString("Add_string_IsNullOrEmpty_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add &apos;string.IsNullOrWhiteSpace&apos; check.
+        /// </summary>
+        internal static string Add_string_IsNullOrWhiteSpace_check {
+            get {
+                return ResourceManager.GetString("Add_string_IsNullOrWhiteSpace_check", resourceCulture);
             }
         }
         
@@ -810,6 +846,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Create and initialize field &apos;{0}&apos;.
+        /// </summary>
+        internal static string Create_and_initialize_field_0 {
+            get {
+                return ResourceManager.GetString("Create_and_initialize_field_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create and initialize property &apos;{0}&apos;.
+        /// </summary>
+        internal static string Create_and_initialize_property_0 {
+            get {
+                return ResourceManager.GetString("Create_and_initialize_property_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to delegate.
         /// </summary>
         internal static string delegate_ {
@@ -1243,7 +1297,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate &apos;Equals(object) and GetHashCode()&apos;.
+        ///   Looks up a localized string similar to Generate Equals and GetHashCode.
         /// </summary>
         internal static string Generate_Equals_and_GetHashCode {
             get {
@@ -1252,7 +1306,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate &apos;Equals(object)&apos;.
+        ///   Looks up a localized string similar to Generate Equals(object).
         /// </summary>
         internal static string Generate_Equals_object {
             get {
@@ -1279,7 +1333,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate &apos;GetHashCode()&apos;.
+        ///   Looks up a localized string similar to Generate GetHashCode().
         /// </summary>
         internal static string Generate_GetHashCode {
             get {
@@ -1320,6 +1374,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Generate_new_type {
             get {
                 return ResourceManager.GetString("Generate_new_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate operators.
+        /// </summary>
+        internal static string Generate_operators {
+            get {
+                return ResourceManager.GetString("Generate_operators", resourceCulture);
             }
         }
         
@@ -1432,6 +1495,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement {0}.
+        /// </summary>
+        internal static string Implement_0 {
+            get {
+                return ResourceManager.GetString("Implement_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement Abstract Class.
         /// </summary>
         internal static string Implement_Abstract_Class {
@@ -1518,6 +1590,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string in_Suppression_File {
             get {
                 return ResourceManager.GetString("in_Suppression_File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialize field &apos;{0}&apos;.
+        /// </summary>
+        internal static string Initialize_field_0 {
+            get {
+                return ResourceManager.GetString("Initialize_field_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialize property &apos;{0}&apos;.
+        /// </summary>
+        internal static string Initialize_property_0 {
+            get {
+                return ResourceManager.GetString("Initialize_property_0", resourceCulture);
             }
         }
         

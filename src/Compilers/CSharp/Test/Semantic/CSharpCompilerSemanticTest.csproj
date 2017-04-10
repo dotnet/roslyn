@@ -59,6 +59,7 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.AllInOne.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.cs" />
     <Compile Include="Diagnostics\GetDiagnosticsTests.cs" />
+    <Compile Include="IOperation\IOperationTests_IIfStatement.cs" />
     <Compile Include="IOperation\IOperationTests_ISymbolInitializer.cs" />
     <Compile Include="IOperation\IOperationTests.cs" />
     <Compile Include="Diagnostics\OperationAnalyzerTests.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="FlowAnalysis\RegionAnalysisTests.cs" />
     <Compile Include="FlowAnalysis\StructTests.cs" />
     <Compile Include="FlowAnalysis\TryLockUsingStatementTests.cs" />
+    <Compile Include="IOperation\IOperationTests_IVariableDeclaration.cs" />
     <Compile Include="Semantics\FuzzTests.cs" />
     <Compile Include="Semantics\OverloadResolutionPerfTests.cs" />
     <Compile Include="Semantics\PatternMatchingTests_Global.cs" />

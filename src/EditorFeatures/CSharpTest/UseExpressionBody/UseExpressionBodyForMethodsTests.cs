@@ -19,17 +19,75 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new UseExpressionBodyForMethodsDiagnosticAnalyzer(), new UseExpressionBodyForMethodsCodeFixProvider());
 
-        private static readonly Dictionary<OptionKey, object> UseExpressionBody =
-            new Dictionary<OptionKey, object>
-            {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement }
-            };
+        private IDictionary<OptionKey, object> UseExpressionBody =>
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement);
 
-        private static readonly Dictionary<OptionKey, object> UseBlockBody =
-            new Dictionary<OptionKey, object>
-            {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.FalseWithNoneEnforcement }
-            };
+        private IDictionary<OptionKey, object> UseBlockBody =>
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public void TestOptionSerialization1()
+        {
+            // Verify that bool-options can migrate to ExpressionBodyPreference-options.
+            var option = new CodeStyleOption<bool>(false, NotificationOption.None);
+            var serialized = option.ToXElement();
+            var deserialized = CodeStyleOption<ExpressionBodyPreference>.FromXElement(serialized);
+
+            Assert.Equal(ExpressionBodyPreference.Never, deserialized.Value);
+
+            option = new CodeStyleOption<bool>(true, NotificationOption.None);
+            serialized = option.ToXElement();
+            deserialized = CodeStyleOption<ExpressionBodyPreference>.FromXElement(serialized);
+
+            Assert.Equal(ExpressionBodyPreference.WhenPossible, deserialized.Value);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public void TestOptionSerialization2()
+        {
+            // Verify that ExpressionBodyPreference-options can migrate to bool-options.
+            var option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.None);
+            var serialized = option.ToXElement();
+            var deserialized = CodeStyleOption<bool>.FromXElement(serialized);
+
+            Assert.Equal(false, deserialized.Value);
+
+            option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.None);
+            serialized = option.ToXElement();
+            deserialized = CodeStyleOption<bool>.FromXElement(serialized);
+
+            Assert.Equal(true, deserialized.Value);
+
+            // This new values can't actually translate back to a bool.  So we'll just get the default
+            // value for this option.
+            option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption.None);
+            serialized = option.ToXElement();
+            deserialized = CodeStyleOption<bool>.FromXElement(serialized);
+
+            Assert.Equal(default(bool), deserialized.Value);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public void TestOptionEditorConfig1()
+        {
+            Assert.Null(CSharpCodeStyleOptions.ParseExpressionBodyPreference("true", null));
+            Assert.Null(CSharpCodeStyleOptions.ParseExpressionBodyPreference("false", null));
+            Assert.Null(CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_on_single_line", null));
+            Assert.Null(CSharpCodeStyleOptions.ParseExpressionBodyPreference("true:blah", null));
+            Assert.Null(CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_blah:error", null));
+
+            var option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("false:error", null);
+            Assert.Equal(ExpressionBodyPreference.Never, option.Value);
+            Assert.Equal(NotificationOption.Error, option.Notification);
+
+            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true:warning", null);
+            Assert.Equal(ExpressionBodyPreference.WhenPossible, option.Value);
+            Assert.Equal(NotificationOption.Warning, option.Notification);
+
+            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_on_single_line:suggestion", null);
+            Assert.Equal(ExpressionBodyPreference.WhenOnSingleLine, option.Value);
+            Assert.Equal(NotificationOption.Suggestion, option.Notification);
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()

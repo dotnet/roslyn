@@ -130,6 +130,44 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestNotOnVar1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace N
+{
+    class var { }
+}
+
+class C
+{
+    void M()
+    {
+        [|var|]
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestNotOnVar2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace N
+{
+    class Bar { }
+}
+
+class C
+{
+    void M()
+    {
+        [|var|]
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericInLocalDeclaration()
         {
             await TestInRegularAndScriptAsync(
@@ -1277,6 +1315,28 @@ namespace n2
     (System.Collections.IDictionary a, string) Method()
     {
         Foo();
+    }
+}");
+        }
+
+        [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestContextualKeyword1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+namespace N
+{
+    class nameof
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [|nameof|]
     }
 }");
         }

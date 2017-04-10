@@ -77,6 +77,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
         W = 0x57,
         X = 0x58,
         Y = 0x59,
-        Z = 0x5A
+        Z = 0x5A,
+
+        Period = 0xBE
     }
 }
