@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.Immutable;
 
 namespace Roslyn.Utilities
 {
@@ -20,8 +20,11 @@ namespace Roslyn.Utilities
 
         private static int s_version;
 
-        private static readonly ObjectBinderState s_state = ObjectBinderState.Create(s_version);
         private static readonly Stack<ObjectBinderState> s_pool = new Stack<ObjectBinderState>();
+
+        private static readonly Dictionary<Type, int> s_typeToIndex = new Dictionary<Type, int>();
+        private static readonly List<Type> s_types = new List<Type>();
+        private static readonly List<Func<ObjectReader, object>> s_typeReaders = new List<Func<ObjectReader, object>>();
 
         public static ObjectBinderState AllocateStateCopy()
         {
@@ -34,8 +37,8 @@ namespace Roslyn.Utilities
                 }
 
                 // Otherwise, create copy from our current state and return that.
-                var state = ObjectBinderState.Create(s_version);
-                state.CopyFrom(s_state);
+                var state = new ObjectBinderState(
+                    s_version, s_typeToIndex, s_types.ToImmutableArray(), s_typeReaders.ToImmutableArray());
 
                 return state;
             }
@@ -61,14 +64,22 @@ namespace Roslyn.Utilities
         {
             lock (s_gate)
             {
-                if (s_state.RegisterTypeReader(type, typeReader))
+                if (s_typeToIndex.ContainsKey(type))
                 {
-                    // Registering this type mutated state, clear any cached copies we have
-                    // of ourselves.  Also increment the version number so that we don't attempt
-                    // to cache any in-flight copies that are returned.
-                    s_version++;
-                    s_pool.Clear();
+                    // We already knew about this type, nothing to register.
+                    return;
                 }
+
+                int index = s_typeReaders.Count;
+                s_types.Add(type);
+                s_typeReaders.Add(typeReader);
+                s_typeToIndex.Add(type, index);
+
+                // Registering this type mutated state, clear any cached copies we have
+                // of ourselves.  Also increment the version number so that we don't attempt
+                // to cache any in-flight copies that are returned.
+                s_version++;
+                s_pool.Clear();
             }
         }
     }
