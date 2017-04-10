@@ -104,15 +104,10 @@ class Bar : IFoo
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EnsureNoObjectMembersAreShown()
         {
-            TraceListener[] listeners = {
-                                            new TextWriterTraceListener(Console.Out)
-                                        };
-            Debug.Listeners.AddRange(listeners);
             var markup = @"class C : IComparable {
-	int IComparable.
+	int IComparable.$$
 }";
-            var periodIndex = markup.IndexOf(".");
-            Console.WriteLine(string.Format("Period index is {0}", periodIndex));
+            VerifyItemIsAbsentAsync(markup, "GetHashCode");
         }
     }
 }
