@@ -304,7 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static MethodSymbol GetRequiredMethod(TypeSymbol type, string methodName, DiagnosticBag diagnostics, Location location = null)
         {
-            if ((object)location == null) {
+            if ((object)location == null)
+            {
                 location = NoLocation.Singleton;
             }
 
@@ -388,8 +389,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var stringArrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, stringType);
                     _parameters = ImmutableArray.Create(
                         SynthesizedParameterSymbol.Create(this, stringArrayType, 0, RefKind.None, userMain.Parameters[0].Name));
-                } 
-                else 
+                }
+                else
                 {
                     Debug.Assert(userMain.ParameterCount == 0);
                     _parameters = ImmutableArray<ParameterSymbol>.Empty;
