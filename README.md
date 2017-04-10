@@ -61,6 +61,8 @@ Daily NuGet builds of the project are also available in our MyGet feed:
 
 ### Get started
 
+* [Building, Debugging and Testing on Windows] (https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building,%20Debugging,%20and%20Testing%20on%20Windows.md)
+* [Building, Debugging and Testing on Unix](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Unix.md)
 * Tutorial articles by Alex Turner in MSDN Magazine
   - [Use Roslyn to Write a Live Code Analyzer for Your API](https://msdn.microsoft.com/en-us/magazine/dn879356)
   - [Adding a Code Fix to your Roslyn Analyzer](https://msdn.microsoft.com/en-us/magazine/dn904670.aspx)
