@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_VoidInTuple, argumentSyntax.Location);
                     boundArgument = new BoundBadExpression(
                         argumentSyntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty,
-                        ImmutableArray.Create<BoundNode>(boundArgument), CreateErrorType("void"));
+                        ImmutableArray.Create<BoundExpression>(boundArgument), CreateErrorType("void"));
                 }
 
                 boundArguments.Add(boundArgument);
