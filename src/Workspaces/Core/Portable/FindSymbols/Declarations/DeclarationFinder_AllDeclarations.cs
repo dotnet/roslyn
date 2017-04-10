@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<ImmutableArray<SymbolAndProjectId>> RehydrateAsync(
             Solution solution, SerializableSymbolAndProjectId[] array, CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance(array.Length);
 
             foreach (var dehydrated in array)
             {
