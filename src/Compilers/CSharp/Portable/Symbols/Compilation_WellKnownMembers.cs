@@ -415,6 +415,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor);
         }
 
+        internal SynthesizedAttributeData SynthesizeReadOnlyAttribute()
+        {
+            // PROTOTYPE(readonlyRefs) it is optional now as it will be generated in the next PR
+            return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ReadOnlyAttribute__ctor, isOptionalUse: true);
+        }
+
         internal SynthesizedAttributeData SynthesizeDebuggableAttribute()
         {
             TypeSymbol debuggableAttribute = GetWellKnownType(WellKnownType.System_Diagnostics_DebuggableAttribute);
