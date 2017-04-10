@@ -294,9 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Step three: Now fill in the optional arguments. (Dev11 uses the
             // getter for optional arguments in compound assignments.)
-            var getMethod = indexer.GetOwnOrInheritedGetMethod();
-            Debug.Assert((object)getMethod != null);
-            InsertMissingOptionalArguments(syntax, getMethod.Parameters, actualArguments);
+            var accessor = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
+            InsertMissingOptionalArguments(syntax, accessor.Parameters, actualArguments);
 
             // For a call, step four would be to optimize away some of the temps.  However, we need them all to prevent
             // duplicate side-effects, so we'll skip that step.

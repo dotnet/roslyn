@@ -1320,6 +1320,84 @@ hello";
         }
 
         [Fact]
+        [WorkItem(18554, "https://github.com/dotnet/roslyn/issues/18554")]
+        public void AssigningIntoIndexers()
+        {
+            string source = @"
+class C
+{
+    int field;
+    ref int this[int i, long opt = 1]
+    {
+        get
+        {
+            System.Console.Write(i); return ref field;
+        }
+    }
+
+    int this[long j, int opt = 1]
+    {
+        set
+        {
+            System.Console.Write(j + value.ToString());
+        }
+    }
+
+    static void Main()
+    {
+        var c = new C();
+        (c[i: 1], c[j: 2]) = c;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "122", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(18554, "https://github.com/dotnet/roslyn/issues/18554")]
+        public void AssigningTupleIntoIndexers()
+        {
+            string source = @"
+class C
+{
+    int field;
+    ref int this[int i, long opt = 1]
+    {
+        get
+        {
+            System.Console.Write(i); return ref field;
+        }
+    }
+
+    int this[long j, int opt = 1]
+    {
+        set
+        {
+            System.Console.Write(j + value.ToString());
+        }
+    }
+
+    static void Main()
+    {
+        var c = new C();
+        (c[i: 1], c[j: 2]) = (1, 2);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "122", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Swap()
         {
             string source = @"
