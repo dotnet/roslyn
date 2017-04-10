@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Roslyn.Utilities
 {
@@ -17,24 +18,21 @@ namespace Roslyn.Utilities
     {
         private static object s_gate = new object();
 
-        private static readonly ObjectBinderState s_state = ObjectBinderState.Create();
+        private static int s_version;
 
+        private static readonly ObjectBinderState s_state = ObjectBinderState.Create(s_version);
         private static readonly Stack<ObjectBinderState> s_pool = new Stack<ObjectBinderState>();
 
         public static ObjectBinderState AllocateStateCopy()
         {
             lock (s_gate)
             {
-                ObjectBinderState state;
                 if (s_pool.Count > 0)
                 {
-                    state = s_pool.Pop();
-                }
-                else
-                {
-                    state = ObjectBinderState.Create();
+                    return s_pool.Pop();
                 }
 
+                var state = ObjectBinderState.Create(s_version);
                 state.CopyFrom(s_state);
 
                 return state;
@@ -43,53 +41,15 @@ namespace Roslyn.Utilities
 
         public static void FreeStateCopy(ObjectBinderState state)
         {
-            state.Clear();
             lock (s_gate)
             {
-                if (s_pool.Count < 128)
+                if (state.Version == s_version)
                 {
-                    s_pool.Push(state);
+                    if (s_pool.Count < 128)
+                    {
+                        s_pool.Push(state);
+                    }
                 }
-            }
-        }
-
-        public static int GetTypeId(Type type)
-        {
-            lock (s_gate)
-            {
-                return s_state.GetTypeId(type);
-            }
-        }
-
-        public static int GetOrAddTypeId(Type type)
-        {
-            lock (s_gate)
-            {
-                return s_state.GetOrAddTypeId(type);
-            }
-        }
-
-        public static Type GetTypeFromId(int typeId)
-        {
-            lock (s_gate)
-            {
-                return s_state.GetTypeFromId(typeId);
-            }
-        }
-
-        public static (Type, Func<ObjectReader, object>) GetTypeAndReaderFromId(int typeId)
-        {
-            lock (s_gate)
-            {
-                return s_state.GetTypeAndReaderFromId(typeId);
-            }
-        }
-
-        public static Func<ObjectReader, object> GetTypeReader(int index)
-        {
-            lock (s_gate)
-            {
-                return s_state.GetTypeReader(index);
             }
         }
 
@@ -97,7 +57,14 @@ namespace Roslyn.Utilities
         {
             lock (s_gate)
             {
-                s_state.RegisterTypeReader(type, typeReader);
+                if (s_state.RegisterTypeReader(type, typeReader))
+                {
+                    // Registering this type mutated state, clear any cached copies we have
+                    // of ourselves.  Also increment the version number so that we don't attempt
+                    // to cache any in-flight copies that are returned.
+                    s_version++;
+                    s_pool.Clear();
+                }
             }
         }
     }
