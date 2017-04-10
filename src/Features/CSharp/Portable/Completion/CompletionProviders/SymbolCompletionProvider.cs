@@ -23,20 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
-        static SyntaxNode s_tree = CSharpSyntaxTree.ParseText(@"C:\GitHub\roslyn-internal\Open\src\Compilers\CSharp\Portable\Generated\Syntax.xml.Syntax.Generated.cs").GetRoot();
-
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            for (var i = 0; i < 100000; i++)
-            {
-                using (var stream1 = new MemoryStream())
-                {
-                    s_tree.SerializeTo(stream1);
-                    stream1.Position = 0;
-                    var node = CSharpSyntaxNode.DeserializeFrom(stream1);
-                }
-            }
-
             return Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
                 context.SemanticModel, position, context.Workspace, options, cancellationToken);
         }
