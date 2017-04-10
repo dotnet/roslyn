@@ -7464,6 +7464,93 @@ public interface I1
         }
 
         [Fact]
+        public void MethodModifiers_20()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+
+    void M2() {M1();}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1 + source2, options: TestOptions.DebugExe,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1/*, expectedOutput:"M1"*/, verify: false, symbolValidator: Validate1);
+
+            Validate1(compilation1.SourceModule);
+
+            void Validate1(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = test1.Interfaces.Single();
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+
+                Assert.False(m1.IsAbstract);
+                Assert.True(m1.IsVirtual);
+                Assert.True(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
+                Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
+            }
+
+            var compilation2 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+
+            {
+                var i1 = compilation2.GetTypeByMetadataName("I1");
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+
+                Assert.False(m1.IsAbstract);
+                Assert.True(m1.IsVirtual);
+                Assert.True(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
+            }
+
+            var compilation3 = CreateCompilationWithMscorlib(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation3/*, expectedOutput:"M1"*/, verify: false, symbolValidator: Validate1);
+
+            Validate1(compilation3.SourceModule);
+
+            var compilation4 = CreateCompilationWithMscorlib(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation4/*, expectedOutput:"M1"*/, verify: false, symbolValidator: Validate1);
+
+            Validate1(compilation4.SourceModule);
+        }
+
+        [Fact]
         public void ImplicitThisIsAllowed_03()
         {
             var source1 =
