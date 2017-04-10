@@ -220,5 +220,44 @@ Partial Class Outer
 End Class"
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
+
+        <WorkItem(17879, "https://github.com/dotnet/roslyn/issues/17879")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function DoNotMoveLeadingFileTrivia() As Task
+            Dim code =
+"
+''' <summary>
+''' 
+''' </summary>
+Delegate Sub Foo()
+
+Class C
+
+End Class
+
+[||]Class D
+
+End Class"
+            Dim codeAfterMove =
+"
+''' <summary>
+''' 
+''' </summary>
+Delegate Sub Foo()
+
+Class C
+
+End Class
+"
+
+            Dim expectedDocumentName = "D.vb"
+
+            Dim destinationDocumentText =
+"Class D
+
+End Class"
+            Await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText, ignoreTrivia:=False)
+        End Function
     End Class
 End Namespace
