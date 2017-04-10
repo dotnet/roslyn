@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitArgument(IArgument operation)
         {
             LogString($"{nameof(IArgument)} (");
-            LogString($"{nameof(ArgumentKind)}.{operation.ArgumentKind} ");
+            LogString($"{nameof(ArgumentKind)}.{operation.ArgumentKind}, ");
             LogSymbol(operation.Parameter, header: "Matching Parameter", logDisplayString: false);
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
