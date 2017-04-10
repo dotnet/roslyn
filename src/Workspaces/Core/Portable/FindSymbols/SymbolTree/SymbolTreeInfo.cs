@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             return this.FindAsync(
                 query, new AsyncLazy<IAssemblySymbol>(assembly),
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             var symbols = await FindAsyncWorker(query, lazyAssembly, cancellationToken).ConfigureAwait(false);
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             // If the query has a specific string provided, then call into the SymbolTreeInfo
             // helpers optimized for lookup based on an exact name.

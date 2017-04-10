@@ -1,14 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -20,8 +14,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
             Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var declarations = await DeclarationFinder.FindAllDeclarationsAsync(
-                project, name, ignoreCase, cancellationToken).ConfigureAwait(false);
+            var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                project, SearchQuery.Create(name, ignoreCase), SymbolFilter.All, cancellationToken).ConfigureAwait(false);
             return declarations.SelectAsArray(t => t.Symbol);
         }
 
@@ -31,8 +25,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
             Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var declarations = await DeclarationFinder.FindAllDeclarationsAsync(
-                project, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
+            var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                project, SearchQuery.Create(name, ignoreCase), filter, cancellationToken).ConfigureAwait(false);
             return declarations.SelectAsArray(t => t.Symbol);
         }
     }

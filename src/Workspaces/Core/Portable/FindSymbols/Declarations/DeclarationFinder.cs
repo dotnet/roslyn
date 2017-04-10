@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project, SearchQuery query, SymbolFilter filter,
             ArrayBuilder<SymbolAndProjectId> list, CancellationToken cancellationToken)
         {
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
             return AddCompilationDeclarationsWithNormalQueryAsync(
                 project, query, filter, list,
                 startingCompilation: null,
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IAssemblySymbol startingAssembly,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_AddDeclarationsAsync, cancellationToken))
             {
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Assembly_AddDeclarationsAsync, cancellationToken))
             {

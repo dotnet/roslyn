@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -17,52 +16,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DeclarationFinder
     {
-        /// <summary>
-        /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
-        /// </summary>
-        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsAsync(
-            Project project, string name, bool ignoreCase, CancellationToken cancellationToken)
-        {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return ImmutableArray<SymbolAndProjectId>.Empty;
-            }
-
-            return await FindAllDeclarationsWithNormalQueryAsync(
-                project, SearchQuery.Create(name, ignoreCase), SymbolFilter.All, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
-        /// </summary>
-        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsAsync(
-            Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return ImmutableArray<SymbolAndProjectId>.Empty;
-            }
-
-            return await FindAllDeclarationsWithNormalQueryAsync(
-                project, SearchQuery.Create(name, ignoreCase), filter, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
+        public static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             if (project == null)
             {
@@ -74,6 +33,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<SymbolAndProjectId>.Empty;
             }
 
+            var (succeeded, results) = await TryFindAllDeclarationsWithNormalQueryInRemoteProcessAsync(
+                project, query, criteria, cancellationToken).ConfigureAwait(false);
+
+            if (succeeded)
+            {
+                return results;
+            }
+
+            return await FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
+                project, query, criteria, cancellationToken).ConfigureAwait(false);
+        }
+
+        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
+            Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
+        {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var list = ArrayBuilder<SymbolAndProjectId>.GetInstance();
@@ -114,6 +88,41 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return list.ToImmutableAndFree();
+        }
+
+        private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindAllDeclarationsWithNormalQueryInRemoteProcessAsync(
+            Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
+        {
+            var session = await SymbolFinder.TryGetRemoteSessionAsync(
+                project.Solution, cancellationToken).ConfigureAwait(false);
+            if (session != null)
+            {
+                var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                    nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
+                    project.Id, query.Name, query.Kind, criteria).ConfigureAwait(false);
+
+                var rehydrated = await RehydrateAsync(
+                    project.Solution, result, cancellationToken).ConfigureAwait(false);
+
+                return (true, rehydrated);
+            }
+
+            return (false, ImmutableArray<SymbolAndProjectId>.Empty);
+        }
+
+        private static async Task<ImmutableArray<SymbolAndProjectId>> RehydrateAsync(
+            Solution solution, SerializableSymbolAndProjectId[] array, CancellationToken cancellationToken)
+        {
+            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+
+            foreach (var dehydrated in array)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var rehydrated = await dehydrated.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                result.Add(rehydrated);
+            }
+
+            return result.ToImmutableAndFree();
         }
     }
 }
