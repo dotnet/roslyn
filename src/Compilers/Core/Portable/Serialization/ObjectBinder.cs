@@ -27,11 +27,13 @@ namespace Roslyn.Utilities
         {
             lock (s_gate)
             {
+                // If we have any pooled copies, then just return one of those.
                 if (s_pool.Count > 0)
                 {
                     return s_pool.Pop();
                 }
 
+                // Otherwise, create copy from our current state and return that.
                 var state = ObjectBinderState.Create(s_version);
                 state.CopyFrom(s_state);
 
@@ -43,6 +45,8 @@ namespace Roslyn.Utilities
         {
             lock (s_gate)
             {
+                // If our version changed between now and when we returned the state object,
+                // then we don't want to keep around this verion in the pool.  
                 if (state.Version == s_version)
                 {
                     if (s_pool.Count < 128)

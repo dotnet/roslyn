@@ -29,13 +29,6 @@ namespace Roslyn.Utilities
         public static ObjectBinderState Create(int version)
             => new ObjectBinderState(version, new Dictionary<Type, int>(), new List<Type>(), new List<Func<ObjectReader, object>>());
 
-        public void Clear()
-        {
-            _typeToIndex.Clear();
-            _types.Clear();
-            _typeReaders.Clear();
-        }
-
         public void CopyFrom(ObjectBinderState other)
         {
             if (_types.Count == 0)
@@ -82,6 +75,7 @@ namespace Roslyn.Utilities
         {
             if (_typeToIndex.ContainsKey(type))
             {
+                // We already knew about this type, nothing to register.
                 return false;
             }
 
