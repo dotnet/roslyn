@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 
@@ -11,14 +12,14 @@ namespace Roslyn.Utilities
     {
         public readonly int Version;
         private readonly Dictionary<Type, int> _typeToIndex;
-        private readonly List<Type> _types;
-        private readonly List<Func<ObjectReader, object>> _typeReaders;
+        private ImmutableArray<Type> _types;
+        private ImmutableArray<Func<ObjectReader, object>> _typeReaders;
 
-        private ObjectBinderState(
+        public ObjectBinderState(
             int version,
             Dictionary<Type, int> typeToIndex,
-            List<Type> types,
-            List<Func<ObjectReader, object>> typeReaders)
+            ImmutableArray<Type> types,
+            ImmutableArray<Func<ObjectReader, object>> typeReaders)
         {
             Version = version;
             _typeToIndex = typeToIndex;
@@ -26,26 +27,23 @@ namespace Roslyn.Utilities
             _typeReaders = typeReaders;
         }
 
-        public static ObjectBinderState Create(int version)
-            => new ObjectBinderState(version, new Dictionary<Type, int>(), new List<Type>(), new List<Func<ObjectReader, object>>());
+        //public void CopyFrom(ObjectBinderState other)
+        //{
+        //    if (_types.Count == 0)
+        //    {
+        //        Debug.Assert(_typeToIndex.Count == 0);
+        //        Debug.Assert(_types.Count == 0);
+        //        Debug.Assert(_typeReaders.Count == 0);
 
-        public void CopyFrom(ObjectBinderState other)
-        {
-            if (_types.Count == 0)
-            {
-                Debug.Assert(_typeToIndex.Count == 0);
-                Debug.Assert(_types.Count == 0);
-                Debug.Assert(_typeReaders.Count == 0);
+        //        foreach (var kvp in other._typeToIndex)
+        //        {
+        //            _typeToIndex.Add(kvp.Key, kvp.Value);
+        //        }
 
-                foreach (var kvp in other._typeToIndex)
-                {
-                    _typeToIndex.Add(kvp.Key, kvp.Value);
-                }
-
-                _types.AddRange(other._types);
-                _typeReaders.AddRange(other._typeReaders);
-            }
-        }
+        //        _types.AddRange(other._types);
+        //        _typeReaders.AddRange(other._typeReaders);
+        //    }
+        //}
 
         public int GetTypeId(Type type)
             => _typeToIndex[type];
@@ -76,9 +74,9 @@ namespace Roslyn.Utilities
                 return false;
             }
 
-            int index = _typeReaders.Count;
-            _types.Add(type);
-            _typeReaders.Add(typeReader);
+            var index = _typeReaders.Length;
+            _types = _types.Add(type);
+            _typeReaders = _typeReaders.Add(typeReader);
             _typeToIndex.Add(type, index);
 
             // We may be a local copy of the object-binder-state.  Inform the primary 
