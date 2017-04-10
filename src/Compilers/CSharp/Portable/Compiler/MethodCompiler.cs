@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CSharp.Symbols.SynthesizedEntryPointSymbol;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -207,14 +206,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // True if a Main definition has been created and needs to be added to the module being built
-            bool addedDefinition = false;
             SynthesizedEntryPointSymbol synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
 
             if ((object)synthesizedEntryPoint == null && entryPoint.HasAsyncMainReturnType(compilation) && compilation.LanguageVersion >= LanguageVersion.CSharp7_1)
             {
-                synthesizedEntryPoint = new AsyncForwardEntryPoint(compilation, diagnostics, entryPoint.ContainingType, entryPoint);
+                synthesizedEntryPoint = new SynthesizedEntryPointSymbol.AsyncForwardEntryPoint(compilation, diagnostics, entryPoint.ContainingType, entryPoint);
                 entryPoint = synthesizedEntryPoint;
-                addedDefinition = true;
+                moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
             }
 
             if (((object)synthesizedEntryPoint != null) &&
@@ -239,11 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     emittingPdb: false,
                     dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
-            }
-
-            if (addedDefinition && moduleBeingBuilt != null)
-            {
-                moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
             }
 
             return entryPoint;

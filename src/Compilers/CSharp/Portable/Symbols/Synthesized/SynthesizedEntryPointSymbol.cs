@@ -341,7 +341,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly MethodSymbol _userMain;
 
             private readonly ReturnKind _returnKind;
-            private readonly ParamKind _paramKind;
 
             private readonly MethodSymbol _getAwaiterMethod;
             private readonly MethodSymbol _getResultMethod;
@@ -354,12 +353,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 VoidReturning,
                 IntReturning,
-            }
-            // Does this main method need to forward arguments to the user-provided Main?
-            private enum ParamKind
-            {
-                NoArgs,
-                StringArrayArgs,
             }
 
             // Task -> Void
@@ -386,20 +379,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(userMain.ParameterCount == 0 || userMain.ParameterCount == 1);
 
                 _userMain = userMain;
-                _paramKind = userMain.ParameterCount == 0 ? ParamKind.NoArgs : ParamKind.StringArrayArgs;
                 _returnKind = GetReturnKind(compilation, userMain.ReturnType);
 
-                switch (_paramKind)
+                // Does this main method need to forward arguments to the user-provided Main?
+                if (userMain.ParameterCount == 1)
                 {
-                    case ParamKind.StringArrayArgs:
-                        var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                        var stringArrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, stringType);
-                        _parameters = ImmutableArray.Create(
-                            SynthesizedParameterSymbol.Create(this, stringArrayType, 0, RefKind.None, userMain.Parameters[0].Name));
-                        break;
-                    default:
-                        _parameters = ImmutableArray<ParameterSymbol>.Empty;
-                        break;
+                    var stringType = compilation.GetSpecialType(SpecialType.System_String);
+                    var stringArrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, stringType);
+                    _parameters = ImmutableArray.Create(
+                        SynthesizedParameterSymbol.Create(this, stringArrayType, 0, RefKind.None, userMain.Parameters[0].Name));
+                } 
+                else 
+                {
+                    Debug.Assert(userMain.ParameterCount == 0);
+                    _parameters = ImmutableArray<ParameterSymbol>.Empty;
                 }
 
                 var userMainLocation = userMain.DeclaringSyntaxReferences.SingleOrDefault()?.GetLocation() ?? NoLocation.Singleton;

@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool HasAsyncMainReturnType(CSharpCompilation compilation)
         {
             var namedType = ReturnType as NamedTypeSymbol;
-            if (namedType == null)
+            if ((object)namedType == null)
             {
                 return false;
             }

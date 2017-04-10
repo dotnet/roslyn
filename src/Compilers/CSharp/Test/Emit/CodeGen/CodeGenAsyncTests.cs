@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 using System;
 using System.Threading.Tasks;
 
-class Foo {
+class Program {
     static async Task<int> Main() {
         Console.Write(""hello "");
         await Task.Factory.StartNew(() => 5);
@@ -56,7 +56,7 @@ class Foo {
 using System;
 using System.Threading.Tasks;
 
-class Foo {
+class Program {
     static async Task Main() {
         Console.Write(""hello "");
         await Task.Factory.StartNew(() => 5);
@@ -74,7 +74,7 @@ class Foo {
 using System;
 using System.Threading.Tasks;
 
-class Foo {
+class Program {
     static async Task<int> Main() {
         Console.WriteLine(""hello"");
         await Task.Factory.StartNew(() => 5);
@@ -83,9 +83,9 @@ class Foo {
 }";
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             c.VerifyEmitDiagnostics(
-                // (6,28): error CS0161: 'Foo.Main()': not all code paths return a value
+                // (6,28): error CS0161: 'Program.Main()': not all code paths return a value
                 //     static async Task<int> Main() {
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("Foo.Main()").WithLocation(6, 28));
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("Program.Main()").WithLocation(6, 28));
         }
 
         [Fact]
@@ -95,7 +95,7 @@ class Foo {
 using System;
 using System.Threading.Tasks;
 
-class Foo {
+class Program {
     static async Task<int> Main(string[] args) {
         Console.Write(""hello "");
         await Task.Factory.StartNew(() => 5);
@@ -114,7 +114,7 @@ class Foo {
 using System;
 using System.Threading.Tasks;
 
-class Foo {
+class Program {
     static async Task Main(string[] args) {
         Console.Write(""hello "");
         await Task.Factory.StartNew(() => 5);
@@ -132,7 +132,7 @@ class Foo {
 using System;
 using System.Threading.Tasks;
 
-class Foo {
+class Program {
     static async Task<int> Main(string[] args) {
         Console.WriteLine(""hello"");
         await Task.Factory.StartNew(() => 5);
@@ -141,9 +141,9 @@ class Foo {
 }";
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             c.VerifyEmitDiagnostics(
-                // (6,28): error CS0161: 'Foo.Main()': not all code paths return a value
+                // (6,28): error CS0161: 'Program.Main()': not all code paths return a value
                 //     static async Task<int> Main() {
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("Foo.Main(string[])").WithLocation(6, 28));
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("Program.Main(string[])").WithLocation(6, 28));
         }
 
         [Fact]
@@ -153,7 +153,7 @@ class Foo {
 using System;
 using System.Threading.Tasks;
 
-class Foo {
+class Program {
     static async Task<int> Main(string[] args) {
         Console.Write(""hello "");
         await Task.Factory.StartNew(() => 5);
@@ -172,11 +172,11 @@ class Foo {
 using System;
 using System.Threading.Tasks;
 
-class Foo {
+class Program {
     static async Task Main(string[] args) {
         Console.Write(""hello "");
         await Task.Factory.StartNew(() => 5);
-        Console.Write(""async main"");
+        Console.Write(args[0]);
     }
 }";
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
