@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var entryPoint = entryPointAndDiagnostics.MethodSymbol;
 
-            if (entryPoint == null)
+            if ((object)entryPoint == null)
             {
                 Debug.Assert(entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
                 return null;
