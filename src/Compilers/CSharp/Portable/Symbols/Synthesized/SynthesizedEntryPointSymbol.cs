@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var syntax = this.GetSyntax();
 
-                var arguments = Parameters.SelectAsArray(p => new BoundParameter(syntax, p, p.Type) as BoundExpression);
+                var arguments = Parameters.SelectAsArray(p => (BoundExpression) new BoundParameter(syntax, p, p.Type));
 
                 // Main(args) or Main()
                 BoundCall userMainInvocation = new BoundCall(
