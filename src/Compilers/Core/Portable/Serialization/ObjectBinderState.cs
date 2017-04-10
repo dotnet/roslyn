@@ -73,16 +73,19 @@ namespace Roslyn.Utilities
 
         public void RegisterTypeReader(Type type, Func<ObjectReader, object> typeReader)
         {
-            int index = _typeReaders.Count;
-            _types.Add(type);
-            _typeReaders.Add(typeReader);
-            _typeToIndex.Add(type, index);
+            if (!_typeToIndex.ContainsKey(type))
+            {
+                int index = _typeReaders.Count;
+                _types.Add(type);
+                _typeReaders.Add(typeReader);
+                _typeToIndex.Add(type, index);
 
-            // We may be a local copy of the object-binder-state.  Inform the primary 
-            // binder of this new registration.  Note: there is no re-entrancy issue here
-            // as we've already updated our local state, so we'll bail out immediately
-            // when we get called back through GetOrAddTypeId.
-            ObjectBinder.RegisterTypeReader(type, typeReader);
+                // We may be a local copy of the object-binder-state.  Inform the primary 
+                // binder of this new registration.  Note: there is no re-entrancy issue here
+                // as we've already updated our local state, so we'll bail out immediately
+                // when we get called back through RegisterTypeReader.
+                ObjectBinder.RegisterTypeReader(type, typeReader);
+            }
         }
     }
 }
