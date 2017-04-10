@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ErrorString {
@@ -143,15 +143,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MSB3082: Task failed because &quot;{0}&quot; was not found..
-        /// </summary>
-        internal static string General_ToolFileNotFound {
-            get {
-                return ResourceManager.GetString("General_ToolFileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to MSB3087: An incompatible host object was passed into the &quot;{0}&quot; task.  The host object for this task must implement the &quot;{1}&quot; interface..
         /// </summary>
         internal static string General_IncorrectHostObject {
@@ -184,6 +175,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         internal static string General_ReferenceDoesNotExist {
             get {
                 return ResourceManager.GetString("General_ReferenceDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MSB3082: Task failed because &quot;{0}&quot; was not found..
+        /// </summary>
+        internal static string General_ToolFileNotFound {
+            get {
+                return ResourceManager.GetString("General_ToolFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File &quot;{0}&quot; could not be read: {1}.
+        /// </summary>
+        internal static string General_UnableToReadFile {
+            get {
+                return ResourceManager.GetString("General_UnableToReadFile", resourceCulture);
             }
         }
         

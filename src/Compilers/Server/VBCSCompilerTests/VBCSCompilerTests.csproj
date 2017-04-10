@@ -80,7 +80,6 @@
     <Compile Include="DesktopBuildServerControllerTests.cs" />
     <Compile Include="EndToEndDeterminismTest.cs" />
     <Compile Include="VBCSCompilerServerTests.cs" />
-    <Compile Include="MockEngine.cs" />
     <Compile Include="RunKeepAliveTests.cs" />
     <Compile Include="ServerUtil.cs" />
     <Compile Include="TestableCompilerServerHost.cs" />
