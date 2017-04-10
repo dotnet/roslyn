@@ -212,7 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 synthesizedEntryPoint = new SynthesizedEntryPointSymbol.AsyncForwardEntryPoint(compilation, diagnostics, entryPoint.ContainingType, entryPoint);
                 entryPoint = synthesizedEntryPoint;
-                moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
+                if ((object)moduleBeingBuilt != null)
+                {
+                    moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
+                }
             }
 
             if (((object)synthesizedEntryPoint != null) &&
