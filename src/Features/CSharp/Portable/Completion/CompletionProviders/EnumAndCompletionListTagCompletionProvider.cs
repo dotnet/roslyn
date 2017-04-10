@@ -52,7 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
+                var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                .GetPreviousTokenIfTouchingWord(position);
+
                 if (token.IsMandatoryNamedParameterPosition())
                 {
                     return;
