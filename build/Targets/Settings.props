@@ -31,10 +31,7 @@
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$(RepoRoot)Binaries\Obj\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
 
-    <NetStandard20LibraryVersion>2.0.0-beta-25123-01</NetStandard20LibraryVersion>
-    <NetStandard20RefPath>$(NuGetPackageRoot)/NETStandard.Library/$(NetStandard20LibraryVersion)/build/netstandard2.0/ref/</NetStandard20RefPath>
-
-    <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
+    <NetStandard20RefPath>$(NuGetPackageRoot)/NETStandard.Library/$(NETStandardLibraryVersion)/build/netstandard2.0/ref/</NetStandard20RefPath>
     <MicrosoftCSharpRefPath>$(NuGetPackageRoot)/Microsoft.CSharp/$(MicrosoftCSharpVersion)/ref/netstandard1.0/</MicrosoftCSharpRefPath>
 
     <!-- Workaround until we move to Microsoft.Net.Compilers.nupkg with this fix: https://github.com/dotnet/roslyn/commit/05c12ebfcdd08a02dbceded5327a8da7a7df23be:
