@@ -62,6 +62,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
+        internal static void ReportDefaultInterfaceImplementationModifiers(
+            LanguageVersion availableVersion,
+            LanguageVersion requiredVersion,
+            DeclarationModifiers modifiers,
+            DeclarationModifiers defaultInterfaceImplementationModifiers,
+            Location errorLocation,
+            DiagnosticBag diagnostics)
+        {
+            DeclarationModifiers errorModifiers = modifiers & defaultInterfaceImplementationModifiers;
+            var requiredVersionArgument = new CSharpRequiredLanguageVersion(requiredVersion);
+            var availableVersionArgument = availableVersion.ToDisplayString();
+            while (errorModifiers != DeclarationModifiers.None)
+            {
+                DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
+                Debug.Assert(oneError != DeclarationModifiers.None);
+                errorModifiers = errorModifiers & ~oneError;
+                diagnostics.Add(ErrorCode.ERR_DefaultInterfaceImplementationModifier, errorLocation,
+                                ConvertSingleModifierToSyntaxText(oneError),
+                                availableVersionArgument,
+                                requiredVersionArgument);
+            }
+        }
+
         private static string ConvertSingleModifierToSyntaxText(DeclarationModifiers modifier)
         {
             switch (modifier)

@@ -769,20 +769,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+            var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             if (methodKind != MethodKind.ExplicitInterfaceImplementation)
             {
-                allowedModifiers |= DeclarationModifiers.New;
+                allowedModifiers |= DeclarationModifiers.New |
+                                    DeclarationModifiers.Sealed |
+                                    DeclarationModifiers.Abstract |
+                                    DeclarationModifiers.Static |
+                                    DeclarationModifiers.Virtual;
 
                 if (!isInterface)
                 {
                     allowedModifiers |=
                         DeclarationModifiers.AccessibilityMask |
-                        DeclarationModifiers.Sealed |
-                        DeclarationModifiers.Abstract |
-                        DeclarationModifiers.Static |
-                        DeclarationModifiers.Virtual |
                         DeclarationModifiers.Override;
+                }
+                else
+                {
+                    const DeclarationModifiers allowedAccess = (DeclarationModifiers.AccessibilityMask & ~(DeclarationModifiers.Protected | DeclarationModifiers.ProtectedInternal));
+
+                    // This is needed to make sure we can detect 'public' modifier specified explicitly and
+                    // check it agains language version below.
+                    defaultAccess = DeclarationModifiers.None;
+
+                    allowedModifiers |= allowedAccess | DeclarationModifiers.Extern | DeclarationModifiers.Async;
+                    defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
+                                                               DeclarationModifiers.Abstract |
+                                                               DeclarationModifiers.Static |
+                                                               DeclarationModifiers.Virtual |
+                                                               DeclarationModifiers.Extern | 
+                                                               DeclarationModifiers.Async |
+                                                               allowedAccess;
                 }
             }
 
@@ -796,6 +814,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
+            if (!hasBody && (mods & defaultInterfaceImplementationModifiers) != 0)
+            {
+                LanguageVersion availableVersion = ((CSharpParseOptions)location.SourceTree.Options).LanguageVersion;
+                LanguageVersion requiredVersion = MessageID.IDS_DefaultInterfaceImplementation.RequiredVersion();
+                if (availableVersion < requiredVersion)
+                {
+                    ModifierUtils.ReportDefaultInterfaceImplementationModifiers(availableVersion, requiredVersion, mods, 
+                                                                                defaultInterfaceImplementationModifiers, 
+                                                                                location, diagnostics);
+                }
+
+                // PROTOTYPE(DefaultInterfaceImplementation): Should we also check runtime support for some of the modifiers?
+            }
+
             mods = AddImpliedModifiers(mods, isInterface, methodKind, hasBody);
             return mods;
         }
@@ -806,8 +838,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Proper errors must have been reported by now.
             if (containingTypeIsInterface)
             {
-                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Public | 
-                       (hasBody ? DeclarationModifiers.Virtual : DeclarationModifiers.Abstract);
+                if ((mods & (DeclarationModifiers.Static | DeclarationModifiers.Private | DeclarationModifiers.Virtual | DeclarationModifiers.Abstract)) == 0)
+                {
+                    if (hasBody || (mods & DeclarationModifiers.Extern) != 0)
+                    {
+                        if ((mods & DeclarationModifiers.Sealed) == 0)
+                        {
+                            mods |= DeclarationModifiers.Virtual;
+                        }
+                        else
+                        {
+                            mods &= ~DeclarationModifiers.Sealed;
+                        }
+                    }
+                    else
+                    {
+                        mods |= DeclarationModifiers.Abstract;
+                    }
+                }
+
+                if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
+                {
+                    mods |= DeclarationModifiers.Public;
+                }
             }
             else if (methodKind == MethodKind.ExplicitInterfaceImplementation)
             {

@@ -1214,10 +1214,14 @@ interface IInterface
 {
     async void F(); 
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (4,16): error CS0106: The modifier 'async' is not valid for this item
+            CreateCompilationWithMscorlib45(source, parseOptions:TestOptions.Regular7).VerifyDiagnostics(
+                // (4,16): error CS8503: The modifier 'async' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     async void F(); 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F").WithArguments("async"));
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F").WithArguments("async", "7", "7.1").WithLocation(4, 16),
+                // (4,16): error CS1994: The 'async' modifier can only be used in methods that have a body.
+                //     async void F(); 
+                Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "F").WithLocation(4, 16)
+                );
         }
 
         [Fact]

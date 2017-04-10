@@ -1497,7 +1497,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}' in explicit interface declaration is not an interface</value>
   </data>
   <data name="ERR_InterfaceMemberNotFound" xml:space="preserve">
-    <value>'{0}' in explicit interface declaration is not a member of interface</value>
+    <value>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented</value>
   </data>
   <data name="ERR_ClassDoesntImplementInterface" xml:space="preserve">
     <value>'{0}': containing type does not implement interface '{1}'</value>
@@ -5046,5 +5046,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
     <value>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</value>
+  </data>
+  <data name="ERR_DefaultInterfaceImplementationModifier" xml:space="preserve">
+    <value>The modifier '{0}' is not valid for this item in C# {1}. Please use language version {2} or greater.</value>
   </data>
 </root>

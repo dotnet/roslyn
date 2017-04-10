@@ -1566,10 +1566,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                 {
+                    // PROTOTYPE(DefaultInterfaceImplementation): It looks like some flavor of static members was supported by
+                    //                                            legacy runtimes. Should we suppress this error for them?
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
                 }
             }
-            else if (IsExtern && !IsAbstract)
+
+            if (IsExtern && !IsAbstract)
             {
                 diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
             }

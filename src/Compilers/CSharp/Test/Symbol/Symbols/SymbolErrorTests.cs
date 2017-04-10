@@ -1627,7 +1627,7 @@ namespace n3
     interface I
     {
         void m();
-        static public void f();   // CS0106
+        static public void f();
     }
 
     public class MyClass
@@ -1638,25 +1638,28 @@ namespace n3
         }
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (6,28): error CS0106: The modifier 'static' is not valid for this item
-                //         static public void f();   // CS0106
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "f").WithArguments("static"),
-                // (6,28): error CS0106: The modifier 'public' is not valid for this item
-                //         static public void f();   // CS0106
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "f").WithArguments("public"),
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (11,24): error CS0106: The modifier 'virtual' is not valid for this item
                 //         virtual ushort field;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "field").WithArguments("virtual"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "field").WithArguments("virtual").WithLocation(11, 24),
                 // (12,23): error CS0106: The modifier 'public' is not valid for this item
                 //         public void I.m()   // CS0106
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "m").WithArguments("public"),
-                // (12,21): error CS0540: 'MyNamespace.MyClass.MyNamespace.I.m()': containing type does not implement interface 'MyNamespace.I'
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "m").WithArguments("public").WithLocation(12, 23),
+                // (12,21): error CS0540: 'MyClass.I.m()': containing type does not implement interface 'I'
                 //         public void I.m()   // CS0106
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I").WithArguments("MyNamespace.MyClass.MyNamespace.I.m()", "MyNamespace.I"),
-                // (11,24): warning CS0169: The field 'MyNamespace.MyClass.field' is never used
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I").WithArguments("MyNamespace.MyClass.MyNamespace.I.m()", "MyNamespace.I").WithLocation(12, 21),
+                // (11,24): warning CS0169: The field 'MyClass.field' is never used
                 //         virtual ushort field;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("MyNamespace.MyClass.field")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("MyNamespace.MyClass.field").WithLocation(11, 24),
+                // (6,28): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //         static public void f();   // CS0106
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("static", "7", "7.1").WithLocation(6, 28),
+                // (6,28): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //         static public void f();   // CS0106
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("public", "7", "7.1").WithLocation(6, 28),
+                // (6,28): error CS0501: 'I.f()' must declare a body because it is not marked abstract, extern, or partial
+                //         static public void f();   // CS0106
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "f").WithArguments("MyNamespace.I.f()").WithLocation(6, 28)
             );
         }
 
@@ -3027,11 +3030,17 @@ class MyClass2 : MyClass
 }
 ";
             //we're diverging from Dev10 - it's a little silly to report two errors saying the same modifier isn't allowed
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 3, Column = 17 },
-                //new ErrorDescription { Code = (int)ErrorCode.ERR_SealedNonOverride, Line = 3, Column = 17 }, //Dev10
-                //new ErrorDescription { Code = (int)ErrorCode.ERR_SealedNonOverride, Line = 4, Column = 19 }, //Dev10
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 19 });
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (3,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     sealed void M();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("sealed", "7", "7.1").WithLocation(3, 17),
+                // (4,19): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed object P { get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("sealed").WithLocation(4, 19),
+                // (3,17): error CS0238: 'I.M()' cannot be sealed because it is not an override
+                //     sealed void M();
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "M").WithArguments("I.M()").WithLocation(3, 17)
+                );
         }
 
         [Fact]
@@ -14059,14 +14068,18 @@ references: new[] { reference });
 @"interface I
 {
     static void M(this object o);
-}")
+}", parseOptions: TestOptions.Regular7)
                 .VerifyDiagnostics(
+                    // (3,17): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                    //     static void M(this object o);
+                    Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("static", "7", "7.1").WithLocation(3, 17),
                     // (1,11): error CS1106: Extension method must be defined in a non-generic static class
                     // interface I
                     Diagnostic(ErrorCode.ERR_BadExtensionAgg, "I").WithLocation(1, 11),
-                    // (3,17): error CS0106: The modifier 'static' is not valid for this item
+                    // (3,17): error CS0501: 'I.M(object)' must declare a body because it is not marked abstract, extern, or partial
                     //     static void M(this object o);
-                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("static").WithLocation(3, 17));
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("I.M(object)").WithLocation(3, 17)
+                    );
         }
 
         [Fact]
