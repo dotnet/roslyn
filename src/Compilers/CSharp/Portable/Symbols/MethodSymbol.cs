@@ -1199,6 +1199,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual void AddSynthesizedReturnTypeAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
+            if (this.ReturnsByRefReadonly)
+            {
+                AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.SynthesizeReadOnlyAttribute());
+            }
         }
 
         IMethodSymbol IMethodSymbol.Construct(params ITypeSymbol[] arguments)

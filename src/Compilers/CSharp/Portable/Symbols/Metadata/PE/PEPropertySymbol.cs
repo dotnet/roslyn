@@ -139,7 +139,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var returnInfo = propertyParams[0];
-            _refKind = returnInfo.IsByRef ? RefKind.Ref : RefKind.None;
+
+            if (returnInfo.IsByRef)
+            {
+                if (moduleSymbol.Module.HasReadOnlyAttribute(handle))
+                {
+                    _refKind = RefKind.RefReadOnly;
+                }
+                else
+                {
+                    _refKind = RefKind.Ref;
+                }
+            }
+            else
+            {
+                _refKind = RefKind.None;
+            }
 
             // CONSIDER: Can we make parameter type computation lazy?
             TypeSymbol originalPropertyType = returnInfo.Type;

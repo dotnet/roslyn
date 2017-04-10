@@ -156,7 +156,7 @@ class Program
   IL_0027:  ret
 }");
         }
-        
+
         [Fact]
         public void InParamPassRoField()
         {

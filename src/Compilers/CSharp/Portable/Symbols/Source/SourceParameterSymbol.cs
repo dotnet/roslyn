@@ -229,5 +229,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (object)owningMethod != null && owningMethod.IsAccessor();
             }
         }
+
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
+
+            if (this.RefKind == RefKind.RefReadOnly)
+            {
+                AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.SynthesizeReadOnlyAttribute());
+            }
+        }
     }
 }

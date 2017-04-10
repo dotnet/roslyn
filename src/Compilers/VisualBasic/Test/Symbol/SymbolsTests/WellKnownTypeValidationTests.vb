@@ -507,7 +507,8 @@ End Namespace
                     Case WellKnownType.ExtSentinel
                         ' Not a real type
                         Continue For
-                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
+                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
+                         WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -542,7 +543,8 @@ End Namespace
                     Case WellKnownType.ExtSentinel
                         ' Not a real type
                         Continue For
-                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
+                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
+                         WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -580,7 +582,8 @@ End Namespace
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
                         Continue For
-                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload,
+                         WellKnownMember.System_Runtime_CompilerServices_ReadOnlyAttribute__ctor
                         ' Not always available.
                         Continue For
                 End Select
@@ -660,7 +663,8 @@ End Namespace
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
                         Continue For
-                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload,
+                         WellKnownMember.System_Runtime_CompilerServices_ReadOnlyAttribute__ctor
                         ' Not always available.
                         Continue For
                 End Select

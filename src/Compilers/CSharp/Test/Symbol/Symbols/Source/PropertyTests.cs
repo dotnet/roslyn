@@ -314,6 +314,23 @@ Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("
 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P").WithArguments("C.P").WithLocation(3, 20));
         }
 
+        [Fact]
+        public void AutoRefReadOnlyReturn()
+        {
+            var text = @"
+class C
+{
+    public ref readonly int P1 { get; set; }
+}";
+            var comp = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (4,29): error CS8145: Auto-implemented properties cannot return by reference
+                //     public ref readonly int P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P1").WithArguments("C.P1").WithLocation(4, 29),
+                // (4,39): error CS8147: Properties which return by reference cannot have set accessors
+                //     public ref readonly int P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.P1.set").WithLocation(4, 39));
+        }
+
         [WorkItem(542745, "DevDiv")]
         [WorkItem(542745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542745")]
         [Fact()]

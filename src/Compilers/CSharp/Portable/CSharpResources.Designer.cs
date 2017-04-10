@@ -2303,15 +2303,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;await&apos; cannot be used in an expression containing a ref conditional operator.
-        /// </summary>
-        internal static string ERR_RefConditionalAndAwait {
-            get {
-                return ResourceManager.GetString("ERR_RefConditionalAndAwait", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A declaration of a by-reference variable must have an initializer.
         /// </summary>
         internal static string ERR_ByReferenceVariableMustBeInitialized {
@@ -4099,6 +4090,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExplicitPropertyMissingAccessor {
             get {
                 return ResourceManager.GetString("ERR_ExplicitPropertyMissingAccessor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not use &apos;System.Runtime.CompilerServices.ReadOnlyAttribute&apos;. This is reserved for compiler usage..
+        /// </summary>
+        internal static string ERR_ExplicitReadOnlyAttr {
+            get {
+                return ResourceManager.GetString("ERR_ExplicitReadOnlyAttr", resourceCulture);
             }
         }
         
@@ -8014,6 +8014,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RefAssignmentMustHaveIdentityConversion {
             get {
                 return ResourceManager.GetString("ERR_RefAssignmentMustHaveIdentityConversion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;await&apos; cannot be used in an expression containing a ref conditional operator.
+        /// </summary>
+        internal static string ERR_RefConditionalAndAwait {
+            get {
+                return ResourceManager.GetString("ERR_RefConditionalAndAwait", resourceCulture);
             }
         }
         
