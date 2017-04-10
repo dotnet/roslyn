@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
+using Microsoft.Metadata.Tools;
 
 namespace Roslyn.Test.MetadataUtilities
 {
@@ -39,7 +40,7 @@ namespace Roslyn.Test.MetadataUtilities
                     }
                     else
                     {
-                        ILVisualizerAsTokens.Instance.DumpMethod(
+                        ILVisualizer.Default.DumpMethod(
                             result,
                             methodIL.MaxStack,
                             methodIL.GetILContent(),

@@ -22,6 +22,8 @@ using Roslyn.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
 using System.Globalization;
+using Microsoft.Metadata.Tools;
+using System.Reflection.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -939,8 +941,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             StringBuilder sb = new StringBuilder();
             var ilBytes = bodyBlock.GetILContent();
-
-            var ehHandlerRegions = Visualizer.GetHandlerSpans(bodyBlock.ExceptionRegions);
+            
+            var ehHandlerRegions = ILVisualizer.GetHandlerSpans(bodyBlock.ExceptionRegions);
 
             var methodDecoder = new MetadataDecoder(peModule, peMethod);
 
@@ -1019,11 +1021,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 return "\"" + reader.GetUserString((UserStringHandle)MetadataTokens.Handle((int)token)) + "\"";
             }
 
-            public override string VisualizeSymbol(uint token)
+            public override string VisualizeSymbol(uint token, OperandType operandType)
             {
                 Cci.IReference reference = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)token));
-                ISymbol symbol = reference as ISymbol;
-                return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat));
+                return string.Format("\"{0}\"", (reference is ISymbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : (object)reference);
             }
 
             public override string VisualizeLocalType(object type)
@@ -1033,8 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                     type = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)type));
                 }
 
-                ISymbol symbol = type as ISymbol;
-                return symbol == null ? type.ToString() : symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+                return (type is ISymbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : type.ToString();
             }
         }
 
