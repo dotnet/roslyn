@@ -217,9 +217,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (Symbol interfaceMember in explicitInterfaceNamedType.GetMembers(interfaceMemberName))
             {
-                // At this point, we know that explicitInterfaceNamedType is an interface, so candidate must be public
-                // and, therefore, accessible.  So we don't need to check that.
+                // At this point, we know that explicitInterfaceNamedType is an interface.
                 // However, metadata interface members can be static - we ignore them, as does Dev10.
+                // PROTOTYPE(DefaultInterfaceImplementation): We might want to check accessibility of the members as well, since  
+                //                                            they don't have to be public any more.
                 if (interfaceMember.Kind != implementingMember.Kind || !interfaceMember.IsImplementableInterfaceMember())
                 {
                     continue;

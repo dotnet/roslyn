@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             DeclarationModifiers errorModifiers = modifiers & defaultInterfaceImplementationModifiers;
+            var requiredVersionArgument = new CSharpRequiredLanguageVersion(requiredVersion);
+            var availableVersionArgument = availableVersion.ToDisplayString();
             while (errorModifiers != DeclarationModifiers.None)
             {
                 DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
@@ -78,8 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 errorModifiers = errorModifiers & ~oneError;
                 diagnostics.Add(ErrorCode.ERR_DefaultInterfaceImplementationModifier, errorLocation,
                                 ConvertSingleModifierToSyntaxText(oneError),
-                                availableVersion.ToDisplayString(),
-                                new CSharpRequiredLanguageVersion(requiredVersion));
+                                availableVersionArgument,
+                                requiredVersionArgument);
             }
         }
 
