@@ -65,11 +65,8 @@ namespace Roslyn.Utilities
         public Type GetTypeFromId(int typeId)
             => _types[typeId];
 
-        public (Type, Func<ObjectReader, object>) GetTypeAndReaderFromId(int typeId)
-            => (_types[typeId], _typeReaders[typeId]);
-
-        public Func<ObjectReader, object> GetTypeReader(int index)
-            => _typeReaders[index];
+        public Func<ObjectReader, object> GetTypeReaderFromId(int typeId)
+            => _typeReaders[typeId];
 
         public bool RegisterTypeReader(Type type, Func<ObjectReader, object> typeReader)
         {

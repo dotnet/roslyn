@@ -577,17 +577,17 @@ namespace Roslyn.Utilities
         private Type ReadTypeAfterTag()
             => _binderState.GetTypeFromId(this.ReadInt32());
 
-        private (Type, Func<ObjectReader, object>) ReadTypeAndReader()
+        private Func<ObjectReader, object> ReadTypeReader()
         {
             _reader.ReadByte();
-            return _binderState.GetTypeAndReaderFromId(this.ReadInt32());
+            return _binderState.GetTypeReaderFromId(this.ReadInt32());
         }
 
         private object ReadObject()
         {
-            int id = _objectReferenceMap.GetNextReferenceId();
+            var id = _objectReferenceMap.GetNextReferenceId();
 
-            var (type, typeReader) = this.ReadTypeAndReader();
+            var typeReader = this.ReadTypeReader();
 
             // recursive: read and construct instance immediately from member elements encoding next in the stream
             var instance = typeReader(this);
