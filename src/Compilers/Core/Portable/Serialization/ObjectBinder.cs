@@ -16,16 +16,48 @@ namespace Roslyn.Utilities
     internal static class ObjectBinder
     {
         private static object s_gate = new object();
-        private static readonly Dictionary<Type, int> s_typeToIndex = new Dictionary<Type, int>();
 
-        private static readonly List<Type> s_types = new List<Type>();
-        private static readonly List<Func<ObjectReader, object>> s_typeReaders = new List<Func<ObjectReader, object>>();
+        private static readonly ObjectBinderState s_state = ObjectBinderState.Create();
+
+        private static readonly Stack<ObjectBinderState> s_pool = new Stack<ObjectBinderState>();
+
+        public static ObjectBinderState AllocateStateCopy()
+        {
+            lock (s_gate)
+            {
+                ObjectBinderState state;
+                if (s_pool.Count > 0)
+                {
+                    state = s_pool.Pop();
+                }
+                else
+                {
+                    state = ObjectBinderState.Create();
+                }
+
+                state.CopyFrom(s_state);
+
+                return state;
+            }
+        }
+
+        public static void FreeStateCopy(ObjectBinderState state)
+        {
+            state.Clear();
+            lock (s_gate)
+            {
+                if (s_pool.Count < 128)
+                {
+                    s_pool.Push(state);
+                }
+            }
+        }
 
         public static int GetTypeId(Type type)
         {
             lock (s_gate)
             {
-                return s_typeToIndex[type];
+                return s_state.GetTypeId(type);
             }
         }
 
@@ -33,37 +65,7 @@ namespace Roslyn.Utilities
         {
             lock (s_gate)
             {
-                if (!s_typeToIndex.TryGetValue(type, out var index))
-                {
-                    RegisterTypeReader(type, typeReader: null);
-                    index = s_typeToIndex[type];
-                }
-
-                return index;
-            }
-        }
-
-        public static Type GetTypeFromId(int typeId)
-        {
-            lock (s_gate)
-            {
-                return s_types[typeId];
-            }
-        }
-
-        public static (Type, Func<ObjectReader, object>) GetTypeAndReaderFromId(int typeId)
-        {
-            lock (s_gate)
-            {
-                return (s_types[typeId], s_typeReaders[typeId]);
-            }
-        }
-
-        public static Func<ObjectReader, object> GetTypeReader(int index)
-        {
-            lock (s_gate)
-            {
-                return s_typeReaders[index];
+                return s_state.GetOrAddTypeId(type);
             }
         }
 
@@ -71,10 +73,31 @@ namespace Roslyn.Utilities
         {
             lock (s_gate)
             {
-                int index = s_typeReaders.Count;
-                s_types.Add(type);
-                s_typeReaders.Add(typeReader);
-                s_typeToIndex.Add(type, index);
+                s_state.RegisterTypeReader(type, typeReader);
+            }
+        }
+
+        public static Type GetTypeFromId(int typeId)
+        {
+            lock (s_gate)
+            {
+                return s_state.GetTypeFromId(typeId);
+            }
+        }
+
+        public static (Type, Func<ObjectReader, object>) GetTypeAndReaderFromId(int typeId)
+        {
+            lock (s_gate)
+            {
+                return s_state.GetTypeAndReaderFromId(typeId);
+            }
+        }
+
+        public static Func<ObjectReader, object> GetTypeReader(int index)
+        {
+            lock (s_gate)
+            {
+                return s_state.GetTypeReader(index);
             }
         }
     }
