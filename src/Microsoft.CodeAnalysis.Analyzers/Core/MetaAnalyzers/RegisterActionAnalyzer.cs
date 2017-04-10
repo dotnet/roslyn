@@ -428,10 +428,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
             }
 
-            // TODO: Remove the below suppression once the following Roslyn bug is fixed: https://github.com/dotnet/roslyn/issues/8884
-#pragma warning disable CA1801
             private void AnalyzerParameterSyntax(SyntaxNodeAnalysisContext context)
-#pragma warning restore CA1801
             {
                 if (context.SemanticModel.GetDeclaredSymbol(context.Node, context.CancellationToken) is IParameterSymbol parameter)
                 {
