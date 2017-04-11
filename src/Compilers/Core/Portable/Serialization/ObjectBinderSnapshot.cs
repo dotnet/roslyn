@@ -14,12 +14,12 @@ namespace Roslyn.Utilities
 
         public ObjectBinderSnapshot(
             Dictionary<Type, int> typeToIndex,
-            ImmutableArray<Type> types,
-            ImmutableArray<Func<ObjectReader, object>> typeReaders)
+            List<Type> types,
+            List<Func<ObjectReader, object>> typeReaders)
         {
-            _typeToIndex = typeToIndex;
-            _types = types;
-            _typeReaders = typeReaders;
+            _typeToIndex = new Dictionary<Type, int>(typeToIndex);
+            _types = types.ToImmutableArray();
+            _typeReaders = typeReaders.ToImmutableArray();
         }
 
         public int GetTypeId(Type type)
