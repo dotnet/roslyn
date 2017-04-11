@@ -163,7 +163,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 return;
             }
 
-            var impl = new Impl(shippedData, unshippedData);
+            var impl = new Impl(compilationContext.Compilation, shippedData, unshippedData);
             compilationContext.RegisterSymbolAction(
                 impl.OnSymbolAction,
                 SymbolKind.NamedType,
@@ -171,41 +171,6 @@ namespace Roslyn.Diagnostics.Analyzers
                 SymbolKind.Field,
                 SymbolKind.Method);
             compilationContext.RegisterCompilationEndAction(impl.OnCompilationEnd);
-        }
-
-        internal static string GetPublicApiName(ISymbol symbol)
-        {
-            string publicApiName = symbol.ToDisplayString(s_publicApiFormat);
-
-            ITypeSymbol memberType = null;
-            if (symbol is IMethodSymbol)
-            {
-                memberType = ((IMethodSymbol)symbol).ReturnType;
-            }
-            else if (symbol is IPropertySymbol)
-            {
-                memberType = ((IPropertySymbol)symbol).Type;
-            }
-            else if (symbol is IEventSymbol)
-            {
-                memberType = ((IEventSymbol)symbol).Type;
-            }
-            else if (symbol is IFieldSymbol)
-            {
-                memberType = ((IFieldSymbol)symbol).Type;
-            }
-
-            if (memberType != null)
-            {
-                publicApiName = publicApiName + " -> " + memberType.ToDisplayString(s_publicApiFormat);
-            }
-
-            if (((symbol as INamespaceSymbol)?.IsGlobalNamespace).GetValueOrDefault())
-            {
-                return string.Empty;
-            }
-
-            return publicApiName;
         }
 
         private static ApiData ReadApiData(string path, SourceText sourceText, bool isShippedApi)
