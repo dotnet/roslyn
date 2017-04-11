@@ -20,18 +20,11 @@ namespace Roslyn.Utilities
         private static object s_gate = new object();
 
         /// <summary>
-        /// An increasing counter we have that gets changed every time a new deserialization function
-        /// is registered with us.  We use this to determine if we can still use our pooled snapshots
-        /// that we hand out.
-        /// </summary>
-        private static int s_version;
-
-        /// <summary>
-        /// Pool of immutable snapshots of our data.  We hand these out instead of exposing our raw
+        /// Last created snapshot of our data.  We hand this out instead of exposing our raw
         /// data so that <see cref="ObjectReader"/> and <see cref="ObjectWriter"/> do not need to
         /// take any locks while processing.
         /// </summary>
-        private static readonly Stack<ObjectBinderSnapshot> s_pool = new Stack<ObjectBinderSnapshot>();
+        private static ObjectBinderSnapshot? s_lastSnapshot = null;
 
         /// <summary>
         /// Map from a <see cref="Type"/> to the corresponding index in <see cref="s_types"/> and
@@ -47,39 +40,18 @@ namespace Roslyn.Utilities
         /// Gets an immutable copy of the state of this binder.  This copy does not need to be
         /// locked while it is used.
         /// </summary>
-        public static ObjectBinderSnapshot AllocateStateCopy()
+        public static ObjectBinderSnapshot GetSnapshot()
         {
             lock (s_gate)
             {
-                // If we have any pooled copies, then just return one of those.
-                if (s_pool.Count > 0)
+                if (s_lastSnapshot == null)
                 {
-                    return s_pool.Pop();
+                    s_lastSnapshot = new ObjectBinderSnapshot(
+                        s_typeToIndex.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+                        s_types.ToImmutableArray(), s_typeReaders.ToImmutableArray());
                 }
 
-                // Otherwise, create copy from our current state and return that.
-                var state = new ObjectBinderSnapshot(
-                    s_version, 
-                    s_typeToIndex.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
-                    s_types.ToImmutableArray(), s_typeReaders.ToImmutableArray());
-
-                return state;
-            }
-        }
-
-        public static void FreeStateCopy(ObjectBinderSnapshot state)
-        {
-            lock (s_gate)
-            {
-                // If our version changed between now and when we returned the state object,
-                // then we don't want to keep around this version in the pool.  
-                if (state.Version == s_version)
-                {
-                    if (s_pool.Count < 32)
-                    {
-                        s_pool.Push(state);
-                    }
-                }
+                return s_lastSnapshot.Value;
             }
         }
 
@@ -98,11 +70,9 @@ namespace Roslyn.Utilities
                 s_typeReaders.Add(typeReader);
                 s_typeToIndex.Add(type, index);
 
-                // Registering this type mutated state, clear any cached copies we have
-                // of ourselves.  Also increment the version number so that we don't attempt
-                // to cache any in-flight copies that are returned.
-                s_version++;
-                s_pool.Clear();
+                // Registering this type mutated state, clear the cached last snapshot as it
+                // is no longer valid.
+                s_lastSnapshot = null;
             }
         }
     }

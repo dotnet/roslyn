@@ -67,7 +67,7 @@ namespace Roslyn.Utilities
 
             // Capture a copy of the current static binder state.  That way we don't have to 
             // access any locks while we're doing our processing.
-            _binderSnapshot = ObjectBinder.AllocateStateCopy();
+            _binderSnapshot = ObjectBinder.GetSnapshot();
 
             WriteVersion();
         }
@@ -80,7 +80,6 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            ObjectBinder.FreeStateCopy(_binderSnapshot);
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
             _recursionDepth = 0;
