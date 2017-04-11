@@ -16,11 +16,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Core\Source\Concord\Concord.csproj">
-      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
-      <Name>Concord</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Core\Source\ResultProvider\Portable\ResultProvider.Portable.csproj">
       <Project>{fa0e905d-ec46-466d-b7b2-3b5557f9428c}</Project>
       <Name>ResultProvider.Portable</Name>
