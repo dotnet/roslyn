@@ -2202,10 +2202,10 @@ public class Source
             Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a1).Identity.GetDisplayName());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void ReferenceSupersession_FxUnification1()
         {
-            var c = CreateSubmission("System.Diagnostics.Process.GetCurrentProcess()", new[]
+            var c = CreateSubmissionWithExactReferences("System.Diagnostics.Process.GetCurrentProcess()", new[]
             {
                 TestReferences.NetFx.v2_0_50727.mscorlib,
                 TestReferences.NetFx.v2_0_50727.System,

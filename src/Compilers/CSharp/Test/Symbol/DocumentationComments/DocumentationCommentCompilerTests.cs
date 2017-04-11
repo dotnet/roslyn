@@ -2068,6 +2068,8 @@ partial class C
             Assert.Equal(expected, actual);
         }
 
+        // DesktopOnly because these tests reflect over the framework System.Xml
+        // type for error analysis
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
         public void NonXmlWhitespace()
@@ -2107,6 +2109,8 @@ class C {{ }}
             Assert.Equal(expected, actual);
         }
 
+        // DesktopOnly because these tests reflect over the framework System.Xml
+        // type for error analysis
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
         public void Repro637435()
@@ -2338,6 +2342,8 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
+        // DesktopOnly because these tests reflect over the framework System.Xml
+        // type for error analysis
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void IncludeFileResolution()
         {
@@ -2727,6 +2733,8 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
+        // DesktopOnly because these tests reflect over the framework System.Xml
+        // type for error analysis
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void WRN_XMLParseIncludeError_Xml()
         {
@@ -4929,6 +4937,8 @@ class A { }
             Assert.Equal(expected, actual);
         }
 
+        // DesktopOnly because these tests reflect over the framework System.Xml
+        // type for error analysis
         [WorkItem(547311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547311")]
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void UndeclaredXmlNamespace()
@@ -5681,6 +5691,8 @@ public class C {} // CS1587
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithWarningAsError(true));
         }
 
+        // DesktopOnly because these tests reflect over the framework System.Xml
+        // type for error analysis
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void Dev11_303769()
         {
@@ -5852,6 +5864,8 @@ namespace Demo
             Assert.Equal(expected, actual);
         }
 
+        // DesktopOnly because these tests reflect over the framework System.Xml
+        // type for error analysis
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void Dev11_142553()
         {
@@ -5933,6 +5947,8 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
+        // DesktopOnly because these tests reflect over the framework System.Xml
+        // type for error analysis
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void DtdDenialOfService()
         {
@@ -6149,6 +6165,8 @@ class Module1
         /// <summary>
         /// "--" is not valid within an XML comment.
         /// </summary>
+        // DesktopOnly because these tests reflect over the framework System.Xml
+        // type for error analysis
         [WorkItem(8807, "https://github.com/dotnet/roslyn/issues/8807")]
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void IncludeErrorDashDashInName()
