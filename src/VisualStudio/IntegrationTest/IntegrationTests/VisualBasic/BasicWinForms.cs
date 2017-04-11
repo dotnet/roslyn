@@ -179,7 +179,7 @@ End Class");
             Assert.Contains(@"Public WithEvents SomeButton As Button", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18602"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void DeleteControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
