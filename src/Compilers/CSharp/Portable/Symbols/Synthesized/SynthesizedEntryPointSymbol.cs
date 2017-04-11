@@ -369,21 +369,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var stringType = compilation.GetSpecialType(SpecialType.System_String);
                     var stringArrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, stringType);
-                    _parameters = ImmutableArray.Create(
-                        SynthesizedParameterSymbol.Create(this, stringArrayType, 0, RefKind.None, userMain.Parameters[0].Name));
                 }
                 else
                 {
                     Debug.Assert(userMain.ParameterCount == 0);
-                    _parameters = ImmutableArray<ParameterSymbol>.Empty;
                 }
 
-                var userMainLocation = userMain.DeclaringSyntaxReferences.SingleOrDefault()?.GetLocation() ?? NoLocation.Singleton;
+                _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
+
+                var userMainLocation = userMain.DeclaringSyntaxReferences.SingleOrDefault()?.GetLocation();
 
                 _getAwaiterMethod = GetRequiredMethod(_userMain.ReturnType, WellKnownMemberNames.GetAwaiter, diagnosticBag, userMainLocation);
                 if ((object)_getAwaiterMethod != null)
                 {
-                    _getResultMethod = GetRequiredMethod(_getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnosticBag);
+                    _getResultMethod = GetRequiredMethod(_getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnosticBag, userMainLocation);
                 }
             }
 
@@ -435,14 +434,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             new BoundExpressionStatement(
                                 syntax: syntax,
                                 expression: getAwaiterGetResult
-                            ),
+                            )
+                            { WasCompilerGenerated = true },
                             new BoundReturnStatement(
                                 syntax: syntax,
                                 refKind: RefKind.None,
                                 expressionOpt: null
                             )
+                            { WasCompilerGenerated = true }
                         )
-                    );
+                    )
+                    { WasCompilerGenerated = true };
 
                 }
                 else
@@ -457,7 +459,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 expressionOpt: getAwaiterGetResult
                             )
                         )
-                    );
+                    )
+                    { WasCompilerGenerated = true };
                 }
             }
         }
