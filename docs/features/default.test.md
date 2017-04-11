@@ -26,11 +26,12 @@
 
 # Code
 - [ ] Statements:
+    - `if (default) { }`
     - `switch (default) { }`
     - `switch (e) { case default: }`
     - `switch (e1) { case e2 when (default): }`
     - `while (default) { }`, `do { } while (default)`
-    - `for (, default, ) { }`
+    - `for (; default; ) { }`
     - `foreach (... in default) { }`
     - `throw default;` 
     - `return default;` 
@@ -44,11 +45,10 @@
     - `default()`
     - `default[i]`
     - `a[default]`
-    - `nameof(x)`
+    - `nameof(default)`
     - `checked(default)`, `unchecked(default)`
-    - `sizeof(x)`
-    - `op default`
-    - `e op default`, `default op e`
+    - unary: `op default`
+    - binary: `e op default`, `default op e`
     - `default ? e1 : e2`, `e1 ? default : e2`
     - `default ?? e`, `e ?? default`
     - `(T)default`
@@ -61,7 +61,7 @@
 - [ ] Target typing (var, lambdas, integrals)
 - [ ] Conversions
     - [ ] boxing/unboxing
-    - [ ] `DefaultOrNullableConversion`
+    - [ ] `DefaultOrNullLiteralConversion`
 - [ ] Nullable (wrapping, unwrapping)
 - [ ] Anonymous types
 - [ ] Tuples
@@ -81,7 +81,6 @@
 - [ ] More: https://github.com/dotnet/roslyn/issues/8389
 
 # Debugger / EE
-- [ ] Displaying Locals/Autos windows: Type and Value
 - [ ] Compiling expressions in Immediate/Watch windows or hovering over an expression
 - [ ] Compiling expressions in `[DebuggerDisplay("...")]`
 - [ ] Assigning values in Locals/Autos/Watch windows
