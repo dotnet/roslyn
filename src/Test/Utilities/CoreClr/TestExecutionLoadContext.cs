@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Loader;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
@@ -18,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
     internal sealed class TestExecutionLoadContext : AssemblyLoadContext
     {
         private readonly static ImmutableDictionary<string, string> s_platformAssemblyPaths = GetPlatformAssemblyPaths();
-        private readonly static Dictionary<string, Assembly> s_loadedPlatformAssemblies = new Dictionary<string, Assembly>();
+        private readonly static Dictionary<string, Assembly> s_loadedPlatformAssemblies = new Dictionary<string, Assembly>(StringComparer.Ordinal);
 
         private readonly Dictionary<string, ModuleData> _dependencies;
 
         public TestExecutionLoadContext(IList<ModuleData> dependencies)
         {
-            _dependencies = new Dictionary<string, ModuleData>(dependencies.Count);
+            _dependencies = new Dictionary<string, ModuleData>(dependencies.Count, StringComparer.Ordinal);
             foreach (var dep in dependencies)
             {
                 _dependencies.Add(dep.FullName, dep);
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             var mainAssembly = LoadImageAsAssembly(mainImage);
             var entryPoint = mainAssembly.EntryPoint;
 
-            Debug.Assert(entryPoint != null, "Attempting to execute an assembly that has no entrypoint; is your test trying to execute a DLL?");
+            AssertEx.NotNull(entryPoint, "Attempting to execute an assembly that has no entrypoint; is your test trying to execute a DLL?");
 
             int exitCode = 0;
             SharedConsole.CaptureOutput(() =>
@@ -122,17 +123,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                 exitCode = entryPoint.Invoke(null, args) is int exit ? exit : 0;
             }, expectedOutputLength, out var stdOut, out var stdErr);
 
-            if (stdOut.Length == 0 && stdErr.Length == 0)
-            {
-            }
-
             var output = stdOut + stdErr;
             return (exitCode, output);
-        }
-
-        internal string DumpAssemblyData()
-        {
-            return "";
         }
 
         private static ImmutableDictionary<string, string> GetPlatformAssemblyPaths()

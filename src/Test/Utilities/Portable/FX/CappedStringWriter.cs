@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly int _expectedLength;
         private int _remaining;
 
+        public int Length => GetStringBuilder().Length;
+
         public CappedStringWriter(int expectedLength)
             : base(System.Globalization.CultureInfo.InvariantCulture)
         {
@@ -72,7 +74,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 CapReached();
             }
         }
-
-        public int Length => GetStringBuilder().Length;
     }
 }

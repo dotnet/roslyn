@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         static IntegrationTests()
         {
-            s_msbuildDirectory = Roslyn.Test.Utilities.Desktop.TestHelpers.GetMSBuildDirectory();
+            s_msbuildDirectory = DesktopTestHelpers.GetMSBuildDirectory();
             if (s_msbuildDirectory != null)
             {
                 s_msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");

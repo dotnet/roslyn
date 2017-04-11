@@ -85,8 +85,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (expectedOutput.Trim() != actualOutput.Trim())
             {
-                string dumpDir = GetEmitData().LoadContext.DumpAssemblyData();
-                throw new ExecutionException(expectedOutput, actualOutput, dumpDir);
+                throw new ExecutionException(expectedOutput, actualOutput, moduleName);
             }
 
             return exitCode;
@@ -111,12 +110,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var emitData = GetEmitData();
             emitData.RuntimeData.PeverifyRequested = true;
-            // TODO: Implement peverify
+            // TODO(https://github.com/dotnet/coreclr/issues/295): Implement peverify
         }
 
         public string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true)
         {
-            // TODO: Implement peverify
+            // TODO(https://github.com/dotnet/coreclr/issues/295): Implement peverify
             return null;
         }
 

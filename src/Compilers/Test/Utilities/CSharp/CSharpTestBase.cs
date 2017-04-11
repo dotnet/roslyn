@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 assemblyName: assemblyName);
         }
 
-        private static ImmutableArray<MetadataReference> s_mscorlibRefArray = ImmutableArray.Create(MscorlibRef);
+        private static readonly ImmutableArray<MetadataReference> s_mscorlibRefArray = ImmutableArray.Create(MscorlibRef);
 
         public static CSharpCompilation CreateCompilationWithMscorlibAndDocumentationComments(
             string text,

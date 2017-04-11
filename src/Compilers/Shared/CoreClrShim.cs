@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal static class CoreClrShim
     {
-        public static bool IsRunningOnCoreClr => AssemblyLoadContext.Type != null;
+        internal static bool IsRunningOnCoreClr => AssemblyLoadContext.Type != null;
 
         internal static class AssemblyLoadContext
         {

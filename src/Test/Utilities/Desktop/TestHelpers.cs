@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Win32;
 
-namespace Roslyn.Test.Utilities.Desktop
+namespace Roslyn.Test.Utilities
 {
-    public static class TestHelpers
+    public static class DesktopTestHelpers
     {
         public static IEnumerable<Type> GetAllTypesImplementingGivenInterface(Assembly assembly, Type interfaceType)
         {

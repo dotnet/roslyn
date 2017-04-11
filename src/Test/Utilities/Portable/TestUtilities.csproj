@@ -113,7 +113,6 @@
     <Compile Include="Compilation\OperationTreeVerifier.cs" />
     <Compile Include="Compilation\TestOperationWalker.cs" />
     <Compile Include="Compilation\VersionTestHelpers.cs" />
-    <Compile Include="ConditionalFactAttribute.cs" />
     <Compile Include="CultureContext.cs" />
     <Compile Include="Diagnostics\BoxingOperationAnalyzer.cs" />
     <Compile Include="Diagnostics\CouldHaveMoreSpecificTypeAnalyzer.cs" />

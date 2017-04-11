@@ -66,6 +66,18 @@ namespace Roslyn.Test.Utilities
 
     internal static class RuntimeUtilities
     {
+        private static int s_dumpCount;
+
+        private static IEnumerable<ModuleMetadata> EnumerateModules(Metadata metadata)
+        {
+            return (metadata.Kind == MetadataImageKind.Assembly) ? ((AssemblyMetadata)metadata).GetModules().AsEnumerable() : SpecializedCollections.SingletonEnumerable((ModuleMetadata)metadata);
+        }
+
+        /// <summary>
+        /// Loads the given assembly name, assuming the same public key, culture, version,
+        /// and architecture as this assembly, and uses reflection to instantiate the given
+        /// type and return the value.
+        /// </summary>
         internal static T GetFactoryImplementation<T>(string assemblyName, string typeName)
         {
             var thisAssemblyName = typeof(RuntimeUtilities).GetTypeInfo().Assembly.GetName();
@@ -79,13 +91,6 @@ namespace Roslyn.Test.Utilities
             var assembly = Assembly.Load(name);
             var type = assembly.GetType(typeName);
             return (T)Activator.CreateInstance(type);
-        }
-
-        private static int s_dumpCount;
-
-        private static IEnumerable<ModuleMetadata> EnumerateModules(Metadata metadata)
-        {
-            return (metadata.Kind == MetadataImageKind.Assembly) ? ((AssemblyMetadata)metadata).GetModules().AsEnumerable() : SpecializedCollections.SingletonEnumerable((ModuleMetadata)metadata);
         }
 
         /// <summary>

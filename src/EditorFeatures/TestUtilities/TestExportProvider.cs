@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using System.Collections.Generic;
-using DesktopTestHelpers = Roslyn.Test.Utilities.Desktop.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
