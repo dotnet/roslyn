@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string FixIncorrectTokens = nameof(FixIncorrectTokens);
             public const string Formatting = nameof(Formatting);
             public const string LinkedFileDiffMerging = nameof(LinkedFileDiffMerging);
+            public const string NetCore = nameof(NetCore);
             public const string NormalizeModifiersOrOperators = nameof(NormalizeModifiersOrOperators);
             public const string ReduceTokens = nameof(ReduceTokens);
             public const string RemoveUnnecessaryLineContinuation = nameof(RemoveUnnecessaryLineContinuation);

@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBadExpression BadExpression(TypeSymbol type)
         {
-            return new BoundBadExpression(Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, type, hasErrors: true);
+            return new BoundBadExpression(Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty, type, hasErrors: true);
         }
 
         public BoundParameter Parameter(ParameterSymbol p)
@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)method == null)
             {
-                return new BoundBadExpression(Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ((BoundNode[])args).AsImmutableOrNull(), receiver);
+                return new BoundBadExpression(Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, args.AsImmutableOrNull(), receiver);
             }
 
             return Call(null, method, args);

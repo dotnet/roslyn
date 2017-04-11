@@ -136,7 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 // field initializer, constructor initializer, expression bodied member case
                 if (selectedNode is ConstructorInitializerSyntax ||
                     selectedNode is FieldDeclarationSyntax ||
-                    IsExpressionBodiedMember(selectedNode))
+                    IsExpressionBodiedMember(selectedNode) || 
+                    IsExpressionBodiedAccessor(selectedNode))
                 {
                     var statement = await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(this.CallSiteAnnotation, cancellationToken).ConfigureAwait(false);
                     return SpecializedCollections.SingletonEnumerable(statement);
@@ -158,9 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             private bool IsExpressionBodiedMember(SyntaxNode node)
-            {
-                return node is MemberDeclarationSyntax && ((MemberDeclarationSyntax)node).GetExpressionBody() != null;
-            }
+                => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;
+
+            private bool IsExpressionBodiedAccessor(SyntaxNode node)
+                => node is AccessorDeclarationSyntax accessor && accessor.ExpressionBody != null;
 
             private SimpleNameSyntax CreateMethodNameForInvocation()
             {

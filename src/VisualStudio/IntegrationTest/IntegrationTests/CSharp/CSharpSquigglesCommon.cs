@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -17,7 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         public virtual void VerifySyntaxErrorSquiggles()
         {
-            Editor.SetText(@"using System;
+            VisualStudio.Editor.SetText(@"using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -36,7 +35,7 @@ namespace ConsoleApplication1
         {
     }
 }");
-            this.VerifyErrorTags(
+            VisualStudio.Editor.Verify.ErrorTags(
               "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\r'[286-287]",
               "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[347-348]",
               "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\r\nusing System.Text;'[15-68]");
@@ -44,12 +43,12 @@ namespace ConsoleApplication1
 
         public virtual void VerifySemanticErrorSquiggles()
         {
-            Editor.SetText(@"using System;
+            VisualStudio.Editor.SetText(@"using System;
 
 class C  : Bar
 {
 }");
-            this.VerifyErrorTags(
+            VisualStudio.Editor.Verify.ErrorTags(
                 "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'Bar'[28-31]",
                 "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System;'[0-13]");
         }

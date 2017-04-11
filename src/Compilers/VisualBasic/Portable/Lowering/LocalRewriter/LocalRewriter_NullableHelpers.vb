@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      nullableType)
             End If
 
-            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), nullableType, hasErrors:=True)
+            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), nullableType, hasErrors:=True)
         End Function
 
         ''' <summary>
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  type:=getValueOrDefaultMethod.ReturnType)
             End If
 
-            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
+            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
         End Function
 
         Private Function NullableValue(expr As BoundExpression) As BoundExpression
@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  type:=getValueMethod.ReturnType)
             End If
 
-            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
+            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
         End Function
 
         ''' <summary>
@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  type:=hasValueMethod.ReturnType)
             End If
 
-            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr),
+            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr),
                                           Me.Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
         End Function
 

@@ -16,15 +16,20 @@ Module Program
     Sub Main(args As String())
         Dim i1 As Integer'BIND:"Dim i1 As Integer"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 As Integer')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'i1'.
+        Dim i1 As Integer'BIND:"Dim i1 As Integer"
+            ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -34,17 +39,28 @@ Module Program
     Sub Main(args As String())
         Dim i1 As Integer, i2 As Integer, b1 As Boolean'BIND:"Dim i1 As Integer, i2 As Integer, b1 As Boolean"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (3 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
-  IVariableDeclaration: b1 As System.Boolean (OperationKind.VariableDeclaration)
+IVariableDeclarationStatement (3 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 As I ...  As Boolean')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
+  IVariableDeclaration: b1 As System.Boolean (OperationKind.VariableDeclaration) (Syntax: 'b1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'i1'.
+        Dim i1 As Integer, i2 As Integer, b1 As Boolean'BIND:"Dim i1 As Integer, i2 As Integer, b1 As Boolean"
+            ~~
+BC42024: Unused local variable: 'i2'.
+        Dim i1 As Integer, i2 As Integer, b1 As Boolean'BIND:"Dim i1 As Integer, i2 As Integer, b1 As Boolean"
+                           ~~
+BC42024: Unused local variable: 'b1'.
+        Dim i1 As Integer, i2 As Integer, b1 As Boolean'BIND:"Dim i1 As Integer, i2 As Integer, b1 As Boolean"
+                                          ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -58,15 +74,20 @@ Module Program
     Sub Main(args As String())
         Dim i1'BIND:"Dim i1"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1')
+  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'i1'.
+        Dim i1'BIND:"Dim i1"
+            ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
 
@@ -81,16 +102,24 @@ Module Program
     Sub Main(args As String())
         Dim i1, i2'BIND:"Dim i1, i2"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration)
-  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1, i2')
+  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i2')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'i1'.
+        Dim i1, i2'BIND:"Dim i1, i2"
+            ~~
+BC42024: Unused local variable: 'i2'.
+        Dim i1, i2'BIND:"Dim i1, i2"
+                ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -104,16 +133,24 @@ Module Program
     Sub Main(args As String())
         Dim i1 As Integer,'BIND:"Dim i1 As Integer,"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-  IVariableDeclaration:  As System.Object (OperationKind.VariableDeclaration)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 As Integer,')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration:  As System.Object (OperationKind.VariableDeclaration) (Syntax: '')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'i1'.
+        Dim i1 As Integer,'BIND:"Dim i1 As Integer,"
+            ~~
+BC30203: Identifier expected.
+        Dim i1 As Integer,'BIND:"Dim i1 As Integer,"
+                          ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -127,16 +164,24 @@ Module Program
     Sub Main(args As String())
         Dim i1,'BIND:"Dim i1,"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration)
-  IVariableDeclaration:  As System.Object (OperationKind.VariableDeclaration)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1,')
+  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration:  As System.Object (OperationKind.VariableDeclaration) (Syntax: '')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'i1'.
+        Dim i1,'BIND:"Dim i1,"
+            ~~
+BC30203: Identifier expected.
+        Dim i1,'BIND:"Dim i1,"
+               ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -147,16 +192,17 @@ Module Program
         Dim i1 = 1
         Dim i2 = i1'BIND:"Dim i2 = i1"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i2 = i1')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -167,18 +213,19 @@ Module Program
         Dim i1 = 1
         Dim i2 = i1, i3 = i1'BIND:"Dim i2 = i1, i3 = i1"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32)
-  IVariableDeclaration: i3 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i2 = i1, i3 = i1')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+  IVariableDeclaration: i3 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i3')
+    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -192,16 +239,17 @@ Module Program
     Function ReturnInt() As Integer
         Return 1
     End Function
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IInvocationExpression (static Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 = ReturnInt()')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: IInvocationExpression (static Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -215,18 +263,19 @@ Module Program
     Function ReturnInt() As Integer
         Return 1
     End Function
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IInvocationExpression (static Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IInvocationExpression (static Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1 = Re ... ReturnInt()')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: IInvocationExpression (static Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: IInvocationExpression (static Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -238,16 +287,17 @@ Module Program
     Sub Main(args As String())
         Dim p1 As New C'BIND:"Dim p1 As New C"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: p1 As Program.C (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim p1 As New C')
+  IVariableDeclaration: p1 As Program.C (OperationKind.VariableDeclaration) (Syntax: 'p1')
+    Initializer: IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -257,18 +307,19 @@ Module Program
     Sub Main(args As String())
         Dim i1, i2 As New Integer'BIND:"Dim i1, i2 As New Integer"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1, i2  ... New Integer')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
 
@@ -279,16 +330,21 @@ Module Program
     Sub Main(args As String())
         Dim i1 As New'BIND:"Dim i1 As New"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: i1 As ? (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim i1 As New')
+  IVariableDeclaration: i1 As ? (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'New')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC30182: Type expected.
+        Dim i1 As New'BIND:"Dim i1 As New"
+                     ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -298,18 +354,23 @@ Module Program
     Sub Main(args As String())
         Dim i1, i2 As New'BIND:"Dim i1, i2 As New"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: i1 As ? (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
-  IVariableDeclaration: i2 As ? (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim i1, i2 As New')
+  IVariableDeclaration: i1 As ? (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'New')
+  IVariableDeclaration: i2 As ? (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'New')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC30182: Type expected.
+        Dim i1, i2 As New'BIND:"Dim i1, i2 As New"
+                         ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -319,20 +380,21 @@ Module Program
     Sub Main(args As String())
         Dim i1, i2 As New Integer, b1 As Boolean = False'BIND:"Dim i1, i2 As New Integer, b1 As Boolean = False"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (3 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32)
-  IVariableDeclaration: b1 As System.Boolean (OperationKind.VariableDeclaration)
-    Initializer: ILiteralExpression (Text: False) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False)
+IVariableDeclarationStatement (3 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1, i2  ... ean = False')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
+  IVariableDeclaration: b1 As System.Boolean (OperationKind.VariableDeclaration) (Syntax: 'b1')
+    Initializer: ILiteralExpression (Text: False) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -342,19 +404,24 @@ Module Program
     Sub Main(args As String())
         Dim b1 As Boolean, i1, i2 As New Integer'BIND:"Dim b1 As Boolean, i1, i2 As New Integer"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (3 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: b1 As System.Boolean (OperationKind.VariableDeclaration)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32)
+IVariableDeclarationStatement (3 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim b1 As B ... New Integer')
+  IVariableDeclaration: b1 As System.Boolean (OperationKind.VariableDeclaration) (Syntax: 'b1')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'b1'.
+        Dim b1 As Boolean, i1, i2 As New Integer'BIND:"Dim b1 As Boolean, i1, i2 As New Integer"
+            ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -395,19 +462,20 @@ Module Program
     Sub Main(args As String())
         Dim i1(2) As Integer'BIND:"Dim i1(2) As Integer"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32() (OperationKind.VariableDeclaration)
-    Initializer: IArrayCreationExpression (Dimension sizes: 1, Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32())
-        IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3)
-          Left: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
-          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1(2) As Integer')
+  IVariableDeclaration: i1 As System.Int32() (OperationKind.VariableDeclaration) (Syntax: 'i1(2)')
+    Initializer: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'i1(2)')
+        Dimension Sizes(1): IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3) (Syntax: '2')
+            Left: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '2')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -416,18 +484,25 @@ IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationSt
 Module Program
     Sub Main(args As String())
         Dim i1(), i2 As Integer'BIND:"Dim i1(), i2 As Integer"
-
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32() (OperationKind.VariableDeclaration)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim i1(), i2 As Integer')
+  IVariableDeclaration: i1 As System.Int32() (OperationKind.VariableDeclaration) (Syntax: 'i1()')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'i1'.
+        Dim i1(), i2 As Integer'BIND:"Dim i1(), i2 As Integer"
+            ~~
+BC42024: Unused local variable: 'i2'.
+        Dim i1(), i2 As Integer'BIND:"Dim i1(), i2 As Integer"
+                  ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -437,16 +512,22 @@ Module Program
     Sub Main(args As String())
         Dim i1(2) As New Integer'BIND:"Dim i1(2) As New Integer"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: i1 As System.Int32() (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim i1(2) As New Integer')
+  IVariableDeclaration: i1 As System.Int32() (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1(2)')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid) (Syntax: 'As New Integer')
+        Children(1): IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC30053: Arrays cannot be declared with 'New'.
+        Dim i1(2) As New Integer'BIND:"Dim i1(2) As New Integer"
+                     ~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
 #End Region
@@ -476,7 +557,9 @@ IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationSt
     Initializer: IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C)
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
 
@@ -503,7 +586,9 @@ IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationSt
     Initializer: IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C)
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
 #End Region
@@ -517,16 +602,21 @@ Module Program
     Sub Main(args As String())
         Const i1 As Integer = 1'BIND:"Const i1 As Integer = 1"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Const i1 As Integer = 1')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42099: Unused local constant: 'i1'.
+        Const i1 As Integer = 1'BIND:"Const i1 As Integer = 1"
+              ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -540,18 +630,26 @@ Module Program
     Sub Main(args As String())
         Const i1 = 1, i2 = 2'BIND:"Const i1 = 1, i2 = 2"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Const i1 = 1, i2 = 2')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42099: Unused local constant: 'i1'.
+        Const i1 = 1, i2 = 2'BIND:"Const i1 = 1, i2 = 2"
+              ~~
+BC42099: Unused local constant: 'i2'.
+        Const i1 = 1, i2 = 2'BIND:"Const i1 = 1, i2 = 2"
+                      ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -561,16 +659,24 @@ Module Program
     Sub Main(args As String())
         Const i1 As New Integer'BIND:"Const i1 As New Integer"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 As New Integer')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC30438: Constants must have a value.
+        Const i1 As New Integer'BIND:"Const i1 As New Integer"
+              ~~
+BC30246: 'New' is not valid on a local constant declaration.
+        Const i1 As New Integer'BIND:"Const i1 As New Integer"
+                    ~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -580,18 +686,35 @@ Module Program
     Sub Main(args As String())
         Const i1, i2 As New Integer'BIND:"Const i1, i2 As New Integer"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1, i ... New Integer')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC30438: Constants must have a value.
+        Const i1, i2 As New Integer'BIND:"Const i1, i2 As New Integer"
+              ~~
+BC42099: Unused local constant: 'i1'.
+        Const i1, i2 As New Integer'BIND:"Const i1, i2 As New Integer"
+              ~~
+BC30438: Constants must have a value.
+        Const i1, i2 As New Integer'BIND:"Const i1, i2 As New Integer"
+                  ~~
+BC30246: 'New' is not valid on a local constant declaration.
+        Const i1, i2 As New Integer'BIND:"Const i1, i2 As New Integer"
+                        ~~~
+BC30246: 'New' is not valid on a local constant declaration.
+        Const i1, i2 As New Integer'BIND:"Const i1, i2 As New Integer"
+                        ~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -601,16 +724,21 @@ Module Program
     Sub Main(args As String())
         Const i1 = 1'BIND:"Const i1 = 1"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Const i1 = 1')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42099: Unused local constant: 'i1'.
+        Const i1 = 1'BIND:"Const i1 = 1"
+              ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -618,20 +746,28 @@ IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationSt
             Dim source = <![CDATA[
 Module Program
     Sub Main(args As String())
-        Const i1 = 1, i2 = 2'BIND:"Const i1 = 1, i2 = 2"
+        Const i1 = 1, i2 = 'BIND:"Const i1 = 1, i2 = "
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 = 1, i2 = ')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42099: Unused local constant: 'i1'.
+        Const i1 = 1, i2 = 'BIND:"Const i1 = 1, i2 = "
+              ~~
+BC30201: Expression expected.
+        Const i1 = 1, i2 = 'BIND:"Const i1 = 1, i2 = "
+                           ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -642,16 +778,21 @@ Module Program
         Const i1 = 1
         Const i2 = i1'BIND:"Const i2 = i1"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Const i2 = i1')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42099: Unused local constant: 'i2'.
+        Const i2 = i1'BIND:"Const i2 = i1"
+              ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -662,18 +803,26 @@ Module Program
         Const i1 = 1
         Const i2 = i1, i3 = i1'BIND:"Const i2 = i1, i3 = i1"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1)
-  IVariableDeclaration: i3 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Const i2 = i1, i3 = i1')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
+  IVariableDeclaration: i3 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i3')
+    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42099: Unused local constant: 'i2'.
+        Const i2 = i1, i3 = i1'BIND:"Const i2 = i1, i3 = i1"
+              ~~
+BC42099: Unused local constant: 'i3'.
+        Const i2 = i1, i3 = i1'BIND:"Const i2 = i1, i3 = i1"
+                       ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -687,16 +836,22 @@ Module Program
     Function Int1() As Integer
         Return 1
     End Function
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 = Int1()')
+  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Int1()')
+        Children(1): IInvocationExpression (static Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC30059: Constant expression is required.
+        Const i1 = Int1()'BIND:"Const i1 = Int1()"
+                   ~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -710,18 +865,28 @@ Module Program
     Function Int1() As Integer
         Return 1
     End Function
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
-  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 =  ... i2 = Int1()')
+  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Int1()')
+        Children(1): IInvocationExpression (static Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
+  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Int1()')
+        Children(1): IInvocationExpression (static Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC30059: Constant expression is required.
+        Const i1 = Int1(), i2 = Int1()'BIND:"Const i1 = Int1(), i2 = Int1()"
+                   ~~~~~~
+BC30059: Constant expression is required.
+        Const i1 = Int1(), i2 = Int1()'BIND:"Const i1 = Int1(), i2 = Int1()"
+                                ~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -731,16 +896,24 @@ Module Program
     Sub Main(args As String())
         Const i1 As New'BIND:"Const i1 As New"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: i1 As ? (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 As New')
+  IVariableDeclaration: i1 As ? (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC30246: 'New' is not valid on a local constant declaration.
+        Const i1 As New'BIND:"Const i1 As New"
+                    ~~~
+BC30182: Type expected.
+        Const i1 As New'BIND:"Const i1 As New"
+                       ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -750,18 +923,32 @@ Module Program
     Sub Main(args As String())
         Const i1, i2 As New'BIND:"Const i1, i2 As New"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: i1 As ? (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
-  IVariableDeclaration: i2 As ? (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1, i2 As New')
+  IVariableDeclaration: i1 As ? (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
+  IVariableDeclaration: i2 As ? (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42099: Unused local constant: 'i1'.
+        Const i1, i2 As New'BIND:"Const i1, i2 As New"
+              ~~
+BC30246: 'New' is not valid on a local constant declaration.
+        Const i1, i2 As New'BIND:"Const i1, i2 As New"
+                        ~~~
+BC30246: 'New' is not valid on a local constant declaration.
+        Const i1, i2 As New'BIND:"Const i1, i2 As New"
+                        ~~~
+BC30182: Type expected.
+        Const i1, i2 As New'BIND:"Const i1, i2 As New"
+                           ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -771,18 +958,29 @@ Module Program
     Sub Main(args As String())
         Const i1 = 1,'BIND:"Const i1 = 1,"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IVariableDeclaration:  As System.Object (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 = 1,')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IVariableDeclaration:  As System.Object (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '')
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42099: Unused local constant: 'i1'.
+        Const i1 = 1,'BIND:"Const i1 = 1,"
+              ~~
+BC30203: Identifier expected.
+        Const i1 = 1,'BIND:"Const i1 = 1,"
+                     ~
+BC30438: Constants must have a value.
+        Const i1 = 1,'BIND:"Const i1 = 1,"
+                     ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
 #End Region
@@ -800,15 +998,20 @@ Module Program
     Sub Main(args As String())
         Static i1 As Integer'BIND:"Static i1 As Integer"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 As Integer')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'i1'.
+        Static i1 As Integer'BIND:"Static i1 As Integer"
+               ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -822,16 +1025,24 @@ Module Program
     Sub Main(args As String())
         Static i1, i2 As Integer'BIND:"Static i1, i2 As Integer"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1, i2 As Integer')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'i1'.
+        Static i1, i2 As Integer'BIND:"Static i1, i2 As Integer"
+               ~~
+BC42024: Unused local variable: 'i2'.
+        Static i1, i2 As Integer'BIND:"Static i1, i2 As Integer"
+                   ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -845,16 +1056,17 @@ Module Program
     Sub Main(args As String())
         Static i1 As New Integer'BIND:"Static i1 As New Integer"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 As New Integer')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -868,18 +1080,19 @@ Module Program
     Sub Main(args As String())
         Static i1, i2 As New Integer'BIND:"Static i1, i2 As New Integer"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1,  ... New Integer')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -893,20 +1106,21 @@ Module Program
     Sub Main(args As String())
         Static i1, i2 As New Integer, b1 As Boolean = False'BIND:"Static i1, i2 As New Integer, b1 As Boolean = False"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (3 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32)
-  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration)
-    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32)
-  IVariableDeclaration: b1 As System.Boolean (OperationKind.VariableDeclaration)
-    Initializer: ILiteralExpression (Text: False) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False)
+IVariableDeclarationStatement (3 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1,  ... ean = False')
+  IVariableDeclaration: i1 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
+  IVariableDeclaration: i2 As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
+  IVariableDeclaration: b1 As System.Boolean (OperationKind.VariableDeclaration) (Syntax: 'b1')
+    Initializer: ILiteralExpression (Text: False) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -916,17 +1130,18 @@ Module Program
     Sub Main(args As String())
         Static i1 = 1'BIND:"Static i1 = 1"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object)
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 = 1')
+  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '1')
+        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -936,20 +1151,21 @@ Module Program
     Sub Main(args As String())
         Static i1 = 1, i2 = 2'BIND:"Static i1 = 1, i2 = 2"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object)
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object)
-        ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 = 1, i2 = 2')
+  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '1')
+        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '2')
+        ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -960,16 +1176,17 @@ Module Program
         Static i1 = 1
         Static i2 = i1'BIND:"Static i2 = i1"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration)
-    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i2 = i1')
+  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -980,18 +1197,19 @@ Module Program
         Static i1 = 1
         Static i2 = i1, i3 = i1'BIND:"Static i2 = i1, i3 = i1"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration)
-    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object)
-  IVariableDeclaration: i3 As System.Object (OperationKind.VariableDeclaration)
-    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i2 = i1, i3 = i1')
+  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
+  IVariableDeclaration: i3 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i3')
+    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -1005,17 +1223,18 @@ Module Program
     Function Int1() As Integer
         Return 1
     End Function
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object)
-        IInvocationExpression (static Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 = Int1()')
+  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Int1()')
+        IInvocationExpression (static Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -1029,20 +1248,21 @@ Module Program
     Function Int1() As Integer
         Return 1
     End Function
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object)
-        IInvocationExpression (static Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
-  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object)
-        IInvocationExpression (static Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 = ... i2 = Int1()')
+  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i1')
+    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Int1()')
+        IInvocationExpression (static Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
+  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i2')
+    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Int1()')
+        IInvocationExpression (static Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -1052,15 +1272,23 @@ Module Program
     Sub Main(args As String())
         Static i1 As'BIND:"Static i1 As"
     End Sub
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As ? (OperationKind.VariableDeclaration)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 As')
+  IVariableDeclaration: i1 As ? (OperationKind.VariableDeclaration) (Syntax: 'i1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'i1'.
+        Static i1 As'BIND:"Static i1 As"
+               ~~
+BC30182: Type expected.
+        Static i1 As'BIND:"Static i1 As"
+                    ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -1074,16 +1302,27 @@ Module Program
     Function Int1() As Integer
         Return 1
     End Function
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As ? (OperationKind.VariableDeclaration)
-  IVariableDeclaration: i2 As ? (OperationKind.VariableDeclaration)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1, i2 As')
+  IVariableDeclaration: i1 As ? (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration: i2 As ? (OperationKind.VariableDeclaration) (Syntax: 'i2')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'i1'.
+        Static i1, i2 As'BIND:"Static i1, i2 As"
+               ~~
+BC42024: Unused local variable: 'i2'.
+        Static i1, i2 As'BIND:"Static i1, i2 As"
+                   ~~
+BC30182: Type expected.
+        Static i1, i2 As'BIND:"Static i1, i2 As"
+                        ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -1097,17 +1336,22 @@ Module Program
     Function Int1() As Integer
         Return 1
     End Function
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid)
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Static i1 =')
+  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
+    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC30201: Expression expected.
+        Static i1 ='BIND:"Static i1 ="
+                   ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
@@ -1121,23 +1365,29 @@ Module Program
     Function Int1() As Integer
         Return 1
     End Function
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid)
-  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid)
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
-  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration, IsInvalid)
-    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid)
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Static i1 =, i2 =')
+  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
+    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+  IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2')
+    Initializer: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC30201: Expression expected.
+        Static i1 =, i2 ='BIND:"Static i1 =, i2 ="
+                   ~
+BC30201: Expression expected.
+        Static i1 =, i2 ='BIND:"Static i1 =, i2 ="
+                         ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
-
 
         <Fact(), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")>
         Public Sub StaticInvalidMultipleDeclaration()
@@ -1150,16 +1400,24 @@ Module Program
     Function Int1() As Integer
         Return 1
     End Function
-End Module
-    ]]>.Value
+End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement)
-  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration)
-  IVariableDeclaration:  As System.Object (OperationKind.VariableDeclaration)
+IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1,')
+  IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration) (Syntax: 'i1')
+  IVariableDeclaration:  As System.Object (OperationKind.VariableDeclaration) (Syntax: '')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'i1'.
+        Static i1,'BIND:"Static i1,"
+               ~~
+BC30203: Identifier expected.
+        Static i1,'BIND:"Static i1,"
+                  ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
 #End Region

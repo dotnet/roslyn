@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                helperCall = new BoundBadExpression(fixedInitializer.Syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, ErrorTypeSymbol.UnknownResultType);
+                helperCall = new BoundBadExpression(fixedInitializer.Syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty, ErrorTypeSymbol.UnknownResultType);
             }
 
             BoundExpression addition = factory.Binary(BinaryOperatorKind.PointerAndIntAddition, localType, factory.Local(localSymbol), helperCall);
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    lengthCall = new BoundBadExpression(fixedInitializer.Syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(factory.Local(arrayTemp)), ErrorTypeSymbol.UnknownResultType);
+                    lengthCall = new BoundBadExpression(fixedInitializer.Syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(factory.Local(arrayTemp)), ErrorTypeSymbol.UnknownResultType);
                 }
             }
 

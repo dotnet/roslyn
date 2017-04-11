@@ -7,11 +7,15 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.Isam.Esent.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Esent
 {
-    internal partial class EsentPersistentStorageService : AbstractPersistentStorageService, IPersistentStorageService
+    internal partial class EsentPersistentStorageService : AbstractPersistentStorageService
     {
+        private const string StorageExtension = "vbcs.cache";
+        private const string PersistentStorageFileName = "storage.ide";
+
         public EsentPersistentStorageService(
             IOptionService optionService,
             SolutionSizeTracker solutionSizeTracker)
@@ -24,64 +28,21 @@ namespace Microsoft.CodeAnalysis.Esent
         {
         }
 
-        public EsentPersistentStorageService(IOptionService optionService) 
-            : base(optionService)
+        protected override string GetDatabaseFilePath(string workingFolderPath)
         {
+            Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(workingFolderPath));
+            return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
         }
 
-        protected override string GetDatabaseFilePath(string workingFolderPath)
-            => EsentPersistentStorage.GetDatabaseFile(workingFolderPath);
+        protected override AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath)
+            => new EsentPersistentStorage(OptionService,
+                workingFolderPath, solution.FilePath, GetDatabaseFilePath(workingFolderPath), this.Release);
 
-        protected override bool TryCreatePersistentStorage(
-            string workingFolderPath, string solutionPath,
-            out AbstractPersistentStorage persistentStorage)
+        protected override bool ShouldDeleteDatabase(Exception exception)
         {
-            persistentStorage = null;
-            EsentPersistentStorage esent = null;
-
-            try
-            {
-                esent = new EsentPersistentStorage(OptionService, workingFolderPath, solutionPath, this.Release);
-                esent.Initialize();
-
-                persistentStorage = esent;
-                return true;
-            }
-            catch (EsentAccessDeniedException ex)
-            {
-                // esent db is already in use by someone.
-                if (esent != null)
-                {
-                    esent.Close();
-                }
-
-                EsentLogger.LogException(ex);
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                if (esent != null)
-                {
-                    esent.Close();
-                }
-
-                EsentLogger.LogException(ex);
-            }
-
-            try
-            {
-                if (esent != null)
-                {
-                    Directory.Delete(esent.EsentDirectory, recursive: true);
-                }
-            }
-            catch
-            {
-                // somehow, we couldn't delete the directory.
-            }
-
-            return false;
+            // Access denied can happen when some other process is holding onto the DB.
+            // Don't want to delete it in that case.  For all other cases, delete the db.
+            return !(exception is EsentAccessDeniedException);
         }
     }
 }

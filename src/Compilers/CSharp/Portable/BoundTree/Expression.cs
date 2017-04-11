@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
-                return new SimpleArgument(null, new InvalidExpression(invocationSyntax));
+                return new SimpleArgument(null, new InvalidExpression(invocationSyntax, ImmutableArray<IOperation>.Empty));
             }
 
             return s_argumentMappings.GetValue(
@@ -206,18 +206,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 IArrayTypeSymbol arrayType = (IArrayTypeSymbol)parameter.Type;
                 ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
-
                 for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
                 {
                     builder.Add(boundArguments[index]);
                 }
+
                 var paramArrayArguments = builder.ToImmutableAndFree();
+
 
                 // Use the invocation syntax node if there is no actual syntax available for the argument (because the paramarray is empty.)
                 return new ArrayCreationExpression(arrayType, paramArrayArguments, paramArrayArguments.Length > 0 ? paramArrayArguments[0].Syntax : invocationSyntax);
             }
 
-            return new InvalidExpression(invocationSyntax);
+            return new InvalidExpression(invocationSyntax, ImmutableArray<IOperation>.Empty);
         }
 
         internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParametersOpt, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ISymbol targetMethod, ImmutableArray<Symbols.ParameterSymbol> parameters, IParameterSymbol parameter, SyntaxNode invocationSyntax)
@@ -1097,6 +1098,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundBadExpression : IInvalidExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.InvalidExpression;
+
+        ImmutableArray<IOperation> IInvalidExpression.Children => StaticCast<IOperation>.From(ChildBoundNodes);
 
         public override void Accept(OperationVisitor visitor)
         {
