@@ -2068,10 +2068,9 @@ partial class C
             Assert.Equal(expected, actual);
         }
 
-        // DesktopOnly because these tests reflect over the framework System.Xml
-        // type for error analysis
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void NonXmlWhitespace()
         {
             var ch = '\u1680';
@@ -2109,10 +2108,9 @@ class C {{ }}
             Assert.Equal(expected, actual);
         }
 
-        // DesktopOnly because these tests reflect over the framework System.Xml
-        // type for error analysis
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void Repro637435()
         {
             var sourceTemplate = @"
@@ -2342,9 +2340,8 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
-        // DesktopOnly because these tests reflect over the framework System.Xml
-        // type for error analysis
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(typeof(ClrOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void IncludeFileResolution()
         {
             var xml1 = @"
@@ -2733,9 +2730,8 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
-        // DesktopOnly because these tests reflect over the framework System.Xml
-        // type for error analysis
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void WRN_XMLParseIncludeError_Xml()
         {
             var xmlFile1 = Temp.CreateFile(extension: ".xml").WriteAllText("<OpenWithoutClose>");
@@ -4937,10 +4933,9 @@ class A { }
             Assert.Equal(expected, actual);
         }
 
-        // DesktopOnly because these tests reflect over the framework System.Xml
-        // type for error analysis
         [WorkItem(547311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547311")]
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void UndeclaredXmlNamespace()
         {
             var source = @"
@@ -5691,9 +5686,8 @@ public class C {} // CS1587
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithWarningAsError(true));
         }
 
-        // DesktopOnly because these tests reflect over the framework System.Xml
-        // type for error analysis
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void Dev11_303769()
         {
             // XML processing instructions
@@ -5864,9 +5858,8 @@ namespace Demo
             Assert.Equal(expected, actual);
         }
 
-        // DesktopOnly because these tests reflect over the framework System.Xml
-        // type for error analysis
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void Dev11_142553()
         {
             // Need to cache XML files.
@@ -5947,9 +5940,8 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        // DesktopOnly because these tests reflect over the framework System.Xml
-        // type for error analysis
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void DtdDenialOfService()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(
@@ -6165,10 +6157,9 @@ class Module1
         /// <summary>
         /// "--" is not valid within an XML comment.
         /// </summary>
-        // DesktopOnly because these tests reflect over the framework System.Xml
-        // type for error analysis
         [WorkItem(8807, "https://github.com/dotnet/roslyn/issues/8807")]
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void IncludeErrorDashDashInName()
         {
             var dir = Temp.CreateDirectory();
