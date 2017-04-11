@@ -9,9 +9,10 @@ namespace Roslyn.Utilities
     internal struct ObjectBinderState
     {
         public readonly int Version;
+
         private readonly Dictionary<Type, int> _typeToIndex;
-        private ImmutableArray<Type> _types;
-        private ImmutableArray<Func<ObjectReader, object>> _typeReaders;
+        private readonly ImmutableArray<Type> _types;
+        private readonly ImmutableArray<Func<ObjectReader, object>> _typeReaders;
 
         public ObjectBinderState(
             int version,
