@@ -20,9 +20,9 @@ namespace Roslyn.Utilities
         private static object s_gate = new object();
 
         /// <summary>
-        /// A monotonically increasing counter we have that gets changed every time a new deserialization
-        /// function is registered with us.  We use this to determine if we can still use our pooled
-        /// snapshots that we hand out.
+        /// An increasing counter we have that gets changed every time a new deserialization function
+        /// is registered with us.  We use this to determine if we can still use our pooled snapshots
+        /// that we hand out.
         /// </summary>
         private static int s_version;
 
