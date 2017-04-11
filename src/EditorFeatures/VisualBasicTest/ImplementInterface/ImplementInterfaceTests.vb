@@ -4540,7 +4540,6 @@ end class",
     writeonly property WriteOnlyProp as integer
 end interface
 
-
 class Class
     implements IInterface
 
