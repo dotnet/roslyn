@@ -6611,16 +6611,17 @@ class C
             var source = @"
 class C
 {
-    object M()
+    static void Main()
     {
         var x = ((int, string)?) (1, null);
-        return x;
+        System.Console.Write(x);
     }
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(1, )");
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -6643,16 +6644,17 @@ class C
             var source = @"
 class C
 {
-    object M()
+    static void Main()
     {
         (int, string)? x = (1, null);
-        return x;
+        System.Console.Write(x);
     }
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(1, )");
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
