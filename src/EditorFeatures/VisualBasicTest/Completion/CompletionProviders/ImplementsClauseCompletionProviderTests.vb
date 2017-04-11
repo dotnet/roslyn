@@ -721,5 +721,22 @@ End Class</text>.Value
 
             Await VerifyItemExistsAsync(text, "Quux")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function DoNotCrashWithOnlyDotTyped() As Task
+            Dim text = <text>Interface I
+    Sub Foo()
+    Sub Quux()
+End Interface
+
+Class B
+    Implements I
+
+    Public Sub Foo Implements .$$
+
+   </text>.Value
+
+            Await VerifyNoItemsExistAsync(text)
+        End Function
     End Class
 End Namespace
