@@ -959,7 +959,8 @@ C.CC<T>.Field -> int
 C.CC<T>.Field2 -> C.CC<int>
 C.Field -> C.CC<int>
 C2
-C2.C2() -> void";
+C2.C2() -> void
+";
 
             VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
         }
@@ -1093,6 +1094,33 @@ C.CC.Field -> int
 C.Field -> int
 C2
 C2.C2() -> void";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Theory]
+        [InlineData("", "")]
+        [InlineData("\r\n", "\r\n")]
+        [InlineData("\r\n\r\n", "\r\n")]
+        public void TestPreserveTrailingNewline(string originalEndOfFile, string expectedEndOfFile)
+        {
+            var source = @"
+public class C
+{
+    public int Property { get; }
+
+    public int NewField; // Newly added field, not in current public API.
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = $@"C
+C.C() -> void
+C.Property.get -> int{originalEndOfFile}";
+            var fixedUnshippedText = $@"C
+C.C() -> void
+C.NewField -> int
+C.Property.get -> int{expectedEndOfFile}";
 
             VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
         }

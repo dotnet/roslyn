@@ -77,7 +77,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             IOrderedEnumerable<string> sortedLines = lines.OrderBy(s => s, StringComparer.Ordinal);
 
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, sortedLines));
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, sortedLines) + GetEndOfFileText(sourceText));
             return newSourceText;
         }
 
@@ -93,7 +93,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             IOrderedEnumerable<string> sortedLines = newLines.OrderBy(s => s, StringComparer.Ordinal);
 
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, sortedLines));
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, sortedLines) + GetEndOfFileText(sourceText));
             return newSourceText;
         }
 
@@ -111,6 +111,21 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             return lines;
+        }
+
+        /// <summary>
+        /// Returns the trailing newline from the end of <paramref name="sourceText"/>, if one exists.
+        /// </summary>
+        /// <param name="sourceText">The source text.</param>
+        /// <returns><see cref="Environment.NewLine"/> if <paramref name="sourceText"/> ends with a trailing newline;
+        /// otherwise, <see cref="string.Empty"/>.</returns>
+        public static string GetEndOfFileText(SourceText sourceText)
+        {
+            if (sourceText.Length == 0)
+                return string.Empty;
+
+            var lastLine = sourceText.Lines[sourceText.Lines.Count - 1];
+            return lastLine.Span.IsEmpty ? Environment.NewLine : string.Empty;
         }
 
         private class AdditionalDocumentChangeAction : CodeAction
