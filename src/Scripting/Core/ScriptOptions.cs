@@ -63,11 +63,6 @@ namespace Microsoft.CodeAnalysis.Scripting
                 "System.Threading.Tasks",
                 "System.Threading.Tasks.Parallel",
                 "System.Threading.Thread",
-                "System.Linq",
-                "System.Linq.Expressions",
-                "System.Runtime.Numerics",
-                "System.Dynamic.Runtime",
-                "Microsoft.CSharp",
             };
 
             return ImmutableArray.CreateRange(files.Select(CreateUnresolvedReference));
