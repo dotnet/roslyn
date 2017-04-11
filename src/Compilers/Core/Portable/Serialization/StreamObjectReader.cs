@@ -571,7 +571,7 @@ namespace Roslyn.Utilities
         public Type ReadType()
         {
             _reader.ReadByte();
-            return ReadTypeAfterTag();
+            return Type.GetType(ReadString());
         }
 
         private Type ReadTypeAfterTag()

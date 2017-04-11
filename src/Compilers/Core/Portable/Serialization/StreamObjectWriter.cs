@@ -662,7 +662,7 @@ namespace Roslyn.Utilities
         public void WriteType(Type type)
         {
             _writer.Write((byte)EncodingKind.Type);
-            this.WriteInt32(_binderState.GetOrAddTypeId(type));
+            this.WriteString(type.AssemblyQualifiedName);
         }
 
         private void WriteKnownType(Type type)
