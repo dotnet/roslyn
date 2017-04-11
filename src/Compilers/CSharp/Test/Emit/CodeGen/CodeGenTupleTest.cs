@@ -6668,6 +6668,41 @@ class C
         }
 
         [Fact]
+        public void TupleImplicitNullableAndCustomConversionsWithTypelessTuple()
+        {
+            var source = @"
+struct C
+{
+    static void Main()
+    {
+        C? x = (1, null);
+        System.Console.Write(x);
+    }
+    public static implicit operator C((int, string) x)
+    {
+        return new C();
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var declaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
+            var tuple = declaration.Declaration.Variables.First().Initializer.Value;
+            Assert.Equal("(1, null)", tuple.ToString());
+            Assert.Null(model.GetTypeInfo(tuple).Type);
+            Assert.Equal("C?", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+
+            var conversion = model.GetConversion(tuple);
+            Assert.Equal(ConversionKind.ImplicitUserDefined, conversion.Kind);
+            Assert.True(conversion.UnderlyingConversions.IsDefault);
+        }
+
+        [Fact]
         public void TupleTargetTypeLambda()
         {
             var source = @"
