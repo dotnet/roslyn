@@ -9077,5 +9077,34 @@ class C
     }
 }", "Local", "Action<int> Local(string x, ref var @class, params Func<int, string> f)");
         }
+
+        [WorkItem(18359, "https://github.com/dotnet/roslyn/issues/18359")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterDot()
+        {
+            var markup =
+@"namespace ConsoleApplication253
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            M(E.$$)
+        }
+
+        static void M(E e) { }
+    }
+
+    enum E
+    {
+        A,
+        B,
+    }
+}
+";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "A");
+            await VerifyItemExistsAsync(markup, "B");
+        }
     }
 }
