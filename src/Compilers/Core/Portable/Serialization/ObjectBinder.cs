@@ -47,7 +47,7 @@ namespace Roslyn.Utilities
                 if (s_lastSnapshot == null)
                 {
                     s_lastSnapshot = new ObjectBinderSnapshot(
-                        s_typeToIndex.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+                        new Dictionary<Type, int>(s_typeToIndex),
                         s_types.ToImmutableArray(), s_typeReaders.ToImmutableArray());
                 }
 
