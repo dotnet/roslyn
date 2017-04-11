@@ -166,6 +166,37 @@ class C
         }
 
         [Fact]
+        public void ReturningDefaultFromAsyncMethod()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C
+{
+    async Task<T> M2<T>()
+    {
+        await Task.Delay(0);
+        return default;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("default", def.ToString());
+            Assert.Equal("T", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("T", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.False(model.GetConstantValue(def).HasValue);
+            Assert.True(model.GetConversion(def).IsNullLiteral);
+        }
+
+        [Fact]
         public void AsyncLambda()
         {
             string source = @"
