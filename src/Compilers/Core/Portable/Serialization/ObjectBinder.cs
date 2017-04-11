@@ -7,25 +7,45 @@ using System.Collections.Immutable;
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// A <see cref="ObjectBinder"/> that records runtime types and object readers during object writing so they
-    /// can be used to read back objects later.
+    /// <see cref="ObjectBinder"/> is a registry that maps between arbitrary <see cref="Type"/>s and 
+    /// the 'reader' function used to deserialize serialized instances of those types.  Registration
+    /// must happen ahead of time using the <see cref="RegisterTypeReader"/> method.
     /// </summary>
-    /// <remarks>
-    /// This binder records runtime types an object readers as a way to avoid needing to describe all serialization types up front
-    /// or using reflection to determine them on demand.
-    /// </remarks>
     internal static class ObjectBinder
     {
+        /// <summary>
+        /// Lock for all data in this type.
+        /// </summary>
         private static object s_gate = new object();
 
+        /// <summary>
+        /// A monotonically increasing counter we have that gets changed every time a new deserialization
+        /// function is registered with us.  We use this to determine if we can still use our pooled
+        /// snapshots that we hand out.
+        /// </summary>
         private static int s_version;
 
+        /// <summary>
+        /// Pool of immutable snapshots of our data.  We hand these out instead of exposing our raw
+        /// data so that <see cref="ObjectReader"/> and <see cref="ObjectWriter"/> do not need to
+        /// take any locks while processing.
+        /// </summary>
         private static readonly Stack<ObjectBinderState> s_pool = new Stack<ObjectBinderState>();
 
+        /// <summary>
+        /// Map from a <see cref="Type"/> to the corresponding index in <see cref="s_types"/> and
+        /// <see cref="s_typeReaders"/>.  <see cref="ObjectWriter"/> will write out the index into
+        /// the stream, and <see cref="ObjectReader"/> will use that index to get the reader used
+        /// for deserialization.
+        /// </summary>
         private static readonly Dictionary<Type, int> s_typeToIndex = new Dictionary<Type, int>();
         private static readonly List<Type> s_types = new List<Type>();
         private static readonly List<Func<ObjectReader, object>> s_typeReaders = new List<Func<ObjectReader, object>>();
 
+        /// <summary>
+        /// Gets an immutable copy of the state of this binder.  This copy does not need to be
+        /// locked while it is used.
+        /// </summary>
         public static ObjectBinderState AllocateStateCopy()
         {
             lock (s_gate)
@@ -49,7 +69,7 @@ namespace Roslyn.Utilities
             lock (s_gate)
             {
                 // If our version changed between now and when we returned the state object,
-                // then we don't want to keep around this verion in the pool.  
+                // then we don't want to keep around this version in the pool.  
                 if (state.Version == s_version)
                 {
                     if (s_pool.Count < 128)
