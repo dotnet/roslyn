@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var quotedOutFile = srcFile.ToQuotedPath().Replace("test.cs", "test.dll");
             var outFile = srcFile.Path.Replace("test.cs", "test.dll");
 
-            finalFlags = $"{ _flags } { additionalFlags } /pathmap:{tempDir.ToQuotedPath()}=/";
+            finalFlags = $"{ _flags } { additionalFlags } \"/pathmap:{tempDir.Path}=/\"";
             try
             {
                 var errorsFile = srcFile + ".errors";
