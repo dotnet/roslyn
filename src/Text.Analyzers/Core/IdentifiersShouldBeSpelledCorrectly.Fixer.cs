@@ -20,11 +20,11 @@ namespace Text.Analyzers
             return WellKnownFixAllProviders.BatchFixer;
         }
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            // This is to get rid of warning CS1998, please remove when implementing this analyzer
-            await Task.Run(() => { }).ConfigureAwait(false);
-            throw new NotImplementedException();
+            // Fixer not yet implemented.
+            return Task.CompletedTask;
+            
         }
     }
 }
