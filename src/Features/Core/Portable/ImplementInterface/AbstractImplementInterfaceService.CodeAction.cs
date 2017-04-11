@@ -441,14 +441,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return generateInvisibly ? accessor : null;
             }
 
-            private SyntaxNode CreateThroughExpression(SyntaxGenerator factory)
+            private SyntaxNode CreateThroughExpression(SyntaxGenerator generator)
             {
                 var through = ThroughMember.IsStatic
-                        ? GenerateName(factory, State.ClassOrStructType.IsGenericType)
-                        : factory.ThisExpression();
+                        ? GenerateName(generator, State.ClassOrStructType.IsGenericType)
+                        : generator.ThisExpression();
 
-                through = factory.MemberAccessExpression(
-                    through, factory.IdentifierName(ThroughMember.Name));
+                through = generator.MemberAccessExpression(
+                    through, generator.IdentifierName(ThroughMember.Name));
 
                 var throughMemberType = ThroughMember.GetMemberType();
                 if ((State.InterfaceTypes != null) && (throughMemberType != null))
@@ -476,34 +476,37 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     // uncommon case and optimize for the common one - in other words, we only apply the cast
                     // in cases where we can unambiguously figure out which interface we are trying to implement.
                     var interfaceBeingImplemented = State.InterfaceTypes.SingleOrDefault();
-                    if ((interfaceBeingImplemented != null))
+                    if (interfaceBeingImplemented != null)
                     {
                         if (!throughMemberType.Equals(interfaceBeingImplemented))
                         {
-                            through = factory.CastExpression(interfaceBeingImplemented,
+                            through = generator.CastExpression(interfaceBeingImplemented,
                                 through.WithAdditionalAnnotations(Simplifier.Annotation));
 
                             var facts = this.Document.GetLanguageService<ISyntaxFactsService>();
                             through = facts.Parenthesize(through);
                         }
-                        else if (!ThroughMember.IsStatic && ThroughMember is IPropertySymbol throughMemberProperty && throughMemberProperty.ExplicitInterfaceImplementations.Any())
+                        else if (!ThroughMember.IsStatic &&
+                            ThroughMember is IPropertySymbol throughMemberProperty &&
+                            throughMemberProperty.ExplicitInterfaceImplementations.Any())
                         {
                             // If we are implementing through an explicitly implemented property, we need to cast 'this' to
-                            // the explicitly implemented property type before calling the member, as in:
+                            // the explicitly implemented interface type before calling the member, as in:
                             //       ((IA)this).Prop.Member();
                             //
                             var explicitlyImplementedProperty = throughMemberProperty.ExplicitInterfaceImplementations[0];
 
-                            var explicitImplementationCast = factory.CastExpression(
+                            var explicitImplementationCast = generator.CastExpression(
                                 explicitlyImplementedProperty.ContainingType,
-                                factory.ThisExpression());
+                                generator.ThisExpression());
 
                             var facts = this.Document.GetLanguageService<ISyntaxFactsService>();
                             explicitImplementationCast = facts.Parenthesize(explicitImplementationCast);
 
-                            through = factory.MemberAccessExpression(explicitImplementationCast,
-                                factory.IdentifierName(explicitlyImplementedProperty.Name))
-                                .WithAdditionalAnnotations(Simplifier.Annotation);
+                            through = generator.MemberAccessExpression(explicitImplementationCast,
+                                generator.IdentifierName(explicitlyImplementedProperty.Name));
+
+                            through = through.WithAdditionalAnnotations(Simplifier.Annotation);
 
                         }
                     }
