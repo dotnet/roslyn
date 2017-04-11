@@ -2,10 +2,11 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundExpression
+    Partial Friend Class BoundExpression
         Implements IOperation
 
         Private ReadOnly Property IOperation_ConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
@@ -338,6 +339,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As ImmutableArray(Of IArgument)
             Dim argumentsLength As Integer = boundArguments.Length
+            Debug.Assert(argumentsLength = parameters.Length)
+
             Dim arguments As ArrayBuilder(Of IArgument) = ArrayBuilder(Of IArgument).GetInstance(argumentsLength)
             For index As Integer = 0 To argumentsLength - 1 Step 1
                 arguments.Add(DeriveArgument(index, boundArguments(index), parameters))
@@ -353,29 +356,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Return s_argumentMappings.GetValue(
                         argument,
-                        Function(argumentValue) New ByRefArgument(If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)))
+                        Function(argumentValue) New ByRefArgument(parameters(index), DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)))
                 Case Else
                     Return s_argumentMappings.GetValue(
                         argument,
                         Function(argumentValue)
                             Dim lastParameterIndex = parameters.Length - 1
-                            If index >= lastParameterIndex AndAlso parameters.Length > 0 AndAlso parameters(lastParameterIndex).IsParamArray Then
+                            If index = lastParameterIndex AndAlso parameters.Length > 0 AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
                                 ' TODO: figure out if this is true:
                                 '       a compiler generated argument for a ParamArray parameter is created iff 
                                 '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source
-                                Dim kind = If(argument.WasCompilerGenerated, ArgumentKind.ParamArray, ArgumentKind.Explicit)
-                                Debug.Assert(argument.Type.TypeKind = TypeKind.Array)
+                                Dim kind = If(argument.WasCompilerGenerated AndAlso argument.Kind = BoundKind.ArrayCreation, ArgumentKind.ParamArray, ArgumentKind.Explicit)
                                 Return New Argument(kind, parameters(lastParameterIndex), argumentValue)
                             Else
                                 ' TODO: figure our if this is true:
                                 '       a compiler generated argument for an Optional parameter is created iff
                                 '       the argument is omitted from the source
                                 Dim kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
-                                Dim parameter = If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing)
+                                Dim parameter = parameters(index)
                                 Return New Argument(kind, parameter, argumentValue)
                             End If
                         End Function)
             End Select
+        End Function
+
+        Private Shared Function ParameterIsParamArray(parameter As ParameterSymbol) As Boolean
+            Return If(parameter.IsParamArray AndAlso parameter.Type.Kind = SymbolKind.ArrayType, DirectCast(parameter.Type, ArrayTypeSymbol).IsSZArray, False)
         End Function
 
         Private MustInherit Class ArgumentBase

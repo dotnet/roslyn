@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return argument;
                 }
             }
+
             return null;
         }
 
@@ -50,21 +51,22 @@ namespace Microsoft.CodeAnalysis.Semantics
             return argumentsInEvaluationOrder.Sort(
                 (x, y) =>
                 {
-                    int x1 = x.Parameter.Ordinal;
-                    int y1 = y.Parameter.Ordinal;
+                    int x1 = x.Parameter?.Ordinal ?? -1;
+                    int y1 = y.Parameter?.Ordinal ?? -1;
 
-                    return x1 == y1 ? 0 : (x1 < y1 ? -1 : 1);
+                    return x1 - y1;
                 });
 
             bool ArgumentsAreInParameterOrder(ImmutableArray<IArgument> arguments)
             {
                 for (int argumentIndex = 0; argumentIndex < arguments.Length; argumentIndex++)
                 {
-                    if (arguments[argumentIndex].Parameter.Ordinal != argumentIndex)
+                    if (arguments[argumentIndex].Parameter?.Ordinal != argumentIndex)
                     {
                         return false;
                     }
                 }  
+
                 return true;
             }
         }

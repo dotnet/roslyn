@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <remarks>
         /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
-        /// Default values are supplied for optional arguments missing in source. Because they are always constant, their
-        /// evaluation will not impact the evaluation order of the remaining arguments, therefore are appended at the end 
-        /// of the returned argument list.
+        /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
     }

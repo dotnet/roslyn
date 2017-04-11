@@ -78,6 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitInvocationExpression(this, argument);
         }
 
+        // TODO: We need to reuse the logic in `LocalRewriter.MakeArguments` instead of using private implementation. 
+        //       ALso. this implementation here was for the (now removed) API `ArgumentsInSourceOrder`, which doesn't fulfill
+        //       the contract of `ArgumentsInEvaluationOrder`, as it doesn't handle various scenarios correctly, 
+        //       e.g. default arguments, erroneous code, etc. 
+        //       https://github.com/dotnet/roslyn/issues/18549
         internal static ImmutableArray<IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<int> argumentsToParametersOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<Symbols.ParameterSymbol> parameters, SyntaxNode invocationSyntax)
         {
             ArrayBuilder<IArgument> sourceOrderArguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
