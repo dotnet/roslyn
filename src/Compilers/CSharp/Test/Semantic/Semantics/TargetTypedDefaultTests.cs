@@ -852,6 +852,32 @@ class C
         }
 
         [Fact]
+        public void TestSpeculativeModel()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int i = 2;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var digit = tree.GetCompilationUnitRoot().FindToken(source.IndexOf('2'));
+            var expressionSyntax = SyntaxFactory.ParseExpression("default");
+            var typeInfo = model.GetSpeculativeTypeInfo(digit.SpanStart, expressionSyntax, SpeculativeBindingOption.BindAsExpression);
+            Assert.Null(typeInfo.Type);
+            var symbol = model.GetSpeculativeSymbolInfo(digit.SpanStart, expressionSyntax, SpeculativeBindingOption.BindAsExpression);
+            Assert.True(symbol.IsEmpty);
+        }
+
+        [Fact]
         public void Return()
         {
             string source = @"
