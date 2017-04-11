@@ -42,7 +42,7 @@ namespace Roslyn.Utilities
         /// that means that <see cref="ObjectBinder"/> is both static and locked.  This gives us 
         /// local copy we can work with without needing to worry about anyone else mutating.
         /// </summary>
-        private ObjectBinderState _binderState;
+        private readonly ObjectBinderState _binderState;
 
         private int _recursionDepth;
         internal const int MaxRecursionDepth = 50;
