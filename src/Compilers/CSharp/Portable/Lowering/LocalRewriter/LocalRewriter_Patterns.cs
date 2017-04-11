@@ -134,12 +134,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression CompareWithConstant(BoundExpression input, BoundExpression boundConstant)
         {
-            return _factory.StaticCall(
-                _factory.SpecialType(SpecialType.System_Object),
-                "Equals",
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), boundConstant),
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), input)
-                );
+            var systemObject = _factory.SpecialType(SpecialType.System_Object);
+            if (boundConstant is BoundLiteral bl && bl.ConstantValue?.IsNull == true)
+            {
+                if (input.Type.IsNonNullableValueType())
+                {
+                    var systemBoolean = _factory.SpecialType(SpecialType.System_Boolean);
+                    return RewriteNullableNullEquality(
+                        syntax: _factory.Syntax,
+                        kind: BinaryOperatorKind.NullableNullEqual,
+                        loweredLeft: input,
+                        loweredRight: boundConstant,
+                        returnType: systemBoolean
+
+                    );
+                }
+                else
+                {
+                    return _factory.ObjectEqual(_factory.Convert(systemObject, input), boundConstant);
+                }
+            }
+            else
+            {
+                return _factory.StaticCall(
+                    systemObject,
+                    "Equals",
+                    _factory.Convert(systemObject, boundConstant),
+                    _factory.Convert(systemObject, input)
+                    );
+            }
         }
 
         private bool? MatchConstantValue(BoundExpression source, TypeSymbol targetType, bool requiredNullTest)

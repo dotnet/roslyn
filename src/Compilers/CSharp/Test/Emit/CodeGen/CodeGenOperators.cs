@@ -13,6 +13,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenOperatorTests : CSharpTestBase
     {
+
+        [Fact]
+        public void TestIsNullPattern()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var c = new C();
+        Console.Write(c is null);
+    }
+}
+";
+
+            // Release
+            var compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.Main", @"{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldnull
+  IL_0006:  ceq
+  IL_0008:  call       ""void System.Console.Write(bool)""
+  IL_000d:  ret
+}");
+            // Debug
+            compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.Main", @"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (C V_0) //c
+  IL_0000:  nop
+  IL_0001:  newobj     ""C..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldnull
+  IL_0009:  ceq
+  IL_000b:  call       ""void System.Console.Write(bool)""
+  IL_0010:  nop
+  IL_0011:  ret
+}");
+        }
         [Fact]
         public void TestDelegateAndStringOperators()
         {
