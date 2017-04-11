@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.Semantics;
 using Xunit;
 
@@ -20,14 +23,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 s_instance = new TestOperationWalker();
             }
             return s_instance;
-        }
-
-#if Test_IOperation_None_Kind
+        }        
         internal override void VisitNoneOperation(IOperation operation)
         {
             Assert.True(false, "Encountered an IOperation with `Kind == OperationKind.None` while walking the operation tree.");
         }
-#endif
 
         public override void Visit(IOperation operation)
         {
@@ -536,6 +536,49 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInvalidExpression(IInvalidExpression operation)
         {
             base.VisitInvalidExpression(operation);
+        }
+
+        public static void CheckCSharpOperationTrees(CSharpCompilation compilation)
+        {
+            var operationWalker = GetInstance();
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                var semanticModel = compilation.GetSemanticModel(tree);
+                var root = tree.GetRoot();
+
+                // TODO: check other operation root as well (property, etc.)
+                foreach (var methodNode in root.DescendantNodesAndSelf().OfType<CSharp.Syntax.BaseMethodDeclarationSyntax>())
+                {
+                    var bodyNode = methodNode.Body;
+                    if (bodyNode != null)
+                    {
+                        var operation = semanticModel.GetOperationInternal(bodyNode);
+                        operationWalker.Visit(operation);
+                    }
+                }
+            }
+        }
+
+        public static void CheckBasicOperationTrees(VisualBasicCompilation compilation)
+        {
+            var operationWalker = GetInstance();
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                var semanticModel = compilation.GetSemanticModel(tree);
+                var root = tree.GetRoot();
+
+                // TODO: check other operation root as well (property, etc.)
+                foreach (var methodNode in root.DescendantNodesAndSelf().OfType<VisualBasic.Syntax.MethodBlockBaseSyntax>())
+                {
+                    // Have to iterate through statements because a bug:
+                    // https://github.com/dotnet/roslyn/issues/8919
+                    foreach(var statement in methodNode.Statements)
+                    {
+                        var operation = semanticModel.GetOperationInternal(statement);
+                        operationWalker.Visit(operation);
+                    }
+                }
+            }
         }
     }
 }

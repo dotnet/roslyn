@@ -566,11 +566,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 options = options.WithConcurrentBuild(false);
             }
 
-            return CSharpCompilation.Create(
+            Func<CSharpCompilation> createCompilation = () => CSharpCompilation.Create(
                 assemblyName == "" ? GetUniqueName() : assemblyName,
                 trees,
                 references,
                 options);
+
+            ValidateIOperations(createCompilation);
+
+            return createCompilation();
         }
 
         public static CSharpCompilation CreateCompilation(
@@ -581,7 +585,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpParseOptions parseOptions = null)
         {
             var trees = (sources == null) ? null : sources.Select(s => Parse(s, options: parseOptions)).ToArray();
-            var c = CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
+            Func<CSharpCompilation> createCompilation =
+                () => CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
+
+            ValidateIOperations(createCompilation);
+
+            var c = createCompilation();
             Assert.NotNull(c.Assembly); // force creation of SourceAssemblySymbol
 
             ((SourceAssemblySymbol)c.Assembly).lazyAssemblyIdentity = identity;
@@ -597,14 +606,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
            Type returnType = null,
            Type hostObjectType = null)
         {
-            return CSharpCompilation.CreateScriptCompilation(
-                GetUniqueName(),
-                references: references,
-                options: options,
-                syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Script),
-                previousScriptCompilation: previous,
-                returnType: returnType,
-                globalsType: hostObjectType);
+            Func<CSharpCompilation> createCompilation =
+                () => CSharpCompilation.CreateScriptCompilation(
+                    GetUniqueName(),
+                    references: references,
+                    options: options,
+                    syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Script),
+                    previousScriptCompilation: previous,
+                    returnType: returnType,
+                    globalsType: hostObjectType);
+
+            ValidateIOperations(createCompilation);
+
+            return createCompilation();
         }
 
         public static CSharpCompilation CreateSubmission(
@@ -616,14 +630,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
            Type returnType = null,
            Type hostObjectType = null)
         {
-            return CSharpCompilation.CreateScriptCompilation(
-                GetUniqueName(),
-                references: (references != null) ? new[] { MscorlibRef_v4_0_30316_17626 }.Concat(references) : new[] { MscorlibRef_v4_0_30316_17626 },
-                options: options,
-                syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Script),
-                previousScriptCompilation: previous,
-                returnType: returnType,
-                globalsType: hostObjectType);
+            Func<CSharpCompilation> createCompilation =
+                () => CSharpCompilation.CreateScriptCompilation(
+                    GetUniqueName(),
+                    references: (references != null) ? new[] { MscorlibRef_v4_0_30316_17626 }.Concat(references) : new[] { MscorlibRef_v4_0_30316_17626 },
+                    options: options,
+                    syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Script),
+                    previousScriptCompilation: previous,
+                    returnType: returnType,
+                    globalsType: hostObjectType);
+
+            ValidateIOperations(createCompilation);
+
+            return createCompilation();
         }
 
         public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, string expectedOutput = null)
@@ -1036,6 +1055,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
                 return (type is ISymbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : type.ToString();
             }
+        }
+
+        #endregion
+
+        #region IOperation verification
+
+        private static void ValidateIOperations(Func<CSharpCompilation> createCompilation)
+        {
+#if TEST_IOPERATION_INTERFACE
+            var compilation = createCompilation();
+            TestOperationWalker.CheckCSharpOperationTrees(compilation);
+            SyntaxNodeGetOperationWalker.CheckSyntaxTrees(new CSharpSyntaxNodeGetOperationWalker(), compilation);
+#endif
         }
 
         #endregion
