@@ -95,7 +95,7 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(); // TODO REVIEW I think diagnostics should be reported
+            comp.VerifyDiagnostics(); // Should give an error. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
             CompileAndVerify(comp, expectedOutput: "()");
 
             var tree = comp.SyntaxTrees.First();
@@ -103,6 +103,40 @@ class C
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
             var def = nodes.OfType<LiteralExpressionSyntax>().Single();
+            Assert.Equal("default", def.ToString());
+            Assert.Null(model.GetTypeInfo(def).Type);
+            Assert.Null(model.GetTypeInfo(def).ConvertedType);
+            Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.False(model.GetConstantValue(def).HasValue);
+            Assert.False(model.GetConversion(def).IsNullLiteral);
+        }
+
+        [Fact]
+        public void InUsing()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        using (default)
+        {
+            System.Console.Write(""ok"");
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(); // Should give an error. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
+            CompileAndVerify(comp, expectedOutput: "ok");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<LiteralExpressionSyntax>().First();
+            Assert.Equal("default", def.ToString());
             Assert.Null(model.GetTypeInfo(def).Type);
             Assert.Null(model.GetTypeInfo(def).ConvertedType);
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -512,6 +546,209 @@ class C
         }
 
         [Fact]
+        public void CollectionInitializer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var t = new System.Collections.Generic.List<int> { 1, default };
+        System.Console.Write($""{t[0]} {t[1]}"");
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 0");
+        }
+
+        [Fact]
+        public void MiscDefaultErrors()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        switch (default)
+        {
+            default:
+                break;
+        }
+        lock (default)
+        {
+        }
+        default();
+
+        int i = ++default;
+        var anon = new { Name = default };
+        System.TypedReference tr = __makeref(default);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (14,17): error CS1031: Type expected
+                //         default();
+                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(14, 17),
+                // (6,17): error CS8119: The switch expression must be a value; found default.
+                //         switch (default)
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "default").WithArguments("default").WithLocation(6, 17),
+                // (11,15): error CS0185: 'default' is not a reference type as required by the lock statement
+                //         lock (default)
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default").WithArguments("default").WithLocation(11, 15),
+                // (16,19): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         int i = ++default;
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "default"),
+                // (17,26): error CS0828: Cannot assign default to anonymous type property
+                //         var anon = new { Name = default };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Name = default").WithArguments("default"),
+                // (18,46): error CS1510: A ref or out value must be an assignable variable
+                //         System.TypedReference tr = __makeref(default);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default").WithLocation(18, 46)
+                );
+        }
+
+        [Fact]
+        public void RefTypeAndValue()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write(1);
+        var t = __reftype(default);
+        System.Console.Write(2);
+        try
+        {
+            int rv = __refvalue(default, int);
+        }
+        catch (System.InvalidCastException)
+        {
+            System.Console.Write($""3: {t == null}"");
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "123: True");
+        }
+
+        [Fact]
+        public void InCompoundAssignmentAndExceptionFilter()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            int i = 2;
+            i += default;
+            bool b = true;
+            b &= default;
+            System.Console.Write($""{true | default} {i} {b}"");
+            throw new System.Exception();
+        }
+        catch (System.Exception) when (default)
+        {
+            System.Console.Write(""catch"");
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (15,40): warning CS7095: Filter expression is a constant, consider removing the filter
+                //         catch (System.Exception) when (default)
+                Diagnostic(ErrorCode.WRN_FilterIsConstant, "default").WithLocation(15, 40),
+                // (17,13): warning CS0162: Unreachable code detected
+                //             System.Console.Write("catch");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(17, 13)
+                );
+            //CompileAndVerify(comp, expectedOutput: "True 2 False"); // PEVerify failed with Branch out of the method. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
+        }
+
+        [Fact]
+        public void ConditionalOnDefault()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        if (default)
+        {
+            System.Console.Write(""if"");
+        }
+
+        if (!default)
+        {
+            System.Console.WriteLine();
+        }
+
+        while (default)
+        {
+            System.Console.Write(""while"");
+        }
+
+        for (int i = 0; default; i++)
+        {
+            System.Console.Write(""for"");
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS0023: Operator '!' cannot be applied to operand of type 'default'
+                //         if (!default)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!default").WithArguments("!", "default"),
+                // (8,13): warning CS0162: Unreachable code detected
+                //             System.Console.Write("if");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System"),
+                // (18,13): warning CS0162: Unreachable code detected
+                //             System.Console.Write("while");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System"),
+                // (23,13): warning CS0162: Unreachable code detected
+                //             System.Console.Write("for");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(23, 13)
+                );
+        }
+
+        [Fact]
+        public void InFixed()
+        {
+            string source = @"
+class C
+{
+    static unsafe void Main()
+    {
+        fixed (byte* p = default)
+        {
+        }
+        fixed (byte* p = &default)
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (6,26): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (byte* p = default)
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "default"),
+                // (9,27): error CS0211: Cannot take the address of the given expression
+                //         fixed (byte* p = &default)
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "default").WithLocation(9, 27)
+                );
+        }
+
+        [Fact]
         public void FailedImplicitlyTypedArray()
         {
             string source = @"
@@ -644,6 +881,28 @@ class C
     static void Main()
     {
         System.Console.Write($""{(int)E.DefaultEntry} {(int)E.OneEntry}"");
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 1");
+        }
+
+        [Fact]
+        public void DefaultInTypedEnum()
+        {
+            string source = @"
+enum E : byte
+{
+    DefaultEntry = default,
+    OneEntry = default + 1
+}
+class C
+{
+    static void Main()
+    {
+        System.Console.Write($""{(byte)E.DefaultEntry} {(byte)E.OneEntry}"");
     }
 }
 ";
@@ -828,19 +1087,24 @@ class C
         public void QueryOnDefault()
         {
             string source =
-@"static class C
+@"using System.Linq;
+static class C
 {
     static void Main()
     {
         var q = from x in default select x;
+        var p = from x in new int[] { 1 } select default;
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular7_1);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (5,35): error CS9001: Use of default literal is not valid in this context
+                // (6,35): error CS9001: Use of default literal is not valid in this context
                 //         var q = from x in default select x;
-                Diagnostic(ErrorCode.ERR_DefaultLiteralNotValid, "select x").WithLocation(5, 35)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNotValid, "select x").WithLocation(6, 35),
+                // (7,43): error CS1942: The type of the expression in the select clause is incorrect.  Type inference failed in the call to 'Select'.
+                //         var p = from x in new int[] { 1 } select default;
+                Diagnostic(ErrorCode.ERR_QueryTypeInferenceFailed, "select").WithArguments("select", "Select").WithLocation(7, 43)
                 );
         }
 
@@ -955,6 +1219,26 @@ class C
                 Diagnostic(ErrorCode.WRN_AlwaysNull, "default as string").WithArguments("string").WithLocation(6, 56)
                 );
             CompileAndVerify(comp, expectedOutput: "True True");
+        }
+
+        [Fact]
+        public void DefaultInputToTypeTest()
+        {
+            var text = @"
+static class C
+{
+    static void M()
+    {
+        System.Console.Write(default is C);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                //         System.Console.Write(default is C);
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is C").WithArguments("is", "default").WithLocation(6, 30)
+                );
         }
 
         [Fact]
