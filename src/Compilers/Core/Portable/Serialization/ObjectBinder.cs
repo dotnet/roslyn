@@ -75,7 +75,7 @@ namespace Roslyn.Utilities
                 // then we don't want to keep around this version in the pool.  
                 if (state.Version == s_version)
                 {
-                    if (s_pool.Count < 128)
+                    if (s_pool.Count < 32)
                     {
                         s_pool.Push(state);
                     }
