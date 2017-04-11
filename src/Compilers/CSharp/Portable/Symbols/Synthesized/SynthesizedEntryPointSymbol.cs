@@ -338,23 +338,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // A synthesized entrypoint that forwards all calls to an async Main Method
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {
-            // The user-defined asyncrhonous main method.
+            // The user-defined asynchronous main method.
             private readonly MethodSymbol _userMain;
-
-            private readonly ReturnKind _returnKind;
 
             private readonly MethodSymbol _getAwaiterMethod;
             private readonly MethodSymbol _getResultMethod;
 
             private readonly ImmutableArray<ParameterSymbol> _parameters;
-
-            // Which "kind" of Main is this: `void Main` or `int Main`?
-            // This is determined by looking at the return type of the user-provided Main
-            private enum ReturnKind
-            {
-                VoidReturning,
-                IntReturning,
-            }
 
             // Task -> Void
             // Task<_> -> Int32
@@ -365,13 +355,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     : compilation.GetSpecialType(SpecialType.System_Void);
             }
 
-            // Task -> ReturnKind.VoidReturning
-            // Task<_> -> ReturnKind.IntReturning
-            private static ReturnKind GetReturnKind(CSharpCompilation compilation, TypeSymbol returnType)
-            {
-                return returnType.IsGenericTaskType(compilation) ? ReturnKind.IntReturning : ReturnKind.VoidReturning;
-            }
-
             internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, MethodSymbol userMain) :
                 base(containingType, TranslateReturnType(compilation, userMain.ReturnType))
             {
@@ -380,7 +363,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(userMain.ParameterCount == 0 || userMain.ParameterCount == 1);
 
                 _userMain = userMain;
-                _returnKind = GetReturnKind(compilation, userMain.ReturnType);
 
                 // Does this main method need to forward arguments to the user-provided Main?
                 if (userMain.ParameterCount == 1)
@@ -413,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var syntax = this.GetSyntax();
 
-                var arguments = Parameters.SelectAsArray(p => (BoundExpression) new BoundParameter(syntax, p, p.Type));
+                var arguments = Parameters.SelectAsArray(p => (BoundExpression)new BoundParameter(syntax, p, p.Type));
 
                 // Main(args) or Main()
                 BoundCall userMainInvocation = new BoundCall(
@@ -444,41 +426,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             )
                     );
 
-                BoundStatement statement = null;
-                switch (_returnKind)
+                if (ReturnsVoid)
                 {
-                    case ReturnKind.IntReturning:
-                        // return (GetAwaiter().GetResult())
-                        statement = new BoundReturnStatement(
-                            syntax: syntax,
-                            refKind: RefKind.None,
-                            expressionOpt: getAwaiterGetResult
-                        );
-                        break;
-                    case ReturnKind.VoidReturning:
-                        // { GetAwaiter().GetResult(); return; }
-                        statement = new BoundBlock(
-                            syntax: syntax,
-                            locals: ImmutableArray<LocalSymbol>.Empty,
-                            statements: ImmutableArray.Create<BoundStatement>(
-                                new BoundExpressionStatement(
-                                    syntax: syntax,
-                                    expression: getAwaiterGetResult
-                                ),
-                                new BoundReturnStatement(
-                                    syntax: syntax,
-                                    refKind: RefKind.None,
-                                    expressionOpt: null
-                                )
+                    return new BoundBlock(
+                        syntax: syntax,
+                        locals: ImmutableArray<LocalSymbol>.Empty,
+                        statements: ImmutableArray.Create<BoundStatement>(
+                            new BoundExpressionStatement(
+                                syntax: syntax,
+                                expression: getAwaiterGetResult
+                            ),
+                            new BoundReturnStatement(
+                                syntax: syntax,
+                                refKind: RefKind.None,
+                                expressionOpt: null
                             )
-                        );
-                        break;
-                };
+                        )
+                    );
 
-                return new BoundBlock(
-                    syntax: syntax,
-                    locals: ImmutableArray<LocalSymbol>.Empty,
-                    statements: ImmutableArray.Create<BoundStatement>(statement));
+                }
+                else
+                {
+                    return new BoundBlock(
+                        syntax: syntax,
+                        locals: ImmutableArray<LocalSymbol>.Empty,
+                        statements: ImmutableArray.Create<BoundStatement>(
+                            new BoundReturnStatement(
+                                syntax: syntax,
+                                refKind: RefKind.None,
+                                expressionOpt: getAwaiterGetResult
+                            )
+                        )
+                    );
+                }
             }
         }
 
