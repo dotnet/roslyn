@@ -31,7 +31,7 @@ namespace Roslyn.Utilities
         /// data so that <see cref="ObjectReader"/> and <see cref="ObjectWriter"/> do not need to
         /// take any locks while processing.
         /// </summary>
-        private static readonly Stack<ObjectBinderState> s_pool = new Stack<ObjectBinderState>();
+        private static readonly Stack<ObjectBinderSnapshot> s_pool = new Stack<ObjectBinderSnapshot>();
 
         /// <summary>
         /// Map from a <see cref="Type"/> to the corresponding index in <see cref="s_types"/> and
@@ -47,7 +47,7 @@ namespace Roslyn.Utilities
         /// Gets an immutable copy of the state of this binder.  This copy does not need to be
         /// locked while it is used.
         /// </summary>
-        public static ObjectBinderState AllocateStateCopy()
+        public static ObjectBinderSnapshot AllocateStateCopy()
         {
             lock (s_gate)
             {
@@ -58,7 +58,7 @@ namespace Roslyn.Utilities
                 }
 
                 // Otherwise, create copy from our current state and return that.
-                var state = new ObjectBinderState(
+                var state = new ObjectBinderSnapshot(
                     s_version, 
                     s_typeToIndex.ToDictionary(kvp => kvp.Key, kvp.kvp.Value),
                     s_types.ToImmutableArray(), s_typeReaders.ToImmutableArray());
@@ -67,7 +67,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static void FreeStateCopy(ObjectBinderState state)
+        public static void FreeStateCopy(ObjectBinderSnapshot state)
         {
             lock (s_gate)
             {

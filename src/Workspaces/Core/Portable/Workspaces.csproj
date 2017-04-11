@@ -195,8 +195,8 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinderState.cs">
-      <Link>Serialization\ObjectBinderState.cs</Link>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinderSnapshot.cs">
+      <Link>Serialization\ObjectBinderSnapshot.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs">
       <Link>Serialization\ObjectReader.cs</Link>

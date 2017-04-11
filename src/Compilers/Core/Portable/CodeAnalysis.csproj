@@ -139,7 +139,7 @@
     <Compile Include="Operations\UnaryOperationKind.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />
     <Compile Include="Serialization\ObjectBinder.cs" />
-    <Compile Include="Serialization\ObjectBinderState.cs" />
+    <Compile Include="Serialization\ObjectBinderSnapshot.cs" />
     <Compile Include="Serialization\ObjectReader.cs" />
     <Compile Include="Serialization\ObjectWriter.cs" />
     <Compile Include="Symbols\IDiscardSymbol.cs" />

@@ -49,7 +49,7 @@ namespace Roslyn.Utilities
         /// that means that <see cref="ObjectBinder"/> is both static and locked.  This gives us 
         /// local copy we can work with without needing to worry about anyone else mutating.
         /// </summary>
-        private readonly ObjectBinderState _binderState;
+        private readonly ObjectBinderSnapshot _binderSnapshot;
 
         private int _recursionDepth;
 
@@ -72,7 +72,7 @@ namespace Roslyn.Utilities
 
             // Capture a copy of the current static binder state.  That way we don't have to 
             // access any locks while we're doing our processing.
-            _binderState = ObjectBinder.AllocateStateCopy();
+            _binderSnapshot = ObjectBinder.AllocateStateCopy();
 
             _cancellationToken = cancellationToken;
         }
@@ -102,7 +102,7 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            ObjectBinder.FreeStateCopy(_binderState);
+            ObjectBinder.FreeStateCopy(_binderSnapshot);
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
             _recursionDepth = 0;
@@ -575,12 +575,12 @@ namespace Roslyn.Utilities
         }
 
         private Type ReadTypeAfterTag()
-            => _binderState.GetTypeFromId(this.ReadInt32());
+            => _binderSnapshot.GetTypeFromId(this.ReadInt32());
 
         private Func<ObjectReader, object> ReadTypeReader()
         {
             _reader.ReadByte();
-            return _binderState.GetTypeReaderFromId(this.ReadInt32());
+            return _binderSnapshot.GetTypeReaderFromId(this.ReadInt32());
         }
 
         private object ReadObject()
