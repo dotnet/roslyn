@@ -60,7 +60,7 @@ namespace Roslyn.Utilities
                 // Otherwise, create copy from our current state and return that.
                 var state = new ObjectBinderSnapshot(
                     s_version, 
-                    s_typeToIndex.ToDictionary(kvp => kvp.Key, kvp.kvp.Value),
+                    s_typeToIndex.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                     s_types.ToImmutableArray(), s_typeReaders.ToImmutableArray());
 
                 return state;
