@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableTitle,
             s_localizableMessage,
             AnalyzerDiagnosticCategory.AnalyzerCorrectness,
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);

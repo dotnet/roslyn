@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Analyzers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             s_localizableTitle,
             s_localizableMessage,
             AnalyzerDiagnosticCategory.AnalyzerCorrectness,
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);

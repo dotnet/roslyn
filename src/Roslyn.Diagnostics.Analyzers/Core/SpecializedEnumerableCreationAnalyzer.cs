@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -26,7 +27,7 @@ namespace Roslyn.Diagnostics.Analyzers
             s_localizableTitleUseEmptyEnumerable,
             s_localizableMessageUseEmptyEnumerable,
             "Performance",
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -38,7 +39,7 @@ namespace Roslyn.Diagnostics.Analyzers
             s_localizableTitleUseSingletonEnumerable,
             s_localizableMessageUseSingletonEnumerable,
             "Performance",
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 

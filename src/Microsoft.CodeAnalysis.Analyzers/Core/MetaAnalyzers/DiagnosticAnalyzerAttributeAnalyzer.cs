@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableTitleMissingAttribute,
             s_localizableMessageMissingAttribute,
             AnalyzerDiagnosticCategory.AnalyzerCorrectness,
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             description: s_localizableDescriptionMissingAttribute,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableTitleAddLanguageSupportToAnalyzer,
             s_localizableMessageAddLanguageSupportToAnalyzer,
             AnalyzerDiagnosticCategory.AnalyzerCorrectness,
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             description: s_localizableDescriptionAddLanguageSupportToAnalyzer,
             customTags: WellKnownDiagnosticTags.Telemetry);

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -28,7 +29,7 @@ namespace Roslyn.Diagnostics.Analyzers
             title: RoslynDiagnosticsAnalyzersResources.DeclarePublicApiTitle,
             messageFormat: RoslynDiagnosticsAnalyzersResources.DeclarePublicApiMessage,
             category: "ApiDesign",
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             description: RoslynDiagnosticsAnalyzersResources.DeclarePublicApiDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -38,7 +39,7 @@ namespace Roslyn.Diagnostics.Analyzers
             title: RoslynDiagnosticsAnalyzersResources.RemoveDeletedApiTitle,
             messageFormat: RoslynDiagnosticsAnalyzersResources.RemoveDeletedApiMessage,
             category: "ApiDesign",
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             description: RoslynDiagnosticsAnalyzersResources.RemoveDeletedApiDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -48,7 +49,7 @@ namespace Roslyn.Diagnostics.Analyzers
             title: RoslynDiagnosticsAnalyzersResources.ExposedNoninstantiableTypeTitle,
             messageFormat: RoslynDiagnosticsAnalyzersResources.ExposedNoninstantiableTypeMessage,
             category: "ApiDesign",
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -57,7 +58,7 @@ namespace Roslyn.Diagnostics.Analyzers
             title: RoslynDiagnosticsAnalyzersResources.PublicApiFilesInvalidTitle,
             messageFormat: RoslynDiagnosticsAnalyzersResources.PublicApiFilesInvalidMessage,
             category: "ApiDesign",
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -66,7 +67,7 @@ namespace Roslyn.Diagnostics.Analyzers
             title: RoslynDiagnosticsAnalyzersResources.DuplicateSymbolsInPublicApiFilesTitle,
             messageFormat: RoslynDiagnosticsAnalyzersResources.DuplicateSymbolsInPublicApiFilesMessage,
             category: "ApiDesign",
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -75,7 +76,7 @@ namespace Roslyn.Diagnostics.Analyzers
             title: RoslynDiagnosticsAnalyzersResources.AvoidMultipleOverloadsWithOptionalParametersTitle,
             messageFormat: RoslynDiagnosticsAnalyzersResources.AvoidMultipleOverloadsWithOptionalParametersMessage,
             category: "ApiDesign",
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             helpLinkUri: @"https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -85,7 +86,7 @@ namespace Roslyn.Diagnostics.Analyzers
             title: RoslynDiagnosticsAnalyzersResources.OverloadWithOptionalParametersShouldHaveMostParametersTitle,
             messageFormat: RoslynDiagnosticsAnalyzersResources.OverloadWithOptionalParametersShouldHaveMostParametersMessage,
             category: "ApiDesign",
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             helpLinkUri: @"https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
             customTags: WellKnownDiagnosticTags.Telemetry);

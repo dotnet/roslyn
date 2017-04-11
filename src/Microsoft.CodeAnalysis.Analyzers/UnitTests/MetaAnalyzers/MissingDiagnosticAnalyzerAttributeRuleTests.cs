@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers;
@@ -254,7 +255,7 @@ End Class
             {
                 Id = DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId,
                 Message = string.Format(CodeAnalysisDiagnosticsResources.MissingAttributeMessage, DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName),
-                Severity = DiagnosticSeverity.Warning,
+                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
                 Locations = new[]
                 {
                     new DiagnosticResultLocation(fileName, line, column)

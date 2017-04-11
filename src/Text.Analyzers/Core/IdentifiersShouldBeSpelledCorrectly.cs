@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -37,7 +38,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageAssembly,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -46,7 +47,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageNamespace,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -55,7 +56,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageType,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -64,7 +65,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageMember,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -73,7 +74,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageMemberParameter,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -82,7 +83,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageDelegateParameter,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -91,7 +92,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageTypeTypeParameter,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -100,7 +101,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageMethodTypeParameter,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -109,7 +110,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageAssemblyMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -118,7 +119,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageNamespaceMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -127,7 +128,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageTypeMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -136,7 +137,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageMemberMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -145,7 +146,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageMemberParameterMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -154,7 +155,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageDelegateParameterMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -163,7 +164,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageTypeTypeParameterMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url
@@ -172,7 +173,7 @@ namespace Text.Analyzers
                                                                              s_localizableTitle,
                                                                              s_localizableMessageMethodTypeParameterMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
-                                                                             DiagnosticSeverity.Warning,
+                                                                             DiagnosticHelpers.DefaultDiagnosticSeverity,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
                                                                              helpLinkUri: null,     // TODO: add MSDN url

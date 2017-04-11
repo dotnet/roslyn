@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             s_localizableCreateCodeActionWithEquivalenceKeyTitle,
             s_localizableCreateCodeActionWithEquivalenceKeyMessage,
             "Correctness",
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             s_localizableOverrideCodeActionEquivalenceKeyTitle,
             s_localizableOverrideCodeActionEquivalenceKeyMessage,
             "Correctness",
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);

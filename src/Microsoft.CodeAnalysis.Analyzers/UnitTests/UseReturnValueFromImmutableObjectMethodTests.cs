@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Analyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Analyzer.Utilities;
 using Test.Utilities;
 using Xunit;
 
@@ -123,7 +124,7 @@ namespace ConsoleApplication1
             {
                 Id = DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation,
                 Message = string.Format(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage, objectName, methodName),
-                Severity = DiagnosticSeverity.Warning,
+                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
                 Locations = new[]
                 {
                     new DiagnosticResultLocation(fileName, line, column)

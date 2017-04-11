@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableTitleMissingKindArgument,
             s_localizableMessageMissingSymbolKindArgument,
             AnalyzerDiagnosticCategory.AnalyzerCorrectness,
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             description: s_localizableDescriptionMissingKindArgument,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableTitleMissingKindArgument,
             s_localizableMessageMissingSyntaxKindArgument,
             AnalyzerDiagnosticCategory.AnalyzerCorrectness,
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             description: s_localizableDescriptionMissingKindArgument,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableTitleMissingKindArgument,
             s_localizableMessageMissingOperationKindArgument,
             AnalyzerDiagnosticCategory.AnalyzerCorrectness,
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             description: s_localizableDescriptionMissingKindArgument,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableTitleUnsupportedSymbolKindArgument,
             s_localizableMessageUnsupportedSymbolKindArgument,
             AnalyzerDiagnosticCategory.AnalyzerCorrectness,
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableTitleInvalidSyntaxKindTypeArgument,
             s_localizableMessageInvalidSyntaxKindTypeArgument,
             AnalyzerDiagnosticCategory.AnalyzerCorrectness,
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             description: s_localizableDescriptionInvalidSyntaxKindTypeArgument,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableTitleStartActionWithNoRegisteredActions,
             s_localizableMessageStartActionWithNoRegisteredActions,
             AnalyzerDiagnosticCategory.AnalyzerPerformance,
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             description: s_localizableDescriptionStatefulAnalyzerRegisterActionsDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableTitleStartActionWithOnlyEndAction,
             s_localizableMessageStartActionWithOnlyEndAction,
             AnalyzerDiagnosticCategory.AnalyzerPerformance,
-            DiagnosticSeverity.Warning,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: true,
             description: s_localizableDescriptionStatefulAnalyzerRegisterActionsDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);

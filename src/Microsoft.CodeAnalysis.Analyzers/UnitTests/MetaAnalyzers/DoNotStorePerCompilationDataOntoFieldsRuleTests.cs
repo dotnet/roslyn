@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
@@ -285,7 +286,7 @@ End Class
             {
                 Id = DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId,
                 Message = string.Format(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsMessage, violatingTypeName),
-                Severity = DiagnosticSeverity.Warning,
+                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
                 Locations = new[]
                 {
                     new DiagnosticResultLocation(fileName, line, column)

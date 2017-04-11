@@ -25,6 +25,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Analyzer.Utilities\Analyzer.Utilities.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Update="TextAnalyzersResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
