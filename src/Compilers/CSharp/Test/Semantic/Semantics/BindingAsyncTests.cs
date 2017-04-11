@@ -1222,6 +1222,31 @@ interface IInterface
         }
 
         [Fact]
+        public void BackCompatAsyncMain()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    async static Task Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => { });
+    }
+    static void Main(){}
+}";
+
+            foreach (var langVersion in new LanguageVersion[] { LanguageVersion.CSharp7, LanguageVersion.CSharp7_1})
+            {
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+                compilation.VerifyDiagnostics();
+                var entry = compilation.GetEntryPoint(CancellationToken.None);
+                Assert.NotNull(entry);
+                Assert.Equal("void A.Main()", entry.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
         public void MainCanBeAsyncWithArgs()
         {
             var origSource = @"

@@ -1454,7 +1454,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 DiagnosticBag warnings = DiagnosticBag.GetInstance();
+                DiagnosticBag possibleAsyncMainDiagnostics = DiagnosticBag.GetInstance();
                 var viableEntryPoints = ArrayBuilder<MethodSymbol>.GetInstance();
+                bool asyncOk = true;
                 foreach (var candidate in entryPointCandidates)
                 {
                     if (!candidate.HasEntryPointSignature(this))
@@ -1474,7 +1476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (candidate.IsAsync)
                     {
                         // PROTOTYPE(async-main): Get the diagnostic to point to a smaller syntax piece.
-                        CheckFeatureAvailability(candidate.DeclaringSyntaxReferences.Single().GetSyntax(), MessageID.IDS_FeatureAsyncMain, diagnostics);
+                        asyncOk &= CheckFeatureAvailability(candidate.DeclaringSyntaxReferences.Single().GetSyntax(), MessageID.IDS_FeatureAsyncMain, possibleAsyncMainDiagnostics);
                     }
 
                     viableEntryPoints.Add(candidate);
@@ -1488,8 +1490,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 warnings.Free();
 
                 MethodSymbol entryPoint = null;
-                if (viableEntryPoints.Count == 0)
+
+                int nonAsyncMainEntryPointCount = viableEntryPoints.Where(c => !c.IsAsync).Count();
+                int asyncMainEntryPointCount = viableEntryPoints.Count - nonAsyncMainEntryPointCount;
+
+                if (nonAsyncMainEntryPointCount == 0 && asyncMainEntryPointCount == 0)
                 {
+                    diagnostics.AddRangeAndFree(possibleAsyncMainDiagnostics);
                     if ((object)mainType == null)
                     {
                         diagnostics.Add(ErrorCode.ERR_NoEntryPoint, NoLocation.Singleton);
@@ -1499,7 +1506,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.ERR_NoMainInClass, mainType.Locations.First(), mainType);
                     }
                 }
-                else if (viableEntryPoints.Count > 1)
+                else if (nonAsyncMainEntryPointCount == 1) 
+                {
+                    entryPoint = viableEntryPoints.Where(c => !c.IsAsync).Single();
+                }
+                else if (nonAsyncMainEntryPointCount == 0 && asyncMainEntryPointCount == 1)
+                {
+                    diagnostics.AddRangeAndFree(possibleAsyncMainDiagnostics);
+                    entryPoint = viableEntryPoints.Single();
+                }
+                else if (nonAsyncMainEntryPointCount == 0 && !asyncOk)
+                {
+                    diagnostics.AddRangeAndFree(possibleAsyncMainDiagnostics);
+                }
+                else
                 {
                     viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance);
                     var info = new CSDiagnosticInfo(
@@ -1507,12 +1527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          args: Array.Empty<object>(),
                          symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
                          additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
-
                     diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
-                }
-                else
-                {
-                    entryPoint = viableEntryPoints[0];
                 }
 
                 viableEntryPoints.Free();

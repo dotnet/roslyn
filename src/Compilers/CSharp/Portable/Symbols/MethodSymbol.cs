@@ -626,8 +626,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool HasEntryPointSignature(CSharpCompilation compilation)
         {
-
-
             if (IsVararg)
             {
                 return false;
