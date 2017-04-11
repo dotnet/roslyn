@@ -534,5 +534,176 @@ IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <Fact()>
+        Public Sub Error_MissingRequiredArgument()
+            Dim source = <![CDATA[
+Class P
+    Sub M1()
+        M2()'BIND:"M2()"
+    End Sub
+
+    Sub M2(x As Integer, Optional y As Integer = 0, Optional z As Integer = 0)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2()')
+  Children(1): IOperation:  (OperationKind.None) (Syntax: 'M2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30455: Argument not specified for parameter 'x' of 'Public Sub M2(x As Integer, [y As Integer = 0], [z As Integer = 0])'.
+        M2()'BIND:"M2()"
+        ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact()>
+        Public Sub Error_TooManyArguments()
+            Dim source = <![CDATA[
+Class P
+    Sub M1()
+        M2(1, 2)'BIND:"M2(1, 2)"
+    End Sub
+
+    Sub M2(x As Integer)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1, 2)')
+  Children(3): IOperation:  (OperationKind.None) (Syntax: 'M2')
+    ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30057: Too many arguments to 'Public Sub M2(x As Integer)'.
+        M2(1, 2)'BIND:"M2(1, 2)"
+              ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact()>
+        Public Sub Error_ExtraOmittedArgument()
+            Dim source = <![CDATA[
+Class P
+    Sub M1()
+        M2(0,,,)'BIND:"M2(0,,,)"
+    End Sub
+
+    Sub M2(x As Integer, Optional y As Integer = 0, Optional z As Integer = 0)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(0,,,)')
+  Children(5): IOperation:  (OperationKind.None) (Syntax: 'M2')
+    ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    IOmittedArgumentExpression (OperationKind.OmittedArgumentExpression, Type: null) (Syntax: '')
+    IOmittedArgumentExpression (OperationKind.OmittedArgumentExpression, Type: null) (Syntax: '')
+    IOmittedArgumentExpression (OperationKind.OmittedArgumentExpression, Type: null) (Syntax: '')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30057: Too many arguments to 'Public Sub M2(x As Integer, [y As Integer = 0], [z As Integer = 0])'.
+        M2(0,,,)'BIND:"M2(0,,,)"
+               ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact()>
+        Public Sub Error_OmittingParamArrayArgument()
+            Dim source = <![CDATA[
+Class P
+    Sub M1()
+        M2(0, )'BIND:"M2(0, )"
+    End Sub
+
+    Sub M2(x As Integer, ParamArray array As Integer())
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(0, )')
+  Children(3): IOperation:  (OperationKind.None) (Syntax: 'M2')
+    ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    IOmittedArgumentExpression (OperationKind.OmittedArgumentExpression, Type: null) (Syntax: '')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30588: Omitted argument cannot match a ParamArray parameter.
+        M2(0, )'BIND:"M2(0, )"
+              ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact()>
+        Public Sub Error_NamedArgumentMatchingParamArray()
+            Dim source = <![CDATA[
+Class P
+    Sub M1()
+        Dim a = New Integer() {}
+        M2(x:=0, array:=a)'BIND:"M2(x:=0, array:=a)"
+    End Sub
+
+    Sub M2(x As Integer, ParamArray array As Integer())
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(x:=0, array:=a)')
+  Children(3): IOperation:  (OperationKind.None) (Syntax: 'M2')
+    ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'a')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30587: Named argument cannot match a ParamArray parameter.
+        M2(x:=0, array:=a)'BIND:"M2(x:=0, array:=a)"
+                 ~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact()>
+        Public Sub Error_NamedArgumenNotExist()
+            Dim source = <![CDATA[
+Class P
+    Sub M1()
+        M2(y:=1)'BIND:"M2(y:=1)"
+    End Sub
+
+    Sub M2(x As Integer)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(y:=1)')
+  Children(2): IOperation:  (OperationKind.None) (Syntax: 'M2')
+    ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30455: Argument not specified for parameter 'x' of 'Public Sub M2(x As Integer)'.
+        M2(y:=1)'BIND:"M2(y:=1)"
+        ~~
+BC30272: 'y' is not a parameter of 'Public Sub M2(x As Integer)'.
+        M2(y:=1)'BIND:"M2(y:=1)"
+           ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
     End Class
 End Namespace
