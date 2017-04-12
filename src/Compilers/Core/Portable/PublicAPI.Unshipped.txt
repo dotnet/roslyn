@@ -1,6 +1,3 @@
-*REMOVED*override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitCatch(Microsoft.CodeAnalysis.Semantics.ICatchClause operation) -> void
-*REMOVED*virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitCatch(Microsoft.CodeAnalysis.Semantics.ICatchClause operation) -> void
-*REMOVED*virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitCatch(Microsoft.CodeAnalysis.Semantics.ICatchClause operation, TArgument argument) -> TResult
 Microsoft.CodeAnalysis.CommandLineReference.CommandLineReference(string reference, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void
 Microsoft.CodeAnalysis.CommandLineSourceFile.CommandLineSourceFile(string path, bool isScript) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
