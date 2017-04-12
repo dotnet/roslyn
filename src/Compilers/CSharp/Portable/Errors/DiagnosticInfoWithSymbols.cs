@@ -1,6 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
+using static System.Linq.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -19,6 +23,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(CSharp.MessageProvider.Instance, isWarningAsError, (int)errorCode, arguments)
         {
             this.Symbols = symbols;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is DiagnosticInfoWithSymbols diws && 
+                   this.Symbols.SequenceEqual(diws.Symbols) &&
+                   base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(Hash.CombineValues(Symbols), base.GetHashCode());
         }
     }
 }

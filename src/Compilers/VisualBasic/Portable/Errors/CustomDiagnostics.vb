@@ -53,6 +53,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Dim bsd = TryCast(obj, BadSymbolDiagnostic)
+            If bsd IsNot Nothing Then
+                Return Me._badSymbol = bsd._badSymbol AndAlso MyBase.Equals(obj)
+            End If
+            Return False
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return Hash.Combine(Me._badSymbol, MyBase.GetHashCode())
+        End Function
     End Class
 
     ''' <summary>
@@ -98,6 +109,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return builder.ToImmutableAndFree()
             End Get
         End Property
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Dim asd = TryCast(obj, AmbiguousSymbolDiagnostic)
+            If asd IsNot Nothing Then
+                Return _symbols.SequenceEqual(asd._symbols) AndAlso
+                    MyBase.Equals(obj)
+            End If
+            Return False
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return Hash.Combine(Hash.CombineValues(Me._symbols), MyBase.GetHashCode())
+        End Function
     End Class
 End Namespace
 

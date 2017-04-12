@@ -344,7 +344,7 @@ public class OKImpl : I
 
             main.VerifyDiagnostics(
                 // (23,18): warning CS1701: Assuming assembly reference 'Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'RefLibV1' matches identity 'Lib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'Lib', you may need to supply runtime policy
-                // public class Z : S2                             // error: S2 ~> I in implements 
+                // public class Z : S2                             // error: S2 ~> I in implements
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "S2").WithArguments("Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "RefLibV1", "Lib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "Lib"),
                 // (7,21): warning CS1701: Assuming assembly reference 'Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'RefLibV1' matches identity 'Lib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'Lib', you may need to supply runtime policy
                 //         var r = new R(null);                    // error: C in parameter
@@ -2026,8 +2026,7 @@ public class Source
 ";
 
             var comp = CreateCompilationWithMscorlib(source, new[] { new CSharpCompilationReference(libAv1), new CSharpCompilationReference(libBv2) });
-            comp.VerifyDiagnostics(
-                // (7,17): warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+            comp.VerifyDiagnostics(// (7,17): warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
                 //         int x = a[null];
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a[null]").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
         }

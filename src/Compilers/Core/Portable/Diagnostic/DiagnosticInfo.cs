@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis
                 this.GetMessage(formatProvider));
         }
 
-        public sealed override int GetHashCode()
+        public override int GetHashCode()
         {
             int hashCode = _errorCode;
             if (_arguments != null)
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis
             return hashCode;
         }
 
-        public sealed override bool Equals(object obj)
+        public override bool Equals(object obj)
         {
             DiagnosticInfo other = obj as DiagnosticInfo;
 
