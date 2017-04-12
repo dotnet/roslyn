@@ -1491,12 +1491,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 MethodSymbol entryPoint = null;
 
-                int nonAsyncMainEntryPointCount = viableEntryPoints.Where(c => !c.IsAsync).Count();
-                int asyncMainEntryPointCount = viableEntryPoints.Count - nonAsyncMainEntryPointCount;
+                int nonAsyncCount = viableEntryPoints.Where(c => !c.IsAsync).Count();
+                int asyncCount = viableEntryPoints.Count - nonAsyncCount;
 
-                if (nonAsyncMainEntryPointCount == 0 && asyncMainEntryPointCount == 0)
+                if (nonAsyncCount == 0 && asyncCount == 0)
                 {
-                    diagnostics.AddRangeAndFree(possibleAsyncMainDiagnostics);
+                    diagnostics.AddRange(possibleAsyncMainDiagnostics);
                     if ((object)mainType == null)
                     {
                         diagnostics.Add(ErrorCode.ERR_NoEntryPoint, NoLocation.Singleton);
@@ -1506,18 +1506,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.ERR_NoMainInClass, mainType.Locations.First(), mainType);
                     }
                 }
-                else if (nonAsyncMainEntryPointCount == 1)
+                else if (nonAsyncCount == 1)
                 {
                     entryPoint = viableEntryPoints.Where(c => !c.IsAsync).Single();
                 }
-                else if (nonAsyncMainEntryPointCount == 0 && asyncMainEntryPointCount == 1)
+                else if (nonAsyncCount == 0 && asyncCount == 1)
                 {
-                    diagnostics.AddRangeAndFree(possibleAsyncMainDiagnostics);
+                    diagnostics.AddRange(possibleAsyncMainDiagnostics);
                     entryPoint = viableEntryPoints.Single();
                 }
-                else if (nonAsyncMainEntryPointCount == 0 && !asyncOk)
+                else if (nonAsyncCount == 0 && !asyncOk)
                 {
-                    diagnostics.AddRangeAndFree(possibleAsyncMainDiagnostics);
+                    diagnostics.AddRange(possibleAsyncMainDiagnostics);
                 }
                 else
                 {
@@ -1530,6 +1530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
                 }
 
+                possibleAsyncMainDiagnostics.Free();
                 viableEntryPoints.Free();
                 return entryPoint;
             }

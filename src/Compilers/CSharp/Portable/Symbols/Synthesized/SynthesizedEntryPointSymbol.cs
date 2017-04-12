@@ -363,18 +363,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(userMain.ParameterCount == 0 || userMain.ParameterCount == 1);
 
                 _userMain = userMain;
-
-                // Does this main method need to forward arguments to the user-provided Main?
-                if (userMain.ParameterCount == 1)
-                {
-                    var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                    var stringArrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, stringType);
-                }
-                else
-                {
-                    Debug.Assert(userMain.ParameterCount == 0);
-                }
-
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
 
                 var userMainLocation = userMain.DeclaringSyntaxReferences.SingleOrDefault()?.GetLocation();
@@ -411,7 +399,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         resultKind: LookupResultKind.Viable,
                         type: _userMain.ReturnType)
                 { WasCompilerGenerated = true };
-
 
                 // GetAwaiter().GetResult()
                 BoundCall getAwaiterGetResult =
