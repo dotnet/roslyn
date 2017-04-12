@@ -151,7 +151,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Contains(@"public System.Windows.Forms.Button SomeButton;", actualText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18602"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void DeleteControl()
         {
             var project = new ProjectUtils.Project(ProjectName);

@@ -428,7 +428,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var componentChangeService = (IComponentChangeService)designerHost;
                 void ComponentAdded(object sender, ComponentEventArgs e)
                 {
-                    var control = e.Component as System.Windows.Forms.Control;
+                    var control = (System.Windows.Forms.Control)e.Component;
                     if (control.Name == buttonName)
                     {
                         waitHandle.Set();
@@ -462,7 +462,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var componentChangeService = (IComponentChangeService)designerHost;
                 void ComponentRemoved(object sender, ComponentEventArgs e)
                 {
-                    var control = e.Component as System.Windows.Controls.Control;
+                    var control = (System.Windows.Forms.Control)e.Component;
                     if (control.Name == buttonName)
                     {
                         waitHandle.Set();
