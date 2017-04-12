@@ -1496,7 +1496,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (nonAsyncCount == 0 && asyncCount == 0)
                 {
-                    diagnostics.AddRange(possibleAsyncMainDiagnostics);
                     if ((object)mainType == null)
                     {
                         diagnostics.Add(ErrorCode.ERR_NoEntryPoint, NoLocation.Singleton);
