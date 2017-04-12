@@ -20,7 +20,5 @@ Microsoft.CodeAnalysis.Semantics.IInvalidExpression.Children.get -> System.Colle
 Microsoft.CodeAnalysis.Semantics.IInvalidStatement.Children.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitCatchClause(Microsoft.CodeAnalysis.Semantics.ICatchClause operation) -> void
 static Microsoft.CodeAnalysis.Compilation.GetRequiredLanguageVersion(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> string
-static Microsoft.CodeAnalysis.Semantics.OperationExtensions.ArgumentsInParameterOrder(this Microsoft.CodeAnalysis.Semantics.IHasArgumentsExpression hasArgumentsExpression) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
-static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetArgumentMatchingParameter(this Microsoft.CodeAnalysis.Semantics.IHasArgumentsExpression hasArgumentsExpression, Microsoft.CodeAnalysis.IParameterSymbol parameter) -> Microsoft.CodeAnalysis.Semantics.IArgument
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitCatchClause(Microsoft.CodeAnalysis.Semantics.ICatchClause operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitCatchClause(Microsoft.CodeAnalysis.Semantics.ICatchClause operation, TArgument argument) -> TResult
