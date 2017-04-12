@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         internal override CompletionProvider CreateCompletionProvider()
         {
-            return new ExplicitInterfaceCompletionProvider();
+            return new ExplicitInterfaceMemberCompletionProvider();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

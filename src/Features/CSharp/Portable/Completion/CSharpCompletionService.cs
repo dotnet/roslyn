@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new NamedParameterCompletionProvider(),
                 new KeywordCompletionProvider(),
                 new SymbolCompletionProvider(),
-                new ExplicitInterfaceCompletionProvider(),
+                new ExplicitInterfaceMemberCompletionProvider(),
                 new ObjectCreationCompletionProvider(),
                 new ObjectInitializerCompletionProvider(),
                 new SpeculativeTCompletionProvider(),
