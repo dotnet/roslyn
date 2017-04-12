@@ -55,6 +55,7 @@ class Program
     }
 }");
             VisualStudio.Editor.SendKeys(" +=", VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.EventHookup);
             var expectedMarkup = @"
 using System;
 
