@@ -75,7 +75,7 @@ class Program
 }
 ");
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("using System;", applyFix: true, blockUntilComplete: false);
+            VisualStudio.Editor.Verify.CodeAction("using System;", applyFix: true, blockUntilComplete: true);
             VisualStudio.Editor.InvokeCodeActionListWithoutWaiting();
             VisualStudio.Editor.Verify.CodeAction("Simplify name 'System.ArgumentException'", applyFix: true, blockUntilComplete: true);
 
