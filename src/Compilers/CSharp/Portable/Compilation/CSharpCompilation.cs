@@ -1491,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 MethodSymbol entryPoint = null;
 
-                int nonAsyncCount = viableEntryPoints.Where(c => !c.IsAsync).Count();
+                int nonAsyncCount = viableEntryPoints.Count(c => !c.IsAsync);
                 int asyncCount = viableEntryPoints.Count - nonAsyncCount;
 
                 if (nonAsyncCount == 0 && asyncCount == 0)
@@ -1508,7 +1508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (nonAsyncCount == 1)
                 {
-                    entryPoint = viableEntryPoints.Where(c => !c.IsAsync).Single();
+                    entryPoint = viableEntryPoints.Single(c => !c.IsAsync);
                 }
                 else if (nonAsyncCount == 0 && asyncCount == 1)
                 {
