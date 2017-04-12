@@ -776,7 +776,6 @@ End Module
     <Fact>
     <WorkItem(405887, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
     Public Sub IncrementalParseInterpolationInSingleLineIf()
-        ' The code below intentionally is missing a space between the "Then" and "Console"
         Dim code As String = (<![CDATA[
 Module Module1
     Sub Test1(val1 As Integer)
