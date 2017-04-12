@@ -8,8 +8,6 @@
     <PackageTargetFallback>portable-net45+win8+wp8+wpa81</PackageTargetFallback>
     <AnalyzerProject>true</AnalyzerProject>
     <AssemblyName>Roslyn.Diagnostics.VisualBasic.Analyzers</AssemblyName>
-    <SemanticVersion>$(RoslynDiagnosticsAnalyzersSemanticVersion)</SemanticVersion>
-    <PreReleaseVersion>$(RoslynDiagnosticsAnalyzersPreReleaseVersion)</PreReleaseVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Analyzer.Utilities\Analyzer.Utilities.csproj" />

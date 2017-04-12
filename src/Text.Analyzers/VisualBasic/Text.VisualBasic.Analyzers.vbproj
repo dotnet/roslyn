@@ -8,8 +8,6 @@
     <PackageTargetFallback>portable-net45+win8+wp8+wpa81</PackageTargetFallback>
     <AnalyzerProject>true</AnalyzerProject>
     <AssemblyName>Text.VisualBasic.Analyzers</AssemblyName>
-    <SemanticVersion>$(TextAnalyzersSemanticVersion)</SemanticVersion>
-    <PreReleaseVersion>$(TextAnalyzersPreReleaseVersion)</PreReleaseVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Text.Analyzers.Core.csproj" />

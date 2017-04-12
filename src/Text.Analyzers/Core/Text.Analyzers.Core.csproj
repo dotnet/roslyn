@@ -10,8 +10,6 @@
     <RootNamespace>Text.Analyzers</RootNamespace>
     <AssemblyName>Text.Analyzers</AssemblyName>
     <PackageId>Text.Analyzers.Core</PackageId>
-    <SemanticVersion>$(TextAnalyzersSemanticVersion)</SemanticVersion>
-    <PreReleaseVersion>$(TextAnalyzersPreReleaseVersion)</PreReleaseVersion>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Text.CSharp.Analyzers" />

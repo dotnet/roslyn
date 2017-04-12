@@ -9,8 +9,6 @@
     <AnalyzerProject>true</AnalyzerProject>
     <RootNamespace>Roslyn.Diagnostics.CSharp.Analyzers</RootNamespace>
     <AssemblyName>Roslyn.Diagnostics.CSharp.Analyzers</AssemblyName>
-    <SemanticVersion>$(RoslynDiagnosticsAnalyzersSemanticVersion)</SemanticVersion>
-    <PreReleaseVersion>$(RoslynDiagnosticsAnalyzersPreReleaseVersion)</PreReleaseVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.Core.csproj" />

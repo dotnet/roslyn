@@ -10,8 +10,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.Analyzers</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Analyzers</AssemblyName>
     <PackageId>Microsoft.CodeAnalysis.Analyzers.Core</PackageId>
-    <SemanticVersion>$(MicrosoftCodeAnalysisAnalyzersSemanticVersion)</SemanticVersion>
-    <PreReleaseVersion>$(MicrosoftCodeAnalysisAnalyzersPreReleaseVersion)</PreReleaseVersion>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Analyzers" />

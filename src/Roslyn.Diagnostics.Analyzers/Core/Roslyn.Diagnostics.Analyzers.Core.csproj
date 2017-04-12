@@ -10,8 +10,6 @@
     <RootNamespace>Roslyn.Diagnostics.Analyzers</RootNamespace>
     <AssemblyName>Roslyn.Diagnostics.Analyzers</AssemblyName>
     <PackageId>Roslyn.Diagnostics.Analyzers.Core</PackageId>
-    <SemanticVersion>$(RoslynDiagnosticsAnalyzersSemanticVersion)</SemanticVersion>
-    <PreReleaseVersion>$(RoslynDiagnosticsAnalyzersPreReleaseVersion)</PreReleaseVersion>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CSharp.Analyzers" />

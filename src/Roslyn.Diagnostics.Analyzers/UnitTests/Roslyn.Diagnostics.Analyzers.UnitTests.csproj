@@ -8,8 +8,6 @@
     <TestProject>true</TestProject>
     <RootNamespace>Roslyn.Diagnostics.Analyzers.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Diagnostics.Analyzers.UnitTests</AssemblyName>
-    <SemanticVersion>$(RoslynDiagnosticsAnalyzersSemanticVersion)</SemanticVersion>
-    <PreReleaseVersion>$(RoslynDiagnosticsAnalyzersPreReleaseVersion)</PreReleaseVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Test\Utilities\Test.Utilities.csproj" />
