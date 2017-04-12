@@ -60,7 +60,10 @@ public class Program
         return result;
     }
 
-    private static void [|NewMethod|]() => Console.WriteLine(""Hello World"");
+    private static void [|NewMethod|]()
+    {
+        Console.WriteLine(""Hello World"");
+    }
 }";
 
             MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
