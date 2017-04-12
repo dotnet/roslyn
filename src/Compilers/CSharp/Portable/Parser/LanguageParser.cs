@@ -514,6 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.SealedKeyword:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.UnsafeKeyword:
+                case SyntaxKind.RefKeyword:
                 case SyntaxKind.OpenBracketToken:
                     return true;
                 default:
@@ -1089,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var argNodes = _pool.AllocateSeparated<AttributeArgumentSyntax>();
                 try
                 {
-tryAgain:
+                    tryAgain:
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
                         if (this.IsPossibleAttributeArgument() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -1543,6 +1544,7 @@ tryAgain:
 
                     return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
 
+                case SyntaxKind.RefKeyword:
                 case SyntaxKind.StructKeyword:
                 case SyntaxKind.InterfaceKeyword:
                     return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
@@ -1560,10 +1562,18 @@ tryAgain:
 
         private TypeDeclarationSyntax ParseClassOrStructOrInterfaceDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ClassKeyword || this.CurrentToken.Kind == SyntaxKind.StructKeyword || this.CurrentToken.Kind == SyntaxKind.InterfaceKeyword);
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ClassKeyword ||
+                this.CurrentToken.Kind == SyntaxKind.StructKeyword ||
+                this.CurrentToken.Kind == SyntaxKind.InterfaceKeyword ||
+                (this.CurrentToken.Kind == SyntaxKind.RefKeyword && PeekToken(1).Kind == SyntaxKind.StructKeyword));
 
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
+
+            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+            {
+                modifiers.Add(this.EatToken());
+            }
 
             var classOrStructOrInterface = this.EatToken();
             var saveTerm = _termState;
@@ -2306,7 +2316,8 @@ tryAgain:
                 }
 
                 // It's valid to have a type declaration here -- check for those
-                if (CanStartTypeDeclaration(this.CurrentToken.Kind))
+                if (CanStartTypeDeclaration(this.CurrentToken.Kind) ||
+                    this.CurrentToken.Kind == SyntaxKind.RefKeyword && PeekToken(1).Kind == SyntaxKind.StructKeyword)
                 {
                     return this.ParseTypeDeclaration(attributes, modifiers);
                 }
