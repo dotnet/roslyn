@@ -362,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         argument,
                         Function(argumentValue)
                             Dim lastParameterIndex = parameters.Length - 1
-                            If index = lastParameterIndex AndAlso parameters.Length > 0 AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
+                            If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
                                 ' TODO: figure out if this is true:
                                 '       a compiler generated argument for a ParamArray parameter is created iff 
                                 '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source

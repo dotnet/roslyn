@@ -86,8 +86,7 @@ IInvocationExpression (static void P.M2(System.Int32 x, [System.Double y = 0])) 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
         public void NamedArgumentListedOutOfParameterOrder()
         {
             string source = @"
@@ -380,7 +379,7 @@ IInvocationExpression (static void Extensions.E1(this P p, [System.Int32 x = 0],
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
         public void NamedArgumentOutOfParameterOrderForExtensionMethod()
         {
             string source = @"
@@ -681,7 +680,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
         public void NamedArgumentAndNamedParamsArrayArgumentInNormalFormOutOfParameterOrder()
         {
             string source = @"

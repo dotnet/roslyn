@@ -79,24 +79,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // TODO: We need to reuse the logic in `LocalRewriter.MakeArguments` instead of using private implementation. 
-        //       ALso. this implementation here was for the (now removed) API `ArgumentsInSourceOrder`, which doesn't fulfill
-        //       the contract of `ArgumentsInEvaluationOrder`, as it doesn't handle various scenarios correctly, 
+        //       Also. this implementation here was for the (now removed) API `ArgumentsInParameter`, which doesn't fulfill
+        //       the contract of `ArgumentsInEvaluationOrder` plus it doesn't handle various scenarios correctly even for parameter order, 
         //       e.g. default arguments, erroneous code, etc. 
         //       https://github.com/dotnet/roslyn/issues/18549
         internal static ImmutableArray<IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<int> argumentsToParametersOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<Symbols.ParameterSymbol> parameters, SyntaxNode invocationSyntax)
         {
-            ArrayBuilder<IArgument> sourceOrderArguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
-            for (int argumentIndex = 0; argumentIndex < boundArguments.Length; argumentIndex++)
+            ArrayBuilder<IArgument> arguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
+            for (int parameterIndex = 0; parameterIndex < parameters.Length; parameterIndex++)
             {
-                IArgument argument = DeriveArgument(argumentsToParametersOpt.IsDefault ? argumentIndex : argumentsToParametersOpt[argumentIndex], argumentIndex, boundArguments, argumentNamesOpt, argumentRefKindsOpt, parameters, invocationSyntax);
-                sourceOrderArguments.Add(argument);
-                if (argument.ArgumentKind == ArgumentKind.ParamArray)
+                int argumentIndex = -1;
+                if (argumentsToParametersOpt.IsDefault)
                 {
-                    break;
+                    argumentIndex = parameterIndex;
+                }
+                else
+                {
+                    argumentIndex = argumentsToParametersOpt.IndexOf(parameterIndex);
+                }
+
+                if ((uint)argumentIndex >= (uint)boundArguments.Length)
+                {
+                    // No argument has been supplied for the parameter at `parameterIndex`:
+                    // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
+                    // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
+
+                    Symbols.ParameterSymbol parameter = parameters[parameterIndex];
+                    if (parameter.HasExplicitDefaultValue)
+                    {
+                        // The parameter is optional with a default value.
+                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new LiteralExpression(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax)));
+                    }
+                    else
+                    {
+                        // If the invocation is semantically valid, the parameter will be a params array and an empty array will be provided.
+                        // If the argument is otherwise omitted for a parameter with no default value, the invocation is not valid and a null argument will be provided.
+                        arguments.Add(DeriveArgument(parameterIndex, boundArguments.Length, boundArguments, argumentNamesOpt, argumentRefKindsOpt, parameters, invocationSyntax));
+                    }
+                }
+                else
+                {
+                    arguments.Add(DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNamesOpt, argumentRefKindsOpt, parameters, invocationSyntax));
                 }
             }
 
-            return sourceOrderArguments.ToImmutableAndFree();
+            return arguments.ToImmutableAndFree();
         }
 
         private static readonly ConditionalWeakTable<BoundExpression, IArgument> s_argumentMappings = new ConditionalWeakTable<BoundExpression, IArgument>();
