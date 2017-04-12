@@ -191,15 +191,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         // Native EE uses the accessibility of the property rather than getter
                         // so "public object P { private get; set; }" is treated as public.
-                        // Instead, we drop properties if the getter is inaccessible.
+                        // We match this behaviour to maintain compatibility with F#, where it
+                        // is impossible to make property getters public on internal types.
                         var getMethod = GetNonIndexerGetMethod((PropertyInfo)member);
-                        if (getMethod == null)
-                        {
-                            return false;
-                        }
-                        var attributes = getMethod.Attributes;
-                        return ((attributes & System.Reflection.MethodAttributes.Public) == System.Reflection.MethodAttributes.Public) ||
-                            ((attributes & System.Reflection.MethodAttributes.Family) == System.Reflection.MethodAttributes.Family);
+                        return getMethod != null;
                     }
                 default:
                     return false;
