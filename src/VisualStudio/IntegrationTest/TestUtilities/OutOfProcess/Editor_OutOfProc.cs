@@ -205,6 +205,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void NavigateToSendKeys(string keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
+            
+        public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
+            _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);
@@ -295,6 +298,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public TextSpan[] GetKeywordHighlightTags()
             => Deserialize(_editorInProc.GetHighlightTags());
+
+        public TextSpan[] GetOutliningSpans()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Outlining);
+            return Deserialize(_editorInProc.GetOutliningSpans());
+        }
 
         private TextSpan[] Deserialize(string[] v)
         {

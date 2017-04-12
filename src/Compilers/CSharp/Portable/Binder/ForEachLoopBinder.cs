@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         exprSyntax,
                         LookupResultKind.Empty,
                         ImmutableArray<Symbol>.Empty,
-                        ImmutableArray.Create<BoundNode>(collectionExpr),
+                        ImmutableArray.Create(collectionExpr),
                         collectionExprType.GetNullableUnderlyingType())
                     { WasCompilerGenerated = true }; // Don't affect the type in the SemanticModel.
                 }

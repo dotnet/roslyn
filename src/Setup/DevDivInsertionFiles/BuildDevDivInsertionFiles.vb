@@ -859,7 +859,7 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Native.amd64.dll")
         add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Native.x86.dll")
         add("UnitTests\EditorServicesTest\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll")
-        add("Dlls\Concord\Microsoft.VisualStudio.Debugger.Engine.dll")
+        add("Vsix\ExpressionEvaluatorPackage\Microsoft.VisualStudio.Debugger.Engine.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
         add("Exes\Toolset\System.AppContext.dll")

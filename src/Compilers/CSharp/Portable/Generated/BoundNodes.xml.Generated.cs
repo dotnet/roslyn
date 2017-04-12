@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBadExpression : BoundExpression
     {
-        public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundNode> childBoundNodes, TypeSymbol type, bool hasErrors = false)
+        public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.BadExpression, syntax, type, hasErrors || childBoundNodes.HasErrors())
         {
 
@@ -499,14 +499,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<Symbol> Symbols { get; }
 
-        public ImmutableArray<BoundNode> ChildBoundNodes { get; }
+        public ImmutableArray<BoundExpression> ChildBoundNodes { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitBadExpression(this);
         }
 
-        public BoundBadExpression Update(LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundNode> childBoundNodes, TypeSymbol type)
+        public BoundBadExpression Update(LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol type)
         {
             if (resultKind != this.ResultKind || symbols != this.Symbols || childBoundNodes != this.ChildBoundNodes || type != this.Type)
             {
@@ -8387,7 +8387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitBadExpression(BoundBadExpression node)
         {
-            ImmutableArray<BoundNode> childBoundNodes = (ImmutableArray<BoundNode>)this.VisitList(node.ChildBoundNodes);
+            ImmutableArray<BoundExpression> childBoundNodes = (ImmutableArray<BoundExpression>)this.VisitList(node.ChildBoundNodes);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.ResultKind, node.Symbols, childBoundNodes, type);
         }

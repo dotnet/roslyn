@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "Microsoft.VisualStudio.Debugger.Engine": "15.0.26201-alpha",
+    "Microsoft.VisualStudio.Debugger.Engine": "15.0.26201-gamma",
     "xunit": "2.2.0-beta4-build3444",
     "xunit.runner.console": "2.2.0-beta4-build3444",
     "xunit.runner.visualstudio": "2.2.0-beta4-build1194"

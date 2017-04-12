@@ -11,13 +11,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    public static partial class SymbolFinder
+    internal static partial class DeclarationFinder
     {
         private static Task AddCompilationDeclarationsWithNormalQueryAsync(
             Project project, SearchQuery query, SymbolFilter filter,
-            ArrayBuilder<ISymbol> list, CancellationToken cancellationToken)
+            ArrayBuilder<SymbolAndProjectId> list, CancellationToken cancellationToken)
         {
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
             return AddCompilationDeclarationsWithNormalQueryAsync(
                 project, query, filter, list,
                 startingCompilation: null,
@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project,
             SearchQuery query,
             SymbolFilter filter,
-            ArrayBuilder<ISymbol> list,
+            ArrayBuilder<SymbolAndProjectId> list,
             Compilation startingCompilation,
             IAssemblySymbol startingAssembly,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_AddDeclarationsAsync, cancellationToken))
             {
@@ -45,14 +45,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var symbolsWithName = compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken)
+                                                 .Select(s => new SymbolAndProjectId(s, project.Id))
                                                  .ToImmutableArray();
 
                 if (startingCompilation != null && startingAssembly != null && compilation.Assembly != startingAssembly)
                 {
                     // Return symbols from skeleton assembly in this case so that symbols have 
                     // the same language as startingCompilation.
-                    symbolsWithName = symbolsWithName.Select(s => s.GetSymbolKey().Resolve(startingCompilation, cancellationToken: cancellationToken).Symbol)
-                                                     .WhereNotNull()
+                    symbolsWithName = symbolsWithName.Select(s => s.WithSymbol(s.Symbol.GetSymbolKey().Resolve(startingCompilation, cancellationToken: cancellationToken).Symbol))
+                                                     .Where(s => s.Symbol != null)
                                                      .ToImmutableArray();
                 }
 
@@ -61,30 +62,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddMetadataDeclarationsWithNormalQueryAsync(
-            Solution solution, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, 
-            SearchQuery query, SymbolFilter filter, ArrayBuilder<ISymbol> list, CancellationToken cancellationToken)
+            Project project, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, 
+            SearchQuery query, SymbolFilter filter, ArrayBuilder<SymbolAndProjectId> list, 
+            CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Assembly_AddDeclarationsAsync, cancellationToken))
             {
                 if (referenceOpt != null)
                 {
                     var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
-                        solution, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        project.Solution, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                     if (info != null)
                     {
-                        var symbols = await info.FindAsync(query, assembly, filter, cancellationToken).ConfigureAwait(false);
+                        var symbols = await info.FindAsync(
+                            query, assembly, project.Id, filter, cancellationToken).ConfigureAwait(false);
                         list.AddRange(symbols);
                     }
                 }
             }
         }
 
-        internal static ImmutableArray<ISymbol> FilterByCriteria(ImmutableArray<ISymbol> symbols, SymbolFilter criteria)
-            => symbols.WhereAsArray(s => MeetCriteria(s, criteria));
+        internal static ImmutableArray<SymbolAndProjectId> FilterByCriteria(ImmutableArray<SymbolAndProjectId> symbols, SymbolFilter criteria)
+            => symbols.WhereAsArray(s => MeetCriteria(s.Symbol, criteria));
 
         private static bool MeetCriteria(ISymbol symbol, SymbolFilter filter)
         {
