@@ -2340,7 +2340,7 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void IncludeFileResolution()
         {
