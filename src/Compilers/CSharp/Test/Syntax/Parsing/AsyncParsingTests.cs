@@ -1305,5 +1305,112 @@ class C
 ");
             Check(SyntaxKind.IndexerDeclaration);
         }
+
+        [Fact]
+        public void AsyncTypeEndOfFile()
+        {
+            TestVersions(options =>
+            {
+                UsingNode("class C { async T", options);
+
+                N(SyntaxKind.ClassDeclaration);
+            });
+        }
+
+        [Fact]
+        public void AsyncTypeCloseCurly()
+        {
+            TestVersions(options =>
+            {
+                UsingNode("class C { async T }", options);
+
+                N(SyntaxKind.ClassDeclaration);
+            });
+        }
+
+        [Fact]
+        public void AsyncTypePredefinedType()
+        {
+            TestVersions(options =>
+            {
+                UsingNode(
+@"class C {
+    async T
+    int", options);
+
+                N(SyntaxKind.ClassDeclaration);
+            });
+        }
+
+        [Fact]
+        public void AsyncTypeModifier()
+        {
+            TestVersions(options =>
+            {
+                UsingNode(
+@"class C {
+    async T
+    public", options);
+
+                N(SyntaxKind.ClassDeclaration);
+            });
+        }
+
+        [Fact]
+        public void AsyncTypeFollowedByModifier()
+        {
+            TestVersions(options =>
+            {
+                UsingNode(
+@"class C {
+    async T
+    public", options);
+
+                N(SyntaxKind.ClassDeclaration);
+            });
+        }
+
+        [Fact]
+        public void AsyncTypeFollowedByTypeDecl()
+        {
+            TestVersions(options =>
+            {
+                UsingNode(
+@"class C {
+    async T
+class", options);
+
+                N(SyntaxKind.ClassDeclaration);
+            });
+        }
+
+        [Fact]
+        public void AsyncTypeFollowedByNamespaceDecl()
+        {
+            TestVersions(options =>
+            {
+                UsingNode(
+@"class C {
+    async T
+namespace", options);
+
+                N(SyntaxKind.ClassDeclaration);
+            });
+        }
+
+        [Fact, WorkItem(18621, "https://github.com/dotnet/roslyn/issues/18621")]
+        public void AsyncGenericType()
+        {
+            TestVersions(options =>
+            {
+                UsingNode(
+@"class Program
+{
+    public async Task<IReadOnlyCollection<ProjectConfiguration>>
+}", options);
+
+                N(SyntaxKind.ClassDeclaration);
+            });
+        }
     }
 }
