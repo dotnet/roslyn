@@ -128,7 +128,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static bool IsClassOrStruct(SyntaxNode node)
             => node.Kind() == SyntaxKind.ClassDeclaration || node.Kind() == SyntaxKind.StructDeclaration;
-
-        private static CompletionItemRules s_rules = CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection);
     }
 }
