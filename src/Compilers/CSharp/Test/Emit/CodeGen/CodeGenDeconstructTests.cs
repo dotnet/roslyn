@@ -1324,40 +1324,65 @@ hello";
         public void AssigningIntoIndexers()
         {
             string source = @"
+using System;
 class C
 {
     int field;
-    ref int this[int i, long opt = 1]
+    ref int this[int x, int y, int z, int opt = 1]
     {
         get
         {
-            System.Console.Write(i); return ref field;
+            Console.WriteLine($""this[x: {x}, y: {y}, z: {z}].get"");
+            return ref field;
         }
     }
 
-    int this[long j, int opt = 1]
+    int this[int x, long y, int z, int opt = 1]
     {
         set
         {
-            System.Console.Write(j + value.ToString());
+            Console.WriteLine($""this[x: {x}, y: {y}, z: {z}].set({value})"");
         }
+    }
+
+    int M(int i)
+    {
+        Console.WriteLine($""M({i})"");
+        return 0;
+    }
+
+    void Test()
+    {
+        (this[z: M(1), x: M(2), y: 10], this[z: M(3), x: M(4), y: 10L]) = this;
+        Console.WriteLine($""field: {field}"");
     }
 
     static void Main()
     {
-        var c = new C();
-        (c[i: 1], c[j: 2]) = c;
+        new C().Test();
     }
 
-    public void Deconstruct(out int a, out int b)
+    void Deconstruct(out int a, out int b)
     {
+        Console.WriteLine(nameof(Deconstruct));
         a = 1;
         b = 2;
     }
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "122", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var expectedOutput =
+@"M(1)
+M(2)
+this[x: 0, y: 10, z: 0].get
+M(3)
+M(4)
+Deconstruct
+this[x: 0, y: 10, z: 0].set(2)
+field: 1
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1366,34 +1391,56 @@ class C
         public void AssigningTupleIntoIndexers()
         {
             string source = @"
+using System;
 class C
 {
     int field;
-    ref int this[int i, long opt = 1]
+    ref int this[int x, int y, int z, int opt = 1]
     {
         get
         {
-            System.Console.Write(i); return ref field;
+            Console.WriteLine($""this[x: {x}, y: {y}, z: {z}].get"");
+            return ref field;
         }
     }
 
-    int this[long j, int opt = 1]
+    int this[int x, long y, int z, int opt = 1]
     {
         set
         {
-            System.Console.Write(j + value.ToString());
+            Console.WriteLine($""this[x: {x}, y: {y}, z: {z}].set({value})"");
         }
+    }
+
+    int M(int i)
+    {
+        Console.WriteLine($""M({i})"");
+        return 0;
+    }
+
+    void Test()
+    {
+        (this[z: M(1), x: M(2), y: 10], this[z: M(3), x: M(4), y: 10L]) = (1, 2);
+        Console.WriteLine($""field: {field}"");
     }
 
     static void Main()
     {
-        var c = new C();
-        (c[i: 1], c[j: 2]) = (1, 2);
+        new C().Test();
     }
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "122", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var expectedOutput =
+@"M(1)
+M(2)
+this[x: 0, y: 10, z: 0].get
+M(3)
+M(4)
+this[x: 0, y: 10, z: 0].set(2)
+field: 1
+";
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 

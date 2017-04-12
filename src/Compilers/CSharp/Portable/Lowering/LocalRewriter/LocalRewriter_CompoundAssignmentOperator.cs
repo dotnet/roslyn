@@ -292,8 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 actualArguments[actualArguments.Length - 1] = boundTemp;
             }
 
-            // Step three: Now fill in the optional arguments. (Dev11 uses the
-            // getter for optional arguments in compound assignments.)
+            // Step three: Now fill in the optional arguments. (Dev11 uses the getter for optional arguments in
+            // compound assignments, but for deconstructions we use the setter if the getter is missing.)
             var accessor = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
             InsertMissingOptionalArguments(syntax, accessor.Parameters, actualArguments);
 
