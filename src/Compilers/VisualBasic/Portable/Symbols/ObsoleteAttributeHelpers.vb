@@ -3,14 +3,11 @@
 Imports System.Diagnostics
 Imports System.Threading
 Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Class ObsoleteAttributeHelpers
+    Friend NotInheritable Class ObsoleteAttributeHelpers
 
         ''' <summary>
         ''' Initialize the ObsoleteAttributeData by fetching attributes and decoding ObsoleteAttributeData. This can be 
@@ -25,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Shared Function GetObsoleteDataFromMetadata(token As EntityHandle, containingModule As PEModuleSymbol) As ObsoleteAttributeData
             Dim obsoleteAttributeData As ObsoleteAttributeData = Nothing
-            Dim isObsolete As Boolean = containingModule.Module.HasDeprecatedOrObsoleteAttribute(token, obsoleteAttributeData)
+            Dim isObsolete As Boolean = containingModule.Module.HasDeprecatedOrExperimentalOrObsoleteAttribute(token, obsoleteAttributeData)
             Debug.Assert(isObsolete = (obsoleteAttributeData IsNot Nothing))
             Debug.Assert(obsoleteAttributeData Is Nothing OrElse Not obsoleteAttributeData.IsUninitialized)
             Return obsoleteAttributeData
@@ -77,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Shared Function CreateObsoleteDiagnostic(symbol As Symbol) As DiagnosticInfo
             Dim data = symbol.ObsoleteAttributeData
 
-            If (data Is Nothing) Then
+            If data Is Nothing Then
                 ' ObsoleteAttribute had errors.
                 Return Nothing
             End If
@@ -85,6 +82,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' At this point, we are going to issue diagnostics and therefore the data shouldn't be
             ' uninitialized.
             Debug.Assert(Not data.IsUninitialized)
+
+            If data.Kind = ObsoleteAttributeKind.Experimental Then
+                Debug.Assert(data.Message Is Nothing)
+                Debug.Assert(Not data.IsError)
+                ' Provide an explicit format for fully-qualified type names.
+                Return ErrorFactory.ErrorInfo(ERRID.WRN_Experimental, New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat))
+            End If
 
             ' For property accessors we report a special diagnostic which indicates whether the getter or setter is obsolete.
             ' For all other symbols, report the regular diagnostic.

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static ObsoleteAttributeData GetObsoleteDataFromMetadata(EntityHandle token, PEModuleSymbol containingModule)
         {
             ObsoleteAttributeData obsoleteAttributeData;
-            bool isObsolete = containingModule.Module.HasDeprecatedOrObsoleteAttribute(token, out obsoleteAttributeData);
+            bool isObsolete = containingModule.Module.HasDeprecatedOrExperimentalOrObsoleteAttribute(token, out obsoleteAttributeData);
             Debug.Assert(isObsolete == (obsoleteAttributeData != null));
             Debug.Assert(obsoleteAttributeData == null || !obsoleteAttributeData.IsUninitialized);
             return obsoleteAttributeData;
@@ -94,6 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (location.Includes(BinderFlags.SuppressObsoleteChecks))
             {
                 return null;
+            }
+
+            if (data.Kind == ObsoleteAttributeKind.Experimental)
+            {
+                Debug.Assert(data.Message == null);
+                Debug.Assert(!data.IsError);
+                // Provide an explicit format for fully-qualified type names.
+                return new CSDiagnosticInfo(ErrorCode.WRN_Experimental, new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat));
             }
 
             // Issue a specialized diagnostic for add methods of collection initializers
